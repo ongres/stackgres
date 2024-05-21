@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation;
 
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class PgBouncerValidationResourceTest extends ValidationResourceTest<PoolingReview> {
+class PgBouncerValidationResourceTest extends ValidationResourceTest<StackGresPoolingConfigReview> {
 
   @BeforeEach
   public void setUp() {

@@ -12,7 +12,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
@@ -24,23 +24,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ObjectStorageDefaultValuesMutatorTest
-    extends DefaultValuesMutatorTest<StackGresObjectStorage, ObjectStorageReview> {
+    extends DefaultValuesMutatorTest<StackGresObjectStorage, StackGresObjectStorageReview> {
 
   @Override
-  protected AbstractValuesMutator<StackGresObjectStorage, ObjectStorageReview> getMutatorInstance(
+  protected AbstractValuesMutator<StackGresObjectStorage, StackGresObjectStorageReview> getMutatorInstance(
       DefaultCustomResourceFactory<StackGresObjectStorage> factory, JsonMapper jsonMapper) {
     return new ObjectStorageDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override
-  protected ObjectStorageReview getEmptyReview() {
-    final ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  protected StackGresObjectStorageReview getEmptyReview() {
+    final StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     review.getRequest().getObject().setSpec(new BackupStorage());
     return review;
   }
 
   @Override
-  protected ObjectStorageReview getDefaultReview() {
+  protected StackGresObjectStorageReview getDefaultReview() {
     return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
@@ -51,7 +51,7 @@ class ObjectStorageDefaultValuesMutatorTest
 
   @Test
   public void givenConfWithAllDefaultsValuesSettledButNotDefaultStorage_shouldNotReturnAnyPatch() {
-    ObjectStorageReview review = getDefaultReview();
+    StackGresObjectStorageReview review = getDefaultReview();
     review.getRequest().getObject().getSpec().setType("s3");
     AwsS3Storage s3 = new AwsS3Storage();
     s3.setBucket(

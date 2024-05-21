@@ -5,20 +5,20 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 
 abstract class AbstractPgConfigReview {
 
-  protected PgConfigReview validConfigReview() {
+  protected StackGresPostgresConfigReview validConfigReview() {
     return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
-  protected PgConfigReview validConfigUpdate() {
+  protected StackGresPostgresConfigReview validConfigUpdate() {
     return AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
   }
 
-  protected PgConfigReview validConfigDelete() {
+  protected StackGresPostgresConfigReview validConfigDelete() {
     return AdmissionReviewFixtures.postgresConfig().loadDelete().get();
   }
 

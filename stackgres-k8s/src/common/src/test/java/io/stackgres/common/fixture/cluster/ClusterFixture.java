@@ -12,8 +12,8 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.fixture.VersionedFixture;
 
@@ -78,7 +78,7 @@ public class ClusterFixture extends VersionedFixture<StackGresCluster> {
   public ClusterFixture withScheduling() {
     withPods();
     if (fixture.getSpec().getPods().getScheduling() == null) {
-      fixture.getSpec().getPods().setScheduling(new StackGresClusterPodScheduling());
+      fixture.getSpec().getPods().setScheduling(new StackGresClusterPodsScheduling());
     }
     return this;
   }

@@ -10,13 +10,13 @@ import java.util.Map;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ObjectStorageAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresObjectStorage, ObjectStorageReview>
+    extends AbstractAnnotationMutator<StackGresObjectStorage, StackGresObjectStorageReview>
     implements ObjectStorageMutator {
 
   private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();

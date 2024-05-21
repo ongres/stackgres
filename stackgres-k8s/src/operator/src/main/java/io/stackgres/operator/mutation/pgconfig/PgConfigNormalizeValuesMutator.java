@@ -14,13 +14,13 @@ import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class PgConfigNormalizeValuesMutator implements PgConfigMutator {
 
   @Override
-  public StackGresPostgresConfig mutate(PgConfigReview review, StackGresPostgresConfig resource) {
+  public StackGresPostgresConfig mutate(StackGresPostgresConfigReview review, StackGresPostgresConfig resource) {
     if (review.getRequest().getOperation() != Operation.CREATE
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;

@@ -54,6 +54,8 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigura
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterList;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsList;
+import io.stackgres.common.crd.sgstream.StackGresStream;
+import io.stackgres.common.crd.sgstream.StackGresStreamList;
 import io.stackgres.operator.common.ResourceWatcherFactory;
 import io.stackgres.operator.conciliation.backup.BackupReconciliator;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
@@ -63,6 +65,7 @@ import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsReconci
 import io.stackgres.operator.conciliation.shardedbackup.ShardedBackupReconciliator;
 import io.stackgres.operator.conciliation.shardedcluster.ShardedClusterReconciliator;
 import io.stackgres.operator.conciliation.shardeddbops.ShardedDbOpsReconciliator;
+import io.stackgres.operator.conciliation.stream.StreamReconciliator;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -84,6 +87,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private final ShardedClusterReconciliator shardedClusterReconciliatorCycle;
   private final ShardedBackupReconciliator shardedBackupReconciliatorCycle;
   private final ShardedDbOpsReconciliator shardedDbOpsReconciliatorCycle;
+  private final StreamReconciliator streamReconciliatorCycle;
   private final ResourceWatcherFactory watcherFactory;
   private final Map<String, StackGresConfig> configs =
       Collections.synchronizedMap(new HashMap<>());
@@ -101,6 +105,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
       Collections.synchronizedMap(new HashMap<>());
   private final Map<String, StackGresShardedDbOps> shardedDbOps =
       Collections.synchronizedMap(new HashMap<>());
+  private final Map<String, StackGresStream> streams =
+      Collections.synchronizedMap(new HashMap<>());
 
   @Inject
   public DefaultOperatorWatchersHandler(
@@ -113,6 +119,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
       ShardedClusterReconciliator shardedClusterReconciliatorCycle,
       ShardedBackupReconciliator shardedBackupReconciliatorCycle,
       ShardedDbOpsReconciliator shardedDbOpsReconciliatorCycle,
+      StreamReconciliator streamReconciliatorCycle,
       ResourceWatcherFactory watcherFactory) {
     super();
     this.client = client;
@@ -124,6 +131,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     this.shardedClusterReconciliatorCycle = shardedClusterReconciliatorCycle;
     this.shardedBackupReconciliatorCycle = shardedBackupReconciliatorCycle;
     this.shardedDbOpsReconciliatorCycle = shardedDbOpsReconciliatorCycle;
+    this.streamReconciliatorCycle = streamReconciliatorCycle;
     this.watcherFactory = watcherFactory;
   }
 
@@ -214,6 +222,13 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             putShardedDbOps()
             .andThen(reconcileShardedDbOps()))));
 
+    monitors.addAll(createCustomResourceWatchers(
+        StackGresStream.class,
+        StackGresStreamList.class,
+        onCreateOrUpdate(
+            putStream()
+            .andThen(reconcileStream()))));
+
     monitors.addAll(createWatchers(
         Endpoints.class,
         EndpointsList.class,
@@ -229,7 +244,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .andThen(reconcilePodBackups())
             .andThen(reconcilePodDbOps())
             .andThen(reconcilePodShardedBackups())
-            .andThen(reconcilePodShardedDbOps()))));
+            .andThen(reconcilePodShardedDbOps())
+            .andThen(reconcilePodStreams()))));
   }
 
   private <T extends CustomResource<?, ?>,
@@ -329,6 +345,10 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     return (action, dbOps) -> shardedDbOps.put(resourceId(dbOps), dbOps);
   }
 
+  private BiConsumer<Action, StackGresStream> putStream() {
+    return (action, stream) -> this.streams.put(resourceId(stream), stream);
+  }
+
   private BiConsumer<Action, StackGresConfig> reconcileConfig() {
     return (action, config) -> Optional
         .ofNullable(configs.get(resourceId(config)))
@@ -368,6 +388,10 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, StackGresShardedDbOps> reconcileShardedDbOps() {
     return (action, dbOps) -> shardedDbOpsReconciliatorCycle.reconcile(dbOps);
+  }
+
+  private BiConsumer<Action, StackGresStream> reconcileStream() {
+    return (action, stream) -> streamReconciliatorCycle.reconcile(stream);
   }
 
   private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileClusters() {
@@ -638,6 +662,21 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             pod.getMetadata().getLabels().get(dbOpsNameKey),
             dbOps.getMetadata().getName()))
         .forEach(dbOps -> reconcileShardedDbOps().accept(action, dbOps));
+  }
+
+  private BiConsumer<Action, Pod> reconcilePodStreams() {
+    String streamNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.STREAM_NAME_KEY;
+    return (action, pod) -> synchronizedCopyOfValues(streams)
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getMetadata().getNamespace(),
+            pod.getMetadata().getNamespace()))
+        .filter(stream -> pod.getMetadata().getLabels() != null)
+        .filter(stream -> Objects.equals(
+            pod.getMetadata().getLabels().get(streamNameKey),
+            stream.getMetadata().getName()))
+        .forEach(stream -> reconcileStream().accept(action, stream));
   }
 
   @Override

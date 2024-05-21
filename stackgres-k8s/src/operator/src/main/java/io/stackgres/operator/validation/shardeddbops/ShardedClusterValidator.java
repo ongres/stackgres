@@ -10,7 +10,7 @@ import java.util.Optional;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -30,7 +30,7 @@ public class ShardedClusterValidator implements ShardedDbOpsValidator {
   }
 
   @Override
-  public void validate(ShardedDbOpsReview review) throws ValidationFailed {
+  public void validate(StackGresShardedDbOpsReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.CREATE) {
       String cluster = review.getRequest().getObject().getSpec().getSgShardedCluster();
       String namespace = review.getRequest().getObject().getMetadata().getNamespace();

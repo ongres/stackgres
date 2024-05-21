@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.common.PgConfigReviewBuilder;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReviewBuilder;
 
-public class PostgresConfigReviewFixture extends VersionedFixture<PgConfigReview> {
+public class PostgresConfigReviewFixture extends VersionedFixture<StackGresPostgresConfigReview> {
 
   public static PostgresConfigReviewFixture fixture() {
     return new PostgresConfigReviewFixture();
@@ -32,8 +32,8 @@ public class PostgresConfigReviewFixture extends VersionedFixture<PgConfigReview
     return this;
   }
 
-  public PgConfigReviewBuilder getBuilder() {
-    return new PgConfigReviewBuilder(fixture);
+  public StackGresPostgresConfigReviewBuilder getBuilder() {
+    return new StackGresPostgresConfigReviewBuilder(fixture);
   }
 
 }

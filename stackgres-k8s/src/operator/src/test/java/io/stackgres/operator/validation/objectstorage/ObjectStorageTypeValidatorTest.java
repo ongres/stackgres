@@ -12,7 +12,7 @@ import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.StringUtils;
@@ -26,7 +26,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given an invalid storage type it must fail")
   void testStorageType() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     final String randomString = StringUtils.getRandomString(7);
     setType(review, randomString);
@@ -39,7 +39,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given storage type s3, s3 property must be set")
   void testStorageS3Null() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     setType(review, "s3");
 
     setNullStorages(review);
@@ -53,7 +53,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given storage type s3Compatible, s3Compatible property must be set")
   void testStorageS3CompatibleNull() {
 
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     setType(review, "s3Compatible");
     setNullStorages(review);
 
@@ -65,7 +65,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given storage type gcs, gcs property must be set")
   void testStorageGcsNull() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "gcs");
 
@@ -80,7 +80,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given storage type azureBlob, azureBlob property must be set")
   void testStorageAzureBlob() {
 
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "azureBlob");
 
@@ -94,7 +94,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given that unwanted properties set, it should fail")
   void testUnwantedPropertiesSet() {
 
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "s3");
     setNullStorages(review);
@@ -175,7 +175,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given a valid object storage creation review it must pass")
   void testValidCreation() throws ValidationFailed {
 
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "s3");
     setNullStorages(review);
@@ -201,7 +201,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given a valid object storage update review it must pass")
   void testValidUpdate() throws ValidationFailed {
 
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "s3");
     setNullStorages(review);
@@ -227,12 +227,12 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given a deletion review must pass")
   void testDelete() throws ValidationFailed {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadDelete().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadDelete().get();
     validator.validate(review);
   }
 
   private void assertObjectStorageReviewMessage(
-      ObjectStorageReview review,
+      StackGresObjectStorageReview review,
       String expectedMessage) {
     var ex = assertThrows(ValidationFailed.class, () -> validator.validate(review));
     assertEquals(
@@ -241,11 +241,11 @@ class ObjectStorageTypeValidatorTest {
     );
   }
 
-  private void setType(ObjectStorageReview review, String storageType) {
+  private void setType(StackGresObjectStorageReview review, String storageType) {
     review.getRequest().getObject().getSpec().setType(storageType);
   }
 
-  private void setNullStorages(ObjectStorageReview review) {
+  private void setNullStorages(StackGresObjectStorageReview review) {
     review.getRequest().getObject().getSpec().setS3(null);
     review.getRequest().getObject().getSpec().setS3Compatible(null);
     review.getRequest().getObject().getSpec().setAzureBlob(null);

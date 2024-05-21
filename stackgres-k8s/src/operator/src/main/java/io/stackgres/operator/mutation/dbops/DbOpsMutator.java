@@ -6,8 +6,8 @@
 package io.stackgres.operator.mutation.dbops;
 
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface DbOpsMutator extends Mutator<StackGresDbOps, DbOpsReview> {
+public interface DbOpsMutator extends Mutator<StackGresDbOps, StackGresDbOpsReview> {
 }

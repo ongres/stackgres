@@ -30,6 +30,8 @@ public enum ErrorType {
       "Forbidden configuration creation"),
   FORBIDDEN_CLUSTER_UPDATE("forbidden-cluster-update",
       "Forbidden cluster update"),
+  FORBIDDEN_STREAM_UPDATE("forbidden-stream-update",
+      "Forbidden stream update"),
   FORBIDDEN_AUTHORIZATION("forbidden-authorization",
       "Forbidden API role-based access control"),
   INVALID_STORAGE_CLASS("invalid-storage-class",

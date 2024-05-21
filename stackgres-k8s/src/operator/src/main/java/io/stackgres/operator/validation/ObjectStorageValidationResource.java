@@ -7,7 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.event.Observes;
@@ -24,13 +24,13 @@ import org.slf4j.LoggerFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ObjectStorageValidationResource
-    extends AbstractValidationResource<ObjectStorageReview> {
+    extends AbstractValidationResource<StackGresObjectStorageReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ObjectStorageValidationResource.class);
 
   @Inject
-  public ObjectStorageValidationResource(ValidationPipeline<ObjectStorageReview> pipeline) {
+  public ObjectStorageValidationResource(ValidationPipeline<StackGresObjectStorageReview> pipeline) {
     super(pipeline);
   }
 
@@ -45,7 +45,7 @@ public class ObjectStorageValidationResource
 
   @Override
   @POST
-  public AdmissionReviewResponse validate(ObjectStorageReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresObjectStorageReview admissionReview) {
     return super.validate(admissionReview);
   }
 }

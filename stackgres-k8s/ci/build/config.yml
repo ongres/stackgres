@@ -159,6 +159,26 @@ modules:
       - stackgres-k8s/src/jobs/src/test
     artifacts:
       - stackgres-k8s/src/jobs/target
+  stream-java:
+    <<: *operator-framework-java
+    path: stackgres-k8s/src/stream/.
+    filtered_sources:
+      - sh stackgres-k8s/ci/build/redact-version.sh stream
+    sources:
+      - stackgres-k8s/src/stream/src/main/java
+      - stackgres-k8s/src/stream/src/main/resources
+    artifacts:
+      - stackgres-k8s/src/stream/target
+      - .m2/repository/io/stackgres/stackgres-stream
+  stream-java-test:
+    <<: *operator-framework-java-test
+    path: stackgres-k8s/src/stream/.
+    filtered_sources:
+      - sh stackgres-k8s/ci/build/redact-version.sh stream
+    sources:
+      - stackgres-k8s/src/stream/src/test
+    artifacts:
+      - stackgres-k8s/src/stream/target
   cluster-controller-java:
     <<: *operator-framework-java
     path: stackgres-k8s/src/cluster-controller/.
@@ -251,6 +271,11 @@ modules:
     path: stackgres-k8s/src/jobs
     artifacts:
       - stackgres-k8s/src/jobs/target/stackgres-jobs-runner
+  stream-native:
+    <<: *native
+    path: stackgres-k8s/src/stream
+    artifacts:
+      - stackgres-k8s/src/stream/target/stackgres-stream-runner
   cluster-controller-native:
     <<: *native
     path: stackgres-k8s/src/cluster-controller
@@ -303,6 +328,19 @@ modules:
       0: stackgres-k8s/src/jobs/src/main/docker/LICENCE
       1: stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.jvm.sh
       2: stackgres-k8s/src/jobs/target/quarkus-app
+  stream-jvm-image: &stream-jvm-image
+    <<: *operator-jvm-image
+    path: stackgres-k8s/src/stream
+    dockerfile:
+      <<: *jvm-image-dockerfile
+      path: stackgres-k8s/src/stream/src/main/docker/Dockerfile.jvm
+      args:
+        <<: *jvm-image-args
+        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh stream)
+    artifacts: &stream-jvm-image-artifacts
+      0: stackgres-k8s/src/stream/src/main/docker/LICENCE
+      1: stackgres-k8s/src/stream/src/main/docker/stackgres-stream.jvm.sh
+      2: stackgres-k8s/src/stream/target/quarkus-app
   cluster-controller-jvm-image: &cluster-controller-jvm-image
     <<: *operator-jvm-image
     path: stackgres-k8s/src/cluster-controller
@@ -386,6 +424,19 @@ modules:
       0: stackgres-k8s/src/jobs/src/main/docker/LICENCE
       1: stackgres-k8s/src/jobs/target/stackgres-jobs-runner
       2: stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.native.sh
+  stream-native-image: &stream-native-image
+    <<: *operator-native-image
+    path: stackgres-k8s/src/stream
+    dockerfile:
+      <<: *native-image-dockerfile
+      path: stackgres-k8s/src/stream/src/main/docker/Dockerfile.native
+      args:
+        <<: *native-image-args
+        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh stream)
+    artifacts: &stream-native-image-artifacts
+      0: stackgres-k8s/src/stream/src/main/docker/LICENCE
+      1: stackgres-k8s/src/stream/target/stackgres-stream-runner
+      2: stackgres-k8s/src/stream/src/main/docker/stackgres-stream.native.sh
   cluster-controller-native-image: &cluster-controller-native-image
     <<: *operator-native-image
     path: stackgres-k8s/src/cluster-controller
@@ -558,6 +609,12 @@ modules:
     artifacts:
       <<: *jobs-jvm-image-artifacts
       999: stackgres-k8s/src/jobs/pom.xml
+  stream-jvm-release-image:
+    <<: *stream-jvm-image
+    type: jvm-release-image
+    artifacts:
+      <<: *stream-jvm-image-artifacts
+      999: stackgres-k8s/src/stream/pom.xml
   cluster-controller-jvm-release-image:
     <<: *cluster-controller-jvm-image
     type: jvm-release-image
@@ -594,6 +651,12 @@ modules:
     artifacts:
       <<: *jobs-native-image-artifacts
       999: stackgres-k8s/src/jobs/pom.xml
+  stream-native-release-image:
+    <<: *stream-native-image
+    type: native-release-image
+    artifacts:
+      <<: *stream-native-image-artifacts
+      999: stackgres-k8s/src/stream/pom.xml
   cluster-controller-native-release-image:
     <<: *cluster-controller-native-image
     type: native-release-image
@@ -642,6 +705,7 @@ stages:
   - operator-java: common-java
   - restapi-java: common-java
   - jobs-java: common-java
+  - stream-java: common-java
   - cluster-controller-java: common-java
   - distributedlogs-controller-java: common-java
   - operator-framework-java-test: operator-framework-java
@@ -649,23 +713,27 @@ stages:
   - operator-java-test: operator-java
   - restapi-java-test: restapi-java
   - jobs-java-test: jobs-java
+  - stream-java-test: stream-java
   - cluster-controller-java-test: cluster-controller-java
   - distributedlogs-controller-java-test: distributedlogs-controller-java
   - admin-ui: restapi-java
   - operator-jvm-image: operator-java
   - restapi-jvm-image: restapi-java
   - jobs-jvm-image: jobs-java
+  - stream-jvm-image: stream-java
   - cluster-controller-jvm-image: cluster-controller-java
   - distributedlogs-controller-jvm-image: distributedlogs-controller-java
   - admin-ui-image: admin-ui
   - operator-native: operator-java
   - restapi-native: restapi-java
   - jobs-native: jobs-java
+  - stream-native: stream-java
   - cluster-controller-native: cluster-controller-java
   - distributedlogs-controller-native: distributedlogs-controller-java
   - operator-native-image: operator-native
   - restapi-native-image: restapi-native
   - jobs-native-image: jobs-native
+  - stream-native-image: stream-native
   - cluster-controller-native-image: cluster-controller-native
   - distributedlogs-controller-native-image: distributedlogs-controller-native
   - helm-packages: null
@@ -678,12 +746,14 @@ stages:
   - operator-jvm-release-image: operator-java
   - restapi-jvm-release-image: restapi-java
   - jobs-jvm-release-image: jobs-java
+  - stream-jvm-release-image: stream-java
   - cluster-controller-jvm-release-image: cluster-controller-java
   - distributedlogs-controller-jvm-release-image: distributedlogs-controller-java
   - admin-ui-release-image: admin-ui
   - operator-native-release-image: operator-native
   - restapi-native-release-image: restapi-native
   - jobs-native-release-image: jobs-native
+  - stream-native-release-image: stream-native
   - cluster-controller-native-release-image: cluster-controller-native
   - distributedlogs-controller-native-release-image: distributedlogs-controller-native
   - helm-release-packages: null

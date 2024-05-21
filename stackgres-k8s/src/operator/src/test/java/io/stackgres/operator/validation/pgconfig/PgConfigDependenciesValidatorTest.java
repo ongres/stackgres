@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class PgConfigDependenciesValidatorTest
-    extends DependenciesValidatorTest<PgConfigReview, PgConfigDependenciesValidator> {
+    extends DependenciesValidatorTest<StackGresPostgresConfigReview, PgConfigDependenciesValidator> {
 
   @Override
   protected PgConfigDependenciesValidator setUpValidation() {
@@ -26,33 +26,33 @@ class PgConfigDependenciesValidatorTest
   }
 
   @Override
-  protected PgConfigReview getReview_givenAReviewCreation_itShouldDoNothing() {
+  protected StackGresPostgresConfigReview getReview_givenAReviewCreation_itShouldDoNothing() {
     return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   @Override
-  protected PgConfigReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+  protected StackGresPostgresConfigReview getReview_givenAReviewUpdate_itShouldDoNothing() {
     return AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
   }
 
   @Override
-  protected PgConfigReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+  protected StackGresPostgresConfigReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
     return AdmissionReviewFixtures.postgresConfig().loadDelete().get();
   }
 
   @Override
-  protected PgConfigReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+  protected StackGresPostgresConfigReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
       throws ValidationFailed {
     return AdmissionReviewFixtures.postgresConfig().loadDelete().get();
   }
 
   @Override
-  protected PgConfigReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+  protected StackGresPostgresConfigReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
     return AdmissionReviewFixtures.postgresConfig().loadDelete().get();
   }
 
   @Override
-  protected void makeClusterDependant(StackGresCluster cluster, PgConfigReview review) {
+  protected void makeClusterDependant(StackGresCluster cluster, StackGresPostgresConfigReview review) {
     cluster.getSpec().getConfigurations().setSgPostgresConfig(review.getRequest().getName());
   }
 

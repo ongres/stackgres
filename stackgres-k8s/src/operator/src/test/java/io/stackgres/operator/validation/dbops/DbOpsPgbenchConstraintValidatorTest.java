@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.dbops;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -17,21 +17,21 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import org.junit.jupiter.api.Test;
 
-class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {
+class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<StackGresDbOpsReview> {
 
   @Override
-  protected AbstractConstraintValidator<DbOpsReview> buildValidator() {
+  protected AbstractConstraintValidator<StackGresDbOpsReview> buildValidator() {
     return new DbOpsConstraintValidator();
   }
 
   @Override
-  protected DbOpsReview getValidReview() {
+  protected StackGresDbOpsReview getValidReview() {
     return AdmissionReviewFixtures.dbOps().loadPgbenchCreate().get();
   }
 
   @Override
-  protected DbOpsReview getInvalidReview() {
-    final DbOpsReview review = AdmissionReviewFixtures.dbOps().loadPgbenchCreate().get();
+  protected StackGresDbOpsReview getInvalidReview() {
+    final StackGresDbOpsReview review = AdmissionReviewFixtures.dbOps().loadPgbenchCreate().get();
 
     review.getRequest().getObject().setSpec(null);
     return review;
@@ -40,7 +40,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void nullBenchmark_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setBenchmark(null);
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.benchmark",
@@ -50,7 +50,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void nullBenchmarkType_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().setType(null);
 
     checkErrorCause(StackGresDbOpsBenchmark.class, "spec.benchmark.type",
@@ -60,7 +60,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void wrongBenchmarkType_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().setType("test");
 
     checkErrorCause(StackGresDbOpsBenchmark.class, "spec.benchmark.type",
@@ -70,7 +70,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void nullBenchmarkPgbench_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().setPgbench(null);
 
     checkErrorCause(StackGresDbOpsBenchmark.class, "spec.benchmark.pgbench",
@@ -80,7 +80,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void nullBenchmarkPgbenchDatabaseSize_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDatabaseSize(null);
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.databaseSize",
@@ -90,7 +90,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void wrongDuration_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDuration("10s");
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.duration",
@@ -100,7 +100,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void negativeDuration_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDuration("-PT1M");
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.duration",
@@ -110,7 +110,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void invalidLowConcurrentClients_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setConcurrentClients(0);
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.concurrentClients",
@@ -121,7 +121,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOps
   @Test
   void invalidLowThreads_shouldFail() {
 
-    DbOpsReview review = getValidReview();
+    StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setThreads(0);
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.threads",

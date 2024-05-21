@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.operator.common.PoolingReviewBuilder;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReviewBuilder;
 
-public class PoolingConfigReviewFixture extends VersionedFixture<PoolingReview> {
+public class PoolingConfigReviewFixture extends VersionedFixture<StackGresPoolingConfigReview> {
 
   public static PoolingConfigReviewFixture fixture() {
     return new PoolingConfigReviewFixture();
@@ -32,8 +32,8 @@ public class PoolingConfigReviewFixture extends VersionedFixture<PoolingReview> 
     return this;
   }
 
-  public PoolingReviewBuilder getBuilder() {
-    return new PoolingReviewBuilder(fixture);
+  public StackGresPoolingConfigReviewBuilder getBuilder() {
+    return new StackGresPoolingConfigReviewBuilder(fixture);
   }
 
 }

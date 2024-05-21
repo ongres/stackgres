@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.ValidationType;
 import jakarta.inject.Singleton;
@@ -15,7 +15,7 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.DEFAULT_CONFIGURATION)
 public class DefaultPgConfigKeeper
-    extends AbstractDefaultConfigKeeper<StackGresPostgresConfig, PgConfigReview>
+    extends AbstractDefaultConfigKeeper<StackGresPostgresConfig, StackGresPostgresConfigReview>
     implements PgConfigValidator {
 
 }

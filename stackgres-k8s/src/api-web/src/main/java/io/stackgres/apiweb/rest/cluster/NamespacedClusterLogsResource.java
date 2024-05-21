@@ -85,6 +85,7 @@ public class NamespacedClusterLogsResource {
       ### RBAC permissions required
 
       * sgclusters get
+      * secret get
       * pod list
       """)
   @GET

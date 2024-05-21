@@ -24,7 +24,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
   @Mock
   private CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private DbOpsReview review;
+  private StackGresDbOpsReview review;
   private StackGresCluster cluster;
   private DbOpsMajorVersionUpgradeMutator mutator;
   private Instant defaultTimestamp;
@@ -129,7 +129,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
   }
 
-  private StackGresDbOps mutate(DbOpsReview review) {
+  private StackGresDbOps mutate(StackGresDbOpsReview review) {
     return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

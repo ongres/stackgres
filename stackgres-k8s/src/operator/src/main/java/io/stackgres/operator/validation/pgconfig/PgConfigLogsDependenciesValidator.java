@@ -9,7 +9,7 @@ import java.util.Objects;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,11 +18,11 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class PgConfigLogsDependenciesValidator
-    extends DependenciesValidator<PgConfigReview, StackGresDistributedLogs>
+    extends DependenciesValidator<StackGresPostgresConfigReview, StackGresDistributedLogs>
     implements PgConfigValidator {
 
   @Override
-  public void validate(PgConfigReview review, StackGresDistributedLogs resource)
+  public void validate(StackGresPostgresConfigReview review, StackGresDistributedLogs resource)
       throws ValidationFailed {
     if (Objects.equals(resource.getSpec().getConfigurations().getSgPostgresConfig(),
         review.getRequest().getName())) {

@@ -12,7 +12,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -21,11 +21,11 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class ObjectStorageDependenciesValidator
-    extends DependenciesValidator<ObjectStorageReview, StackGresCluster>
+    extends DependenciesValidator<StackGresObjectStorageReview, StackGresCluster>
     implements ObjectStorageValidator {
 
   @Override
-  protected void validate(ObjectStorageReview review, StackGresCluster resource)
+  protected void validate(StackGresObjectStorageReview review, StackGresCluster resource)
       throws ValidationFailed {
     var backupsConfigurationOpt = Optional.ofNullable(resource)
         .map(StackGresCluster::getSpec)

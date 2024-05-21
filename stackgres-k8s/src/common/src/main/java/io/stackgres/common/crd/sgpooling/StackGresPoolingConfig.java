@@ -48,7 +48,7 @@ public final class StackGresPoolingConfig
 
   public static final String KIND = "SGPoolingConfig";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresPoolingConfigSpec spec;
 

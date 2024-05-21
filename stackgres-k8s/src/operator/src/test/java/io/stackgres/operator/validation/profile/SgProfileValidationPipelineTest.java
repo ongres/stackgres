@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.profile;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
@@ -17,24 +17,24 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 public class SgProfileValidationPipelineTest
-    extends ValidationPipelineTest<StackGresProfile, SgProfileReview> {
+    extends ValidationPipelineTest<StackGresProfile, StackGresInstanceProfileReview> {
 
   @Inject
   public SgProfileValidationPipeline pipeline;
 
   @Override
-  public SgProfileReview getConstraintViolatingReview() {
-    SgProfileReview review = getValidReview();
+  public StackGresInstanceProfileReview getConstraintViolatingReview() {
+    StackGresInstanceProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setMemory("");
     return review;
   }
 
-  private SgProfileReview getValidReview() {
+  private StackGresInstanceProfileReview getValidReview() {
     return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override
-  public ValidationPipeline<SgProfileReview> getPipeline() {
+  public ValidationPipeline<StackGresInstanceProfileReview> getPipeline() {
     return pipeline;
   }
 

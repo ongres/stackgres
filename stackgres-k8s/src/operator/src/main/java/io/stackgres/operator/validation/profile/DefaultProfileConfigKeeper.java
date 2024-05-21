@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.profile;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.ValidationType;
 import jakarta.inject.Singleton;
@@ -15,7 +15,7 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.DEFAULT_CONFIGURATION)
 public class DefaultProfileConfigKeeper
-    extends AbstractDefaultConfigKeeper<StackGresProfile, SgProfileReview>
+    extends AbstractDefaultConfigKeeper<StackGresProfile, StackGresInstanceProfileReview>
     implements SgProfileValidator {
 
 }

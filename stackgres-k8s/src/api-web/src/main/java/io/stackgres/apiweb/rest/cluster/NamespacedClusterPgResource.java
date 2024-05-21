@@ -96,6 +96,7 @@ public class NamespacedClusterPgResource {
       ### RBAC permissions required
 
       * sgcluster get
+      * secret get
       """)
   @Path("{name}/query")
   @GET

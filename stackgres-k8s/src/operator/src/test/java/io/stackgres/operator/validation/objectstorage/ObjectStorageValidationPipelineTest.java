@@ -14,7 +14,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.resource.SecretWriter;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -38,7 +38,7 @@ class ObjectStorageValidationPipelineTest {
   @DisplayName("Valid reviews should pass")
   void testValidReview() throws ValidationFailed {
 
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     var objectStorage = review.getRequest().getObject();
     var backupStorage = objectStorage.getSpec();
@@ -74,7 +74,7 @@ class ObjectStorageValidationPipelineTest {
   @Test
   @DisplayName("Given an invalid creation should fail")
   void testConstraintValidations() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     var objectStorage = review.getRequest().getObject();
     objectStorage.setSpec(
         RandomObjectUtils.generateRandomObject(BackupStorage.class));

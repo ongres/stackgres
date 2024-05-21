@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.profile;
 
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
-interface SgProfileValidator extends Validator<SgProfileReview> {
+interface SgProfileValidator extends Validator<StackGresInstanceProfileReview> {
 }

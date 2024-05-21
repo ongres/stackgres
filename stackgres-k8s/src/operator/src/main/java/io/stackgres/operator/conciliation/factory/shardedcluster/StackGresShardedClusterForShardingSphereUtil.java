@@ -295,7 +295,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .withNewSecretKeyRef()
         .withName(getInitSecretName(cluster))
         .withKey("shardingsphere-init.sql")
-        .endCrdSecretKeyRef()
+        .endSecretKeyRef()
         .endScriptFrom()
         .build();
     return script;
@@ -336,7 +336,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .withNewSecretKeyRef()
         .withName(getUpdateShardsSecretName(cluster))
         .withKey("shardingsphere-update-shards.sql")
-        .endCrdSecretKeyRef()
+        .endSecretKeyRef()
         .endScriptFrom()
         .build();
     return script;

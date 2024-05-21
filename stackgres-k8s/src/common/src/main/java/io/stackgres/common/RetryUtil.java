@@ -47,6 +47,13 @@ public interface RetryUtil {
         if (predicate.test((E) ex)) {
           try {
             int delay = calculateExponentialBackoffDelay(initial, maximum, variation, retry++);
+            if (LoggerFactory.getLogger(RetryUtil.class).isTraceEnabled()) {
+              LoggerFactory.getLogger(RetryUtil.class)
+                  .warn("Will retry after {} milliseconds due to error: {}", delay, ex.getMessage(), ex);
+            } else {
+              LoggerFactory.getLogger(RetryUtil.class)
+                  .warn("Will retry after {} milliseconds due to error: {}", delay, ex.getMessage());
+            }
             Thread.sleep(delay);
             continue;
           } catch (InterruptedException iex) {

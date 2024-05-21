@@ -14,7 +14,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.validation.DefaultCustomResourceHolder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -48,7 +48,7 @@ public class ObjectStorageReferencesValidator implements ObjectStorageValidator 
   }
 
   @Override
-  public void validate(ObjectStorageReview review) throws ValidationFailed {
+  public void validate(StackGresObjectStorageReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
       var objectStorage = review.getRequest().getObject();

@@ -10,13 +10,13 @@ import java.util.Map;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
-import io.stackgres.operator.common.ConfigReview;
+import io.stackgres.operator.common.StackGresConfigReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ConfigAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresConfig, ConfigReview>
+    extends AbstractAnnotationMutator<StackGresConfig, StackGresConfigReview>
     implements ConfigMutator {
 
   private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();

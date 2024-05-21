@@ -20,9 +20,9 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
@@ -127,7 +127,7 @@ public class GeneratedResourceMatcher {
       cluster.getSpec().setPods(new StackGresClusterPods());
     }
     if (cluster.getSpec().getPods().getPersistentVolume() == null) {
-      cluster.getSpec().getPods().setPersistentVolume(new StackGresPodPersistentVolume());
+      cluster.getSpec().getPods().setPersistentVolume(new StackGresClusterPodsPersistentVolume());
     }
     cluster.getSpec().getPods().getPersistentVolume().setSize(storageSize);
     return this;

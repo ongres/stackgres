@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.shardedbackup;
 
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -17,21 +17,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ShardedBackupConstraintValidationTest extends ConstraintValidationTest<ShardedBackupReview> {
+class ShardedBackupConstraintValidationTest extends ConstraintValidationTest<StackGresShardedBackupReview> {
 
   @Override
-  protected AbstractConstraintValidator<ShardedBackupReview> buildValidator() {
+  protected AbstractConstraintValidator<StackGresShardedBackupReview> buildValidator() {
     return new ShardedBackupConstraintValidation();
   }
 
   @Override
-  protected ShardedBackupReview getValidReview() {
+  protected StackGresShardedBackupReview getValidReview() {
     return AdmissionReviewFixtures.shardedBackup().loadCreate().get();
   }
 
   @Override
-  protected ShardedBackupReview getInvalidReview() {
-    final ShardedBackupReview backupReview =
+  protected StackGresShardedBackupReview getInvalidReview() {
+    final StackGresShardedBackupReview backupReview =
         AdmissionReviewFixtures.shardedBackup().loadCreate().get();
     backupReview.getRequest().getObject().setSpec(null);
     return backupReview;
@@ -39,14 +39,14 @@ class ShardedBackupConstraintValidationTest extends ConstraintValidationTest<Sha
 
   @Test
   void nullSpec_shouldFail() {
-    final ShardedBackupReview backupReview = getInvalidReview();
+    final StackGresShardedBackupReview backupReview = getInvalidReview();
 
     checkNotNullErrorCause(StackGresShardedBackup.class, "spec", backupReview);
   }
 
   @Test
   void nullClusterName_shouldFail() {
-    final ShardedBackupReview backupReview = getValidReview();
+    final StackGresShardedBackupReview backupReview = getValidReview();
     backupReview.getRequest().getObject().getSpec().setSgShardedCluster(null);
 
     checkNotNullErrorCause(StackGresShardedBackupSpec.class, "spec.sgShardedCluster", backupReview);
@@ -54,13 +54,11 @@ class ShardedBackupConstraintValidationTest extends ConstraintValidationTest<Sha
 
   @Test
   void invalidLowMaxRetries_shouldFail() {
-
-    final ShardedBackupReview backupReview = getValidReview();
+    final StackGresShardedBackupReview backupReview = getValidReview();
     backupReview.getRequest().getObject().getSpec().setMaxRetries(-1);
 
     checkErrorCause(StackGresShardedBackupSpec.class, "spec.maxRetries",
         backupReview, Min.class);
-
   }
 
 }

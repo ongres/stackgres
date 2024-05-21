@@ -10,13 +10,13 @@ import java.util.Map;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PgConfigAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresPostgresConfig, PgConfigReview>
+    extends AbstractAnnotationMutator<StackGresPostgresConfig, StackGresPostgresConfigReview>
     implements PgConfigMutator {
 
   private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();

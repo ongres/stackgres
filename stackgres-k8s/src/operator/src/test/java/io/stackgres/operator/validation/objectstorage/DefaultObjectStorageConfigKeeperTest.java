@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.objectstorage;
 
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
@@ -15,26 +15,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultObjectStorageConfigKeeperTest
-    extends DefaultKeeperTest<StackGresObjectStorage, ObjectStorageReview> {
+    extends DefaultKeeperTest<StackGresObjectStorage, StackGresObjectStorageReview> {
 
   @Override
   protected AbstractDefaultConfigKeeper<
-      StackGresObjectStorage, ObjectStorageReview> getValidatorInstance() {
+      StackGresObjectStorage, StackGresObjectStorageReview> getValidatorInstance() {
     return new DefaultObjectStorageConfigKeeper();
   }
 
   @Override
-  protected ObjectStorageReview getCreationSample() {
+  protected StackGresObjectStorageReview getCreationSample() {
     return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
   @Override
-  protected ObjectStorageReview getDeleteSample() {
+  protected StackGresObjectStorageReview getDeleteSample() {
     return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
-  protected ObjectStorageReview getUpdateSample() {
+  protected StackGresObjectStorageReview getUpdateSample() {
     return AdmissionReviewFixtures.objectStorage().loadUpdate().get();
   }
 

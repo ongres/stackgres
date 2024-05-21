@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "name": "test",
+    "namespace": "postgresql",
+    "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+  },
+  "spec": {
+    "source": {
+      "type": "SGCluster",
+      "sgCluster": {
+        "name": "stackgres"
+      }
+    },
+    "target": {
+      "type": "CloudEvent"
+    },
+    "pods": {
+      "persistentVolume": {
+        "size": "1Gi"
+      }
+    }
+  },
+  "status": null
+}

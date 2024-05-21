@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.backup;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import jakarta.inject.Inject;
@@ -16,14 +16,14 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 public class BackupValidationPipelineTest
-    extends ValidationPipelineTest<StackGresBackup, BackupReview> {
+    extends ValidationPipelineTest<StackGresBackup, StackGresBackupReview> {
 
   @Inject
   public BackupValidationPipeline pipeline;
 
   @Override
-  public BackupReview getConstraintViolatingReview() {
-    final BackupReview backupReview = AdmissionReviewFixtures.backup().loadCreate().get();
+  public StackGresBackupReview getConstraintViolatingReview() {
+    final StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadCreate().get();
     backupReview.getRequest().getObject().getSpec().setSgCluster(null);
     return backupReview;
   }

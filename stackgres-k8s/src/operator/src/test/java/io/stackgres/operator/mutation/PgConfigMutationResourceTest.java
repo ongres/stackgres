@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.testutil.JsonUtil;
@@ -18,15 +18,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class PgConfigMutationResourceTest
-    extends MutationResourceTest<StackGresPostgresConfig, PgConfigReview> {
+    extends MutationResourceTest<StackGresPostgresConfig, StackGresPostgresConfigReview> {
 
   @Override
-  protected AbstractMutationResource<StackGresPostgresConfig, PgConfigReview> getResource() {
+  protected AbstractMutationResource<StackGresPostgresConfig, StackGresPostgresConfigReview> getResource() {
     return new PgConfigMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override
-  protected PgConfigReview getReview() {
+  protected StackGresPostgresConfigReview getReview() {
     return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 

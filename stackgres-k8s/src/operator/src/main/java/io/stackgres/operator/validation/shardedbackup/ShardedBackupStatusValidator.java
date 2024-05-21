@@ -12,7 +12,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupInformation;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -31,7 +31,7 @@ public class ShardedBackupStatusValidator implements ShardedBackupValidator {
   }
 
   @Override
-  public void validate(ShardedBackupReview review) throws ValidationFailed {
+  public void validate(StackGresShardedBackupReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       var backups = Optional
           .ofNullable(review.getRequest().getObject())

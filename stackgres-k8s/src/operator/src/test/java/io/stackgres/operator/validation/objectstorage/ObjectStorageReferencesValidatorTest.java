@@ -25,7 +25,7 @@ import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.common.resource.SecretFinder;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DefaultCustomResourceHolder;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -49,8 +49,8 @@ class ObjectStorageReferencesValidatorTest {
 
   private ObjectStorageReferencesValidator validator;
 
-  private static ObjectStorageReview getValidS3CreationReview() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  private static StackGresObjectStorageReview getValidS3CreationReview() {
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setNullStorages(review);
 
@@ -63,8 +63,8 @@ class ObjectStorageReferencesValidatorTest {
     return review;
   }
 
-  private static ObjectStorageReview getValidS3CompatibleCreationReview() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  private static StackGresObjectStorageReview getValidS3CompatibleCreationReview() {
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setNullStorages(review);
 
@@ -79,8 +79,8 @@ class ObjectStorageReferencesValidatorTest {
 
   }
 
-  private static ObjectStorageReview getValidAzureBlobCreationReview() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  private static StackGresObjectStorageReview getValidAzureBlobCreationReview() {
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setNullStorages(review);
 
@@ -95,8 +95,8 @@ class ObjectStorageReferencesValidatorTest {
 
   }
 
-  private static ObjectStorageReview getValidGcsCreationReview() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  private static StackGresObjectStorageReview getValidGcsCreationReview() {
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     setNullStorages(review);
 
     var objectStorage = review.getRequest().getObject().getSpec();
@@ -110,7 +110,7 @@ class ObjectStorageReferencesValidatorTest {
 
   }
 
-  private static void setNullStorages(ObjectStorageReview review) {
+  private static void setNullStorages(StackGresObjectStorageReview review) {
     var objectStorage = review.getRequest().getObject().getSpec();
     objectStorage.setS3(null);
     objectStorage.setS3Compatible(null);

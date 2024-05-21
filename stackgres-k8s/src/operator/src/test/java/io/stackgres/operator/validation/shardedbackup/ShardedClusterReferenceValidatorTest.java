@@ -26,7 +26,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupCon
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -65,7 +65,7 @@ class ShardedClusterReferenceValidatorTest {
 
   @Test
   void givenAClusterWithNoBackupConfigReferenceOnCreation_shouldFail() throws ValidationFailed {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
     review.getRequest().getObject().getStatus().setSgBackups(null);
 
     String clusterName =
@@ -88,7 +88,7 @@ class ShardedClusterReferenceValidatorTest {
 
   @Test
   void givenValidStackGresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
     review.getRequest().getObject().getStatus().setSgBackups(null);
 
     String clusterName =
@@ -107,7 +107,7 @@ class ShardedClusterReferenceValidatorTest {
   @Test
   void givenComposedStackGresReferenceOnCreationWithRequiredStatus_shouldNotFail()
       throws ValidationFailed {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
     review.getRequest().getObject().getSpec().setSgShardedCluster(
         StackGresUtil.getRelativeId(
             cluster.getMetadata().getName(),
@@ -123,7 +123,7 @@ class ShardedClusterReferenceValidatorTest {
 
   @Test
   void giveInvalidStackGresReferenceOnCreation_shouldFail() {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
     review.getRequest().getObject().getStatus().setSgBackups(null);
 
     String clusterName =
@@ -147,7 +147,7 @@ class ShardedClusterReferenceValidatorTest {
   @Test
   void giveInvalidStackGresReferenceOnCreationWithStatusBackupConfig_shouldNotFail()
       throws ValidationFailed {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
 
     String clusterName =
         review.getRequest().getObject().getSpec().getSgShardedCluster();
@@ -160,7 +160,7 @@ class ShardedClusterReferenceValidatorTest {
 
   @Test
   void giveAnAttemptToUpdateReferencedCluster_shouldFail() {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
 
     review.getRequest().getObject().getSpec().setSgShardedCluster("test");
 
@@ -177,7 +177,7 @@ class ShardedClusterReferenceValidatorTest {
 
   @Test
   void giveAnAttemptToUpdateManagedLifecycle_shouldNotFail() throws ValidationFailed {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
 
     review.getRequest().getObject().getSpec().setManagedLifecycle(
         !review.getRequest().getObject().getSpec().getManagedLifecycle());
@@ -189,7 +189,7 @@ class ShardedClusterReferenceValidatorTest {
 
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
-    final ShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    final StackGresShardedBackupReview review = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

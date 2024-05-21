@@ -7,12 +7,12 @@ package io.stackgres.operator.mutation.pgconfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
 
 public class PgConfigDefaultValuesMutator
-    extends AbstractValuesMutator<StackGresPostgresConfig, PgConfigReview>
+    extends AbstractValuesMutator<StackGresPostgresConfig, StackGresPostgresConfigReview>
     implements PgConfigMutator {
 
   public static PgConfigDefaultValuesMutator create(
@@ -33,7 +33,7 @@ public class PgConfigDefaultValuesMutator
     this.normalizeValuesMutator = new PgConfigNormalizeValuesMutator();
   }
 
-  public StackGresPostgresConfig mutate(PgConfigReview review, StackGresPostgresConfig resource) {
+  public StackGresPostgresConfig mutate(StackGresPostgresConfigReview review, StackGresPostgresConfig resource) {
     resource = super.mutate(review, resource);
     resource = normalizeValuesMutator.mutate(review, resource);
     return resource;

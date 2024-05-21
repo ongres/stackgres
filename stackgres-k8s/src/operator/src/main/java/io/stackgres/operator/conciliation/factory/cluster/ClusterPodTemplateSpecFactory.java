@@ -37,8 +37,8 @@ import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
@@ -171,12 +171,12 @@ public class ClusterPodTemplateSpecFactory
         .withNodeSelector(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPods)
             .map(StackGresClusterPods::getScheduling)
-            .map(StackGresClusterPodScheduling::getNodeSelector)
+            .map(StackGresClusterPodsScheduling::getNodeSelector)
             .orElse(null))
         .withTolerations(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPods)
             .map(StackGresClusterPods::getScheduling)
-            .map(StackGresClusterPodScheduling::getTolerations)
+            .map(StackGresClusterPodsScheduling::getTolerations)
             .map(tolerations -> Seq.seq(tolerations)
                 .map(TolerationBuilder::new)
                 .map(TolerationBuilder::build)
@@ -186,17 +186,17 @@ public class ClusterPodTemplateSpecFactory
             .withNodeAffinity(Optional.ofNullable(cluster.getSpec())
                 .map(StackGresClusterSpec::getPods)
                 .map(StackGresClusterPods::getScheduling)
-                .map(StackGresClusterPodScheduling::getNodeAffinity)
+                .map(StackGresClusterPodsScheduling::getNodeAffinity)
                 .orElse(null))
             .withPodAffinity(Optional.ofNullable(cluster.getSpec())
                 .map(StackGresClusterSpec::getPods)
                 .map(StackGresClusterPods::getScheduling)
-                .map(StackGresClusterPodScheduling::getPodAffinity)
+                .map(StackGresClusterPodsScheduling::getPodAffinity)
                 .orElse(null))
             .withPodAntiAffinity(Optional.ofNullable(cluster.getSpec())
                 .map(StackGresClusterSpec::getPods)
                 .map(StackGresClusterPods::getScheduling)
-                .map(StackGresClusterPodScheduling::getPodAntiAffinity)
+                .map(StackGresClusterPodsScheduling::getPodAntiAffinity)
                 .map(PodAntiAffinityBuilder::new)
                 .orElseGet(PodAntiAffinityBuilder::new)
                 .addAllToRequiredDuringSchedulingIgnoredDuringExecution(Seq.of(
@@ -219,7 +219,7 @@ public class ClusterPodTemplateSpecFactory
                     .append(Optional.ofNullable(cluster.getSpec())
                         .map(StackGresClusterSpec::getPods)
                         .map(StackGresClusterPods::getScheduling)
-                        .map(StackGresClusterPodScheduling::getPodAntiAffinity)
+                        .map(StackGresClusterPodsScheduling::getPodAntiAffinity)
                         .map(PodAntiAffinity::getRequiredDuringSchedulingIgnoredDuringExecution)
                         .stream()
                         .flatMap(List::stream))
@@ -229,12 +229,12 @@ public class ClusterPodTemplateSpecFactory
         .withPriorityClassName(Optional.ofNullable(cluster.getSpec())
                         .map(StackGresClusterSpec::getPods)
                         .map(StackGresClusterPods::getScheduling)
-                        .map(StackGresClusterPodScheduling::getPriorityClassName)
+                        .map(StackGresClusterPodsScheduling::getPriorityClassName)
                         .orElse(null))
         .withTopologySpreadConstraints(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPods)
             .map(StackGresClusterPods::getScheduling)
-            .map(StackGresClusterPodScheduling::getTopologySpreadConstraints)
+            .map(StackGresClusterPodsScheduling::getTopologySpreadConstraints)
             .map(topologySpreadConstraints -> Seq.seq(topologySpreadConstraints)
                 .map(TopologySpreadConstraintBuilder::new)
                 .map(TopologySpreadConstraintBuilder::build)

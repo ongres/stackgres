@@ -9,7 +9,8 @@ public enum StackGresGroupKind {
 
   CLUSTER,
   DBOPS("dbops"),
-  BACKUP("backup");
+  BACKUP("backup"),
+  STREAM("stream");
 
   private final String containerPrefix;
 

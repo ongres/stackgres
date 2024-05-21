@@ -40,6 +40,7 @@ rules:
     - sgshardedbackups.stackgres.io
     - sgshardeddbops.stackgres.io
     - sgscripts.stackgres.io
+    - sgstreams.stackgres.io
   verbs:
     - get
 - apiGroups:
@@ -145,6 +146,7 @@ rules:
     - sgdistributedlogs.stackgres.io
     - sgshardedclusters.stackgres.io
     - sgscripts.stackgres.io
+    - sgstreams.stackgres.io
   verbs:
     - get
 - apiGroups:
@@ -226,6 +228,9 @@ rules:
     - sgobjectstorages
     - sgscripts
     - sgshardedclusters
+    - sgshardedbackups
+    - sgshardeddbops
+    - sgstreams
   verbs:
     - create
     - watch
@@ -283,6 +288,7 @@ rules:
     - sgdistributedlogs.stackgres.io
     - sgshardedclusters.stackgres.io
     - sgscripts.stackgres.io
+    - sgstreams.stackgres.io
   verbs:
     - get
 - apiGroups:
@@ -364,6 +370,9 @@ rules:
     - sgobjectstorages
     - sgscripts
     - sgshardedclusters
+    - sgshardedbackups
+    - sgshardeddbops
+    - sgstreams
   verbs:
     - create
     - watch
@@ -408,6 +417,7 @@ rules:
     - sgdistributedlogs.stackgres.io
     - sgshardedclusters.stackgres.io
     - sgscripts.stackgres.io
+    - sgstreams.stackgres.io
   verbs:
     - get
 - apiGroups:
@@ -469,6 +479,9 @@ rules:
     - sgobjectstorages
     - sgscripts
     - sgshardedclusters
+    - sgshardedbackups
+    - sgshardeddbops
+    - sgstreams
   verbs:
     - watch
     - list

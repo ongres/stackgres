@@ -19,7 +19,7 @@ import io.restassured.http.ContentType;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 import io.stackgres.common.resource.SecretWriter;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.RandomObjectUtils;
 import io.stackgres.testutil.StringUtils;
@@ -64,8 +64,8 @@ class ObjectStorageValidationResourceTest {
         .body("response.allowed", is(false));
   }
 
-  private ObjectStorageReview getValidReview() {
-    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  private StackGresObjectStorageReview getValidReview() {
+    StackGresObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     var objectStorage = review.getRequest().getObject();
     var backupStorage = objectStorage.getSpec();
     backupStorage.setType("s3");
@@ -79,7 +79,7 @@ class ObjectStorageValidationResourceTest {
     return review;
   }
 
-  private void createMandatorySecrets(ObjectStorageReview review) {
+  private void createMandatorySecrets(StackGresObjectStorageReview review) {
     var objectStorage = review.getRequest().getObject();
     final AwsSecretKeySelector secretKeySelectors = objectStorage.getSpec().getS3()
         .getAwsCredentials().getSecretKeySelectors();

@@ -131,7 +131,8 @@ reset_k8s() {
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public)
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)
-      $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
+      $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)
+      $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/stream/target/quarkus-app)"
   fi
 
   echo "Setting up kind environment $KIND_NAME..."
@@ -526,6 +527,9 @@ k8s_copy_to_extra_mount_build_path() {
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app
   cp -a "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app/. \
     "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app/.
+  mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/stream/target/quarkus-app
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/stream/target/quarkus-app/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/stream/target/quarkus-app/.
 }
 
 setup_metric_server() {

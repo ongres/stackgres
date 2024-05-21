@@ -1,0 +1,15 @@
+apiVersion: stackgres.io/v1
+kind: SGScript
+metadata:
+  name: stream-db
+  namespace: demo-db
+spec:
+  source:
+    type: SGCluster
+    sgCluster:
+      name: demo-db
+  target:
+    type: CloudEvent
+    cloudEvent:
+      http:
+        url: http://cloudevents-nodejs

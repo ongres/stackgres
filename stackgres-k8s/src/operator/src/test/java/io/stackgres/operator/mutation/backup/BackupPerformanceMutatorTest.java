@@ -13,7 +13,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBaseBackupPerformance;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,7 @@ class BackupPerformanceMutatorTest {
 
   protected static final JsonMapper JSON_MAPPER = new JsonMapper();
 
-  private BackupReview review;
+  private StackGresBackupReview review;
   private BackupPerformanceMutator mutator;
 
   @BeforeEach
@@ -142,7 +142,7 @@ class BackupPerformanceMutatorTest {
         .getPerformance().getMaxNetworkBandwitdh());
   }
 
-  private StackGresBackup mutate(BackupReview review) {
+  private StackGresBackup mutate(StackGresBackupReview review) {
     return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

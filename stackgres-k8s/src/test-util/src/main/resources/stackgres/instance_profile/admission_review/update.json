@@ -88,6 +88,10 @@
           "backup.create-backup": {
             "cpu": "1",
             "memory": "256Mi"
+          },
+          "stream.stream-controller": {
+            "cpu": "1",
+            "memory": "512Mi"
           }
         },
         "initContainers": {
@@ -175,6 +179,10 @@
             "backup.create-backup": {
               "cpu": "1",
               "memory": "256Mi"
+            },
+            "stream.stream-controller": {
+              "cpu": "1",
+              "memory": "512Mi"
             }
           },
           "initContainers": {
@@ -278,6 +286,10 @@
           "backup.create-backup": {
             "cpu": "1",
             "memory": "256Mi"
+          },
+          "stream.stream-controller": {
+            "cpu": "1",
+            "memory": "512Mi"
           }
         },
         "initContainers": {
@@ -365,6 +377,10 @@
             "backup.create-backup": {
               "cpu": "1",
               "memory": "256Mi"
+            },
+            "stream.stream-controller": {
+              "cpu": "1",
+              "memory": "512Mi"
             }
           },
           "initContainers": {

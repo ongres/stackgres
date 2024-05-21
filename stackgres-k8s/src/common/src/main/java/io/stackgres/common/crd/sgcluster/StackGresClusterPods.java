@@ -33,7 +33,7 @@ import jakarta.validation.constraints.AssertTrue;
 public class StackGresClusterPods {
 
   @Valid
-  private StackGresPodPersistentVolume persistentVolume;
+  private StackGresClusterPodsPersistentVolume persistentVolume;
 
   private Boolean disableConnectionPooling;
 
@@ -49,7 +49,7 @@ public class StackGresClusterPods {
   private StackGresClusterResources resources;
 
   @Valid
-  private StackGresClusterPodScheduling scheduling;
+  private StackGresClusterPodsScheduling scheduling;
 
   @Valid
   private List<CustomVolume> customVolumes;
@@ -77,11 +77,11 @@ public class StackGresClusterPods {
     return persistentVolume != null;
   }
 
-  public StackGresPodPersistentVolume getPersistentVolume() {
+  public StackGresClusterPodsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
 
-  public void setPersistentVolume(StackGresPodPersistentVolume persistentVolume) {
+  public void setPersistentVolume(StackGresClusterPodsPersistentVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
   }
 
@@ -117,11 +117,11 @@ public class StackGresClusterPods {
     this.resources = resources;
   }
 
-  public StackGresClusterPodScheduling getScheduling() {
+  public StackGresClusterPodsScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(StackGresClusterPodScheduling scheduling) {
+  public void setScheduling(StackGresClusterPodsScheduling scheduling) {
     this.scheduling = scheduling;
   }
 

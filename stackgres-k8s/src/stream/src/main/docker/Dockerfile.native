@@ -1,0 +1,55 @@
+ARG BASE_IMAGE
+
+FROM quay.io/ongres/patroni:v3.0.2-pg15.0-build-6.22 AS patroni_3_0_2
+FROM quay.io/ongres/patroni:v3.2.2-pg16.2-build-6.30 AS patroni_3_2_2
+FROM quay.io/ongres/patroni:v3.3.0-pg16.2-build-6.31 AS patroni_3_3_0
+
+FROM "$BASE_IMAGE"
+  USER root:root
+
+  RUN microdnf install -y python3 libpq
+  COPY --from=patroni_3_0_2 /usr/bin/patronictl /usr/bin/patronictl-3.0.2
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.0.2')" /usr/bin/patronictl-3.0.2
+  COPY --from=patroni_3_0_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.0.2
+  COPY --from=patroni_3_0_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.0.2
+
+  COPY --from=patroni_3_2_2 /usr/bin/patronictl /usr/bin/patronictl-3.2.2
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.2.2')" /usr/bin/patronictl-3.2.2
+  COPY --from=patroni_3_2_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.2.2
+  COPY --from=patroni_3_2_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.2.2
+
+  COPY --from=patroni_3_3_0 /usr/bin/patronictl /usr/bin/patronictl-3.3.0
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.3.0')" /usr/bin/patronictl-3.3.0
+  COPY --from=patroni_3_3_0 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.3.0
+  COPY --from=patroni_3_3_0 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.3.0
+
+
+  WORKDIR '/app/'
+
+  COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
+
+  RUN echo 'jboss:x:1000:' >> /etc/group && \
+    echo 'jboss:!::' >> /etc/gshadow && \
+    echo 'jboss:x:1000:1000::/app:/bin/bash' >> /etc/passwd && \
+    echo 'jboss:!!:18655:0:99999:7:::' >> /etc/shadow && \
+    echo 'jboss:100000:65536' >> /etc/subgid
+
+  COPY 'target/*.so' '/app/'
+  COPY 'src/main/docker/stackgres-stream.native.sh' '/app/stackgres-stream.sh'
+  COPY 'target/stackgres-stream-runner' '/app/stackgres-stream'
+
+  RUN chown -R jboss:jboss '/app'
+  RUN chmod 755 '/app'
+  RUN chmod 755 '/app/stackgres-stream.sh'
+
+  ENV HOME=/app LANG=C.utf8
+  USER jboss:jboss
+  EXPOSE 8080
+  EXPOSE 8443
+
+  ARG STACKGRES_VERSION
+  LABEL io.stackgres.version="$STACKGRES_VERSION"
+  ENV STACKGRES_VERSION=$STACKGRES_VERSION
+  ENV OPERATOR_VERSION=$STACKGRES_VERSION
+
+  CMD '/app/stackgres-stream.sh'

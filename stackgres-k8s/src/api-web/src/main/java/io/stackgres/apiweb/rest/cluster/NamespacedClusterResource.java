@@ -67,7 +67,6 @@ public class NamespacedClusterResource
       * sgclusters get
       * pod list
       * services list
-      * secrets get
       * configmaps get
       """)
   @Override

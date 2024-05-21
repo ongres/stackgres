@@ -152,7 +152,7 @@ class CrdInstallerTest {
     Assertions.assertEquals(
         "Can not upgrade due to some resources still at version older than"
         + " \"" + StackGresVersion.OLDEST.getVersion() + "\"."
-        + " Please, downgrade to a previous version of the operator and run a SGDbOps of"
+        + " Please, downgrade to a previous version of the operator and run a SGStream of"
         + " type securityUpgrade on all the SGClusters of the following list"
         + " (if any is present):\n"
         + "SGCluster test.test: version at 0.9",

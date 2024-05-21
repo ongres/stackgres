@@ -13,4 +13,5 @@ resources:
 - SGShardedCluster.yaml
 - SGShardedBackup.yaml
 - SGShardedDbOps.yaml
+- SGStream.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

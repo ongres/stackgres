@@ -8,12 +8,12 @@ package io.stackgres.operator.validation.shardeddbops;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
-public interface ShardedDbOpsValidator extends Validator<ShardedDbOpsReview> {
+public interface ShardedDbOpsValidator extends Validator<StackGresShardedDbOpsReview> {
 
   default void fail(String reason, String message) throws ValidationFailed {
     fail(HasMetadata.getKind(StackGresShardedDbOps.class), reason, message);

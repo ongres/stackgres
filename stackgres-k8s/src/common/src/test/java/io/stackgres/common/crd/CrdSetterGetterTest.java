@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -41,6 +42,7 @@ class CrdSetterGetterTest {
       StackGresShardedCluster.class,
       StackGresShardedBackup.class,
       StackGresShardedDbOps.class,
+      StackGresStream.class,
       PodMonitor.class,
       ServiceMonitor.class,
       ComputeNode.class,

@@ -24,7 +24,7 @@ import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -100,7 +100,7 @@ class DbOpsMajorVersionUpgradeExtensionsValidatorTest {
 
   @Test
   void givenAValidCreation_shouldPass() throws ValidationFailed {
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .setPostgresExtensions(extensions);
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
@@ -113,7 +113,7 @@ class DbOpsMajorVersionUpgradeExtensionsValidatorTest {
 
   @Test
   void givenACreationWithMissingExtensions_shouldFail() {
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .setPostgresExtensions(extensions);
     when(extensionMetadataManager.getExtensionsAnyVersion(
@@ -129,8 +129,8 @@ class DbOpsMajorVersionUpgradeExtensionsValidatorTest {
             + " plpython3u 1.0.0 (available 1.0.0)");
   }
 
-  private DbOpsReview getCreationReview() {
-    DbOpsReview review = AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
+  private StackGresDbOpsReview getCreationReview() {
+    StackGresDbOpsReview review = AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .setPostgresVersion(POSTGRES_VERSION);
     return review;

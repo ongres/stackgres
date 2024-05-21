@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.testutil.JsonUtil;
@@ -15,15 +15,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SgProfileMutationResourceTest
-    extends MutationResourceTest<StackGresProfile, SgProfileReview> {
+    extends MutationResourceTest<StackGresProfile, StackGresInstanceProfileReview> {
 
   @Override
-  protected AbstractMutationResource<StackGresProfile, SgProfileReview> getResource() {
+  protected AbstractMutationResource<StackGresProfile, StackGresInstanceProfileReview> getResource() {
     return new SgProfileMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override
-  protected SgProfileReview getReview() {
+  protected StackGresInstanceProfileReview getReview() {
     return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 }

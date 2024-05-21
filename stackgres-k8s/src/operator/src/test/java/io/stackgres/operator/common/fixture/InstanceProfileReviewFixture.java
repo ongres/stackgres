@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.common.SgProfileReviewBuilder;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReviewBuilder;
 
-public class InstanceProfileReviewFixture extends VersionedFixture<SgProfileReview> {
+public class InstanceProfileReviewFixture extends VersionedFixture<StackGresInstanceProfileReview> {
 
   public static InstanceProfileReviewFixture fixture() {
     return new InstanceProfileReviewFixture();
@@ -32,8 +32,8 @@ public class InstanceProfileReviewFixture extends VersionedFixture<SgProfileRevi
     return this;
   }
 
-  public SgProfileReviewBuilder getBuilder() {
-    return new SgProfileReviewBuilder(fixture);
+  public StackGresInstanceProfileReviewBuilder getBuilder() {
+    return new StackGresInstanceProfileReviewBuilder(fixture);
   }
 
 }

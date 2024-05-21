@@ -48,7 +48,7 @@ public final class StackGresPostgresConfig
 
   public static final String KIND = "SGPostgresConfig";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresPostgresConfigSpec spec;
 

@@ -168,7 +168,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .withNewSecretKeyRef()
         .withName(getUpdateShardsSecretName(cluster))
         .withKey("ddp-update-shards.sql")
-        .endCrdSecretKeyRef()
+        .endSecretKeyRef()
         .endScriptFrom()
         .build();
     return script;

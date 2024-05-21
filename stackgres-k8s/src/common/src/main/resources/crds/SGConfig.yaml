@@ -166,7 +166,7 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   resources:
                     type: object
-                    description: Operator Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core
+                    description: Operator Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
                     x-kubernetes-preserve-unknown-fields: true
                   nodeSelector:
                     type: object
@@ -174,14 +174,14 @@ spec:
                     description: Operator Pod node selector
                   tolerations:
                     type: array
-                    description: Operator Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#toleration-v1-core
+                    description: Operator Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
                     items:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                   affinity:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
-                    description: Operator Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#affinity-v1-core
+                    description: Operator Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
                   serviceAccount:
                     type: object
                     description: Section to configure Operator ServiceAccount
@@ -234,21 +234,21 @@ spec:
                   resources:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
-                    description: REST API Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core
+                    description: REST API Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
                   nodeSelector:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                     description: REST API Pod node selector
                   tolerations:
                     type: array
-                    description: REST API Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#toleration-v1-core
+                    description: REST API Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
                     items:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                   affinity:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
-                    description: REST API Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#affinity-v1-core
+                    description: REST API Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
                   serviceAccount:
                     type: object
                     description: Section to configure REST API ServiceAccount
@@ -293,7 +293,7 @@ spec:
                   resources:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
-                    description: Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core
+                    description: Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
                   service:
                     type: object
                     description: Section to configure Web Console service.
@@ -361,21 +361,21 @@ spec:
                   resources:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
-                    description: Operator Installation Jobs resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core
+                    description: Operator Installation Jobs resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
                   nodeSelector:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                     description: Operator Installation Jobs node selector
                   tolerations:
                     type: array
-                    description: Operator Installation Jobs tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#toleration-v1-core
+                    description: Operator Installation Jobs tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
                     items:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                   affinity:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
-                    description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#affinity-v1-core
+                    description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
                   serviceAccount:
                     type: object
                     description: Section to configure Jobs ServiceAccount
@@ -828,13 +828,30 @@ spec:
                         properties:
                           volumes:
                             type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
                           volumeMounts:
                             type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      stream:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the stream container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
@@ -845,13 +862,13 @@ spec:
                         properties:
                           volumes:
                             type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
                           volumeMounts:
                             type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
@@ -862,13 +879,13 @@ spec:
                         properties:
                           volumes:
                             type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
                           volumeMounts:
                             type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
@@ -879,13 +896,13 @@ spec:
                         properties:
                           volumes:
                             type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
                           volumeMounts:
                             type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
@@ -896,13 +913,13 @@ spec:
                         properties:
                           volumes:
                             type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
                           volumeMounts:
                             type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
@@ -913,13 +930,13 @@ spec:
                         properties:
                           volumes:
                             type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volume-v1-core
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
                           volumeMounts:
                             type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true

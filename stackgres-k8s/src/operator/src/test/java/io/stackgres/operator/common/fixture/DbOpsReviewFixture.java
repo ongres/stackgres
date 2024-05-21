@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.DbOpsReview;
-import io.stackgres.operator.common.DbOpsReviewBuilder;
+import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReviewBuilder;
 
-public class DbOpsReviewFixture extends VersionedFixture<DbOpsReview> {
+public class DbOpsReviewFixture extends VersionedFixture<StackGresDbOpsReview> {
 
   public static DbOpsReviewFixture fixture() {
     return new DbOpsReviewFixture();
@@ -60,8 +60,8 @@ public class DbOpsReviewFixture extends VersionedFixture<DbOpsReview> {
     return this;
   }
 
-  public DbOpsReviewBuilder getBuilder() {
-    return new DbOpsReviewBuilder(fixture);
+  public StackGresDbOpsReviewBuilder getBuilder() {
+    return new StackGresDbOpsReviewBuilder(fixture);
   }
 
 }

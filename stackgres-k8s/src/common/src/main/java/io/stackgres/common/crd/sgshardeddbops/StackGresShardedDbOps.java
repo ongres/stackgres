@@ -48,7 +48,7 @@ public final class StackGresShardedDbOps
 
   public static final String KIND = "SGShardedDbOps";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresShardedDbOpsSpec spec;
 

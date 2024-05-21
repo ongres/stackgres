@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.shardedbackup;
 
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.validation.AbstractValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,11 +15,11 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ShardedBackupValidationPipeline
-    extends AbstractValidationPipeline<ShardedBackupReview> {
+    extends AbstractValidationPipeline<StackGresShardedBackupReview> {
 
   @Inject
   public ShardedBackupValidationPipeline(
-      @Any Instance<Validator<ShardedBackupReview>> validatorInstances) {
+      @Any Instance<Validator<StackGresShardedBackupReview>> validatorInstances) {
     super(validatorInstances);
   }
 

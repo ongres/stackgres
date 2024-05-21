@@ -331,4 +331,28 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
+  - name: sgstreams.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgstreams"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgstreams'
+      caBundle: {{ $cert }}
+    admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
     

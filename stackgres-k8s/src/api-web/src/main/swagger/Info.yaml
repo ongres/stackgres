@@ -11,8 +11,12 @@ tags:
 - name: sgbackup
 - name: sgdbops
 - name: sgobjectstorage
-- name: sgscripts
+- name: sgscript
+- name: sgshardedbackup
 - name: sgshardedcluster
+- name: sgshardeddbops
+- name: sgstream
+- name: sgconfig
 - name: auth
 - name: applications
 - name: misc

@@ -355,10 +355,12 @@ source_image_name() {
 
 image_name() {
   [ "$#" -ge 1 ] || false
+  local BUILD_HASH
   local MODULE="$1"
   local MODULE_PLATFORM="$2"
   local IMAGE_NAME
   local MODULE_PLATFORM_DEPENDENT
+  BUILD_HASH="$(cat stackgres-k8s/ci/build/target/build_hash)"
   MODULE_PLATFORM_DEPENDENT="$(jq -r ".modules[\"$MODULE\"].platform_dependent | . != null and ." stackgres-k8s/ci/build/target/config.json)"
   if [ "$MODULE_PLATFORM_DEPENDENT" = true ]
   then
@@ -367,20 +369,22 @@ image_name() {
     MODULE_PLATFORM=
   fi
   TAG_MODULE_PLATFORM="$(printf %s "$MODULE_PLATFORM" | tr '/' '-')"
-  IMAGE_NAME="$(grep "^$MODULE=.*$TAG_MODULE_PLATFORM$" stackgres-k8s/ci/build/target/image-hashes)" \
-    || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
+  IMAGE_NAME="$(grep "^$MODULE=.*$TAG_MODULE_PLATFORM$" "stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH")" \
+    || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH" 1
   IMAGE_NAME="$(printf %s "$IMAGE_NAME"| cut -d = -f 2-)"
   [ -n "$IMAGE_NAME" ] \
-    || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
+    || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH" 1
   printf '%s\n' "$IMAGE_NAME"
 }
 
 build_image() {
   [ "$#" -ge 1 ] || false
+  local BUILD_HASH
   local MODULE="$1"
   local MODULE_TYPE
   local IMAGE_NAME
   local SOURCE_IMAGE_NAME
+  BUILD_HASH="$(cat stackgres-k8s/ci/build/target/build_hash)"
   MODULE_TYPE="$(module_type "$MODULE")"
   SOURCE_IMAGE_NAME="$(source_image_name "$MODULE" "$BUILD_PLATFORM")"
   IMAGE_NAME="$(image_name "$MODULE" "$BUILD_PLATFORM")"
@@ -393,7 +397,7 @@ build_image() {
   if {
       [ "$DO_BUILD" != true ] \
         && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
-        && grep -q "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests
+        && grep -q "^$IMAGE_NAME=" "stackgres-k8s/ci/build/target/image-digests.$BUILD_HASH"
     }
   then
     echo "Already exists on remote repository. Just extracting..."
@@ -485,32 +489,41 @@ generate_image_hashes() {
 
   init_hash
 
-  if ! test -f stackgres-k8s/ci/build/target/project_hash \
-    || [ "$(cat stackgres-k8s/ci/build/target/project_hash)" != "$(project_hash)" ]
+  BUILD_HASH="$(echo "$*" | md5sum)"
+  printf %s "$BUILD_HASH" > stackgres-k8s/ci/build/target/build_hash
+  PROJECT_HASH_PATH="stackgres-k8s/ci/build/target/project_hash.$BUILD_HASH"
+  if ! test -f "$PROJECT_HASH_PATH" \
+    || [ "$(cat "$PROJECT_HASH_PATH")" != "$(project_hash)" ]
   then
-    cat << EOF > stackgres-k8s/ci/build/target/junit-build.hashes.xml
+    cat << EOF > "stackgres-k8s/ci/build/target/junit-build.hashes.xml.$BUILD_HASH"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
   <testsuite name="build hashes">
 EOF
 
-    rm -f stackgres-k8s/ci/build/target/all-images
-    rm -f stackgres-k8s/ci/build/target/image-hashes
-    rm -f stackgres-k8s/ci/build/target/*-image-hashes
-    for MODULE in $(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)
+    rm -f "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH"
+    rm -f "stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH"
+    rm -f "stackgres-k8s/ci/build/target/"*"-image-hashes.$BUILD_HASH"
+    if [ "$#" -gt 0 ]
+    then
+      MODULES="$*"
+    else
+      MODULES="$(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)"
+    fi
+    for MODULE in $MODULES
     do
       generate_image_hash "$MODULE"
     done
 
-    rm -rf stackgres-k8s/ci/build/target/image-type-hashes
+    rm -rf "stackgres-k8s/ci/build/target/image-type-hashes.$BUILD_HASH"
     for MODULE_TYPE_IMAGE_HASHES in stackgres-k8s/ci/build/target/*-image-hashes
     do
       local MODULE_TYPE="${MODULE_TYPE_IMAGE_HASHES##*/}"
       MODULE_TYPE="${MODULE_TYPE%-image-hashes}"
       local MODULE_TYPE_HASH
       MODULE_TYPE_HASH="$(md5sum "$MODULE_TYPE_IMAGE_HASHES" | cut -d ' ' -f 1 | tr -d '\n')"
-      printf '%s=%s\n' "$MODULE_TYPE" "$MODULE_TYPE_HASH" >> stackgres-k8s/ci/build/target/image-type-hashes
-      cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
+      printf '%s=%s\n' "$MODULE_TYPE" "$MODULE_TYPE_HASH" >> "stackgres-k8s/ci/build/target/image-type-hashes.$BUILD_HASH"
+      cat << EOF >> "stackgres-k8s/ci/build/target/junit-build.hashes.xml.$BUILD_HASH"
     <testcase classname="module type $MODULE_TYPE" name="$MODULE_TYPE_HASH" />
 EOF
     done
@@ -520,7 +533,7 @@ EOF
 </testsuites>
 EOF
 
-    project_hash > stackgres-k8s/ci/build/target/project_hash
+    project_hash > "$PROJECT_HASH_PATH"
   fi
 }
 
@@ -555,7 +568,9 @@ init_config() {
 }
 
 generate_image_hash() {
+  local BUILD_HASH
   local MODULE="$1"
+  BUILD_HASH="$(cat stackgres-k8s/ci/build/target/build_hash)"
   MODULE_TYPE="$(module_type "$MODULE")"
   MODULE_PLATFORMS="$(jq -r "
       (.modules[\"$MODULE\"].platform_dependent | . != null and .) as \$module_platform_dependent
@@ -566,31 +581,33 @@ generate_image_hash() {
   do
     SOURCE_IMAGE_NAME="$(source_image_name "$MODULE" "$MODULE_PLATFORM")"
     IMAGE_NAME="$(module_image_name "$MODULE" "$SOURCE_IMAGE_NAME" "$MODULE_PLATFORM")"
-    flock stackgres-k8s/ci/build/target/junit-build.hashes.xml \
-      cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
+    flock "stackgres-k8s/ci/build/target/junit-build.hashes.xml.$BUILD_HASH" \
+      cat << EOF >> "stackgres-k8s/ci/build/target/junit-build.hashes.xml.$BUILD_HASH"
     <testcase classname="module $MODULE" name="${IMAGE_NAME##*:hash-}" />
 EOF
-    flock "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes" \
-      printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes"
-    flock stackgres-k8s/ci/build/target/image-hashes \
-      printf '%s=%s\n' "$MODULE" "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/image-hashes
+    flock "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes.$BUILD_HASH" \
+      printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes.$BUILD_HASH"
+    flock "stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH" \
+      printf '%s=%s\n' "$MODULE" "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH"
     if [ "$SOURCE_IMAGE_NAME" != null ]
     then
-      flock stackgres-k8s/ci/build/target/all-images \
-        printf '%s\n' "$SOURCE_IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
+      flock "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH" \
+        printf '%s\n' "$SOURCE_IMAGE_NAME" >> "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH"
     fi
-    flock stackgres-k8s/ci/build/target/all-images \
-      printf '%s\n' "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
+    flock "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH" \
+      printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH"
   done
 }
 
 show_image_hashes() {
+  local BUILD_HASH
+  BUILD_HASH="$(cat stackgres-k8s/ci/build/target/build_hash)"
   echo "Calculated image hashes:"
 
   while IFS='=' read -r MODULE IMAGE_NAME
   do
     printf ' - %s => %s\n' "$MODULE" "$IMAGE_NAME"
-  done < stackgres-k8s/ci/build/target/image-hashes
+  done < "stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH"
 
   echo "done"
 
@@ -601,7 +618,7 @@ show_image_hashes() {
   while IFS='=' read -r MODULE_TYPE MODULE_TYPE_HASH
   do
     printf ' - %s => %s\n' "$MODULE_TYPE" "$MODULE_TYPE_HASH"
-  done < stackgres-k8s/ci/build/target/image-type-hashes
+  done < "stackgres-k8s/ci/build/target/image-type-hashes.$BUILD_HASH"
 
   echo "done"
 
