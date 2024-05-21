@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.config;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
-import io.stackgres.operator.common.ConfigReview;
+import io.stackgres.operator.common.StackGresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import jakarta.inject.Inject;
@@ -16,14 +16,14 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 public class ConfigValidationPipelineTest
-    extends ValidationPipelineTest<StackGresConfig, ConfigReview> {
+    extends ValidationPipelineTest<StackGresConfig, StackGresConfigReview> {
 
   @Inject
   public ConfigValidationPipeline pipeline;
 
   @Override
-  public ConfigReview getConstraintViolatingReview() {
-    final ConfigReview backupReview = AdmissionReviewFixtures.config().loadCreate().get();
+  public StackGresConfigReview getConstraintViolatingReview() {
+    final StackGresConfigReview backupReview = AdmissionReviewFixtures.config().loadCreate().get();
     backupReview.getRequest().getObject().setSpec(null);
     return backupReview;
   }

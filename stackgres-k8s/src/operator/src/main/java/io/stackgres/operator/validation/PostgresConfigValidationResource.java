@@ -7,7 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.event.Observes;
@@ -23,13 +23,13 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.PGCONFIG_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PostgresConfigValidationResource extends AbstractValidationResource<PgConfigReview> {
+public class PostgresConfigValidationResource extends AbstractValidationResource<StackGresPostgresConfigReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PostgresConfigValidationResource.class);
 
   @Inject
-  public PostgresConfigValidationResource(ValidationPipeline<PgConfigReview> pipeline) {
+  public PostgresConfigValidationResource(ValidationPipeline<StackGresPostgresConfigReview> pipeline) {
     super(pipeline);
   }
 
@@ -47,7 +47,7 @@ public class PostgresConfigValidationResource extends AbstractValidationResource
    */
   @POST
   @Override
-  public AdmissionReviewResponse validate(PgConfigReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresPostgresConfigReview admissionReview) {
     return super.validate(admissionReview);
   }
 }

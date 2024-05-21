@@ -10,7 +10,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
@@ -26,12 +26,12 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgProfileMutationResource
-    extends AbstractMutationResource<StackGresProfile, SgProfileReview> {
+    extends AbstractMutationResource<StackGresProfile, StackGresInstanceProfileReview> {
 
   @Inject
   public SgProfileMutationResource(
       ObjectMapper objectMapper,
-      MutationPipeline<StackGresProfile, SgProfileReview> pipeline) {
+      MutationPipeline<StackGresProfile, StackGresInstanceProfileReview> pipeline) {
     super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
@@ -46,7 +46,7 @@ public class SgProfileMutationResource
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(SgProfileReview admissionReview) {
+  public AdmissionReviewResponse mutate(StackGresInstanceProfileReview admissionReview) {
     return super.mutate(admissionReview);
   }
 

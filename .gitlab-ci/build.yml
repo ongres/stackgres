@@ -25,6 +25,7 @@
         jobs-java jobs-java-test \
         cluster-controller-java cluster-controller-java-test \
         distributedlogs-controller-java distributedlogs-controller-java-test
+      cp stackgres-k8s/ci/build/target/junit-build.hashes.xml."$(cat stackgres-k8s/ci/build/target/build-hash)" stackgres-k8s/ci/build/target/junit-build.hashes.xml
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,

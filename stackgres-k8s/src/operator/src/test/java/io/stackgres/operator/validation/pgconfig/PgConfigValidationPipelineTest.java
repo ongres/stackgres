@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
@@ -19,26 +19,26 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 public class PgConfigValidationPipelineTest
-    extends ValidationPipelineTest<StackGresPostgresConfig, PgConfigReview> {
+    extends ValidationPipelineTest<StackGresPostgresConfig, StackGresPostgresConfigReview> {
 
   @Inject
   public PgConfigValidationPipeline pipeline;
 
   @Override
-  public PgConfigReview getConstraintViolatingReview() {
-    PgConfigReview review = getValidReview();
+  public StackGresPostgresConfigReview getConstraintViolatingReview() {
+    StackGresPostgresConfigReview review = getValidReview();
 
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
 
     return review;
   }
 
-  private PgConfigReview getValidReview() {
+  private StackGresPostgresConfigReview getValidReview() {
     return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   @Override
-  public ValidationPipeline<PgConfigReview> getPipeline() {
+  public ValidationPipeline<StackGresPostgresConfigReview> getPipeline() {
     return pipeline;
   }
 }

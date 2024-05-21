@@ -10,7 +10,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
@@ -26,12 +26,12 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PgConfigMutationResource
-    extends AbstractMutationResource<StackGresPostgresConfig, PgConfigReview> {
+    extends AbstractMutationResource<StackGresPostgresConfig, StackGresPostgresConfigReview> {
 
   @Inject
   public PgConfigMutationResource(
       ObjectMapper objectMapper,
-      MutationPipeline<StackGresPostgresConfig, PgConfigReview> pipeline) {
+      MutationPipeline<StackGresPostgresConfig, StackGresPostgresConfigReview> pipeline) {
     super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
@@ -46,7 +46,7 @@ public class PgConfigMutationResource
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(PgConfigReview admissionReview) {
+  public AdmissionReviewResponse mutate(StackGresPostgresConfigReview admissionReview) {
     return super.mutate(admissionReview);
   }
 

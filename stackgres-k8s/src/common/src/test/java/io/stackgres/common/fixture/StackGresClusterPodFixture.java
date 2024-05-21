@@ -5,15 +5,15 @@
 
 package io.stackgres.common.fixture;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 
 public class StackGresClusterPodFixture {
 
-  private StackGresClusterPodScheduling scheduling;
+  private StackGresClusterPodsScheduling scheduling;
 
-  public StackGresClusterPodFixture withScheduling(StackGresClusterPodScheduling scheduling) {
+  public StackGresClusterPodFixture withScheduling(StackGresClusterPodsScheduling scheduling) {
     this.scheduling = scheduling;
     return this;
   }

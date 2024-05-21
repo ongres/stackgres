@@ -48,7 +48,7 @@ public final class StackGresScript
 
   public static final String KIND = "SGScript";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresScriptSpec spec;
 

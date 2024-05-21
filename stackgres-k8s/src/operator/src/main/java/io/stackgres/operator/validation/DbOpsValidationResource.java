@@ -7,7 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.event.Observes;
@@ -23,12 +23,12 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.DBOPS_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DbOpsValidationResource extends AbstractValidationResource<DbOpsReview> {
+public class DbOpsValidationResource extends AbstractValidationResource<StackGresDbOpsReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsValidationResource.class);
 
   @Inject
-  public DbOpsValidationResource(ValidationPipeline<DbOpsReview> pipeline) {
+  public DbOpsValidationResource(ValidationPipeline<StackGresDbOpsReview> pipeline) {
     super(pipeline);
   }
 
@@ -43,7 +43,7 @@ public class DbOpsValidationResource extends AbstractValidationResource<DbOpsRev
 
   @Override
   @POST
-  public AdmissionReviewResponse validate(DbOpsReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresDbOpsReview admissionReview) {
     return super.validate(admissionReview);
   }
 }

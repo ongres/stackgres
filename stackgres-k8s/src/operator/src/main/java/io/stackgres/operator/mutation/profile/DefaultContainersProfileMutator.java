@@ -21,7 +21,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -29,7 +29,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class DefaultContainersProfileMutator implements ProfileMutator {
 
   @Override
-  public StackGresProfile mutate(SgProfileReview review, StackGresProfile resource) {
+  public StackGresProfile mutate(StackGresInstanceProfileReview review, StackGresProfile resource) {
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
       final Optional<BigDecimal> cpuLimits = Optional.of(resource.getSpec())

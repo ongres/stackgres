@@ -48,7 +48,7 @@ public final class StackGresBackup
 
   public static final String KIND = "SGBackup";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresBackupSpec spec;
 

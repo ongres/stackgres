@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.ConfigReview;
-import io.stackgres.operator.common.ConfigReviewBuilder;
+import io.stackgres.operator.common.StackGresConfigReview;
+import io.stackgres.operator.common.StackGresConfigReviewBuilder;
 
-public class ConfigReviewFixture extends VersionedFixture<ConfigReview> {
+public class ConfigReviewFixture extends VersionedFixture<StackGresConfigReview> {
 
   public static ConfigReviewFixture fixture() {
     return new ConfigReviewFixture();
@@ -29,8 +29,8 @@ public class ConfigReviewFixture extends VersionedFixture<ConfigReview> {
     return this;
   }
 
-  public ConfigReviewBuilder getBuilder() {
-    return new ConfigReviewBuilder(fixture);
+  public StackGresConfigReviewBuilder getBuilder() {
+    return new StackGresConfigReviewBuilder(fixture);
   }
 
 }

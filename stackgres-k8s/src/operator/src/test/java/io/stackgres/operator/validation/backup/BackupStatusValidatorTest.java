@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
@@ -21,21 +21,21 @@ class BackupStatusValidatorTest {
 
   @Test
   void validCreation_shouldPass() throws ValidationFailed {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadCreate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadCreate().get();
 
     validator.validate(backupReview);
   }
 
   @Test
   void validUpdate_shouldPass() throws ValidationFailed {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
 
     validator.validate(backupReview);
   }
 
   @Test
   void updateStatusToNull_shouldFail() {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getObject().setStatus(null);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class,
@@ -47,7 +47,7 @@ class BackupStatusValidatorTest {
 
   @Test
   void updateBackupConfigStatusToNull_shouldFail() {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus().setSgBackupConfig(null);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class,
@@ -59,7 +59,7 @@ class BackupStatusValidatorTest {
 
   @Test
   void updateBackupNameFromNull_shouldPass() throws ValidationFailed {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus().setInternalName("test");
 
     validator.validate(backupReview);
@@ -67,7 +67,7 @@ class BackupStatusValidatorTest {
 
   @Test
   void updateBackupNameToNull_shouldFail() {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getOldObject().getStatus().setInternalName("test");
     backupReview.getRequest().getObject().getStatus().setInternalName(null);
 
@@ -80,7 +80,7 @@ class BackupStatusValidatorTest {
 
   @Test
   void updateBackupProcess_shouldPass() throws ValidationFailed {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus().getProcess()
         .setStatus(BackupStatus.COMPLETED.status());
 
@@ -89,7 +89,7 @@ class BackupStatusValidatorTest {
 
   @Test
   void updateBackupInformationFromNull_shouldPass() throws ValidationFailed {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus()
         .setBackupInformation(new StackGresBackupInformation());
 
@@ -98,7 +98,7 @@ class BackupStatusValidatorTest {
 
   @Test
   void updateBackupInformationToNull_shouldFail() {
-    BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
+    StackGresBackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getOldObject().getStatus()
         .setBackupInformation(new StackGresBackupInformation());
     backupReview.getRequest().getObject().getStatus()

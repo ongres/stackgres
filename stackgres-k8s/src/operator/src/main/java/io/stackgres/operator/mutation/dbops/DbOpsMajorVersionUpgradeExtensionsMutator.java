@@ -25,7 +25,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -35,7 +35,7 @@ import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class DbOpsMajorVersionUpgradeExtensionsMutator
-    extends AbstractExtensionsMutator<StackGresDbOps, DbOpsReview>
+    extends AbstractExtensionsMutator<StackGresDbOps, StackGresDbOpsReview>
     implements DbOpsMutator {
 
   private final ExtensionMetadataManager extensionMetadataManager;
@@ -61,7 +61,7 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
   }
 
   @Override
-  public StackGresDbOps mutate(DbOpsReview review, StackGresDbOps resource) {
+  public StackGresDbOps mutate(StackGresDbOpsReview review, StackGresDbOps resource) {
     if (review.getRequest().getOperation() != Operation.CREATE) {
       return resource;
     }
@@ -77,7 +77,7 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
 
   @Override
   protected boolean extensionsChanged(
-      DbOpsReview review,
+      StackGresDbOpsReview review,
       StackGresCluster cluster,
       StackGresCluster oldCluster) {
     String postgresVersion = Optional.of(cluster.getSpec())
@@ -110,7 +110,7 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
   }
 
   @Override
-  protected StackGresCluster getCluster(DbOpsReview review) {
+  protected StackGresCluster getCluster(StackGresDbOpsReview review) {
     var cluster = clusterFinder.findByNameAndNamespace(
         review.getRequest().getObject().getSpec().getSgCluster(),
         review.getRequest().getObject().getMetadata().getNamespace())
@@ -127,7 +127,7 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
   }
 
   @Override
-  protected StackGresCluster getOldCluster(DbOpsReview review) {
+  protected StackGresCluster getOldCluster(StackGresDbOpsReview review) {
     return null;
   }
 

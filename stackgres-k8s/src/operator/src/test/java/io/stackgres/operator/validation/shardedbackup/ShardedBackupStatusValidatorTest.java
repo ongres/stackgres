@@ -12,7 +12,7 @@ import java.util.List;
 
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupInformation;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
@@ -23,21 +23,21 @@ class ShardedBackupStatusValidatorTest {
 
   @Test
   void validCreation_shouldPass() throws ValidationFailed {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadCreate().get();
 
     validator.validate(backupReview);
   }
 
   @Test
   void validUpdate_shouldPass() throws ValidationFailed {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
 
     validator.validate(backupReview);
   }
 
   @Test
   void updateStatusToNull_shouldFail() {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
     backupReview.getRequest().getObject().setStatus(null);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class,
@@ -49,7 +49,7 @@ class ShardedBackupStatusValidatorTest {
 
   @Test
   void updateBackupNameFromNull_shouldPass() throws ValidationFailed {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
     backupReview.getRequest().getOldObject().getStatus().setSgBackups(null);
     backupReview.getRequest().getObject().getStatus().setSgBackups(
         List.of("coord", "shard1", "shard2"));
@@ -59,7 +59,7 @@ class ShardedBackupStatusValidatorTest {
 
   @Test
   void updateBackupNameToNull_shouldFail() {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
     backupReview.getRequest().getOldObject().getStatus().setSgBackups(
         List.of("coord", "shard1", "shard2"));
     backupReview.getRequest().getObject().getStatus().setSgBackups(null);
@@ -73,7 +73,7 @@ class ShardedBackupStatusValidatorTest {
 
   @Test
   void updateBackupProcess_shouldPass() throws ValidationFailed {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus().getProcess()
         .setStatus(ShardedBackupStatus.COMPLETED.status());
 
@@ -82,7 +82,7 @@ class ShardedBackupStatusValidatorTest {
 
   @Test
   void updateBackupInformationFromNull_shouldPass() throws ValidationFailed {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus()
         .setBackupInformation(new StackGresShardedBackupInformation());
 
@@ -91,7 +91,7 @@ class ShardedBackupStatusValidatorTest {
 
   @Test
   void updateBackupInformationToNull_shouldFail() {
-    ShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
+    StackGresShardedBackupReview backupReview = AdmissionReviewFixtures.shardedBackup().loadUpdate().get();
     backupReview.getRequest().getOldObject().getStatus()
         .setBackupInformation(new StackGresShardedBackupInformation());
     backupReview.getRequest().getObject().getStatus()

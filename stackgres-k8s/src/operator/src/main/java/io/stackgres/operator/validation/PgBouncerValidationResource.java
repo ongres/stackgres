@@ -7,7 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.event.Observes;
@@ -23,12 +23,12 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.CONNPOOLCONFIG_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PgBouncerValidationResource extends AbstractValidationResource<PoolingReview> {
+public class PgBouncerValidationResource extends AbstractValidationResource<StackGresPoolingConfigReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerValidationResource.class);
 
   @Inject
-  public PgBouncerValidationResource(ValidationPipeline<PoolingReview> pipeline) {
+  public PgBouncerValidationResource(ValidationPipeline<StackGresPoolingConfigReview> pipeline) {
     super(pipeline);
   }
 
@@ -42,7 +42,7 @@ public class PgBouncerValidationResource extends AbstractValidationResource<Pool
   }
 
   @POST
-  public AdmissionReviewResponse validate(PoolingReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresPoolingConfigReview admissionReview) {
     return super.validate(admissionReview);
   }
 }

@@ -10,13 +10,13 @@ import java.util.Map;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DbOpsAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresDbOps, DbOpsReview>
+    extends AbstractAnnotationMutator<StackGresDbOps, StackGresDbOpsReview>
     implements DbOpsMutator {
 
   private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
@@ -23,23 +23,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class PgConfigDefaultValuesMutatorTest
-    extends DefaultValuesMutatorTest<StackGresPostgresConfig, PgConfigReview> {
+    extends DefaultValuesMutatorTest<StackGresPostgresConfig, StackGresPostgresConfigReview> {
 
   @Override
-  protected AbstractValuesMutator<StackGresPostgresConfig, PgConfigReview> getMutatorInstance(
+  protected AbstractValuesMutator<StackGresPostgresConfig, StackGresPostgresConfigReview> getMutatorInstance(
       DefaultCustomResourceFactory<StackGresPostgresConfig> factory, JsonMapper jsonMapper) {
     return new PgConfigDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override
-  protected PgConfigReview getEmptyReview() {
-    PgConfigReview review = AdmissionReviewFixtures.postgresConfig().loadCreate().get();
+  protected StackGresPostgresConfigReview getEmptyReview() {
+    StackGresPostgresConfigReview review = AdmissionReviewFixtures.postgresConfig().loadCreate().get();
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
     return review;
   }
 
   @Override
-  protected PgConfigReview getDefaultReview() {
+  protected StackGresPostgresConfigReview getDefaultReview() {
     return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 

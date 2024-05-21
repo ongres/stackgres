@@ -6,10 +6,10 @@
 package io.stackgres.common.fixture.cluster;
 
 import io.stackgres.common.crd.NodeAffinity;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.testutil.fixture.Fixture;
 
-public class ClusterSchedulingFixture extends Fixture<StackGresClusterPodScheduling> {
+public class ClusterSchedulingFixture extends Fixture<StackGresClusterPodsScheduling> {
 
   public ClusterSchedulingFixture loadDefault() {
     fixture = readFromJson(STACKGRES_CLUSTER_SCHEDULING_JSON);

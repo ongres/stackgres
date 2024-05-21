@@ -10,6 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.stackgres.common.OperatorProperty;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,5 +59,6 @@ public abstract class AbstractReconciliationClock implements ReconciliationClock
   @Override
   public void stop() {
     scheduledExecutorService.shutdown();
+    Unchecked.runnable(() -> scheduledExecutorService.awaitTermination(60, TimeUnit.SECONDS)).run();
   }
 }

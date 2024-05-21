@@ -23,7 +23,7 @@ do
         fi
         head -n "$LINE_NUMBER" "$CRD" | tail -n "$((LINE_NUMBER - PREV_LINE_NUMBER))" \
           | sed "s|$KUBERNETES_API_BASE_URL/[^/]\+/|$KUBERNETES_API_BASE_URL/v$K8S_VERSION/|g"
-        head -n "$((LINE_NUMBER+1))" "$CRD" | tail -n 1 | sed 's/^\( *\).*$/\1/' | tr -d '\n'
+        head -n "$((LINE_NUMBER+1))" "$CRD" | tail -n 1 | sed 's/^\( *\)[^ ].*$/\1/' | tr -d '\n'
         if [ "x$K8S_WEB_HASH" != x ]
         then
           jq -M -c "$JQ_EXPRESSION

@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.profile;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
 class SgProfileDependenciesValidatorTest
-    extends DependenciesValidatorTest<SgProfileReview, SgProfileDependenciesValidator> {
+    extends DependenciesValidatorTest<StackGresInstanceProfileReview, SgProfileDependenciesValidator> {
 
   @Override
   protected SgProfileDependenciesValidator setUpValidation() {
@@ -26,33 +26,33 @@ class SgProfileDependenciesValidatorTest
   }
 
   @Override
-  protected SgProfileReview getReview_givenAReviewCreation_itShouldDoNothing() {
+  protected StackGresInstanceProfileReview getReview_givenAReviewCreation_itShouldDoNothing() {
     return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override
-  protected SgProfileReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+  protected StackGresInstanceProfileReview getReview_givenAReviewUpdate_itShouldDoNothing() {
     return AdmissionReviewFixtures.instanceProfile().loadUpdate().get();
   }
 
   @Override
-  protected SgProfileReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+  protected StackGresInstanceProfileReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
     return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override
-  protected SgProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
+  protected StackGresInstanceProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
       throws ValidationFailed {
     return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override
-  protected SgProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+  protected StackGresInstanceProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
     return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override
-  protected void makeClusterDependant(StackGresCluster cluster, SgProfileReview review) {
+  protected void makeClusterDependant(StackGresCluster cluster, StackGresInstanceProfileReview review) {
     cluster.getSpec().setSgInstanceProfile(review.getRequest().getName());
   }
 

@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation.dbops;
 
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -14,7 +14,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class DbOpsStatusResetMutator implements DbOpsMutator {
 
   @Override
-  public StackGresDbOps mutate(DbOpsReview review, StackGresDbOps resource) {
+  public StackGresDbOps mutate(StackGresDbOpsReview review, StackGresDbOps resource) {
     if (review.getRequest().getOperation() == Operation.CREATE) {
       resource.setStatus(null);
     }

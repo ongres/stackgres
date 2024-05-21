@@ -6,10 +6,10 @@
 package io.stackgres.operator.mutation.objectstorage;
 
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
 public interface ObjectStorageMutator
-    extends Mutator<StackGresObjectStorage, ObjectStorageReview> {
+    extends Mutator<StackGresObjectStorage, StackGresObjectStorageReview> {
 
 }

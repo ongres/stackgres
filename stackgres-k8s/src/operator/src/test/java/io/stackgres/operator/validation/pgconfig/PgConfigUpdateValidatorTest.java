@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 
 class PgConfigUpdateValidatorTest {
 
-  private PgConfigReview review;
+  private StackGresPostgresConfigReview review;
 
   private PgConfigUpdateValidator validator;
 

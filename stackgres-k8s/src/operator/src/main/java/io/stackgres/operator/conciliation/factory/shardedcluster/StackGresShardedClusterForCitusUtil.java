@@ -216,7 +216,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .withNewSecretKeyRef()
         .withName(getUpdateShardsSecretName(cluster))
         .withKey("citus-update-shards.sql")
-        .endCrdSecretKeyRef()
+        .endSecretKeyRef()
         .endScriptFrom()
         .build();
     return script;

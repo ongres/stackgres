@@ -50,7 +50,7 @@ public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
 
   public static final String VERSION = "v1beta1";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private BackupStorage spec;
 

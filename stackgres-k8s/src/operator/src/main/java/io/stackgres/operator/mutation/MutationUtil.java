@@ -21,5 +21,6 @@ public interface MutationUtil {
   String SHARDED_CLUSTER_MUTATION_PATH = MUTATION_PATH + "/sgshardedcluster";
   String SHARDED_BACKUP_MUTATION_PATH = MUTATION_PATH + "/sgshardedbackup";
   String SHARDED_DBOPS_MUTATION_PATH = MUTATION_PATH + "/sgshardeddbops";
+  String STREAM_MUTATION_PATH = MUTATION_PATH + "/sgstream";
 
 }

@@ -1,0 +1,83 @@
+#!/bin/sh
+
+export K8S_KOURIER_HTTP_PORT="${K8S_KOURIER_HTTP_PORT:-31080}"
+export K8S_KOURIER_HTTPS_PORT="${K8S_KOURIER_HTTPS_PORT:-31443}"
+
+knative_namespace() {
+  echo "$CLUSTER_NAMESPACE-knative"
+}
+
+knative_url() {
+  echo "http://kourier-internal.$(knative_namespace)"
+}
+
+uninstall_knative() {
+  sed 's/namespace: knative-operator/namespace: $(knative_namespace)/g' \
+    "$E2E_PATH/knative-operator-v1.14.1.yaml" | kubectl delete --ignore-not-found -f -
+}
+
+install_knative() {
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
+    fi
+    oc adm policy add-scc-to-user anyuid -n "$(knative_namespace)" -z "knative-operator"
+  fi
+
+  local KUBERNETES_MIN_VERSION
+  KUBERNETES_MIN_VERSION="$(kubectl version -o json 2>/dev/null | jq -r .serverVersion.gitVersion)"
+  if [ "$(printf %s "$K8S_VERSION" | grep -cF '.')" -eq 3 ]
+  then
+    KUBERNETES_MIN_VERSION="$K8S_VERSION"
+  elif [ "$(printf %s "$K8S_VERSION" | grep -cF '.')" -eq 2 ]
+  then
+    KUBERNETES_MIN_VERSION="$K8S_VERSION.0"
+  else
+    echo "K8S_VERSION does not have minor version or is not a k8s version: $K8S_VERSION"
+  fi
+  kubectl create ns "$(knative_namespace)"
+  sed "s/ namespace: .*$/ namespace: $(knative_namespace)/g" \
+    "$E2E_PATH/resources/knative-v1.14.1.yaml" \
+    | sed "s/address: \"net-kourier-controller.knative-serving\"/address: \"net-kourier-controller.$(knative_namespace)\"/" \
+    | yq "
+      select(.kind != \"Namespace\")
+      | if .kind == \"Deployment\" and (.spec.template.spec.containers[0].env != null)
+      then
+        .spec.template.spec.containers[0].env =
+          (.spec.template.spec.containers[0].env|map(select(.name != \"KUBERNETES_MIN_VERSION\")))
+            + [{ name: \"KUBERNETES_MIN_VERSION\", value: \"$KUBERNETES_MIN_VERSION\" }]
+      else
+        .
+      end
+      " \
+    | kubectl create -f -
+  wait_until kubectl patch service -n "$(knative_namespace)" kourier --type json \
+    -p '[{"op":"replace","path":"/spec/type","value":"NodePort"},
+      {"op":"add","path":"/spec/ports/0/nodePort","value":'"$K8S_KOURIER_HTTP_PORT"'},
+      {"op":"add","path":"/spec/ports/1/nodePort","value":'"$K8S_KOURIER_HTTPS_PORT"'}]'
+  wait_until kubectl patch configmap/config-network \
+    --namespace "$(knative_namespace)" \
+    --type merge \
+    --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+  wait_until kubectl patch configmap/config-domain \
+    --namespace "$(knative_namespace)" \
+    --type merge \
+    --patch '{"data":{"127.0.0.1.sslip.io":""}}'
+
+  kubectl wait -n "$(knative_namespace)" deployment/activator --for condition=Available 
+  kubectl wait -n "$(knative_namespace)" deployment/autoscaler --for condition=Available 
+  kubectl wait -n "$(knative_namespace)" deployment/controller --for condition=Available 
+  kubectl wait -n "$(knative_namespace)" deployment/webhook --for condition=Available 
+  kubectl wait -n "$(knative_namespace)" deployment/net-kourier-controller --for condition=Available 
+  wait_until eval 'kubectl get crd -o name | grep -cF .knative. | grep -q 12'
+}

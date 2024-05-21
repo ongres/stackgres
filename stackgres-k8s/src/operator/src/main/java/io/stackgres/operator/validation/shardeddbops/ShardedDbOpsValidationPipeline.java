@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.shardeddbops;
 
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.validation.AbstractValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -14,11 +14,11 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ShardedDbOpsValidationPipeline extends AbstractValidationPipeline<ShardedDbOpsReview> {
+public class ShardedDbOpsValidationPipeline extends AbstractValidationPipeline<StackGresShardedDbOpsReview> {
 
   @Inject
   public ShardedDbOpsValidationPipeline(
-      @Any Instance<Validator<ShardedDbOpsReview>> validatorInstances) {
+      @Any Instance<Validator<StackGresShardedDbOpsReview>> validatorInstances) {
     super(validatorInstances);
   }
 

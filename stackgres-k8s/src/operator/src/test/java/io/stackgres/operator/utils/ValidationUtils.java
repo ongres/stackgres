@@ -116,27 +116,19 @@ public class ValidationUtils {
   }
 
   public static String getNotNullMessage(Class<?> from, String field) {
-
     return getConstraintMessage(from, field, NotNull.class);
-
   }
 
   public static String getPositiveMessage(Class<?> from, String field) {
-
     return getConstraintMessage(from, field, Positive.class);
-
   }
 
   public static String getPatternMessage(Class<?> from, String field) {
-
     return getConstraintMessage(from, field, Pattern.class);
-
   }
 
   public static String getNotEmptyMessage(Class<?> from, String field) {
-
     return getConstraintMessage(from, field, NotEmpty.class);
-
   }
 
   public static String getConstraintMessage(Class<?> from, String propertyOrFieldOrMethod,
@@ -184,9 +176,8 @@ public class ValidationUtils {
       Method messageMethod = annotation.getClass().getDeclaredMethod("message");
 
       return (String) messageMethod.invoke(annotation);
-    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-      throw new AssertionFailedError(constraint.getName() + " is not valid constraint annotation",
-          e);
+    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+      throw new AssertionFailedError(constraint.getName() + " is not valid constraint annotation", ex);
     }
   }
 

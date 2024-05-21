@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation;
 
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class BackupValidationResourceTest extends ValidationResourceTest<BackupReview> {
+class BackupValidationResourceTest extends ValidationResourceTest<StackGresBackupReview> {
 
   @BeforeEach
   public void setUp() {

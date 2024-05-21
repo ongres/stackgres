@@ -13,7 +13,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -34,7 +34,7 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
   }
 
   @Override
-  public void validate(PgConfigReview review) throws ValidationFailed {
+  public void validate(StackGresPostgresConfigReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       String oldPgVersion = review.getRequest().getOldObject().getSpec().getPostgresVersion();
       String newPgVersion = review.getRequest().getObject().getSpec().getPostgresVersion();

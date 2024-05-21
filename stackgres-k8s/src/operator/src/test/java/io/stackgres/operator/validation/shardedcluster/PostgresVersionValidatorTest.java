@@ -366,7 +366,7 @@ class PostgresVersionValidatorTest {
   }
 
   @Test
-  void givenMajorPostgresVersionUpdate_shouldPassForDbOps() throws ValidationFailed {
+  void givenMajorPostgresVersionUpdate_shouldPassForStream() throws ValidationFailed {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadMajorPostgresVersionUpdate().get();
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
@@ -399,7 +399,7 @@ class PostgresVersionValidatorTest {
   }
 
   @Test
-  void givenMinorPostgresVersionUpdate_shouldPassForDbOps() throws ValidationFailed {
+  void givenMinorPostgresVersionUpdate_shouldPassForStream() throws ValidationFailed {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadMinorPostgresVersionUpdate().get();
 

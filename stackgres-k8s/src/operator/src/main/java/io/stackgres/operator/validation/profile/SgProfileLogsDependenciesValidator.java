@@ -9,7 +9,7 @@ import java.util.Objects;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,11 +18,11 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class SgProfileLogsDependenciesValidator
-    extends DependenciesValidator<SgProfileReview, StackGresDistributedLogs>
+    extends DependenciesValidator<StackGresInstanceProfileReview, StackGresDistributedLogs>
     implements SgProfileValidator {
 
   @Override
-  protected void validate(SgProfileReview review, StackGresDistributedLogs resource)
+  protected void validate(StackGresInstanceProfileReview review, StackGresDistributedLogs resource)
       throws ValidationFailed {
     if (Objects.equals(resource.getSpec().getSgInstanceProfile(), review.getRequest().getName())) {
       fail(review, resource);

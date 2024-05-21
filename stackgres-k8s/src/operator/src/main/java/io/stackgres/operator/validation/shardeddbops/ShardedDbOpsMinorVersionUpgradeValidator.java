@@ -20,7 +20,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
@@ -59,7 +59,7 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
   @Override
   @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
       justification = "False positive")
-  public void validate(ShardedDbOpsReview review) throws ValidationFailed {
+  public void validate(StackGresShardedDbOpsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE:
         StackGresShardedDbOps dbOps = review.getRequest().getObject();

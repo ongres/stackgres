@@ -7,7 +7,7 @@ package io.stackgres.operator.mutation.pgbouncer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
 import jakarta.annotation.PostConstruct;
@@ -16,7 +16,7 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PgBouncerDefaultValuesMutator
-    extends AbstractValuesMutator<StackGresPoolingConfig, PoolingReview>
+    extends AbstractValuesMutator<StackGresPoolingConfig, StackGresPoolingConfigReview>
     implements PgBouncerMutator {
 
   @Inject

@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.ObjectStorageReview;
-import io.stackgres.operator.common.ObjectStorageReviewBuilder;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReviewBuilder;
 
-public class ObjectStorageReviewFixture extends VersionedFixture<ObjectStorageReview> {
+public class ObjectStorageReviewFixture extends VersionedFixture<StackGresObjectStorageReview> {
 
   public static ObjectStorageReviewFixture fixture() {
     return new ObjectStorageReviewFixture();
@@ -29,8 +29,8 @@ public class ObjectStorageReviewFixture extends VersionedFixture<ObjectStorageRe
     return this;
   }
 
-  public ObjectStorageReviewBuilder getBuilder() {
-    return new ObjectStorageReviewBuilder(fixture);
+  public StackGresObjectStorageReviewBuilder getBuilder() {
+    return new StackGresObjectStorageReviewBuilder(fixture);
   }
 
 }

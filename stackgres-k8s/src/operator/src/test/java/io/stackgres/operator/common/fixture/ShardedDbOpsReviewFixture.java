@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.ShardedDbOpsReview;
-import io.stackgres.operator.common.ShardedDbOpsReviewBuilder;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReviewBuilder;
 
-public class ShardedDbOpsReviewFixture extends VersionedFixture<ShardedDbOpsReview> {
+public class ShardedDbOpsReviewFixture extends VersionedFixture<StackGresShardedDbOpsReview> {
 
   public static ShardedDbOpsReviewFixture fixture() {
     return new ShardedDbOpsReviewFixture();
@@ -48,8 +48,8 @@ public class ShardedDbOpsReviewFixture extends VersionedFixture<ShardedDbOpsRevi
     return this;
   }
 
-  public ShardedDbOpsReviewBuilder getBuilder() {
-    return new ShardedDbOpsReviewBuilder(fixture);
+  public StackGresShardedDbOpsReviewBuilder getBuilder() {
+    return new StackGresShardedDbOpsReviewBuilder(fixture);
   }
 
 }

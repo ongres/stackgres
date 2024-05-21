@@ -6,10 +6,10 @@
 package io.stackgres.operator.mutation.shardedbackup;
 
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
 public interface ShardedBackupMutator
-    extends Mutator<StackGresShardedBackup, ShardedBackupReview> {
+    extends Mutator<StackGresShardedBackup, StackGresShardedBackupReview> {
 
 }

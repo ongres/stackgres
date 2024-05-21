@@ -9,7 +9,7 @@ import java.util.Set;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -23,7 +23,7 @@ public class PgConfigBlocklistValidator implements PgConfigValidator {
   private static final Set<String> BLOCKLIST = PostgresBlocklist.getBlocklistParameters();
 
   @Override
-  public void validate(PgConfigReview review) throws ValidationFailed {
+  public void validate(StackGresPostgresConfigReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
       final StackGresPostgresConfig conf = review.getRequest().getObject();

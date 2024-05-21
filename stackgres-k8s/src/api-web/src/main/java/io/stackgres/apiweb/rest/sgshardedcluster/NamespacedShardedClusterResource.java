@@ -70,7 +70,6 @@ public class NamespacedShardedClusterResource
       ### RBAC permissions required
 
       * sgshardedclusters get
-      * secrets get
       * configmaps get
       """)
   @Override

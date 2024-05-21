@@ -64,6 +64,10 @@ public enum StackGresContainer implements StackGresContainerProfile {
   BACKUP_CREATE_BACKUP(StackGresGroupKind.BACKUP, "create-backup",
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
+      ),
+  STREAM_CONTROLLER(StackGresGroupKind.STREAM, "stream-controller",
+      cpu -> BigDecimal.ONE,
+      memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       );
 
   public static final String CUSTOM = "custom-%s";

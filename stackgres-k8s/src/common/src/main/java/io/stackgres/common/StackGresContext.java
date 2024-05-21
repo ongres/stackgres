@@ -59,6 +59,11 @@ public interface StackGresContext {
   String SHARDED_DBOPS_NAME_KEY = "sharded-dbops-name";
   String SHARDED_DBOPS_UID_KEY = "sharded-dbops-uid";
   String SHARDED_DBOPS_NAMESPACE_KEY = "sharded-dbops-namespace";
+  String STREAM_KEY = "stream";
+  String STREAM_APP_NAME = "StackGresStream";
+  String STREAM_NAME_KEY = "stream-name";
+  String STREAM_UID_KEY = "stream-uid";
+  String STREAM_NAMESPACE_KEY = "stream-namespace";
   String CONFIG_APP_NAME = "StackGresConfig";
   String CONFIG_NAME_KEY = "config-name";
   String CONFIG_UID_KEY = "config-uid";

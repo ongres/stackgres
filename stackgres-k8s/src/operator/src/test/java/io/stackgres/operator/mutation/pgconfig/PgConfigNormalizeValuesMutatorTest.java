@@ -10,7 +10,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
@@ -21,19 +21,19 @@ class PgConfigNormalizeValuesMutatorTest {
 
   private PgConfigMutator mutator = new PgConfigNormalizeValuesMutator();
 
-  private PgConfigReview getDefaultReview() {
+  private StackGresPostgresConfigReview getDefaultReview() {
     return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
-  private PgConfigReview getEmptyReview() {
-    PgConfigReview review = getDefaultReview();
+  private StackGresPostgresConfigReview getEmptyReview() {
+    StackGresPostgresConfigReview review = getDefaultReview();
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
     return review;
   }
 
   @Test
   void givenEmptyConfig_shouldNotReturnValues() {
-    PgConfigReview review = getEmptyReview();
+    StackGresPostgresConfigReview review = getEmptyReview();
 
     StackGresPostgresConfig result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -45,7 +45,7 @@ class PgConfigNormalizeValuesMutatorTest {
 
   @Test
   void givenAConfig_shouldReturnNormalizedValues() {
-    PgConfigReview review = getDefaultReview();
+    StackGresPostgresConfigReview review = getDefaultReview();
     Map<String, String> postgresqlConf =
         review.getRequest().getObject().getSpec().getPostgresqlConf();
     postgresqlConf.put("shared_buffers", "30822MB");
@@ -74,7 +74,7 @@ class PgConfigNormalizeValuesMutatorTest {
   @CsvSource(value = {"2147483647,2147483647MB", "62.37GB,63867MB", "0,0MB",
       "0.99,1MB", "567.79TB,581417GB", "2147483647B,2GB"})
   void givenMemoryConfig_shouldReturnNormalizedValues(String value, String expected) {
-    PgConfigReview review = getEmptyReview();
+    StackGresPostgresConfigReview review = getEmptyReview();
     review.getRequest().getObject().getSpec().setPostgresVersion("14.2");
     review.getRequest().getObject().getSpec().getPostgresqlConf()
         .put("min_dynamic_shared_memory", expected);

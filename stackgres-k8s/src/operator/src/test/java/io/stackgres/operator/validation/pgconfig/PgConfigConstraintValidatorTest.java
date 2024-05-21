@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -18,28 +18,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigReview> {
+class PgConfigConstraintValidatorTest extends ConstraintValidationTest<StackGresPostgresConfigReview> {
 
   @Override
-  protected AbstractConstraintValidator<PgConfigReview> buildValidator() {
+  protected AbstractConstraintValidator<StackGresPostgresConfigReview> buildValidator() {
     return new PgConfigConstraintValidator();
   }
 
   @Override
-  protected PgConfigReview getValidReview() {
+  protected StackGresPostgresConfigReview getValidReview() {
     return AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
   }
 
   @Override
-  protected PgConfigReview getInvalidReview() {
-    final PgConfigReview review = AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
+  protected StackGresPostgresConfigReview getInvalidReview() {
+    final StackGresPostgresConfigReview review = AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
     review.getRequest().getObject().setSpec(null);
     return review;
   }
 
   @Test
   void nullSpec_shouldFail() {
-    PgConfigReview review = getInvalidReview();
+    StackGresPostgresConfigReview review = getInvalidReview();
 
     checkNotNullErrorCause(StackGresPostgresConfig.class, "spec", review);
 
@@ -47,7 +47,7 @@ class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigR
 
   @Test
   void nullPosgrestConf_shouldFail() {
-    PgConfigReview review = getValidReview();
+    StackGresPostgresConfigReview review = getValidReview();
     review.getRequest().getObject().getSpec().setPostgresqlConf(null);
 
     checkNotNullErrorCause(StackGresPostgresConfigSpec.class, "spec.postgresql\\.conf", review);
@@ -55,7 +55,7 @@ class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigR
 
   @Test
   void emptyPosgrestConf_shouldPass() throws Exception {
-    PgConfigReview review = getValidReview();
+    StackGresPostgresConfigReview review = getValidReview();
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
 
     validator.validate(review);

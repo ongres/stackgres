@@ -19,7 +19,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
@@ -29,7 +30,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresFeatureGates;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
@@ -94,7 +94,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods().getPersistentVolume().setSize(null);
 
-    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pods.persistentVolume.size",
+    checkNotNullErrorCause(StackGresClusterPodsPersistentVolume.class, "spec.pods.persistentVolume.size",
         review);
   }
 
@@ -103,7 +103,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods().getPersistentVolume().setSize("512");
 
-    checkErrorCause(StackGresPodPersistentVolume.class, "spec.pods.persistentVolume.size",
+    checkErrorCause(StackGresClusterPodsPersistentVolume.class, "spec.pods.persistentVolume.size",
         review, Pattern.class);
   }
 
@@ -111,7 +111,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void validNodeSelector_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setNodeSelector(new HashMap<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getNodeSelector()
@@ -124,7 +124,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void validToleration_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()
@@ -139,7 +139,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void validTolerationKeyEmpty_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()
@@ -156,7 +156,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void invalidTolerationKeyEmpty_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()
@@ -175,7 +175,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void invalidTolerationOperator_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()
@@ -193,7 +193,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void invalidTolerationEffect_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()
@@ -243,7 +243,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void givenTolerationsSetAndEffectNoExecute_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()
@@ -262,7 +262,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   void givenTolerationsSetAndEffectOtherThanNoExecute_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPods()
-        .setScheduling(new StackGresClusterPodScheduling());
+        .setScheduling(new StackGresClusterPodsScheduling());
     review.getRequest().getObject().getSpec().getPods().getScheduling()
         .setTolerations(new ArrayList<>());
     review.getRequest().getObject().getSpec().getPods().getScheduling().getTolerations()

@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.common.fixture;
 
-import io.stackgres.operator.common.ShardedBackupReview;
-import io.stackgres.operator.common.ShardedBackupReviewBuilder;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReviewBuilder;
 
-public class ShardedBackupReviewFixture extends VersionedFixture<ShardedBackupReview> {
+public class ShardedBackupReviewFixture extends VersionedFixture<StackGresShardedBackupReview> {
 
   public static ShardedBackupReviewFixture fixture() {
     return new ShardedBackupReviewFixture();
@@ -29,8 +29,8 @@ public class ShardedBackupReviewFixture extends VersionedFixture<ShardedBackupRe
     return this;
   }
 
-  public ShardedBackupReviewBuilder getBuilder() {
-    return new ShardedBackupReviewBuilder(fixture);
+  public StackGresShardedBackupReviewBuilder getBuilder() {
+    return new StackGresShardedBackupReviewBuilder(fixture);
   }
 
 }

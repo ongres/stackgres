@@ -6,9 +6,9 @@
 package io.stackgres.operator.mutation.profile;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface ProfileMutator extends Mutator<StackGresProfile, SgProfileReview> {
+public interface ProfileMutator extends Mutator<StackGresProfile, StackGresInstanceProfileReview> {
 
 }

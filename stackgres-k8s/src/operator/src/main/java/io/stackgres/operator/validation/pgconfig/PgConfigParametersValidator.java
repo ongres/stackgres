@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -35,7 +35,7 @@ public class PgConfigParametersValidator implements PgConfigValidator {
   }
 
   @Override
-  public void validate(PgConfigReview review) throws ValidationFailed {
+  public void validate(StackGresPostgresConfigReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
       final StackGresPostgresConfig conf = review.getRequest().getObject();

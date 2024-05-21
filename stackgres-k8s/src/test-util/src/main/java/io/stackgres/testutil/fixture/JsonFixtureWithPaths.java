@@ -582,6 +582,23 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SHARDED_DB_OPS_SECURITY_UPGRADE_JSON =
       "stackgres/sharded_db_ops/security_upgrade.json";
 
+  String STACKGRES_STREAM_DTO_JSON = "stackgres/stream/dto.json";
+
+  String STACKGRES_STREAM_SCHEDULING_JSON = "stackgres/db_ops/scheduling.json";
+
+  String STACKGRES_STREAM_SGCLUSTER_TO_CLOUDEVENT_JSON = "stackgres/stream/sgcluster_to_cloud_event.json";
+
+  String STACKGRES_STREAM_LIST_JSON = "stackgres/stream/list.json";
+
+  String STACKGRES_STREAM_ADMISSION_REVIEW_CREATE_JSON =
+      "stackgres/stream/admission_review/create.json";
+
+  String STACKGRES_STREAM_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/stream/admission_review/delete.json";
+
+  String STACKGRES_STREAM_ADMISSION_REVIEW_UPDATE_JSON =
+      "stackgres/stream/admission_review/update.json";
+
   String STACKGRES_USER_DTO_JSON = "stackgres/user/dto.json";
 
   String STATEFULSET_0_9_5_JSON = "statefulset/0.9.5.json";

@@ -13,7 +13,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -32,7 +32,7 @@ public class BackupStatusValidator implements BackupValidator {
   }
 
   @Override
-  public void validate(BackupReview review) throws ValidationFailed {
+  public void validate(StackGresBackupReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       String backupName = Optional.ofNullable(review.getRequest().getObject())
           .map(StackGresBackup::getStatus)

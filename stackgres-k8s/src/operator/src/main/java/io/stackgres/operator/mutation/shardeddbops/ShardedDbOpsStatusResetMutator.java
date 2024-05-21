@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation.shardeddbops;
 
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -14,7 +14,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class ShardedDbOpsStatusResetMutator implements ShardedDbOpsMutator {
 
   @Override
-  public StackGresShardedDbOps mutate(ShardedDbOpsReview review, StackGresShardedDbOps resource) {
+  public StackGresShardedDbOps mutate(StackGresShardedDbOpsReview review, StackGresShardedDbOps resource) {
     if (review.getRequest().getOperation() == Operation.CREATE) {
       resource.setStatus(null);
     }

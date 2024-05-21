@@ -16,7 +16,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.resource.NamedResource;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -39,7 +39,7 @@ public class ShardedClusterValidator implements ShardedBackupValidator {
   }
 
   @Override
-  public void validate(ShardedBackupReview review) throws ValidationFailed {
+  public void validate(StackGresShardedBackupReview review) throws ValidationFailed {
     StackGresShardedBackup backup = review.getRequest().getObject();
 
     switch (review.getRequest().getOperation()) {
@@ -60,7 +60,7 @@ public class ShardedClusterValidator implements ShardedBackupValidator {
 
   private void validateShardedCluster(
       StackGresShardedBackup backup,
-      ShardedBackupReview review,
+      StackGresShardedBackupReview review,
       String clusterName) throws ValidationFailed {
     if (hasStatusBackups(backup)) {
       return;
@@ -117,7 +117,7 @@ public class ShardedClusterValidator implements ShardedBackupValidator {
     }
   }
 
-  private NamedResource getShardedClusterLocation(ShardedBackupReview review) {
+  private NamedResource getShardedClusterLocation(StackGresShardedBackupReview review) {
     StackGresShardedBackup backup = review.getRequest().getObject();
     String cluster = backup.getSpec().getSgShardedCluster();
     if (cluster.contains(".")) {

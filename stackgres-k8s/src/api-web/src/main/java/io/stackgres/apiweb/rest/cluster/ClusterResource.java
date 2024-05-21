@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -136,7 +137,6 @@ public class ClusterResource
       * sgclusters list
       * pod list
       * services list
-      * secrets get
       * configmaps get
       """)
   @Override
@@ -287,15 +287,47 @@ public class ClusterResource
                 t.v2.getMetadata().getName(),
                 t.v2.getMetadata().getNamespace())))
         .toList();
-    var secretsToCreate = getSecretsToCreate(resource)
-        .stream()
+    if (Seq.seq(scriptsToCreate)
+        .grouped(t -> t.v2.getMetadata().getName())
+        .anyMatch(t -> t.v2.count() > 1)) {
+      throw new IllegalArgumentException(
+          "script entries can not reference the same script more than once. Repeated SGScripts are: "
+              + Seq.seq(scriptsToCreate)
+              .grouped(t -> t.v2.getMetadata().getName())
+              .map(t -> t.map2(Stream::toList))
+              .filter(t -> t.v2.size() > 1)
+              .map(Tuple2::v1)
+              .toString(", "));
+    }
+    var secretsToCreate = Seq.seq(getSecretsToCreate(resource))
+        .grouped(secret -> secret.getMetadata().getName())
+        .flatMap(t -> t.v2.reduce(
+            Optional.<Secret>empty(),
+            (merged, secret) -> merged
+            .or(() -> Optional.of(secret))
+            .map(mergedSecret -> {
+              mergedSecret.getData().putAll(secret.getData());
+              return mergedSecret;
+            }),
+            (u, v) -> v)
+            .stream())
         .map(secret -> Tuple.tuple(secret,
             secretFinder.findByNameAndNamespace(
                 secret.getMetadata().getName(),
                 secret.getMetadata().getNamespace())))
         .toList();
-    var configMapsToCreate = getConfigMapsToCreate(resource)
-        .stream()
+    var configMapsToCreate = Seq.seq(getConfigMapsToCreate(resource))
+        .grouped(configMap -> configMap.getMetadata().getName())
+        .flatMap(t -> t.v2.reduce(
+            Optional.<ConfigMap>empty(),
+            (merged, configMap) -> merged
+            .or(() -> Optional.of(configMap))
+            .map(mergedConfigMap -> {
+              mergedConfigMap.getData().putAll(configMap.getData());
+              return mergedConfigMap;
+            }),
+            (u, v) -> v)
+            .stream())
         .map(configMap -> Tuple.tuple(configMap,
             configMapFinder.findByNameAndNamespace(
                 configMap.getMetadata().getName(),

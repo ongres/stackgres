@@ -14,6 +14,7 @@ export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY
 export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/jobs:$IMAGE_TAG"
 export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/cluster-controller:$IMAGE_TAG"
 export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/distributedlogs-controller:$IMAGE_TAG"
+export STREAM_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/stream:$IMAGE_TAG"
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
@@ -76,6 +77,7 @@ build_all() {
     jobs-java \
     cluster-controller-java \
     distributedlogs-controller-java \
+    stream-java \
     admin-ui \
     helm-packages \
     helm-templates \
@@ -89,6 +91,7 @@ build_all() {
     jobs-jvm-image \
     cluster-controller-jvm-image \
     distributedlogs-controller-jvm-image \
+    stream-jvm-image \
     admin-ui-image \
     operator-bundle-image
 EOF
@@ -106,6 +109,7 @@ EOF
       jobs-java \
       cluster-controller-java \
       distributedlogs-controller-java \
+      stream-java \
       admin-ui \
       helm-packages \
       helm-templates \
@@ -124,6 +128,8 @@ EOF
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
@@ -133,6 +139,7 @@ EOF
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" "$STREAM_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
   fi
 }
@@ -293,6 +300,7 @@ setup_operator() {
       fi
     else
       echo "Performing cleanup skipping operator"
+      k8s_webhook_cleanup_but_operator
       helm_cleanup_but_operator
       k8s_async_cleanup_but_operator
       echo "Cleanup skipping operator completed"
@@ -343,6 +351,7 @@ load_operator_k8s() {
     local ORIGINAL_JOBS_IMAGE_NAME="$JOBS_IMAGE_NAME"
     local ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME="$CLUSTER_CONTROLLER_IMAGE_NAME"
     local ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    local ORIGINAL_STREAM_IMAGE_NAME="$STREAM_IMAGE_NAME"
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
     local IMAGE_TAG="$1"
     local ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
@@ -351,12 +360,14 @@ load_operator_k8s() {
     local JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME%:*}:$IMAGE_TAG"
     local CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
     local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
+    local STREAM_IMAGE_NAME="${STREAM_IMAGE_NAME%:*}:$IMAGE_TAG"
     local ADMINUI_IMAGE_NAME="${ADMINUI_IMAGE_NAME%:*}:$ADMINUI_IMAGE_TAG"
     docker_tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
     docker_tag "$ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME"
     docker_tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker_tag "$ORIGINAL_STREAM_IMAGE_NAME" "$STREAM_IMAGE_NAME"
     docker_tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     load_operator_k8s_only
   else
@@ -373,6 +384,7 @@ load_operator_k8s_only() {
     "$JOBS_IMAGE_NAME" \
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
     "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+    "$STREAM_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
@@ -400,6 +412,7 @@ push_operator_images() {
     "$JOBS_IMAGE_NAME" \
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
     "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+    "$STREAM_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
@@ -769,9 +782,10 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
-  export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
   export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
   export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller"
+  export PRIVATE_STREAM_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/stream"
+  export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
   upgrade_operator_vanilla \
       --set-string developer.version="$STACKGRES_VERSION" \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
@@ -886,7 +900,10 @@ reinstall_operator_if_not_as_expected() {
     return
   fi
   if ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
-    || [ "$(get_installed_operator_values)" != "$(cat "$TARGET_PATH/operator-values.json")" ]
+    || {
+      [ "$(get_installed_operator_values)" != "$(cat "$TARGET_PATH/operator-values.json")" ] \
+      && [ "$E2E_FORCE_REUSE_OPERATOR" != true ]
+    }
   then
     if ! helm get notes stackgres-operator --namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1
     then
@@ -963,6 +980,7 @@ get_operator_images() {
   echo "${JOBS_IMAGE_NAME%:*}:$TAG"
   echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$TAG"
   echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$TAG"
+  echo "${STREAM_IMAGE_NAME%:*}:$TAG"
   echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
 }
 
@@ -973,6 +991,7 @@ get_operator_images_pre_1_0_0_alpha2() {
   echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
   echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
   echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${STREAM_IMAGE_NAME%:*}:$VERSION"
   echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
 }
 
@@ -1617,6 +1636,10 @@ get_sgshardeddbops_name() {
   get_cr_name "$1" sgshardeddbops.stackgres.io
 }
 
+get_sgstreams_name() {
+  get_cr_name "$1" sgstreams.stackgres.io
+}
+
 get_cr_name() {
   [ -n "$1" ] && [ -n "$2" ]
   if [ "$E2E_SET_MAX_LENGTH_NAMES" = true ]
@@ -1754,6 +1777,20 @@ EOF
     --set-string developer.patches.distributedlogsController.volumeMounts[3].name=app 
     --set-string developer.patches.distributedlogsController.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.distributedlogsController.volumeMounts[3].subPath=quarkus-run.jar 
+    --set-string developer.patches.stream.volumes[0].name=app 
+    --set-string developer.patches.stream.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/stream/target/quarkus-app) 
+    --set-string developer.patches.stream.volumeMounts[0].name=app 
+    --set-string developer.patches.stream.volumeMounts[0].mountPath=/app/app 
+    --set-string developer.patches.stream.volumeMounts[0].subPath=app 
+    --set-string developer.patches.stream.volumeMounts[1].name=app 
+    --set-string developer.patches.stream.volumeMounts[1].mountPath=/app/lib 
+    --set-string developer.patches.stream.volumeMounts[1].subPath=lib 
+    --set-string developer.patches.stream.volumeMounts[2].name=app 
+    --set-string developer.patches.stream.volumeMounts[2].mountPath=/app/quarkus 
+    --set-string developer.patches.stream.volumeMounts[2].subPath=quarkus 
+    --set-string developer.patches.stream.volumeMounts[3].name=app 
+    --set-string developer.patches.stream.volumeMounts[3].mountPath=/app/quarkus-run.jar 
+    --set-string developer.patches.stream.volumeMounts[3].subPath=quarkus-run.jar 
 EOF
   fi
 }

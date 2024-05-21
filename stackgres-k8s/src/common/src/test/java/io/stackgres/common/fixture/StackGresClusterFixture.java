@@ -8,8 +8,8 @@ package io.stackgres.common.fixture;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 
 public class StackGresClusterFixture {
@@ -30,7 +30,7 @@ public class StackGresClusterFixture {
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
     cluster.getSpec().setPods(new StackGresClusterPods());
-    cluster.getSpec().getPods().setScheduling(new StackGresClusterPodScheduling());
+    cluster.getSpec().getPods().setScheduling(new StackGresClusterPodsScheduling());
     cluster.getSpec().getPods().getScheduling().setNodeAffinity(nodeAffinity);
     return cluster;
   }
