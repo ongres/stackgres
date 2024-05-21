@@ -6,7 +6,7 @@ description: Perform a postgres minor version upgrade
 showToc: true
 ---
 
-Performin a minor version upgrade is a simple process, this type of upgrade only requires to upgrade the executable files (binaries) while the server is down. Once the files where replaced the server must be restarted. 
+Performing a minor version upgrade is a simple process, this type of upgrade only requires to upgrade the executable files (binaries) while the server is down. Once the files where replaced the server must be restarted. 
 
 Minor releases never change the internal storage format and are always compatible with earlier and later minor releases of the same major version number. For example, version 10.1 is compatible with version 10.0 and version 10.6. Similarly. [Check Official Postgres documentation](https://www.postgresql.org/docs/current/upgrading.html).
 
