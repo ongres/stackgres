@@ -4111,7 +4111,7 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"fastVolumeSnapshot": false})
         cy.get('@putCluster')
             .its('request.body.spec.prometheusAutobind')
-            .should('eq', true)
+            .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.profile')
             .should('eq', 'development')

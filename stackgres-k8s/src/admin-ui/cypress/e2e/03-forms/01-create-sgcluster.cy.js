@@ -2510,7 +2510,7 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"scripts[3].scriptSpec.scripts[0].script": 'test3-' + resourceName})
         cy.get('@putCluster')
             .its('request.body.spec.prometheusAutobind')
-            .should('eq', true)
+            .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.replication')
             .should('nested.include', {"role": 'ha-read'})
