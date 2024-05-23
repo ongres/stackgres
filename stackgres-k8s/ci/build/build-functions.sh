@@ -390,13 +390,23 @@ build_image() {
   echo "Image $IMAGE_NAME"
   echo "Source image $SOURCE_IMAGE_NAME"
   echo
-  if [ "$DO_BUILD" != true ] && grep -q "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests
+  if {
+      [ "$DO_BUILD" != true ] \
+        && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
+        && grep -q "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests
+    }
   then
-    echo "Already exists. Skipping ..."
+    echo "Already exists on remote repository. Just extracting..."
+    copy_from_image "$SOURCE_IMAGE_NAME"
   else
-    if [ "$DO_BUILD" != true ] && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
+    if {
+        [ "$DO_BUILD" != true ] \
+          && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
+          && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
+      }
     then
-      echo "Already exists locally. Skipping build ..."
+      echo "Already exists locally. Just extracting ..."
+      copy_from_image "$SOURCE_IMAGE_NAME"
     else
       echo "Building $MODULE ..."
       build_module_image "$MODULE" "$SOURCE_IMAGE_NAME" "$IMAGE_NAME"
@@ -465,10 +475,13 @@ generate_image_hashes() {
   local MODULE_PLATFORM
   local SOURCE_IMAGE_NAME
   local IMAGE_NAME
+  local MODULES
+  local PROJECT_HASH_PATH
+  local BUILD_HASH
 
   mkdir -p stackgres-k8s/ci/build/target
 
-  yq . stackgres-k8s/ci/build/config.yml > stackgres-k8s/ci/build/target/config.json
+  init_config
 
   init_hash
 
@@ -508,6 +521,36 @@ EOF
 EOF
 
     project_hash > stackgres-k8s/ci/build/target/project_hash
+  fi
+}
+
+init_config() {
+  local CONFIG_HASH
+
+  mkdir -p stackgres-k8s/ci/build/target
+
+  CONFIG_HASH="$(md5sum stackgres-k8s/ci/build/config.yml)"
+  if ! test -f stackgres-k8s/ci/build/target/config.json \
+    || ! test -f stackgres-k8s/ci/build/target/config.yml.md5 \
+    || [ "$(printf %s "$CONFIG_HASH")" != "$(cat stackgres-k8s/ci/build/target/config.yml.md5)" ]
+  then
+    yq . stackgres-k8s/ci/build/config.yml > stackgres-k8s/ci/build/target/config.json
+    printf %s "$CONFIG_HASH" > stackgres-k8s/ci/build/target/config.yml.md5
+  fi
+}
+
+init_config() {
+  local CONFIG_HASH
+
+  mkdir -p stackgres-k8s/ci/build/target
+
+  CONFIG_HASH="$(md5sum stackgres-k8s/ci/build/config.yml)"
+  if ! test -f stackgres-k8s/ci/build/target/config.json \
+    || ! test -f stackgres-k8s/ci/build/target/config.yml.md5 \
+    || [ "$(printf %s "$CONFIG_HASH")" != "$(cat stackgres-k8s/ci/build/target/config.yml.md5)" ]
+  then
+    yq . stackgres-k8s/ci/build/config.yml > stackgres-k8s/ci/build/target/config.json
+    printf %s "$CONFIG_HASH" > stackgres-k8s/ci/build/target/config.yml.md5
   fi
 }
 
