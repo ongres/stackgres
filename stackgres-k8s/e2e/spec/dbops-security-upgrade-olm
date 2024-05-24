@@ -637,3 +637,13 @@ e2e_cleanup() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup || true
 }
+
+check_conversion_webhooks_configured(){
+  CONVERSTION_STRATEGY="$(kubectl get crd sgclusters.stackgres.io -o jsonpath='{.spec.conversion.strategy}')"
+
+  assert_string_equal "None" "$CONVERSTION_STRATEGY"
+
+  CONVERSTION_STRATEGY="$(kubectl get crd sgdistributedlogs.stackgres.io -o jsonpath='{.spec.conversion.strategy}')"
+
+  assert_string_equal "None" "$CONVERSTION_STRATEGY"
+}
