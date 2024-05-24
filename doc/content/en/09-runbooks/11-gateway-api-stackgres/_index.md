@@ -1,14 +1,16 @@
 ---
 Title: Configure Gateway API 
 weight: 11
-url: /runbooks/gateway-api-stackgres
-description: How configure Gateway API
+url: /runbooks/gateway-api
+description: How to configure Gateway API
 showToc: true
 ---
 
 Gateway API is an official Kubernetes project focused on L4 and L7 routing in Kubernetes. This project represents the next generation of Kubernetes Ingress, Load Balancing, and Service Mesh APIs. From the outset, it has been designed to be generic, expressive, and role-oriented. ([Official documentation](https://gateway-api.sigs.k8s.io/))
 
 On this runbook we'll show you how to configure the basics to start using Gateway API with StackGres.
+
+>**Important:** In case your Kubernetes cluster, does not have a LoadBalancer implementation, we recommend installing one so the Gateway resource has an Address associated with it. We recommend using [MetalLB](https://metallb.universe.tf/installation/).
 
 ## Gateway API components
 
@@ -81,7 +83,7 @@ spec:
 EOF
 ```
 
-Theck the object created:
+Check the object created:
 
 ```bash
 ❯ kubectl get gatewayclasses.gateway.networking.k8s.io 
@@ -180,6 +182,6 @@ postgres=#
 
 ## Next steps
 
-The above example was intended to show you the basic configuration of the `Gateway API`. If you want to expose your database, make sure to configure a secure connection to it.  
+- The above example was intended to show you the basic configuration of the `Gateway API`. If you want to expose your database, make sure to configure a secure connection to it.  
 
-Check the security documentation for the Envoy Gateway [here](https://gateway.envoyproxy.io/latest/tasks/security/)
+- Check the security documentation for the Envoy Gateway [here](https://gateway.envoyproxy.io/latest/tasks/security/)
