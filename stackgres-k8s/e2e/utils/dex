@@ -1,0 +1,56 @@
+#!/bin/sh
+
+dex_namespace() {
+  echo "$CLUSTER_NAMESPACE-dex"
+}
+
+install_dex() {
+  LB_IP=$(printf "%s" "$CONTOUR_LB_IP" | sed 's/\./-/g')
+  DEX_HOST=$(printf "dex-%s.nip.io" "$LB_IP")
+  KEYCLOAK_URL=$(printf "https://keycloak-%s.nip.io" "$LB_IP")
+  STACKGRES_URL=$(printf "https://stackgres-%s.nip.io" "$LB_IP")
+
+  helm install dex "$E2E_PATH/helm/dex-0.18.0.tgz" \
+    --create-namespace \
+    --namespace "$(dex_namespace)" \
+    --set config.issuer="https://${DEX_HOST}" \
+    --set config.storage.type=kubernetes \
+    --set config.storage.config.inCluster=true \
+    --set ingress.enabled=true \
+    --set ingress.annotations."cert-manager\.io/cluster-issuer"=ca-dev-issuer \
+    --set ingress.hosts[0].host="${DEX_HOST}" \
+    --set ingress.hosts[0].paths[0].path="/" \
+    --set ingress.hosts[0].paths[0].pathType=Prefix \
+    --set ingress.tls[0].hosts[0]="${DEX_HOST}" \
+    --set ingress.tls[0].secretName=dex-cert \
+    --set config.connectors[0].type=oidc \
+    --set config.connectors[0].id=keycloak \
+    --set config.connectors[0].name=Keycloak \
+    --set config.connectors[0].config.issuer="${KEYCLOAK_URL}/realms/stackgres" \
+    --set config.connectors[0].config.clientID=dex-client \
+    --set config.connectors[0].config.clientSecret=dex-client-secret \
+    --set config.connectors[0].config.redirectURI="https://${DEX_HOST}/callback" \
+    --set config.connectors[0].config.rootCAs[0]="/etc/dex/certs/ca.crt" \
+    --set config.connectors[0].config.insecureSkipEmailVerified=true \
+    --set config.connectors[0].config.getUserInfo=true \
+    --set config.connectors[0].config.userNameKey=preferred_username \
+    --set config.connectors[0].config.scopes[0]=profile \
+    --set config.staticClients[0].id=quarkus-client \
+    --set config.staticClients[0].redirectURIs[0]="${STACKGRES_URL}/stackgres/auth/external" \
+    --set config.staticClients[0].name="StackGres App" \
+    --set config.staticClients[0].secret=dex-client-secret \
+    --set volumeMounts[0].name=dex-ca-cert \
+    --set volumeMounts[0].mountPath=/etc/dex/certs \
+    --set volumeMounts[0].readOnly=true \
+    --set volumes[0].name=dex-ca-cert \
+    --set volumes[0].secret.secretName=dex-cert \
+    --wait \
+    "$@"
+
+  wait_pods_running "$(cert_manager_namespace)" 3
+}
+
+uninstall_dex() {
+  helm_cleanup_chart dex "$(dex_namespace)"
+  k8s_async_cleanup_namespace "$(dex_namespace)"
+}

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+contour_namespace() {
+  echo "$CLUSTER_NAMESPACE-contour"
+}
+
+install_contour() {
+  helm install contour "$E2E_PATH/helm/contour-18.2.10.tgz" \
+    --create-namespace --namespace "$(contour_namespace)" \
+    "$@"
+  kubectl patch daemonsets -n "$(contour_namespace)" contour-envoy \
+    -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"},"tolerations":[{"key":"node-role.kubernetes.io/control-plane","operator":"Equal","effect":"NoSchedule"},{"key":"node-role.kubernetes.io/master","operator":"Equal","effect":"NoSchedule"}]}}}}'
+  wait_pods_running "$(contour_namespace)" 1
+
+  CONTOUR_LB_IP="$(kubectl get svc -n "$(contour_namespace)" contour-envoy -o json | jq -r '.status.loadBalancer.ingress[0].ip')"
+  printf "\n%s\n\n" "⚖️ Exporting LoadBalancer IP for Contour: CONTOUR_LB_IP=${CONTOUR_LB_IP}"
+  export CONTOUR_LB_IP
+}
+
+uninstall_contour() {
+  helm_cleanup_chart contour "$(contour_namespace)"
+  k8s_async_cleanup_namespace "$(contour_namespace)"
+}
