@@ -29,8 +29,11 @@ spec:
         type: object
         description: |
           SGConfig stores the configuration of the StackGres Operator
+          
+          The SGConfig should be created automatically during installation.
 
-          > **WARNING**: Creating more than one SGConfig is forbidden in order to avoid misbehaviours. The single SGConfig should be created automatically during installation.
+          > **WARNING**: Creating more than one SGConfig is forbidden (must be enforced manually) in order to avoid misbehaviours unless `allowedNamespaces`
+          >  (or `ALLOWED_NAMESPACES` environment variable) is set with more than one namespace and the other SGConfigs are created in namespace that is not included in such field.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -64,7 +67,7 @@ spec:
                 description: |
                   Section to configure allowed namespaces that the operator is allowed to use. If empty all namespaces will be allowed (default).
 
-                  > This value can be set in operator helm chart or with the environment variable `ALLOWED_NAMESPACES`.
+                  > This value can be set in operator helm chart or with the environment variable `ALLOWED_NAMESPACES` (where namespaces are separated by space character).
                   >   It is set by OLM when [scoping the operator](https://olm.operatorframework.io/docs/advanced-tasks/operator-scoping-with-operatorgroups/).
                 items:
                   type: string
@@ -116,6 +119,20 @@ spec:
                   It is `false` by default.
 
                   > This value can only be set in operator helm chart.
+              disableWebhooks:
+                type: boolean
+                description: |
+                  When set to `true` the creation of the mutating and validating Webhooks is disabled.
+                   Also, when `true`, some features that rely on mutating and validating Webhooks will be disabled:
+                  
+                  * Validation on deletion will not be supported in this mode.
+                  * Validation of locked resources will not be supported in this mode. This means that during SGBackups and SGDbOps user could perform changes that may potentially break the backup/database operation. There is no way to check who did the change when webhook are disabled.
+                  
+                  It is `false` by default.
+                  
+                  > **WARNING**: Removing any of the annotations `stackgres.io/valid-resource-hash` or `stackgres.io/previous-resource` will have the same effect as when we remove the regular Webhooks when they are enabled, the behavior of the operator in such condition is undefined.
+                  
+                  > This value can only be set in operator helm chart or with the environment variable `DISABLE_WEBHOOKS`.
               sgConfigNamespace:
                 type: string
                 description: |

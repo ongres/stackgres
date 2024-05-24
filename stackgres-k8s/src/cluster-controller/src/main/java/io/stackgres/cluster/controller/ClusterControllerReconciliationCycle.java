@@ -11,8 +11,10 @@ import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAMESPACE;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -23,6 +25,8 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -45,11 +49,14 @@ public class ClusterControllerReconciliationCycle
   private final EventController eventController;
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final Function<StackGresCluster, StackGresCluster> validResourceMapper;
 
   @Dependent
   public static class Parameters {
     @Inject
     KubernetesClient client;
+    @Inject
+    ObjectMapper objectMapper;
     @Inject
     ClusterControllerReconciliator reconciliator;
     @Inject
@@ -76,6 +83,15 @@ public class ClusterControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
+    if (propertyContext.getBoolean(ClusterControllerProperty.DISABLE_WEBHOOKS)) {
+      this.validResourceMapper = resource -> StackGresUtil.getValidResource(
+          resource, StackGresCluster.class, parameters.objectMapper)
+          .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
+              + " " + propertyContext.getString(CLUSTER_NAME)
+              + "." + propertyContext.getString(CLUSTER_NAMESPACE) + " not valid"));
+    } else {
+      this.validResourceMapper = Function.identity();
+    }
   }
 
   public ClusterControllerReconciliationCycle() {
@@ -85,6 +101,7 @@ public class ClusterControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.clusterFinder = null;
+    this.validResourceMapper = null;
   }
 
   public static ClusterControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -157,6 +174,7 @@ public class ClusterControllerReconciliationCycle
     return clusterFinder.findByNameAndNamespace(
         propertyContext.getString(CLUSTER_NAME),
         propertyContext.getString(CLUSTER_NAMESPACE))
+        .map(validResourceMapper)
         .stream()
         .toList();
   }
@@ -168,6 +186,7 @@ public class ClusterControllerReconciliationCycle
     return clusterFinder.findByNameAndNamespace(
         name,
         namespace)
+        .map(validResourceMapper)
         .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
             + " " + name + "." + namespace + " not found"));
   }

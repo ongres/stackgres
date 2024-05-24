@@ -16,12 +16,15 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -30,10 +33,12 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class DbOpsReconciliator
-    extends AbstractReconciliator<StackGresDbOps> {
+    extends AbstractReconciliator<StackGresDbOps, DbOpsReview> {
 
   @Dependent
   static class Parameters {
+    @Inject MutationPipeline<StackGresDbOps, DbOpsReview> mutatingPipeline;
+    @Inject ValidationPipeline<DbOpsReview> validatingPipeline;
     @Inject CustomResourceScanner<StackGresDbOps> scanner;
     @Inject CustomResourceFinder<StackGresDbOps> finder;
     @Inject AbstractConciliator<StackGresDbOps> conciliator;
@@ -54,15 +59,23 @@ public class DbOpsReconciliator
 
   @Inject
   public DbOpsReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.finder,
+    super(
+        parameters.mutatingPipeline, parameters.validatingPipeline,
+        parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.objectMapper,
         parameters.operatorLockReconciliator,
         StackGresDbOps.KIND);
     this.eventController = parameters.eventController;
     this.patchResumer = new PatchResumer<>(parameters.objectMapper);
     this.statusManager = parameters.statusManager;
     this.dbOpsScheduler = parameters.dbOpsScheduler;
+  }
+
+  @Override
+  protected DbOpsReview createReview() {
+    return new DbOpsReview();
   }
 
   void onStart(@Observes StartupEvent ev) {

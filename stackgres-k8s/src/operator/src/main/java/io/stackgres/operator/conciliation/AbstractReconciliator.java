@@ -9,44 +9,61 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.fabric8.kubernetes.api.model.GroupVersionKind;
+import io.fabric8.kubernetes.api.model.GroupVersionResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.authentication.UserInfo;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
+public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R extends AdmissionReview<T>> {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       AbstractReconciliator.class.getPackage().getName());
 
-  private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
-      .RECONCILIATION_PAUSE_KEY;
+  private final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
 
+  private final MutationPipeline<T, R> mutatingPipeline;
+  private final ValidationPipeline<R> validatingPipeline;
   private final CustomResourceScanner<T> scanner;
   private final CustomResourceFinder<T> finder;
   private final AbstractConciliator<T> conciliator;
   private final DeployedResourcesCache deployedResourcesCache;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
+  private final ObjectMapper objectMapper;
   private final OperatorLockHolder operatorLockReconciliator;
   private final String reconciliationName;
   private final ExecutorService executorService;
@@ -58,20 +75,26 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   private boolean close = false;
 
   protected AbstractReconciliator(
+      MutationPipeline<T, R> mutatingPipeline,
+      ValidationPipeline<R> validatingPipeline,
       CustomResourceScanner<T> scanner,
       CustomResourceFinder<T> finder,
       AbstractConciliator<T> conciliator,
       DeployedResourcesCache deployedResourcesCache,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
+      ObjectMapper objectMapper,
       OperatorLockHolder operatorLockReconciliator,
       String reconciliationName) {
+    this.mutatingPipeline = mutatingPipeline; 
+    this.validatingPipeline = validatingPipeline; 
     this.scanner = scanner;
     this.finder = finder;
     this.conciliator = conciliator;
     this.deployedResourcesCache = deployedResourcesCache;
     this.handlerDelegator = handlerDelegator;
     this.client = client;
+    this.objectMapper = objectMapper;
     this.reconciliationName = reconciliationName;
     this.operatorLockReconciliator = operatorLockReconciliator;
     this.executorService = Executors.newSingleThreadExecutor(
@@ -80,12 +103,15 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   public AbstractReconciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.mutatingPipeline = null; 
+    this.validatingPipeline = null; 
     this.scanner = null;
     this.finder = null;
     this.conciliator = null;
     this.deployedResourcesCache = null;
     this.handlerDelegator = null;
     this.client = null;
+    this.objectMapper = null;
     this.reconciliationName = null;
     this.operatorLockReconciliator = null;
     this.executorService = null;
@@ -154,7 +180,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   protected void reconciliationsCycle(List<Optional<T>> configs) {
     mergedConfigs(configs).stream()
         .filter(t -> Optional.ofNullable(t.v1.getMetadata().getAnnotations())
-            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
+            .map(annotations -> annotations.get(StackGresContext.RECONCILIATION_PAUSE_KEY))
             .map(Boolean::parseBoolean)
             .map(b -> !b)
             .orElse(true))
@@ -207,9 +233,28 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       } else {
         config = configKey;
       }
-      onPreReconciliation(config);
+      final T mutatedConfig;
+      if (OperatorProperty.DISABLE_WEBHOOKS.getBoolean()
+          && !resourceHashIsValid(config)) {
+        Optional<T> previousConfig = Optional.of(config)
+            .map(CustomResource::getMetadata)
+            .map(ObjectMeta::getAnnotations)
+            .map(annotations -> annotations.get(StackGresContext.VALID_RESOURCE))
+            .map(client.getKubernetesSerialization()::unmarshal);
+        LOGGER.debug("Mutating {} for {}", configId, previousConfig
+            .map(ignored -> Operation.UPDATE).orElse(Operation.CREATE));
+        T configCopy = client.getKubernetesSerialization().clone(config);
+        mutatedConfig = mutatingPipeline.mutate(getReview(config, previousConfig), configCopy);
+        LOGGER.debug("Validating {} for {}", configId, previousConfig
+            .map(ignored -> Operation.UPDATE).orElse(Operation.CREATE));
+        validatingPipeline.validate(getReview(mutatedConfig, previousConfig));
+        updateValidatedResource(mutatedConfig);
+      } else {
+        mutatedConfig = config;
+      }
+      onPreReconciliation(mutatedConfig);
       LOGGER.debug("Checking reconciliation status of {}", configId);
-      ReconciliationResult result = conciliator.evalReconciliationState(config);
+      ReconciliationResult result = conciliator.evalReconciliationState(mutatedConfig);
       if (!result.isUpToDate()) {
         LOGGER.info("{} it's not up to date. Reconciling", configId);
 
@@ -222,7 +267,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                     resource.getKind(),
                     resource.getMetadata().getNamespace(),
                     resource.getMetadata().getName());
-                var created = handlerDelegator.create(config, resource);
+                var created = handlerDelegator.create(mutatedConfig, resource);
                 deployedResourcesCache.put(resource, created);
               } catch (Exception ex) {
                 if (resource instanceof Role
@@ -246,7 +291,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                     resource.v2.getKind(),
                     resource.v2.getMetadata().getNamespace(),
                     resource.v2.getMetadata().getName());
-                var patched = handlerDelegator.patch(config, resource.v1, resource.v2);
+                var patched = handlerDelegator.patch(mutatedConfig, resource.v1, resource.v2);
                 deployedResourcesCache.put(resource.v1, patched);
               } catch (Exception ex) {
                 exceptions.add(ex);
@@ -264,21 +309,21 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                   resource.getKind());
               try {
                 deployedResourcesCache.remove(resource);
-                handlerDelegator.delete(config, resource);
+                handlerDelegator.delete(mutatedConfig, resource);
               } catch (Exception ex) {
                 exceptions.add(ex);
               }
             });
         if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
-          onConfigCreated(config, result);
+          onConfigCreated(mutatedConfig, result);
         } else {
-          onConfigUpdated(config, result);
+          onConfigUpdated(mutatedConfig, result);
         }
       } else {
         LOGGER.debug("{} it's up to date", configId);
       }
 
-      onPostReconciliation(config);
+      onPostReconciliation(mutatedConfig);
     } catch (Exception ex) {
       exceptions.add(ex);
     }
@@ -294,6 +339,67 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       }
     }
   }
+
+  private boolean resourceHashIsValid(final T config) {
+    Optional<String> currentValidResourceHash = Optional.of(config)
+        .map(CustomResource::getMetadata)
+        .map(ObjectMeta::getAnnotations)
+        .map(annotations -> annotations.get(StackGresContext.VALID_RESOURCE_HASH));
+    return currentValidResourceHash
+        .map(hash -> StackGresUtil.getValidResourceHash(config, objectMapper).equals(hash))
+        .orElse(false);
+  }
+
+  private void updateValidatedResource(final T mutatedConfig) {
+    String validResource = StackGresUtil.getValidResourceAsJson(mutatedConfig, objectMapper);
+    String validResourceHash = StackGresUtil.getValidResourceHash(mutatedConfig, objectMapper);
+    mutatedConfig.getMetadata().setAnnotations(
+        Seq.seq(
+            Optional.ofNullable(mutatedConfig.getMetadata().getAnnotations())
+            .orElse(Map.of()))
+        .filter(annotation -> Objects.equals(annotation.v1(), StackGresContext.VALID_RESOURCE))
+        .filter(annotation -> Objects.equals(annotation.v1(), StackGresContext.VALID_RESOURCE_HASH))
+        .append(Tuple.tuple(
+            StackGresContext.VALID_RESOURCE,
+            validResource))
+        .append(Tuple.tuple(
+            StackGresContext.VALID_RESOURCE_HASH,
+            validResourceHash))
+        .toMap(Tuple2::v1, Tuple2::v2));
+    client.resource(mutatedConfig)
+        .lockResourceVersion(mutatedConfig.getMetadata().getResourceVersion())
+        .update();
+  }
+
+  private R getReview(T config, Optional<T> previousConfig) {
+    R review = createReview();
+    var request = new AdmissionRequest<T>();
+    review.setRequest(request);
+    request.setDryRun(false);
+    request.setUid(UUID.fromString(config.getMetadata().getUid()));
+    request.setKind(new GroupVersionKind());
+    request.getKind().setGroup(HasMetadata.getGroup(config.getClass()));
+    request.getKind().setVersion(HasMetadata.getVersion(config.getClass()));
+    request.getKind().setKind(HasMetadata.getKind(config.getClass()));
+    request.setResource(new GroupVersionResource());
+    request.getResource().setGroup(HasMetadata.getGroup(config.getClass()));
+    request.getResource().setResource(HasMetadata.getPlural(config.getClass()));
+    request.getResource().setVersion(HasMetadata.getVersion(config.getClass()));
+    request.setName(config.getMetadata().getName());
+    request.setNamespace(config.getMetadata().getNamespace());
+    request.setOperation(previousConfig.isEmpty() ? Operation.CREATE : Operation.UPDATE);
+    request.setObject(config);
+    request.setOldObject(previousConfig.orElse(null));
+    request.setUserInfo(new UserInfo());
+    request.getUserInfo().setGroups(List.of(
+        "system:serviceaccounts",
+        "system:serviceaccounts:" + operatorName,
+        "system:authenticated"));
+    request.getUserInfo().setUsername(operatorName);
+    return review;
+  }
+
+  protected abstract R createReview();
 
   protected abstract void onPreReconciliation(T config);
 

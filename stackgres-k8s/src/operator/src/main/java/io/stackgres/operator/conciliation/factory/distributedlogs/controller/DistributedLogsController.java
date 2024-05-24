@@ -127,6 +127,10 @@ public class DistributedLogsController
             .withValue(Boolean.FALSE.toString())
             .build(),
             new EnvVarBuilder()
+            .withName(DistributedLogsControllerProperty.DISABLE_WEBHOOKS.getEnvironmentVariableName())
+            .withValue(OperatorProperty.DISABLE_WEBHOOKS.getString())
+            .build(),
+            new EnvVarBuilder()
             .withName("DISTRIBUTEDLOGS_CONTROLLER_LOG_LEVEL")
             .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
             .build(),

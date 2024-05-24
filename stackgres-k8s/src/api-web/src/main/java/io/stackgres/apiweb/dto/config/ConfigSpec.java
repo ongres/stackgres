@@ -30,6 +30,8 @@ public class ConfigSpec {
 
   private Boolean allowImpersonationForRestApi;
 
+  private Boolean disableWebhooks;
+
   private String sgConfigNamespace;
 
   private ConfigOptionalServiceAccount serviceAccount;
@@ -112,6 +114,14 @@ public class ConfigSpec {
 
   public void setAllowImpersonationForRestApi(Boolean allowImpersonationForRestApi) {
     this.allowImpersonationForRestApi = allowImpersonationForRestApi;
+  }
+
+  public Boolean getDisableWebhooks() {
+    return disableWebhooks;
+  }
+
+  public void setDisableWebhooks(Boolean disableWebhooks) {
+    this.disableWebhooks = disableWebhooks;
   }
 
   public String getSgConfigNamespace() {

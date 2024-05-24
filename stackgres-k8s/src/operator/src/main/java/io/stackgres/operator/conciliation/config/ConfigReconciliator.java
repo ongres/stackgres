@@ -27,6 +27,7 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operator.common.ConfigReview;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -34,6 +35,8 @@ import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -45,10 +48,12 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class ConfigReconciliator
-    extends AbstractReconciliator<StackGresConfig> {
+    extends AbstractReconciliator<StackGresConfig, ConfigReview> {
 
   @Dependent
   static class Parameters {
+    @Inject MutationPipeline<StackGresConfig, ConfigReview> mutatingPipeline;
+    @Inject ValidationPipeline<ConfigReview> validatingPipeline;
     @Inject CustomResourceScanner<StackGresConfig> scanner;
     @Inject CustomResourceFinder<StackGresConfig> finder;
     @Inject AbstractConciliator<StackGresConfig> conciliator;
@@ -73,9 +78,12 @@ public class ConfigReconciliator
 
   @Inject
   public ConfigReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.finder,
+    super(
+        parameters.mutatingPipeline, parameters.validatingPipeline,
+        parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.objectMapper,
         parameters.operatorLockReconciliator,
         StackGresConfig.KIND);
     this.statusManager = parameters.statusManager;
@@ -86,6 +94,11 @@ public class ConfigReconciliator
         "quarkus.http.ssl.certificate.files", String.class);
     this.operatorCertKeyPath = ConfigProvider.getConfig().getValue(
         "quarkus.http.ssl.certificate.key-files", String.class);
+  }
+
+  @Override
+  protected ConfigReview createReview() {
+    return new ConfigReview();
   }
 
   void onStart(@Observes StartupEvent ev) {

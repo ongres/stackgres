@@ -11,14 +11,18 @@ import static io.stackgres.common.DistributedLogsControllerProperty.DISTRIBUTEDL
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.StackGresDistributedLogsUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
@@ -48,11 +52,14 @@ public class DistributedLogsControllerReconciliationCycle
   private final EventController eventController;
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
   private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
+  private final Function<StackGresDistributedLogs, StackGresDistributedLogs> validResourceMapper;
 
   @Dependent
   public static class Parameters {
     @Inject
     KubernetesClient client;
+    @Inject
+    ObjectMapper objectMapper;
     @Inject
     DistributedLogsControllerReconciliator reconciliator;
     @Inject
@@ -79,6 +86,15 @@ public class DistributedLogsControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.distributedLogsFinder = parameters.distributedLogsFinder;
+    if (propertyContext.getBoolean(DistributedLogsControllerProperty.DISABLE_WEBHOOKS)) {
+      this.validResourceMapper = resource -> StackGresUtil.getValidResource(
+          resource, StackGresDistributedLogs.class, parameters.objectMapper)
+          .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
+              + " " + propertyContext.getString(DISTRIBUTEDLOGS_NAME)
+              + "." + propertyContext.getString(DISTRIBUTEDLOGS_NAMESPACE) + " not valid"));
+    } else {
+      this.validResourceMapper = Function.identity();
+    }
   }
 
   public DistributedLogsControllerReconciliationCycle() {
@@ -88,6 +104,7 @@ public class DistributedLogsControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.distributedLogsFinder = null;
+    this.validResourceMapper = null;
   }
 
   public static DistributedLogsControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -162,6 +179,7 @@ public class DistributedLogsControllerReconciliationCycle
     return distributedLogsFinder.findByNameAndNamespace(
         propertyContext.getString(DISTRIBUTEDLOGS_NAME),
         propertyContext.getString(DISTRIBUTEDLOGS_NAMESPACE))
+        .map(validResourceMapper)
         .stream()
         .toList();
   }
@@ -173,6 +191,7 @@ public class DistributedLogsControllerReconciliationCycle
     return distributedLogsFinder.findByNameAndNamespace(
         name,
         namespace)
+        .map(validResourceMapper)
         .orElseThrow(() -> new IllegalArgumentException(StackGresDistributedLogs.KIND
             + " " + name + "." + namespace + " not found"));
   }

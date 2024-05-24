@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.distributedlogs;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -23,12 +24,15 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -36,16 +40,20 @@ import jakarta.inject.Inject;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
-public class DistributedLogsReconciliator extends AbstractReconciliator<StackGresDistributedLogs> {
+public class DistributedLogsReconciliator
+    extends AbstractReconciliator<StackGresDistributedLogs, StackGresDistributedLogsReview> {
 
   @Dependent
   static class Parameters {
+    @Inject MutationPipeline<StackGresDistributedLogs, StackGresDistributedLogsReview> mutatingPipeline;
+    @Inject ValidationPipeline<StackGresDistributedLogsReview> validatingPipeline;
     @Inject CustomResourceScanner<StackGresDistributedLogs> scanner;
     @Inject CustomResourceFinder<StackGresDistributedLogs> finder;
     @Inject AbstractConciliator<StackGresDistributedLogs> conciliator;
     @Inject DeployedResourcesCache deployedResourcesCache;
     @Inject HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
     @Inject KubernetesClient client;
+    @Inject ObjectMapper objectMapper;
     @Inject ConnectedClustersScanner connectedClustersScanner;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
     @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
@@ -60,15 +68,23 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
 
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.finder,
+    super(
+        parameters.mutatingPipeline, parameters.validatingPipeline,
+        parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.objectMapper,
         parameters.operatorLockReconciliator,
         StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
+  }
+
+  @Override
+  protected StackGresDistributedLogsReview createReview() {
+    return new StackGresDistributedLogsReview();
   }
 
   void onStart(@Observes StartupEvent ev) {

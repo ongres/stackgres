@@ -15,6 +15,8 @@ public enum DistributedLogsControllerProperty implements StackGresPropertyReader
   DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS(
       "stackgres.distributedlogsControllerExtensionsRepositoryUrls"),
   DISTRIBUTEDLOGS_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES(
+      "stackgres.distributedlogsSkipOverwriteSharedLibraries"),
+  DISABLE_WEBHOOKS(
       "stackgres.distributedlogsSkipOverwriteSharedLibraries");
 
   private static final Properties APPLICATION_PROPERTIES =

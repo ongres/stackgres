@@ -18,7 +18,7 @@ public class OperatorLockHolderMock implements OperatorLockHolder {
   }
 
   @Override
-  public void register(AbstractReconciliator<?> reconciliator) {
+  public void register(AbstractReconciliator<?, ?> reconciliator) {
   }
 
   @Override

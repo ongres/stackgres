@@ -42,6 +42,7 @@ public enum OperatorProperty implements StackGresPropertyReader {
   DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS("stackgres.disableRestapiServiceAccountIfNotExists"),
   PATRONI_CTL_TIMEOUT("stackgres.patroniCtlTimeout"),
   ALLOWED_NAMESPACES("stackgres.allowedNamespaces"),
+  DISABLE_WEBHOOKS("stackgres.disableWebhooks"),
   CLUSTER_ROLE_DISABLED("stackgres.clusterRoleDisabled"),
   FORCE_UNLOCK_OPERATOR("stackgres.forceUnlockOperator"),
   STOP_AFTER_BOOTSTRAP("stackgres.stopAfterBootstrap");

@@ -156,6 +156,10 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .withValue(Boolean.FALSE.toString())
             .build(),
             new EnvVarBuilder()
+            .withName(ClusterControllerProperty.DISABLE_WEBHOOKS.getEnvironmentVariableName())
+            .withValue(OperatorProperty.DISABLE_WEBHOOKS.getString())
+            .build(),
+            new EnvVarBuilder()
             .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
             .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
             .build(),

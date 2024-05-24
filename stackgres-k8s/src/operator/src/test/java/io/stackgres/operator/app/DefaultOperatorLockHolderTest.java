@@ -58,7 +58,7 @@ class DefaultOperatorLockHolderTest {
   private OperatorPropertyContext context;
 
   @Mock
-  private AbstractReconciliator<?> reconciliator;
+  private AbstractReconciliator<?, ?> reconciliator;
 
   private DefaultOperatorLockHolder operatorLockHolder;
 

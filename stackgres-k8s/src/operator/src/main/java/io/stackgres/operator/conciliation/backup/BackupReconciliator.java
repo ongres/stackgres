@@ -16,12 +16,15 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -30,10 +33,12 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class BackupReconciliator
-    extends AbstractReconciliator<StackGresBackup> {
+    extends AbstractReconciliator<StackGresBackup, BackupReview> {
 
   @Dependent
   static class Parameters {
+    @Inject MutationPipeline<StackGresBackup, BackupReview> mutatingPipeline;
+    @Inject ValidationPipeline<BackupReview> validatingPipeline;
     @Inject CustomResourceScanner<StackGresBackup> scanner;
     @Inject CustomResourceFinder<StackGresBackup> finder;
     @Inject AbstractConciliator<StackGresBackup> conciliator;
@@ -54,15 +59,22 @@ public class BackupReconciliator
 
   @Inject
   public BackupReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.finder,
+    super(
+        parameters.mutatingPipeline, parameters.validatingPipeline,
+        parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
-        parameters.handlerDelegator, parameters.client,
+        parameters.handlerDelegator, parameters.client, parameters.objectMapper,
         parameters.operatorLockReconciliator,
         StackGresBackup.KIND);
     this.eventController = parameters.eventController;
     this.backupScheduler = parameters.backupScheduler;
     this.statusManager = parameters.statusManager;
     this.patchResumer = new PatchResumer<>(parameters.objectMapper);
+  }
+
+  @Override
+  protected BackupReview createReview() {
+    return new BackupReview();
   }
 
   void onStart(@Observes StartupEvent ev) {

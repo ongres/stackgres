@@ -37,6 +37,8 @@ public class StackGresConfigSpec {
 
   private Boolean allowImpersonationForRestApi;
 
+  private Boolean disableWebhooks;
+
   private String sgConfigNamespace;
 
   private StackGresConfigOptionalServiceAccount serviceAccount;
@@ -119,6 +121,14 @@ public class StackGresConfigSpec {
 
   public void setAllowImpersonationForRestApi(Boolean allowImpersonationForRestApi) {
     this.allowImpersonationForRestApi = allowImpersonationForRestApi;
+  }
+
+  public Boolean getDisableWebhooks() {
+    return disableWebhooks;
+  }
+
+  public void setDisableWebhooks(Boolean disableWebhooks) {
+    this.disableWebhooks = disableWebhooks;
   }
 
   public String getSgConfigNamespace() {

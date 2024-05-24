@@ -20,12 +20,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class AbstractReconciliatorTest {
+
+  @Mock
+  private MutationPipeline<TestResource, TestResourceReview> mutatingPipeline;
+
+  @Mock
+  private ValidationPipeline<TestResourceReview> validatingPipeline;
 
   @Mock
   private CustomResourceScanner<TestResource> scanner;
@@ -55,7 +64,7 @@ class AbstractReconciliatorTest {
 
   private TestResource customResource;
 
-  private AbstractReconciliator<TestResource> reconciliator;
+  private AbstractReconciliator<TestResource, TestResourceReview> reconciliator;
 
   @BeforeEach
   void setUp() {
@@ -339,26 +348,37 @@ class AbstractReconciliatorTest {
     verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(any());
   }
 
-  private AbstractReconciliator<TestResource> buildConciliator() {
-    final AbstractReconciliator<TestResource> reconciliator =
-        new TestReconciliator(scanner, finder, conciliator, deployedResourcesCache,
-            handlerDelegator, null, operatorLockReconciliator);
+  private AbstractReconciliator<TestResource, TestResourceReview> buildConciliator() {
+    final AbstractReconciliator<TestResource, TestResourceReview> reconciliator =
+        new TestReconciliator(mutatingPipeline, validatingPipeline,
+            scanner, finder, conciliator, deployedResourcesCache,
+            handlerDelegator, null, null, operatorLockReconciliator);
     return reconciliator;
   }
 
   public static class TestReconciliator
-      extends AbstractReconciliator<TestResource> {
+      extends AbstractReconciliator<TestResource, TestResourceReview> {
 
     TestReconciliator(
+        MutationPipeline<TestResource, TestResourceReview> mutatingPipeline,
+        ValidationPipeline<TestResourceReview> validatingPipeline,
         CustomResourceScanner<TestResource> scanner,
         CustomResourceFinder<TestResource> finder,
         AbstractConciliator<TestResource> conciliator,
         DeployedResourcesCache deployedResourcesCache,
         HandlerDelegator<TestResource> handlerDelegator,
         KubernetesClient client,
+        ObjectMapper objectMapper,
         OperatorLockHolder operatorLockReconciliator) {
-      super(scanner, finder, conciliator, deployedResourcesCache,
-          handlerDelegator, client, operatorLockReconciliator, "Test");
+      super(
+          mutatingPipeline, validatingPipeline,
+          scanner, finder, conciliator, deployedResourcesCache,
+          handlerDelegator, client, objectMapper, operatorLockReconciliator, "Test");
+    }
+
+    @Override
+    protected TestResourceReview createReview() {
+      return new TestResourceReview();
     }
 
     @Override

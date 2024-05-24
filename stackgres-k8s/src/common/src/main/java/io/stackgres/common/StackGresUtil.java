@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
@@ -640,6 +641,70 @@ public interface StackGresUtil {
   static String getDefaultPullPolicy() {
     return StackGresProperty.SG_IMAGE_PULL_POLICY.get()
         .orElse("IfNotPresent");
+  }
+
+  static String getResourceAsJson(final HasMetadata resource, final ObjectMapper objectMapper) {
+    HasMetadata initialConfigCopy = clone(resource, objectMapper);
+    initialConfigCopy.setMetadata(null);
+    return StackGresUtil.getMd5Sum(
+        asJson(initialConfigCopy, objectMapper));
+  }
+
+  static String getValidResourceHash(final HasMetadata resource, final ObjectMapper objectMapper) {
+    HasMetadata resourceCopy = clone(resource, objectMapper);
+    resourceCopy.setMetadata(null);
+    return StackGresUtil.getMd5Sum(
+        asJson(resourceCopy, objectMapper));
+  }
+
+  static String getValidResourceAsJson(final HasMetadata resource, final ObjectMapper objectMapper) {
+    HasMetadata resourceCopy = clone(resource, objectMapper);
+    resourceCopy.getMetadata().setAnnotations(
+        Seq.seq(
+            Optional.ofNullable(resource.getMetadata().getAnnotations())
+            .orElse(Map.of()))
+        .filter(annotation -> Objects.equals(annotation.v1(), StackGresContext.VALID_RESOURCE))
+        .filter(annotation -> Objects.equals(annotation.v1(), StackGresContext.VALID_RESOURCE_HASH))
+        .toMap(Tuple2::v1, Tuple2::v2));
+    return asJson(resourceCopy, objectMapper);
+  }
+
+  static <T extends HasMetadata> Optional<T> getValidResource(
+      final T resource,
+      final Class<T> resourceClass,
+      final ObjectMapper objectMapper) {
+    return Optional.ofNullable(resource.getMetadata().getAnnotations())
+        .map(annotations -> annotations.get(StackGresContext.VALID_RESOURCE))
+        .map(validResourceAsJson -> fromJson(validResourceAsJson, resourceClass, objectMapper));
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T> T clone(final T resource, final ObjectMapper objectMapper) {
+    try {
+      return (T) objectMapper.readValue(
+          objectMapper.writeValueAsString(resource), resource.getClass());
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  static String asJson(final HasMetadata resource, final ObjectMapper objectMapper) {
+    try {
+      return objectMapper.writeValueAsString(resource);
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  static <T extends HasMetadata> T fromJson(
+      final String resourceAsJson,
+      final Class<T> resourceClass,
+      final ObjectMapper objectMapper) {
+    try {
+      return objectMapper.readValue(resourceAsJson, resourceClass);
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
 }

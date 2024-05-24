@@ -11,7 +11,7 @@ public interface OperatorLockHolder {
 
   boolean isLeader();
 
-  void register(AbstractReconciliator<?> reconciliator);
+  void register(AbstractReconciliator<?, ?> reconciliator);
 
   void start();
 

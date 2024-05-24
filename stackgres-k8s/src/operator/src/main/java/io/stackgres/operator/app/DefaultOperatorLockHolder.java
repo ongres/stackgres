@@ -37,7 +37,7 @@ public class DefaultOperatorLockHolder implements OperatorLockHolder {
 
   private final AtomicBoolean leader = new AtomicBoolean(false);
   private final AtomicBoolean doReconciliation = new AtomicBoolean(false);
-  private final List<AbstractReconciliator<?>> reconciliators = new ArrayList<>();
+  private final List<AbstractReconciliator<?, ?>> reconciliators = new ArrayList<>();
 
   protected DefaultOperatorLockHolder(
       CustomResourceScanner<StackGresConfig> scanner,
@@ -56,7 +56,7 @@ public class DefaultOperatorLockHolder implements OperatorLockHolder {
   }
 
   @Override
-  public void register(AbstractReconciliator<?> reconciliator) {
+  public void register(AbstractReconciliator<?, ?> reconciliator) {
     this.reconciliators.add(reconciliator);
     if (leader.get()) {
       if (doReconciliation.get()) {

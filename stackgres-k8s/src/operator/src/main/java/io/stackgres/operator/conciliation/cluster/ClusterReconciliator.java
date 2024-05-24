@@ -22,6 +22,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.common.ClusterPatchResumer;
+import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -29,6 +30,8 @@ import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -37,10 +40,12 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class ClusterReconciliator
-    extends AbstractReconciliator<StackGresCluster> {
+    extends AbstractReconciliator<StackGresCluster, StackGresClusterReview> {
 
   @Dependent
   static class Parameters {
+    @Inject MutationPipeline<StackGresCluster, StackGresClusterReview> mutatingPipeline;
+    @Inject ValidationPipeline<StackGresClusterReview> validatingPipeline;
     @Inject CustomResourceScanner<StackGresCluster> scanner;
     @Inject CustomResourceFinder<StackGresCluster> finder;
     @Inject AbstractConciliator<StackGresCluster> conciliator;
@@ -61,15 +66,23 @@ public class ClusterReconciliator
 
   @Inject
   public ClusterReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.finder,
+    super(
+        parameters.mutatingPipeline, parameters.validatingPipeline,
+        parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.objectMapper,
         parameters.operatorLockReconciliator,
         StackGresCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
     this.clusterScheduler = parameters.clusterScheduler;
     this.patchResumer = new ClusterPatchResumer(parameters.objectMapper);
+  }
+
+  @Override
+  protected StackGresClusterReview createReview() {
+    return new StackGresClusterReview();
   }
 
   void onStart(@Observes StartupEvent ev) {
