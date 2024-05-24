@@ -1,15 +1,25 @@
 #!/bin/sh
 
+success() {
+  local MSG="$1"
+  printf "☑️ SUCCESS: %s\n" "$MSG"
+}
+
+fail() {
+  local MSG="$1"
+  printf "❌ FAIL: %s\n" "$MSG"
+  return 1
+}
+
 assert_string_contains() {
   EXPECTED="$1"
   ACTUAL="$2"
 
   if echo "$ACTUAL" | grep -F "$EXPECTED" > /dev/null
   then 
-    echo "SUCCESS. $ACTUAL contains $EXPECTED"
+    success "$ACTUAL contains $EXPECTED"
   else
-    echo "FAIL. $ACTUAL doesn't contain $EXPECTED"
-    return 1
+    fail "$ACTUAL doesn't contain $EXPECTED"
   fi
 }
 
@@ -19,10 +29,9 @@ assert_string_equal(){
 
   if [ "$ACTUAL" = "$EXPECTED" ]
   then 
-    echo "SUCCESS. $ACTUAL is equal to $EXPECTED"
+    success "$ACTUAL is equal to $EXPECTED"
   else
-    echo "FAIL. $ACTUAL is not equal to $EXPECTED"
-    return 1
+    fail "$ACTUAL is not equal to $EXPECTED"
   fi
 }
 
@@ -32,10 +41,9 @@ assert_string_not_equal(){
 
   if [ "$ACTUAL" = "$EXPECTED" ]
   then 
-    echo "FAIL. $ACTUAL is equal to $EXPECTED"
-    return 1
+    fail "$ACTUAL is equal to $EXPECTED"
   else
-    echo "SUCCESS. $ACTUAL is not equal to $EXPECTED"
+    success "$ACTUAL is not equal to $EXPECTED"
   fi
 }
 
@@ -45,10 +53,9 @@ assert_greater_than(){
 
   if [ "$ACTUAL" -gt "$EXPECTED" ]
   then 
-    echo "SUCCESS. $ACTUAL is greater than $EXPECTED"
+    success "$ACTUAL is greater than $EXPECTED"
   else
-    echo "FAIL. $ACTUAL is not is greater than $EXPECTED"
-    return 1
+    fail "$ACTUAL is not is greater than $EXPECTED"
   fi
 }
 

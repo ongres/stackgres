@@ -25,7 +25,7 @@ setup_k8s() {
     reuse_k8s
   fi
 
-  echo "Kubernetes version set is $K8S_VERSION (on $E2E_ENV environment) [kubectl:$(kubectl version | head -n 1 | cut -d , -f 3 | cut -d '"' -f 2) kubernetes:$(kubectl version | tail -n 1 | cut -d , -f 3 | cut -d '"' -f 2)]."
+  echo "Kubernetes version set is $K8S_VERSION (on $E2E_ENV environment) [kubectl:$(kubectl version -o json 2>/dev/null | jq -r '.clientVersion.gitVersion') kubernetes:$(kubectl version -o json | jq -r '.serverVersion.gitVersion')]."
   echo
   get_k8s_env_version
 

@@ -1,0 +1,113 @@
+#!/bin/sh
+
+keycloak_namespace() {
+  echo "$CLUSTER_NAMESPACE-keycloak"
+}
+
+install_keycloak() {
+  kubectl create ns "$(keycloak_namespace)"
+  
+  LB_IP=$(printf "%s" "$CONTOUR_LB_IP" | sed 's/\./-/g')
+  KEYCLOAK_HOST=$(printf "keycloak-%s.nip.io" "$LB_IP")
+  STACKGRES_URL=$(printf "https://stackgres-%s.nip.io" "$LB_IP")
+
+  kubectl -n "$(keycloak_namespace)" create secret generic realm-stackgres \
+    --from-file="realm-stackgres.json=$E2E_PATH/spec/runbooks/realm-stackgres.json"
+
+  cat <<EOF | kubectl -n "$(keycloak_namespace)" create -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-dev
+  labels:
+    app: keycloak-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-dev
+  template:
+    metadata:
+      labels:
+        app: keycloak-dev
+    spec:
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:25.0.2
+        args: ["start-dev", "--import-realm"]
+        env:
+          - name: KEYCLOAK_ADMIN
+            value: "admin"
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            value: "admin"
+          - name: KC_PROXY
+            value: "edge"
+          - name: STACKGRES_URL
+            value: "${STACKGRES_URL}"
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /realms/master
+            port: 8080
+        volumeMounts:
+          - name: realm
+            mountPath: "/opt/keycloak/data/import/realm-stackgres.json"
+            subPath: realm-stackgres.json
+            readOnly: true
+      volumes:
+      - name: realm
+        secret:
+          secretName: realm-stackgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-dev
+  labels:
+    app: keycloak-dev
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: keycloak-dev
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak-dev
+  annotations:
+    cert-manager.io/cluster-issuer: ca-dev-issuer
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+    - secretName: kc-tls
+      hosts:
+        - ${KEYCLOAK_HOST}
+  rules:
+    - host: ${KEYCLOAK_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak-dev
+                port:
+                  number: 8080
+EOF
+
+  wait_pods_running "$(keycloak_namespace)" 1
+}
+
+uninstall_keycloak() {
+  kubectl -n "$(keycloak_namespace)" delete ingress.networking.k8s.io/keycloak-dev
+  kubectl -n "$(keycloak_namespace)" delete service/keycloak-dev
+  kubectl -n "$(keycloak_namespace)" delete deployment.apps/keycloak-dev
+  kubectl -n "$(keycloak_namespace)" delete secret/realm-stackgres
+  k8s_async_cleanup_namespace "$(keycloak_namespace)"
+}

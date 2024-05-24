@@ -227,6 +227,8 @@ networking:
   apiServerAddress: "0.0.0.0"
 nodes:
 - role: control-plane
+  labels:
+    ingress-ready: true
   kubeadmConfigPatches:
   - |
     kind: ClusterConfiguration

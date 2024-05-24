@@ -1,0 +1,42 @@
+#!/bin/sh
+
+metallb_namespace() {
+  echo "metallb-system"
+}
+
+install_metallb() {
+  if [ "$E2E_ENV" = "kind" ]
+  then
+  helm install metallb "$E2E_PATH/helm/metallb-0.13.12.tgz" \
+    --create-namespace \
+    --namespace "$(metallb_namespace)" \
+    "$@"
+  kubectl wait --namespace metallb-system \
+                --for=condition=ready pod \
+                --selector=app.kubernetes.io/name=metallb \
+                --timeout=120s
+
+  docker network inspect -f json kind \
+  | jq -r '.[].IPAM.Config[0] | {Subnet: (.Subnet | split("/") | .[0] | split(".") | .[0:2] + ["200", "128"] | join(".") + "/25")}' \
+  | jq -s '{apiVersion: "metallb.io/v1beta1", kind: "IPAddressPool", metadata: {name: "ippool", namespace: "metallb-system"}, spec: {addresses: map(.Subnet), avoidBuggyIPs: true}}' \
+  | kubectl apply -f -
+
+  cat <<EOF | kubectl -n metallb-system create -f -
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: empty
+  namespace: metallb-system
+EOF
+  else
+    echo "Skip installation: The $E2E_ENV environment is not kind"
+  fi
+}
+
+uninstall_metallb() {
+  if [ "$E2E_ENV" = "kind" ]
+  then
+    helm_cleanup_chart metallb "$(metallb_namespace)"
+    k8s_async_cleanup_namespace "$(metallb_namespace)"
+  fi
+}
