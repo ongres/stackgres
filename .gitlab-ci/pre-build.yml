@@ -5,8 +5,6 @@
   script:
     - |
       [ "$DEBUG" != true ] || set -x
-      mkdir -p "$HOME/.docker"
-      echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
       TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME-$ARCH"
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       cat << EOF > build-image.sh
@@ -35,8 +33,6 @@
   script:
     - |
       [ "$DEBUG" != true ] || set -x
-      mkdir -p "$HOME/.docker"
-      echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
       TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       ARCH_LIST="amd64 $(
