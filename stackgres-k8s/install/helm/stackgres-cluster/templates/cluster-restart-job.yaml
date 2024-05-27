@@ -70,7 +70,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-cluster-restart
       containers:
       - name: "{{ .Release.Name }}-fix-deployment-selector"
-        image: {{ template "kubectl.image" . }}
+        image: {{ template "kubectl-image" . }}
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"

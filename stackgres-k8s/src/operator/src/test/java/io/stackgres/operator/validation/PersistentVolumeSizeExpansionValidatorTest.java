@@ -113,7 +113,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
 
     validator.validate(clusterReview);
 
-    verify(pvcScanner).findByLabelsAndNamespace(
+    verify(pvcScanner).getResourcesInNamespaceWithLabels(
         eq(clusterNamespace),
         eq(clusterLabels)
     );
@@ -195,7 +195,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
      * Since there is no storage class in the SGCluster, we have to look for the storage class
      * in the persistence volume claim
      */
-    verify(pvcScanner).findByLabelsAndNamespace(
+    verify(pvcScanner).getResourcesInNamespaceWithLabels(
         eq(clusterNamespace),
         eq(clusterLabels)
     );
@@ -248,7 +248,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     verifyStorageClassRequest(expandableStorageClassName);
     verifyStorageClassRequest(nonExpandableStorageClassName);
 
-    verify(pvcScanner).findByLabelsAndNamespace(
+    verify(pvcScanner).getResourcesInNamespaceWithLabels(
         eq(clusterNamespace),
         eq(clusterLabels)
     );
@@ -263,7 +263,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     /*
      * This configures the persistent volume claims with mixed storage classes
      */
-    when(pvcScanner.findByLabelsAndNamespace(clusterNamespace, clusterLabels))
+    when(pvcScanner.getResourcesInNamespaceWithLabels(clusterNamespace, clusterLabels))
         .thenReturn(List.of(
             new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
@@ -405,9 +405,9 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
   }
 
   private void verifyNoPvcInteractions() {
-    verify(pvcScanner, never()).findByLabelsAndNamespace(any(), any());
-    verify(pvcScanner, never()).findResourcesInNamespace(any());
-    verify(pvcScanner, never()).findResources();
+    verify(pvcScanner, never()).getResourcesInNamespaceWithLabels(any(), any());
+    verify(pvcScanner, never()).getResourcesInNamespace(any());
+    verify(pvcScanner, never()).getResources();
   }
 
   protected void configurePvcScanner(
@@ -415,7 +415,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
       String storageClassName,
       Map<String, String> clusterLabels,
       String clusterNamespace) {
-    when(pvcScanner.findByLabelsAndNamespace(clusterNamespace, clusterLabels))
+    when(pvcScanner.getResourcesInNamespaceWithLabels(clusterNamespace, clusterLabels))
         .thenReturn(List.of(
             new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
@@ -429,7 +429,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
   }
 
   protected void configureEmptyPvcScanner(R resource) {
-    when(pvcScanner.findByLabelsAndNamespace(any(), any()))
+    when(pvcScanner.getResourcesInNamespaceWithLabels(any(), any()))
         .thenReturn(List.of());
   }
 

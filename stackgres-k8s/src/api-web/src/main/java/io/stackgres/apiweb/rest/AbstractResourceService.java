@@ -53,7 +53,7 @@ public abstract class AbstractResourceService
   @GET
   @Override
   public List<T> list() {
-    return Seq.seq(scanner.findResources())
+    return Seq.seq(scanner.getResources())
         .map(transformer::toDto)
         .toList();
   }

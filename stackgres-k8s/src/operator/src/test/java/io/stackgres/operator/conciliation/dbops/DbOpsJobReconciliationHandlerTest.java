@@ -217,7 +217,7 @@ class DbOpsJobReconciliationHandlerTest {
     addPod();
 
     lenient().when(podScanner
-        .findByLabelsAndNamespace(any(), any()))
+        .getResourcesInNamespaceWithLabels(any(), any()))
             .then(arguments -> {
               return podList
                   .stream()

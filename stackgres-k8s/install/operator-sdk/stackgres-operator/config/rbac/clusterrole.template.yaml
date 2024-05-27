@@ -1,0 +1,94 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator
+rules:
+##
+## Base operator rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --set disableCrdsAndWebhooksUpdate=true \
+    --set-string allowedNamespaces='{system}' \
+    --set-string sgConfigNamespace='other' \
+    --show-only templates/operator-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
+)
+
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - operators
+  verbs:
+  - list
+  - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: restapi
+rules:
+##
+## Base restapi rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --set disableCrdsAndWebhooksUpdate=true \
+    --set-string allowedNamespaces='{system}' \
+    --show-only templates/webapi-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
+)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-admin
+rules:
+##
+## Base webconsole admin rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --set disableCrdsAndWebhooksUpdate=true \
+    --show-only templates/webapi-admin-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
+)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-writer
+rules:
+##
+## Base webconsole writer rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --set disableCrdsAndWebhooksUpdate=true \
+    --show-only templates/webapi-writer-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
+)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-reader
+rules:
+##
+## Base webconsole reader rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --set disableCrdsAndWebhooksUpdate=true \
+    --show-only templates/webapi-reader-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
+)
+
+#+kubebuilder:scaffold:rules

@@ -300,6 +300,7 @@ postgresql:
   use_pg_rewind: true
   remove_data_directory_on_rewind_failure: true
   use_unix_socket: true
+  use_unix_socket_repl: true
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
   listen: 0.0.0.0:5432
   pg_ctl_timeout: $PATRONI_PG_CTL_TIMEOUT

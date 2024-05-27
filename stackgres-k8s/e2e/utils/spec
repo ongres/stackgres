@@ -213,7 +213,7 @@ spec() {
   local SPEC_FILE="$1"
   local SPEC_NAME="${SPEC_FILE##*/}"
   local SPEC_VALUES_FILE="$1.values.yaml"
-  local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
+  local CLUSTER_NAMESPACE="${CLUSTER_NAMESPACE:-$SPEC_NAME-$(printf '%x' "$(date +%s)")}"
   local CLUSTER_NAME
   CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
   local E2E_SKIP_SPEC_INSTALL="${E2E_SKIP_SPEC_INSTALL:-false}"

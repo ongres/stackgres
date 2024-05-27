@@ -39,7 +39,7 @@ public class SecretVerification {
     Objects.requireNonNull(password, StackGresContext.REST_PASSWORD_KEY);
     String passwordHash = TokenUtils.sha256(apiUsername + password);
     return secretScanner
-        .findByLabelsAndNamespace(
+        .getResourcesInNamespaceWithLabels(
             namespace,
             Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .stream()

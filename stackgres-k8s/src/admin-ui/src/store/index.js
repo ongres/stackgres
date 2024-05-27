@@ -158,7 +158,7 @@ export default new Vuex.Store({
     },
 
     addStorageClasses (state, storageClassesList) {
-      state.storageClasses = [...storageClassesList];
+      state.storageClasses = (storageClassesList === null) ? null : [...storageClassesList];
     },
 
     setCurrentCluster (state, cluster) {

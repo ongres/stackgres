@@ -47,16 +47,83 @@ spec:
           spec:
             description: Spec defines the desired state of SGConfig
             type: object
-            x-kubernetes-preserve-unknown-fields: true
             properties:
               containerRegistry:
                 type: string
                 default: quay.io
-                description: The container registry host (and port) where the images will be pulled from.
+                description: |
+                  The container registry host (and port) where the images will be pulled from.
+
+                  > This value can be set in operator helm chart or with the environment variable `SG_CONTAINER_REGISTRY`.
               imagePullPolicy:
                 type: string
                 default: "IfNotPresent"
                 description: Image pull policy used for images loaded by the Operator
+              allowedNamespaces:
+                type: array
+                description: |
+                  Section to configure allowed namespaces that the operator is allowed to use. If empty all namespaces will be allowed (default).
+
+                  > This value can be set in operator helm chart or with the environment variable `ALLOWED_NAMESPACES`.
+                  >   It is set by OLM when [scoping the operator](https://olm.operatorframework.io/docs/advanced-tasks/operator-scoping-with-operatorgroups/).
+                items:
+                  type: string
+                  description: |
+                    A namespace that the operator is allowed to use.
+              allowedNamespaceLabelSelector:
+                type: object
+                description: |
+                  Section to configure namespaces that the operator is allowed to use. If allowedNamespaces is defined it will be used instead. If empty all namespaces will be allowed (default).
+                  
+                  See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta
+
+                  > This value can only be set in operator helm chart.
+                additionalProperties:
+                  type: string
+              disableClusterRole:
+                type: boolean
+                description: |
+                  When set to `true` the creation of the operator ClusterRole and ClusterRoleBinding is disabled.
+                   Also, when `true`, some features that rely on unnamespaced resources premissions will be disabled:
+                  
+                  * Creation and upgrade of CustomResourceDefinitions
+                  * Set CA bundle for Webhooks
+                  * Check existence of CustomResourceDefinition when listing custom resources
+                  * Validation of StorageClass
+                  * REST API endpoint `can-i/{verb}/{resource}` and `can-i` will always return the full list of permissions for any resource and verb since they rely on creation of subjectaccessreviews unnamespaced resource that requires a cluster role.
+                  * Other REST API endpoints will not work since they rely on impersonation that requires a cluster role.
+                    This point in particular breaks the Web Console completely. You may still enable this specific cluster role with `.allowImpersonationForRestApi`.
+                    If you do not need the Web Console you may still disable it completely by setting `.deploy.restapi` to `false`.
+                  
+                  When set to `true` and `allowedNamespaces` is not set or is empty then `allowedNamespaces` will be considered set and containing only the namespace of the operator.
+                  
+                  It is `false` by default.
+
+                  > This value can only be set in operator helm chart.
+              allowImpersonationForRestApi:
+                type: boolean
+                description: |
+                  When set to `true` the cluster role for impersonation will be created even if `disableClusterRole` is set to `true`.
+                  
+                  It is `false` by default.
+
+                  > This value can only be set in operator helm chart.
+              disableCrdsAndWebhooksUpdate:
+                type: boolean
+                description: |
+                  When set to `true` the cluster role to update or patch CRDs will be disabled.
+                  
+                  It is `false` by default.
+
+                  > This value can only be set in operator helm chart.
+              sgConfigNamespace:
+                type: string
+                description: |
+                  When set will indicate the namespace where the SGConfig used by the operator will be created.
+                  
+                  By default the SGConfig will be created in the same namespace as the operator.
+
+                  > This value can only be set in operator helm chart.
               serviceAccount:
                 type: object
                 description: Section to configure Operator Installation ServiceAccount
@@ -903,4 +970,6 @@ spec:
                   configHash:
                     description: Grafana configuration hash
                     type: string
-                
+              existingCrUpdatedToVersion:
+                type: string
+                description: Indicate the version to which existing CRs have been updated to

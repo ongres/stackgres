@@ -5,55 +5,26 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class RoleFinder implements
-    ResourceFinder<Role>,
-    ResourceScanner<Role> {
-
-  final KubernetesClient client;
+public class RoleFinder extends AbstractResourceFinderAndScanner<Role> {
 
   @Inject
   public RoleFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<Role> findByName(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<Role> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.rbac().roles().inNamespace(namespace).withName(name).get());
-  }
-
-  @Override
-  public List<Role> findResources() {
-    return client.rbac().roles().inAnyNamespace().list().getItems();
-  }
-
-  @Override
-  public List<Role> findResourcesInNamespace(String namespace) {
-    return client.rbac().roles().inNamespace(namespace).list().getItems();
-  }
-
-  @Override
-  public List<Role> findByLabels(Map<String, String> labels) {
-    return client.rbac().roles().inAnyNamespace().withLabels(labels).list().getItems();
-  }
-
-  @Override
-  public List<Role> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
-    return client.rbac().roles().inNamespace(namespace).withLabels(labels).list().getItems();
+  protected MixedOperation<Role, ? extends KubernetesResourceList<Role>, ? extends Resource<Role>>
+      getOperation(KubernetesClient client) {
+    return client.rbac().roles();
   }
 
 }

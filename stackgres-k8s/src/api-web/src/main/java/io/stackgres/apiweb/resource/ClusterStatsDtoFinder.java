@@ -49,7 +49,7 @@ public class ClusterStatsDtoFinder
 
   @Override
   protected ClusterStatsDto getClusterStats(StackGresCluster cluster) {
-    List<Pod> pods = podFinder.findByLabelsAndNamespace(
+    List<Pod> pods = podFinder.getResourcesInNamespaceWithLabels(
         cluster.getMetadata().getNamespace(),
         clusterLabelFactory.clusterLabels(cluster));
 

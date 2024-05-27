@@ -1,18 +1,40 @@
-{{- if .Values.serviceAccount.create }}
+{{- if and .Values.deploy.operator .Values.serviceAccount.create }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+{{- range $index, $namespace := $allowedNamespaces }}
+{{- if and (eq $index 0) (not $.Values.disableClusterRole) }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ .Release.Name }}
-{{- with .Values.clusterOwnerRefereces }}
+  name: {{ $.Release.Name }}
+{{- with $.Values.clusterOwnerRefereces }}
   ownerReferences:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 subjects:
 - kind: ServiceAccount
-  name: {{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ $.Release.Name }}
+  namespace: {{ $.Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ .Release.Name }}
+  name: {{ $.Release.Name }}
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- if not (eq $namespace "_all_namespaces_placeholder") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: {{ $namespace }}
+  name: {{ $.Release.Name }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Release.Name }}
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ $.Release.Name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
 {{- end }}

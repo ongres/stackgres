@@ -378,10 +378,20 @@ update_repositories_credentials() {
 
 get_to_install_extensions() {
   (
-  CLUSTER_EXTENSIONS="$(kubectl get sgcluster -A -o json)"
-  DISTRIBUTEDLOGS_EXTENSIONS="$(kubectl get sgdistributedlogs -A -o json)"
-  printf '%s' "$CLUSTER_EXTENSIONS" | jq '.items[]'
-  printf '%s' "$DISTRIBUTEDLOGS_EXTENSIONS" | jq '.items[]'
+  CLUSTER_EXTENSIONS="$([ -n "$ALLOWED_NAMESPACES" ] \
+    && printf %s "$ALLOWED_NAMESPACES" \
+      | tr ' ' '\n' \
+      | xargs -I @NAMESPACE sh $([ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ] || printf %s -x) -c \
+        "kubectl get sgcluster -n @NAMESPACE -o json | jq '.items[]'" \
+    || kubectl get sgcluster -A -o json | jq '.items[]')"
+  DISTRIBUTEDLOGS_EXTENSIONS="$([ -n "$ALLOWED_NAMESPACES" ] \
+    && printf %s "$ALLOWED_NAMESPACES" \
+      | tr ' ' '\n' \
+      | xargs -I @NAMESPACE sh $([ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ] || printf %s -x) -c \
+        "kubectl get sgdistributedlogs -n @NAMESPACE -o json | jq '.items[]'" \
+    || kubectl get sgdistributedlogs -A -o json | jq '.items[]')"
+  printf '%s' "$CLUSTER_EXTENSIONS"
+  printf '%s' "$DISTRIBUTEDLOGS_EXTENSIONS"
   ) | jq -r -s '.[]
     | select(has("status") and (.status | has("arch") and has("os")))
     | .status as $status

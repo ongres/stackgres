@@ -1,13 +1,129 @@
-{{- if .Values.serviceAccount.create }}
+{{- if and .Values.deploy.operator .Values.serviceAccount.create }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+{{- range $index, $namespace := $allowedNamespaces }}
+{{- if and (eq $index 0) (not $.Values.disableClusterRole) }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- with .Values.clusterOwnerRefereces }}
+  name: {{ $.Release.Name }}
+{{- with $.Values.clusterOwnerRefereces }}
   ownerReferences:
     {{- toYaml . | nindent 4 }}
 {{- end }}
-  name: {{ .Release.Name }}
 rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs:
+  - get
+  - list
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: 
+  - get
+  - list
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - sgconfigs.stackgres.io
+  - sgclusters.stackgres.io
+  - sginstanceprofiles.stackgres.io
+  - sgpgconfigs.stackgres.io
+  - sgpoolconfigs.stackgres.io
+  - sgbackups.stackgres.io
+  - sgbackupconfigs.stackgres.io
+  - sgobjectstorages.stackgres.io
+  - sgdbops.stackgres.io
+  - sgdistributedlogs.stackgres.io
+  - sgshardedclusters.stackgres.io
+  - sgshardedbackups.stackgres.io
+  - sgshardeddbops.stackgres.io
+  - sgscripts.stackgres.io
+  verbs:
+  - get
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - list
+{{- if not $.Values.disableCrdsAndWebhooksUpdate }}
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  resourceNames:
+  - {{ $.Release.Name }}
+  verbs:
+  - get
+  - patch
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - sgconfigs.stackgres.io
+  - sgclusters.stackgres.io
+  - sginstanceprofiles.stackgres.io
+  - sgpgconfigs.stackgres.io
+  - sgpoolconfigs.stackgres.io
+  - sgbackups.stackgres.io
+  - sgbackupconfigs.stackgres.io
+  - sgobjectstorages.stackgres.io
+  - sgdbops.stackgres.io
+  - sgdistributedlogs.stackgres.io
+  - sgshardedclusters.stackgres.io
+  - sgshardedbackups.stackgres.io
+  - sgshardeddbops.stackgres.io
+  - sgscripts.stackgres.io
+  verbs:
+  - patch
+  - update
+{{- end }}
+{{- if $.Values.prometheus.allowAutobind }}
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - prometheuses.monitoring.coreos.com
+  verbs:
+  - get
+{{- end }}
+{{- if and $.Values.sgConfigNamespace (not (eq $.Values.sgConfigNamespace $.Release.Namespace)) }}
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources:
+  - clusterrolebindings
+  verbs:
+  - create
+  - watch
+  - list
+  - get
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - users
+  - groups
+  verbs:
+  - impersonate
+{{- end }}
+{{- end }}
+{{- if not (eq $namespace "_all_namespaces_placeholder") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ $namespace }}
+  name: {{ $.Release.Name }}
+rules:
+{{- end }}
 - apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io", "batch"]
   resources:
   - pods
@@ -37,9 +153,6 @@ rules:
   - delete
   - deletecollection
   - patch
-- apiGroups: ["storage.k8s.io"]
-  resources: ["storageclasses"]
-  verbs: ["get", "list"]
 - apiGroups: ["stackgres.io"]
   resources:
   - sgclusters
@@ -97,31 +210,6 @@ rules:
   - pods/finalizers
   verbs:
   - update
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  resourceNames:
-  - sgconfigs.stackgres.io
-  - sgclusters.stackgres.io
-  - sginstanceprofiles.stackgres.io
-  - sgpgconfigs.stackgres.io
-  - sgpoolconfigs.stackgres.io
-  - sgbackups.stackgres.io
-  - sgbackupconfigs.stackgres.io
-  - sgobjectstorages.stackgres.io
-  - sgdbops.stackgres.io
-  - sgdistributedlogs.stackgres.io
-  - sgshardedclusters.stackgres.io
-  - sgshardedbackups.stackgres.io
-  - sgshardeddbops.stackgres.io
-  - sgscripts.stackgres.io
-  verbs:
-  - get
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - list
 - apiGroups: ["snapshot.storage.k8s.io"]
   resources:
   - volumesnapshots
@@ -130,14 +218,7 @@ rules:
   - get
   - watch
   - create
-{{- if .Values.prometheus.allowAutobind }}
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  resourceNames:
-  - prometheuses.monitoring.coreos.com
-  verbs:
-  - get
+{{- if $.Values.prometheus.allowAutobind }}
 - apiGroups: ["apiextensions.k8s.io"]
   resources:
   - customresourcedefinitions
@@ -162,45 +243,6 @@ rules:
   verbs:
   - list
   - get
-{{- end }}
-{{- if not .Values.disableCRDcreation }}
-- apiGroups:
-  - admissionregistration.k8s.io
-  resources:
-  - mutatingwebhookconfigurations
-  - validatingwebhookconfigurations
-  resourceNames:
-  - {{ .Release.Name }}
-  verbs:
-  - get
-  - patch
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - create
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  resourceNames:
-  - sgconfigs.stackgres.io
-  - sgclusters.stackgres.io
-  - sginstanceprofiles.stackgres.io
-  - sgpgconfigs.stackgres.io
-  - sgpoolconfigs.stackgres.io
-  - sgbackups.stackgres.io
-  - sgbackupconfigs.stackgres.io
-  - sgobjectstorages.stackgres.io
-  - sgdbops.stackgres.io
-  - sgdistributedlogs.stackgres.io
-  - sgshardedclusters.stackgres.io
-  - sgshardedbackups.stackgres.io
-  - sgshardeddbops.stackgres.io
-  - sgscripts.stackgres.io
-  verbs:
-  - patch
-  - update
-{{- end }}
 {{- end }}
 - apiGroups: ["shardingsphere.apache.org"]
   resources:
@@ -236,4 +278,5 @@ rules:
   - create
   - delete
   - patch
-  
+{{- end }}
+{{- end }}

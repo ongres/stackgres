@@ -56,7 +56,11 @@ public abstract class AbstractResourceWatcherFactory {
 
     @Override
     public void onClose(WatcherException cause) {
-      log.error("onClose was called, ", cause);
+      if (cause.isHttpGone()) {
+        log.warn("onClose was called due to HTTP 410: {}", cause.getMessage());
+      } else {
+        log.error("onClose was called, ", cause);
+      }
       AbstractResourceWatcherFactory.this.onError(cause);
       watcherListener.watcherError(cause);
     }

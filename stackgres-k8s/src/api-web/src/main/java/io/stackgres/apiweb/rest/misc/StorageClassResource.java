@@ -64,7 +64,7 @@ public class StorageClassResource {
       """)
   @GET
   public List<String> get() {
-    return storageClassScanner.findResources().stream()
+    return storageClassScanner.getResources().stream()
         .map(sc -> sc.getMetadata().getName())
         .toList();
   }

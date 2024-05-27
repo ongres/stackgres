@@ -1,5 +1,6 @@
-{{- if and .Values.deploy.restapi }}
-{{- if eq "true" (include "stackgres.operator.unmodificableWebapiAdminClusterRoleBinding" .) }}
+{{- if .Values.deploy.restapi }}
+{{- if eq "true" (include "unmodificableWebapiAdminClusterRoleBinding" .) }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -40,7 +41,7 @@ spec:
       {{- end }}
       containers:
       - name: "delete-webapi-admin-clusterrolebinding"
-        image: {{ template "kubectl.image" . }}
+        image: {{ template "kubectl-image" . }}
         imagePullPolicy: "IfNotPresent"
         {{- with .Values.jobs.resources }}
         resources:
@@ -52,16 +53,40 @@ spec:
           - |
             kubectl delete clusterrolebinding stackgres-restapi-admin --ignore-not-found
 {{- end }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+{{- range $index, $namespace := $allowedNamespaces }}
+{{- if and (eq $index 0) (or (eq $namespace "_all_namespaces_placeholder") (not $.Values.disableClusterRole)) }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: stackgres-restapi-admin
+{{- with $.Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 subjects:
 - kind: User
-  name: {{ .Values.authentication.user | quote }}
+  name: {{ $.Values.authentication.user | quote }}
 roleRef:
   kind: ClusterRole
   name: stackgres-restapi-admin
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- if not (eq $namespace "_all_namespaces_placeholder") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: {{ $namespace }}
+  name: stackgres-restapi-admin
+subjects:
+- kind: User
+  name: {{ $.Values.authentication.user | quote }}
+roleRef:
+  kind: Role
+  name: stackgres-restapi-admin
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
 {{- end }}

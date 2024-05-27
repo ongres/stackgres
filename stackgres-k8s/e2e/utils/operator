@@ -620,6 +620,20 @@ install_operator_vanilla_from() {
   local OPERATOR_FROM=true
   before_operator_install_or_upgrade
   helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
+    $(
+      if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+      then
+        printf ' --set allowedNamespaces={%s}' "$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' ',')"
+      fi
+      if [ "x$E2E_DISABLE_CLUSTER_ROLE" = xtrue ]
+      then
+        printf ' --set disableClusterRole=true'
+      fi
+      if [ "x$E2E_ALLOW_IMPERSONATION_FOR_REST_API" = xtrue ]
+      then
+        printf ' --set allowImpersonationForRestApi=true'
+      fi
+    ) \
     "$@"
   after_operator_install_or_upgrade
 }
@@ -676,9 +690,37 @@ upgrade_operator_vanilla() {
       --set cert.createForOperator=false \
       --set developer.externalOperatorIp="$E2E_LOCAL_OPERATOR_IP" \
       --set developer.externalOperatorPort="$E2E_LOCAL_OPERATOR_SSL_PORT" \
+      $(
+        if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+        then
+          printf ' --set allowedNamespaces={%s}' "$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' ',')"
+        fi
+        if [ "x$E2E_DISABLE_CLUSTER_ROLE" = xtrue ]
+        then
+          printf ' --set disableClusterRole=true'
+        fi
+        if [ "x$E2E_ALLOW_IMPERSONATION_FOR_REST_API" = xtrue ]
+        then
+          printf ' --set allowImpersonationForRestApi=true'
+        fi
+      ) \
       "$@"
   else
     helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" \
+      $(
+        if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+        then
+          printf ' --set allowedNamespaces={%s}' "$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' ',')"
+        fi
+        if [ "x$E2E_DISABLE_CLUSTER_ROLE" = xtrue ]
+        then
+          printf ' --set disableClusterRole=true'
+        fi
+        if [ "x$E2E_ALLOW_IMPERSONATION_FOR_REST_API" = xtrue ]
+        then
+          printf ' --set allowImpersonationForRestApi=true'
+        fi
+      ) \
       "$@"
   fi
   after_operator_install_or_upgrade
@@ -776,6 +818,12 @@ upgrade_operator_from_private_repository() {
 }
 
 before_operator_install_or_upgrade() {
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+  then
+    printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' '\n' | xargs -I @ALLOWED_NAMESPACE "$SHELL" $SHELL_XTRACE -c \
+      "kubectl create ns '@ALLOWED_NAMESPACE' 2>/dev/null || kubectl get ns '@ALLOWED_NAMESPACE'" >/dev/null
+    K8S_EXCLUDED_NAMESPACES="$K8S_EXCLUDED_NAMESPACES $E2E_ALLOWED_NAMESPACES"
+  fi
   setup_extensions_secrets
 }
 

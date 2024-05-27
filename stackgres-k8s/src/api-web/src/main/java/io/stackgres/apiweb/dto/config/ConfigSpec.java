@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.dto.config;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -16,6 +19,18 @@ public class ConfigSpec {
   private String containerRegistry;
 
   private String imagePullPolicy;
+
+  private List<String> allowedNamespaces;
+
+  private Map<String, String> allowedNamespaceLabelSelector;
+
+  private Boolean disableClusterRole;
+
+  private Boolean disableCrdsAndWebhooksUpdate;
+
+  private Boolean allowImpersonationForRestApi;
+
+  private String sgConfigNamespace;
 
   private ConfigOptionalServiceAccount serviceAccount;
 
@@ -57,6 +72,54 @@ public class ConfigSpec {
 
   public void setImagePullPolicy(String imagePullPolicy) {
     this.imagePullPolicy = imagePullPolicy;
+  }
+
+  public List<String> getAllowedNamespaces() {
+    return allowedNamespaces;
+  }
+
+  public void setAllowedNamespaces(List<String> allowedNamespaces) {
+    this.allowedNamespaces = allowedNamespaces;
+  }
+
+  public Map<String, String> getAllowedNamespaceLabelSelector() {
+    return allowedNamespaceLabelSelector;
+  }
+
+  public void setAllowedNamespaceLabelSelector(Map<String, String> allowedNamespaceLabelSelector) {
+    this.allowedNamespaceLabelSelector = allowedNamespaceLabelSelector;
+  }
+
+  public Boolean getDisableClusterRole() {
+    return disableClusterRole;
+  }
+
+  public void setDisableClusterRole(Boolean disableClusterRole) {
+    this.disableClusterRole = disableClusterRole;
+  }
+
+  public Boolean getDisableCrdsAndWebhooksUpdate() {
+    return disableCrdsAndWebhooksUpdate;
+  }
+
+  public void setDisableCrdsAndWebhooksUpdate(Boolean disableCrdsAndWebhooksUpdate) {
+    this.disableCrdsAndWebhooksUpdate = disableCrdsAndWebhooksUpdate;
+  }
+
+  public Boolean getAllowImpersonationForRestApi() {
+    return allowImpersonationForRestApi;
+  }
+
+  public void setAllowImpersonationForRestApi(Boolean allowImpersonationForRestApi) {
+    this.allowImpersonationForRestApi = allowImpersonationForRestApi;
+  }
+
+  public String getSgConfigNamespace() {
+    return sgConfigNamespace;
+  }
+
+  public void setSgConfigNamespace(String sgConfigNamespace) {
+    this.sgConfigNamespace = sgConfigNamespace;
   }
 
   public ConfigOptionalServiceAccount getServiceAccount() {

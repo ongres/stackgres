@@ -5,44 +5,27 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class StorageClassFinder implements
-    ResourceFinder<StorageClass>,
-    ResourceScanner<StorageClass> {
-
-  private final KubernetesClient client;
+public class StorageClassFinder extends AbstractUnamespacedResourceFinderAndScanner<StorageClass> {
 
   @Inject
   public StorageClassFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<StorageClass> findByName(String name) {
-    return Optional.ofNullable(client.storage().v1().storageClasses().withName(name).get());
-  }
-
-  @Override
-  public Optional<StorageClass> findByNameAndNamespace(String name, String namespace) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public List<StorageClass> findResources() {
-    return client.storage().v1().storageClasses().list().getItems();
-  }
-
-  @Override
-  public List<StorageClass> findResourcesInNamespace(String namespace) {
-    throw new UnsupportedOperationException();
+  protected NonNamespaceOperation<StorageClass,
+          ? extends KubernetesResourceList<StorageClass>, ? extends Resource<StorageClass>>
+      getOperation(KubernetesClient client) {
+    return client.storage().v1().storageClasses();
   }
 
 }

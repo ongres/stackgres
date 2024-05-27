@@ -7,8 +7,8 @@ e2e_exclusive_lock() {
 e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
-  kubectl create namespace "$OPERATOR_NAMESPACE"
-  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create namespace "$OPERATOR_NAMESPACE" 2>/dev/null || kubectl get namespace "$OPERATOR_NAMESPACE"
+  kubectl create namespace "$CLUSTER_NAMESPACE" 2>/dev/null || kubectl get namespace "$CLUSTER_NAMESPACE"
 }
 
 e2e_test_uninstall() {
@@ -73,7 +73,7 @@ check_operator_install_outside() {
     wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
   done
 
-  install_operator_only --set-string service.type=NodePort --set service.nodePort=31111
+  install_operator_only --set-string adminui.service.type=NodePort --set adminui.service.nodePort=31111
 
   check_operator_installed
 }
@@ -85,7 +85,7 @@ check_operator_install_load_balancer() {
     wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
   done
 
-  install_operator_only --set service.loadBalancer.enabled=true
+  install_operator_only --set adminui.service.type=LoadBalancer
 
   check_operator_installed
 }

@@ -106,8 +106,10 @@ public class CrdWebhookInstaller {
 
     var crds = crdLoader.scanCrds();
 
-    LOGGER.info("Installing Conversion Webhooks");
-    installConversionWebhooks(webhookCaCert, crds);
+    if (OperatorProperty.INSTALL_CONVERSION_WEBHOOKS.getBoolean()) {
+      LOGGER.info("Installing Conversion Webhooks");
+      installConversionWebhooks(webhookCaCert, crds);
+    }
 
     LOGGER.info("Installing Mutating Webhooks");
     installMutatingWebhooks(webhookCaCert, crds);

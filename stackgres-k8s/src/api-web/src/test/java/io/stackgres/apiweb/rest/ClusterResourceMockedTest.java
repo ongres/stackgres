@@ -671,9 +671,9 @@ class ClusterResourceMockedTest extends
         .thenReturn(Optional.of(serviceReplicas));
     when(configMapFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(configMap));
-    when(podFinder.findResourcesWithLabels(any()))
+    when(podFinder.getResourcesWithLabels(any()))
         .thenReturn(podList.getItems());
-    when(podFinder.findByLabelsAndNamespace(anyString(), any()))
+    when(podFinder.getResourcesInNamespaceWithLabels(anyString(), any()))
         .thenReturn(podList.getItems());
     when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(new PersistentVolumeClaimBuilder()

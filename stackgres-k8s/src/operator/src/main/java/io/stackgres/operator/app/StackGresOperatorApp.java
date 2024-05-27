@@ -50,22 +50,38 @@ public class StackGresOperatorApp {
   }
 
   void onStart(@Observes StartupEvent ev) {
-    if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
+    if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_BOOTSTRAP)) {
       this.operatorBootstrap.syncBootstrap();
+      this.executorService.execute(this::asyncBootstrap);
+    }
+    if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
       this.executorService.execute(this::startReconciliation);
     }
   }
 
   void onStop(@Observes ShutdownEvent ev) {
+    operatorLockHolder.stop();
     if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
       stopReconciliation();
+    }
+  }
+
+  private void asyncBootstrap() {
+    LOGGER.info("The operator is starting...");
+    try {
+      operatorBootstrap.bootstrap();
+      if (operatorPropertyContext.getBoolean(OperatorProperty.STOP_AFTER_BOOTSTRAP)) {
+        Quarkus.asyncExit(0);
+      }
+    } catch (Exception ex) {
+      Quarkus.asyncExit(1);
+      throw ex;
     }
   }
 
   private void startReconciliation() {
     LOGGER.info("The operator is starting...");
     try {
-      operatorBootstrap.bootstrap();
       operatorWatchersHandler.startWatchers();
       reconciliationClock.start();
     } catch (Exception ex) {
@@ -82,7 +98,6 @@ public class StackGresOperatorApp {
     } catch (Exception ex) {
       LOGGER.warn("Can not stop bostrap executor", ex);
     }
-    operatorLockHolder.stop();
     reconciliationClock.stop();
     operatorWatchersHandler.stopWatchers();
   }

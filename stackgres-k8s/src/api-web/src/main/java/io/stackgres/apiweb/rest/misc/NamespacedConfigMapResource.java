@@ -65,7 +65,7 @@ public class NamespacedConfigMapResource {
       """)
   @GET
   public List<ConfigMapDto> list(@PathParam("namespace") String namespace) {
-    return scanner.findResourcesInNamespace(namespace);
+    return scanner.getResourcesInNamespace(namespace);
   }
 
 }

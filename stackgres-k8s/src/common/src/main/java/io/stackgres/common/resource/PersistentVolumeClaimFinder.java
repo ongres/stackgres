@@ -5,54 +5,27 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class PersistentVolumeClaimFinder implements
-    ResourceFinder<PersistentVolumeClaim>,
-    ResourceScanner<PersistentVolumeClaim> {
-
-  private final KubernetesClient client;
+public class PersistentVolumeClaimFinder extends AbstractResourceFinderAndScanner<PersistentVolumeClaim> {
 
   @Inject
   public PersistentVolumeClaimFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<PersistentVolumeClaim> findByName(String name) {
-    return Optional.ofNullable(client.persistentVolumeClaims()
-        .withName(name).get());
-  }
-
-  @Override
-  public Optional<PersistentVolumeClaim> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.persistentVolumeClaims()
-        .inNamespace(namespace).withName(name).get());
-  }
-
-  @Override
-  public List<PersistentVolumeClaim> findResources() {
-    return client.persistentVolumeClaims().inAnyNamespace().list().getItems();
-  }
-
-  @Override
-  public List<PersistentVolumeClaim> findResourcesInNamespace(String namespace) {
-    return client.persistentVolumeClaims().inNamespace(namespace).list().getItems();
-  }
-
-  @Override
-  public List<PersistentVolumeClaim> findByLabelsAndNamespace(String namespace,
-      Map<String, String> labels) {
-    return client.persistentVolumeClaims().inNamespace(namespace)
-        .withLabels(labels).list().getItems();
+  protected MixedOperation<PersistentVolumeClaim, ? extends KubernetesResourceList<PersistentVolumeClaim>,
+          ? extends Resource<PersistentVolumeClaim>>
+      getOperation(KubernetesClient client) {
+    return client.persistentVolumeClaims();
   }
 
 }

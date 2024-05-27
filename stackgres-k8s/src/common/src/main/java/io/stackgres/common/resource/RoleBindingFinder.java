@@ -5,56 +5,26 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class RoleBindingFinder implements
-    ResourceFinder<RoleBinding>,
-    ResourceScanner<RoleBinding> {
-
-  final KubernetesClient client;
+public class RoleBindingFinder extends AbstractResourceFinderAndScanner<RoleBinding> {
 
   @Inject
   public RoleBindingFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<RoleBinding> findByName(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<RoleBinding> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.rbac().roleBindings()
-        .inNamespace(namespace).withName(name).get());
-  }
-
-  @Override
-  public List<RoleBinding> findResources() {
-    return client.rbac().roleBindings().inAnyNamespace().list().getItems();
-  }
-
-  @Override
-  public List<RoleBinding> findResourcesInNamespace(String namespace) {
-    return client.rbac().roleBindings().inNamespace(namespace).list().getItems();
-  }
-
-  @Override
-  public List<RoleBinding> findByLabels(Map<String, String> labels) {
-    return client.rbac().roleBindings().inAnyNamespace().withLabels(labels).list().getItems();
-  }
-
-  @Override
-  public List<RoleBinding> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
-    return client.rbac().roleBindings().inNamespace(namespace).withLabels(labels).list().getItems();
+  protected MixedOperation<RoleBinding, ? extends KubernetesResourceList<RoleBinding>, ? extends Resource<RoleBinding>>
+      getOperation(KubernetesClient client) {
+    return client.rbac().roleBindings();
   }
 
 }

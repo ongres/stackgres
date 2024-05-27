@@ -28,6 +28,12 @@ run_curl() {
   local AUTHORIZATION=auto
   local JWT=""
 
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SERVICE_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
   local opt
   local OPTARG
   local OPTIND

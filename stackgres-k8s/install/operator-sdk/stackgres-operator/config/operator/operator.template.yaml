@@ -126,6 +126,10 @@ then
 EOF
 fi
 )
+          - name: ALLOWED_NAMESPACES
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['olm.targetNamespaces']
         ports:
         - containerPort: 8080
           name: "http"

@@ -104,7 +104,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   }
 
   private List<Pod> getAllClusterPods() {
-    return podFinder.findResourcesWithLabels(labelFactory.appLabel());
+    return podFinder.getResourcesWithLabels(labelFactory.appLabel());
   }
 
   @Inject

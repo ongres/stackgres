@@ -71,13 +71,18 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
       try {
         while (!operatorLockHolder.isLeader()) {
           try {
+            if (OperatorProperty.FORCE_UNLOCK_OPERATOR.getBoolean()) {
+              operatorLockHolder.forceUnlockOthers();
+            }
             Thread.sleep(100);
           } catch (InterruptedException ex) {
             throw new RuntimeException(ex);
           }
         }
         retryWithLimit(this::bootstrapCrds, ex -> true, 10, 10000, 20000, 2000);
-        operatorLockHolder.startReconciliation();
+        if (!OperatorProperty.DISABLE_RECONCILIATION.getBoolean()) {
+          operatorLockHolder.startReconciliation();
+        }
       } catch (RuntimeException ex) {
         operatorLockHolder.stop();
         client.pods()
@@ -109,7 +114,11 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
     if (OperatorProperty.INSTALL_WEBHOOKS.getBoolean()) {
       crdWebhookInstaller.installWebhooks();
     }
-    crUpdater.updateExistingCustomResources();
+    if (OperatorProperty.WAIT_CRDS_UPGRADE.getBoolean()) {
+      crUpdater.waitExistingCustomResourcesUpgrade();
+    } else {
+      crUpdater.updateExistingCustomResources();
+    }
   }
 
 }

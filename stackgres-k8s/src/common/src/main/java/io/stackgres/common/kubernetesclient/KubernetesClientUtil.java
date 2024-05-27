@@ -8,10 +8,12 @@ package io.stackgres.common.kubernetesclient;
 import static io.stackgres.common.RetryUtil.retry;
 import static io.stackgres.common.RetryUtil.retryWithLimit;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import jakarta.ws.rs.core.Response;
 
 public interface KubernetesClientUtil {
 
@@ -22,7 +24,8 @@ public interface KubernetesClientUtil {
       justification = "False positive")
   static boolean isConflict(Throwable ex) {
     return ex instanceof KubernetesClientException kce
-        && kce.getCode() == 409;
+        && kce.getCode() == Response.Status.CONFLICT.getStatusCode()
+        && kce.getMessage().contains("the object has been modified");
   }
 
   /**
@@ -57,6 +60,28 @@ public interface KubernetesClientUtil {
    */
   static <T> T retryOnError(Supplier<T> supplier, int retryLimit) {
     return retryWithLimit(supplier, ex -> true, retryLimit, 3000, 30000, 1000);
+  }
+
+  static <I> List<I> listOrEmptyOnNotFound(Supplier<List<I>> supplier) {
+    try {
+      return supplier.get();
+    } catch (KubernetesClientException ex) {
+      if (ex.getCode() == Response.Status.NOT_FOUND.getStatusCode()) {
+        return List.of();
+      }
+      throw ex;
+    }
+  }
+
+  static <I> List<I> listOrEmptyOnForbidden(Supplier<List<I>> supplier) {
+    try {
+      return supplier.get();
+    } catch (KubernetesClientException ex) {
+      if (ex.getCode() == Response.Status.FORBIDDEN.getStatusCode()) {
+        return List.of();
+      }
+      throw ex;
+    }
   }
 
 }

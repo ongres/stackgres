@@ -950,10 +950,16 @@
 
                             <div class="col">
                                 <label for="spec.coordinator.pods.persistentVolume.storageClass">Storage Class</label>
-                                <select v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                                </select>
+
+                                <template v-if="storageClasses === null">
+                                    <input v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" autocomplete="off">
+                                </template>
+                                <template v-else>
+                                    <select v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                        <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                    </select>
+                                </template>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.persistentVolume.storageClass')"></span>
                             </div>
                         </div>
@@ -3003,10 +3009,16 @@
 
                             <div class="col">
                                 <label for="spec.shards.pods.persistentVolume.storageClass">Storage Class</label>
-                                <select v-model="shards.pods.persistentVolume.storageClass" data-field="spec.shards.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                                </select>
+
+                                <template v-if="storageClasses === null">
+                                    <input v-model="shards.pods.persistentVolume.storageClass" data-field="spec.shards.pods.persistentVolume.storageClass" autocomplete="off">
+                                </template>
+                                <template v-else>
+                                    <select v-model="shards.pods.persistentVolume.storageClass" data-field="spec.shards.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                        <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                    </select>
+                                </template>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.pods.persistentVolume.storageClass')"></span>
                             </div>
                         </div>
@@ -5032,10 +5044,16 @@
 
                             <div class="col">
                                 <label for="spec.shards.overrides.pods.persistentVolume.storageClass">Storage Class</label>
-                                <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.storageClass" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.storageClass'" :disabled="!storageClasses.length">
-                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                                </select>
+
+                                <template v-if="storageClasses === null">
+                                    <input v-model="shards.overrides[overrideIndex].pods.persistentVolume.storageClass" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.storageClass'" autocomplete="off">
+                                </template>
+                                <template v-else>
+                                    <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.storageClass" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.storageClass'" :disabled="!storageClasses.length">
+                                        <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                    </select>
+                                </template>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.persistentVolume.storageClass')"></span>
                             </div>
                         </div>

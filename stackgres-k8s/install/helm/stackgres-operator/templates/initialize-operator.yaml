@@ -1,0 +1,160 @@
+{{- if or .Values.disableClusterRole .Values.disableCrdsAndWebhooksUpdate }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-initialize-operator"
+  labels:
+    app: stackgres-operator-init
+    job: initialize-operator
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+    {{- with .Values.jobs.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator-init
+        job: initialize-operator
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- if .Values.serviceAccount.repoCredentials }}
+      imagePullSecrets:
+      {{- range .Values.serviceAccount.repoCredentials }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.operator.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.operator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.operator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        runAsNonRoot: true
+        {{- if .Values.operator.image.tag | hasSuffix "-jvm" }}
+        runAsUser: 185
+        runAsGroup: 185
+        fsGroup: 185
+        {{- else }}
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        {{- end }}
+        {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ include "operator-image" . }}"
+        imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+        env:
+          - name: OPERATOR_NAME
+            value: "{{ .Release.Name }}"
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: OPERATOR_IMAGE_VERSION
+            value: "{{ .Values.operator.image.tag }}"
+          - name: DISABLE_RECONCILIATION
+            value: "true"
+          - name: INSTALL_CRDS
+            value: "true"
+          - name: WAIT_CRDS_UPGRADE
+            value: "false"
+          - name: FORCE_UNLOCK_OPERATOR
+            value: "true"
+          - name: STOP_AFTER_BOOTSTRAP
+            value: "true"
+          - name: INSTALL_WEBHOOKS
+            value: "true"
+          - name: INSTALL_CONVERSION_WEBHOOKS
+            value: "{{ if or .Values.allowedNamespaces .Values.allowedNamespaceLabelSelector .Values.disableClusterRole }}false{{ else }}true{{ end }}"
+          - name: ALLOWED_NAMESPACES
+            {{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+            value: "{{ if not ($allowedNamespaces | has "_all_namespaces_placeholder") }}{{ range $index, $namespace := $allowedNamespaces }}{{ if $index }},{{ end }}{{ $namespace }}{{ end }}{{ end }}"
+          - name: CLUSTER_ROLE_DISABLED
+            value: "{{ if .Values.disableClusterRole }}true{{ else }}false{{ end }}"
+          {{- if not .Values.cert.certManager.autoConfigure }}
+          - name: INSTALL_CERTS
+            value: "true"
+          {{- end }}
+          {{- if .Values.developer.logLevel }}
+          - name: OPERATOR_LOG_LEVEL
+            value: "{{ .Values.developer.logLevel }}"
+          {{- end }}
+          {{- if .Values.developer.showStackTraces }}
+          - name: OPERATOR_SHOW_STACK_TRACES
+            value: "{{ .Values.developer.showStackTraces }}"
+          {{- end }}
+          {{- if .Values.developer.extraOpts }}
+          - name: APP_OPTS
+            value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
+          {{- end }}
+          {{- if .Values.developer.extraOpts }}
+          - name: JAVA_OPTS
+            value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebug }}
+          - name: DEBUG_OPERATOR
+            value: "{{ .Values.developer.enableJvmDebug }}"
+          {{- end }}
+          {{- if .Values.developer.enableJvmDebugSuspend }}
+          - name: DEBUG_OPERATOR_SUSPEND
+            value: "{{ .Values.developer.enableJvmDebugSuspend }}"
+          {{- end }}
+          - name: OPERATOR_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          - name: OPERATOR_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: OPERATOR_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          {{- if .Values.developer.extraEnv }}
+          {{- range $name,$value := .Values.developer.extraEnv }}
+          - name: {{ $name }}
+            value: {{ $value }}
+          {{- end }}
+          {{- end }}
+          {{- with .Values.developer.version }}
+          - name: OPERATOR_VERSION
+            value: {{ . | quote }}
+          {{- end }}
+        {{- with .Values.operator.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+          - name: operator-certs
+            mountPath: /etc/operator/certs
+            readOnly: true
+          {{- with ((.Values.developer.patches).operator).volumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+      volumes:
+        - name: operator-certs
+          secret:
+            secretName: {{ include "cert-name" . }}
+            optional: true
+{{- end }}

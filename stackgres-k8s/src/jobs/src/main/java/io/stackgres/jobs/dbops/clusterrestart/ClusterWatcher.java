@@ -100,7 +100,7 @@ public class ClusterWatcher {
           cluster.getMetadata().getName(), labelsAsString);
 
       var pods = podScanner
-          .findByLabelsAndNamespace(cluster.getMetadata().getNamespace(), podsLabels);
+          .getResourcesInNamespaceWithLabels(cluster.getMetadata().getNamespace(), podsLabels);
 
       int expectedInstances = cluster.getSpec().getInstances();
 

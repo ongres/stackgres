@@ -195,7 +195,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       String namespace = cluster.getMetadata().getNamespace();
       final Map<String, String> podLabels =
           labelFactory.clusterLabelsWithoutUidAndScope(cluster);
-      List<Pod> clusterPods = podScanner.findByLabelsAndNamespace(namespace, podLabels);
+      List<Pod> clusterPods = podScanner.getResourcesInNamespaceWithLabels(namespace, podLabels);
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Retrieved cluster pods with labels {}: {}",
             podLabels.entrySet().stream()
@@ -205,7 +205,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             .map(HasMetadata::getMetadata)
             .map(ObjectMeta::getName)
             .collect(Collectors.joining(" ")));
-        List<Pod> allPods = podScanner.findResourcesInNamespace(namespace);
+        List<Pod> allPods = podScanner.getResourcesInNamespace(namespace);
         LOGGER.trace("Found pods with labels: {}",
             allPods.stream()
             .map(HasMetadata::getMetadata)

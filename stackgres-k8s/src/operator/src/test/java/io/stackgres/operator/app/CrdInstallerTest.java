@@ -78,8 +78,11 @@ class CrdInstallerTest {
 
   @BeforeEach
   void setUp() {
-    crdInstaller = new CrdInstaller(customResourceDefinitionFinder,
-        customResourceDefinitionWriter, new YamlMapperProvider(), client);
+    crdInstaller = new CrdInstaller(
+        customResourceDefinitionFinder,
+        customResourceDefinitionWriter,
+        new YamlMapperProvider(),
+        client);
   }
 
   @Test

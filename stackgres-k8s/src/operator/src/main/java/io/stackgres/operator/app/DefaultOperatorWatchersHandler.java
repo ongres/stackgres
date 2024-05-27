@@ -24,11 +24,13 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigList;
@@ -48,6 +50,7 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterList;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsList;
@@ -67,6 +70,8 @@ import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
+
+  private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
 
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
@@ -124,21 +129,21 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   @Override
   public void startWatchers() {
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresConfig.class,
         StackGresConfigList.class,
         onCreateOrUpdate(
             reconcileConfig()
             .andThen(putConfig()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresCluster.class,
         StackGresClusterList.class,
         onCreateOrUpdate(
             putCluster()
             .andThen(reconcileCluster()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresProfile.class,
         StackGresProfileList.class,
         onCreateOrUpdate(
@@ -146,7 +151,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .andThen(reconcileInstanceProfileDistributedLogs())
             .andThen(reconcileInstanceProfileShardedClusters()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresPostgresConfig.class,
         StackGresPostgresConfigList.class,
         onCreateOrUpdate(
@@ -154,68 +159,68 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .andThen(reconcilePostgresConfigDistributedLogs())
             .andThen(reconcilePostgresConfigShardedClusters()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class,
         onCreateOrUpdate(reconcilePoolingConfigClusters()
             .andThen(reconcilePoolingConfigShardedClusters()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresObjectStorage.class,
         StackGresObjectStorageList.class,
         onCreateOrUpdate(
             reconcileObjectStorageClusters()
             .andThen(reconcileObjectStorageShardedClusters()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresBackup.class,
         StackGresBackupList.class,
         onCreateOrUpdate(
             putBackup()
             .andThen(reconcileBackup()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresDbOps.class,
         StackGresDbOpsList.class,
         onCreateOrUpdate(
             putDbOps()
             .andThen(reconcileDbOps()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
         onCreateOrUpdate(
             putDistributedLogs()
             .andThen(reconcileDistributedLogs()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresShardedCluster.class,
         StackGresShardedClusterList.class,
         onCreateOrUpdate(
             putShardedCluster()
             .andThen(reconcileShardedCluster()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresShardedBackup.class,
         StackGresShardedBackupList.class,
         onCreateOrUpdate(
             putShardedBackup()
             .andThen(reconcileShardedBackup()))));
 
-    monitors.add(createCustomResourceWatcher(
+    monitors.addAll(createCustomResourceWatchers(
         StackGresShardedDbOps.class,
         StackGresShardedDbOpsList.class,
         onCreateOrUpdate(
             putShardedDbOps()
             .andThen(reconcileShardedDbOps()))));
 
-    monitors.add(createWatcher(
+    monitors.addAll(createWatchers(
         Endpoints.class,
         EndpointsList.class,
         onCreateOrUpdate(
             reconcileEndpointsShardedClusters())));
 
-    monitors.add(createWatcher(
+    monitors.addAll(createWatchers(
         Pod.class,
         PodList.class,
         onCreateOrUpdateOrDelete(
@@ -228,26 +233,47 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private <T extends CustomResource<?, ?>,
-      L extends DefaultKubernetesResourceList<T>> WatcherMonitor<T> createCustomResourceWatcher(
+      L extends DefaultKubernetesResourceList<T>> List<WatcherMonitor<T>> createCustomResourceWatchers(
       @NotNull Class<T> crClass, @NotNull Class<L> listClass,
       @NotNull BiConsumer<Action, T> consumer) {
 
-    return new WatcherMonitor<>(crClass.getSimpleName(),
+    if (!allowedNamespaces.isEmpty()) {
+      return allowedNamespaces.stream()
+          .<WatcherMonitor<T>>map(allowedNamespace -> new WatcherMonitor<>(crClass.getSimpleName(),
+              watcherListener -> client
+              .resources(crClass, listClass)
+              .inNamespace(allowedNamespace)
+              .watch(watcherFactory.createWatcher(consumer, watcherListener))))
+          .toList();
+    }
+
+    return List.of(new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
         .resources(crClass, listClass)
         .inAnyNamespace()
-        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
+        .watch(watcherFactory.createWatcher(consumer, watcherListener))));
   }
 
   private <T extends HasMetadata,
-      L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
+      L extends KubernetesResourceList<T>> List<WatcherMonitor<T>> createWatchers(
       @NotNull Class<T> crClass, @NotNull Class<L> listClass,
       @NotNull BiConsumer<Action, T> consumer) {
-    return new WatcherMonitor<>(crClass.getSimpleName(),
+
+    if (!allowedNamespaces.isEmpty()) {
+      return allowedNamespaces.stream()
+          .<WatcherMonitor<T>>map(allowedNamespace -> new WatcherMonitor<>(crClass.getSimpleName(),
+              watcherListener -> client
+              .resources(crClass, listClass)
+              .inNamespace(allowedNamespace)
+              .watch(watcherFactory.createWatcher(consumer, watcherListener))))
+          .toList();
+    }
+
+    return List.of(new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
         .resources(crClass, listClass)
         .inAnyNamespace()
-        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
+        .watch(watcherFactory.createWatcher(consumer, watcherListener))));
   }
 
   private <T> BiConsumer<Action, T> onCreateOrUpdate(BiConsumer<Action, T> consumer) {
@@ -446,18 +472,24 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
             postgresConfig.getMetadata().getNamespace()))
-        .filter(shardedCluster -> Objects.equals(
-            shardedCluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
-            postgresConfig.getMetadata().getName())
-            || Objects.equals(
-                shardedCluster.getSpec().getShards().getConfigurations().getSgPostgresConfig(),
-                postgresConfig.getMetadata().getName())
-            || Optional.ofNullable(shardedCluster.getSpec()
-                .getShards().getOverrides()).orElse(List.of())
-            .stream().anyMatch(spec -> spec.getConfigurations() != null
-                && Objects.equals(
-                    spec.getConfigurations().getSgPostgresConfig(),
-                    postgresConfig.getMetadata().getName())))
+        .filter(shardedCluster -> {
+          return Objects.equals(
+              Optional.ofNullable(
+                  shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
+              .map(StackGresClusterConfigurations::getSgPostgresConfig),
+              Optional.of(postgresConfig.getMetadata().getName()))
+              || Objects.equals(
+                  Optional.ofNullable(
+                      shardedCluster.getSpec().getShards().getConfigurations())
+                  .map(StackGresClusterConfigurations::getSgPostgresConfig),
+                  Optional.of(postgresConfig.getMetadata().getName()))
+              || Optional.ofNullable(shardedCluster.getSpec().getShards().getOverrides())
+                  .orElse(List.of())
+                  .stream().anyMatch(spec -> spec.getConfigurationsForShards() != null
+                      && Objects.equals(
+                          spec.getConfigurationsForShards().getSgPostgresConfig(),
+                          postgresConfig.getMetadata().getName()));
+        })
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
   }
 
@@ -468,19 +500,21 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             cluster.getMetadata().getNamespace(),
             poolingConfig.getMetadata().getNamespace()))
         .filter(shardedCluster -> Objects.equals(
-            shardedCluster.getSpec()
-            .getCoordinator().getConfigurations().getSgPoolingConfig(),
-            poolingConfig.getMetadata().getName())
+            Optional.ofNullable(
+                shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
+            .map(StackGresClusterConfigurations::getSgPoolingConfig),
+            Optional.of(poolingConfig.getMetadata().getName()))
             || Objects.equals(
-                shardedCluster.getSpec()
-                .getShards().getConfigurations().getSgPoolingConfig(),
-                poolingConfig.getMetadata().getName())
+                Optional.ofNullable(
+                    shardedCluster.getSpec().getShards().getConfigurations())
+                .map(StackGresClusterConfigurations::getSgPoolingConfig),
+                Optional.of(poolingConfig.getMetadata().getName()))
             || Optional.ofNullable(shardedCluster.getSpec().getShards().getOverrides())
-            .orElse(List.of())
-            .stream().anyMatch(spec -> spec.getConfigurations() != null
-                && Objects.equals(
-                    spec.getConfigurations().getSgPoolingConfig(),
-                    poolingConfig.getMetadata().getName())))
+                .orElse(List.of())
+                .stream().anyMatch(spec -> spec.getConfigurationsForShards() != null
+                    && Objects.equals(
+                        spec.getConfigurationsForShards().getSgPoolingConfig(),
+                        poolingConfig.getMetadata().getName())))
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
   }
 
@@ -491,7 +525,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             cluster.getMetadata().getNamespace(),
             objectStorage.getMetadata().getNamespace()))
         .filter(shardedCluster -> Objects.equals(
-            Optional.ofNullable(shardedCluster.getSpec().getConfigurations().getBackups())
+            Optional.ofNullable(shardedCluster.getSpec().getConfigurations())
+            .map(StackGresShardedClusterConfigurations::getBackups)
             .orElse(List.of())
             .stream().findFirst()
             .map(StackGresShardedClusterBackupConfiguration::getSgObjectStorage)

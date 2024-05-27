@@ -1,4 +1,4 @@
-{{- if eq "true" (include "stackgres.operator.missingSGConfigCrd" .) }}
+{{- if eq "true" (include "missingSGConfigCrd" .) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -39,7 +39,7 @@ spec:
       {{- end }}
       containers:
       - name: "install-crd-and-sgconfig"
-        image: {{ template "kubectl.image" . }}
+        image: {{ template "kubectl-image" . }}
         imagePullPolicy: "IfNotPresent"
         {{- with .Values.jobs.resources }}
         resources:
@@ -63,7 +63,7 @@ spec:
               labels:
                 app.kubernetes.io/managed-by: Helm
               name: {{ .Release.Name }}
-              namespace: {{ .Release.Namespace }}
+              namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
             spec:
               {{ regexReplaceAll "[^ ]+: null" (toYaml .Values | nindent 14) "" }}
             EOF
@@ -72,7 +72,7 @@ apiVersion: stackgres.io/v1
 kind: SGConfig
 metadata:
   name: {{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
 spec:
   {{ regexReplaceAll "[^ ]+: null" (toYaml .Values | nindent 2) "" }}
 {{- end }}

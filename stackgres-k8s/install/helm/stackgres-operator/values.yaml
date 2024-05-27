@@ -2,6 +2,8 @@
 containerRegistry: quay.io
 # -- Image pull policy used for images loaded by the Operator
 imagePullPolicy: "IfNotPresent"
+# -- Section to configure Operator allowed namespaces that the operator is allowed to use. If empty all namespaces will be allowed (default). 
+allowedNamespaces: []
 # Section to configure Operator Installation ServiceAccount
 serviceAccount:
   # -- If `true` the Operator Installation ServiceAccount will be created

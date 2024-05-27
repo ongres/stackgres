@@ -86,7 +86,7 @@ public class NamespacedDbOpsEventsResource {
       @PathParam("name") String name) {
     Map<String, List<ObjectMeta>> relatedResources = new HashMap<>();
     relatedResources.put("Job",
-        Seq.seq(jobScanner.findResourcesInNamespace(namespace))
+        Seq.seq(jobScanner.getResourcesInNamespace(namespace))
             .filter(job -> job.getMetadata().getOwnerReferences().stream()
                 .anyMatch(resourceReference -> Objects
                     .equals(resourceReference.getKind(), StackGresDbOps.KIND)
@@ -94,14 +94,14 @@ public class NamespacedDbOpsEventsResource {
             .map(Job::getMetadata)
             .toList());
     relatedResources.put("Pod",
-        Seq.seq(podScanner.findResourcesInNamespace(namespace))
+        Seq.seq(podScanner.getResourcesInNamespace(namespace))
             .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
                 .anyMatch(resourceReference -> Objects.equals(resourceReference.getKind(), "Job")
                     && relatedResources.get("Job").stream().anyMatch(jobMetadata -> Objects
                         .equals(jobMetadata.getName(), resourceReference.getName()))))
             .map(Pod::getMetadata)
             .toList());
-    return Seq.seq(scanner.findResourcesInNamespace(namespace))
+    return Seq.seq(scanner.getResourcesInNamespace(namespace))
         .filter(event -> isDbOpsEvent(event, namespace, name, relatedResources))
         .sorted(this::orderByLastTimestamp)
         .toList();

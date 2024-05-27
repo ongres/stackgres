@@ -1,4 +1,4 @@
-describe('Create SGCluster', () => {
+describe('Promote SGCluster', () => {
     Cypress.on('uncaught:exception', (err, runnable) => {
       return false
     });

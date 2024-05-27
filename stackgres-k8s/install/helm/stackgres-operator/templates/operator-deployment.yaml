@@ -29,18 +29,24 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end}}
       serviceAccountName: {{ .Release.Name }}
-      {{- if .Values.serviceAccount.create }}
       {{- if .Values.serviceAccount.repoCredentials }}
       imagePullSecrets:
       {{- range .Values.serviceAccount.repoCredentials }}
         - name: {{ . }}
       {{- end }}
       {{- end }}
-      {{- end }}
+      {{- with .Values.operator.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
       {{- with .Values.operator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end}}
+      {{- with .Values.operator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
         runAsNonRoot: true
@@ -72,13 +78,24 @@ spec:
           - name: DISABLE_RECONCILIATION
             value: "false"
           - name: INSTALL_CRDS
-            value: "true"
+            value: "{{ if or .Values.disableClusterRole .Values.disableCrdsAndWebhooksUpdate }}false{{ else }}true{{ end }}"
+          - name: WAIT_CRDS_UPGRADE
+            value: "{{ if or .Values.disableClusterRole .Values.disableCrdsAndWebhooksUpdate }}true{{ else }}false{{ end }}"
           - name: INSTALL_WEBHOOKS
-            value: "true"
+            value: "{{ if or .Values.disableClusterRole .Values.disableCrdsAndWebhooksUpdate }}false{{ else }}true{{ end }}"
+          - name: INSTALL_CONVERSION_WEBHOOKS
+            value: "{{ if or .Values.allowedNamespaces .Values.allowedNamespaceLabelSelector .Values.disableClusterRole }}false{{ else }}true{{ end }}"
+          - name: ALLOWED_NAMESPACES
+            {{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+            value: "{{ if not ($allowedNamespaces | has "_all_namespaces_placeholder") }}{{ range $index, $namespace := $allowedNamespaces }}{{ if $index }},{{ end }}{{ $namespace }}{{ end }}{{ end }}"
+          - name: CLUSTER_ROLE_DISABLED
+            value: "{{ if .Values.disableClusterRole }}true{{ else }}false{{ end }}"
           {{- if not .Values.cert.certManager.autoConfigure }}
           - name: INSTALL_CERTS
             value: "true"
           {{- end }}
+          - name: SGCONFIG_NAMESPACE
+            value: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
           {{- if and (.Capabilities.APIVersions.Has "project.openshift.io/v1") (not .Values.developer.disableArbitraryUser) }}
@@ -232,8 +249,4 @@ spec:
         {{- with ((.Values.developer.patches).operator).volumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.operator.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
 {{- end }}

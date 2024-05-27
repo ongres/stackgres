@@ -1,11 +1,72 @@
-{{- if and .Values.deploy.restapi }}
+{{- if .Values.deploy.restapi }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+{{- range $index, $namespace := $allowedNamespaces }}
+{{- if and (eq $index 0) (not $.Values.disableClusterRole) }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     api.stackgres.io/auth: user
   name: stackgres-restapi-admin
+{{- with $.Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 rules:
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources:
+  - clusterroles
+  - clusterrolebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - sgconfigs.stackgres.io
+  - sgclusters.stackgres.io
+  - sginstanceprofiles.stackgres.io
+  - sgpgconfigs.stackgres.io
+  - sgpoolconfigs.stackgres.io
+  - sgbackups.stackgres.io
+  - sgbackupconfigs.stackgres.io
+  - sgobjectstorages.stackgres.io
+  - sgdbops.stackgres.io
+  - sgdistributedlogs.stackgres.io
+  - sgshardedclusters.stackgres.io
+  - sgscripts.stackgres.io
+  verbs:
+  - get
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - list
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+{{- end }}
+{{- if not (eq $namespace "_all_namespaces_placeholder") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ $namespace }}
+  name: stackgres-restapi-admin
+rules:
+{{- end }}
 - apiGroups: ["", "batch"]
   resources:
   - pods/exec
@@ -35,8 +96,6 @@ rules:
   - update
 - apiGroups: ["", "batch", "storage.k8s.io"]
   resources:
-  - namespaces
-  - storageclasses
   - pods
   - services
   - configmaps
@@ -79,35 +138,10 @@ rules:
   - get
   - update
   - patch
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  resourceNames:
-  - sgconfigs.stackgres.io
-  - sgclusters.stackgres.io
-  - sginstanceprofiles.stackgres.io
-  - sgpgconfigs.stackgres.io
-  - sgpoolconfigs.stackgres.io
-  - sgbackups.stackgres.io
-  - sgbackupconfigs.stackgres.io
-  - sgobjectstorages.stackgres.io
-  - sgdbops.stackgres.io
-  - sgdistributedlogs.stackgres.io
-  - sgshardedclusters.stackgres.io
-  - sgscripts.stackgres.io
-  verbs:
-  - get
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - list
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources:
   - roles
   - rolebindings
-  - clusterroles
-  - clusterrolebindings
   verbs:
   - get
   - list
@@ -116,4 +150,5 @@ rules:
   - update
   - patch
   - delete
+{{- end }}
 {{- end }}

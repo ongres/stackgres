@@ -8,6 +8,7 @@ package io.stackgres.operator.mutation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.operator.common.ConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
@@ -31,11 +32,11 @@ public class ConfigMutationResource
   public ConfigMutationResource(
       ObjectMapper objectMapper,
       MutationPipeline<StackGresConfig, ConfigReview> pipeline) {
-    super(objectMapper, pipeline);
+    super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
   public ConfigMutationResource() {
-    super(null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

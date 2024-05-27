@@ -1,22 +1,17 @@
 {{- if and .Values.deploy.restapi .Values.serviceAccount.create }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+{{- range $index, $namespace := $allowedNamespaces }}
+{{- if and (eq $index 0) (not $.Values.disableClusterRole) }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ .Values.restapi.name }}
-  annotations:
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/managed-by: Helm
+  name: {{ $.Values.restapi.name }}
+{{- with $.Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - users
-  - groups
-  - serviceaccount
-  verbs:
-  - impersonate
 - apiGroups:
   - authorization.k8s.io
   resources:
@@ -26,8 +21,44 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - users
+  - groups
+  verbs:
+  - impersonate
+{{- else if and (eq $index 0) $.Values.allowImpersonationForRestApi }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $.Values.restapi.name }}
+{{- with $.Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - users
+  - groups
+  verbs:
+  - impersonate
+{{- end }}
+{{- if not (eq $namespace "_all_namespaces_placeholder") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ $namespace }}
+  name: {{ $.Values.restapi.name }}
+rules:
+{{- end }}
+- apiGroups:
+  - ""
+  resources:
   - secrets # Secret Verification authentication
   verbs:
   - get
   - list
+{{- end }}
 {{- end }}

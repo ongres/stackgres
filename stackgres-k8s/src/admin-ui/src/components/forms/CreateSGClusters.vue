@@ -435,10 +435,16 @@
 
                             <div class="col">
                                 <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                                <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                                </select>
+                                
+                                <template v-if="storageClasses === null">
+                                    <input v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" autocomplete="off">
+                                </template>
+                                <template v-else>
+                                    <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                        <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                    </select>
+                                </template>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
                             </div>
                         </div>
@@ -4422,15 +4428,23 @@
         content: " ";
         display: block;
         height: 94px;
-        border: 1px solid var(--textColor);
+        border-top: 1px solid var(--borderColor);
+        border-bottom: 1px solid #909090;
         border-right: 0;
         border-left: 0;
-        bottom: 30px;
+        bottom: 31px;
         position: absolute;
         left: 0;
         width: 100%;
-        background: var(--baseColor);
-        opacity: .3;
+        background: rgb(54 168 255 / 30%);
+    }
+
+    #apexchartsarea-datetime .apexcharts-xaxis-tick {
+        stroke: #909090 !important;
+    }
+
+    #apexchartsarea-datetime > svg {
+        position: relative;
     }
 
     #apexchartsarea-datetime .apexcharts-series-markers > circle {
@@ -4466,6 +4480,12 @@
     }
     .pitr-legend {
         position: absolute;
+    }
+
+    .apexcharts-xaxis > line {
+        /* position: relative !important;
+        z-index: -1 !important; */
+        display: none;
     }
     
 </style>

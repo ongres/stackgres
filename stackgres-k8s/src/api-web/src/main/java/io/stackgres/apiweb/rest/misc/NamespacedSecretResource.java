@@ -65,6 +65,6 @@ public class NamespacedSecretResource {
   @Authenticated
   @GET
   public List<SecretDto> list(@PathParam("namespace") String namespace) {
-    return scanner.findResourcesInNamespace(namespace);
+    return scanner.getResourcesInNamespace(namespace);
   }
 }

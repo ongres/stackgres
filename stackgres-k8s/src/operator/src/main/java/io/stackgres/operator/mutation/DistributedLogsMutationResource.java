@@ -8,6 +8,7 @@ package io.stackgres.operator.mutation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
@@ -31,11 +32,11 @@ public class DistributedLogsMutationResource
   public DistributedLogsMutationResource(
       ObjectMapper objectMapper,
       MutationPipeline<StackGresDistributedLogs, StackGresDistributedLogsReview> pipeline) {
-    super(objectMapper, pipeline);
+    super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
   public DistributedLogsMutationResource() {
-    super(null, null);
+    super(null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

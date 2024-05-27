@@ -19,4 +19,6 @@ public interface OperatorLockHolder {
 
   void stop();
 
+  void forceUnlockOthers();
+
 }

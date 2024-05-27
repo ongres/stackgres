@@ -1,4 +1,4 @@
-{{- define "kubectl.image" }}
+{{- define "kubectl-image" }}
 {{- if semverCompare ">=1.27" .Capabilities.KubeVersion.Version -}}
 {{- printf "%s/ongres/kubectl:v1.28.8-build-6.31" .Values.containerRegistry -}}
 {{- else if semverCompare ">=1.24" .Capabilities.KubeVersion.Version -}}
@@ -36,7 +36,7 @@
 {{- .Values.cert.webSecretName | default (printf "%s-%s" .Release.Name "web-certs") }}
 {{- end }}
 
-{{- define "stackgres.operator.missingSGConfigCrd" }}
+{{- define "missingSGConfigCrd" }}
 {{- if .Release.IsUpgrade }}
 {{- $missingSGConfigCrd := true }}
 {{- $configCrd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "" "sgconfigs.stackgres.io" }}
@@ -49,7 +49,7 @@ false
 {{- end }}
 {{- end }}
 
-{{- define "stackgres.operator.unmodificableWebapiAdminClusterRoleBinding" }}
+{{- define "unmodificableWebapiAdminClusterRoleBinding" }}
 {{- if .Release.IsUpgrade }}
 {{- $unmodificableWebapiAdminClusterRoleBinding := false }}
 {{- $webapiAdminClusterRoleBinding := lookup "rbac.authorization.k8s.io/v1" "ClusterRoleBinding" "" "stackgres-restapi-admin" }}
@@ -62,4 +62,40 @@ false
 {{- else }}
 false
 {{- end }}
+{{- end }}
+
+{{- define "allowedNamespaces" }}
+{{- $allowedNamespaces := list }}
+{{- if .Values.allowedNamespaces }}
+{{- range $namespace := .Values.allowedNamespaces }}
+  {{- $allowedNamespaces = append $allowedNamespaces $namespace }}
+{{- end }}
+{{- if not ($allowedNamespaces | has .Release.Namespace) }}
+  {{- $allowedNamespaces = append $allowedNamespaces .Release.Namespace }}
+{{- end }}
+{{- else if .Values.allowedNamespaceLabelSelector }}
+{{- $namespaces := lookup "v1" "Namespace" "" "" }}
+{{- range $namespace := $namespaces }}
+  {{- $containsAllowedNamespaceLabelSelector := true }}
+  {{- range $k,$v := $.Values.allowedNamespaceLabelSelector }}
+    {{- $containsLabel := false }}
+    {{- range $nk,$nv := $namespace.metadata.labels }}
+      {{- if and (eq $nk $k) (eq $nv $v) }}
+        {{- $containsLabel = true }}
+      {{- end }}
+    {{- end }}
+    {{- if not $containsLabel }}
+      {{- $containsAllowedNamespaceLabelSelector = false }}
+    {{- end }}
+  {{- end }}
+  {{- if $containsAllowedNamespaceLabelSelector }}
+    {{- $allowedNamespaces = append $allowedNamespaces $namespace.metadata.name }}
+  {{- end }}
+{{- end }}
+{{- else if .Values.disableClusterRole }}
+{{- $allowedNamespaces = append $allowedNamespaces .Release.Namespace }}
+{{- else }}
+{{- $allowedNamespaces = append $allowedNamespaces "_all_namespaces_placeholder" }}
+{{- end }}
+{{- range $index,$namespace := $allowedNamespaces }}{{ if $index }} {{ end }}{{ $namespace }}{{ end }}
 {{- end }}

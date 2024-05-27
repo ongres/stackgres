@@ -5,10 +5,14 @@
 
 package io.stackgres.operator.conciliation;
 
+import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnNotFound;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -18,10 +22,13 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.OperatorProperty;
 import jakarta.ws.rs.core.Response;
 import org.jooq.lambda.Seq;
 
 public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<?, ?>> {
+
+  private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
 
   private final DeployedResourcesCache deployedResourcesCache;
 
@@ -42,11 +49,11 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .values()
         .stream()
         .filter(op -> !genericLabels.isEmpty())
-        .<HasMetadata>flatMap(streamList(op -> op.apply(client)
+        .<HasMetadata>flatMap(streamList(op -> listOrEmptyOnNotFound(() -> op.apply(client)
             .inNamespace(config.getMetadata().getNamespace())
             .withLabels(genericLabels)
             .list()
-            .getItems()))
+            .getItems())))
         .toList();
     final List<HasMetadata> inNamespaceRequired = requiredResources
         .stream()
@@ -71,11 +78,26 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .values()
         .stream()
         .filter(op -> !crossNamespaceLabels.isEmpty())
-        .<HasMetadata>flatMap(streamList(op -> op.apply(client)
-            .inAnyNamespace()
-            .withLabels(crossNamespaceLabels)
-            .list()
-            .getItems()))
+        .map(op -> Optional.of(allowedNamespaces)
+            .filter(Predicate.not(List::isEmpty))
+            .map(allowedNamespaces -> allowedNamespaces.stream()
+                .flatMap(allowedNamespace -> Optional.of(
+                    listOrEmptyOnNotFound(() -> op.apply(client)
+                        .inNamespace(allowedNamespace)
+                        .withLabels(crossNamespaceLabels)
+                        .list()
+                        .getItems())).stream())
+                .reduce(Seq.<HasMetadata>of(), (seq, items) -> seq.append(items), (u, v) -> v)
+                .toList())
+            .orElseGet(() -> listOrEmptyOnNotFound(() -> op.apply(client)
+                .inAnyNamespace()
+                .withLabels(crossNamespaceLabels)
+                .list()
+                .getItems())
+                .stream()
+                .map(HasMetadata.class::cast)
+                .toList()))
+        .<HasMetadata>flatMap(streamList(Function.identity()))
         .toList();
     final List<HasMetadata> inAnyNamespaceRequired = requiredResources
         .stream()

@@ -6,11 +6,13 @@
 package io.stackgres.operator.app;
 
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
@@ -19,6 +21,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.impl.BaseClient;
 import io.stackgres.common.CrdLoader;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -30,6 +35,7 @@ import io.stackgres.common.resource.ResourceWriter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +50,9 @@ public class CrdInstaller {
   private static final long V_1_9 = StackGresVersion.V_1_9.getVersionAsNumber();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CrdInstaller.class);
+
+  private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
+  private final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
 
   private final ResourceFinder<CustomResourceDefinition> crdResourceFinder;
   private final ResourceWriter<CustomResourceDefinition> crdResourceWriter;
@@ -64,13 +73,12 @@ public class CrdInstaller {
 
   public void checkUpgrade() {
     var resourcesRequiringUpgrade = crdLoader.scanCrds().stream()
-        .map(crd -> crdResourceFinder.findByName(crd.getMetadata().getName()))
+        .map(crd -> Optional.of(clusterRoleDisabled)
+            .filter(clusterRoleDisabled -> clusterRoleDisabled)
+            .map(clusterRoleDisabled -> crd)
+            .or(() -> crdResourceFinder.findByName(crd.getMetadata().getName())))
         .flatMap(Optional::stream)
-        .flatMap(crd -> client
-          .genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd))
-          .inAnyNamespace()
-          .list()
-          .getItems()
+        .flatMap(crd -> listCrdResources(crd)
           .stream()
           .map(resource -> Tuple.tuple(resource, Optional.of(resource)
               .map(StackGresVersion::getStackGresVersionFromResourceAsNumber)
@@ -100,6 +108,25 @@ public class CrdInstaller {
     }
   }
 
+  List<GenericKubernetesResource> listCrdResources(CustomResourceDefinition crd) {
+    var genericKubernetesResources =
+        client.genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd));
+    return Optional.of(allowedNamespaces)
+        .filter(Predicate.not(List::isEmpty))
+        .map(allowedNamespaces -> allowedNamespaces.stream()
+            .flatMap(allowedNamespace -> Optional
+                .ofNullable(genericKubernetesResources
+                    .inNamespace(allowedNamespace)
+                    .list()
+                    .getItems()).stream())
+            .reduce(Seq.<GenericKubernetesResource>of(), (seq, items) -> seq.append(items), (u, v) -> v)
+            .toList())
+        .orElseGet(() -> genericKubernetesResources
+            .inAnyNamespace()
+            .list()
+            .getItems());
+  }
+
   public void installCustomResourceDefinitions() {
     LOGGER.info("Installing CRDs");
     crdLoader.scanCrds()
@@ -117,12 +144,13 @@ public class CrdInstaller {
     if (installedCrdOpt.isPresent()) {
       LOGGER.debug("CRD {} is present, patching it", name);
       CustomResourceDefinition installedCrd = installedCrdOpt.get();
-      if (!isCurrentCrdInstalled(currentCrd, installedCrd)) {
+      if (!isCrdInstalled(currentCrd, installedCrd)) {
         upgradeCrd(currentCrd, installedCrd);
       }
       updateAlreadyInstalledVersions(currentCrd, installedCrd);
       crdResourceWriter.update(installedCrd, foundCrd -> {
         fixCrd(installedCrd);
+        setOperatorVersion(foundCrd);
         foundCrd.setSpec(installedCrd.getSpec());
         if (LOGGER.isTraceEnabled()) {
           LOGGER.trace("Updating CRD:\n{}",
@@ -131,6 +159,7 @@ public class CrdInstaller {
       });
     } else {
       LOGGER.info("CRD {} is not present, installing it", name);
+      setOperatorVersion(currentCrd);
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Creating CRD:\n{}", serializeToJsonAsKubernetesClient(currentCrd));
       }
@@ -149,7 +178,8 @@ public class CrdInstaller {
     }
   }
 
-  private void updateAlreadyInstalledVersions(CustomResourceDefinition currentCrd,
+  private void updateAlreadyInstalledVersions(
+      CustomResourceDefinition currentCrd,
       CustomResourceDefinition installedCrd) {
     installedCrd.getSpec().getVersions().forEach(installedVersion -> {
       currentCrd.getSpec()
@@ -183,6 +213,14 @@ public class CrdInstaller {
     });
   }
 
+  private void setOperatorVersion(CustomResourceDefinition crd) {
+    if (crd.getMetadata().getAnnotations() == null) {
+      crd.getMetadata().setAnnotations(new HashMap<>());
+    }
+    crd.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
+  }
+
   private void disableStorageVersions(CustomResourceDefinition installedCrd) {
     installedCrd.getSpec().getVersions()
         .forEach(versionDefinition -> versionDefinition.setStorage(false));
@@ -207,10 +245,10 @@ public class CrdInstaller {
         .forEach(installedCrd.getSpec().getVersions()::add);
   }
 
-  private boolean isCurrentCrdInstalled(
-      CustomResourceDefinition currentCrd,
+  private boolean isCrdInstalled(
+      CustomResourceDefinition crd,
       CustomResourceDefinition installedCrd) {
-    final String currentVersion = currentCrd.getSpec().getVersions()
+    final String currentVersion = crd.getSpec().getVersions()
         .stream()
         .filter(CustomResourceDefinitionVersion::getStorage).findFirst()
         .orElseThrow(() -> new RuntimeException("At least one CRD version must be stored"))
@@ -226,12 +264,13 @@ public class CrdInstaller {
   }
 
   protected void checkCrd(@NotNull CustomResourceDefinition currentCrd) {
-    String name = currentCrd.getMetadata().getName();
-    Optional<CustomResourceDefinition> installedCrdOpt = crdResourceFinder
-        .findByName(name);
+    Optional<CustomResourceDefinition> installedCrdOpt = Optional.of(clusterRoleDisabled)
+        .filter(clusterRoleDisabled -> clusterRoleDisabled)
+        .map(clusterRoleDisabled -> currentCrd)
+        .or(() -> crdResourceFinder.findByName(currentCrd.getMetadata().getName()));
 
     if (installedCrdOpt.isEmpty()) {
-      throw new RuntimeException("CRD " + name + " was not found.");
+      throw new RuntimeException("CRD " + currentCrd.getMetadata().getName() + " was not found.");
     }
   }
 

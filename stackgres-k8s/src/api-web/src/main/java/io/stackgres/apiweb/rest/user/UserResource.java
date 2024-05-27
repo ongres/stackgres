@@ -133,12 +133,12 @@ public class UserResource {
       """)
   @GET
   public List<UserDto> list() {
-    var roleBindings = roleBindingScanner.findByLabels(
+    var roleBindings = roleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
-    var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(
+    var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     return scanner
-        .findByLabelsAndNamespace(
+        .getResourcesInNamespaceWithLabels(
             namespace,
             Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .stream()
@@ -169,9 +169,9 @@ public class UserResource {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
     }
-    var roleBindings = roleBindingScanner.findByLabels(
+    var roleBindings = roleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
-    var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(
+    var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     if (!Optional.ofNullable(dryRun).orElse(false)) {
       Optional.ofNullable(resource.getRoles()).stream()
@@ -209,9 +209,9 @@ public class UserResource {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
     }
-    var roleBindings = roleBindingScanner.findByLabels(
+    var roleBindings = roleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
-    var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(
+    var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     var foundResource = finder.findByNameAndNamespace(
         resource.getMetadata().getName(),
@@ -257,9 +257,9 @@ public class UserResource {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
     }
-    var roleBindings = roleBindingScanner.findByLabels(
+    var roleBindings = roleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
-    var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(
+    var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     Secret transformedResource = transformer.toCustomResource(
         resource,

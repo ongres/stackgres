@@ -5,50 +5,26 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class SecretFinder implements
-    ResourceFinder<Secret>,
-    ResourceScanner<Secret> {
-
-  final KubernetesClient client;
+public class SecretFinder extends AbstractResourceFinderAndScanner<Secret> {
 
   @Inject
   public SecretFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<Secret> findByName(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<Secret> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.secrets().inNamespace(namespace).withName(name).get());
-  }
-
-  @Override
-  public List<Secret> findResources() {
-    return client.secrets().inAnyNamespace().list().getItems();
-  }
-
-  @Override
-  public List<Secret> findResourcesInNamespace(String namespace) {
-    return client.secrets().inNamespace(namespace).list().getItems();
-  }
-
-  @Override
-  public List<Secret> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
-    return client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
+  protected MixedOperation<Secret, ? extends KubernetesResourceList<Secret>, ? extends Resource<Secret>>
+      getOperation(KubernetesClient client) {
+    return client.secrets();
   }
 
 }

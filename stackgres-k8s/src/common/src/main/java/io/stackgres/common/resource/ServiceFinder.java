@@ -5,44 +5,26 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ServiceFinder implements
-    ResourceFinder<Service>,
-    ResourceScanner<Service> {
-
-  final KubernetesClient client;
+public class ServiceFinder extends AbstractResourceFinderAndScanner<Service> {
 
   @Inject
   public ServiceFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<Service> findByName(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<Service> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.services().inNamespace(namespace).withName(name).get());
-  }
-
-  @Override
-  public List<Service> findResources() {
-    return client.services().inAnyNamespace().list().getItems();
-  }
-
-  @Override
-  public List<Service> findResourcesInNamespace(String namespace) {
-    return client.services().inNamespace(namespace).list().getItems();
+  protected MixedOperation<Service, ? extends KubernetesResourceList<Service>, ? extends Resource<Service>>
+      getOperation(KubernetesClient client) {
+    return client.services();
   }
 
 }

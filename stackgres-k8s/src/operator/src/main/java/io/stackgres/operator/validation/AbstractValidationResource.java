@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.validation;
 
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
@@ -13,7 +14,7 @@ public class AbstractValidationResource<T extends AdmissionReview<?>>
     extends ValidationResource<T> {
 
   protected AbstractValidationResource(ValidationPipeline<T> pipeline) {
-    super(pipeline);
+    super(OperatorProperty.getAllowedNamespaces(), pipeline);
   }
 
 }

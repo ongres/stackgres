@@ -18,7 +18,7 @@ import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
-    L extends DefaultKubernetesResourceList<T>>
+        L extends DefaultKubernetesResourceList<T>>
     implements CustomResourceScheduler<T> {
 
   @NotNull

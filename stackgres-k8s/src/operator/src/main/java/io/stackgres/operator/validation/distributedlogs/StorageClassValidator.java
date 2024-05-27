@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.distributedlogs;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
@@ -20,7 +21,9 @@ import jakarta.inject.Singleton;
 @ValidationType(ErrorType.INVALID_STORAGE_CLASS)
 public class StorageClassValidator implements DistributedLogsValidator {
 
-  private ResourceFinder<StorageClass> finder;
+  private final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
+
+  private final ResourceFinder<StorageClass> finder;
 
   @Inject
   public StorageClassValidator(ResourceFinder<StorageClass> finder) {
@@ -55,7 +58,7 @@ public class StorageClassValidator implements DistributedLogsValidator {
   private void checkIfStorageClassExist(String storageClass, String onError)
       throws ValidationFailed {
     if (storageClass != null && !storageClass.isEmpty()
-        && finder.findByName(storageClass).isEmpty()) {
+        && (clusterRoleDisabled || finder.findByName(storageClass).isEmpty())) {
       fail(onError);
     }
   }

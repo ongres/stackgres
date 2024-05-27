@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.resource;
 
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
@@ -25,14 +26,21 @@ public class ConfigMapDtoScanner implements ResourceScanner<ConfigMapDto> {
   }
 
   @Override
-  public List<ConfigMapDto> findResources() {
+  public List<ConfigMapDto> getResources() {
     return client.configMaps().list().getItems().stream()
         .map(ConfigMapMapper::map)
         .toList();
   }
 
   @Override
-  public List<ConfigMapDto> findResourcesInNamespace(String namespace) {
+  public List<ConfigMapDto> getResourcesWithLabels(Map<String, String> labels) {
+    return client.configMaps().withLabels(labels).list().getItems().stream()
+        .map(ConfigMapMapper::map)
+        .toList();
+  }
+
+  @Override
+  public List<ConfigMapDto> getResourcesInNamespace(String namespace) {
     return client.configMaps().inNamespace(namespace).list().getItems().stream()
         .map(ConfigMapMapper::map)
         .toList();

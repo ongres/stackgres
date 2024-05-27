@@ -14,11 +14,10 @@ metadata:
 {{- end }}
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  {{- with (.Values.webhooks).annotations }}
   annotations:
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
-  labels:
-    app.kubernetes.io/managed-by: Helm
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
 webhooks:
   - name: sgcluster.validating-webhook.stackgres.io
     sideEffects: None
@@ -35,6 +34,15 @@ webhooks:
         path: '/stackgres/validation/sgcluster'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgpgconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -50,6 +58,15 @@ webhooks:
         path: '/stackgres/validation/sgpgconfig'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgpoolconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -65,6 +82,15 @@ webhooks:
         path: '/stackgres/validation/sgpoolconfig'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sginstanceprofile.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -80,6 +106,15 @@ webhooks:
         path: '/stackgres/validation/sginstanceprofile'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgbackupconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -95,6 +130,15 @@ webhooks:
         path: '/stackgres/validation/sgbackupconfig'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgbackup.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -110,6 +154,15 @@ webhooks:
         path: '/stackgres/validation/sgbackup'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgdistributedlogs.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -125,6 +178,15 @@ webhooks:
         path: '/stackgres/validation/sgdistributedlogs'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgdbops.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -140,6 +202,15 @@ webhooks:
         path: '/stackgres/validation/sgdbops'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgobjectstorage.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -155,6 +226,15 @@ webhooks:
         path: '/stackgres/validation/sgobjectstorage'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgscripts.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -170,6 +250,15 @@ webhooks:
         path: '/stackgres/validation/sgscript'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgshardedclusters.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -185,6 +274,15 @@ webhooks:
         path: '/stackgres/validation/sgshardedcluster'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgshardedbackups.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -200,6 +298,15 @@ webhooks:
         path: '/stackgres/validation/sgshardedbackup'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}
   - name: sgshardeddbops.validating-webhook.stackgres.io
     sideEffects: None
     rules:
@@ -215,3 +322,12 @@ webhooks:
         path: '/stackgres/validation/sgshardeddbops'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+    {{- if .Values.allowedNamespaces }}
+    namespaceSelector:
+      matchLabels:
+        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
+    {{- else if .Values.allowedNamespaceLabelSelector }}
+    namespaceSelector:
+      matchLabels:
+        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
+    {{- end }}

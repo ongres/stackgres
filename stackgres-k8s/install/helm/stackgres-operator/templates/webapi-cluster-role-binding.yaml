@@ -1,0 +1,58 @@
+{{- if and .Values.deploy.restapi .Values.serviceAccount.create }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+{{- range $index, $namespace := $allowedNamespaces }}
+{{- if and (eq $index 0) (not $.Values.disableClusterRole) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $.Values.restapi.name }}
+{{- with $.Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Values.restapi.name }}
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $.Values.restapi.name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- else if and (eq $index 0) $.Values.allowImpersonationForRestApi }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $.Values.restapi.name }}
+{{- with $.Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Values.restapi.name }}
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $.Values.restapi.name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- if not (eq $namespace "_all_namespaces_placeholder") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: {{ $namespace }}
+  name: {{ $.Values.restapi.name }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $.Values.restapi.name }}
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ $.Values.restapi.name }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
+{{- end }}

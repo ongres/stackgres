@@ -63,7 +63,7 @@ public class ShardedClusterStatsDtoFinder
         shardedCluster.getMetadata().getNamespace(),
         shardedClusterLabelFactory.coordinatorLabels(shardedCluster))
         .stream()
-        .flatMap(cluster -> podFinder.findByLabelsAndNamespace(
+        .flatMap(cluster -> podFinder.getResourcesInNamespaceWithLabels(
             cluster.getMetadata().getNamespace(),
             clusterLabelFactory.clusterLabels(cluster))
             .stream()
@@ -82,7 +82,7 @@ public class ShardedClusterStatsDtoFinder
         shardedCluster.getMetadata().getNamespace(),
         shardedClusterLabelFactory.shardsLabels(shardedCluster))
         .stream()
-        .flatMap(cluster -> podFinder.findByLabelsAndNamespace(
+        .flatMap(cluster -> podFinder.getResourcesInNamespaceWithLabels(
             cluster.getMetadata().getNamespace(),
             clusterLabelFactory.clusterLabels(cluster))
             .stream()
