@@ -1,6 +1,6 @@
 ---
 title: "Upgrade via Helm"
-weight: 13
+weight: 15
 url: /administration/helm/upgrade
 aliases: [ /install/helm/upgrade ]
 description: Details how to use Helm to upgrade the operator.
