@@ -1260,7 +1260,7 @@ describe('Create SGCluster', () => {
             .click()
 
         cy.get('#clusterSummary')
-            .should('not.be.visible')
+            .should('not.exist')
 
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/advanced-' + resourceName)
