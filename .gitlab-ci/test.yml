@@ -1,5 +1,5 @@
 shell unit tests:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   variables:
     SHELL_TEST_TIMEOUT: 1200
@@ -33,7 +33,7 @@ shell unit tests:
         - stackgres-k8s/src/operator/target/shell/shell-unit-tests-junit-report-*.xml
 
 swagger validations:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   tags:
     - stackgres-runner-v2

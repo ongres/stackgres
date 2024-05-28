@@ -1,5 +1,5 @@
 .build:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 1
   tags:
     - stackgres-runner-v2
@@ -67,7 +67,7 @@ build arm64:
       - $DO_ARM
 
 .build ui:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
@@ -103,7 +103,7 @@ build ui arm64:
       - $DO_ARM
 
 build documentation:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
@@ -133,7 +133,7 @@ build documentation:
     - doc/public
 
 build helm packages:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
@@ -152,7 +152,7 @@ build helm packages:
       - stackgres-k8s/install/helm/target/packages
 
 build helm templates:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
@@ -171,7 +171,7 @@ build helm templates:
       - stackgres-k8s/install/helm/target/templates
 
 build helm release packages:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner
@@ -190,7 +190,7 @@ build helm release packages:
       - stackgres-k8s/install/helm/target/packages
 
 build helm release templates:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   tags:
     - stackgres-runner

@@ -31,7 +31,10 @@ then
 
   echo "Building $* ..."
 
-  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  mkdir -p $HOME/.docker                                                                                                                                                                               
+  cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
+  echo | docker login "$CI_REGISTRY" || \
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   set +e
   sh stackgres-k8s/ci/build/build.sh "$@"
   EXIT_CODE="$?"
@@ -63,7 +66,10 @@ then
 
   echo "Extracting files from $2 ..."
 
-  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  mkdir -p $HOME/.docker                                                                                                                                                                               
+  cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
+  echo | docker login "$CI_REGISTRY" || \
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   sh stackgres-k8s/ci/build/build-functions.sh generate_image_hashes
   sh stackgres-k8s/ci/build/build-functions.sh extract "$@"
 

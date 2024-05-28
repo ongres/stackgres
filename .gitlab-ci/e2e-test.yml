@@ -1,6 +1,6 @@
 .e2e tests:
   stage: test
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   dependencies:
     - build helm packages
     - build helm templates
