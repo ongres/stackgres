@@ -1,6 +1,6 @@
 
 .build native executable:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: ""

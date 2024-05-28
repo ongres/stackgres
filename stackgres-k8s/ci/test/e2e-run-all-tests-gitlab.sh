@@ -10,7 +10,7 @@ set -e
 { [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
   && [ -n "$E2E_JOB" ] && [ -n "$E2E_RUN_ONLY" ] \
   && [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] \
-  && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
+  && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$SG_CI_PROJECT_PATH" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
   && true || false
 
@@ -36,7 +36,7 @@ export E2E_BUILD_IMAGES=false
 export E2E_WAIT_OPERATOR=false
 export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"
 export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
-export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
+export E2E_OPERATOR_REGISTRY_PATH=/$SG_CI_PROJECT_PATH/
 export E2E_FORCE_IMAGE_PULL=true
 export K8S_USE_INTERNAL_REPOSITORY=true
 export E2E_DISABLE_CACHE="${E2E_DISABLE_CACHE:-false}"
@@ -50,16 +50,20 @@ export KIND_LOG_RESOURCES="${KIND_LOG_RESOURCES:-false}"
 export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
 export EXTENSIONS_CACHE_HOST_PATH="/containerd-cache/extensions"
 export E2E_TEST_REGISTRY="$CI_REGISTRY"
-export E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH"
+export E2E_TEST_REGISTRY_PATH="$SG_CI_PROJECT_PATH"
 export E2E_USE_TEST_HASHES=true
 export E2E_USE_TEST_CACHE_PER_TEST=true
 export OPERATOR_CHART_PATH=stackgres-k8s/install/helm/target/packages/stackgres-operator.tgz
 
 run_all_tests_loop() {
-  docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  mkdir -p $HOME/.docker                                                                                                                                                                               
+  cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
+  echo | docker login "$CI_REGISTRY" || \
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   if [ -n "$EXTRA_REGISTRY_USER" ] && [ -n "$EXTRA_REGISTRY_PASSWORD" ] && [ -n "$EXTRA_REGISTRY" ]
   then
-    docker login -u "$EXTRA_REGISTRY_USER" -p "$EXTRA_REGISTRY_PASSWORD" "$EXTRA_REGISTRY"
+    echo | docker login "$EXTRA_REGISTRY" || \
+      docker login -u "$EXTRA_REGISTRY_USER" -p "$EXTRA_REGISTRY_PASSWORD" "$EXTRA_REGISTRY"
   fi
 
   echo "Variables:"
