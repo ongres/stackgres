@@ -11,7 +11,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.VolumeResourceRequirements;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.ResourceFinder;
@@ -177,7 +177,7 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
     return Optional.of(pvc)
         .map(PersistentVolumeClaim::getSpec)
         .map(PersistentVolumeClaimSpec::getResources)
-        .map(ResourceRequirements::getRequests)
+        .map(VolumeResourceRequirements::getRequests)
         .map(requestedResourcesMap -> requestedResourcesMap.get("storage"));
   }
 
