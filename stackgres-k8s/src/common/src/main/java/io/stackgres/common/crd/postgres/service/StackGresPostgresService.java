@@ -50,11 +50,13 @@ public class StackGresPostgresService extends ServiceSpec {
       List<String> ipFamilies, String ipFamilyPolicy, String loadBalancerClass,
       String loadBalancerIP, List<String> loadBalancerSourceRanges, List<ServicePort> ports,
       Boolean publishNotReadyAddresses, Map<String, String> selector, String sessionAffinity,
-      SessionAffinityConfig sessionAffinityConfig, String type, StackGresPostgresServiceNodePort nodePorts) {
+      SessionAffinityConfig sessionAffinityConfig, String trafficDistribution, String type,
+      StackGresPostgresServiceNodePort nodePorts) {
     super(allocateLoadBalancerNodePorts, clusterIP, clusterIPs, externalIPs, externalName,
         externalTrafficPolicy, healthCheckNodePort, internalTrafficPolicy, ipFamilies,
         ipFamilyPolicy, loadBalancerClass, loadBalancerIP, loadBalancerSourceRanges, ports,
-        publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig, null);
+        publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig,
+        trafficDistribution, null);
     this.type = type;
     this.nodePorts = nodePorts;
   }
@@ -285,8 +287,8 @@ public class StackGresPostgresService extends ServiceSpec {
       return false;
     }
     return Objects.equals(enabled, other.enabled)
-      && Objects.equals(type, other.type)
-      && Objects.equals(nodePorts, other.nodePorts);
+        && Objects.equals(type, other.type)
+        && Objects.equals(nodePorts, other.nodePorts);
   }
 
   @Override

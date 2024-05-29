@@ -48,11 +48,13 @@ public class StackGresClusterPostgresService extends StackGresPostgresService {
       List<String> ipFamilies, String ipFamilyPolicy, String loadBalancerClass,
       String loadBalancerIP, List<String> loadBalancerSourceRanges, List<ServicePort> ports,
       Boolean publishNotReadyAddresses, Map<String, String> selector, String sessionAffinity,
-      SessionAffinityConfig sessionAffinityConfig, String type, StackGresPostgresServiceNodePort nodePorts) {
+      SessionAffinityConfig sessionAffinityConfig, String trafficDistribution, String type,
+      StackGresPostgresServiceNodePort nodePorts) {
     super(allocateLoadBalancerNodePorts, clusterIP, clusterIPs, externalIPs, externalName,
         externalTrafficPolicy, healthCheckNodePort, internalTrafficPolicy, ipFamilies,
         ipFamilyPolicy, loadBalancerClass, loadBalancerIP, loadBalancerSourceRanges, ports,
-        publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig, type, nodePorts);
+        publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig,
+        trafficDistribution, type, nodePorts);
   }
 
   public List<CustomServicePort> getCustomPorts() {

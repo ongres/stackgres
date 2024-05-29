@@ -79,7 +79,7 @@ public class StreamPersistentVolumeClaim
         .endMetadata()
         .withNewSpec()
         .withAccessModes("ReadWriteOnce")
-        .withResources(dataStorageConfig.getResourceRequirements())
+        .withResources(dataStorageConfig.getVolumeResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass())
         .endSpec()
         .build();

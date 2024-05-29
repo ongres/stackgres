@@ -17,7 +17,7 @@ import io.sundr.builder.annotations.BuildableReference;
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder",
     refs = {
-      @BuildableReference(io.fabric8.kubernetes.api.model.VolumeMount.class),
+        @BuildableReference(io.fabric8.kubernetes.api.model.VolumeMount.class),
     })
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")
@@ -29,10 +29,10 @@ public class VolumeMount extends io.fabric8.kubernetes.api.model.VolumeMount {
     super();
   }
 
-  //CHECKSTYLE:OFF
+  // CHECKSTYLE:OFF
   public VolumeMount(String mountPath, String mountPropagation, String name, Boolean readOnly,
-      String subPath, String subPathExpr) {
-    super(mountPath, mountPropagation, name, readOnly, subPath, subPathExpr);
+      String recursiveReadOnly, String subPath, String subPathExpr) {
+    super(mountPath, mountPropagation, name, readOnly, recursiveReadOnly, subPath, subPathExpr);
   }
 
   @Override
@@ -56,6 +56,11 @@ public class VolumeMount extends io.fabric8.kubernetes.api.model.VolumeMount {
   }
 
   @Override
+  public String getRecursiveReadOnly() {
+    return super.getRecursiveReadOnly();
+  }
+
+  @Override
   public String getSubPath() {
     return super.getSubPath();
   }
@@ -64,6 +69,6 @@ public class VolumeMount extends io.fabric8.kubernetes.api.model.VolumeMount {
   public String getSubPathExpr() {
     return super.getSubPathExpr();
   }
-  //CHECKSTYLE:ON
+  // CHECKSTYLE:ON
 
 }
