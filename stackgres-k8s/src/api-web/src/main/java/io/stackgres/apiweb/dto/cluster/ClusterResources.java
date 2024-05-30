@@ -19,6 +19,8 @@ public class ClusterResources {
 
   private Boolean disableResourcesRequestsSplitFromTotal;
 
+  private Boolean failWhenTotalIsHigher;
+
   public Boolean getEnableClusterLimitsRequirements() {
     return enableClusterLimitsRequirements;
   }
@@ -34,6 +36,14 @@ public class ClusterResources {
   public void setDisableResourcesRequestsSplitFromTotal(
       Boolean disableResourcesRequestsSplitFromTotal) {
     this.disableResourcesRequestsSplitFromTotal = disableResourcesRequestsSplitFromTotal;
+  }
+
+  public Boolean getFailWhenTotalIsHigher() {
+    return failWhenTotalIsHigher;
+  }
+
+  public void setFailWhenTotalIsHigher(Boolean failWhenTotalIsHigher) {
+    this.failWhenTotalIsHigher = failWhenTotalIsHigher;
   }
 
   @Override
