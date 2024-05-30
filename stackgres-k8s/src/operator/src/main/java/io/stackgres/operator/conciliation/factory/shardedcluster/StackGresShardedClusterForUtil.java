@@ -477,6 +477,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
               specOverride.getPodsForShards().getResources()
               .getDisableResourcesRequestsSplitFromTotal());
         }
+        if (specOverride.getPodsForShards().getResources()
+            .getFailWhenTotalIsHigher() != null) {
+          spec.getPods().getResources().setFailWhenTotalIsHigher(
+              specOverride.getPodsForShards().getResources()
+              .getFailWhenTotalIsHigher());
+        }
       }
       if (specOverride.getPodsForShards().getScheduling() != null) {
         spec.getPods().setScheduling(
