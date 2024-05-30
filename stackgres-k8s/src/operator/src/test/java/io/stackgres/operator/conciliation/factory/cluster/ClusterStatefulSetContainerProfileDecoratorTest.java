@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,7 +166,8 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
                 .map(Quantity::getNumericalAmount)
                 .reduce(
                     amount,
-                    (calculated, container) -> calculated.subtract(container),
+                    (calculated, container) -> calculated.compareTo(container) >= 0
+                        ? calculated.subtract(container) : BigDecimal.ZERO,
                     (u, v) -> v))
             .map(ResourceUtil::toCpuValue)
             .get())
@@ -182,7 +184,8 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
                 .map(Quantity::getNumericalAmount)
                 .reduce(
                     amount,
-                    (calculated, container) -> calculated.subtract(container),
+                    (calculated, container) -> calculated.compareTo(container) >= 0
+                        ? calculated.subtract(container) : BigDecimal.ZERO,
                     (u, v) -> v))
             .map(ResourceUtil::toMemoryValue)
             .get())
