@@ -25,6 +25,8 @@ public class StackGresClusterResources {
 
   private Boolean disableResourcesRequestsSplitFromTotal;
 
+  private Boolean failWhenTotalIsHigher;
+
   public Boolean getEnableClusterLimitsRequirements() {
     return enableClusterLimitsRequirements;
   }
@@ -42,9 +44,18 @@ public class StackGresClusterResources {
     this.disableResourcesRequestsSplitFromTotal = disableResourcesRequestsSplitFromTotal;
   }
 
+  public Boolean getFailWhenTotalIsHigher() {
+    return failWhenTotalIsHigher;
+  }
+
+  public void setFailWhenTotalIsHigher(Boolean failWhenTotalIsHigher) {
+    this.failWhenTotalIsHigher = failWhenTotalIsHigher;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(disableResourcesRequestsSplitFromTotal, enableClusterLimitsRequirements);
+    return Objects.hash(disableResourcesRequestsSplitFromTotal, enableClusterLimitsRequirements,
+        failWhenTotalIsHigher);
   }
 
   @Override
@@ -56,9 +67,10 @@ public class StackGresClusterResources {
       return false;
     }
     StackGresClusterResources other = (StackGresClusterResources) obj;
-    return Objects.equals(
-        disableResourcesRequestsSplitFromTotal, other.disableResourcesRequestsSplitFromTotal)
-        && Objects.equals(enableClusterLimitsRequirements, other.enableClusterLimitsRequirements);
+    return Objects.equals(disableResourcesRequestsSplitFromTotal,
+        other.disableResourcesRequestsSplitFromTotal)
+        && Objects.equals(enableClusterLimitsRequirements, other.enableClusterLimitsRequirements)
+        && Objects.equals(failWhenTotalIsHigher, other.failWhenTotalIsHigher);
   }
 
   @Override

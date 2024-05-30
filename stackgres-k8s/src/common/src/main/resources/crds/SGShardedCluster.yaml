@@ -1201,6 +1201,15 @@ spec:
                                requests of the patroni container and the total resources requests calculated by adding the resources requests of all the containers (including the patroni container).
         
                               **Changing this field may require a restart.**
+                          failWhenTotalIsHigher:
+                            type: boolean
+                            description: |
+                              When set to `true` the reconciliation of the cluster will fail if `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                               of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`.
+                              
+                              When `false` (the default) and `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                               of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`
+                               then the patroni container resources will be set to 0.
                       scheduling: &scheduling
                         type: object
                         description: |
@@ -1892,6 +1901,15 @@ spec:
                                requests of the patroni container and the total resources requests calculated by adding the resources requests of all the containers (including the patroni container).
         
                               **Changing this field may require a restart.**
+                          failWhenTotalIsHigher:
+                            type: boolean
+                            description: |
+                              When set to `true` the reconciliation of the cluster will fail if `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                               of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`.
+                              
+                              When `false` (the default) and `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                               of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`
+                               then the patroni container resources will be set to 0.
                       scheduling: *scheduling
                       managementPolicy:
                         type: string
@@ -2175,6 +2193,15 @@ spec:
                                      requests of the patroni container and the total resources requests calculated by adding the resources requests of all the containers (including the patroni container).
               
                                     **Changing this field may require a restart.**
+                                failWhenTotalIsHigher:
+                                  type: boolean
+                                  description: |
+                                    When set to `true` the reconciliation of the cluster will fail if `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                                     of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`.
+                                    
+                                    When `false` (the default) and `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                                     of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`
+                                     then the patroni container resources will be set to 0.
                             scheduling: *scheduling
                             managementPolicy:
                               type: string
