@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
-import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -148,14 +147,6 @@ class PatroniTest {
   void givenACluster_itShouldGetPortsAndCommands() {
     Container patroniContainer = patroni.getContainer(clusterContainerContext);
     assertTrue(patroniContainer.getCommand().contains("/bin/sh"));
-    assertTrue(patroniContainer.getPorts().stream()
-        .filter(p -> p.getName().equals(EnvoyUtil.POSTGRES_PORT_NAME))
-        .findFirst().isPresent());
-    assertTrue(patroniContainer.getPorts().stream()
-        .filter(p -> p.getName().equals(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME))
-        .findFirst().isPresent());
-    assertTrue(patroniContainer.getPorts().stream()
-        .filter(p -> p.getName().equals(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME))
-        .findFirst().isPresent());
+    assertTrue(patroniContainer.getPorts().isEmpty());
   }
 }
