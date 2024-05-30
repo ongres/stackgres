@@ -88,7 +88,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
     selector.setMatchLabels(clusterSelectorLabels);
     Endpoint endpoint = new Endpoint();
-    endpoint.setPort(String.valueOf(EnvoyUtil.ENVOY_PORT));
+    endpoint.setPort(EnvoyUtil.ENVOY_PORT_NAME);
     endpoint.setPath("/stats/prometheus");
     spec.setPodMetricsEndpoints(Collections.singletonList(endpoint));
     return podMonitor;
