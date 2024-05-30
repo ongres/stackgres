@@ -59,7 +59,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
               .skip(1))
           .toList());
     }
-    
+
     @Override
     void updateShardsClusterSpec(
         StackGresShardedCluster cluster,
