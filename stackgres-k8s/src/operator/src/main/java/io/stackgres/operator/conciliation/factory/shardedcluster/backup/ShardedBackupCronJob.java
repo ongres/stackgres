@@ -158,7 +158,9 @@ public class ShardedBackupCronJob
             .withLabels(labels)
             .endMetadata()
             .withNewSpec()
-            .withBackoffLimit(3)
+            .withBackoffLimit(backupConfig
+                .map(StackGresShardedClusterBackupConfiguration::getMaxRetries)
+                .orElse(3))
             .withCompletions(1)
             .withParallelism(1)
             .withNewTemplate()
@@ -258,6 +260,27 @@ public class ShardedBackupCronJob
                         new EnvVarBuilder()
                         .withName("SHARDED_BACKUP_IS_PERMANENT")
                         .withValue("false")
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("$SHARDED_BACKUP_TIMEOUT")
+                        .withValue(backupConfig
+                            .map(StackGresShardedClusterBackupConfiguration::getTimeout)
+                            .map(String::valueOf)
+                            .orElse("null"))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("$SHARDED_BACKUP_RECONCILIATION_TIMEOUT")
+                        .withValue(backupConfig
+                            .map(StackGresShardedClusterBackupConfiguration::getReconciliationTimeout)
+                            .map(String::valueOf)
+                            .orElse("300"))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("$SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
+                        .withValue(backupConfig
+                            .map(StackGresShardedClusterBackupConfiguration::getRetainWalsForUnmanagedLifecycle)
+                            .map(String::valueOf)
+                            .orElse("false"))
                         .build(),
                         new EnvVarBuilder()
                         .withName("CLUSTER_CRD_NAME")

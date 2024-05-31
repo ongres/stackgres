@@ -100,7 +100,7 @@ class ShardedClusterValidationQuarkusTest {
     var poolConfig = Fixtures.poolingConfig().loadDefault().get();
     poolConfig.getMetadata().setNamespace("test");
     client.resource(poolConfig)
-        .createOrReplace();
+        .serverSideApply();
 
     StackGresObjectStorageList bkconfList = client
         .resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
@@ -108,7 +108,7 @@ class ShardedClusterValidationQuarkusTest {
     client.resourceList(bkconfList.getItems()).delete();
     var objectStorage = Fixtures.objectStorage().loadDefault().get();
     objectStorage.getMetadata().setNamespace("test");
-    client.resource(objectStorage).createOrReplace();
+    client.resource(objectStorage).serverSideApply();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
@@ -117,7 +117,7 @@ class ShardedClusterValidationQuarkusTest {
     var pgConfig = Fixtures.postgresConfig().loadDefault().get();
     pgConfig.getMetadata().setNamespace("test");
     pgConfig.getSpec().setPostgresVersion(POSTGRES_MAJOR_VERSION);
-    client.resource(pgConfig).createOrReplace();
+    client.resource(pgConfig).serverSideApply();
 
     StackGresProfileList instanceList =
         client.resources(StackGresProfile.class, StackGresProfileList.class)
@@ -125,7 +125,7 @@ class ShardedClusterValidationQuarkusTest {
     client.resourceList(instanceList.getItems()).delete();
     var instanceConfig = Fixtures.instanceProfile().loadSizeS().get();
     instanceConfig.getMetadata().setNamespace("test");
-    client.resource(instanceConfig).createOrReplace();
+    client.resource(instanceConfig).serverSideApply();
 
     StorageClassList storageList = client.storage().v1().storageClasses().list();
     client.resourceList(storageList.getItems()).delete();
@@ -140,7 +140,7 @@ class ShardedClusterValidationQuarkusTest {
     backup.getMetadata().setNamespace("test");
     backup.getMetadata().setName("backup-with-default-storage-0-297");
     backup.getStatus().getBackupInformation().setPostgresVersion(POSTGRES_VERSION);
-    client.resource(backup).createOrReplace();
+    client.resource(backup).serverSideApply();
   }
 
   @AfterAll

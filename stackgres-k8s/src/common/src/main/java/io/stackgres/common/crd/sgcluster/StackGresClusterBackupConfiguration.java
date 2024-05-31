@@ -14,6 +14,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBaseBackupPerformance;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -50,6 +51,9 @@ public class StackGresClusterBackupConfiguration {
   private Integer timeout;
 
   private Integer reconciliationTimeout;
+
+  @Min(value = 0, message = "maxRetries must be greather or equals to 0.")
+  private Integer maxRetries;
 
   private Boolean retainWalsForUnmanagedLifecycle;
 
@@ -141,6 +145,14 @@ public class StackGresClusterBackupConfiguration {
     this.reconciliationTimeout = reconciliationTimeout;
   }
 
+  public Integer getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(Integer maxRetries) {
+    this.maxRetries = maxRetries;
+  }
+
   public Boolean getRetainWalsForUnmanagedLifecycle() {
     return retainWalsForUnmanagedLifecycle;
   }
@@ -151,9 +163,9 @@ public class StackGresClusterBackupConfiguration {
 
   @Override
   public int hashCode() {
-    return Objects.hash(compression, cronSchedule, fastVolumeSnapshot, path, performance,
-        reconciliationTimeout, retainWalsForUnmanagedLifecycle, retention, sgObjectStorage, timeout,
-        useVolumeSnapshot, volumeSnapshotClass);
+    return Objects.hash(compression, cronSchedule, fastVolumeSnapshot, maxRetries, path,
+        performance, reconciliationTimeout, retainWalsForUnmanagedLifecycle, retention,
+        sgObjectStorage, timeout, useVolumeSnapshot, volumeSnapshotClass);
   }
 
   @Override
@@ -168,7 +180,8 @@ public class StackGresClusterBackupConfiguration {
     return Objects.equals(compression, other.compression)
         && Objects.equals(cronSchedule, other.cronSchedule)
         && Objects.equals(fastVolumeSnapshot, other.fastVolumeSnapshot)
-        && Objects.equals(path, other.path) && Objects.equals(performance, other.performance)
+        && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(path, other.path)
+        && Objects.equals(performance, other.performance)
         && Objects.equals(reconciliationTimeout, other.reconciliationTimeout)
         && Objects.equals(retainWalsForUnmanagedLifecycle, other.retainWalsForUnmanagedLifecycle)
         && Objects.equals(retention, other.retention)

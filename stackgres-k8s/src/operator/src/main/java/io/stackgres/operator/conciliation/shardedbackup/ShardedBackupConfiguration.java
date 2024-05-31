@@ -5,11 +5,20 @@
 
 package io.stackgres.operator.conciliation.shardedbackup;
 
+import java.util.List;
+
 public record ShardedBackupConfiguration(
     Integer retention,
     String cronSchedule,
     String compression,
-    String path,
-    ShardedBackupPerformance performance
+    List<String> paths,
+    ShardedBackupPerformance performance,
+    Boolean useVolumeSnapshot,
+    String volumeSnapshotStorageClass,
+    Boolean fastVolumeSnapshot,
+    Integer timeout,
+    Integer reconciliationTimeout,
+    Integer maxRetries,
+    Boolean retainWalsForUnmanagedLifecycle
 ) {
 }

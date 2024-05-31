@@ -109,7 +109,7 @@ class ClusterValidationQuarkusTest {
     client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .inNamespace(poolConfig.getMetadata().getNamespace())
         .resource(poolConfig)
-        .createOrReplace();
+        .serverSideApply();
 
     StackGresObjectStorageList bkconfList = client
         .resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
@@ -120,7 +120,7 @@ class ClusterValidationQuarkusTest {
     client.resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
         .inNamespace(objectStorage.getMetadata().getNamespace())
         .resource(objectStorage)
-        .createOrReplace();
+        .serverSideApply();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
@@ -131,7 +131,7 @@ class ClusterValidationQuarkusTest {
     client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .inNamespace(pgConfig.getMetadata().getNamespace())
         .resource(pgConfig)
-        .createOrReplace();
+        .serverSideApply();
 
     StackGresProfileList instanceList =
         client.resources(StackGresProfile.class, StackGresProfileList.class)
@@ -142,7 +142,7 @@ class ClusterValidationQuarkusTest {
     client.resources(StackGresProfile.class, StackGresProfileList.class)
         .inNamespace(instanceConfig.getMetadata().getNamespace())
         .resource(instanceConfig)
-        .createOrReplace();
+        .serverSideApply();
 
     StorageClassList storageList = client.storage().v1().storageClasses().list();
     client.resourceList(storageList).delete();

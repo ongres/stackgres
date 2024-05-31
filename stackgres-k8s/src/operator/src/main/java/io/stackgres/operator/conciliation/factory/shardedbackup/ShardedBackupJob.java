@@ -47,6 +47,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
@@ -59,6 +60,7 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.shardedcluster.ShardedClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.shardedcluster.ShardedClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.shardedcluster.backup.ShardedBackupCronRole;
+import io.stackgres.operator.conciliation.shardedbackup.ShardedBackupConfiguration;
 import io.stackgres.operator.conciliation.shardedbackup.StackGresShardedBackupContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
@@ -166,6 +168,7 @@ public class ShardedBackupJob
     String name = backup.getMetadata().getName();
     String uid = backup.getMetadata().getUid();
     String clusterName = backup.getSpec().getSgShardedCluster();
+    var backupConfig = context.getBackupConfiguration();
 
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
     return new JobBuilder()
@@ -175,7 +178,10 @@ public class ShardedBackupJob
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withBackoffLimit(3)
+        .withBackoffLimit(Optional.of(backup)
+            .map(StackGresShardedBackup::getSpec)
+            .map(StackGresShardedBackupSpec::getMaxRetries)
+            .orElse(3))
         .withParallelism(1)
         .withNewTemplate()
         .withNewMetadata()
@@ -282,6 +288,27 @@ public class ShardedBackupJob
                         .map(managedLifecycle -> !managedLifecycle)
                         .map(String::valueOf)
                         .orElse("true"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("$SHARDED_BACKUP_TIMEOUT")
+                    .withValue(Optional.ofNullable(backup.getSpec()
+                        .getTimeout())
+                        .map(String::valueOf)
+                        .orElse("null"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("$SHARDED_BACKUP_RECONCILIATION_TIMEOUT")
+                    .withValue(Optional.ofNullable(backup.getSpec()
+                        .getReconciliationTimeout())
+                        .map(String::valueOf)
+                        .orElse("300"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("$SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
+                    .withValue(Optional.of(backupConfig)
+                        .map(ShardedBackupConfiguration::retainWalsForUnmanagedLifecycle)
+                        .map(String::valueOf)
+                        .orElse("false"))
                     .build(),
                     new EnvVarBuilder()
                     .withName("CLUSTER_CRD_NAME")

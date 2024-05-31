@@ -21,7 +21,6 @@ import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -48,7 +47,6 @@ public class StackGresDbOpsSpec {
   private String timeout;
 
   @Min(value = 0, message = "maxRetries must be greather or equals to 0.")
-  @Max(value = 10, message = "maxRetries must be less or equals to 10.")
   private Integer maxRetries;
 
   @Valid

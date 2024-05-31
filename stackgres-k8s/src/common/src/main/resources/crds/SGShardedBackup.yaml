@@ -80,6 +80,30 @@ spec:
                   description: |
                     Indicate if this sharded backup is permanent and should not be removed by the automated
                      retention policy. Default is `false`.
+                timeout:
+                  type: integer
+                  description: |
+                    Allow to set a timeout for the backup creation.
+                    
+                    If not set it will be disabled and the backup operation will continue until the backup completes or fail. If set to 0 is the same as not being set.
+                    
+                    Make sure to set a reasonable high value in order to allow for any unexpected delays during backup creation (network low bandwidth, disk low throughput and so forth).
+                reconciliationTimeout:
+                  type: integer
+                  default: 300
+                  description: |
+                    Allow to set a timeout for the reconciliation process that take place after the backup.
+                    
+                    If not set defaults to 300 (5 minutes). If set to 0 it will disable timeout.
+                    
+                    Failure of reconciliation will not make the backup fail and will be re-tried the next time a SGBackup
+                     or shecduled backup Job take place.
+                maxRetries:
+                  type: integer
+                  description: |
+                    The maximum number of retries the backup operation is allowed to do after a failure.
+  
+                    A value of `0` (zero) means no retries are made. Defaults to: `3`.
             status:
               type: object
               properties:

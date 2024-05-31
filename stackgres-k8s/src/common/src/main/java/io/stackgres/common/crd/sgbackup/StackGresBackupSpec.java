@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
@@ -30,6 +31,9 @@ public class StackGresBackupSpec {
   private Integer timeout;
 
   private Integer reconciliationTimeout;
+
+  @Min(value = 0, message = "maxRetries must be greather or equals to 0.")
+  private Integer maxRetries;
 
   public String getSgCluster() {
     return sgCluster;
@@ -63,9 +67,17 @@ public class StackGresBackupSpec {
     this.reconciliationTimeout = reconciliationTimeout;
   }
 
+  public Integer getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(Integer maxRetries) {
+    this.maxRetries = maxRetries;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(managedLifecycle, reconciliationTimeout, sgCluster, timeout);
+    return Objects.hash(managedLifecycle, maxRetries, reconciliationTimeout, sgCluster, timeout);
   }
 
   @Override
@@ -78,6 +90,7 @@ public class StackGresBackupSpec {
     }
     StackGresBackupSpec other = (StackGresBackupSpec) obj;
     return Objects.equals(managedLifecycle, other.managedLifecycle)
+        && Objects.equals(maxRetries, other.maxRetries)
         && Objects.equals(reconciliationTimeout, other.reconciliationTimeout)
         && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(timeout, other.timeout);
   }

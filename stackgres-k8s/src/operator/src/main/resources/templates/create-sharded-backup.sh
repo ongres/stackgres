@@ -214,6 +214,10 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   managedLifecycle: $BACKUP_MANAGED_LIFECYCLE
+  timeout: $SHARDED_BACKUP_TIMEOUT
+  retentionTimeout: $SHARDED_BACKUP_RECONCILIATION_TIMEOUT
+  maxRetries: 0
+  retainWalsForUnmanagedLifecycle: $SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE
 EOF
 )"
     if ! printf %s "$BACKUP_YAML" | kubectl create -f - > /tmp/backup-create-backup 2>&1

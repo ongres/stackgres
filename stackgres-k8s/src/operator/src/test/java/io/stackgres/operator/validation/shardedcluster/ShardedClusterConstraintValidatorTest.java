@@ -167,6 +167,26 @@ class ShardedClusterConstraintValidatorTest
   }
 
   @Test
+  void invalidBackupsLowMaxRetries_shouldFail() {
+    StackGresShardedClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec()
+        .setConfigurations(new StackGresShardedClusterConfigurations());
+    review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups()
+        .add(new StackGresShardedClusterBackupConfiguration());
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
+        .setPaths(List.of("test-0", "test-1", "test-2"));
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
+        .setSgObjectStorage("test");
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
+        .setMaxRetries(-1);
+
+    checkErrorCause(StackGresShardedClusterBackupConfiguration.class, "spec.configurations.backups[0].maxRetries",
+        review, Min.class);
+
+  }
+
+  @Test
   void givenValidFlavor_shouldPass() throws ValidationFailed {
     StackGresShardedClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPostgres().setFlavor(

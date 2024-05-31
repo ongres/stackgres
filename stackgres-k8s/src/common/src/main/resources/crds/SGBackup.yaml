@@ -107,6 +107,12 @@ spec:
                     
                     Failure of reconciliation will not make the backup fail and will be re-tried the next time a SGBackup
                      or shecduled backup Job take place.
+                maxRetries:
+                  type: integer
+                  description: |
+                    The maximum number of retries the backup operation is allowed to do after a failure.
+  
+                    A value of `0` (zero) means no retries are made. Defaults to: `3`.
             status:
               type: object
               properties:

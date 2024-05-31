@@ -242,6 +242,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
               .withFastVolumeSnapshot(backup.getFastVolumeSnapshot())
               .withTimeout(backup.getTimeout())
               .withReconciliationTimeout(backup.getReconciliationTimeout())
+              .withMaxRetries(backup.getMaxRetries())
               .withRetainWalsForUnmanagedLifecycle(backup.getRetainWalsForUnmanagedLifecycle())
               .build()));
         });

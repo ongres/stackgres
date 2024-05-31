@@ -36,6 +36,8 @@ public class ClusterBackupConfiguration {
 
   private Integer reconciliationTimeout;
 
+  private Integer maxRetries;
+
   private Boolean retainWalsForUnmanagedLifecycle;
 
   public Integer getRetention() {
@@ -124,6 +126,14 @@ public class ClusterBackupConfiguration {
 
   public void setReconciliationTimeout(Integer reconciliationTimeout) {
     this.reconciliationTimeout = reconciliationTimeout;
+  }
+
+  public Integer getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(Integer maxRetries) {
+    this.maxRetries = maxRetries;
   }
 
   public Boolean getRetainWalsForUnmanagedLifecycle() {

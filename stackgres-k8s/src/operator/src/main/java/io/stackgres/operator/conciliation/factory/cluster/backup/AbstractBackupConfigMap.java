@@ -130,8 +130,15 @@ public abstract class AbstractBackupConfigMap {
               .map(StackGresClusterConfigurations::getBackups)
               .filter(Predicates.not(List::isEmpty))
               .map(backups -> backups.get(0))
+              .map(StackGresClusterBackupConfiguration::getMaxRetries)
+              .orElse(null),
+              Optional.of(context.getCluster().getSpec())
+              .map(StackGresClusterSpec::getConfigurations)
+              .map(StackGresClusterConfigurations::getBackups)
+              .filter(Predicates.not(List::isEmpty))
+              .map(backups -> backups.get(0))
               .map(StackGresClusterBackupConfiguration::getRetainWalsForUnmanagedLifecycle)
-              .orElse(false)
+              .orElse(null)
           ))
       );
     }

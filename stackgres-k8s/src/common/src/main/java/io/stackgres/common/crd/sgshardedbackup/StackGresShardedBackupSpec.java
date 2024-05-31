@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
@@ -26,6 +27,13 @@ public class StackGresShardedBackupSpec {
   private String sgShardedCluster;
 
   private Boolean managedLifecycle;
+
+  private Integer timeout;
+
+  private Integer reconciliationTimeout;
+
+  @Min(value = 0, message = "maxRetries must be greather or equals to 0.")
+  private Integer maxRetries;
 
   public String getSgShardedCluster() {
     return sgShardedCluster;
@@ -43,9 +51,34 @@ public class StackGresShardedBackupSpec {
     this.managedLifecycle = managedLifecycle;
   }
 
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public Integer getReconciliationTimeout() {
+    return reconciliationTimeout;
+  }
+
+  public void setReconciliationTimeout(Integer reconciliationTimeout) {
+    this.reconciliationTimeout = reconciliationTimeout;
+  }
+
+  public Integer getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(Integer maxRetries) {
+    this.maxRetries = maxRetries;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(managedLifecycle, sgShardedCluster);
+    return Objects.hash(managedLifecycle, maxRetries, reconciliationTimeout, sgShardedCluster,
+        timeout);
   }
 
   @Override
@@ -58,7 +91,10 @@ public class StackGresShardedBackupSpec {
     }
     StackGresShardedBackupSpec other = (StackGresShardedBackupSpec) obj;
     return Objects.equals(managedLifecycle, other.managedLifecycle)
-        && Objects.equals(sgShardedCluster, other.sgShardedCluster);
+        && Objects.equals(maxRetries, other.maxRetries)
+        && Objects.equals(reconciliationTimeout, other.reconciliationTimeout)
+        && Objects.equals(sgShardedCluster, other.sgShardedCluster)
+        && Objects.equals(timeout, other.timeout);
   }
 
   @Override
