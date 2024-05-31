@@ -115,6 +115,7 @@ public abstract class AbstractContainerProfileDecorator {
         .stream()
         .map(Map::entrySet)
         .flatMap(Set::stream)
+        .filter(containerRequest -> getKind().hasPrefix(containerRequest.getKey()))
         .filter(containerRequest -> Objects.equals(
             getKind().getName(containerRequest.getKey()), container.getName()))
         .findFirst()
@@ -126,6 +127,7 @@ public abstract class AbstractContainerProfileDecorator {
         .stream()
         .map(Map::entrySet)
         .flatMap(Set::stream)
+        .filter(containerRequest -> getKind().hasPrefix(containerRequest.getKey()))
         .filter(containerRequest -> Objects.equals(
             getKind().getName(containerRequest.getKey()), container.getName()))
         .findFirst()
