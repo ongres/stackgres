@@ -29,12 +29,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end}}
       serviceAccountName: {{ .Release.Name }}
-      {{- if .Values.serviceAccount.repoCredentials }}
-      imagePullSecrets:
-      {{- range .Values.serviceAccount.repoCredentials }}
-        - name: {{ . }}
-      {{- end }}
-      {{- end }}
       {{- with .Values.operator.affinity}}
       affinity:
         {{- toYaml . | nindent 8 }}

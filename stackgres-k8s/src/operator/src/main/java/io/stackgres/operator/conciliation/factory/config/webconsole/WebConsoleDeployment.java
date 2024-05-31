@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.Toleration;
@@ -43,7 +42,6 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigExtensions;
 import io.stackgres.common.crd.sgconfig.StackGresConfigGrafana;
 import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
 import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
-import io.stackgres.common.crd.sgconfig.StackGresConfigServiceAccount;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatusGrafana;
@@ -154,13 +152,6 @@ public class WebConsoleDeployment
             .map(StackGresConfigRestapi::getNodeSelector)
             .orElse(null))
         .withServiceAccount(name(config))
-        .withImagePullSecrets(Optional.of(config.getSpec())
-            .map(StackGresConfigSpec::getServiceAccount)
-            .map(StackGresConfigServiceAccount::getRepoCredentials)
-            .stream()
-            .flatMap(List::stream)
-            .map(LocalObjectReference::new)
-            .toList())
         .withSecurityContext(webConsolePodSecurityContext.createRestApiPodSecurityContext(context))
         .withContainers(
             new ContainerBuilder()

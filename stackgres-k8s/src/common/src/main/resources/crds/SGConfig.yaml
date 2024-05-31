@@ -59,6 +59,17 @@ spec:
                 type: string
                 default: "IfNotPresent"
                 description: Image pull policy used for images loaded by the Operator
+              imagePullSecrets:
+                type: array
+                description: |
+                  The list of references to secrets in the same namespace where a ServiceAccount is created by the operator to use for pulling any images in pods that reference such ServiceAccount. ImagePullSecrets are distinct from Secrets because Secrets can be mounted in the pod, but ImagePullSecrets are only accessed by the kubelet. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+                items:
+                  type: object
+                  description: A reference to a secrets in the same namespace where a ServiceAccount is created by the operator to use for pulling any images in pods that reference such ServiceAccount.
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the referenced Secret.
               allowedNamespaces:
                 type: array
                 description: |

@@ -6,9 +6,11 @@
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
@@ -72,6 +74,10 @@ public class BackupCronRole implements ResourceGenerator<StackGresClusterContext
         .withNamespace(serviceAccountNamespace)
         .withLabels(labels)
         .endMetadata()
+        .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
+            .stream()
+            .map(LocalObjectReference.class::cast)
+            .toList())
         .build();
 
   }

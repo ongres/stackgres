@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -80,6 +81,10 @@ public class PatroniRole implements
         .withNamespace(serviceAccountNamespace)
         .withLabels(labels)
         .endMetadata()
+        .withImagePullSecrets(context.getConfig().getSpec().getImagePullSecrets()
+            .stream()
+            .map(LocalObjectReference.class::cast)
+            .toList())
         .build();
 
   }

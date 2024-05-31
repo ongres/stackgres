@@ -12,6 +12,7 @@ import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
@@ -22,6 +23,8 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface StackGresShardedDbOpsContext
     extends GenerationContext<StackGresShardedDbOps>, ShardedClusterContext {
+
+  StackGresConfig getConfig();
 
   Optional<StackGresShardedCluster> getFoundShardedCluster();
 

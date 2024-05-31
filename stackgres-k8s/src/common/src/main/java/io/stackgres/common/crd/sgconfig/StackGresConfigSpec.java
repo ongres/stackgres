@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.LocalObjectReference;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -26,6 +27,8 @@ public class StackGresConfigSpec {
   private String containerRegistry;
 
   private String imagePullPolicy;
+
+  private List<LocalObjectReference> imagePullSecrets;
 
   private List<String> allowedNamespaces;
 
@@ -79,6 +82,14 @@ public class StackGresConfigSpec {
 
   public void setImagePullPolicy(String imagePullPolicy) {
     this.imagePullPolicy = imagePullPolicy;
+  }
+
+  public List<LocalObjectReference> getImagePullSecrets() {
+    return imagePullSecrets;
+  }
+
+  public void setImagePullSecrets(List<LocalObjectReference> imagePullSecrets) {
+    this.imagePullSecrets = imagePullSecrets;
   }
 
   public List<String> getAllowedNamespaces() {
@@ -238,7 +249,8 @@ public class StackGresConfigSpec {
     return Objects.hash(adminui, allowImpersonationForRestApi, allowedNamespaceLabelSelector,
         allowedNamespaces, authentication, cert, containerRegistry, deploy, developer,
         disableClusterRole, disableCrdsAndWebhooksUpdate, extensions, grafana, imagePullPolicy,
-        jobs, operator, prometheus, restapi, serviceAccount, sgConfigNamespace, shardingSphere);
+        imagePullSecrets, jobs, operator, prometheus, restapi, serviceAccount, sgConfigNamespace,
+        shardingSphere);
   }
 
   @Override
@@ -261,6 +273,7 @@ public class StackGresConfigSpec {
         && Objects.equals(disableCrdsAndWebhooksUpdate, other.disableCrdsAndWebhooksUpdate)
         && Objects.equals(extensions, other.extensions) && Objects.equals(grafana, other.grafana)
         && Objects.equals(imagePullPolicy, other.imagePullPolicy)
+        && Objects.equals(imagePullSecrets, other.imagePullSecrets)
         && Objects.equals(jobs, other.jobs) && Objects.equals(operator, other.operator)
         && Objects.equals(prometheus, other.prometheus) && Objects.equals(restapi, other.restapi)
         && Objects.equals(serviceAccount, other.serviceAccount)

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
@@ -29,6 +30,8 @@ abstract class ShardedDbOpsJobTestCase {
   @OperatorVersionBinder
   ShardedDbOpsJobsGenerator dbOpsJobsGenerator;
 
+  StackGresConfig config;
+
   StackGresShardedCluster cluster;
 
   StackGresCluster coordinator;
@@ -39,6 +42,8 @@ abstract class ShardedDbOpsJobTestCase {
 
   @BeforeEach
   void setUp() {
+    config = Fixtures.config().loadDefault().get();
+
     cluster = Fixtures.shardedCluster().loadDefault().get();
 
     coordinator = Fixtures.cluster().loadDefault().get();
@@ -58,6 +63,7 @@ abstract class ShardedDbOpsJobTestCase {
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
         .foundCoordinator(coordinator)
@@ -75,6 +81,7 @@ abstract class ShardedDbOpsJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
         .foundCoordinator(coordinator)
@@ -92,6 +99,7 @@ abstract class ShardedDbOpsJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
         .foundCoordinator(coordinator)
@@ -112,6 +120,7 @@ abstract class ShardedDbOpsJobTestCase {
     setSgShardedDbOpsScheduling();
 
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
         .foundCoordinator(coordinator)
@@ -131,6 +140,7 @@ abstract class ShardedDbOpsJobTestCase {
     setSgShardedDbOpsScheduling();
 
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
         .foundCoordinator(coordinator)
