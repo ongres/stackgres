@@ -49,6 +49,7 @@ import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMount
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -56,6 +57,8 @@ import jakarta.inject.Singleton;
 @OperatorVersionBinder
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<ClusterContainerContext> {
+
+  private static final String POD_MONITOR = "-patroni";
 
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
@@ -69,6 +72,12 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final PatroniVolumeMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
   private final PatroniConfigMap patroniConfigMap;
+
+  public static String podMonitorName(StackGresClusterContext clusterContext) {
+    String namespace = clusterContext.getSource().getMetadata().getNamespace();
+    String name = clusterContext.getSource().getMetadata().getName();
+    return ResourceUtil.resourceName(namespace + "-" + name + POD_MONITOR);
+  }
 
   @Inject
   public Patroni(

@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.shardedcluster.backup;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -72,7 +73,7 @@ public class ShardedBackupCronRole implements ResourceGenerator<StackGresSharded
         .withNamespace(serviceAccountNamespace)
         .withLabels(labels)
         .endMetadata()
-        .withImagePullSecrets(context.getConfig().getSpec().getImagePullSecrets()
+        .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()
             .map(LocalObjectReference.class::cast)
             .toList())

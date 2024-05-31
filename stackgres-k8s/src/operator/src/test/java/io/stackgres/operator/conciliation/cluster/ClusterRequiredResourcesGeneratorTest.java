@@ -293,7 +293,7 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
         .filter(r -> r.getKind().equals(PodMonitor.KIND))
         .count();
 
-    assertEquals(2, podMonitors);
+    assertEquals(3, podMonitors);
     verify(prometheusScanner).findResources();
     System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
@@ -324,7 +324,7 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
         .filter(r -> r.getKind().equals(HasMetadata.getKind(PodMonitor.class)))
         .count();
 
-    assertEquals(2, podMonitors);
+    assertEquals(3, podMonitors);
     System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 
