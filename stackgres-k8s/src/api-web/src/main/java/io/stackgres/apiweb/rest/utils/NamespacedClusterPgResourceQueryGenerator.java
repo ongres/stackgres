@@ -26,48 +26,39 @@ public class NamespacedClusterPgResourceQueryGenerator {
       final String sort,
       final String dir,
       final Integer limit) {
-    final SelectOrderByStep<?> selectOrderByStep;
-    switch (table) {
-      case NamespacedClusterPgResource.TOP_PG_STAT_STATEMENTS -> {
-        selectOrderByStep = context
-            .select(
-                DSL.field("pg_database.datname"),
-                DSL.field("pg_roles.rolname"),
-                DSL.table("pg_stat_statements").asterisk())
-            .from("pg_stat_statements")
-            .leftJoin("pg_database")
-            .on(DSL.field("pg_database.oid", SQLDataType.INTEGER).eq(
-                DSL.field("pg_stat_statements.dbid", SQLDataType.INTEGER)))
-            .leftJoin("pg_roles")
-            .on(DSL.field("pg_roles.oid", SQLDataType.INTEGER).eq(
-                DSL.field("pg_stat_statements.userid", SQLDataType.INTEGER)));
-      }
-      case NamespacedClusterPgResource.TOP_PG_STAT_ACTIVITY -> {
-        selectOrderByStep = context
-            .select(DSL.asterisk())
-            .from(DSL.table("pg_stat_activity"));
-      }
-      case NamespacedClusterPgResource.TOP_PG_LOCKS -> {
-        selectOrderByStep = context
-            .select(
-                DSL.field("pg_database.datname"),
-                DSL.table("pg_locks").asterisk())
-            .from(DSL.table("pg_locks"))
-            .leftJoin(DSL.table("pg_database"))
-            .on(DSL.field("pg_locks.database").eq(DSL.field("pg_database.oid")));
-      }
-      default ->
-              throw new IllegalArgumentException(
-                  String.format("Cannot generate query for table %s", table)
-              );
-    }
+    final SelectOrderByStep<?> selectOrderByStep = switch (table) {
+      case NamespacedClusterPgResource.TOP_PG_STAT_STATEMENTS -> context
+          .select(
+              DSL.field("pg_database.datname"),
+              DSL.field("pg_roles.rolname"),
+              DSL.table("pg_stat_statements").asterisk())
+          .from("pg_stat_statements")
+          .leftJoin("pg_database")
+          .on(DSL.field("pg_database.oid", SQLDataType.INTEGER).eq(
+              DSL.field("pg_stat_statements.dbid", SQLDataType.INTEGER)))
+          .leftJoin("pg_roles")
+          .on(DSL.field("pg_roles.oid", SQLDataType.INTEGER).eq(
+              DSL.field("pg_stat_statements.userid", SQLDataType.INTEGER)));
+      case NamespacedClusterPgResource.TOP_PG_STAT_ACTIVITY -> context
+          .select(DSL.asterisk())
+          .from(DSL.table("pg_stat_activity"));
+      case NamespacedClusterPgResource.TOP_PG_LOCKS -> context
+          .select(
+              DSL.field("pg_database.datname"),
+              DSL.table("pg_locks").asterisk())
+          .from(DSL.table("pg_locks"))
+          .leftJoin(DSL.table("pg_database"))
+          .on(DSL.field("pg_locks.database").eq(DSL.field("pg_database.oid")));
+      default -> throw new IllegalArgumentException(
+          String.format("Cannot generate query for table %s", table));
+    };
     final SelectLimitStep<?> selectLimitStep;
     if (sort != null) {
       final SortField<?> sortField;
       if (dir != null && dir.equals(DESC)) {
-        sortField = DSL.field(sort).desc();
+        sortField = DSL.field(DSL.name(sort)).desc();
       } else {
-        sortField = DSL.field(sort).asc();
+        sortField = DSL.field(DSL.name(sort)).asc();
       }
       selectLimitStep = selectOrderByStep.orderBy(sortField);
     } else {
