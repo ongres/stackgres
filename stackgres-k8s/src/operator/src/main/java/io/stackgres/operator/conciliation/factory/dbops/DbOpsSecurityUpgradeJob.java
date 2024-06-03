@@ -115,7 +115,7 @@ public class DbOpsSecurityUpgradeJob implements DbOpsJobFactory {
                 .orElse(null))
             .build())
         .withContainers(new ContainerBuilder()
-            .withName("security-upgrade")
+            .withName("run-dbops")
             .withImagePullPolicy(getDefaultPullPolicy())
             .withImage(getImageName())
             .addToEnv(new EnvVarBuilder()
