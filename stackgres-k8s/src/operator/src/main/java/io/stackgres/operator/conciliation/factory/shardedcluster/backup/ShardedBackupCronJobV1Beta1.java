@@ -262,21 +262,21 @@ public class ShardedBackupCronJobV1Beta1
                         .withValue("false")
                         .build(),
                         new EnvVarBuilder()
-                        .withName("$SHARDED_BACKUP_TIMEOUT")
+                        .withName("SHARDED_BACKUP_TIMEOUT")
                         .withValue(backupConfig
                             .map(StackGresShardedClusterBackupConfiguration::getTimeout)
                             .map(String::valueOf)
                             .orElse("null"))
                         .build(),
                         new EnvVarBuilder()
-                        .withName("$SHARDED_BACKUP_RECONCILIATION_TIMEOUT")
+                        .withName("SHARDED_BACKUP_RECONCILIATION_TIMEOUT")
                         .withValue(backupConfig
                             .map(StackGresShardedClusterBackupConfiguration::getReconciliationTimeout)
                             .map(String::valueOf)
                             .orElse("300"))
                         .build(),
                         new EnvVarBuilder()
-                        .withName("$SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
+                        .withName("SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
                         .withValue(backupConfig
                             .map(StackGresShardedClusterBackupConfiguration::getRetainWalsForUnmanagedLifecycle)
                             .map(String::valueOf)
