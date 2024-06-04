@@ -1,0 +1,99 @@
+---
+title: Asynchronous Replication Mode
+weight: 1
+url: /administration/replication/modes/async
+description: This section describes the involved steps and concepts under the Stackgres async option.
+---
+
+As indicated in the [CRD reference](https://stackgres.io/doc/latest/reference/crd/sgcluster/#sgclusterspecreplication) the `replication.mode` *async* option is the default and enables the asynchronous Postgres replication way. This is the most common way of creating a replica in a Postgres cluster, therefore Stackgres follows the same pattern.
+
+# Setting up a Cluster with Asynchronous replicas
+
+Setting up the Stackgres Cluster with asynchronous replica members is quite straightforward. In the (Administration Manual - Cluster Creation)[https://stackgres.io/doc/latest/administration/cluster-creation/] section, the example used the default way, async.
+
+Nevertheless, the next box highlighted it in the SGCluster CRD:
+
+```sh
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  namespace: failover
+  name: cluster
+spec:
+  postgres:
+	version: '16.1'
+  instances: 3
+  sgInstanceProfile: 'size-s'
+  pods:
+	persistentVolume:
+  	size: '10Gi'
+  configurations:
+	sgPostgresConfig: 'pgconfig1'
+	sgPoolingConfig: 'poolconfig1'
+  prometheusAutobind: true
+  nonProductionOptions:
+	disableClusterPodAntiAffinity: true
+  replication:
+	mode: async
+	role: ha-read
+	syncInstances: 1
+EOF
+```
+
+The result will be the next:
+
+```sh
+$ kubectl -n failover exec -it cluster-0 -c patroni -- bash - patronictl list
++ Cluster: cluster (7369933339677233777) +-----------+----+-----------+
+| Member	| Host         	| Role	| State 	| TL | Lag in MB |
++-----------+------------------+---------+-----------+----+-----------+
+| cluster-0 | 10.244.0.8:7433  | Leader  | running   |  1 |       	|
+| cluster-1 | 10.244.0.10:7433 | Replica | streaming |  1 |     	0 |
+| cluster-2 | 10.244.0.12:7433 | Replica | streaming |  1 |     	0 |
++-----------+------------------+---------+-----------+----+-----------+
+```
+
+Maybe the variable `syncInstances` caught the attention. 1 Leader and 2 replicas constitute the cluster by asynchronous replication. Therefore, we could think that the variable needs to be set with `0` instances, but the documentation confirms that the variable will take action only if we enable synchronous replication. Please, be aware of this if there are plans to update the replication way from async to sync.
+
+Nevertheless, an example is included to demonstrate the innocuous of updating the variable if sync mode is not enabled:
+
+```sh
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  namespace: failover
+  name: async-cluster
+spec:
+  postgres:
+	version: '16.1'
+  instances: 3
+  sgInstanceProfile: 'size-s'
+  pods:
+	persistentVolume:
+  	size: '10Gi'
+  configurations:
+	sgPostgresConfig: 'pgconfig1'
+	sgPoolingConfig: 'poolconfig1'
+  prometheusAutobind: true
+  nonProductionOptions:
+	disableClusterPodAntiAffinity: true
+  replication:
+	mode: async
+	role: ha-read
+	syncInstances: 3
+EOF
+sgcluster.stackgres.io/async-cluster created
+```
+```sh
+kubectl -n failover exec -it async-cluster-0 -c patroni -- bash - patronictl list
++ Cluster: async-cluster (7369943621678699243) +-----------+----+-----------+
+| Member      	| Host         	| Role	| State 	| TL | Lag in MB |
++-----------------+------------------+---------+-----------+----+-----------+
+| async-cluster-0 | 10.244.0.14:7433 | Leader  | running   |  1 |       	|
+| async-cluster-1 | 10.244.0.16:7433 | Replica | streaming |  1 |     	0 |
+| async-cluster-2 | 10.244.0.18:7433 | Replica | streaming |  1 |     	0 |
++-----------------+------------------+---------+-----------+----+-----------+
+```
+
