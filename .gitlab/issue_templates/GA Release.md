@@ -65,6 +65,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > Red Hat Image project ids (using JSON format `{"<image name without tag e.g. quay.io/stackgres/operator>":"<Red Hat image project id>"}`) must be present at path `~/.openshift-certification-projects.json` 
 
     ```
+    cd stackgres-k8s/install/operator-sdk/openshift-certification/
     STACKGRES_VERSION="1.11.0" IMAGE_TAG="$(git rev-parse --short=8 HEAD)" sh get-images.sh | grep -F quay.io/stackgres/ | sed 's#quay\.io/stackgres/#registry.gitlab.com/ongresinc/stackgres/stackgres/#' | xargs -I % sh preflight.sh %
     ```
 
@@ -180,9 +181,16 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     ```
     git checkout development && git pull
     ```
-1. [ ] Set `STACKGRES_FULL_VERSIONS` in `.gitlab-ci.yml` by setting `1.11.0` as the first value.
-1. [ ] Commit changes with message `version: 1.11.0`: `git commit -a -m 'version: 1.11.0'`
-1. [ ] Push development to origin: `git push`
+1. [ ] Edit `.gitlab-ci.yml`:
+  * Change `STACKGRES_FULL_VERSIONS` by setting `1.11.0` as the first value.
+1. [ ] Commit changes with message `version: 1.11.0`:
+    ```
+    git commit -a -m 'version: 1.11.0'
+    ```
+1. [ ] Push development to origin:
+    ```
+    git push
+    ```
 1. [ ] Check staging Web: `https://ongresinc.gitlab.io/web/stackgres/`
 1. [ ] Merge `development` branch into `master`:
     ```
