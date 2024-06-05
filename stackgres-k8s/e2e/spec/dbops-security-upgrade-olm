@@ -585,7 +585,7 @@ EOF
     | jq -r '.spec.authentication.password | select(. != null)' | tr -d '\n')"
   if [ -n "$PASSWORD" ]
   then
-    kubectl patch secret -n "$SGCONFIG_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
+    kubectl patch secret -n "$SGCONFIG_NAMESPACE" stackgres-restapi-admin -p '{"data":{"password":null,"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
   fi
 }
 
