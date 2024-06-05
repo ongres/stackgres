@@ -6,7 +6,7 @@ description: Describes how to connect on the sharded cluster exposing its servic
 showToc: true
 ---
 
-To allow access outside the K8s sharded cluster, it is necessary to update the [services that exposes access to the StackGres sharded cluster]({{% relref "/04-administration-guide/11-sharded-cluster/13-connecting-to-the-sharded-cluster/02-dns/" %}}) to type `NodePort` or `LoadBalancer`.
+To allow access outside the K8s sharded cluster, it is necessary to update the [services that exposes access to the StackGres sharded cluster]({{% relref "/04-administration-guide/14-sharded-cluster/13-connecting-to-the-sharded-cluster/02-dns/" %}}) to type `NodePort` or `LoadBalancer`.
 
 All following examples assume that there is a sharded cluster named `cluster` in the `default` namespace.
 

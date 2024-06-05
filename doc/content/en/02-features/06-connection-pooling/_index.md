@@ -15,4 +15,4 @@ StackGres also exports relevant connection pooling metrics to Prometheus, and sp
 
 You can tune the low-level configuration or even entirely disable connection pooling via the [SGPoolingConfig CRD]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}).
 
-Have a look at the [Connection Pooling Configuration section]({{% relref "04-administration-guide/03-configuration/03-connection-pooling" %}}) to learn more about how to configure connection pooling.
+Have a look at the [Connection Pooling Configuration section]({{% relref "04-administration-guide/04-configuration/03-connection-pooling" %}}) to learn more about how to configure connection pooling.

@@ -46,6 +46,6 @@ spec:
           name: my-cluster-minio
 ```
 
-See also [Backup Storage section]({{%  relref "04-administration-guide/04-backups#backup-storage" %}}).
+See also [Backup Storage section]({{%  relref "04-administration-guide/05-backups#backup-storage" %}}).
 
 {{% include "generated/SGObjectStorage.md" %}}

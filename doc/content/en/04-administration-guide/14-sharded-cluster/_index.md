@@ -94,4 +94,4 @@ $ kubectl exec -n my-cluster cluster-coord-0 -c patroni -- psql -d mydatabase -c
 
 Please, take into account that the `groupid` column of the `pg_dist_node` table is the same as the Patroni Group column above. In particular, the group with identifier 0 is the coordinator group (coordinator have `shouldhaveshards` column set to `f`).
 
-For a more complete configuration please have a look at [Create Citus Sharded Cluster Section]({{% relref "04-administration-guide/11-sharded-cluster/12-sharded-cluster-creation" %}}).
+For a more complete configuration please have a look at [Create Citus Sharded Cluster Section]({{% relref "04-administration-guide/14-sharded-cluster/12-sharded-cluster-creation" %}}).

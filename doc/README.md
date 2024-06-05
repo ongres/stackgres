@@ -1,5 +1,12 @@
 ## Building
 
+Dependencies:
+
+- Java 21
+- python pip yq
+- [crdoc](https://github.com/fybrik/crdoc)
+- [helm-docs](https://github.com/norwoodj/helm-docs)
+
 You can build the doc in the following way:
 
 ```bash

@@ -15,4 +15,4 @@ If you are running on prem, you can use [Minio](https://min.io/) or other S3-com
 You need to provide your bucket access information and credentials, configure the retention policy, and everything else is fully automated by StackGres.
 You can also create manual backups via a simple YAML file at any time.
 
-Have a look at the [Backups Guide]({{% relref "04-administration-guide/04-backups" %}}) to learn more about how to define and manage backups.
+Have a look at the [Backups Guide]({{% relref "04-administration-guide/05-backups" %}}) to learn more about how to define and manage backups.

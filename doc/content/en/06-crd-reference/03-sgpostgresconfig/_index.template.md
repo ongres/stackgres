@@ -39,7 +39,7 @@ spec:
     wal_compression: 'on'
 ```
 
-See also [Postgres Configuration section]({{%  relref "04-administration-guide/03-configuration/01-postgres-configuration" %}}).
+See also [Postgres Configuration section]({{%  relref "04-administration-guide/04-configuration/01-postgres-configuration" %}}).
 
 {{% include "generated/SGPostgresConfig.md" %}}
 

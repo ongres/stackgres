@@ -7,11 +7,11 @@ description: This section describes the involved steps and concepts under the St
 
 The Stackgres `replication.mode` *strict-sync-all* option instructs Stackgres to create or convert all cluster members as synchronous replicas and enables at the same time the Patroni `synchronous_mode_strict`. This is a fusion of the `strict-all` and `sync-all` SG options and the cluster works with the highest HA possible in Postgres.
 
-# Setting up a Cluster with Strict-sync-all replica
+## Setting up a Cluster with Strict-sync-all replica
 
 To follow the Stackgres essentials, adding the option is quite simple. Let's watch the example.
 
-```sh
+```yaml
 cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -37,7 +37,7 @@ spec:
     role: ha-read
     syncInstances: 1
 EOF
-``
+```
 ```sh
 $ kubectl -n failover exec -it sync-cluster-0 -c patroni -- patronictl list 
 + Cluster: sync-cluster (7373750354182599290) -----+-----------+----+-----------+

@@ -5,13 +5,13 @@ url: /administration/replication/modes/sync
 description: This section describes the involved steps and concepts under the Stackgres sync option.
 ---
 
-The Stackgres `replication.mode` *sync* option instructs Stackgres to create one or more cluster members as synchronous replicas. As indicated in the [CRD reference](https://stackgres.io/doc/latest/reference/crd/sgcluster/#sgclusterspecreplication) the cluster will not block transactions in the Leader in the event of replica lost, since Patroni will switch off the synchronous replication.
+The Stackgres `replication.mode` *sync* option instructs Stackgres to create one or more cluster members as synchronous replicas. As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the cluster will not block transactions in the Leader in the event of replica lost, since Patroni will switch off the synchronous replication.
 
-# Setting up a Cluster with Synchronous replica
+## Setting up a Cluster with Synchronous replica
 
-Move forward to the next item, creating a synchronous replication cluster:
+Move forward to the next item creating a synchronous replication cluster:
 
-```sh
+```yaml
 $ cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster

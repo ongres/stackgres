@@ -5,15 +5,15 @@ url: /administration/replication/modes/async
 description: This section describes the involved steps and concepts under the Stackgres async option.
 ---
 
-As indicated in the [CRD reference](https://stackgres.io/doc/latest/reference/crd/sgcluster/#sgclusterspecreplication) the `replication.mode` *async* option is the default and enables the asynchronous Postgres replication way. This is the most common way of creating a replica in a Postgres cluster, therefore Stackgres follows the same pattern.
+As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the `replication.mode` *async* option is the default and enables the asynchronous Postgres replication way. This is the most common way of creating a replica in a Postgres cluster, therefore Stackgres follows the same pattern.
 
-# Setting up a Cluster with Asynchronous replicas
+## Setting up a Cluster with Asynchronous replicas
 
-Setting up the Stackgres Cluster with asynchronous replica members is quite straightforward. In the (Administration Manual - Cluster Creation)[https://stackgres.io/doc/latest/administration/cluster-creation/] section, the example used the default way, async.
+Setting up the Stackgres Cluster with asynchronous replica members is quite straightforward. In the [Cluster Creation]({{% relref "04-administration-guide/03-cluster-creation" %}})  section, the example used the default way, async.
 
-Nevertheless, the next box highlighted it in the SGCluster CRD:
+Nevertheless, the next box highlight the SGCluster CRD again:
 
-```sh
+```yaml
 cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster
@@ -58,7 +58,7 @@ Maybe the variable `syncInstances` caught the attention. 1 Leader and 2 replicas
 
 Nevertheless, an example is included to demonstrate the innocuous of updating the variable if sync mode is not enabled:
 
-```sh
+```yaml
 cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGCluster

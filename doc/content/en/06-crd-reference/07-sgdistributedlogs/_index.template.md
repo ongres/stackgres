@@ -36,6 +36,6 @@ spec:
     size: 10Gi
 ```
 
-See also [Distribtued Logs section]({{%  relref "04-administration-guide/09-distributed-logs" %}}).
+See also [Distribtued Logs section]({{%  relref "04-administration-guide/12-distributed-logs" %}}).
 
 {{% include "generated/SGDistributedLogs.md" %}}

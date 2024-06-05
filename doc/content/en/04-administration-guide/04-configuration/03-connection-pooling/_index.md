@@ -11,7 +11,7 @@ By default, StackGres deploys Postgres clusters with a sidecar containing a conn
 StackGres currently uses [PgBouncer](https://www.pgbouncer.org/).
 The connection pooler fronts the database and controls the incoming connections (fan-in).
 This keeps Postgres operating with a lower number of concurrent connections, while allowing a higher number of external connections (from the application to the pooler).
-If no custom pooling configuration is specified at cluster creation, StackGres will create a default configuration, which you can see [here]({{% relref "04-administration-guide/03-configuration" %}}).
+If no custom pooling configuration is specified at cluster creation, StackGres will create a default configuration, which you can see [here]({{% relref "" %}}).
 
 StackGres provides a production-grade default configuration.
 You can provide your own pooling configuration, by creating an instance of the [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}) CRD.

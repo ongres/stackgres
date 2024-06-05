@@ -7,7 +7,7 @@ description: Details about how the PostgresSQL configuration works and how to cu
 ---
 
 The PostgreSQL configuration is specified in the [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) CRD.
-If no custom configuration is specified at cluster creation, StackGres will create a default configuration, which you can see [here]({{% relref "04-administration-guide/03-configuration" %}}).
+If no custom configuration is specified at cluster creation, StackGres will create a default configuration, which you can see [here]({{% relref "04-administration-guide/04-configuration" %}}).
 
 StackGres already ships with an expertly tuned Postgres configuration (aka `postgresql.conf`) by default.
 However, it's absolutely possible to specify your own configuration.

@@ -59,7 +59,7 @@ EOF
 You can configure the variables supported by StackGres.
 
 The connection pooler (currently PgBouncer) is an important part of a Postgres cluster, as it provides connection scaling capabilities.
-We'll cover all more details about this in the [Customizing Pooling configuration section]({{% relref "04-administration-guide/03-configuration/03-connection-pooling" %}}).
+We'll cover all more details about this in the [Customizing Pooling configuration section]({{% relref "04-administration-guide/04-configuration/03-connection-pooling" %}}).
 
 For improved performance and stability, it is recommended to set the `pool_mode` to `transaction`. An example pooling configuration looks like this:
 
@@ -126,7 +126,7 @@ EOF
 ```
 
 You will need to perform additional steps in order to configure backups in your cloud environment.
-Have a look at the section [Backups]({{% relref "04-administration-guide/04-backups" %}}) for full examples using S3, GKE, Digital Ocean, and more.
+Have a look at the section [Backups]({{% relref "04-administration-guide/05-backups" %}}) for full examples using S3, GKE, Digital Ocean, and more.
 
 ### Configuring Distributed Logs
 

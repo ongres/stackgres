@@ -12,4 +12,4 @@ And, Postgres users benefit from an ecosystem of hundreds of open source extensi
 StackGres supports more than 150 Postgres extensions out of the box, and can dynamically load extensions into your Postgres cluster's pods.
 Thus, StackGres is the Postgres platform with the largest number of extensions available in the world.
 
-Have a look at full list of [extensions]({{% relref "01-introduction/08-extensions" %}}), and the [Extensions Guide]({{% relref "04-administration-guide/05-postgres-extensions" %}}) to learn more about how to configure and use extensions in StackGres.
+Have a look at full list of [extensions]({{% relref "01-introduction/08-extensions" %}}), and the [Extensions Guide]({{% relref "04-administration-guide/07-postgres-extensions" %}}) to learn more about how to configure and use extensions in StackGres.

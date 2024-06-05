@@ -51,7 +51,7 @@ status:
       uncompressed: 24037844
 ```
 
-See also [Backups section]({{%  relref "04-administration-guide/04-backups#backups" %}}).
+See also [Backups section]({{%  relref "04-administration-guide/05-backups#backups" %}}).
 
 The SGShardedBackup represents a manual or automatically generated sharded backup of an SGShardedCluster configured with an SGObjectStorage.
 

@@ -8,10 +8,10 @@ showToc: true
 
 ## Customizing Your Postgres Sharded Clusters
 
-Refer to [Customizing Your Postgres Clusters]({{% relref "04-administration-guide/02-cluster-creation" %}}#customizing-your-postgres-clusters) section for more details on the configuraion used
+Refer to [Customizing Your Postgres Clusters]({{% relref "04-administration-guide/03-cluster-creation" %}}#customizing-your-postgres-clusters) section for more details on the configuraion used
  for the sharded cluster. In particular you will end up creating the following custom resources in the `my-cluster` namespace:
 
-* An [SGInstanceProfile]({{% relref "04-administration-guide/03-configuration/02-instance-profile" %}}) called `size-small`
+* An [SGInstanceProfile]({{% relref "04-administration-guide/04-configuration/02-instance-profile" %}}) called `size-small`
 * An [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) called `pgconfig1`
 * An [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}) called `poolconfig1`
 * An [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) called `backupconfig1`
@@ -137,4 +137,4 @@ While the sharded cluster is being created, you may notice a blip in the distrib
 This behavior is caused by a re-configuration which requires a container restart, and only temporarily pauses the log collection.
 No logs are lost, since they are buffered on the source pods.
 
-Have a look at [Connecting to the Sharded Cluster]({{% relref "04-administration-guide/11-sharded-cluster/13-connecting-to-the-sharded-cluster" %}}), to see how to connect to the created Postgres sharded cluster.
+Have a look at [Connecting to the Sharded Cluster]({{% relref "04-administration-guide/14-sharded-cluster/13-connecting-to-the-sharded-cluster" %}}), to see how to connect to the created Postgres sharded cluster.

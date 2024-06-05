@@ -124,14 +124,14 @@ all the logs in Postgres using [Timescale](https://github.com/timescale/timescal
 
 ## Proxy
 
-How do I locate the primary instance, and what if it changes? How do I obtain traffic [metrics]({{% relref "04-administration-guide/06-monitoring" %}})?
+How do I locate the primary instance, and what if it changes? How do I obtain traffic [metrics]({{% relref "04-administration-guide/08-monitoring" %}})?
 It is possible to manage the traffic: duplicate, A/B to test cluster, or event inspect it?
 
 [Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is
 extensible in order to provide advanced functionality based on the actual traffic or on connection characteristic.
 For example, the Postgres metrics could be parsed in order to offer stats, or the TLS certificate can be configured.
 
-Envoy is also capable of [exporting metrics]({{% relref "04-administration-guide/06-monitoring/01-envoy-metrics/" %}}) using the well-established Prometheus format.
+Envoy is also capable of [exporting metrics]({{% relref "04-administration-guide/08-monitoring/01-envoy-metrics/" %}}) using the well-established Prometheus format.
 
 OnGres Inc. sponsors the Envoy Proxy project with contributions such as exposing PostgreSQL [monitoring metrics](https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/network_filters/postgres_proxy_filter#statistics) and implementing the [SSL termination support](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/postgres_proxy/v3alpha/postgres_proxy.proto#envoy-v3-api-field-extensions-filters-network-postgres-proxy-v3alpha-postgresproxy-terminate-ssl).
 

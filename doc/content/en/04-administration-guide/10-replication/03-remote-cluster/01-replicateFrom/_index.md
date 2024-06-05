@@ -7,9 +7,9 @@ description: Is time to create our Stackgres cascading replication cluster and s
 
 # replicateFrom
 
-The `replicateFrom` feature is explained in the [SGCluster CRD](https://stackgres.io/doc/latest/reference/crd/sgcluster/#sgclusterspecreplicatefrom) but here is a practical guide to accomplish the setup
+The `replicateFrom` feature is explained in the [SGCluster CRD]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplicatefrom" %}}) but here is a practical guide to accomplish the setup.
 
-Since `replicateFrom` works through the Patroni (*Standby Cluster* concept)[https://patroni.readthedocs.io/en/latest/standby_cluster.html], access from the new cluster replica to the Main Cluster leader member is required. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that the k8s service should be ready to expose the cluster service.
+Since `replicateFrom` works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), access from the new cluster replica to the Main Cluster leader member is required. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that the k8s service should be ready to expose the cluster service.
 
 Once access is granted, the next command can be used to test the connection:
 
@@ -32,7 +32,7 @@ It the new remote Stackgres deployment, where a new Stackgres Cluster will be cr
 - SGScript (if any)
 - Secrets
 
-Now, the environment is ready to apply the SGCluster. The next example contains extra entries to give a wider view of the options included in a production-like system. Beware of review and complete fields as backups (if you will take backups from your Standby Cluster), the number of instances among others, and the port number exposed in the main cluster.
+Now, the environment is ready to apply the SGCluster. The next example contains extra entries to give a wider view of the options included in a production-like system. Beware of review and complete fields as backups (if you will take backups from your Standby Cluster), the number of instances, and the port number exposed in the main cluster among others.
 
 ```yml
 apiVersion: stackgres.io/v1
