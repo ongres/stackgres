@@ -27,8 +27,8 @@ event_watch() {
         ;;
     esac
   done
-  trap_exec kubectl get event "$NAMESPACE" -o json \
-      $(if [ "$FOLLOW" = true ]; then printf %s --watch; fi) \
+  trap_exec "$SHELL" $SHELL_XTRACE -c "while true; do kubectl get event \"$NAMESPACE\" -o json \
+      $(if [ "$FOLLOW" = true ]; then printf %s --watch; fi); done" \
     | jq --unbuffered -r "$(if [ "$FOLLOW" != true ]; then printf '.items[]|'; fi)"'.metadata.namespace + " " + .metadata.name' \
     | {
       set +x

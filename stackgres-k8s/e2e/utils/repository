@@ -2,6 +2,22 @@
 
 export E2E_PULLED_IMAGES_PATH="${E2E_PULLED_IMAGES_PATH:-$TARGET_PATH/pulled-images}"
 
+start_background_repository_cache() {
+  if [ "$E2E_DISABLE_CACHE" = "true" ]
+  then
+    echo "Repository cache disabled"
+    return
+  fi
+  notrace_function traceable_start_background_repository_cache "$@"
+}
+
+traceable_start_background_repository_cache() {
+  cache_pulled_images_to_local_repository &
+  trap_kill "$!"
+  load_failed_images_pull_from_local_repository &
+  trap_kill "$!"
+}
+
 setup_repository_cache() {
   if [ "$E2E_DISABLE_CACHE" = "true" ]
   then
@@ -13,10 +29,6 @@ setup_repository_cache() {
 
 traceable_setup_repository_cache() {
   load_cached_images_from_local_repository
-  cache_pulled_images_to_local_repository &
-  trap_kill "$!"
-  load_failed_images_pull_from_local_repository &
-  trap_kill "$!"
 }
 
 set_up_private_repository() {

@@ -220,6 +220,8 @@ fi
 
 echo "Preparing environment"
 
+echo "Start background repository cache"
+start_background_repository_cache
 echo "Setup k8s"
 setup_k8s
 echo "Setup images"
