@@ -276,13 +276,6 @@ public class ShardedBackupCronJobV1Beta1
                             .orElse("300"))
                         .build(),
                         new EnvVarBuilder()
-                        .withName("SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
-                        .withValue(backupConfig
-                            .map(StackGresShardedClusterBackupConfiguration::getRetainWalsForUnmanagedLifecycle)
-                            .map(String::valueOf)
-                            .orElse("false"))
-                        .build(),
-                        new EnvVarBuilder()
                         .withName("CLUSTER_CRD_NAME")
                         .withValue(CustomResource.getCRDName(StackGresCluster.class))
                         .build(),

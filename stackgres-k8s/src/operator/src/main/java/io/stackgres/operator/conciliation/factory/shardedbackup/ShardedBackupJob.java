@@ -60,7 +60,6 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.shardedcluster.ShardedClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.shardedcluster.ShardedClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.shardedcluster.backup.ShardedBackupCronRole;
-import io.stackgres.operator.conciliation.shardedbackup.ShardedBackupConfiguration;
 import io.stackgres.operator.conciliation.shardedbackup.StackGresShardedBackupContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
@@ -168,7 +167,6 @@ public class ShardedBackupJob
     String name = backup.getMetadata().getName();
     String uid = backup.getMetadata().getUid();
     String clusterName = backup.getSpec().getSgShardedCluster();
-    var backupConfig = context.getBackupConfiguration();
 
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
     return new JobBuilder()
@@ -302,13 +300,6 @@ public class ShardedBackupJob
                         .getReconciliationTimeout())
                         .map(String::valueOf)
                         .orElse("300"))
-                    .build(),
-                    new EnvVarBuilder()
-                    .withName("SHARDED_BACKUP_RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
-                    .withValue(Optional.of(backupConfig)
-                        .map(ShardedBackupConfiguration::retainWalsForUnmanagedLifecycle)
-                        .map(String::valueOf)
-                        .orElse("false"))
                     .build(),
                     new EnvVarBuilder()
                     .withName("CLUSTER_CRD_NAME")
