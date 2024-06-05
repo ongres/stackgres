@@ -18,7 +18,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.VolumeResourceRequirementsBuilder;
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.stackgres.common.resource.ResourceFinder;
@@ -291,7 +291,7 @@ class PersistentVolumeSizeReconciliatorTest {
             .withNamespace(namespace)
             .endMetadata()
             .withNewSpec()
-            .withResources(new VolumeResourceRequirementsBuilder()
+            .withResources(new ResourceRequirementsBuilder()
                 .withRequests(Map.of("storage", new Quantity(pvSize)))
                 .build())
             .endSpec()

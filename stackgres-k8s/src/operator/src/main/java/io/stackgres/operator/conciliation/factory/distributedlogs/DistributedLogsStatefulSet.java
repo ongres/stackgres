@@ -80,7 +80,7 @@ public class DistributedLogsStatefulSet
 
     final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
-        .withResources(dataStorageConfig.getVolumeResourceRequirements())
+        .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass());
 
     final Map<String, String> labels = labelFactory.clusterLabels(cluster);

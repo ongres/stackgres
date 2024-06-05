@@ -145,8 +145,7 @@
         </plugins>
       </build>
       <properties>
-        <quarkus.native.enabled>true</quarkus.native.enabled>
-        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+        <quarkus.package.type>native</quarkus.package.type>
       </properties>
     </profile>
     <profile>

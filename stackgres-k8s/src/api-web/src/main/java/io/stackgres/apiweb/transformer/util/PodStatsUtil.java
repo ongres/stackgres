@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.kubernetes.api.model.VolumeResourceRequirements;
 import io.stackgres.apiweb.resource.PatroniStatsScripts;
 import io.stackgres.apiweb.resource.PodStats;
 import io.stackgres.common.resource.ResourceUtil;
@@ -119,7 +118,7 @@ public interface PodStatsUtil {
   static Optional<BigInteger> getPodDiskRequested(PodStats podStats) {
     return podStats.v3.map(PersistentVolumeClaim::getSpec)
     .map(PersistentVolumeClaimSpec::getResources)
-    .map(VolumeResourceRequirements::getRequests)
+    .map(ResourceRequirements::getRequests)
     .filter(r -> r.containsKey("storage"))
     .map(r -> r.get("storage"))
     .map(q -> q.getFormat() == null || q.getFormat().isEmpty()
