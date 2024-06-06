@@ -115,7 +115,7 @@ public class DbOpsRestartJob implements DbOpsJobFactory {
                 .orElse(null))
             .build())
         .withContainers(new ContainerBuilder()
-            .withName("restart")
+            .withName("run-dbops")
             .withImagePullPolicy(getDefaultPullPolicy())
             .withImage(getImageName())
             .addToEnv(

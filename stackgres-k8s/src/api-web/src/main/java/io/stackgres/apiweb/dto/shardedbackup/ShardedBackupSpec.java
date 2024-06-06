@@ -17,6 +17,12 @@ public class ShardedBackupSpec {
 
   private Boolean managedLifecycle;
 
+  private Integer timeout;
+
+  private Integer reconciliationTimeout;
+
+  private Integer maxRetries;
+
   public String getSgShardedCluster() {
     return sgShardedCluster;
   }
@@ -31,6 +37,30 @@ public class ShardedBackupSpec {
 
   public void setManagedLifecycle(Boolean managedLifecycle) {
     this.managedLifecycle = managedLifecycle;
+  }
+
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public Integer getReconciliationTimeout() {
+    return reconciliationTimeout;
+  }
+
+  public void setReconciliationTimeout(Integer reconciliationTimeout) {
+    this.reconciliationTimeout = reconciliationTimeout;
+  }
+
+  public Integer getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(Integer maxRetries) {
+    this.maxRetries = maxRetries;
   }
 
   @Override

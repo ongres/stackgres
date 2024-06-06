@@ -108,7 +108,7 @@ spec:
                 description: |
                   The maximum number of retries the operation is allowed to do after a failure.
 
-                  A value of `0` (zero) means no retries are made. Can not be greater than `10`. Defaults to: `0`.
+                  A value of `0` (zero) means no retries are made. Defaults to: `0`.
               benchmark:
                 type: object
                 description: |

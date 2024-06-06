@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export E2E_DISABLE_RESOURCE_REQUIREMENTS="${E2E_DISABLE_RESOURCE_REQUIREMENTS:-true}"
-export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-16.1}"
+export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-16.2}"
 export E2E_POSTGRES_BABELFISH_VERSION="${E2E_POSTGRES_BABELFISH_VERSION:-16.1}"
 
 create_or_replace_cluster_without_defaults() {
@@ -522,8 +522,8 @@ remove_sharded_cluster() {
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found --wait=true -f -
   helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  wait_until eval 'helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -'
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
 }
 

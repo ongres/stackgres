@@ -2,6 +2,22 @@
 
 export E2E_PULLED_IMAGES_PATH="${E2E_PULLED_IMAGES_PATH:-$TARGET_PATH/pulled-images}"
 
+start_background_repository_cache() {
+  if [ "$E2E_DISABLE_CACHE" = "true" ]
+  then
+    echo "Repository cache disabled"
+    return
+  fi
+  notrace_function traceable_start_background_repository_cache "$@"
+}
+
+traceable_start_background_repository_cache() {
+  cache_pulled_images_to_local_repository &
+  trap_kill "$!"
+  load_failed_images_pull_from_local_repository &
+  trap_kill "$!"
+}
+
 setup_repository_cache() {
   if [ "$E2E_DISABLE_CACHE" = "true" ]
   then
@@ -13,10 +29,6 @@ setup_repository_cache() {
 
 traceable_setup_repository_cache() {
   load_cached_images_from_local_repository
-  cache_pulled_images_to_local_repository &
-  trap_kill "$!"
-  load_failed_images_pull_from_local_repository &
-  trap_kill "$!"
 }
 
 set_up_private_repository() {
@@ -181,6 +193,7 @@ cache_pulled_images_to_local_repository() {
   then
     touch "$E2E_PULLED_IMAGES_PATH"
   fi
+  wait_until kubectl get event --all-namespaces -o json >/dev/null 2>&1
   event_watch --follow \
     | stdbuf -o0 grep '\sSuccessfully pulled image "[^"]\+"' \
     | stdbuf -o0 sed 's/^.*\sSuccessfully pulled image "\([^"]\+\)".*$/\1/' \
@@ -206,7 +219,8 @@ cache_pulled_images_to_local_repository() {
 
 load_failed_images_pull_from_local_repository() {
   echo "Looking for failed images pull to load from local repository"
-  event_watch  --follow \
+  wait_until kubectl get event --all-namespaces -o json >/dev/null 2>&1
+  event_watch --follow \
     | stdbuf -o0 grep '\s\(Failed to pull image\|Back-off pulling image\) "[^"]\+"' \
     | stdbuf -o0 sed 's/^.*\s\(Failed to pull image\|Back-off pulling image\) "\([^"]\+\)".*$/\2/' \
     | (

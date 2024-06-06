@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
@@ -27,6 +28,8 @@ class ShardedDbOpsResourceGenerationDiscovererTest
   @Inject
   ShardedDbOpsResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
+  private StackGresConfig config;
+
   private StackGresShardedDbOps resource;
 
   private StackGresShardedCluster cluster;
@@ -35,6 +38,7 @@ class ShardedDbOpsResourceGenerationDiscovererTest
 
   @BeforeEach
   public void setup() {
+    this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.shardedDbOps().loadRestart().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
     this.cluster = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
@@ -68,6 +72,7 @@ class ShardedDbOpsResourceGenerationDiscovererTest
     resource.setStatus(status);
     resource.getSpec().setMaxRetries(10);
     return ImmutableStackGresShardedDbOpsContext.builder()
+        .config(config)
         .source(resource)
         .foundShardedCluster(cluster)
         .foundProfile(profile)

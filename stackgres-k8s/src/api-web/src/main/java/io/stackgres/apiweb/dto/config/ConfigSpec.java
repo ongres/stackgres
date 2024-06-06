@@ -11,6 +11,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.LocalObjectReference;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -19,6 +20,8 @@ public class ConfigSpec {
   private String containerRegistry;
 
   private String imagePullPolicy;
+
+  private List<LocalObjectReference> imagePullSecrets;
 
   private List<String> allowedNamespaces;
 
@@ -72,6 +75,14 @@ public class ConfigSpec {
 
   public void setImagePullPolicy(String imagePullPolicy) {
     this.imagePullPolicy = imagePullPolicy;
+  }
+
+  public List<LocalObjectReference> getImagePullSecrets() {
+    return imagePullSecrets;
+  }
+
+  public void setImagePullSecrets(List<LocalObjectReference> imagePullSecrets) {
+    this.imagePullSecrets = imagePullSecrets;
   }
 
   public List<String> getAllowedNamespaces() {

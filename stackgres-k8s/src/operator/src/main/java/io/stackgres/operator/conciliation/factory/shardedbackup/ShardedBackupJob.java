@@ -47,6 +47,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
@@ -175,7 +176,10 @@ public class ShardedBackupJob
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withBackoffLimit(3)
+        .withBackoffLimit(Optional.of(backup)
+            .map(StackGresShardedBackup::getSpec)
+            .map(StackGresShardedBackupSpec::getMaxRetries)
+            .orElse(3))
         .withParallelism(1)
         .withNewTemplate()
         .withNewMetadata()
@@ -282,6 +286,20 @@ public class ShardedBackupJob
                         .map(managedLifecycle -> !managedLifecycle)
                         .map(String::valueOf)
                         .orElse("true"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("SHARDED_BACKUP_TIMEOUT")
+                    .withValue(Optional.ofNullable(backup.getSpec()
+                        .getTimeout())
+                        .map(String::valueOf)
+                        .orElse("null"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("SHARDED_BACKUP_RECONCILIATION_TIMEOUT")
+                    .withValue(Optional.ofNullable(backup.getSpec()
+                        .getReconciliationTimeout())
+                        .map(String::valueOf)
+                        .orElse("300"))
                     .build(),
                     new EnvVarBuilder()
                     .withName("CLUSTER_CRD_NAME")

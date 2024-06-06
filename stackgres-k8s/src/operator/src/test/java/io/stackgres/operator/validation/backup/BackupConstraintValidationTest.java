@@ -11,6 +11,7 @@ import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
+import jakarta.validation.constraints.Min;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +49,17 @@ class BackupConstraintValidationTest extends ConstraintValidationTest<BackupRevi
     backupReview.getRequest().getObject().getSpec().setSgCluster(null);
 
     checkNotNullErrorCause(StackGresBackupSpec.class, "spec.sgCluster", backupReview);
+  }
+
+  @Test
+  void invalidLowMaxRetries_shouldFail() {
+
+    final BackupReview backupReview = getValidReview();
+    backupReview.getRequest().getObject().getSpec().setMaxRetries(-1);
+
+    checkErrorCause(StackGresBackupSpec.class, "spec.maxRetries",
+        backupReview, Min.class);
+
   }
 
 }

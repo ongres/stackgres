@@ -25,6 +25,10 @@ public interface KubernetesClientUtil {
   static boolean isConflict(Throwable ex) {
     return ex instanceof KubernetesClientException kce
         && kce.getCode() == Response.Status.CONFLICT.getStatusCode()
+        // The HTTP 409 conflict may be returned when a resource has been removed
+        //  making the function to loop forever since such situation can not be recovered
+        //  by simply retrying. To avoid this situation we have to filter the error
+        //  message.
         && kce.getMessage().contains("the object has been modified");
   }
 

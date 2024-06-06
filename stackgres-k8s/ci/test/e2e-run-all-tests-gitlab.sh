@@ -119,8 +119,6 @@ run_all_tests_loop() {
 
   echo
 
-  unset DEBUG
-
   echo "Running e2e tests..."
 
   # shellcheck disable=SC2086
@@ -238,7 +236,7 @@ run_with_e2e_lock() {
       EXIT_CODE="$?"
       if [ -f "/tmp/stackgres-integration-test$POSSIBLE_SUFFIX-was-locked-by-$CI_JOB_ID" ]
       then
-        rm -f "/tmp/stackgres-integration-test$SUFFIX-was-locked-by-$CI_JOB_ID"
+        rm -f "/tmp/stackgres-integration-test$POSSIBLE_SUFFIX-was-locked-by-$CI_JOB_ID"
         return "$EXIT_CODE"
       fi
     done

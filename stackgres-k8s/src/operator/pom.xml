@@ -40,7 +40,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-client</artifactId>
+      <artifactId>quarkus-rest-client</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -161,8 +161,7 @@
         </property>
       </activation>
       <properties>
-        <quarkus.native.enabled>true</quarkus.native.enabled>
-        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+        <quarkus.package.type>native</quarkus.package.type>
       </properties>
     </profile>
     <profile>

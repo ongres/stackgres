@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.impl.BaseClient;
@@ -131,7 +130,6 @@ public class CrdInstaller {
     LOGGER.info("Installing CRDs");
     crdLoader.scanCrds()
         .stream()
-        .map(this::fixCrd)
         .forEach(this::installCrd);
   }
 
@@ -149,7 +147,6 @@ public class CrdInstaller {
       }
       updateAlreadyInstalledVersions(currentCrd, installedCrd);
       crdResourceWriter.update(installedCrd, foundCrd -> {
-        fixCrd(installedCrd);
         setOperatorVersion(foundCrd);
         foundCrd.setSpec(installedCrd.getSpec());
         if (LOGGER.isTraceEnabled()) {
@@ -204,7 +201,6 @@ public class CrdInstaller {
     disableStorageVersions(installedCrd);
     addNewSchemaVersions(currentCrd, installedCrd);
     crdResourceWriter.update(installedCrd, foundCrd -> {
-      fixCrd(installedCrd);
       foundCrd.setSpec(installedCrd.getSpec());
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Updating CRD:\n{}",
@@ -271,32 +267,6 @@ public class CrdInstaller {
 
     if (installedCrdOpt.isEmpty()) {
       throw new RuntimeException("CRD " + currentCrd.getMetadata().getName() + " was not found.");
-    }
-  }
-
-  private CustomResourceDefinition fixCrd(CustomResourceDefinition crd) {
-    crd.getSpec().getVersions()
-        .forEach(crdVersion -> fixOpenApiProps(
-            "openAPIV3Schema",
-            crdVersion.getSchema().getOpenAPIV3Schema()));
-    return crd;
-  }
-
-  private void fixOpenApiProps(String key, JSONSchemaProps props) {
-    LOGGER.trace("Inspecting key {}", key);
-    if (props == null) {
-      return;
-    }
-    if (props.getDependencies() != null) {
-      LOGGER.trace("Setting dependencies null for key {}", key);
-      props.setDependencies(null);
-    }
-    props.getProperties().entrySet().forEach(e -> fixOpenApiProps(
-        key + "." + e.getKey(), e.getValue()));
-    props.getDefinitions().entrySet().forEach(e -> fixOpenApiProps(
-        key + "." + e.getKey(), e.getValue()));
-    if (props.getItems() != null) {
-      fixOpenApiProps(key + "[]", props.getItems().getSchema());
     }
   }
 

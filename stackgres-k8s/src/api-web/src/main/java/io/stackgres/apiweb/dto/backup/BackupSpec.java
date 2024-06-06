@@ -21,6 +21,8 @@ public class BackupSpec {
 
   private Integer reconciliationTimeout;
 
+  private Integer maxRetries;
+
   public String getSgCluster() {
     return sgCluster;
   }
@@ -51,6 +53,14 @@ public class BackupSpec {
 
   public void setReconciliationTimeout(Integer reconciliationTimeout) {
     this.reconciliationTimeout = reconciliationTimeout;
+  }
+
+  public Integer getMaxRetries() {
+    return maxRetries;
+  }
+
+  public void setMaxRetries(Integer maxRetries) {
+    this.maxRetries = maxRetries;
   }
 
   @Override

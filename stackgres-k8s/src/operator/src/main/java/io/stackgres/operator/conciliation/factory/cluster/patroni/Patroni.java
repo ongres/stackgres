@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -50,6 +49,7 @@ import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMount
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -57,6 +57,8 @@ import jakarta.inject.Singleton;
 @OperatorVersionBinder
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<ClusterContainerContext> {
+
+  private static final String POD_MONITOR = "-patroni";
 
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
@@ -70,6 +72,12 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final PatroniVolumeMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
   private final PatroniConfigMap patroniConfigMap;
+
+  public static String podMonitorName(StackGresClusterContext clusterContext) {
+    String namespace = clusterContext.getSource().getMetadata().getNamespace();
+    String name = clusterContext.getSource().getMetadata().getName();
+    return ResourceUtil.resourceName(namespace + "-" + name + POD_MONITOR);
+  }
 
   @Inject
   public Patroni(
@@ -155,22 +163,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withCommand("/bin/sh", "-ex",
             ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withImagePullPolicy(getDefaultPullPolicy())
-        .withPorts(
-            new ContainerPortBuilder()
-                .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-                .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT)
-                .build(),
-            new ContainerPortBuilder()
-                .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-                .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
-                .build(),
-            new ContainerPortBuilder()
-                .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
-                .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
-                .build())
         .withVolumeMounts(volumeMounts.build())
         .withEnv(getEnvVars(context))
         .withEnvFrom(new EnvFromSourceBuilder()

@@ -192,6 +192,7 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             bc.getFastVolumeSnapshot(),
             bc.getTimeout(),
             bc.getReconciliationTimeout(),
+            bc.getMaxRetries(),
             bc.getRetainWalsForUnmanagedLifecycle()));
   }
 
@@ -263,6 +264,7 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             null,
             null,
             null,
+            null,
             null));
   }
 
@@ -284,6 +286,7 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                 bp.getUploadConcurrency(),
                 bp.getDownloadConcurrency()))
             .orElse(null),
+            null,
             null,
             null,
             null,

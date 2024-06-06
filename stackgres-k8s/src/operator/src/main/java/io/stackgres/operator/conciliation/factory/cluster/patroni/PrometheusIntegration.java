@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
+package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +71,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
     PodMonitor podMonitor = new PodMonitor();
     podMonitor.setMetadata(new ObjectMetaBuilder()
         .withNamespace(prometheusInstallation.getNamespace())
-        .withName(Envoy.podMonitorName(context))
+        .withName(Patroni.podMonitorName(context))
         .withLabels(ImmutableMap.<String, String>builder()
             .putAll(prometheusInstallation.getMatchLabels())
             .putAll(crossNamespaceLabels)
@@ -88,8 +88,8 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
     selector.setMatchLabels(clusterSelectorLabels);
     Endpoint endpoint = new Endpoint();
-    endpoint.setPort(EnvoyUtil.ENVOY_PORT_NAME);
-    endpoint.setPath("/stats/prometheus");
+    endpoint.setPort(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME);
+    endpoint.setPath("/metrics");
     spec.setPodMetricsEndpoints(Collections.singletonList(endpoint));
     return podMonitor;
   }

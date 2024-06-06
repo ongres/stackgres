@@ -115,7 +115,7 @@ public class DbOpsMinorVersionUpgradeJob implements DbOpsJobFactory {
                 .orElse(null))
             .build())
         .withContainers(new ContainerBuilder()
-            .withName("minor-version-upgrade")
+            .withName("run-dbops")
             .withImagePullPolicy(getDefaultPullPolicy())
             .withImage(getImageName())
             .addToEnv(new EnvVarBuilder()

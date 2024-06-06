@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
+import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigServiceAccount;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForConfig;
@@ -26,6 +27,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -73,12 +75,19 @@ public class WebConsoleServiceAccount
             .map(StackGresConfigServiceAccount::getAnnotations)
             .orElse(null))
         .endMetadata()
-        .withImagePullSecrets(Optional.of(config.getSpec())
-            .map(StackGresConfigSpec::getServiceAccount)
+        .withImagePullSecrets(Seq.seq(Optional.of(config.getSpec())
+            .map(StackGresConfigSpec::getRestapi)
+            .map(StackGresConfigRestapi::getServiceAccount)
             .map(StackGresConfigServiceAccount::getRepoCredentials)
-            .stream()
+            .map(repoCredentials -> repoCredentials.stream()
+                .map(LocalObjectReference::new)
+                .toList()))
+            .append(Optional.ofNullable(context.getSource().getSpec().getImagePullSecrets())
+                .map(imagePullSecrets -> imagePullSecrets
+                    .stream()
+                    .map(LocalObjectReference.class::cast)
+                    .toList()))
             .flatMap(List::stream)
-            .map(LocalObjectReference::new)
             .toList())
         .build());
   }

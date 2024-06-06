@@ -32,18 +32,6 @@ spec:
 
           > **WARNING**: Creating more than one SGConfig is forbidden in order to avoid misbehaviours. The single SGConfig should be created automatically during installation.
         properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
           spec:
             description: Spec defines the desired state of SGConfig
             type: object
@@ -59,6 +47,17 @@ spec:
                 type: string
                 default: "IfNotPresent"
                 description: Image pull policy used for images loaded by the Operator
+              imagePullSecrets:
+                type: array
+                description: |
+                  The list of references to secrets in the same namespace where a ServiceAccount is created by the operator to use for pulling any images in pods that reference such ServiceAccount. ImagePullSecrets are distinct from Secrets because Secrets can be mounted in the pod, but ImagePullSecrets are only accessed by the kubelet. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+                items:
+                  type: object
+                  description: A reference to a secrets in the same namespace where a ServiceAccount is created by the operator to use for pulling any images in pods that reference such ServiceAccount.
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the referenced Secret.
               allowedNamespaces:
                 type: array
                 description: |

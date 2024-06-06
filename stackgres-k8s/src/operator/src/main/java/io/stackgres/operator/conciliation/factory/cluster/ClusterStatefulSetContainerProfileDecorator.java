@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,11 +93,17 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
     if (memoryLimit != null) {
       limits.put("memory", memoryLimit);
     }
-    boolean disableResourcesRequestsSplitFromTotal =
+    final boolean disableResourcesRequestsSplitFromTotal =
         Optional.of(context.getCluster().getSpec())
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getResources)
         .map(StackGresClusterResources::getDisableResourcesRequestsSplitFromTotal)
+        .orElse(false);
+    final boolean failWhenTotalIsHigher =
+        Optional.of(context.getCluster().getSpec())
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getResources)
+        .map(StackGresClusterResources::getFailWhenTotalIsHigher)
         .orElse(false);
     final Quantity cpuRequest = Optional.of(profile.getSpec())
         .map(StackGresProfileSpec::getRequests)
@@ -152,10 +159,30 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
         .orElse(null);
     final var requests = new HashMap<String, Quantity>();
     if (cpuRequest != null) {
-      requests.put("cpu", cpuRequest);
+      if (cpuRequest.getNumericalAmount().compareTo(BigDecimal.ZERO) < 0) {
+        if (failWhenTotalIsHigher) {
+          throw new IllegalArgumentException(
+              "Can not set a negative quantity " + cpuRequest.getAmount() + cpuRequest.getFormat()
+              + " for cpu requests of patroni container, please increase the `.spec.requests.cpu`"
+              + " of the referenced SGInstanceProfile");
+        }
+        requests.put("cpu", new Quantity("0"));
+      } else {
+        requests.put("cpu", cpuRequest);
+      }
     }
     if (memoryRequest != null) {
-      requests.put("memory", memoryRequest);
+      if (memoryRequest.getNumericalAmount().compareTo(BigDecimal.ZERO) < 0) {
+        if (failWhenTotalIsHigher) {
+          throw new IllegalArgumentException(
+              "Can not set a negative quantity " + memoryRequest.getAmount() + memoryRequest.getFormat()
+              + " for memory requests of patroni container, please increase the `.spec.requests.memory`"
+              + " of the referenced SGInstanceProfile");
+        }
+        requests.put("memory", new Quantity("0"));
+      } else {
+        requests.put("memory", memoryRequest);
+      }
     }
     setHugePages1Gi(profile, requests, limits);
     setHugePages2Mi(profile, requests, limits);

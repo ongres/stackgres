@@ -242,6 +242,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
               .withFastVolumeSnapshot(backup.getFastVolumeSnapshot())
               .withTimeout(backup.getTimeout())
               .withReconciliationTimeout(backup.getReconciliationTimeout())
+              .withMaxRetries(backup.getMaxRetries())
               .withRetainWalsForUnmanagedLifecycle(backup.getRetainWalsForUnmanagedLifecycle())
               .build()));
         });
@@ -476,6 +477,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
           spec.getPods().getResources().setDisableResourcesRequestsSplitFromTotal(
               specOverride.getPodsForShards().getResources()
               .getDisableResourcesRequestsSplitFromTotal());
+        }
+        if (specOverride.getPodsForShards().getResources()
+            .getFailWhenTotalIsHigher() != null) {
+          spec.getPods().getResources().setFailWhenTotalIsHigher(
+              specOverride.getPodsForShards().getResources()
+              .getFailWhenTotalIsHigher());
         }
       }
       if (specOverride.getPodsForShards().getScheduling() != null) {

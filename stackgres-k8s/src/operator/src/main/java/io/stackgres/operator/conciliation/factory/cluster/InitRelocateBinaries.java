@@ -16,6 +16,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import jakarta.inject.Inject;
@@ -30,12 +31,16 @@ public class InitRelocateBinaries implements ContainerFactory<ClusterContainerCo
 
   private final ScriptTemplatesVolumeMounts templateMounts;
 
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+
   @Inject
   public InitRelocateBinaries(
       PostgresExtensionMounts postgresExtensionsMounts,
-      ScriptTemplatesVolumeMounts templateMounts) {
+      ScriptTemplatesVolumeMounts templateMounts,
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.postgresExtensionsMounts = postgresExtensionsMounts;
     this.templateMounts = templateMounts;
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
   @Override
@@ -50,7 +55,8 @@ public class InitRelocateBinaries implements ContainerFactory<ClusterContainerCo
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
         .withEnv(postgresExtensionsMounts.getDerivedEnvVars(context))
-        .withVolumeMounts(templateMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(templateMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .addToVolumeMounts(new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
             .withMountPath(ClusterPath.PG_BASE_PATH.path())

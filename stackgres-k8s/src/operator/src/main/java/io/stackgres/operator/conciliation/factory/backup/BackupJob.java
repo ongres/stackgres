@@ -38,6 +38,7 @@ import io.stackgres.common.VolumeSnapshotUtil;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
+import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
@@ -173,7 +174,10 @@ public class BackupJob
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withBackoffLimit(3)
+        .withBackoffLimit(Optional.of(backup)
+            .map(StackGresBackup::getSpec)
+            .map(StackGresBackupSpec::getMaxRetries)
+            .orElse(3))
         .withParallelism(1)
         .withNewTemplate()
         .withNewMetadata()

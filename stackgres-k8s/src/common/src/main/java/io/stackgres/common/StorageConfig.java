@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.VolumeResourceRequirements;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import org.immutables.value.Value;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,8 +35,8 @@ public abstract class StorageConfig {
    * The request definition for StorageConfig.
    */
   @Value.Lazy
-  public VolumeResourceRequirements getVolumeResourceRequirements() {
-    VolumeResourceRequirements rr = new VolumeResourceRequirements();
+  public ResourceRequirements getResourceRequirements() {
+    ResourceRequirements rr = new ResourceRequirements();
     rr.setRequests(getStorage());
     return rr;
   }

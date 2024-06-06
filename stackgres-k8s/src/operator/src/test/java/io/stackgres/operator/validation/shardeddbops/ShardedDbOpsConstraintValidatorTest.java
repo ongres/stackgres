@@ -30,7 +30,6 @@ import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import org.junit.jupiter.api.Test;
@@ -134,17 +133,6 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.maxRetries",
         review, Min.class);
-
-  }
-
-  @Test
-  void invalidHighMaxRetries_shouldFail() {
-
-    ShardedDbOpsReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setMaxRetries(11);
-
-    checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.maxRetries",
-        review, Max.class);
 
   }
 

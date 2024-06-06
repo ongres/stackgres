@@ -6,9 +6,11 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRuleBuilder;
@@ -75,6 +77,10 @@ public class PatroniRole implements
         .withNamespace(serviceAccountNamespace)
         .withLabels(labels)
         .endMetadata()
+        .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
+            .stream()
+            .map(LocalObjectReference.class::cast)
+            .toList())
         .build();
   }
 

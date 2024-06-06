@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.Toleration;
+import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
@@ -690,6 +691,24 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterBackupConfiguration.class,
         "spec.configurations.backups[0].sgObjectStorage",
         review, NotNull.class, "must not be null");
+  }
+
+  @Test
+  void invalidBackupsLowMaxRetries_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups()
+        .add(new StackGresClusterBackupConfiguration());
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
+        .setPath("test");
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
+        .setSgObjectStorage("test");
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
+        .setMaxRetries(-1);
+
+    checkErrorCause(StackGresBackupSpec.class, "spec.configurations.backups[0].maxRetries",
+        review, Min.class);
+
   }
 
   @Test

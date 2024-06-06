@@ -839,6 +839,15 @@ spec:
                            requests of the patroni container and the total resources requests calculated by adding the resources requests of all the containers (including the patroni container).
     
                           **Changing this field may require a restart.**
+                      failWhenTotalIsHigher:
+                        type: boolean
+                        description: |
+                          When set to `true` the reconciliation of the cluster will fail if `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                           of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`.
+                          
+                          When `false` (the default) and `disableResourcesRequestsSplitFromTotal` is not set or set to `false` and the sum of the CPU or memory
+                           of all the containers except patroni is equals or higher than the total specified in `SGInstanceProfile.spec.requests.cpu` or `SGInstanceProfile.spec.requests.memory`
+                           then the patroni container resources will be set to 0.
                   scheduling:
                     type: object
                     description: |
@@ -1172,6 +1181,12 @@ spec:
                             
                             Failure of reconciliation will not make the backup fail and will be re-tried the next time a SGBackup
                              or shecduled backup Job take place.
+                        maxRetries:
+                          type: integer
+                          description: |
+                            The maximum number of retries the backup operation is allowed to do after a failure.
+          
+                            A value of `0` (zero) means no retries are made. Defaults to: `3`.
                         retainWalsForUnmanagedLifecycle:
                           type: boolean
                           description: |

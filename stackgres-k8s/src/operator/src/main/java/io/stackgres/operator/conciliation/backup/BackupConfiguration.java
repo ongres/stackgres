@@ -16,6 +16,7 @@ public record BackupConfiguration(
     Boolean fastVolumeSnapshot,
     Integer timeout,
     Integer reconciliationTimeout,
+    Integer maxRetries,
     Boolean retainWalsForUnmanagedLifecycle
 ) {
 }
