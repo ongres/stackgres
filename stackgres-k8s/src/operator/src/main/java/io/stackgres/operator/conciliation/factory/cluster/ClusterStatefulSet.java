@@ -106,7 +106,7 @@ public class ClusterStatefulSet
 
     final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
-        .withResources(dataStorageConfig.getResourceRequirements())
+        .withResources(dataStorageConfig.getVolumeResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass())
         .withDataSource(context.getRestoreBackup()
             .filter(backpup -> context.getCurrentInstances() < 1)
