@@ -1,7 +1,7 @@
 apiVersion: v2
 name: stackgres-cluster
-version: "1.11.0-rc1"
-kubeVersion: "1.18.0-0 - 1.29.x-0"
+version: "1.12.0-SNAPSHOT"
+kubeVersion: "1.18.0-0 - 1.30.x-0"
 description: StackGres Cluster
 keywords:
   - stackgres

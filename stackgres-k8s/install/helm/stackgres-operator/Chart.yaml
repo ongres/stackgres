@@ -1,7 +1,7 @@
 apiVersion: v2
 name: stackgres-operator
-version: "1.11.0-rc1"
-kubeVersion: "1.18.0-0 - 1.29.x-O"
+version: "1.12.0-SNAPSHOT"
+kubeVersion: "1.18.0-0 - 1.30.x-O"
 description: StackGres Operator
 keywords:
   - stackgres
