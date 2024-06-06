@@ -9,7 +9,7 @@ event_watch() {
     case "$1" in
       -n|--namespace)
         shift
-        NAMESPACE="--namespace $1"
+        NAMESPACE="--namespace=$1"
         shift
         ;;
       -o)
@@ -27,8 +27,8 @@ event_watch() {
         ;;
     esac
   done
-  trap_exec "$SHELL" $SHELL_XTRACE -c "while true; do kubectl get event \"$NAMESPACE\" -o json \
-      $(if [ "$FOLLOW" = true ]; then printf %s --watch; fi); done" \
+  trap_exec kubectl get event "$NAMESPACE" -o json 2>/dev/null \
+        $(if [ "$FOLLOW" = true ]; then printf %s --watch; fi) \
     | jq --unbuffered -r "$(if [ "$FOLLOW" != true ]; then printf '.items[]|'; fi)"'.metadata.namespace + " " + .metadata.name' \
     | {
       set +x

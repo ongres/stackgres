@@ -193,6 +193,7 @@ cache_pulled_images_to_local_repository() {
   then
     touch "$E2E_PULLED_IMAGES_PATH"
   fi
+  wait_until kubectl get event --all-namespaces -o json >/dev/null 2>&1
   event_watch --follow \
     | stdbuf -o0 grep '\sSuccessfully pulled image "[^"]\+"' \
     | stdbuf -o0 sed 's/^.*\sSuccessfully pulled image "\([^"]\+\)".*$/\1/' \
@@ -218,7 +219,8 @@ cache_pulled_images_to_local_repository() {
 
 load_failed_images_pull_from_local_repository() {
   echo "Looking for failed images pull to load from local repository"
-  event_watch  --follow \
+  wait_until kubectl get event --all-namespaces -o json >/dev/null 2>&1
+  event_watch --follow \
     | stdbuf -o0 grep '\s\(Failed to pull image\|Back-off pulling image\) "[^"]\+"' \
     | stdbuf -o0 sed 's/^.*\s\(Failed to pull image\|Back-off pulling image\) "\([^"]\+\)".*$/\2/' \
     | (
