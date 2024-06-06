@@ -41,6 +41,7 @@ test_yamls() {
   cat "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" \
     | sed "s|name: stackgres$|name: $OPERATOR_NAMESPACE|" \
     | sed "s|namespace: stackgres$|namespace: $OPERATOR_NAMESPACE|" \
+    | sed "/name: SGCONFIG_NAMESPACE$/{\$!{N;s/name: SGCONFIG_NAMESPACE\n\( *\)value: stackgres$/name: SGCONFIG_NAMESPACE\n\1value: $OPERATOR_NAMESPACE/;ty;P;D;:y}}" \
     | sed "s|image: \"\([^/]\+/\)\?stackgres/operator:.*\"$|image: '$OPERATOR_IMAGE_NAME'|" \
     | sed "${OPERATOR_IMAGE_VERSION_LN}s/value: .*$/value: '$IMAGE_TAG'/" \
     | sed "s|imagePullPolicy:.*[a-zA-Z].*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
@@ -63,6 +64,7 @@ test_yamls() {
 
   grep -qF "name: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "namespace: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -qF "value: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "value: '$IMAGE_TAG'" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "imagePullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
   if [ "$IMAGE_TAG" != "$ADMINUI_IMAGE_TAG" ]

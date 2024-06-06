@@ -143,7 +143,7 @@ is_automatic_backup_cr_completed() {
     | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
   then
     echo "SUCCESS. The automatic backup is available"
   else
@@ -189,7 +189,7 @@ check_manual_backup() {
   fi
 
   if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
   then
     echo "SUCCESS. The full backup of created CR is available"
   else
@@ -240,7 +240,7 @@ check_manual_backup() {
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME"
 
   if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
-      exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
   then
     echo "SUCCESS. The full backup of deleted CR has been removed"
   else
