@@ -7,7 +7,7 @@ PROJECT_PATH ?= ../../../..
 STACKGRES_VERSION ?= $(shell sh $(PROJECT_PATH)/stackgres-k8s/ci/build/version.sh)
 VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
-OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/operator:v1.30.0
+OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/operator:v1.34.2
 BUNDLE_BASE_IMAGE ?= scratch
 CREATE_CONVERSION_WEBHOOKS ?= false
 
