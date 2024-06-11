@@ -3991,7 +3991,7 @@
                                 "groups": (this.replication.groups.filter( g => (g.instances > 0) ))
                             }) )
                         },
-                        ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
+                        ...((this.prometheusAutobind || this.editMode) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                         ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null) || (this.patroniResourceRequirements != null) || (this.clusterResourceRequirements != null) || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                             "nonProductionOptions": { 
                                 ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
