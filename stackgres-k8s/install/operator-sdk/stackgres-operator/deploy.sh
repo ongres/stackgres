@@ -141,6 +141,11 @@ fi
 if [ "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
   != "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml" ]
 then
+  if [ "$RENAME_CSV" = true ]
+  then
+    sed -i "s/^  name: stackgres\.v\(.*\)$/  name: ${PROJECT_NAME}.v\1/" \
+      "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml
+  fi
   mv "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
     "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml"
   sed -i "s/^  operators\.operatorframework\.io\.bundle\.package\.v1: stackgres$/  operators.operatorframework.io.bundle.package.v1: ${PROJECT_NAME}/" \
