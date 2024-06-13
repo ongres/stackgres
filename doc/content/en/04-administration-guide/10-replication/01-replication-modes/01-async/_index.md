@@ -56,7 +56,7 @@ $ kubectl -n failover exec -it cluster-0 -c patroni -- bash - patronictl list
 
 Maybe the variable `syncInstances` caught your attention. As shown above the cluster is composed by 1 Leader and 2 replicas using asynchronous replication. Therefore, we could think that the variable should be set to `0` instances, but the documentation confirms that the variable will take effect only if we enable synchronous replication. Please, be aware of this if there are plans to update the replication mode from async to sync.
 
-Nevertheless, an example is included to demonstrate the innocuous of updating the variable if sync mode is not enabled:
+Nevertheless, an example is included to demonstrate that updating the variable is harmless if sync mode is not enabled:
 
 ```yaml
 cat << EOF | kubectl apply -f -
