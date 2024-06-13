@@ -2,14 +2,14 @@
 title: Synchronous All Replication Mode 
 weight: 4
 url: /administration/replication/modes/sync-all
-description: This section describes the involved steps and concepts under the Stackgres sync-all option.
+description: This section describes the involved steps and concepts of the sync-all replication mode.
 ---
 
-The Stackgres `replication.mode` *sync-all* option instructs Stackgres to create or convert all cluster members as synchronous replicas. As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the synchronous replicas are not tightly coupled to the Leader since Patroni will turn off synchronous replication if no more replicas are avaible.
+The `replication.mode` *sync-all* option allow to create or convert all cluster members as synchronous replicas. As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the synchronous replicas are not tightly coupled to the leader since Patroni will turn off synchronous replication if no more replicas are avaible.
 
 ## Setting up a Cluster with sync-all replica
 
-Setting up such an option is quite simple as all the provided options. Look that the number of `syncIntances` is set to 1 intentionally to demonstrate that `sync-all` precedes the `syncIntances` variable.
+Setting up such an option is quite simple as all the provided options. Look that the number of `syncIntances` is set to 1 intentionally to demonstrate that `sync-all` overrides the `syncIntances` variable.
 
 ```yaml
 cat << EOF | kubectl apply -f -

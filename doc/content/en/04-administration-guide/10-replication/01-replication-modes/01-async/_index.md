@@ -2,14 +2,14 @@
 title: Asynchronous Replication Mode
 weight: 1
 url: /administration/replication/modes/async
-description: This section describes the involved steps and concepts under the Stackgres async option.
+description: This section describes the involved steps and concepts of the async replication mode.
 ---
 
-As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the `replication.mode` *async* option is the default and enables the asynchronous Postgres replication way. This is the most common way of creating a replica in a Postgres cluster, therefore Stackgres follows the same pattern.
+As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the `replication.mode` *async* option is the default and enables the asynchronous Postgres replication mode. This is the most common way of creating a replica in a Postgres cluster.
 
 ## Setting up a Cluster with Asynchronous replicas
 
-Setting up the Stackgres Cluster with asynchronous replica members is quite straightforward. In the [Cluster Creation]({{% relref "04-administration-guide/03-cluster-creation" %}})  section, the example used the default way, async.
+Setting up the StackGres Cluster with asynchronous replica members is quite straightforward. In the [Cluster Creation]({{% relref "04-administration-guide/03-cluster-creation" %}})  section, the example used the default way, async.
 
 Nevertheless, the next box highlight the SGCluster CRD again:
 

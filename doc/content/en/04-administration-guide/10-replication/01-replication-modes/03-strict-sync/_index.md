@@ -2,10 +2,10 @@
 title: Strict Synchronous Replication Mode
 weight: 3
 url: /administration/replication/modes/strict-sync
-description: This section describes the involved steps and concepts under the Stackgres Strict Sync option.
+description: This section describes the involved steps and concepts under the Strict Sync option.
 ---
 
-The Stackgres `replication.mode` *strict-sync* option instructs Stackgres to create one or more cluster members as synchronous replicas. As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the difference between the previous one is that this option sets the Patroni `synchronous_mode_strict` and prevents from switching off the synchronous replication on the primary when no synchronous standby candidates are available. As a downside, the Leader is not enabled for writes (unless the Postgres transaction explicitly turns off synchronous_mode), blocking all client write requests until at least one synchronous replica comes up.
+The `replication.mode` *strict-sync* option instructs to create one or more cluster members as synchronous replicas. As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplication" %}}) the difference with the simple synchronous replication mode is that this option sets the Patroni `synchronous_mode_strict` and prevents from switching off the synchronous replication on the primary when no synchronous standby candidates are available. As a downside, the Leader is not enabled for writes (unless the Postgres transaction explicitly turns off synchronous_mode), blocking all client write requests until at least one synchronous replica comes up.
 
 ## Setting up a Cluster with strict-sync replica
 

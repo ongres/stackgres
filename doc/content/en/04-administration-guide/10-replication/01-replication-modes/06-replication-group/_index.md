@@ -2,14 +2,14 @@
 title: Replication Group Mode
 weight: 6
 url: /administration/replication/modes/replication-group
-description: This section describes the involved steps and concepts under the Stackgres replication group option and roles.
+description: This section describes the involved steps and concepts of the replication groups and roles.
 ---
 
-In Stackgres, the replication group is intended to manage Patroni tags for group members. In this way, it is possible to specify that a certain number of instances are tagged with the Patroni `nofailover` or `noloadbalance` creating groups of members within the cluster that are not taken into account to send reads or not to be promoted as the leader in a failure event. Hence, the role concept is explained at the same time.
+The replication group is intended to manage Patroni tags for group members. In this way, it is possible to specify that a certain number of instances are tagged with the Patroni `nofailover` or `noloadbalance` creating groups of members within the cluster that are not taken into account to send reads or not to be promoted as the leader in a failure event. Hence, the role concept is explained at the same time.
 
 Please, read the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplicationgroupsindex" %}}) for details.
 
-The next example will help to understand the feature by creating a cluster with 6 members, where 3 members are indicated to group a `ha-read` role. The `ha-read` role is the default one, therefore it does not add any specific attribute to these members.
+The next example will help to understand the feature by creating a cluster with 6 members, where 3 members are part of a group with `ha-read` role. The `ha-read` role is the default one, therefore it does not add any specific attribute to these members.
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -58,7 +58,7 @@ $ kubectl -n failover exec -it sync-cluster-0 -c patroni -- patronictl list
 
 ## Updating the `repligation.group.role` to `ha`
 
-The next example starts to make changes to the cluster and shows in action the SG design
+The next example include some changes to the cluster in order to show labels applied to a group with ha role:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -105,7 +105,7 @@ $ kubectl -n failover exec -it sync-cluster-0 -c patroni -- patronictl list
 +----------------+------------------+--------------+-----------+----+-----------+---------------------+
 ```
 
-The primary instance will be elected among all the replication groups that are either ha or ha-read, since the Patroni tag `noloadbalance` was added to the "group"
+The primary instance will be elected among all the replication groups that are either ha or ha-read, since the Patroni tag noloadbalance was added to the ha "group", the members of such group will not be targeted by the read-only service <cluster name>-replicas.
 
 ## Updating the cluster to `readonly` role:
 
