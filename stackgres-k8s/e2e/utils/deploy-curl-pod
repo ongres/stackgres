@@ -11,7 +11,7 @@ deploy_curl_pod() {
     namespace: $NAMESPACE
   spec:
     containers:
-    - image: ongres/kubectl:v1.25.16-build-6.31
+    - image: ongres/kubectl:v1.30.1-build-6.32
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       name: busybox

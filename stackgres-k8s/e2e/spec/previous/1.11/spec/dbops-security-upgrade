@@ -55,6 +55,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
   VERSION_AS_NUMBER_1_3_0="$(get_version_as_number 1.3.0)"
   VERSION_AS_NUMBER_1_3_3="$(get_version_as_number 1.3.3)"
+  VERSION_AS_NUMBER_1_10_0="$(get_version_as_number 1.10.0-SNAPSHOT)"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_3_3" ]
   then
     install_prometheus_operator
@@ -66,7 +67,8 @@ e2e_test_install() {
   fi
   e2e_install_previous_operator
 
-  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create namespace "$CLUSTER_NAMESPACE" 2>/dev/null \
+    || kubectl get namespace "$CLUSTER_NAMESPACE" >/dev/null
 
   install_minio
 
@@ -1004,20 +1006,23 @@ check_backups_path_mutation() {
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_2_0" ]
   then
     PREVIOUS_BACKUP_PATH="$CLUSTER_NAMESPACE/$CLUSTER_1_NAME"
+  elif [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_10_0" ]
+  then
+    PREVIOUS_BACKUP_PATH="^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION$"
   else
-    PREVIOUS_BACKUP_PATH="sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION"
+    PREVIOUS_BACKUP_PATH="^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/[^/]\+/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION$"
   fi
 
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
-    = "$PREVIOUS_BACKUP_PATH" ]
+  if kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }' \
+    | grep -q "$PREVIOUS_BACKUP_PATH"
   then
     echo "SUCCESS. Backup path was added to cluster backup configuration after operator upgrade"
   else
     echo "FAIL. Backup path was not added to cluster backup configuration after operator upgrade"
     return 1
   fi
-  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template '{{ .status.backupPath }}')" \
-    = "$PREVIOUS_BACKUP_PATH" ]
+  if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template '{{ .status.backupPath }}' \
+    | grep -q "$PREVIOUS_BACKUP_PATH"
   then
     echo "SUCCESS. Backup path was added to backup status after operator upgrade"
   else
@@ -1150,6 +1155,8 @@ check_namespace() {
     return 0
   else
     echo "FAIL. Namespace endpoint not return all namespaces"
+    local RETURN EXIT_CODE
+    try_function check_returned_namespaces
     return 1
   fi
 }
@@ -1159,10 +1166,13 @@ check_returned_namespaces() {
   local NAMESPACES_IN_K8S
 
   NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
-    | jq -M -S 'sort_by(.)[]' )"
+    | jq -r -M -S 'sort_by(.)[]' )"
 
-  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
-    | jq -M -S '.items[].metadata.name')"
+  NAMESPACES_IN_K8S="$(
+    [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+      && printf '%s %s' "$E2E_ALLOWED_NAMESPACES $OPERATOR_NAMESPACE" | tr ' ' '\n' | sort | uniq \
+      || kubectl get ns -o json \
+    | jq -r -M -S '.items[].metadata.name')"
 
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }

@@ -1,3 +1,134 @@
+# :rocket: Release 1.11.0 (2024-06-10)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.11.0 brings namespaces scoped operator! :confetti_ball: :champagne: 
+
+You will be able to install the operator under OLM (OperatorHub / OpenShift) or with helm specifying the list of namespaces where the operator will be able to work with. It also offers the ability to disable ClusterRoles for the operator completely (with limitations in functionalities). With the exception of a ClusterRole for the Web Console / REST API if you want to still enable it.
+
+And another load of small features and bugfixes! Do not wait, try this release and help us improve StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support for Kubernetes 1.30
+* Added PostgreSQL 16.3, 15.7, 14.12, 13.15 and 12.19
+* Added wal-g 3.0.1
+* Added usql 0.19.1, pgcenter 0.9.2 and pg_activity 3.5.1
+* Added Babelfish for PostgreSQL 15.5 and 14.10
+* Added fluent-bit 3.0.6
+* Support allowed namespaces for operator
+* Allow to inject imagePullSecrets from the global configuration
+* Added more logs to fluentd and fluentbit
+* Added field maxRetries for SGBackup and SGShardedBackup
+* Added PodMonitor for patroni
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Fluent-bit is not showing postgres logs
+* Using Envoy port name instead of port number in PodMonitor
+* Set patroni requests to 0 instead of a negative value
+* Remove ports from patroni container
+* Password are not updated in pg_dist_authinfo after restoring a sharded backup for citus
+* When setting resources in the SGDbOps job the oprerator fail with a StringIndexOutOfBoundsException
+* Requests and limits can not be set for some SGDbOps
+* Relocate binaries fail with permissions denied
+
+## Web Console
+
+* Reload user permissions list when namespaces list has been updated
+* Flush user permissions on logout
+* When listing storage classes is not allowed, allow users to enter class names manually
+* Prevent graph elements from covering pitr markers
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.11.0/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.11.0)
+
+# :rocket: Release 1.11.0-rc1 (2024-06-06)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.11.0-rc1 brings namespaces scoped operator! :confetti_ball: :champagne: 
+
+You will be able to install the operator under OLM (OperatorHub / OpenShift) or with helm specifying the list of namespaces where the operator will be able to work with. It also offers the ability to disable ClusterRoles for the operator completely (with limitations in functionalities). With the exception of a ClusterRole for the Web Console / REST API if you want to still enable it.
+
+And another load of small features and bugfixes! Do not wait, try this release and help us improve StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Added PostgreSQL 16.3, 15.7, 14.12, 13.15 and 12.19
+* Added wal-g 3.0.1
+* Added usql 0.19.1, pgcenter 0.9.2 and pg_activity 3.5.1
+* Added Babelfish for PostgreSQL 15.5 and 14.10
+* Added Envoy 1.30.1
+* Added Fluent-bit 3.0.4
+* Added Fluentd 1.17.0
+* Support allowed namespaces for operator
+* Allow to inject imagePullSecrets from the global configuration
+* Added more logs to fluentd and fluentbit
+* Added field maxRetries for SGBackup and SGShardedBackup
+* Added PodMonitor for patroni
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Fluent-bit is not showing postgres logs
+* Using Envoy port name instead of port number in PodMonitor
+* Set patroni requests to 0 instead of a negative value
+* Remove ports from patroni container
+* Password are not updated in pg_dist_authinfo after restoring a sharded backup for citus
+* When setting resources in the SGDbOps job the oprerator fail with a StringIndexOutOfBoundsException
+* Requests and limits can not be set for some SGDbOps
+* Relocate binaries fail with permissions denied
+
+## Web Console
+
+* Reload user permissions list when namespaces list has been updated
+* Flush user permissions on logout
+* When listing storage classes is not allowed, allow users to enter class names manually
+* Prevent graph elements from covering pitr markers
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.11.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.11.0-rc1)
+
 # :rocket: Release 1.10.0 (2024-04-29)
 
 ## :notepad_spiral: NOTES

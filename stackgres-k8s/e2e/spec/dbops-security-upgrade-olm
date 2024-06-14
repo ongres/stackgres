@@ -508,6 +508,7 @@ EOF
 {
   "spec": {
     "config": {
+      "resources": {},
       "env":[
         {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
         {"name":"SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER","value":"${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}"},

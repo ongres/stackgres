@@ -43,10 +43,6 @@ import org.slf4j.LoggerFactory;
 public class CrdInstaller {
 
   private static final long OLDEST = StackGresVersion.OLDEST.getVersionAsNumber();
-  /*
-   * When add new version just increase the above to the next minor if latest minor is greater than 2.
-   */
-  private static final long V_1_9 = StackGresVersion.V_1_9.getVersionAsNumber();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CrdInstaller.class);
 
@@ -90,8 +86,7 @@ public class CrdInstaller {
               HasMetadata.getKind(StackGresCluster.class),
               HasMetadata.getKind(StackGresShardedCluster.class),
               HasMetadata.getKind(StackGresDistributedLogs.class))
-              .contains(t.v1.getKind())
-              || t.v2.longValue() > V_1_9))
+              .contains(t.v1.getKind())))
         .toList();
     if (!resourcesRequiringUpgrade.isEmpty()) {
       throw new RuntimeException("Can not upgrade due to some resources still at version"
