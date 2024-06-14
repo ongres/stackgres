@@ -211,6 +211,7 @@ spec:
   installPlanApproval: Manual
   startingCSV: stackgres.v$BUNDLE_STACKGRES_VERSION
   config:
+    resources: {}
     env: [
       $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
       {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
