@@ -155,11 +155,11 @@ $ kubectl -n failover exec -it sync-cluster-0 -c patroni -- patronictl list
 +----------------+------------------+--------------+-----------+----+-----------+------------------+
 ```
 
-The same as the latest example but using the `readonly` role SG added the Patroni `nofailover` tag to the "group", hence these members will never be promoted to Leader.
+The same as the latest example but using the `readonly` role that adds the Patroni `nofailover` tag to the "group", hence these members will never be promoted to leader.
 
-## Mixing roles!
+## Combining roles!
 
-The next example explains how SG supports the idea of creating many group within the cluster
+The next example explains how creating many group within the cluster is supported
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -212,4 +212,4 @@ $ kubectl -n failover exec -it sync-cluster-0 -c patroni -- patronictl list
 +----------------+------------------+--------------+-----------+----+-----------+---------------------+
 ```
 
-The three groups now took different roles and each one is acting based on the defined by SG yaml file.
+Now we have three groups where each took a different role and act based on the role defined in the cluster YAML

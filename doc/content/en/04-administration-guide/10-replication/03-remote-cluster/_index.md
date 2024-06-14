@@ -2,7 +2,7 @@
 title: Remote Cluster
 weight: 2
 url: /administration/replication/remote
-description: This section explains the features in Stackgres to setup external replication clusters.
+description: This section explains how to setup external replication for a clusters.
 showToc: true
 ---
 

@@ -2,14 +2,12 @@
 title: Creating an external cascade replica cluster
 weight: 1
 url: /administration/replication/remote/replicatefrom
-description: Is time to create our Stackgres cascading replication cluster and start touching the details.
+description: This section details the cluster cascading replication.
 ---
-
-# replicateFrom
 
 The `replicateFrom` feature is explained in the [SGCluster CRD]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplicatefrom" %}}) but here is a practical guide to accomplish the setup.
 
-Since `replicateFrom` works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), access from the new cluster replica to the Main Cluster leader member is required. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that the k8s service should be ready to expose the cluster service.
+Since `replicateFrom` works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), when using streaming replication, it is required that the main cluster leader member is accessible from the new cluster replica. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that the k8s service should be ready to expose the cluster service.
 
 Once access is granted, the next command can be used to test the connection:
 
@@ -32,7 +30,7 @@ It the new remote Stackgres deployment, where a new Stackgres Cluster will be cr
 - SGScript (if any)
 - Secrets
 
-Now, the environment is ready to apply the SGCluster. The next example contains extra entries to give a wider view of the options included in a production-like system. Beware of review and complete fields as backups (if you will take backups from your Standby Cluster), the number of instances, and the port number exposed in the main cluster among others.
+Now, the environment is ready for the SGCluster to be created. The next example contains extra entries to give a wider view of the options included in a production-like system. Beware of review and complete fields as backups (if you will take backups from your Standby Cluster), the number of instances, and the port number exposed in the main cluster among others.
 
 ```yml
 apiVersion: stackgres.io/v1
@@ -100,13 +98,6 @@ spec:
     role: ha-read
     syncInstances: 2
   sgInstanceProfile: my-size
-  toInstallPostgresExtensions:
-  - build: "6.20"
-    name: pg_repack
-    postgresVersion: "15"
-    publisher: com.ongres
-    repository: https://extensions.stackgres.io/postgres/repository
-    version: 1.4.8
   replicateFrom:
     instance:
       external:
@@ -136,7 +127,7 @@ spec:
           key: authenticator-password
 ```
 
-If no errors, the new pods must be created, but the patroni container won't be ready until the replica catch up with the Leader. Take into account that depending on the data size and the network bandwith it could take several hours. When the replica is ready, we should look an output as follow:
+If there are no errors, the new pods should be created, but the patroni container will not be ready until the replica catch up with the leader. Take into account that depending on the data size and the network bandwith it could take several hours. When the replica is ready, we should look the output of the following command:
 
 ```sh
 $ kubectl -n my-namespace exec -it my-db-0 -c patroni -- patronictl list 
