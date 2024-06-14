@@ -7,7 +7,36 @@ description: This section details the cluster cascading replication.
 
 The `replicateFrom` feature is explained in the [SGCluster CRD]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplicatefrom" %}}) but here is a practical guide to accomplish the setup.
 
-Since `replicateFrom` works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), when using streaming replication, it is required that the main cluster leader member is accessible from the new cluster replica. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that the k8s service should be ready to expose the cluster service.
+Since `replicateFrom` works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), when using streaming replication, it is required that the main cluster leader member or a simple stand alone Postgres server, is accessible from the new cluster replica. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that in k8s a service should be ready to expose the cluster service.
+
+StackGres requires to setup 3 users in the `replicateFrom` spec using the specific keys `superuser`, `replication`, and `authenticator` (that may be the same user in the source server) in order to properly functioning. The 3 (or 2 or 1) users must exists in the main cluster that is being replicated. To create each of those users you can fallow the next commad examples:
+
+* Superuser username:
+```
+CREATE ROLE postgres;
+```
+* Superuser password:
+```
+ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD '***';
+```
+* Replication username:
+```
+CREATE ROLE replicator;
+```
+* Replication password:
+```
+ALTER ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS PASSWORD '***';
+```
+* Authenticator username:
+```
+CREATE ROLE authenticator;
+```
+* Authenticator password:
+```
+ALTER ROLE authenticator WITH SUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD '***';
+```
+
+> More details can be found in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecconfigurationscredentialsusers"%}})
 
 Once access is granted, the next command can be used to test the connection:
 
@@ -15,10 +44,30 @@ Once access is granted, the next command can be used to test the connection:
 psql -U <USER> -p 5433 -h <HOST> -d <database>
 ```
 
-Then, the new Stackgres Cluster will require the credentials for the user that will connect to the main Cluster, the classical way is by using a Postgres user named "replication" or similar. Since credentials are being present here, it should be saved into `secrets`.
+Then, the new StackGres Cluster will require the credentials for the users that will connect to the main Cluster. Since credentials are being present here, it should be saved into a `Secret`.
+Te next example helps to understand how to create it, using the same names from the example above:
 
+```yaml
+apiVersion: v1
+data:
+  authenticator-password: ***
+  authenticator-username: authenticator
+  replication-password: ***
+  replication-username: replicator
+  superuser-password: ***
+  superuser-username: postgres
+kind: Secret
+metadata:
+  labels:
+    app: StackGresCluster
+    stackgres.io/cluster-name: my-db
+  name: mysecrets-db
+  namespace: my-namespace
+type: Opaque
+EOF
+```
 
-It the new remote Stackgres deployment, where a new Stackgres Cluster will be created as Standby Leader, equal CRDs are needed after creating it. Create them accordingly as follows:
+In the new remote StackGres deployment, where a new StackGres Cluster will be created as Standby Leader, equal CRDs are required before proceed. Create them accordingly as follows:
 
 - Namespace
 - StorageClass - Setting up the same storage or better performance is strongly recommended.
