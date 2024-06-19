@@ -110,8 +110,7 @@ Now delete the StackGres operator `validating-webhook` exucting:
 kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator
 ```
 
->**WARNING**: Note that this operation migth lead to some operator error, usually, there should be no problem but you should be aware of this.
-
+>**WARNING**: Note that removing the validating webhook might potentially lead to some error in the resources that you may have to solve manually later if after restarting the operator Pod any error arise during the update of the existing resources that the operator executes on bootstrap. Usually manual intervention is not needed, but you should be aware of this.
 
 Now, edit the StackGres cluster volume definition to the new size:
 
