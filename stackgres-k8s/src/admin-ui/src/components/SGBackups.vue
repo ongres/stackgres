@@ -122,7 +122,14 @@
 							<th class="actions"></th>
 						</thead>
 						<tbody>
-							<template v-if="!backups.length">
+							<template v-if="backups === null">
+								<tr class="no-results">
+									<td colspan="999">
+										Loading data...
+									</td>
+								</tr>
+							</template>
+							<template v-else-if="!backups.length">
 								<tr class="no-results">
 									<td :colspan="999" v-if="iCan('create','sgbackups',$route.params.namespace)">
 										No backups matched your search terms, would  you like to <router-link :to="'/' + $route.params.namespace + '/sgbackups/new'" title="Add New Backup">create a new one?</router-link>
@@ -131,118 +138,120 @@
 										No backups have been found. You don't have enough permissions to create a new one
 									</td>
 								</tr>
-							</template>	
-							<template v-for="(back, index) in backups">
-								<template v-if="(index >= pagination.start) && (index < pagination.end)">
-									<template v-if="( hasProp(back, 'data.status.process.status') && (back.data.status.process.status !== 'Pending') )">
-										<tr class="base">
-											<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
-												<span>
-													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-														<template v-if="back.data.status.process.status == 'Completed'">
-															<span class='date'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
-															</span>
-															<span class='time'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
-															</span>
-															<span class='ms'>
-																{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
-															</span>
-															<span class='tzOffset'>{{ showTzOffset() }}</span>
-														</template>
-													</router-link>
-												</span>
-											</td>
-											<td class="managedLifecycle center icon hasTooltip" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'">
-												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-													<span></span>
-												</router-link>
-											</td>
-											<td class="phase center" :class="back.data.status.process.status">
-												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+							</template>
+							<template v-else>
+								<template v-for="(back, index) in backups">
+									<template v-if="(index >= pagination.start) && (index < pagination.end)">
+										<template v-if="( hasProp(back, 'data.status.process.status') && (back.data.status.process.status !== 'Pending') )">
+											<tr class="base">
+												<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 													<span>
-														{{ back.data.status.process.status }}
+														<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+															<template v-if="back.data.status.process.status == 'Completed'">
+																<span class='date'>
+																	{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
+																</span>
+																<span class='time'>
+																	{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
+																</span>
+																<span class='ms'>
+																	{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
+																</span>
+																<span class='tzOffset'>{{ showTzOffset() }}</span>
+															</template>
+														</router-link>
 													</span>
-												</router-link>
-											</td>
-											<td class="type">
-												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-													{{ hasProp(back, 'data.status.volumeSnapshot') ? 'Snapshot' : 'Base Backup' }}
-												</router-link>
-											</td>
-											<td class="size hasTooltip textRight" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
-												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-													<span>
-														<template v-if="back.data.status.process.status === 'Completed'">
-															{{ back.data.status.backupInformation.size.compressed | formatBytes }}
-														</template>
-													</span>
-												</router-link>
-											</td>
-											<td class="postgresVersion hasTooltip" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
-												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-													<span>
-														<template v-if="back.data.status.process.status === 'Completed'">
-															{{ back.data.status.backupInformation.postgresVersion | prefix }}
-														</template>
-													</span>
-												</router-link>
-											</td>
-											<td class="name hasTooltip" :data-val="back.data.metadata.name">
-												<span>
+												</td>
+												<td class="managedLifecycle center icon hasTooltip" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'">
 													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-														{{ back.data.metadata.name }}
+														<span></span>
 													</router-link>
-												</span>
-											</td>
-											<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
-												<span>
+												</td>
+												<td class="phase center" :class="back.data.status.process.status">
 													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
-														{{ back.data.spec.sgCluster }}
+														<span>
+															{{ back.data.status.process.status }}
+														</span>
 													</router-link>
-												</span>
-											</td>
-											<td class="actions">
-												<template v-if="(back.data.status.process.status === 'Completed') && iCan('create','sgclusters',$route.params.namespace)">
-													<router-link :to="'/' + $route.params.namespace + '/sgclusters/new?restoreFromBackup=' + back.name + '&postgresVersion=' + back.data.status.backupInformation.postgresVersion.substring(0, 2)" title="Restore Backup" class="restoreBackup"></router-link>
-												</template>
-												<template v-else>
+												</td>
+												<td class="type">
+													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+														{{ hasProp(back, 'data.status.volumeSnapshot') ? 'Snapshot' : 'Base Backup' }}
+													</router-link>
+												</td>
+												<td class="size hasTooltip textRight" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
+													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+														<span>
+															<template v-if="back.data.status.process.status === 'Completed'">
+																{{ back.data.status.backupInformation.size.compressed | formatBytes }}
+															</template>
+														</span>
+													</router-link>
+												</td>
+												<td class="postgresVersion hasTooltip" :class="[(back.data.status.process.status === 'Completed') ? 'pg'+(back.data.status.backupInformation.postgresVersion.substr(0,2)) : '']"  v-if="!isCluster" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.postgresVersion : ''">
+													<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+														<span>
+															<template v-if="back.data.status.process.status === 'Completed'">
+																{{ back.data.status.backupInformation.postgresVersion | prefix }}
+															</template>
+														</span>
+													</router-link>
+												</td>
+												<td class="name hasTooltip" :data-val="back.data.metadata.name">
+													<span>
+														<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+															{{ back.data.metadata.name }}
+														</router-link>
+													</span>
+												</td>
+												<td class="clusterName hasTooltip" :class="back.data.spec.sgCluster" v-if="!isCluster" :data-val="back.data.spec.sgCluster">
+													<span>
+														<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+															{{ back.data.spec.sgCluster }}
+														</router-link>
+													</span>
+												</td>
+												<td class="actions">
+													<template v-if="(back.data.status.process.status === 'Completed') && iCan('create','sgclusters',$route.params.namespace)">
+														<router-link :to="'/' + $route.params.namespace + '/sgclusters/new?restoreFromBackup=' + back.name + '&postgresVersion=' + back.data.status.backupInformation.postgresVersion.substring(0, 2)" title="Restore Backup" class="restoreBackup"></router-link>
+													</template>
+													<template v-else>
+														<a class="restoreBackup disabled"></a>
+													</template>
+													<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup" class="editCRD"></router-link>
+													<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  @click="deleteCRD('sgbackups',$route.params.namespace, back.data.metadata.name)" class="delete deleteCRD" title="Delete Backup"></a>
+												</td>
+											</tr>
+										</template>
+										<template v-else>
+											<tr class="base pending">
+												<td class="timestamp"></td>
+												<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
+												<td class="phase center Pending">
+													<span>Pending</span>
+												</td>
+												<td class="type"></td>
+												<td class="size"></td>
+												<td class="postgresVersion" v-if="!isCluster"></td>
+												<td class="name hasTooltip">
+													<span>{{ back.name }}</span>
+												</td>
+												<td class="clusterName hasTooltip stackgres" v-if="!isCluster">
+													<span>{{ back.data.spec.sgCluster }}</span>
+												</td>
+												<td class="actions">
 													<a class="restoreBackup disabled"></a>
-												</template>
-												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup" class="editCRD"></router-link>
-												<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  @click="deleteCRD('sgbackups',$route.params.namespace, back.data.metadata.name)" class="delete deleteCRD" title="Delete Backup"></a>
-											</td>
-										</tr>
-									</template>
-									<template v-else>
-										<tr class="base pending">
-											<td class="timestamp"></td>
-											<td class="managedLifecycle center icon" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
-											<td class="phase center Pending">
-												<span>Pending</span>
-											</td>
-											<td class="type"></td>
-											<td class="size"></td>
-											<td class="postgresVersion" v-if="!isCluster"></td>
-											<td class="name hasTooltip">
-												<span>{{ back.name }}</span>
-											</td>
-											<td class="clusterName hasTooltip stackgres" v-if="!isCluster">
-												<span>{{ back.data.spec.sgCluster }}</span>
-											</td>
-											<td class="actions">
-												<a class="restoreBackup disabled"></a>
-												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup" class="editCRD"></router-link>
-												<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, back.data.metadata.name)" class="delete deleteCRD" title="Delete Backup"></a>
-											</td>
-										</tr>
+													<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup" class="editCRD"></router-link>
+													<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, back.data.metadata.name)" class="delete deleteCRD" title="Delete Backup"></a>
+												</td>
+											</tr>
+										</template>
 									</template>
 								</template>
 							</template>
 						</tbody>
 					</table>
-					<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < backups.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="backups.length" @page-change="pageChange" align="center" ref="page"></v-page>
+					<v-page :key="'pagination-'+pagination.rows" v-if="( (backups !== null) && (pagination.rows < backups.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="backups.length" @page-change="pageChange" align="center" ref="page"></v-page>
 					<div id="nameTooltip">
 						<div class="info"></div>
 					</div>
@@ -250,12 +259,17 @@
 			</template>
 			
 			<template v-else>
-				<template v-for="back in backups" v-if="back.name == $route.params.backupname">
+				<template v-if="backups === null">
+					<div class="warningText">
+						Loading data...
+					</div>
+				</template>
+				<template v-else>
 					<h2>Backup Details</h2>
 
 					<template v-if="isCluster">
 						<div class="titleLinks crdActionLinks">
-							<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
+							<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + crd.data.metadata.name + '/edit'" title="Edit Backup">
 								Edit Backup
 							</router-link>
 							<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup" class="deleteCRD">
@@ -322,49 +336,53 @@
 
 			backups () {
 				const vc = this
-				
-				store.state.sgbackups.forEach( function(bk, index) {
 
-					let show = true
+				if(store.state.sgbackups === null) {
+					return null
+				} else {
+					store.state.sgbackups.forEach( function(bk, index) {
 
-					if(vc.activeFilters.keyword.length)
-						show = JSON.stringify(bk).includes(vc.activeFilters.keyword)
+						let show = true
+
+						if(vc.activeFilters.keyword.length)
+							show = JSON.stringify(bk).includes(vc.activeFilters.keyword)
+							
+						if(vc.activeFilters.managedLifecycle.length && show)
+							show = (!bk.data.spec.hasOwnProperty('managedLifecycle') && (vc.activeFilters.managedLifecycle[0] == 'false')) || ( bk.data.spec.hasOwnProperty('managedLifecycle') && (bk.data.spec.managedLifecycle.toString() === vc.activeFilters.managedLifecycle[0]))
+
+						if(vc.activeFilters.status.length && vc.hasProp(bk, 'data.status.process.status')  && show)
+							show = vc.activeFilters.status.includes(bk.data.status.process.status)
+						else if (vc.activeFilters.status.length && !vc.hasProp(bk, 'data.status.process.status'))
+							show = false
+
+						if(vc.activeFilters.postgresVersion.length && vc.hasProp(bk, 'data.status.backupInformation.postgresVersion') && (bk.data.status.process.status === 'Completed') && show )
+							show = (bk.data.status.backupInformation.postgresVersion.substr(0,2)=== vc.activeFilters.postgresVersion[0]);
+						else if (vc.activeFilters.postgresVersion.length)
+							show = false
+
+						if(vc.activeFilters.clusterName.length && show)
+							show = (vc.activeFilters.clusterName == bk.data.spec.sgCluster)
 						
-					if(vc.activeFilters.managedLifecycle.length && show)
-						show = (!bk.data.spec.hasOwnProperty('managedLifecycle') && (vc.activeFilters.managedLifecycle[0] == 'false')) || ( bk.data.spec.hasOwnProperty('managedLifecycle') && (bk.data.spec.managedLifecycle.toString() === vc.activeFilters.managedLifecycle[0]))
+						if(vc.filters.dateStart.length && vc.filters.dateEnd.length && vc.hasProp(bk, 'data.status.process.status') && (bk.data.status.process.status == 'Completed') && show ) {
+							let timestamp = moment(new Date(bk.data.status.process.timing.stored))
+							let start = moment(new Date(vc.filters.dateStart))
+							let end = moment(new Date(vc.filters.dateEnd))
 
-					if(vc.activeFilters.status.length && vc.hasProp(bk, 'data.status.process.status')  && show)
-						show = vc.activeFilters.status.includes(bk.data.status.process.status)
-					else if (vc.activeFilters.status.length && !vc.hasProp(bk, 'data.status.process.status'))
-						show = false
+							show = timestamp.isBetween( start, end, null, '[]' )
+						} else if (vc.activeFilters.datePicker.length)
+							show = false
 
-					if(vc.activeFilters.postgresVersion.length && vc.hasProp(bk, 'data.status.backupInformation.postgresVersion') && (bk.data.status.process.status === 'Completed') && show )
-						show = (bk.data.status.backupInformation.postgresVersion.substr(0,2)=== vc.activeFilters.postgresVersion[0]);
-					else if (vc.activeFilters.postgresVersion.length)
-						show = false
+						if(bk.show != show) {
+							store.commit('showBackup',{
+								pos: index,
+								isVisible: show
+							})
+						}
 
-					if(vc.activeFilters.clusterName.length && show)
-						show = (vc.activeFilters.clusterName == bk.data.spec.sgCluster)
-					
-					if(vc.filters.dateStart.length && vc.filters.dateEnd.length && vc.hasProp(bk, 'data.status.process.status') && (bk.data.status.process.status == 'Completed') && show ) {
-						let timestamp = moment(new Date(bk.data.status.process.timing.stored))
-						let start = moment(new Date(vc.filters.dateStart))
-						let end = moment(new Date(vc.filters.dateEnd))
+					})
 
-						show = timestamp.isBetween( start, end, null, '[]' )
-					} else if (vc.activeFilters.datePicker.length)
-						show = false
-
-					if(bk.show != show) {
-						store.commit('showBackup',{
-							pos: index,
-							isVisible: show
-						})
-					}
-
-				})
-
-				return vc.sortTable( [...(store.state.sgbackups.filter(back => ( ( (back.data.metadata.namespace == vc.$route.params.namespace) && !vc.isCluster) || (vc.isCluster && (back.data.spec.sgCluster == vc.$route.params.name ) && (back.data.metadata.namespace == vc.$route.params.namespace ) ) ) && back.show ))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+					return vc.sortTable( [...(store.state.sgbackups.filter(back => ( ( (back.data.metadata.namespace == vc.$route.params.namespace) && !vc.isCluster) || (vc.isCluster && (back.data.spec.sgCluster == vc.$route.params.name ) && (back.data.metadata.namespace == vc.$route.params.namespace ) ) ) && back.show ))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+				}
 			},
 
 			clusters () {
@@ -384,7 +402,11 @@
 			},
 
 			crd () {
-				return store.state.sgbackups.find(b => (b.data.metadata.namespace == this.$route.params.namespace) && (b.data.metadata.name == this.$route.params.backupname))
+                return (
+					(store.state.sgbackups !== null)
+						? store.state.sgbackups.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.backupname))
+						: null
+				)
 			},
 
 			postgresVersionsList() {

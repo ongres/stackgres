@@ -1,6 +1,11 @@
 <template>
 	<div id="cluster-info" v-if="iCanLoad">
-		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
+		<template v-if="(cluster === null)">
+			<div class="warningText">
+				Loading data...
+			</div>
+		</template>
+		<template v-else>
 			<div class="content noScroll">
 				<h2>Cluster Details</h2>
 				<div class="connectionInfo" v-if="hasProp(cluster, 'data.info')" :set="hasPrimary = ( typeof ( cluster.data.pods.find(p => (p.role == 'primary')) ) == 'undefined' )">
@@ -90,8 +95,12 @@
 
 		computed: {
 
-			clusters () {
-				return store.state.sgclusters
+			cluster () {
+				return (
+					(store.state.sgclusters !== null)
+						? store.state.sgclusters.find( cluster => (cluster.name == this.$route.params.name) && (cluster.data.metadata.namespace == this.$route.params.namespace) )
+						: null
+				)
 			},
 
 		},

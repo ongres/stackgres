@@ -27,22 +27,22 @@ export default new Vuex.Store({
     roles: [],
     clusterroles: [],
     users: [],
-    sgclusters: [],
-    sgshardedclusters: [],
-    sgbackups: [],
-    sgpgconfigs: [],
-    sgpoolconfigs: [],
-    sginstanceprofiles: [],
-    sgobjectstorages: [],
-    sgscripts: [],
+    sgclusters: null,
+    sgshardedclusters: null,
+    sgbackups: null,
+    sgpgconfigs: null,
+    sgpoolconfigs: null,
+    sginstanceprofiles: null,
+    sgobjectstorages: null,
+    sgscripts: null,
     storageClasses: [],
     logs: [],
-    sgdistributedlogs: [],
-    sgdbops: [],
+    sgdistributedlogs: null,
+    sgdbops: null,
     postgresVersions: {},
     applications: [],
     dashboardsList: [],
-    sgconfigs: [],
+    sgconfigs: null,
     cloneCRD: {},
     timezone: 'local',
     view: 'normal',
@@ -147,6 +147,12 @@ export default new Vuex.Store({
 
     setUsers (state, users) {
       state.users = [...users];
+    },
+
+    initKind(state, kind) {
+      if(state[kind] === null) {
+        state[kind] = [];
+      }
     },
 
     addLogsClusters (state, logsClusters) {

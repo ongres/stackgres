@@ -271,61 +271,98 @@ import sgApi from '../../api/sgApi';
             isDeletable () {
                 const vc = this;
                 let c = '';
-                let l = ''
+                let l = '';
+                const componentName = vc.$route.meta.componentName;
 
-                switch(vc.$route.meta.componentName) {
-                    
-                    case 'SGObjectStorage':
-                        // Looks for a cluster that depends on this resource
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ( vc.hasProp(c, 'data.spec.configurations.backups.sgObjectStorage') &&  (c.data.spec.configurations.backups.sgObjectStorage == vc.$route.params.name)))
-                        // If there is any then it can't be deleted
-                        return (typeof c == 'undefined')
-                    case 'SGDistributedLog':
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
-                        return (typeof c == 'undefined')
-                    case 'SGInstanceProfile':
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name));
-                        l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.sgInstanceProfile == vc.$route.params.name))
-                        return ((typeof c == 'undefined') && (typeof l == 'undefined'))
-                    case 'SGPgConfig':
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name));
-                        l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
-                        return ((typeof c == 'undefined') && (typeof l == 'undefined'))
-                    case 'SGPoolConfig':
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
-                        return (typeof c == 'undefined') 
-                    case 'SGScript':
-                        return !vc.isDefaultScript(vc.$route.params.name)
+                if(store.state[componentName] === null) {
+                    return false;
+                } else {
+                    switch(componentName) {
+                        
+                        case 'SGObjectStorage':
+                            // Looks for a cluster that depends on this resource
+                            if(store.state.sgclusters !== null) {
+                                c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ( vc.hasProp(c, 'data.spec.configurations.backups.sgObjectStorage') &&  (c.data.spec.configurations.backups.sgObjectStorage == vc.$route.params.name)))
+                                // If there is any then it can't be deleted
+                                return (typeof c == 'undefined')
+                            } else {
+                                return false;
+                            }
+                        case 'SGDistributedLog':
+                            if(store.state.sgclusters !== null) {
+                                c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
+                                return (typeof c == 'undefined')
+                            } else {
+                                return false;
+                            }
+                        case 'SGInstanceProfile':
+                            if( (store.state.sgclusters !== null) && (store.state.sgdistributedlogs !== null)) {
+                                c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name));
+                                l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.sgInstanceProfile == vc.$route.params.name))
+                                return ((typeof c == 'undefined') && (typeof l == 'undefined'))
+                            } else {
+                                return false;
+                            }
+                        case 'SGPgConfig':
+                            if( (store.state.sgclusters !== null) && (store.state.sgdistributedlogs !== null)) {
+                                c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name));
+                                l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
+                                return ((typeof c == 'undefined') && (typeof l == 'undefined'))
+                            } else {
+                                return false;
+                            }
+                        case 'SGPoolConfig':
+                            if(store.state.sgclusters !== null) {
+                                c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
+                                return (typeof c == 'undefined') 
+                            } else {
+                                return false;
+                            }
+                        case 'SGScript':
+                            return !vc.isDefaultScript(vc.$route.params.name)
+                    }
+
+                    return true;
                 }
-
-                return true;
             },
             
             hasLogs () {
-                const vc = this;
+                if(store.state.sgclusters === null) {
+                    return false;
+                } else {
+                    const vc = this;
 
-                let cluster = store.state.sgclusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+                    let cluster = store.state.sgclusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
 
-                if((cluster.length > 0) && (cluster[0].data.spec.hasOwnProperty('distributedLogs')))
-                    return true
-                else
-                    return false
+                    if((cluster.length > 0) && (cluster[0].data.spec.hasOwnProperty('distributedLogs')))
+                        return true
+                    else
+                        return false
+                }
             },
 
             hasMonitoring () {
                 const vc = this;
 
-                let cluster = store.state[vc.kind].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
+                if(store.state[vc.kind] === null) {
+                    return false;
+                } else {
+                    let cluster = store.state[vc.kind].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
 
-                return (typeof cluster !== 'undefined');
+                    return (typeof cluster !== 'undefined');
+                }
             },
 
             isStandbyCluster() {
-                const vc = this;
+                if(store.state.sgclusters === null) {
+                    return false;
+                } else {
+                    const vc = this;
 
-                let cluster = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.spec.hasOwnProperty('replicateFrom') && (c.data.spec.replicateFrom !== null))
+                    let cluster = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.spec.hasOwnProperty('replicateFrom') && (c.data.spec.replicateFrom !== null))
 
-                return (typeof cluster !== 'undefined');
+                    return (typeof cluster !== 'undefined');
+                }
             }
 		}, 
 
@@ -351,37 +388,40 @@ import sgApi from '../../api/sgApi';
 
             isDefaultScript(scriptName) {
                 const vc = this;
-                let script = store.state.sgscripts.find( s => (s.data.metadata.namespace == vc.$route.params.namespace) && (s.data.metadata.name == scriptName) );
+                let script = (store.state.sgscripts !== null)
+                    ? store.state.sgscripts.find( s => (s.data.metadata.namespace == vc.$route.params.namespace) && (s.data.metadata.name == scriptName) )
+                    : undefined;
 
                 return ( (typeof script != 'undefined') && ( script.data.status.clusters.length && (script.name == (script.data.status.clusters[0] + '-default') ) ) )
             },
 
             promoteCluster() {
-                const vc = this;
+                if(store.state.sgclusters !== null) {
+                    const vc = this;
 
-                let cluster = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.spec.hasOwnProperty('replicateFrom') && (c.data.spec.replicateFrom !== null))
+                    let cluster = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.spec.hasOwnProperty('replicateFrom') && (c.data.spec.replicateFrom !== null))
 
-                if(typeof cluster !== 'undefined') {
-                    const promotedCluster = JSON.parse(JSON.stringify(cluster.data));
-                    promotedCluster.spec.replicateFrom = null;
+                    if(typeof cluster !== 'undefined') {
+                        const promotedCluster = JSON.parse(JSON.stringify(cluster.data));
+                        promotedCluster.spec.replicateFrom = null;
 
-                    store.commit('loading', true);
+                        store.commit('loading', true);
 
-                    sgApi
-                    .update('sgclusters', promotedCluster)
-                    .then( (response) => {
-                        vc.notify('Cluster "' + promotedCluster.metadata.name + '" promoted successfully');
-                        vc.fetchAPI('sgclusters');
-                        store.commit('loading', false);
-                    })
-                    .catch(function(err) {
-                        console.log(err);
-                        vc.checkAuthError(err);
-                        vc.notify('Cluster "' + promotedCluster.metadata.name + '" could not be promoted');
-                        store.commit('loading', false);
-                    });
+                        sgApi
+                        .update('sgclusters', promotedCluster)
+                        .then( (response) => {
+                            vc.notify('Cluster "' + promotedCluster.metadata.name + '" promoted successfully');
+                            vc.fetchAPI('sgclusters');
+                            store.commit('loading', false);
+                        })
+                        .catch(function(err) {
+                            console.log(err);
+                            vc.checkAuthError(err);
+                            vc.notify('Cluster "' + promotedCluster.metadata.name + '" could not be promoted');
+                            store.commit('loading', false);
+                        });
+                    }
                 }
-                cluster
             }
         }
 	}

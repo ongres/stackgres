@@ -3,6 +3,12 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
+
         <form id="createShardedCluster" class="form" :key="formHash" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
@@ -92,7 +98,7 @@
                                 <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.metadata.name')"></span>
 
-                                <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                <span class="warning topAnchor" v-if="nameCollision && !editMode">
                                     There's already a <strong>SGShardedCluster</strong> with the same name on this namespace. Please specify a different name or create the resource on another namespace
                                 </span>
                             </div>
@@ -7253,7 +7259,7 @@
                 var vm = this;
                 let c = {};
                 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgshardedclusters !== null) ) {
                     let cluster = store.state.sgshardedclusters.find(( c ) => (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace));
                     if( typeof cluster !== 'undefined' ) {
                         c = JSON.parse(JSON.stringify(cluster));
@@ -7507,19 +7513,23 @@
                 return this.formSteps[this.currentSection].indexOf(this.currentStep[this.currentSection])
             },
 
-            nameColission() {
+            nameCollision() {
 
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgshardedclusters.forEach(function(item, index){
-                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
-                        nameColission = true;
-                        return false
-                    }
-                })
+                if(store.state.sgshardedclusters !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgshardedclusters.forEach(function(item, index){
+                        if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
+                            nameCollision = true;
+                            return false
+                        }
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false;
+                }
             },
 
         },

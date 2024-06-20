@@ -37,7 +37,14 @@
 					<th class="actions"></th>
 				</thead>
 				<tbody>
-					<template v-if="!sgshardedclusters.length">
+					<template v-if="sgshardedclusters === null">
+						<tr class="no-results">
+							<td colspan="999">
+								Loading data...
+							</td>
+						</tr>
+					</template>					
+					<template v-else-if="!sgshardedclusters.length">
 						<tr class="no-results">
 							<td colspan="7" v-if="iCan('create','sgshardedclusters',$route.params.namespace)">
 								No sharded clusters have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgshardedclusters/new'" title="Add New Cluster">create a new one?</router-link>
@@ -99,7 +106,7 @@
 					</template>
 				</tbody>
 			</table>
-			<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < sgshardedclusters.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="sgshardedclusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
+			<v-page :key="'pagination-'+pagination.rows" v-if="( (sgshardedclusters !== null) && (pagination.rows < sgshardedclusters.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="sgshardedclusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
 		</div>
 		<div id="nameTooltip">
 			<div class="info"></div>
@@ -129,7 +136,11 @@
 		},
 		computed: {
 			sgshardedclusters () {
-				return this.sortTable([...(store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
+				return (
+					(store.state.sgshardedclusters !== null)
+						? this.sortTable([...(store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
+						: null
+				)
 			},
 
 			profiles () {

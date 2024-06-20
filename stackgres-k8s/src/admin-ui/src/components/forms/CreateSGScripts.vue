@@ -2,6 +2,12 @@
     <div id="create-scripts" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(script).length > 0"></template>
+
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
         
         <form id="createScripts" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
@@ -18,7 +24,7 @@
                 </div>
             </div>
 
-            <span class="warning topLeft" v-if="nameColission && !editMode">
+            <span class="warning topLeft" v-if="nameCollision && !editMode">
                 There's already an <strong>SGScript</strong> with the same name on this namespace. Please specify a different name or create the resource on another namespace
             </span>
 
@@ -263,16 +269,20 @@
 
         computed: {
 
-            nameColission() {
-                const vc = this;
-                return typeof store.state.sgscripts.find(s => (s.data.metadata.namespace == vc.sgscript.metadata.namespace) && (s.data.metadata.name == vc.sgscript.metadata.name) ) != 'undefined'
+            nameCollision() {
+                if(store.state.sgscripts !== null) {
+                    const vc = this;
+                    return typeof store.state.sgscripts.find(s => (s.data.metadata.namespace == vc.sgscript.metadata.namespace) && (s.data.metadata.name == vc.sgscript.metadata.name) ) != 'undefined'
+                } else {
+                    return false;
+                }
             },
 
             script() {
                 const vc = this;
                 let sgscript = {};
 
-                if( vc.editMode && !vc.editReady ) {
+                if( vc.editMode && !vc.editReady && (store.state.sgscripts !== null)) {
                     store.state.sgscripts.forEach( function(s) {
                         if( (s.data.metadata.namespace == vc.$route.params.namespace) && (s.data.metadata.name == vc.$route.params.name) ) {
                             vc.scriptSource = [];

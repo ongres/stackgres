@@ -27,7 +27,14 @@
                         <th class="actions"></th>
                     </thead>
                     <tbody>
-                        <template v-if="!clusters.length">
+                        <template v-if="clusters === null">
+							<tr class="no-results">
+								<td colspan="999">
+									Loading data...
+								</td>
+							</tr>
+						</template>
+						<template v-else-if="!clusters.length">
 							<tr class="no-results">
 								<td :colspan="5" v-if="iCan('create','sgdistributedlogs',$route.params.namespace)">
                                     No logs servers have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs/new'" title="Add New Logs Server">create a new one?</router-link>
@@ -37,48 +44,55 @@
                                 </td>
 							</tr>
 						</template>
-                        <template v-for="(cluster, index) in clusters">
-                            <template  v-if="(index >= pagination.start) && (index < pagination.end)">
-                                <tr class="base">
-                                    <td class="hasTooltip clusterName">
-                                        <span>
+                        <template v-else>
+                            <template v-for="(cluster, index) in clusters">
+                                <template  v-if="(index >= pagination.start) && (index < pagination.end)">
+                                    <tr class="base">
+                                        <td class="hasTooltip clusterName">
+                                            <span>
+                                                <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                    {{ cluster.name }}
+                                                </router-link>
+                                            </span>
+                                        </td>
+                                        <td class="volumeSize fontZero textRight">
                                             <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
-                                                {{ cluster.name }}
+                                                {{ cluster.data.spec.persistentVolume.size }}
                                             </router-link>
-                                        </span>
-                                    </td>
-                                    <td class="volumeSize fontZero textRight">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
-                                            {{ cluster.data.spec.persistentVolume.size }}
-                                        </router-link>
-                                    </td>
-                                    <td class="cpu textRight">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
-                                            {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'cpu') }}
-                                        </router-link>
-                                    </td>
-                                    <td class="ram textRight">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
-                                            {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'memory') }}
-                                        </router-link>
-                                    </td>
-                                    <td class="actions">
-                                        <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
-                                        <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" @click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs Server"></a>
-                                        <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name)" class="delete deleteCRD" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''"></a>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td class="cpu textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'cpu') }}
+                                            </router-link>
+                                        </td>
+                                        <td class="ram textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'memory') }}
+                                            </router-link>
+                                        </td>
+                                        <td class="actions">
+                                            <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
+                                            <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" @click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs Server"></a>
+                                            <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name)" class="delete deleteCRD" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''"></a>
+                                        </td>
+                                    </tr>
+                                </template>
                             </template>
                         </template>
                     </tbody>
                 </table>
-                <v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < clusters.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
+                <v-page :key="'pagination-'+pagination.rows" v-if="( (clusters !== null) && (pagination.rows < clusters.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
                 <div id="nameTooltip">
                     <div class="info"></div>
                 </div>
             </template>
             <template v-else>
-                <template v-for="cluster in clusters" v-if="cluster.name == $route.params.name">
+                <template v-if="clusters === null">
+					<div class="warningText">
+						Loading data...
+					</div>
+				</template>
+				<template v-else>
                     <h2>Logs Server Details</h2>
                     
                     <div class="configurationDetails">                      
@@ -130,7 +144,11 @@
             },
 
             getProfileSpec(profile, spec) {
-                return store.state.sginstanceprofiles.find(p => (p.data.metadata.namespace == this.$route.params.namespace) && (p.data.metadata.name == profile)).data.spec[spec]
+                if(store.state.sginstanceprofiles !== null) {
+                    return store.state.sginstanceprofiles.find(p => (p.data.metadata.namespace == this.$route.params.namespace) && (p.data.metadata.name == profile)).data.spec[spec]
+                } else {
+                    return {}
+                }
             }
 
         },
@@ -138,7 +156,11 @@
         computed: {
 
             clusters () {
-                return this.sortTable([...(store.state.sgdistributedlogs.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+                return (
+					(store.state.sgdistributedlogs !== null)
+						? this.sortTable([...(store.state.sgdistributedlogs.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+						: null
+				)
             },
             
             tooltips() {
@@ -146,7 +168,11 @@
             },
             
             crd () {
-				return store.state.sgdistributedlogs.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.name))
+                return (
+					(store.state.sgdistributedlogs !== null)
+						? store.state.sgdistributedlogs.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.name))
+						: null
+				)
 			}
 
         }

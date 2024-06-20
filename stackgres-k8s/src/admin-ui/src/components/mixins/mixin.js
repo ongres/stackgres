@@ -304,7 +304,6 @@ export const mixin = {
                 vc.lookupCRDs('sgshardedclusters', response.data);
       
                 response.data.forEach( function(item, index) {
-    
                   var cluster = {
                     name: item.metadata.name,
                     data: item,
@@ -324,7 +323,6 @@ export const mixin = {
                     store.commit('updateNamespaces', item.metadata.namespace);
     
                   store.commit('updateShardedClusters', cluster);
-    
                 });
                 
               }).catch(function(err) {
@@ -361,13 +359,15 @@ export const mixin = {
       
                   });
       
-                  store.state.sgclusters.forEach(function(cluster, index){
-                    let backups = store.state.sgbackups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
-            
-                    if ( typeof backups !== "undefined" )
-                      cluster.hasBackups = true; // Enable/Disable Backups button
-      
-                  });
+                  if(store.state.sgclusters !== null) {
+                    store.state.sgclusters.forEach(function(cluster, index) {
+                      let backups = store.state.sgbackups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+              
+                      if ( typeof backups !== "undefined" )
+                        cluster.hasBackups = true; // Enable/Disable Backups button
+        
+                    });
+                  }
       
               }).catch(function(err) {
                 console.log(err);
@@ -594,7 +594,7 @@ export const mixin = {
             }
           }
 
-          if (!store.state.sgconfigs.length || (kind == 'sgconfigs')){
+          if ( (store.state.sgconfigs === null) || (kind == 'sgconfigs')){
             /* Operator Config Data */
             sgApi
             .get('sgconfigs')
@@ -988,133 +988,140 @@ export const mixin = {
 
       // Sort tables by an specific parameter
       sortTable( table, param, direction, type = 'alphabetical' ) {
-        const vc = this;
 
-        var backupFixedParams = ['data.spec.subjectToRetentionPolicy','data.metadata.name','data.spec.sgCluster','data.status.process.status'];
-        
-        table.sort((a,b) => {
-          let modifier = 1;
+        if(table === null) {
+          return null
+        } else if (!table.length) {
+          return table
+        } else {
+          const vc = this;
+
+          var backupFixedParams = ['data.spec.subjectToRetentionPolicy','data.metadata.name','data.spec.sgCluster','data.status.process.status'];
           
-          if(direction === 'desc') modifier = -1;
+          table.sort((a,b) => {
+            let modifier = 1;
+            
+            if(direction === 'desc') modifier = -1;
 
-          // If sorting backups first validate its state
-          if(a.data.hasOwnProperty('status') && a.hasOwnProperty('duration')) {
-            // If record is not sortable by the provided param
-            if(a.data.status !== null) {
-              if( (a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
-                return 1
-              } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
-                return -1
+            // If sorting backups first validate its state
+            if(a.data.hasOwnProperty('status') && a.hasOwnProperty('duration')) {
+              // If record is not sortable by the provided param
+              if(a.data.status !== null) {
+                if( (a.data.status.process.status == 'Failed') && !backupFixedParams.includes(param)){
+                  return 1
+                } else if ((a.data.status.process.status == 'Running') && !backupFixedParams.includes(param)){
+                  return -1
+                }
               }
+            } 
+
+            if (param == 'data.status.conditions') { // If dbOps sorted by Status
+
+              if(a.data.hasOwnProperty('status')) {
+                a = a.data.status.conditions.find(c => (c.status === 'True') )
+                a = a.type
+              } else {
+                a = '-'
+              }
+
+              if(b.data.hasOwnProperty('status')) {
+                b = b.data.status.conditions.find(c => (c.status === 'True') )
+                b = b.type
+              } else {
+                b = '-'
+              }
+
+            } else if (param == 'data.spec.runAt' ) { // If dbOps sorted by runAt
+              
+              a = a.data.spec.hasOwnProperty('runAt') ? a.data.spec.runAt : (vc.hasProp(a, 'data.status.opStarted') ? a.data.status.opStarted : '-');
+              b = b.data.spec.hasOwnProperty('runAt') ? b.data.spec.runAt : (vc.hasProp(b, 'data.status.opStarted') ? b.data.status.opStarted : '-');
+
+            } else if (param == 'data.status.elapsed' ) { // If dbOps sorted by elapsed
+              
+              if( a.data.hasOwnProperty('status') ) {
+                let lastStatus = a.data.status.conditions.find(c => (c.status === 'True') )
+                let begin = moment(a.data.status.opStarted)
+                let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
+                a = moment.duration(finish.diff(begin));
+              } else {
+                a = -1
+              }
+
+              if( b.data.hasOwnProperty('status') ) {
+                let lastStatus = b.data.status.conditions.find(c => (c.status === 'True') )
+                let begin = moment(b.data.status.opStarted)
+                let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
+                b = moment.duration(finish.diff(begin));
+              } else {
+                b = -1
+              }
+
+            } else { // Every other param
+
+              if(vc.hasParams( a, param.split(".")))
+                a = eval("a."+param);
+              else
+                a = '';
+
+              if(vc.hasParams( b, param.split(".")))
+                b = eval("b."+param);
+              else
+                b = '';
+
             }
-          } 
 
-          if (param == 'data.status.conditions') { // If dbOps sorted by Status
+            switch(type) {
 
-            if(a.data.hasOwnProperty('status')) {
-              a = a.data.status.conditions.find(c => (c.status === 'True') )
-              a = a.type
-            } else {
-              a = '-'
-            }
+              case 'timestamp':
 
-            if(b.data.hasOwnProperty('status')) {
-              b = b.data.status.conditions.find(c => (c.status === 'True') )
-              b = b.type
-            } else {
-              b = '-'
-            }
+                if(moment(a).isValid && moment(b).isValid) {
 
-          } else if (param == 'data.spec.runAt' ) { // If dbOps sorted by runAt
-            
-            a = a.data.spec.hasOwnProperty('runAt') ? a.data.spec.runAt : (vc.hasProp(a, 'data.status.opStarted') ? a.data.status.opStarted : '-');
-            b = b.data.spec.hasOwnProperty('runAt') ? b.data.spec.runAt : (vc.hasProp(b, 'data.status.opStarted') ? b.data.status.opStarted : '-');
+                  if(moment(a).isBefore(moment(b)))
+                    return -1 * modifier;
+                
+                  if(moment(a).isAfter(moment(b)))
+                    return 1 * modifier;  
 
-          } else if (param == 'data.status.elapsed' ) { // If dbOps sorted by elapsed
-            
-            if( a.data.hasOwnProperty('status') ) {
-              let lastStatus = a.data.status.conditions.find(c => (c.status === 'True') )
-              let begin = moment(a.data.status.opStarted)
-              let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
-              a = moment.duration(finish.diff(begin));
-            } else {
-              a = -1
-            }
-
-            if( b.data.hasOwnProperty('status') ) {
-              let lastStatus = b.data.status.conditions.find(c => (c.status === 'True') )
-              let begin = moment(b.data.status.opStarted)
-              let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
-              b = moment.duration(finish.diff(begin));
-            } else {
-              b = -1
-            }
-
-          } else { // Every other param
-
-            if(vc.hasParams( a, param.split(".")))
-              a = eval("a."+param);
-            else
-              a = '';
-
-            if(vc.hasParams( b, param.split(".")))
-              b = eval("b."+param);
-            else
-              b = '';
-
-          }
-
-          switch(type) {
-
-            case 'timestamp':
-
-              if(moment(a).isValid && moment(b).isValid) {
-
-                if(moment(a).isBefore(moment(b)))
+                } else if (!moment(a).isValid && moment(b).isValid) {
                   return -1 * modifier;
-              
-                if(moment(a).isAfter(moment(b)))
-                  return 1 * modifier;  
-
-              } else if (!moment(a).isValid && moment(b).isValid) {
-                return -1 * modifier;
-              } else if (moment(a).isValid && !moment(b).isValid) {
-                return 1 * modifier;
-              }
-              
-              break;
-
-            case 'memory':
-              
-              if( vc.getBytes(a) < vc.getBytes(b) )
-                return -1 * modifier;
-              
-              if( vc.getBytes(a) > vc.getBytes(b) )
-                return 1 * modifier;
-              
-              break;
-            
-            default: // alphabetical, duration, cpu
-
-              if(type == 'cpu') {
-                a = a.includes('m') ? (parseFloat(a.replace('m','')/1000)) : a;
-                b = b.includes('m') ? (parseFloat(b.replace('m','')/1000)) : b;
-              }
-                          
-              if( a < b )
-                return -1 * modifier;
-              
-              if( a > b )
-                return 1 * modifier;
-              
+                } else if (moment(a).isValid && !moment(b).isValid) {
+                  return 1 * modifier;
+                }
+                
                 break;
-            
-          }
-          
-          return 0;
-        });
 
-        return table;
+              case 'memory':
+                
+                if( vc.getBytes(a) < vc.getBytes(b) )
+                  return -1 * modifier;
+                
+                if( vc.getBytes(a) > vc.getBytes(b) )
+                  return 1 * modifier;
+                
+                break;
+              
+              default: // alphabetical, duration, cpu
+
+                if(type == 'cpu') {
+                  a = a.includes('m') ? (parseFloat(a.replace('m','')/1000)) : a;
+                  b = b.includes('m') ? (parseFloat(b.replace('m','')/1000)) : b;
+                }
+                            
+                if( a < b )
+                  return -1 * modifier;
+                
+                if( a > b )
+                  return 1 * modifier;
+                
+                  break;
+              
+            }
+            
+            return 0;
+          });
+
+          return table;
+        }
 
       },
 
@@ -1324,46 +1331,50 @@ export const mixin = {
       lookupCRDs(kind, crds) {
         const vc = this;
 
-       store.state[kind].forEach(function(item, index) {
+        if(store.state[kind] === null) {
+          store.commit('initKind', kind);
+        } else {
+          store.state[kind].forEach(function(item, index) {
 
-          let foundItem = crds.find(e => (e.metadata.name == item.data.metadata.name) && (e.metadata.namespace == item.data.metadata.namespace))
+            let foundItem = crds.find(e => (e.metadata.name == item.data.metadata.name) && (e.metadata.namespace == item.data.metadata.namespace))
 
-          if(typeof foundItem == 'undefined') {
+            if(typeof foundItem == 'undefined') {
 
-            store.commit('removeResource', {
-              kind: kind,
-              name: item.data.metadata.name,
-              namespace: item.data.metadata.namespace,
-            })
+              store.commit('removeResource', {
+                kind: kind,
+                name: item.data.metadata.name,
+                namespace: item.data.metadata.namespace,
+              })
 
-            if(vc.$route.params.hasOwnProperty('name') && (item.data.metadata.name == vc.$route.params.name)) {
+              if(vc.$route.params.hasOwnProperty('name') && (item.data.metadata.name == vc.$route.params.name)) {
 
-              switch(kind) {
-          
-                case 'clusters':
-                  router.push('/' + item.data.metadata.namespace + '/sgclusters')
-                  break;
+                switch(kind) {
+            
+                  case 'clusters':
+                    router.push('/' + item.data.metadata.namespace + '/sgclusters')
+                    break;
+                  
+                  default:
+                    router.push('/' + item.data.metadata.namespace + '/' + kind);
+                    break;
+                }
+
+                vc.notify('The resource you were browsing has been deleted from the server')
+              } else if ((kind == 'backups') && vc.$route.params.hasOwnProperty('backupname') && (item.data.metadata.name == vc.$route.params.backupname) ) {
                 
-                default:
-                  router.push('/' + item.data.metadata.namespace + '/' + kind);
-                  break;
-              }
+                if(vc.$route.params.hasOwnProperty('name')) {
+                  router.push('/' + item.data.metadata.namespace + '/sgcluster/' + vc.$route.params.name + '/sgbackups')
+                } else {
+                  router.push('/' + item.data.metadata.namespace + '/sgbackups')
+                }
+                vc.notify('The resource you were browsing has been deleted from the server')
 
-              vc.notify('The resource you were browsing has been deleted from the server')
-            } else if ((kind == 'backups') && vc.$route.params.hasOwnProperty('backupname') && (item.data.metadata.name == vc.$route.params.backupname) ) {
-              
-              if(vc.$route.params.hasOwnProperty('name')) {
-                router.push('/' + item.data.metadata.namespace + '/sgcluster/' + vc.$route.params.name + '/sgbackups')
-              } else {
-                router.push('/' + item.data.metadata.namespace + '/sgbackups')
-              }
-              vc.notify('The resource you were browsing has been deleted from the server')
+              }  
 
-            }  
+            }
 
-          }
-
-        })
+          })
+        }
       },
 
       // Pagination handle

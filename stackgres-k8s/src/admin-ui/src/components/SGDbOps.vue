@@ -97,7 +97,14 @@
                     </thead>
 
                     <tbody>
-                        <template v-if="!dbOps.length">
+                        <template v-if="dbOps === null">
+                            <tr class="no-results">
+                                <td colspan="999">
+                                    Loading data...
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-else-if="!dbOps.length">
 							<tr class="no-results">
 								<td colspan="9" v-if="iCan('create','sgdbops',$route.params.namespace)">
 									No database operations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdbops/new'" title="Add New Database Operation">create a new one?</router-link>
@@ -107,122 +114,23 @@
 								</td>
 							</tr>
 						</template>
-                        <template v-for="(op, index) in dbOps">
-                            <template  v-if="(index >= pagination.start) && (index < pagination.end)">
-                                <tr class="base">
-                                    <td class="timestamp hasTooltip">
-                                        <span>
-                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                                <template v-if="op.data.spec.hasOwnProperty('runAt')">
-                                                    <span class='date'>
-                                                        {{ op.data.spec.runAt | formatTimestamp('date') }}
-                                                    </span>
-                                                    <span class='time'>
-                                                        {{ op.data.spec.runAt | formatTimestamp('time') }}
-                                                    </span>
-                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                </template>
-                                                <template v-else-if="hasProp(op,'data.status.opStarted')">
-                                                    <span class='date'>
-                                                        {{ op.data.status.opStarted | formatTimestamp('date') }}
-                                                    </span>
-                                                    <span class='time'>
-                                                        {{ op.data.status.opStarted | formatTimestamp('time') }}
-                                                    </span>
-                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                </template>
-                                                <span v-else class="asap">
-                                                    ASAP
-                                                </span>
-                                            </router-link>
-                                        </span>
-                                    </td>
-                                    <td class="operationType">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                            <span class="dbopIcon" :class="op.data.spec.op">
-                                                {{ op.data.spec.op }}
-                                            </span>
-                                        </router-link>                                        
-                                    </td>
-                                    <td class="opName hasTooltip">
-                                        <span>
-                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                                {{ op.data.metadata.name }}
-                                            </router-link>
-                                        </span>
-                                    </td>
-                                    <td class="phase center">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor" :class="getOpStatus(op).toLowerCase()" :set="opStatus = getOpStatus(op)">
-                                            <span :class="opStatus">                                            
-                                                {{opStatus }}
-                                            </span>
-                                            <span v-if="( hasProp(op, 'data.status.' + op.data.spec.op + '.failure') && (opStatus == 'Failed') )" class="helpTooltip failed onHover" :data-tooltip="op.data.status[op.data.spec.op].failure"></span>
-                                        </router-link>
-                                    </td>
-                                    <td class="targetCluster hasTooltip">
-                                        <span>
-                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                                {{ op.data.spec.sgCluster }}
-                                            </router-link>
-                                        </span>
-                                    </td>
-                                    <td class="timestamp elapsed textRight hasTooltip">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                            <span class="time" v-if="op.data.hasOwnProperty('status')" v-html="getElapsedTime(op)"></span>
-                                        </router-link>
-                                    </td>
-                                    <td class="retries textRight">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                        <template v-else>
+                            <template v-for="(op, index) in dbOps">
+                                <template  v-if="(index >= pagination.start) && (index < pagination.end)">
+                                    <tr class="base">
+                                        <td class="timestamp hasTooltip">
                                             <span>
-                                                {{ (op.data.hasOwnProperty('status') && op.data.status.hasOwnProperty('opRetries')) ? op.data.status.opRetries : '0' }}
-                                            </span>
-                                            / 
-                                            <span>
-                                                {{ op.data.spec.hasOwnProperty('maxRetries') ? op.data.spec.maxRetries : '1' }}
-                                            </span>
-                                        </router-link>
-                                    </td>
-                                    <td class="timedOut textRight">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                            {{ hasTimedOut(op) }}
-                                        </router-link>
-                                    </td>
-                                    <td class="actions textRight">
-                                        <a class="delete deleteCRD" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, op.name)"></a>
-                                    </td>
-                                </tr>
-                            </template>
-                        </template>
-                    </tbody>
-                </table>
-                <v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < dbOps.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="dbOps.length" @page-change="pageChange" align="center" ref="page"></v-page>
-                <div id="nameTooltip">
-                    <div class="info"></div>
-                </div>
-            </template>
-
-            <template v-else-if="$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('uid')">
-                <h2>Operation Details</h2>
-                
-                <div class="flex">
-                    <div class="configurationDetails">
-                        <CRDSummary :crd="crd" kind="SGDbOps" :details="true"></CRDSummary>
-                    </div>
-
-                    <template v-for="(op, index) in dbOps" v-if="op.name == $route.params.name">
-                        <div class="opDetails">
-                            
-                            <!--Minor Version Upgrade graph-->
-                            <template v-if="( (op.data.spec.op == 'minorVersionUpgrade') && hasProp(op, 'data.status.conditions') )">
-                                <div class="clusterStatus" v-for="status in op.data.status.conditions" v-if="( (['Running','Completed'].includes(status.type)) && (status.status == 'True') )">
-                                    <div class="upgradeLog">
-                                        <h3 class="relative">
-                                            Upgrade Log
-                                        </h3>
-                                        <table v-if="op.data.status.hasOwnProperty('opStarted')">
-                                            <tbody>
-                                                <tr>
-                                                    <td class="timestamp">
+                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                    <template v-if="op.data.spec.hasOwnProperty('runAt')">
+                                                        <span class='date'>
+                                                            {{ op.data.spec.runAt | formatTimestamp('date') }}
+                                                        </span>
+                                                        <span class='time'>
+                                                            {{ op.data.spec.runAt | formatTimestamp('time') }}
+                                                        </span>
+                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                    </template>
+                                                    <template v-else-if="hasProp(op,'data.status.opStarted')">
                                                         <span class='date'>
                                                             {{ op.data.status.opStarted | formatTimestamp('date') }}
                                                         </span>
@@ -230,325 +138,430 @@
                                                             {{ op.data.status.opStarted | formatTimestamp('time') }}
                                                         </span>
                                                         <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                    </td>
-                                                    <td>
-                                                        The operation has started
-                                                    </td>
-                                                </tr>
-                                                <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverInitiated')">
-                                                    <td class="timestamp">
-                                                        <span class='date'>
-                                                            {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('date') }}
-                                                        </span>
-                                                        <span class='time'>
-                                                            {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('time') }}
-                                                        </span>
-                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                    </td>
-                                                    <td>Switchover has been initiated</td>
-                                                </tr>
-                                                <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverFinalized')">
-                                                    <td class="timestamp">
-                                                        <span class='date'>
-                                                            {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('date') }}
-                                                        </span>
-                                                        <span class='time'>
-                                                            {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('time') }}
-                                                        </span>
-                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                    </td>
-                                                    <td>Switchover has finalized</td>
-                                                </tr>
-                                                <tr v-for="condition in op.data.status.conditions" v-if="( (condition.status == 'True') && (condition.type != 'Running') )">
-                                                    <td class="timestamp">
-                                                        <span class='date'>
-                                                            {{ condition.lastTransitionTime | formatTimestamp('date') }}
-                                                        </span>
-                                                        <span class='time'>
-                                                            {{ condition.lastTransitionTime | formatTimestamp('time') }}
-                                                        </span>
-                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                    </td>
-                                                    <td>
-                                                        The operation has {{ condition.type.toLowerCase() }}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <template v-if="(status.type == 'Running')">
-                                        <h3 class="header xsPad relative">
-                                            Upgrade Overview
-
-                                            <span class="stopWatch time">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
-                                                    <path fill="#A6A7AE" transform="translate(-4.5 -2.25)" d="M38,48.2h8.1V26.4H38V48.2z M67.7,25.5
-                                                    l5.2-5.2l-5.7-5.7L62,19.8c-14.2-10.9-34.6-8.4-45.6,5.6s-8.5,34.2,5.7,45.1s34.6,8.4,45.6-5.6C76.8,53.2,76.8,37,67.7,25.5z
-                                                    M60,62.8c-9.9,9.8-26,9.8-35.9,0s-9.9-25.7,0-35.5s26-9.8,35.9,0c4.8,4.7,7.4,11.1,7.4,17.8C67.4,51.8,64.8,58.2,60,62.8L60,62.8z
-                                                    M31.2,2.2h21.7v8H31.2V2.2z"/>
-                                                </svg>
-                                                <span v-for="time in (3 - getElapsedTime(op).split(' ').length)">
-                                                    00
-                                                </span>
-                                                <span v-for="time in getElapsedTime(op).split(' ')">
-                                                    {{ (time.match(/\d+/)[0].length > 1) ? time.match(/\d+/)[0] : '0'+time.match(/\d+/)[0] }}
-                                                </span>
+                                                    </template>
+                                                    <span v-else class="asap">
+                                                        ASAP
+                                                    </span>
+                                                </router-link>
                                             </span>
-                                        </h3>
+                                        </td>
+                                        <td class="operationType">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                <span class="dbopIcon" :class="op.data.spec.op">
+                                                    {{ op.data.spec.op }}
+                                                </span>
+                                            </router-link>                                        
+                                        </td>
+                                        <td class="opName hasTooltip">
+                                            <span>
+                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                    {{ op.data.metadata.name }}
+                                                </router-link>
+                                            </span>
+                                        </td>
+                                        <td class="phase center">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor" :class="getOpStatus(op).toLowerCase()" :set="opStatus = getOpStatus(op)">
+                                                <span :class="opStatus">                                            
+                                                    {{opStatus }}
+                                                </span>
+                                                <span v-if="( hasProp(op, 'data.status.' + op.data.spec.op + '.failure') && (opStatus == 'Failed') )" class="helpTooltip failed onHover" :data-tooltip="op.data.status[op.data.spec.op].failure"></span>
+                                            </router-link>
+                                        </td>
+                                        <td class="targetCluster hasTooltip">
+                                            <span>
+                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                    {{ op.data.spec.sgCluster }}
+                                                </router-link>
+                                            </span>
+                                        </td>
+                                        <td class="timestamp elapsed textRight hasTooltip">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                <span class="time" v-if="op.data.hasOwnProperty('status')" v-html="getElapsedTime(op)"></span>
+                                            </router-link>
+                                        </td>
+                                        <td class="retries textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                <span>
+                                                    {{ (op.data.hasOwnProperty('status') && op.data.status.hasOwnProperty('opRetries')) ? op.data.status.opRetries : '0' }}
+                                                </span>
+                                                / 
+                                                <span>
+                                                    {{ op.data.spec.hasOwnProperty('maxRetries') ? op.data.spec.maxRetries : '1' }}
+                                                </span>
+                                            </router-link>
+                                        </td>
+                                        <td class="timedOut textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
+                                                {{ hasTimedOut(op) }}
+                                            </router-link>
+                                        </td>
+                                        <td class="actions textRight">
+                                            <a class="delete deleteCRD" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, op.name)"></a>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                        </template>
+                    </tbody>
+                </table>
+                <v-page :key="'pagination-'+pagination.rows" v-if="( (dbOps !== null) && (pagination.rows < dbOps.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="dbOps.length" @page-change="pageChange" align="center" ref="page"></v-page>
+                <div id="nameTooltip">
+                    <div class="info"></div>
+                </div>
+            </template>
 
-                                        <template v-for="cluster in clusters" v-if="cluster.name == op.data.spec.sgCluster">
-                                            <div class="pods" v-if="( (cluster.status.podsReady > 0) && hasProp(op, 'data.status.minorVersionUpgrade') )">
-                                                <template v-for="(initialPod, index) in op.data.status.minorVersionUpgrade.initialInstances">
-                                                    <template v-if="cluster.status.pods.filter(p => (p.name == initialPod)).length">
-                                                        <template v-for="pod in cluster.status.pods" v-if="( (pod.name == initialPod) || ( (index ==  op.data.status.minorVersionUpgrade.initialInstances.length - 1) && !op.data.status.minorVersionUpgrade.initialInstances.includes(pod.name)) )">
-                                                            <div class="pod" :class="[pod.role, pod.status]">
-                                                                <div class="podInfo xsPad">
-                                                                    <strong class="podName">
-                                                                        {{ pod.name }}
-                                                                    </strong>
-                                                                    <div class="podStatus floatRight" v-if="pod.hasOwnProperty('role')">
-                                                                        <span class="label capitalize" :class="pod.role">
-                                                                            <span>{{ (!op.data.status.minorVersionUpgrade.initialInstances.includes(pod.name) && (status.type == 'Running')) ? 'Temp. Replica' : pod.role }}</span>
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="podStatus">
-                                                                    <div class="repStats flex flex-50 xsPad">
-                                                                        <div class="nodeIcon">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="38.311" height="43.788" viewBox="0 0 38.311 43.788">
-                                                                                <g transform="translate(-129.63 -69.152)">
-                                                                                    <g class="percent-75-100" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 85) ) ? 'full' : ''" transform="translate(0 0)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 84.57740783691406 C 143.7403259277344 84.57740783691406 139.0069885253906 83.9876708984375 135.4573059082031 82.91683197021484 C 132.3255157470703 81.97205352783203 130.3799896240234 80.68137359619141 130.3799896240234 79.54847717285156 L 130.3799896240234 74.930908203125 C 130.3799896240234 73.7979736328125 132.3253326416016 72.50729370117188 135.4568634033203 71.56256103515625 C 139.0063629150391 70.49172210693359 143.7398681640625 69.90199279785156 148.7854461669922 69.90199279785156 C 153.8305816650391 69.90199279785156 158.5639343261719 70.49172973632812 162.1136169433594 71.56256103515625 C 165.2454071044922 72.50733947753906 167.19091796875 73.79801177978516 167.19091796875 74.930908203125 L 167.19091796875 79.54847717285156 C 167.19091796875 80.68137359619141 165.2454071044922 81.97205352783203 162.1136169433594 82.91683197021484 C 158.5639343261719 83.9876708984375 153.83056640625 84.57740783691406 148.7854461669922 84.57740783691406 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 148.7854461669922 70.65199279785156 C 143.8112487792969 70.65199279785156 139.1546630859375 71.23036956787109 135.6734771728516 72.28059387207031 C 131.9647064208984 73.39948272705078 131.1299896240234 74.59893798828125 131.1299896240234 74.930908203125 L 131.1299896240234 79.54847717285156 C 131.1299896240234 79.88043212890625 131.9647827148438 81.07984161376953 135.6739196777344 82.19879150390625 C 139.1552734375 83.2490234375 143.8116912841797 83.82740783691406 148.7854461669922 83.82740783691406 C 153.7592163085938 83.82740783691406 158.4156494140625 83.2490234375 161.8969879150391 82.19879150390625 C 165.6061248779297 81.07984924316406 166.44091796875 79.88043212890625 166.44091796875 79.54847717285156 L 166.44091796875 74.930908203125 C 166.44091796875 74.59896087646484 165.6061248779297 73.39954376220703 161.8969879150391 72.28060150146484 C 158.4156494140625 71.23036956787109 153.7592163085938 70.65199279785156 148.7854461669922 70.65199279785156 M 148.7854461669922 69.15199279785156 C 159.3642120361328 69.15199279785156 167.94091796875 71.73909759521484 167.94091796875 74.930908203125 L 167.94091796875 79.54847717285156 C 167.94091796875 82.74028015136719 159.3642120361328 85.32740783691406 148.7854461669922 85.32740783691406 C 138.2067260742188 85.32740783691406 129.6299896240234 82.74028015136719 129.6299896240234 79.54847717285156 L 129.6299896240234 74.930908203125 C 129.6299896240234 71.73909759521484 138.2055053710938 69.15199279785156 148.7854461669922 69.15199279785156 Z" stroke="none"/>
-                                                                                    </g>
-                                                                                    <g class="percent-50-75" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 65) ) ? 'full' : ''" transform="translate(0 2.919)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 90.86602783203125 C 143.7403259277344 90.86602783203125 139.0069885253906 90.27628326416016 135.4573059082031 89.2054443359375 C 132.3255157470703 88.26066589355469 130.3799896240234 86.96998596191406 130.3799896240234 85.83709716796875 L 130.3799896240234 81.5208740234375 C 131.9980316162109 82.82033538818359 134.6211547851562 83.65998840332031 136.6966552734375 84.15798187255859 C 140.1705322265625 84.99150848388672 144.3507690429688 85.43207550048828 148.7854461669922 85.43207550048828 C 153.2197265625 85.43207550048828 157.400146484375 84.99167633056641 160.874755859375 84.15848541259766 C 162.9495697021484 83.66095733642578 165.5720977783203 82.82216644287109 167.19091796875 81.52445983886719 L 167.19091796875 85.83709716796875 C 167.19091796875 86.96998596191406 165.2454071044922 88.26066589355469 162.1136169433594 89.2054443359375 C 158.5639343261719 90.27628326416016 153.83056640625 90.86602783203125 148.7854461669922 90.86602783203125 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 166.44091796875 82.91915893554688 C 164.7964172363281 83.84923553466797 162.7451477050781 84.48123168945312 161.0496520996094 84.88780212402344 C 157.5186157226562 85.73452758789062 153.2777252197266 86.18207550048828 148.7854461669922 86.18207550048828 C 144.292724609375 86.18207550048828 140.0519866943359 85.73434448242188 136.5216674804688 84.88728332519531 C 134.2853240966797 84.35069274902344 132.4831848144531 83.69454956054688 131.1299896240234 82.92610168457031 L 131.1299896240234 85.83709716796875 C 131.1299896240234 86.16904449462891 131.9647827148438 87.36845397949219 135.6739196777344 88.48740386962891 C 139.1552734375 89.53763580322266 143.8116912841797 90.11602783203125 148.7854461669922 90.11602783203125 C 153.7592163085938 90.11602783203125 158.4156494140625 89.53763580322266 161.8969879150391 88.48740386962891 C 165.6061248779297 87.36846160888672 166.44091796875 86.16904449462891 166.44091796875 85.83709716796875 L 166.44091796875 82.91915893554688 M 129.9355621337891 80.16232299804688 C 130.0228881835938 80.16232299804688 130.1120910644531 80.19865417480469 130.1776885986328 80.27956390380859 C 132.224365234375 82.80720520019531 139.7789916992188 84.68207550048828 148.7854461669922 84.68207550048828 C 157.7931365966797 84.68207550048828 165.3465576171875 82.80720520019531 167.3944702148438 80.28335571289062 C 167.4601287841797 80.20194244384766 167.5491943359375 80.16549682617188 167.6363677978516 80.16550445556641 C 167.7916564941406 80.16551971435547 167.94091796875 80.28116607666016 167.94091796875 80.46427154541016 L 167.94091796875 85.83709716796875 C 167.94091796875 89.02889251708984 159.3642120361328 91.61602783203125 148.7854461669922 91.61602783203125 C 138.2067260742188 91.61602783203125 129.6299896240234 89.02889251708984 129.6299896240234 85.83709716796875 L 129.6299896240234 80.46174621582031 C 129.6299896240234 80.27775573730469 129.7798461914062 80.16232299804688 129.9355621337891 80.16232299804688 Z" stroke="none"/>
-                                                                                    </g>
-                                                                                    <g class="percent-25-50" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 35) ) ? 'full' : ''" transform="translate(0 4.847)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
-                                                                                    </g>
-                                                                                    <g class="percent-0-25" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 20) ) ? 'full' : ''" transform="translate(0 13.847)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
-                                                                                    </g>                                                                                                                        
-                                                                                </g>
-                                                                            </svg>
-                                                                            <span v-if="( primaryNodeDisk && (pod.role != 'primary') && (pod.hasOwnProperty('diskUsed')) )" class="dataPercent">
-                                                                                <strong>{{ Math.ceil(parseInt(getBytes(pod.diskUsed) * 100 / primaryNodeDisk)) }}%</strong><br/>
-                                                                                Replication
-                                                                            </span>
-                                                                        </div>
-                                                                        <div class="pgVersion" v-if="hasProp(pod, 'componentVersions.postgresql')">
-                                                                            <span class="label">
-                                                                                <span>{{ pod.componentVersions.postgresql }}</span>
-                                                                            </span><br/>
-                                                                            Postgres Version
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="podFooter xsPad">
-                                                                        <span class="connCount" v-if="pod.hasOwnProperty('connections')">
-                                                                            <strong>
-                                                                                {{ getPodConnections(pod.name, pod.connections) }}
-                                                                            </strong></br>
-                                                                            Connections
-                                                                        </span>
-                                                                        <span class="label status floatRight" :class="pod.status">
-                                                                            <span>{{ pod.status }}</span>
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="connGraph chart-wrapper" title="Real Time Connections">
-                                                                        <apexchart 
-                                                                            v-if="pod.hasOwnProperty('connections')"
-                                                                            type="line" 
-                                                                            :options="{
-                                                                                chart: {
-                                                                                    id: pod.name + '-connections',
-                                                                                    height: '45px',
-                                                                                    sparkline: {
-                                                                                        enabled: true
-                                                                                    }
-                                                                                },
-                                                                                stroke: {
-                                                                                    width: 2
-                                                                                },
-                                                                                tooltip: {
-                                                                                    enabled: false
-                                                                                },
-                                                                                colors: (pod.role == 'primary') ? ['#36A8FF'] : ['#5db4be']
-                                                                            }"
-                                                                            :series="[{
-                                                                                name: pod.name + '-connections',
-                                                                                data: podConnections[pod.name]
-                                                                            }]">
-                                                                        </apexchart>
-                                                                    </div>
+            <template v-else-if="dbOps === null">
+                <div class="warningText">
+                    Loading data...
+                </div>
+            </template>
+
+            <template v-else-if="$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('uid')">
+                <h2>Operation Details</h2>
+                
+                <div class="flex" :set="op = crd">
+                    <div class="configurationDetails">
+                        <CRDSummary :crd="crd" kind="SGDbOps" :details="true"></CRDSummary>
+                    </div>
+
+                    <div class="opDetails">
+                        
+                        <!--Minor Version Upgrade graph-->
+                        <template v-if="( (op.data.spec.op == 'minorVersionUpgrade') && hasProp(op, 'data.status.conditions') )">
+                            <div class="clusterStatus" v-for="status in op.data.status.conditions" v-if="( (['Running','Completed'].includes(status.type)) && (status.status == 'True') )">
+                                <div class="upgradeLog">
+                                    <h3 class="relative">
+                                        Upgrade Log
+                                    </h3>
+                                    <table v-if="op.data.status.hasOwnProperty('opStarted')">
+                                        <tbody>
+                                            <tr>
+                                                <td class="timestamp">
+                                                    <span class='date'>
+                                                        {{ op.data.status.opStarted | formatTimestamp('date') }}
+                                                    </span>
+                                                    <span class='time'>
+                                                        {{ op.data.status.opStarted | formatTimestamp('time') }}
+                                                    </span>
+                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                </td>
+                                                <td>
+                                                    The operation has started
+                                                </td>
+                                            </tr>
+                                            <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverInitiated')">
+                                                <td class="timestamp">
+                                                    <span class='date'>
+                                                        {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('date') }}
+                                                    </span>
+                                                    <span class='time'>
+                                                        {{ op.data.status.minorVersionUpgrade.switchoverInitiated | formatTimestamp('time') }}
+                                                    </span>
+                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                </td>
+                                                <td>Switchover has been initiated</td>
+                                            </tr>
+                                            <tr v-if="hasProp(op, 'data.status.minorVersionUpgrade.switchoverFinalized')">
+                                                <td class="timestamp">
+                                                    <span class='date'>
+                                                        {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('date') }}
+                                                    </span>
+                                                    <span class='time'>
+                                                        {{ op.data.status.minorVersionUpgrade.switchoverFinalized | formatTimestamp('time') }}
+                                                    </span>
+                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                </td>
+                                                <td>Switchover has finalized</td>
+                                            </tr>
+                                            <tr v-for="condition in op.data.status.conditions" v-if="( (condition.status == 'True') && (condition.type != 'Running') )">
+                                                <td class="timestamp">
+                                                    <span class='date'>
+                                                        {{ condition.lastTransitionTime | formatTimestamp('date') }}
+                                                    </span>
+                                                    <span class='time'>
+                                                        {{ condition.lastTransitionTime | formatTimestamp('time') }}
+                                                    </span>
+                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                </td>
+                                                <td>
+                                                    The operation has {{ condition.type.toLowerCase() }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <template v-if="(status.type == 'Running')">
+                                    <h3 class="header xsPad relative">
+                                        Upgrade Overview
+
+                                        <span class="stopWatch time">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
+                                                <path fill="#A6A7AE" transform="translate(-4.5 -2.25)" d="M38,48.2h8.1V26.4H38V48.2z M67.7,25.5
+                                                l5.2-5.2l-5.7-5.7L62,19.8c-14.2-10.9-34.6-8.4-45.6,5.6s-8.5,34.2,5.7,45.1s34.6,8.4,45.6-5.6C76.8,53.2,76.8,37,67.7,25.5z
+                                                M60,62.8c-9.9,9.8-26,9.8-35.9,0s-9.9-25.7,0-35.5s26-9.8,35.9,0c4.8,4.7,7.4,11.1,7.4,17.8C67.4,51.8,64.8,58.2,60,62.8L60,62.8z
+                                                M31.2,2.2h21.7v8H31.2V2.2z"/>
+                                            </svg>
+                                            <span v-for="time in (3 - getElapsedTime(op).split(' ').length)">
+                                                00
+                                            </span>
+                                            <span v-for="time in getElapsedTime(op).split(' ')">
+                                                {{ (time.match(/\d+/)[0].length > 1) ? time.match(/\d+/)[0] : '0'+time.match(/\d+/)[0] }}
+                                            </span>
+                                        </span>
+                                    </h3>
+
+                                    <template v-for="cluster in clusters" v-if="cluster.name == op.data.spec.sgCluster">
+                                        <div class="pods" v-if="( (cluster.status.podsReady > 0) && hasProp(op, 'data.status.minorVersionUpgrade') )">
+                                            <template v-for="(initialPod, index) in op.data.status.minorVersionUpgrade.initialInstances">
+                                                <template v-if="cluster.status.pods.filter(p => (p.name == initialPod)).length">
+                                                    <template v-for="pod in cluster.status.pods" v-if="( (pod.name == initialPod) || ( (index ==  op.data.status.minorVersionUpgrade.initialInstances.length - 1) && !op.data.status.minorVersionUpgrade.initialInstances.includes(pod.name)) )">
+                                                        <div class="pod" :class="[pod.role, pod.status]">
+                                                            <div class="podInfo xsPad">
+                                                                <strong class="podName">
+                                                                    {{ pod.name }}
+                                                                </strong>
+                                                                <div class="podStatus floatRight" v-if="pod.hasOwnProperty('role')">
+                                                                    <span class="label capitalize" :class="pod.role">
+                                                                        <span>{{ (!op.data.status.minorVersionUpgrade.initialInstances.includes(pod.name) && (status.type == 'Running')) ? 'Temp. Replica' : pod.role }}</span>
+                                                                    </span>
                                                                 </div>
                                                             </div>
-                                                        </template>
-                                                        <template v-else>
-                                                        </template>
-                                                    </template>
-                                                    <template v-else-if="(status.type == 'Running')"> <!-- Restarted Pod -->
-                                                        <div class="pod restarting">
-                                                            <div class="pod" :class="pod.role">
-                                                                <div class="podInfo xsPad">
-                                                                    <strong class="podName">
-                                                                        {{ initialPod }}
-                                                                    </strong>
-                                                                </div>
-                                                                <div class="podStatus">
-                                                                    <div class="repStats flex flex-50 xsPad">
-                                                                        <div class="nodeIcon">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="38.311" height="43.788" viewBox="0 0 38.311 43.788">
-                                                                                <g transform="translate(-129.63 -69.152)">
-                                                                                    <g class="percent-75-100" transform="translate(0 0)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 84.57740783691406 C 143.7403259277344 84.57740783691406 139.0069885253906 83.9876708984375 135.4573059082031 82.91683197021484 C 132.3255157470703 81.97205352783203 130.3799896240234 80.68137359619141 130.3799896240234 79.54847717285156 L 130.3799896240234 74.930908203125 C 130.3799896240234 73.7979736328125 132.3253326416016 72.50729370117188 135.4568634033203 71.56256103515625 C 139.0063629150391 70.49172210693359 143.7398681640625 69.90199279785156 148.7854461669922 69.90199279785156 C 153.8305816650391 69.90199279785156 158.5639343261719 70.49172973632812 162.1136169433594 71.56256103515625 C 165.2454071044922 72.50733947753906 167.19091796875 73.79801177978516 167.19091796875 74.930908203125 L 167.19091796875 79.54847717285156 C 167.19091796875 80.68137359619141 165.2454071044922 81.97205352783203 162.1136169433594 82.91683197021484 C 158.5639343261719 83.9876708984375 153.83056640625 84.57740783691406 148.7854461669922 84.57740783691406 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 148.7854461669922 70.65199279785156 C 143.8112487792969 70.65199279785156 139.1546630859375 71.23036956787109 135.6734771728516 72.28059387207031 C 131.9647064208984 73.39948272705078 131.1299896240234 74.59893798828125 131.1299896240234 74.930908203125 L 131.1299896240234 79.54847717285156 C 131.1299896240234 79.88043212890625 131.9647827148438 81.07984161376953 135.6739196777344 82.19879150390625 C 139.1552734375 83.2490234375 143.8116912841797 83.82740783691406 148.7854461669922 83.82740783691406 C 153.7592163085938 83.82740783691406 158.4156494140625 83.2490234375 161.8969879150391 82.19879150390625 C 165.6061248779297 81.07984924316406 166.44091796875 79.88043212890625 166.44091796875 79.54847717285156 L 166.44091796875 74.930908203125 C 166.44091796875 74.59896087646484 165.6061248779297 73.39954376220703 161.8969879150391 72.28060150146484 C 158.4156494140625 71.23036956787109 153.7592163085938 70.65199279785156 148.7854461669922 70.65199279785156 M 148.7854461669922 69.15199279785156 C 159.3642120361328 69.15199279785156 167.94091796875 71.73909759521484 167.94091796875 74.930908203125 L 167.94091796875 79.54847717285156 C 167.94091796875 82.74028015136719 159.3642120361328 85.32740783691406 148.7854461669922 85.32740783691406 C 138.2067260742188 85.32740783691406 129.6299896240234 82.74028015136719 129.6299896240234 79.54847717285156 L 129.6299896240234 74.930908203125 C 129.6299896240234 71.73909759521484 138.2055053710938 69.15199279785156 148.7854461669922 69.15199279785156 Z" stroke="none"/>
-                                                                                    </g>
-                                                                                    <g class="percent-50-75" transform="translate(0 2.919)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 90.86602783203125 C 143.7403259277344 90.86602783203125 139.0069885253906 90.27628326416016 135.4573059082031 89.2054443359375 C 132.3255157470703 88.26066589355469 130.3799896240234 86.96998596191406 130.3799896240234 85.83709716796875 L 130.3799896240234 81.5208740234375 C 131.9980316162109 82.82033538818359 134.6211547851562 83.65998840332031 136.6966552734375 84.15798187255859 C 140.1705322265625 84.99150848388672 144.3507690429688 85.43207550048828 148.7854461669922 85.43207550048828 C 153.2197265625 85.43207550048828 157.400146484375 84.99167633056641 160.874755859375 84.15848541259766 C 162.9495697021484 83.66095733642578 165.5720977783203 82.82216644287109 167.19091796875 81.52445983886719 L 167.19091796875 85.83709716796875 C 167.19091796875 86.96998596191406 165.2454071044922 88.26066589355469 162.1136169433594 89.2054443359375 C 158.5639343261719 90.27628326416016 153.83056640625 90.86602783203125 148.7854461669922 90.86602783203125 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 166.44091796875 82.91915893554688 C 164.7964172363281 83.84923553466797 162.7451477050781 84.48123168945312 161.0496520996094 84.88780212402344 C 157.5186157226562 85.73452758789062 153.2777252197266 86.18207550048828 148.7854461669922 86.18207550048828 C 144.292724609375 86.18207550048828 140.0519866943359 85.73434448242188 136.5216674804688 84.88728332519531 C 134.2853240966797 84.35069274902344 132.4831848144531 83.69454956054688 131.1299896240234 82.92610168457031 L 131.1299896240234 85.83709716796875 C 131.1299896240234 86.16904449462891 131.9647827148438 87.36845397949219 135.6739196777344 88.48740386962891 C 139.1552734375 89.53763580322266 143.8116912841797 90.11602783203125 148.7854461669922 90.11602783203125 C 153.7592163085938 90.11602783203125 158.4156494140625 89.53763580322266 161.8969879150391 88.48740386962891 C 165.6061248779297 87.36846160888672 166.44091796875 86.16904449462891 166.44091796875 85.83709716796875 L 166.44091796875 82.91915893554688 M 129.9355621337891 80.16232299804688 C 130.0228881835938 80.16232299804688 130.1120910644531 80.19865417480469 130.1776885986328 80.27956390380859 C 132.224365234375 82.80720520019531 139.7789916992188 84.68207550048828 148.7854461669922 84.68207550048828 C 157.7931365966797 84.68207550048828 165.3465576171875 82.80720520019531 167.3944702148438 80.28335571289062 C 167.4601287841797 80.20194244384766 167.5491943359375 80.16549682617188 167.6363677978516 80.16550445556641 C 167.7916564941406 80.16551971435547 167.94091796875 80.28116607666016 167.94091796875 80.46427154541016 L 167.94091796875 85.83709716796875 C 167.94091796875 89.02889251708984 159.3642120361328 91.61602783203125 148.7854461669922 91.61602783203125 C 138.2067260742188 91.61602783203125 129.6299896240234 89.02889251708984 129.6299896240234 85.83709716796875 L 129.6299896240234 80.46174621582031 C 129.6299896240234 80.27775573730469 129.7798461914062 80.16232299804688 129.9355621337891 80.16232299804688 Z" stroke="none"/>
-                                                                                    </g>
-                                                                                    <g class="percent-25-50" transform="translate(0 4.847)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
-                                                                                    </g>
-                                                                                    <g class="percent-0-25" transform="translate(0 13.847)" stroke-miterlimit="10">
-                                                                                        <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
-                                                                                        <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
-                                                                                    </g>                                                                                                                        
+                                                            <div class="podStatus">
+                                                                <div class="repStats flex flex-50 xsPad">
+                                                                    <div class="nodeIcon">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="38.311" height="43.788" viewBox="0 0 38.311 43.788">
+                                                                            <g transform="translate(-129.63 -69.152)">
+                                                                                <g class="percent-75-100" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 85) ) ? 'full' : ''" transform="translate(0 0)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 84.57740783691406 C 143.7403259277344 84.57740783691406 139.0069885253906 83.9876708984375 135.4573059082031 82.91683197021484 C 132.3255157470703 81.97205352783203 130.3799896240234 80.68137359619141 130.3799896240234 79.54847717285156 L 130.3799896240234 74.930908203125 C 130.3799896240234 73.7979736328125 132.3253326416016 72.50729370117188 135.4568634033203 71.56256103515625 C 139.0063629150391 70.49172210693359 143.7398681640625 69.90199279785156 148.7854461669922 69.90199279785156 C 153.8305816650391 69.90199279785156 158.5639343261719 70.49172973632812 162.1136169433594 71.56256103515625 C 165.2454071044922 72.50733947753906 167.19091796875 73.79801177978516 167.19091796875 74.930908203125 L 167.19091796875 79.54847717285156 C 167.19091796875 80.68137359619141 165.2454071044922 81.97205352783203 162.1136169433594 82.91683197021484 C 158.5639343261719 83.9876708984375 153.83056640625 84.57740783691406 148.7854461669922 84.57740783691406 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 148.7854461669922 70.65199279785156 C 143.8112487792969 70.65199279785156 139.1546630859375 71.23036956787109 135.6734771728516 72.28059387207031 C 131.9647064208984 73.39948272705078 131.1299896240234 74.59893798828125 131.1299896240234 74.930908203125 L 131.1299896240234 79.54847717285156 C 131.1299896240234 79.88043212890625 131.9647827148438 81.07984161376953 135.6739196777344 82.19879150390625 C 139.1552734375 83.2490234375 143.8116912841797 83.82740783691406 148.7854461669922 83.82740783691406 C 153.7592163085938 83.82740783691406 158.4156494140625 83.2490234375 161.8969879150391 82.19879150390625 C 165.6061248779297 81.07984924316406 166.44091796875 79.88043212890625 166.44091796875 79.54847717285156 L 166.44091796875 74.930908203125 C 166.44091796875 74.59896087646484 165.6061248779297 73.39954376220703 161.8969879150391 72.28060150146484 C 158.4156494140625 71.23036956787109 153.7592163085938 70.65199279785156 148.7854461669922 70.65199279785156 M 148.7854461669922 69.15199279785156 C 159.3642120361328 69.15199279785156 167.94091796875 71.73909759521484 167.94091796875 74.930908203125 L 167.94091796875 79.54847717285156 C 167.94091796875 82.74028015136719 159.3642120361328 85.32740783691406 148.7854461669922 85.32740783691406 C 138.2067260742188 85.32740783691406 129.6299896240234 82.74028015136719 129.6299896240234 79.54847717285156 L 129.6299896240234 74.930908203125 C 129.6299896240234 71.73909759521484 138.2055053710938 69.15199279785156 148.7854461669922 69.15199279785156 Z" stroke="none"/>
                                                                                 </g>
-                                                                            </svg>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="podFooter xsPad">
-                                                                        <span class="connCount">
-                                                                            <strong>0</strong></br>
-                                                                            Connections
+                                                                                <g class="percent-50-75" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 65) ) ? 'full' : ''" transform="translate(0 2.919)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 90.86602783203125 C 143.7403259277344 90.86602783203125 139.0069885253906 90.27628326416016 135.4573059082031 89.2054443359375 C 132.3255157470703 88.26066589355469 130.3799896240234 86.96998596191406 130.3799896240234 85.83709716796875 L 130.3799896240234 81.5208740234375 C 131.9980316162109 82.82033538818359 134.6211547851562 83.65998840332031 136.6966552734375 84.15798187255859 C 140.1705322265625 84.99150848388672 144.3507690429688 85.43207550048828 148.7854461669922 85.43207550048828 C 153.2197265625 85.43207550048828 157.400146484375 84.99167633056641 160.874755859375 84.15848541259766 C 162.9495697021484 83.66095733642578 165.5720977783203 82.82216644287109 167.19091796875 81.52445983886719 L 167.19091796875 85.83709716796875 C 167.19091796875 86.96998596191406 165.2454071044922 88.26066589355469 162.1136169433594 89.2054443359375 C 158.5639343261719 90.27628326416016 153.83056640625 90.86602783203125 148.7854461669922 90.86602783203125 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 166.44091796875 82.91915893554688 C 164.7964172363281 83.84923553466797 162.7451477050781 84.48123168945312 161.0496520996094 84.88780212402344 C 157.5186157226562 85.73452758789062 153.2777252197266 86.18207550048828 148.7854461669922 86.18207550048828 C 144.292724609375 86.18207550048828 140.0519866943359 85.73434448242188 136.5216674804688 84.88728332519531 C 134.2853240966797 84.35069274902344 132.4831848144531 83.69454956054688 131.1299896240234 82.92610168457031 L 131.1299896240234 85.83709716796875 C 131.1299896240234 86.16904449462891 131.9647827148438 87.36845397949219 135.6739196777344 88.48740386962891 C 139.1552734375 89.53763580322266 143.8116912841797 90.11602783203125 148.7854461669922 90.11602783203125 C 153.7592163085938 90.11602783203125 158.4156494140625 89.53763580322266 161.8969879150391 88.48740386962891 C 165.6061248779297 87.36846160888672 166.44091796875 86.16904449462891 166.44091796875 85.83709716796875 L 166.44091796875 82.91915893554688 M 129.9355621337891 80.16232299804688 C 130.0228881835938 80.16232299804688 130.1120910644531 80.19865417480469 130.1776885986328 80.27956390380859 C 132.224365234375 82.80720520019531 139.7789916992188 84.68207550048828 148.7854461669922 84.68207550048828 C 157.7931365966797 84.68207550048828 165.3465576171875 82.80720520019531 167.3944702148438 80.28335571289062 C 167.4601287841797 80.20194244384766 167.5491943359375 80.16549682617188 167.6363677978516 80.16550445556641 C 167.7916564941406 80.16551971435547 167.94091796875 80.28116607666016 167.94091796875 80.46427154541016 L 167.94091796875 85.83709716796875 C 167.94091796875 89.02889251708984 159.3642120361328 91.61602783203125 148.7854461669922 91.61602783203125 C 138.2067260742188 91.61602783203125 129.6299896240234 89.02889251708984 129.6299896240234 85.83709716796875 L 129.6299896240234 80.46174621582031 C 129.6299896240234 80.27775573730469 129.7798461914062 80.16232299804688 129.9355621337891 80.16232299804688 Z" stroke="none"/>
+                                                                                </g>
+                                                                                <g class="percent-25-50" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 35) ) ? 'full' : ''" transform="translate(0 4.847)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
+                                                                                </g>
+                                                                                <g class="percent-0-25" :class="(primaryNodeDisk && ((getBytes(pod.diskUsed) * 100 / primaryNodeDisk) > 20) ) ? 'full' : ''" transform="translate(0 13.847)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
+                                                                                </g>                                                                                                                        
+                                                                            </g>
+                                                                        </svg>
+                                                                        <span v-if="( primaryNodeDisk && (pod.role != 'primary') && (pod.hasOwnProperty('diskUsed')) )" class="dataPercent">
+                                                                            <strong>{{ Math.ceil(parseInt(getBytes(pod.diskUsed) * 100 / primaryNodeDisk)) }}%</strong><br/>
+                                                                            Replication
                                                                         </span>
-                                                                        <span class="label status floatRight">
-                                                                            <span>Restarting</span>
-                                                                        </span>
                                                                     </div>
-                                                                    <div class="connGraph chart-wrapper" title="Real Time Connections"></div>
+                                                                    <div class="pgVersion" v-if="hasProp(pod, 'componentVersions.postgresql')">
+                                                                        <span class="label">
+                                                                            <span>{{ pod.componentVersions.postgresql }}</span>
+                                                                        </span><br/>
+                                                                        Postgres Version
+                                                                    </div>
+                                                                </div>
+                                                                <div class="podFooter xsPad">
+                                                                    <span class="connCount" v-if="pod.hasOwnProperty('connections')">
+                                                                        <strong>
+                                                                            {{ getPodConnections(pod.name, pod.connections) }}
+                                                                        </strong></br>
+                                                                        Connections
+                                                                    </span>
+                                                                    <span class="label status floatRight" :class="pod.status">
+                                                                        <span>{{ pod.status }}</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="connGraph chart-wrapper" title="Real Time Connections">
+                                                                    <apexchart 
+                                                                        v-if="pod.hasOwnProperty('connections')"
+                                                                        type="line" 
+                                                                        :options="{
+                                                                            chart: {
+                                                                                id: pod.name + '-connections',
+                                                                                height: '45px',
+                                                                                sparkline: {
+                                                                                    enabled: true
+                                                                                }
+                                                                            },
+                                                                            stroke: {
+                                                                                width: 2
+                                                                            },
+                                                                            tooltip: {
+                                                                                enabled: false
+                                                                            },
+                                                                            colors: (pod.role == 'primary') ? ['#36A8FF'] : ['#5db4be']
+                                                                        }"
+                                                                        :series="[{
+                                                                            name: pod.name + '-connections',
+                                                                            data: podConnections[pod.name]
+                                                                        }]">
+                                                                    </apexchart>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </template>
+                                                    <template v-else>
+                                                    </template>
                                                 </template>
-                                            </div>
-                                            <template v-else>
-                                                <div class="no-data">
-                                                    No pods status available yet
-                                                </div>
+                                                <template v-else-if="(status.type == 'Running')"> <!-- Restarted Pod -->
+                                                    <div class="pod restarting">
+                                                        <div class="pod" :class="pod.role">
+                                                            <div class="podInfo xsPad">
+                                                                <strong class="podName">
+                                                                    {{ initialPod }}
+                                                                </strong>
+                                                            </div>
+                                                            <div class="podStatus">
+                                                                <div class="repStats flex flex-50 xsPad">
+                                                                    <div class="nodeIcon">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="38.311" height="43.788" viewBox="0 0 38.311 43.788">
+                                                                            <g transform="translate(-129.63 -69.152)">
+                                                                                <g class="percent-75-100" transform="translate(0 0)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 84.57740783691406 C 143.7403259277344 84.57740783691406 139.0069885253906 83.9876708984375 135.4573059082031 82.91683197021484 C 132.3255157470703 81.97205352783203 130.3799896240234 80.68137359619141 130.3799896240234 79.54847717285156 L 130.3799896240234 74.930908203125 C 130.3799896240234 73.7979736328125 132.3253326416016 72.50729370117188 135.4568634033203 71.56256103515625 C 139.0063629150391 70.49172210693359 143.7398681640625 69.90199279785156 148.7854461669922 69.90199279785156 C 153.8305816650391 69.90199279785156 158.5639343261719 70.49172973632812 162.1136169433594 71.56256103515625 C 165.2454071044922 72.50733947753906 167.19091796875 73.79801177978516 167.19091796875 74.930908203125 L 167.19091796875 79.54847717285156 C 167.19091796875 80.68137359619141 165.2454071044922 81.97205352783203 162.1136169433594 82.91683197021484 C 158.5639343261719 83.9876708984375 153.83056640625 84.57740783691406 148.7854461669922 84.57740783691406 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 148.7854461669922 70.65199279785156 C 143.8112487792969 70.65199279785156 139.1546630859375 71.23036956787109 135.6734771728516 72.28059387207031 C 131.9647064208984 73.39948272705078 131.1299896240234 74.59893798828125 131.1299896240234 74.930908203125 L 131.1299896240234 79.54847717285156 C 131.1299896240234 79.88043212890625 131.9647827148438 81.07984161376953 135.6739196777344 82.19879150390625 C 139.1552734375 83.2490234375 143.8116912841797 83.82740783691406 148.7854461669922 83.82740783691406 C 153.7592163085938 83.82740783691406 158.4156494140625 83.2490234375 161.8969879150391 82.19879150390625 C 165.6061248779297 81.07984924316406 166.44091796875 79.88043212890625 166.44091796875 79.54847717285156 L 166.44091796875 74.930908203125 C 166.44091796875 74.59896087646484 165.6061248779297 73.39954376220703 161.8969879150391 72.28060150146484 C 158.4156494140625 71.23036956787109 153.7592163085938 70.65199279785156 148.7854461669922 70.65199279785156 M 148.7854461669922 69.15199279785156 C 159.3642120361328 69.15199279785156 167.94091796875 71.73909759521484 167.94091796875 74.930908203125 L 167.94091796875 79.54847717285156 C 167.94091796875 82.74028015136719 159.3642120361328 85.32740783691406 148.7854461669922 85.32740783691406 C 138.2067260742188 85.32740783691406 129.6299896240234 82.74028015136719 129.6299896240234 79.54847717285156 L 129.6299896240234 74.930908203125 C 129.6299896240234 71.73909759521484 138.2055053710938 69.15199279785156 148.7854461669922 69.15199279785156 Z" stroke="none"/>
+                                                                                </g>
+                                                                                <g class="percent-50-75" transform="translate(0 2.919)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 90.86602783203125 C 143.7403259277344 90.86602783203125 139.0069885253906 90.27628326416016 135.4573059082031 89.2054443359375 C 132.3255157470703 88.26066589355469 130.3799896240234 86.96998596191406 130.3799896240234 85.83709716796875 L 130.3799896240234 81.5208740234375 C 131.9980316162109 82.82033538818359 134.6211547851562 83.65998840332031 136.6966552734375 84.15798187255859 C 140.1705322265625 84.99150848388672 144.3507690429688 85.43207550048828 148.7854461669922 85.43207550048828 C 153.2197265625 85.43207550048828 157.400146484375 84.99167633056641 160.874755859375 84.15848541259766 C 162.9495697021484 83.66095733642578 165.5720977783203 82.82216644287109 167.19091796875 81.52445983886719 L 167.19091796875 85.83709716796875 C 167.19091796875 86.96998596191406 165.2454071044922 88.26066589355469 162.1136169433594 89.2054443359375 C 158.5639343261719 90.27628326416016 153.83056640625 90.86602783203125 148.7854461669922 90.86602783203125 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 166.44091796875 82.91915893554688 C 164.7964172363281 83.84923553466797 162.7451477050781 84.48123168945312 161.0496520996094 84.88780212402344 C 157.5186157226562 85.73452758789062 153.2777252197266 86.18207550048828 148.7854461669922 86.18207550048828 C 144.292724609375 86.18207550048828 140.0519866943359 85.73434448242188 136.5216674804688 84.88728332519531 C 134.2853240966797 84.35069274902344 132.4831848144531 83.69454956054688 131.1299896240234 82.92610168457031 L 131.1299896240234 85.83709716796875 C 131.1299896240234 86.16904449462891 131.9647827148438 87.36845397949219 135.6739196777344 88.48740386962891 C 139.1552734375 89.53763580322266 143.8116912841797 90.11602783203125 148.7854461669922 90.11602783203125 C 153.7592163085938 90.11602783203125 158.4156494140625 89.53763580322266 161.8969879150391 88.48740386962891 C 165.6061248779297 87.36846160888672 166.44091796875 86.16904449462891 166.44091796875 85.83709716796875 L 166.44091796875 82.91915893554688 M 129.9355621337891 80.16232299804688 C 130.0228881835938 80.16232299804688 130.1120910644531 80.19865417480469 130.1776885986328 80.27956390380859 C 132.224365234375 82.80720520019531 139.7789916992188 84.68207550048828 148.7854461669922 84.68207550048828 C 157.7931365966797 84.68207550048828 165.3465576171875 82.80720520019531 167.3944702148438 80.28335571289062 C 167.4601287841797 80.20194244384766 167.5491943359375 80.16549682617188 167.6363677978516 80.16550445556641 C 167.7916564941406 80.16551971435547 167.94091796875 80.28116607666016 167.94091796875 80.46427154541016 L 167.94091796875 85.83709716796875 C 167.94091796875 89.02889251708984 159.3642120361328 91.61602783203125 148.7854461669922 91.61602783203125 C 138.2067260742188 91.61602783203125 129.6299896240234 89.02889251708984 129.6299896240234 85.83709716796875 L 129.6299896240234 80.46174621582031 C 129.6299896240234 80.27775573730469 129.7798461914062 80.16232299804688 129.9355621337891 80.16232299804688 Z" stroke="none"/>
+                                                                                </g>
+                                                                                <g class="percent-25-50" transform="translate(0 4.847)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
+                                                                                </g>
+                                                                                <g class="percent-0-25" transform="translate(0 13.847)" stroke-miterlimit="10">
+                                                                                    <path class="in" d="M 148.7854461669922 98.13986206054688 C 143.7405242919922 98.13986206054688 139.0071563720703 97.55018615722656 135.457275390625 96.47944641113281 C 132.3254852294922 95.53481292724609 130.3799896240234 94.24456787109375 130.3799896240234 93.11220550537109 L 130.3799896240234 88.79533386230469 C 131.9990081787109 90.09484100341797 134.6217041015625 90.93424987792969 136.6966857910156 91.43201446533203 C 140.1708068847656 92.26542663574219 144.3510284423828 92.7059326171875 148.7854461669922 92.7059326171875 C 153.2197265625 92.7059326171875 157.400146484375 92.26553344726562 160.874755859375 91.43234252929688 C 162.9495697021484 90.93482208251953 165.5720977783203 90.09603118896484 167.19091796875 88.79833221435547 L 167.19091796875 93.11220550537109 C 167.19091796875 94.24456787109375 165.2454223632812 95.53481292724609 162.1136474609375 96.47944641113281 C 158.5637664794922 97.55018615722656 153.8303833007812 98.13986206054688 148.7854461669922 98.13986206054688 Z" stroke="none"/>
+                                                                                    <path class="out" d="M 131.1299896240234 90.19075775146484 L 131.1299896240234 93.11220550537109 C 131.1299896240234 93.44392395019531 131.9647674560547 94.64263153076172 135.6738586425781 95.76140594482422 C 139.1554260253906 96.81153106689453 143.8118743896484 97.38986206054688 148.7854461669922 97.38986206054688 C 153.759033203125 97.38986206054688 158.4154968261719 96.81153106689453 161.8970489501953 95.76140594482422 C 165.6061401367188 94.64264678955078 166.44091796875 93.44392395019531 166.44091796875 93.11220550537109 L 166.44091796875 90.19303131103516 C 164.7964172363281 91.12310791015625 162.7451477050781 91.75510406494141 161.0496520996094 92.16167449951172 C 157.5186309814453 93.00838470458984 153.2777252197266 93.4559326171875 148.7854461669922 93.4559326171875 C 144.2929992675781 93.4559326171875 140.0522766113281 93.00826263427734 136.5217437744141 92.16132354736328 C 134.8262176513672 91.75458526611328 132.7748870849609 91.12217712402344 131.1299896240234 90.19075775146484 M 129.9354248046875 87.43683624267578 C 130.0227966308594 87.43683624267578 130.112060546875 87.47329711914062 130.1776885986328 87.55471801757812 C 132.224365234375 90.08107757568359 139.7789916992188 91.9559326171875 148.7854461669922 91.9559326171875 C 157.7931365966797 91.9559326171875 165.3465576171875 90.08107757568359 167.3944702148438 87.55722808837891 C 167.4601440429688 87.47623443603516 167.5492553710938 87.43991851806641 167.6364593505859 87.43992614746094 C 167.7917175292969 87.43994140625 167.94091796875 87.55506134033203 167.94091796875 87.73814392089844 L 167.94091796875 93.11220550537109 C 167.94091796875 96.30276489257812 159.3642120361328 98.88986206054688 148.7854461669922 98.88986206054688 C 138.2067260742188 98.88986206054688 129.6299896240234 96.30276489257812 129.6299896240234 93.11220550537109 L 129.6299896240234 87.735595703125 C 129.6299896240234 87.55247497558594 129.7797546386719 87.43683624267578 129.9354248046875 87.43683624267578 Z" stroke="none"/>
+                                                                                </g>                                                                                                                        
+                                                                            </g>
+                                                                        </svg>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="podFooter xsPad">
+                                                                    <span class="connCount">
+                                                                        <strong>0</strong></br>
+                                                                        Connections
+                                                                    </span>
+                                                                    <span class="label status floatRight">
+                                                                        <span>Restarting</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="connGraph chart-wrapper" title="Real Time Connections"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
                                             </template>
+                                        </div>
+                                        <template v-else>
+                                            <div class="no-data">
+                                                No pods status available yet
+                                            </div>
                                         </template>
                                     </template>
-                                </div>
-                            </template>
+                                </template>
+                            </div>
+                        </template>
 
-                            <!--Events-->
-                            <template v-if="op.data.hasOwnProperty('status')">
-                                <div>
-                                    <h3>Operation Events</h3>
-                                    <div class="fixedHeight">
-                                        <table class="events resizable" v-columns-resizable>
-                                            <thead>
-                                                <th class="firstTimestamp hasTooltip" data-type="timestamp">
-                                                    <span title="First Timestamp">
-                                                        First Timestamp
-                                                    </span>
-                                                </th>
-                                                <th class="lastTimestamp hasTooltip" data-type="timestamp">
-                                                    <span title="Last Timestamp">
-                                                        Last Timestamp
-                                                    </span>
-                                                </th>
-                                                <th class="involvedObject hasTooltip" data-type="involvedObject">
-                                                    <span title="Component">
-                                                        Component
-                                                    </span>
-                                                </th>
-                                                <th class="eventMessage hasTooltip">
-                                                    <span title="Message">
-                                                        Message
-                                                    </span>
-                                                </th>
-                                            </thead>
-                                            <tbody>
-                                                <template v-if="!events.length">
-                                                    <tr class="no-results">
-                                                        <td colspan="999">
-                                                            No recent events have been recorded for this operation.
+                        <!--Events-->
+                        <template v-if="op.data.hasOwnProperty('status')">
+                            <div>
+                                <h3>Operation Events</h3>
+                                <div class="fixedHeight">
+                                    <table class="events resizable" v-columns-resizable>
+                                        <thead>
+                                            <th class="firstTimestamp hasTooltip" data-type="timestamp">
+                                                <span title="First Timestamp">
+                                                    First Timestamp
+                                                </span>
+                                            </th>
+                                            <th class="lastTimestamp hasTooltip" data-type="timestamp">
+                                                <span title="Last Timestamp">
+                                                    Last Timestamp
+                                                </span>
+                                            </th>
+                                            <th class="involvedObject hasTooltip" data-type="involvedObject">
+                                                <span title="Component">
+                                                    Component
+                                                </span>
+                                            </th>
+                                            <th class="eventMessage hasTooltip">
+                                                <span title="Message">
+                                                    Message
+                                                </span>
+                                            </th>
+                                        </thead>
+                                        <tbody>
+                                            <template v-if="!events.length">
+                                                <tr class="no-results">
+                                                    <td colspan="999">
+                                                        No recent events have been recorded for this operation.
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template v-else>
+                                                <template v-for="event in events">
+                                                    <tr class="base">
+                                                        <td class="timestamp hasTooltip">
+                                                            <span v-if="event.hasOwnProperty('firstTimestamp')">
+                                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                                    <span class='date'>
+                                                                        {{ event.firstTimestamp | formatTimestamp('date') }}
+                                                                    </span>
+                                                                    <span class='time'>
+                                                                        {{ event.firstTimestamp | formatTimestamp('time') }}
+                                                                    </span>
+                                                                    <span class='ms'>
+                                                                        {{ event.firstTimestamp | formatTimestamp('ms') }}
+                                                                    </span>
+                                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                                </router-link>
+                                                            </span>
+                                                        </td>
+                                                        <td class="timestamp hasTooltip">
+                                                            <span v-if="event.hasOwnProperty('lastTimestamp')">
+                                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                                    <span class='date'>
+                                                                        {{ event.lastTimestamp | formatTimestamp('date') }}
+                                                                    </span>
+                                                                    <span class='time'>
+                                                                        {{ event.lastTimestamp | formatTimestamp('time') }}
+                                                                    </span>
+                                                                    <span class='ms'>
+                                                                        {{ event.lastTimestamp | formatTimestamp('ms') }}
+                                                                    </span>
+                                                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                                                </router-link>
+                                                            </span>
+                                                        </td>
+                                                        <td class="involvedObject hasTooltip">
+                                                            <span>
+                                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                                    {{ event.involvedObject.kind }}/{{ event.involvedObject.name }}
+                                                                </router-link>
+                                                            </span>
+                                                        </td>
+                                                        <td class="eventMessage hasTooltip">
+                                                            <span>
+                                                                <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
+                                                                    {{ event.message }}
+                                                                </router-link>
+                                                            </span>
                                                         </td>
                                                     </tr>
                                                 </template>
-                                                <template v-else>
-                                                    <template v-for="event in events">
-                                                        <tr class="base">
-                                                            <td class="timestamp hasTooltip">
-                                                                <span v-if="event.hasOwnProperty('firstTimestamp')">
-                                                                    <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
-                                                                        <span class='date'>
-                                                                            {{ event.firstTimestamp | formatTimestamp('date') }}
-                                                                        </span>
-                                                                        <span class='time'>
-                                                                            {{ event.firstTimestamp | formatTimestamp('time') }}
-                                                                        </span>
-                                                                        <span class='ms'>
-                                                                            {{ event.firstTimestamp | formatTimestamp('ms') }}
-                                                                        </span>
-                                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                                    </router-link>
-                                                                </span>
-                                                            </td>
-                                                            <td class="timestamp hasTooltip">
-                                                                <span v-if="event.hasOwnProperty('lastTimestamp')">
-                                                                    <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
-                                                                        <span class='date'>
-                                                                            {{ event.lastTimestamp | formatTimestamp('date') }}
-                                                                        </span>
-                                                                        <span class='time'>
-                                                                            {{ event.lastTimestamp | formatTimestamp('time') }}
-                                                                        </span>
-                                                                        <span class='ms'>
-                                                                            {{ event.lastTimestamp | formatTimestamp('ms') }}
-                                                                        </span>
-                                                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                                                    </router-link>
-                                                                </span>
-                                                            </td>
-                                                            <td class="involvedObject hasTooltip">
-                                                                <span>
-                                                                    <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
-                                                                        {{ event.involvedObject.kind }}/{{ event.involvedObject.name }}
-                                                                    </router-link>
-                                                                </span>
-                                                            </td>
-                                                            <td class="eventMessage hasTooltip">
-                                                                <span>
-                                                                    <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + $route.params.name + '/event/' + event.metadata.uid" class="noColor">
-                                                                        {{ event.message }}
-                                                                    </router-link>
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    </template>
-                                                </template>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                
-                                    <div id="nameTooltip">
-                                        <div class="info"></div>
-                                    </div>
+                                            </template>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </template>
-                        </div>
-                    </template>
+                            
+                                <div id="nameTooltip">
+                                    <div class="info"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </template>
             
@@ -867,62 +880,66 @@
         computed: {
 
             dbOps () {
-                const vc = this
-				
-				store.state.sgdbops.forEach( function(op, index) {
-
-					let show = true
-
-					if(vc.activeFilters.keyword.length)
-						show = JSON.stringify(op).includes(vc.activeFilters.keyword)
-						
-					if(vc.activeFilters.status.length && show)
-						show = (typeof ( op.data.status.conditions.find(c => ( (c.status == "True") && vc.activeFilters.status.includes(c.type) ) ) ) !== 'undefined')                    
-
-					if(vc.activeFilters.clusterName.length && show)
-						show = (vc.activeFilters.clusterName == op.data.spec.sgCluster)
-
-                    if(vc.activeFilters.op.length && show)
-						show = (vc.activeFilters.op == op.data.spec.op)
-					
-					if(op.show != show) {
-						store.commit('showDbOp',{
-							pos: index,
-							isVisible: show
-						})
-					}
-
-				})
-
-                // If it's a minorVersionUpgrade with running status, update cluster stats every 2sec
-                if( (vc.pollClusterStats == 0) && vc.$route.params.hasOwnProperty('name') ) {
+                if(store.state.sgdbops !== null) {
+                    const vc = this
                     
-                    let op = store.state.sgdbops.find(op => ( (op.data.metadata.name == vc.$route.params.name) && (op.data.metadata.namespace == vc.$route.params.namespace) ))
-                    
-                    if( (typeof op != 'undefined') && (op.data.spec.op == 'minorVersionUpgrade') && vc.hasProp(op, 'data.status.conditions') ) {
-                        let status = op.data.status.conditions.find( c => ( (['Running', 'Completed'].includes(c.type)) && (c.status == 'True') ) )
+                    store.state.sgdbops.forEach( function(op, index) {
 
-                        if(typeof status != 'undefined') {
+                        let show = true
 
-                            vc.pollClusterStats = setInterval( function() {
-                                sgApi
-                                .getResourceDetails('sgclusters', vc.$route.params.namespace, op.data.spec.sgCluster, 'stats')
-                                .then( function(resp) {
-                                    store.commit('updateClusterStats', {
-                                        name: op.data.spec.sgCluster,
-                                        namespace: vc.$route.params.namespace,
-                                        stats: resp.data
-                                    })
-                                }).catch(function(err) {
-                                    console.log(err);
-                                });
-                            }, 5000)
+                        if(vc.activeFilters.keyword.length)
+                            show = JSON.stringify(op).includes(vc.activeFilters.keyword)
+                            
+                        if(vc.activeFilters.status.length && show)
+                            show = (typeof ( op.data.status.conditions.find(c => ( (c.status == "True") && vc.activeFilters.status.includes(c.type) ) ) ) !== 'undefined')                    
 
+                        if(vc.activeFilters.clusterName.length && show)
+                            show = (vc.activeFilters.clusterName == op.data.spec.sgCluster)
+
+                        if(vc.activeFilters.op.length && show)
+                            show = (vc.activeFilters.op == op.data.spec.op)
+                        
+                        if(op.show != show) {
+                            store.commit('showDbOp',{
+                                pos: index,
+                                isVisible: show
+                            })
+                        }
+
+                    })
+
+                    // If it's a minorVersionUpgrade with running status, update cluster stats every 2sec
+                    if( (vc.pollClusterStats == 0) && vc.$route.params.hasOwnProperty('name') ) {
+                        
+                        let op = store.state.sgdbops.find(op => ( (op.data.metadata.name == vc.$route.params.name) && (op.data.metadata.namespace == vc.$route.params.namespace) ))
+                        
+                        if( (typeof op != 'undefined') && (op.data.spec.op == 'minorVersionUpgrade') && vc.hasProp(op, 'data.status.conditions') ) {
+                            let status = op.data.status.conditions.find( c => ( (['Running', 'Completed'].includes(c.type)) && (c.status == 'True') ) )
+
+                            if(typeof status != 'undefined') {
+
+                                vc.pollClusterStats = setInterval( function() {
+                                    sgApi
+                                    .getResourceDetails('sgclusters', vc.$route.params.namespace, op.data.spec.sgCluster, 'stats')
+                                    .then( function(resp) {
+                                        store.commit('updateClusterStats', {
+                                            name: op.data.spec.sgCluster,
+                                            namespace: vc.$route.params.namespace,
+                                            stats: resp.data
+                                        })
+                                    }).catch(function(err) {
+                                        console.log(err);
+                                    });
+                                }, 5000)
+
+                            }
                         }
                     }
+                    
+                    return vc.sortTable( [...(store.state.sgdbops.filter(op => ( op.show && ( op.data.metadata.namespace == vc.$route.params.namespace ))))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+                } else {
+                    return null;
                 }
-                
-				return vc.sortTable( [...(store.state.sgdbops.filter(op => ( op.show && ( op.data.metadata.namespace == vc.$route.params.namespace ))))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
             },
             
             tooltips() {
@@ -952,7 +969,11 @@
             },
 
             crd () {
-				return store.state.sgdbops.find(o => (o.data.metadata.namespace == this.$route.params.namespace) && (o.data.metadata.name == this.$route.params.name))
+				return (
+					(store.state.sgdbops !== null)
+						? store.state.sgdbops.find(o => (o.data.metadata.namespace == this.$route.params.namespace) && (o.data.metadata.name == this.$route.params.name))
+						: null
+				)
 			}
         },
 

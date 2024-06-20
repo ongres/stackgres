@@ -148,8 +148,12 @@
                 return store.state.sgscripts
             },
 
-            crd () {
-				return store.state.sgclusters.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.name))
+			crd () {
+                return (
+					(store.state.sgclusters !== null)
+						? store.state.sgclusters.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.name))
+						: null
+				)
 			}
 		},
 

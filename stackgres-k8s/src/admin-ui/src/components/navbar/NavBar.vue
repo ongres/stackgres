@@ -207,7 +207,7 @@
 		computed: {
 
 			namespaces () {
-				return store.state.Allnamespaces
+				return store.state.allNamespaces
 			},
 
 			currentNamespace () {
@@ -260,8 +260,12 @@
 								store.state.cloneCRD.kind.toLowerCase() 
 							) 
 						);
-					let collision = store.state[kind].find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-					return (typeof collision != 'undefined')
+					if(store.state[kind] !== null) {
+						let collision = store.state[kind].find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						return (typeof collision != 'undefined')
+					} else {
+						return false;
+					}
 				} else {
 					return false
 				}

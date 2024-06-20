@@ -1,7 +1,12 @@
 <template>
 	<div id="grafana" v-if="iCanLoad">
 		<div class="content grafana">
-			<template v-if="hasActivePods">
+			<template v-if="cluster === null">
+				<div class="warningText">
+					Loading data...
+				</div>				
+			</template>
+			<template v-else-if="hasActivePods">
 				<div class="grafanaActions">
 					<select class="plain capitalize" id="dashboardsList" v-model="dashboard" @change="goTo(dashboardUrl)">
 						<option disabled value="">
@@ -115,46 +120,50 @@
 		computed: {
 
 			cluster () {
-				let vc = this;
-				let cluster = store.state.sgclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
+				if(store.state.sgclusters !== null) {
+					let vc = this;
+					let cluster = store.state.sgclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
 
-				if(typeof cluster != 'undefined') {
+					if(typeof cluster != 'undefined') {
 
-					// Read Grafana URL
-					if(!vc.$route.params.hasOwnProperty('pod')) {
+						// Read Grafana URL
+						if(!vc.$route.params.hasOwnProperty('pod')) {
 
-						let primaryNode = cluster.data.pods.find(p => (p.role == 'primary'));
+							let primaryNode = cluster.data.pods.find(p => (p.role == 'primary'));
 
-						if(typeof primaryNode != 'undefined') {
-							if(vc.$route.path.endsWith('/'))
-								router.replace(vc.$route.path + primaryNode.name + '/' + vc.dashboard.name)
-							else 
-								router.replace(vc.$route.path + '/' + primaryNode.name + '/' + vc.dashboard.name)
+							if(typeof primaryNode != 'undefined') {
+								if(vc.$route.path.endsWith('/'))
+									router.replace(vc.$route.path + primaryNode.name + '/' + vc.dashboard.name)
+								else 
+									router.replace(vc.$route.path + '/' + primaryNode.name + '/' + vc.dashboard.name)
+							}
+						} else if(typeof cluster.data.pods.find(p => (p.name == vc.$route.params.pod)) != 'undefined') {
+
+							if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
+								vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgcluster');
+								vc.dashboard = {
+									name: 'db-info',
+									url: ''
+								};
+								vc.goTo(vc.dashboardUrl);
+							}
+							
+							if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
+								vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'sgcluster');
+								vc.timeRange = '';
+								vc.goTo(vc.dashboardUrl);
+							}
+
+						} else {
+							store.commit('notFound',true)
 						}
-					} else if(typeof cluster.data.pods.find(p => (p.name == vc.$route.params.pod)) != 'undefined') {
 
-						if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
-							vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgcluster');
-							vc.dashboard = {
-								name: 'db-info',
-								url: ''
-							};
-							vc.goTo(vc.dashboardUrl);
-						}
-						
-						if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
-							vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'sgcluster');
-							vc.timeRange = '';
-							vc.goTo(vc.dashboardUrl);
-						}
-
+						return cluster;
 					} else {
-						store.commit('notFound',true)
+						return null;
 					}
-
-					return cluster;
 				} else {
-					return null;
+					return null
 				}
 			},
 

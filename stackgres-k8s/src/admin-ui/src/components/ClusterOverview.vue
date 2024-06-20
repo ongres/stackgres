@@ -38,7 +38,14 @@
 						<th class="actions"></th>
 					</thead>
 					<tbody>
-						<template v-if="!clusters.length">
+						<template v-if="clusters === null">
+							<tr class="no-results">
+								<td colspan="999">
+									Loading data...
+								</td>
+							</tr>
+						</template>
+						<template v-else-if="!clusters.length">
 							<tr class="no-results">
 								<td colspan="7" v-if="iCan('create','sgclusters',$route.params.namespace)">
 									No clusters have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgclusters/new'" title="Add New Cluster">create a new one?</router-link>
@@ -101,7 +108,7 @@
 						</template>
 					</tbody>
 				</table>
-				<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < clusters.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
+				<v-page :key="'pagination-'+pagination.rows" v-if="( (clusters !== null) && (pagination.rows < clusters.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="clusters.length" @page-change="pageChange" align="center" ref="page"></v-page>
 			</div>
 		</template>
 		<div id="nameTooltip">
@@ -132,7 +139,11 @@
 		},
 		computed: {
 			clusters () {
-				return this.sortTable([...(store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
+				return (
+					(store.state.sgclusters !== null)
+						? this.sortTable([...(store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
+						: null
+				)
 			},
 
 			namespaces() {
@@ -149,9 +160,13 @@
 		},
 		methods: {
 			isSharded(cluster) {
-				let shards = store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))		
-				
-				return typeof(shards.find((c) => (c.data.status.clusters.includes(cluster)))) != 'undefined'
+				if(store.state.sgshardedclusters !== null) {
+					let shards = store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))		
+					
+					return typeof(shards.find((c) => (c.data.status.clusters.includes(cluster)))) !== 'undefined'
+				} else {
+					return false
+				}
 			}
 		}
 	}
