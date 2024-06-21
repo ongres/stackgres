@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -57,8 +56,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
     return Stream.<HasMetadata>of(
         createServiceAccount(context),
         createRole(context),
-        createRoleBinding(context))
-        .filter(resource -> !DbOpsUtil.isAlreadyCompleted(context.getSource()));
+        createRoleBinding(context));
   }
 
   /**

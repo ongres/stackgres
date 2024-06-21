@@ -88,22 +88,35 @@ public class StackGresShardedDbOpsSpec {
   @AssertTrue(message = "op must match corresponding section.",
       payload = Op.class)
   public boolean isOpMatchSection() {
-    if (op != null) {
-      switch (op) {
-        case "resharding":
-          return restart == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null
-              && securityUpgrade == null;
-        case "restart":
-          return resharding == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null
-              && securityUpgrade == null;
-        case "securityUpgrade":
-          return resharding == null && restart == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null;
-        default:
-          break;
-      }
+    if (op == null) {
+      return true;
+    }
+    final ShardedDbOpsOperation op;
+    try {
+      op = ShardedDbOpsOperation.fromString(this.op);
+    } catch (IllegalArgumentException ex) {
+      return true;
+    }
+    switch (op) {
+      case RESHARDING:
+        return restart == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case RESTART:
+        return resharding == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case SECURITY_UPGRADE:
+        return resharding == null && restart == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null;
+      case MAJOR_VERSION_UPGRADE:
+        return resharding == null && restart == null
+          && securityUpgrade == null && minorVersionUpgrade == null;
+      case MINOR_VERSION_UPGRADE:
+        return resharding == null && restart == null
+            && majorVersionUpgrade == null && securityUpgrade == null;
+      default:
+        break;
     }
     return true;
   }

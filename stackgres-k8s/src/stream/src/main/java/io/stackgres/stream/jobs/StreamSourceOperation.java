@@ -10,12 +10,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.stackgres.common.crd.sgstream.StreamSourceType;
 import jakarta.inject.Qualifier;
 
 @Qualifier
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface StateHandler {
+public @interface StreamSourceOperation {
 
-  String value();
+  StreamSourceType value();
+
 }

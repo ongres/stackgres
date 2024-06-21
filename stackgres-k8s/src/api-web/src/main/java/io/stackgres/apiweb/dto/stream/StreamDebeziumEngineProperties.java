@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.stream;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -24,6 +26,10 @@ public class StreamDebeziumEngineProperties {
   private Integer errorsRetryDelayInitialMs;
 
   private Integer errorsRetryDelayMaxMs;
+
+  private Map<String, Map<String, String>> transforms;
+
+  private Map<String, Map<String, String>> predicates;
 
   public String getOffsetCommitPolicy() {
     return offsetCommitPolicy;
@@ -71,6 +77,22 @@ public class StreamDebeziumEngineProperties {
 
   public void setErrorsRetryDelayMaxMs(Integer errorsRetryDelayMaxMs) {
     this.errorsRetryDelayMaxMs = errorsRetryDelayMaxMs;
+  }
+
+  public Map<String, Map<String, String>> getTransforms() {
+    return transforms;
+  }
+
+  public void setTransforms(Map<String, Map<String, String>> transforms) {
+    this.transforms = transforms;
+  }
+
+  public Map<String, Map<String, String>> getPredicates() {
+    return predicates;
+  }
+
+  public void setPredicates(Map<String, Map<String, String>> predicates) {
+    this.predicates = predicates;
   }
 
   @Override

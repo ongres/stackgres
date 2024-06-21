@@ -160,6 +160,44 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
     spec.setMinorVersionUpgrade(null);
     spec.setSecurityUpgrade(null);
 
+    switch (op) {
+      case BENCHMARK:
+        var bench = new StackGresDbOpsBenchmark();
+        bench.setType("pgbench");
+        var pgbench = new StackGresDbOpsPgbench();
+        pgbench.setDuration("P0DT0H10M0S");
+        pgbench.setDatabaseSize("10GB");
+        bench.setPgbench(pgbench);
+        spec.setBenchmark(bench);
+        break;
+      case VACUUM:
+        spec.setVacuum(new StackGresDbOpsVacuum());
+        break;
+      case REPACK:
+        spec.setRepack(new StackGresDbOpsRepack());
+        break;
+      case RESTART:
+        spec.setRestart(new StackGresDbOpsRestart());
+        break;
+      case MAJOR_VERSION_UPGRADE:
+        var major = new StackGresDbOpsMajorVersionUpgrade();
+        major.setPostgresVersion("14");
+        major.setSgPostgresConfig("conf14");
+        major.setBackupPath("test");
+        spec.setMajorVersionUpgrade(major);
+        break;
+      case MINOR_VERSION_UPGRADE:
+        var minor = new StackGresDbOpsMinorVersionUpgrade();
+        minor.setPostgresVersion("14.1");
+        spec.setMinorVersionUpgrade(minor);
+        break;
+      case SECURITY_UPGRADE:
+        spec.setSecurityUpgrade(new StackGresDbOpsSecurityUpgrade());
+        break;
+      default:
+        break;
+    }
+
     switch (section) {
       case BENCHMARK:
         var bench = new StackGresDbOpsBenchmark();
@@ -198,25 +236,8 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
         break;
     }
 
-    switch (op) {
-      case BENCHMARK:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGDbOps has invalid properties. benchmark section must be provided.", 422);
-        break;
-      case MAJOR_VERSION_UPGRADE:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGDbOps has invalid properties. majorVersionUpgrade section must be provided.", 422);
-        break;
-      case MINOR_VERSION_UPGRADE:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGDbOps has invalid properties. minorVersionUpgrade section must be provided.", 422);
-        break;
-      default:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGDbOps has invalid properties. op must match corresponding section.", 422);
-        break;
-    }
-
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "SGDbOps has invalid properties. op must match corresponding section.", 422);
   }
 
   private static Stream<Arguments> dbOpsOperationsMatrix() {

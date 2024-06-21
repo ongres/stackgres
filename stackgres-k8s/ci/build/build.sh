@@ -63,7 +63,8 @@ fi
 BUILD_HASH="$(cat stackgres-k8s/ci/build/target/build_hash)"
 
 find_image_digests "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH" \
-  > "stackgres-k8s/ci/build/target/image-digests.$BUILD_HASH"
+  > "stackgres-k8s/ci/build/target/found-image-digests.$BUILD_HASH"
+cp "stackgres-k8s/ci/build/target/found-image-digests.$BUILD_HASH" "stackgres-k8s/ci/build/target/image-digests.$BUILD_HASH"
 
 echo "Retrieved image digests:"
 sort "stackgres-k8s/ci/build/target/all-images.$BUILD_HASH" | uniq \

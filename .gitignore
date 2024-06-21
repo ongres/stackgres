@@ -124,6 +124,7 @@ hs_err_pid*
 
 ## ignoring target file
 target/
+!**/src/main/**/target/
 dist/
 
 # maven-release-plugin

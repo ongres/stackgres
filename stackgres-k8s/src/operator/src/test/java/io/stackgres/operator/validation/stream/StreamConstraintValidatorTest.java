@@ -15,10 +15,13 @@ import java.util.stream.Stream;
 
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamSource;
+import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgres;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourceSgCluster;
 import io.stackgres.common.crd.sgstream.StackGresStreamSpec;
 import io.stackgres.common.crd.sgstream.StackGresStreamTarget;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetCloudEvent;
+import io.stackgres.common.crd.sgstream.StackGresStreamTargetCloudEventHttp;
+import io.stackgres.common.crd.sgstream.StackGresStreamTargetSgCluster;
 import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.validation.ValidEnum;
@@ -29,7 +32,6 @@ import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -140,7 +142,6 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
 
   @ParameterizedTest(name = "type: {0} section: {1}")
   @MethodSource("streamSourceTypesMatrix")
-  @Disabled("enable when more than 1 source type")
   void sourceTypeThatDontMatchSection_shouldFailWithMessage(StreamSourceType type, StreamSourceType section) {
     StackGresStreamReview review = getValidReview();
     StackGresStreamSpec spec = review.getRequest().getObject().getSpec();
@@ -148,27 +149,38 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
 
     spec.getSource().setSgCluster(null);
 
+    switch (type) {
+      case SGCLUSTER:
+        var sgCluster = new StackGresStreamSourceSgCluster();
+        sgCluster.setName("test");
+        spec.getSource().setSgCluster(sgCluster);
+        break;
+      case POSTGRES:
+        var postgres = new StackGresStreamSourcePostgres();
+        postgres.setHost("test");
+        spec.getSource().setPostgres(postgres);
+        break;
+      default:
+        break;
+    }
+
     switch (section) {
       case SGCLUSTER:
         var sgCluster = new StackGresStreamSourceSgCluster();
         sgCluster.setName("test");
         spec.getSource().setSgCluster(sgCluster);
         break;
+      case POSTGRES:
+        var postgres = new StackGresStreamSourcePostgres();
+        postgres.setHost("test");
+        spec.getSource().setPostgres(postgres);
+        break;
       default:
         break;
     }
 
-    switch (type) {
-      case SGCLUSTER:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGStream has invalid properties. sgCluster source section must be provided.", 422);
-        break;
-      default:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGStream has invalid properties. source type must match corresponding section.", 422);
-        break;
-    }
-
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "SGStream has invalid properties. type must match corresponding section.", 422);
   }
 
   private static Stream<Arguments> streamSourceTypesMatrix() {
@@ -200,6 +212,11 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
         sgCluster.setName("test");
         spec.getSource().setSgCluster(sgCluster);
         break;
+      case POSTGRES:
+        var postgres = new StackGresStreamSourcePostgres();
+        postgres.setHost("test");
+        spec.getSource().setPostgres(postgres);
+        break;
       default:
         break;
     }
@@ -214,7 +231,6 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
 
   @ParameterizedTest(name = "type: {0} section: {1}")
   @MethodSource("streamTargetTypesMatrix")
-  @Disabled("enable when more than 1 target type")
   void targetTypeThatDontMatchSection_shouldFailWithMessage(StreamTargetType type, StreamTargetType section) {
     StackGresStreamReview review = getValidReview();
     StackGresStreamSpec spec = review.getRequest().getObject().getSpec();
@@ -222,24 +238,43 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
 
     spec.getTarget().setCloudEvent(null);
 
+    switch (type) {
+      case CLOUD_EVENT:
+        var cloudEvent = new StackGresStreamTargetCloudEvent();
+        cloudEvent.setBinding("http");
+        cloudEvent.setFormat("json");
+        cloudEvent.setHttp(new StackGresStreamTargetCloudEventHttp());
+        cloudEvent.getHttp().setUrl("test");
+        spec.getTarget().setCloudEvent(cloudEvent);
+        break;
+      case SGCLUSTER:
+        var sgCluster = new StackGresStreamTargetSgCluster();
+        sgCluster.setName("test");
+        spec.getTarget().setSgCluster(sgCluster);
+        break;
+      default:
+        break;
+    }
+
     switch (section) {
       case CLOUD_EVENT:
         var cloudEvent = new StackGresStreamTargetCloudEvent();
+        cloudEvent.setBinding("http");
+        cloudEvent.setFormat("json");
+        cloudEvent.setHttp(new StackGresStreamTargetCloudEventHttp());
         spec.getTarget().setCloudEvent(cloudEvent);
         break;
+      case SGCLUSTER:
+        var sgCluster = new StackGresStreamTargetSgCluster();
+        sgCluster.setName("test");
+        spec.getTarget().setSgCluster(sgCluster);
+        break;
       default:
         break;
     }
 
-    switch (type) {
-      case CLOUD_EVENT:
-        break;
-      default:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGStream has invalid properties. target type must match corresponding section.", 422);
-        break;
-    }
-
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "SGStream has invalid properties. type must match corresponding section.", 422);
   }
 
   private static Stream<Arguments> streamTargetTypesMatrix() {
@@ -268,7 +303,16 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
     switch (section) {
       case CLOUD_EVENT:
         var cloudEvent = new StackGresStreamTargetCloudEvent();
+        cloudEvent.setBinding("http");
+        cloudEvent.setFormat("json");
+        cloudEvent.setHttp(new StackGresStreamTargetCloudEventHttp());
+        cloudEvent.getHttp().setUrl("test");
         spec.getTarget().setCloudEvent(cloudEvent);
+        break;
+      case SGCLUSTER:
+        var sgCluster = new StackGresStreamTargetSgCluster();
+        sgCluster.setName("test");
+        spec.getTarget().setSgCluster(sgCluster);
         break;
       default:
         break;

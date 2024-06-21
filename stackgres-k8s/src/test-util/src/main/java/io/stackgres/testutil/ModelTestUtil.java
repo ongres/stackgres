@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -239,10 +239,20 @@ public class ModelTestUtil {
   }
 
   public static <T> T createWithRandomData(Class<T> targetClazz) {
-    return visit(new RandomDataVisitor<>(), targetClazz);
+    return visit(new RandomDataVisitor<>(Optional.empty()), targetClazz);
+  }
+
+  public static <T> T createWithRandomData(Class<T> targetClazz, int expectedListAndMapSize) {
+    return visit(new RandomDataVisitor<>(Optional.of(expectedListAndMapSize)), targetClazz);
   }
 
   public static class RandomDataVisitor<T> implements ResourceVisitor<T> {
+    final Optional<Integer> expectedListAndMapSize;
+
+    RandomDataVisitor(Optional<Integer> expectedListAndMapSize) {
+      this.expectedListAndMapSize = expectedListAndMapSize;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public T onObject(Class<?> clazz, List<Field> fields) {
@@ -263,7 +273,7 @@ public class ModelTestUtil {
       try {
         field.setAccessible(true);
         field.set(target,
-            visit(new RandomDataVisitor<>(), field.getType(), field.getGenericType()));
+            visit(new RandomDataVisitor<>(expectedListAndMapSize), field.getType(), field.getGenericType()));
         field.setAccessible(false);
       } catch (ReflectiveOperationException ex) {
         throw new RuntimeException(ex);
@@ -273,7 +283,8 @@ public class ModelTestUtil {
     @Override
     @SuppressWarnings("unchecked")
     public T onList(Class<?> clazz, Class<?> elementClazz) {
-      int desiredListSize = RANDOM.nextInt(3) + 1; //More than this could be counter-productive
+      int desiredListSize = expectedListAndMapSize
+          .orElse(RANDOM.nextInt(3) + 1); //More than this could be counter-productive
 
       List<Object> targetList = new ArrayList<>(desiredListSize);
       if (clazz != List.class) {
@@ -291,7 +302,7 @@ public class ModelTestUtil {
       }
 
       for (int i = 0; i < desiredListSize; i++) {
-        Object item = visit(new RandomDataVisitor<>(), elementClazz);
+        Object item = visit(new RandomDataVisitor<>(expectedListAndMapSize), elementClazz);
         targetList.add(item);
       }
 
@@ -301,9 +312,10 @@ public class ModelTestUtil {
     @Override
     @SuppressWarnings("unchecked")
     public T onMap(Class<?> clazz, Class<?> keyClazz, Class<?> valueClazz, Type valueType) {
-      int desiredMapSize = RANDOM.nextInt(3) + 1; //More than this could be counter-productive
+      int desiredMapSize = expectedListAndMapSize
+          .orElse(RANDOM.nextInt(3) + 1); //More than this could be counter-productive
 
-      Map<Object, Object> targetMap = new HashMap<>(desiredMapSize);
+      Map<Object, Object> targetMap = new LinkedHashMap<>(desiredMapSize);
       if (clazz != Map.class) {
         try {
           var constructor = Arrays.stream(clazz.getConstructors())
@@ -319,8 +331,8 @@ public class ModelTestUtil {
       }
 
       for (int i = 0; i < desiredMapSize; i++) {
-        Object key = visit(new RandomDataVisitor<>(), keyClazz);
-        Object value = visit(new RandomDataVisitor<>(), valueClazz, valueType);
+        Object key = visit(new RandomDataVisitor<>(expectedListAndMapSize), keyClazz);
+        Object value = visit(new RandomDataVisitor<>(expectedListAndMapSize), valueClazz, valueType);
         targetMap.put(key, value);
       }
 

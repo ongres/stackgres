@@ -150,6 +150,32 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Stack
     spec.setMinorVersionUpgrade(null);
     spec.setSecurityUpgrade(null);
 
+    switch (ShardedDbOpsOperation.fromString(op.toString())) {
+      case RESHARDING:
+        spec.setResharding(new StackGresShardedDbOpsResharding());
+        break;
+      case RESTART:
+        spec.setRestart(new StackGresShardedDbOpsRestart());
+        break;
+      case MAJOR_VERSION_UPGRADE:
+        var major = new StackGresShardedDbOpsMajorVersionUpgrade();
+        major.setPostgresVersion("14");
+        major.setSgPostgresConfig("conf14");
+        major.setBackupPaths(List.of("test"));
+        spec.setMajorVersionUpgrade(major);
+        break;
+      case MINOR_VERSION_UPGRADE:
+        var minor = new StackGresShardedDbOpsMinorVersionUpgrade();
+        minor.setPostgresVersion("14.1");
+        spec.setMinorVersionUpgrade(minor);
+        break;
+      case SECURITY_UPGRADE:
+        spec.setSecurityUpgrade(new StackGresShardedDbOpsSecurityUpgrade());
+        break;
+      default:
+        break;
+    }
+
     switch (ShardedDbOpsOperation.fromString(section.toString())) {
       case RESHARDING:
         spec.setResharding(new StackGresShardedDbOpsResharding());
@@ -176,22 +202,8 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Stack
         break;
     }
 
-    switch (ShardedDbOpsOperation.fromString(op.toString())) {
-      case MAJOR_VERSION_UPGRADE:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGShardedDbOps has invalid properties."
-            + " majorVersionUpgrade section must be provided.", 422);
-        break;
-      case MINOR_VERSION_UPGRADE:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGShardedDbOps has invalid properties."
-            + " minorVersionUpgrade section must be provided.", 422);
-        break;
-      default:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGShardedDbOps has invalid properties. op must match corresponding section.", 422);
-        break;
-    }
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "SGShardedDbOps has invalid properties. op must match corresponding section.", 422);
   }
 
   private static Stream<Arguments> dbOpsOperationsMatrix() {

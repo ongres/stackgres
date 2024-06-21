@@ -7,6 +7,7 @@ package io.stackgres.stream.jobs;
 
 import java.util.Objects;
 
+import io.stackgres.common.crd.sgstream.StreamTargetType;
 import jakarta.enterprise.util.AnnotationLiteral;
 
 public class StreamTargetOperationLiteral extends AnnotationLiteral<StreamTargetOperation>
@@ -14,14 +15,14 @@ public class StreamTargetOperationLiteral extends AnnotationLiteral<StreamTarget
 
   private static final long serialVersionUID = 1L;
 
-  private final String value;
+  private final StreamTargetType value;
 
-  public StreamTargetOperationLiteral(String value) {
+  public StreamTargetOperationLiteral(StreamTargetType value) {
     this.value = value;
   }
 
   @Override
-  public String value() {
+  public StreamTargetType value() {
     return value;
   }
 

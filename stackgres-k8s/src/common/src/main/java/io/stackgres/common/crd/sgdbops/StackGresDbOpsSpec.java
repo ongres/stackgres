@@ -98,26 +98,44 @@ public class StackGresDbOpsSpec {
   @AssertTrue(message = "op must match corresponding section.",
       payload = Op.class)
   public boolean isOpMatchSection() {
-    if (op != null) {
-      switch (op) {
-        case "vacuum":
-          return benchmark == null && repack == null && restart == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null
-              && securityUpgrade == null;
-        case "repack":
-          return benchmark == null && vacuum == null && restart == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null
-              && securityUpgrade == null;
-        case "restart":
-          return benchmark == null && vacuum == null && repack == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null
-              && securityUpgrade == null;
-        case "securityUpgrade":
-          return benchmark == null && vacuum == null && repack == null && restart == null
-              && majorVersionUpgrade == null && minorVersionUpgrade == null;
-        default:
-          break;
-      }
+    if (op == null) {
+      return true;
+    }
+    final DbOpsOperation op;
+    try {
+      op = DbOpsOperation.fromString(this.op);
+    } catch (IllegalArgumentException ex) {
+      return true;
+    }
+    switch (op) {
+      case VACUUM:
+        return benchmark == null && repack == null && restart == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case REPACK:
+        return benchmark == null && vacuum == null && restart == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case RESTART:
+        return benchmark == null && vacuum == null && repack == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case SECURITY_UPGRADE:
+        return benchmark == null && vacuum == null && repack == null && restart == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null;
+      case BENCHMARK:
+        return vacuum == null && repack == null && restart == null
+            && majorVersionUpgrade == null && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case MAJOR_VERSION_UPGRADE:
+        return benchmark == null && vacuum == null && repack == null && restart == null
+            && minorVersionUpgrade == null
+            && securityUpgrade == null;
+      case MINOR_VERSION_UPGRADE:
+        return benchmark == null && vacuum == null && repack == null && restart == null
+            && majorVersionUpgrade == null && securityUpgrade == null;
+      default:
+        break;
     }
     return true;
   }

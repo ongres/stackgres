@@ -28,7 +28,7 @@ public class StreamSourceSgCluster {
 
   private List<String> excludes;
 
-  private StreamSourcePostgresConnectorProperties debeziumConnectorProperties;
+  private StreamSourcePostgresDebeziumProperties debeziumProperties;
 
   private String usernameValue;
 
@@ -82,13 +82,13 @@ public class StreamSourceSgCluster {
     this.excludes = excludes;
   }
 
-  public StreamSourcePostgresConnectorProperties getDebeziumConnectorProperties() {
-    return debeziumConnectorProperties;
+  public StreamSourcePostgresDebeziumProperties getDebeziumProperties() {
+    return debeziumProperties;
   }
 
-  public void setDebeziumConnectorProperties(
-      StreamSourcePostgresConnectorProperties debeziumConnectorProperties) {
-    this.debeziumConnectorProperties = debeziumConnectorProperties;
+  public void setDebeziumProperties(
+      StreamSourcePostgresDebeziumProperties debeziumProperties) {
+    this.debeziumProperties = debeziumProperties;
   }
 
   public String getUsernameValue() {
