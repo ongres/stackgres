@@ -18,7 +18,7 @@
   "main": "index.js",
   "dependencies": {
     "apexcharts": "^3.27.2",
-    "axios": "^0.21.1",
+    "axios": "^1.7.2",
     "babel-runtime": "^6.26.0",
     "connect-history-api-fallback": "^1.6.0",
     "core-js": "^3.6.5",
@@ -41,28 +41,11 @@
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-vuex": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
-    "babel-eslint": "^10.1.0",
     "cypress": "^12.17.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
     "vue-template-compiler": "^2.7.14"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential"
-    ],
-    "parserOptions": {
-      "parser": "babel-eslint"
-    },
-    "rules": {}
   },
   "browserslist": [
     "> 1%",
