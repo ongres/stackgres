@@ -44,7 +44,7 @@ public class StreamStatusManager
 
   @Override
   public StackGresStream refreshCondition(StackGresStream source) {
-    final boolean isJobFailedAndStatusNotUpdated;
+    final boolean isJobFinishedAndStatusNotUpdated;
     if (Optional.of(source)
         .map(StackGresStream::getStatus)
         .map(StackGresStreamStatus::getConditions)
@@ -55,12 +55,14 @@ public class StreamStatusManager
             || Objects.equals(condition.getType(),
                 StreamStatusCondition.Type.FAILED.getType()))
         .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
-      isJobFailedAndStatusNotUpdated = false;
+      isJobFinishedAndStatusNotUpdated = false;
     } else {
-      final Optional<Job> job = jobFinder.findByNameAndNamespace(
-          StreamUtil.jobName(source),
-          source.getMetadata().getNamespace());
-      isJobFailedAndStatusNotUpdated = job
+      final Optional<Job> job = Optional.ofNullable(source.getSpec().getMaxRetries())
+          .filter(maxRetries -> maxRetries >= 0)
+          .flatMap(maxRetries -> jobFinder.findByNameAndNamespace(
+              StreamUtil.jobName(source),
+              source.getMetadata().getNamespace()));
+      isJobFinishedAndStatusNotUpdated = job
           .map(Job::getStatus)
           .map(JobStatus::getConditions)
           .stream()
@@ -73,7 +75,7 @@ public class StreamStatusManager
       }
     }
 
-    if (isJobFailedAndStatusNotUpdated) {
+    if (isJobFinishedAndStatusNotUpdated) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug(
             "Stream {} failed since the job failed but status condition is neither completed or failed",

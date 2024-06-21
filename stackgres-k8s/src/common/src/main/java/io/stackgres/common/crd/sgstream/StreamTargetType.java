@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StreamTargetType {
 
-  CLOUD_EVENT("CloudEvent");
+  CLOUD_EVENT("CloudEvent"),
+  SGCLUSTER("SGCluster");
 
   private final @NotNull String type;
 

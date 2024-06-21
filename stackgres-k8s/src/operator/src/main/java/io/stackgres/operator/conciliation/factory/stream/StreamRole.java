@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.stackgres.common.StreamUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.labels.LabelFactoryForStream;
@@ -54,8 +53,7 @@ public class StreamRole implements ResourceGenerator<StackGresStreamContext> {
     return Stream.<HasMetadata>of(
         createServiceAccount(context),
         createRole(context),
-        createRoleBinding(context))
-        .filter(resource -> !StreamUtil.isAlreadyCompleted(context.getSource()));
+        createRoleBinding(context));
   }
 
   /**

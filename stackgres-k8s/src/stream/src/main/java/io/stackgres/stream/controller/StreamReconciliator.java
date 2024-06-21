@@ -30,8 +30,8 @@ import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
 import io.stackgres.stream.common.StackGresStreamContext;
 import io.stackgres.stream.configuration.StreamPropertyContext;
-import io.stackgres.stream.jobs.DebeziumEngineHandler;
 import io.stackgres.stream.jobs.Metrics;
+import io.stackgres.stream.jobs.source.SgClusterDebeziumEngineHandler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -83,7 +83,7 @@ public class StreamReconciliator
         snapshotStatus,
         StackGresStreamSnapshotStatus.class,
         "debezium.postgres:type=connector-metrics,context=snapshot,server="
-            + DebeziumEngineHandler.topicPrefix(stream),
+            + SgClusterDebeziumEngineHandler.topicPrefix(stream),
         platformMBeanServer);
     if (stream.getStatus().getStreaming() == null) {
       stream.getStatus().setStreaming(new StackGresStreamStreamingStatus());
@@ -94,7 +94,7 @@ public class StreamReconciliator
         streamingStatus,
         StackGresStreamStreamingStatus.class,
         "debezium.postgres:type=connector-metrics,context=streaming,server="
-            + DebeziumEngineHandler.topicPrefix(stream),
+            + SgClusterDebeziumEngineHandler.topicPrefix(stream),
         platformMBeanServer);
     if (stream.getStatus().getEvents() == null) {
       stream.getStatus().setEvents(new StackGresStreamEventsStatus());

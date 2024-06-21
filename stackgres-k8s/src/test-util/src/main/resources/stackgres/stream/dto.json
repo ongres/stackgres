@@ -12,7 +12,14 @@
       }
     },
     "target": {
-      "type": "CloudEvent"
+      "type": "CloudEvent",
+      "cloudEvent": {
+        "binding": "http",
+        "format": "json",
+        "http": {
+          "url": "test"
+        }
+      }
     },
     "pods": {
       "persistentVolume": {

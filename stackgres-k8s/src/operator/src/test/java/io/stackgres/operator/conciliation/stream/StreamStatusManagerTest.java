@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgstream.StreamStatusCondition;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.Condition;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,7 +88,8 @@ class StreamStatusManagerTest {
   void setUp() {
     statusManager = new StreamStatusManager(jobFinder);
     expectedStream = Fixtures.stream().loadSgClusterToCloudEvent().get();
-    stream = Fixtures.stream().loadSgClusterToCloudEvent().get();
+    expectedStream.getSpec().setMaxRetries(0);
+    stream = JsonUtil.copy(expectedStream);
   }
 
   @Test

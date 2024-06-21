@@ -41,7 +41,7 @@ public class StackGresStreamSourceSgCluster {
   private List<String> excludes;
 
   @Valid
-  private StackGresStreamSourcePostgresConnectorProperties debeziumConnectorProperties;
+  private StackGresStreamSourcePostgresDebeziumProperties debeziumProperties;
 
   public String getName() {
     return name;
@@ -91,18 +91,18 @@ public class StackGresStreamSourceSgCluster {
     this.excludes = excludes;
   }
 
-  public StackGresStreamSourcePostgresConnectorProperties getDebeziumConnectorProperties() {
-    return debeziumConnectorProperties;
+  public StackGresStreamSourcePostgresDebeziumProperties getDebeziumProperties() {
+    return debeziumProperties;
   }
 
-  public void setDebeziumConnectorProperties(
-      StackGresStreamSourcePostgresConnectorProperties debeziumConnectorProperties) {
-    this.debeziumConnectorProperties = debeziumConnectorProperties;
+  public void setDebeziumProperties(
+      StackGresStreamSourcePostgresDebeziumProperties debeziumProperties) {
+    this.debeziumProperties = debeziumProperties;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, debeziumConnectorProperties, excludes, includes, name, password,
+    return Objects.hash(database, debeziumProperties, excludes, includes, name, password,
         username);
   }
 
@@ -116,7 +116,7 @@ public class StackGresStreamSourceSgCluster {
     }
     StackGresStreamSourceSgCluster other = (StackGresStreamSourceSgCluster) obj;
     return Objects.equals(database, other.database)
-        && Objects.equals(debeziumConnectorProperties, other.debeziumConnectorProperties)
+        && Objects.equals(debeziumProperties, other.debeziumProperties)
         && Objects.equals(excludes, other.excludes) && Objects.equals(includes, other.includes)
         && Objects.equals(name, other.name) && Objects.equals(password, other.password)
         && Objects.equals(username, other.username);

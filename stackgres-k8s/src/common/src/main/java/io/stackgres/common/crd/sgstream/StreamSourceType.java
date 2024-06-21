@@ -9,7 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StreamSourceType {
 
-  SGCLUSTER("SGCluster");
+  SGCLUSTER("SGCluster"),
+  POSTGRES("Postgres");
 
   private final @NotNull String type;
 

@@ -14,7 +14,7 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class StreamSourcePostgresConnectorProperties {
+public class StreamSourcePostgresDebeziumProperties {
 
   private String pluginName;
 
@@ -22,7 +22,7 @@ public class StreamSourcePostgresConnectorProperties {
 
   private Boolean slotDropOnStop;
 
-  private String pubblicationName;
+  private String publicationName;
 
   private Boolean skipMessagesWithoutChange;
 
@@ -134,7 +134,7 @@ public class StreamSourcePostgresConnectorProperties {
 
   private List<String> skippedOperations;
 
-  private String dataCollection;
+  private String signalDataCollection;
 
   private List<String> signalEnabledChannels;
 
@@ -186,12 +186,12 @@ public class StreamSourcePostgresConnectorProperties {
     this.slotDropOnStop = slotDropOnStop;
   }
 
-  public String getPubblicationName() {
-    return pubblicationName;
+  public String getPublicationName() {
+    return publicationName;
   }
 
-  public void setPubblicationName(String pubblicationName) {
-    this.pubblicationName = pubblicationName;
+  public void setPublicationName(String publicationName) {
+    this.publicationName = publicationName;
   }
 
   public Boolean getSkipMessagesWithoutChange() {
@@ -640,12 +640,12 @@ public class StreamSourcePostgresConnectorProperties {
     this.skippedOperations = skippedOperations;
   }
 
-  public String getDataCollection() {
-    return dataCollection;
+  public String getSignalDataCollection() {
+    return signalDataCollection;
   }
 
-  public void setDataCollection(String dataCollection) {
-    this.dataCollection = dataCollection;
+  public void setSignalDataCollection(String signalDataCollection) {
+    this.signalDataCollection = signalDataCollection;
   }
 
   public List<String> getSignalEnabledChannels() {

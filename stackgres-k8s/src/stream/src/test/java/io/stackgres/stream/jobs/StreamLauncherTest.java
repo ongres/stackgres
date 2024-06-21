@@ -22,8 +22,6 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
@@ -35,8 +33,6 @@ import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamStatusCondition;
 import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.stream.jobs.cloudevent.StreamCloudEventJob;
-import io.stackgres.stream.jobs.cloudevent.StreamEventState;
 import io.stackgres.stream.jobs.lock.LockAcquirer;
 import io.stackgres.stream.jobs.lock.LockRequest;
 import io.stackgres.stream.jobs.lock.MockKubeDb;
@@ -53,8 +49,12 @@ import org.mockito.stubbing.Answer;
 class StreamLauncherTest {
 
   @InjectMock
-  @StreamTargetOperation("CloudEvent")
-  StreamCloudEventJob streamCloudEventJob;
+  @StreamTargetOperation(StreamTargetType.CLOUD_EVENT)
+  TargetEventHandler targetEventHandler;
+
+  @InjectMock
+  @StreamSourceOperation(StreamSourceType.SGCLUSTER)
+  SourceEventHandler clusterEventHandler;
 
   @Inject
   StreamLauncher streamLauncher;
@@ -83,6 +83,7 @@ class StreamLauncherTest {
     randomClusterName = StringUtils.getRandomResourceName();
 
     stream = Fixtures.stream().loadSgClusterToCloudEvent().get();
+    stream.getSpec().setMaxRetries(0);
 
     cluster = Fixtures.cluster().loadDefault().get();
 
@@ -101,24 +102,14 @@ class StreamLauncherTest {
     doNothing().when(streamEventEmitter).streamTimedOut(randomStreamName, namespace);
   }
 
-  private CompletableFuture<StreamEventState> getStreamEventStateCompletableFuture() {
-    Pod primary = new Pod();
-    primary.setMetadata(new ObjectMeta());
-    primary.getMetadata().setName(stream.getMetadata().getName() + "-0");
-    return CompletableFuture.completedFuture(
-        StreamEventState.builder()
-            .namespace(stream.getMetadata().getNamespace())
-            .streamName(stream.getMetadata().getName())
-            .streamOperation(new StreamTargetOperationLiteral(stream.getSpec().getTarget().getType()))
-            .sourceType(StreamSourceType.fromString(stream.getSpec().getSource().getType()))
-            .targetType(StreamTargetType.fromString(stream.getSpec().getTarget().getType()))
-            .build());
+  private CompletableFuture<Void> getCompletedCompletableFuture() {
+    return CompletableFuture.completedFuture(null);
   }
 
   @Test
   void givenAValidStream_shouldExecuteTheJob() {
-    when(streamCloudEventJob.runJob(any()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+    when(targetEventHandler.sendEvents(any(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
     streamLauncher.launchStream(randomStreamName, namespace);
 
     final InOrder inOrder = inOrder(streamEventEmitter);
@@ -132,7 +123,7 @@ class StreamLauncherTest {
         .when(lockAcquirer).lockRun(any(LockRequest.class), any());
 
     streamLauncher.launchStream(randomStreamName, namespace);
-    verify(streamCloudEventJob, never()).runJob(any(StackGresStream.class));
+    verify(targetEventHandler, never()).sendEvents(any(StackGresStream.class), any());
 
     verify(streamEventEmitter, never()).streamStarted(randomStreamName, namespace);
     verify(streamEventEmitter, never()).streamCompleted(randomStreamName, namespace);
@@ -157,8 +148,8 @@ class StreamLauncherTest {
 
   @Test
   void givenAValidStream_shouldUpdateItsStatusInformation() {
-    when(streamCloudEventJob.runJob(any()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+    when(targetEventHandler.sendEvents(any(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
 
     streamLauncher.launchStream(randomStreamName, namespace);
 
@@ -172,8 +163,8 @@ class StreamLauncherTest {
 
   @Test
   void givenANonExistentStream_shouldThrowIllegalArgumentException() {
-    when(streamCloudEventJob.runJob(any()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+    when(targetEventHandler.sendEvents(any(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
     String streamName = StringUtils.getRandomString();
     var ex = assertThrows(IllegalArgumentException.class, () -> streamLauncher
         .launchStream(streamName, namespace));
@@ -189,16 +180,37 @@ class StreamLauncherTest {
 
   @Test
   void givenAInvalidTargetType_shouldThrowIllegalStateException() {
-    when(streamCloudEventJob.runJob(any()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+    when(targetEventHandler.sendEvents(any(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
     String targetType = StringUtils.getRandomString();
     stream.getSpec().getTarget().setType(targetType);
 
     stream = mockKubeDb.addOrReplaceStream(stream);
-    var ex = assertThrows(IllegalStateException.class, () -> streamLauncher
+    var ex = assertThrows(IllegalArgumentException.class, () -> streamLauncher
         .launchStream(randomStreamName, namespace));
 
-    assertEquals("Implementation of stream target type " + targetType + " not found", ex.getMessage());
+    assertEquals("SGStream target type " + targetType + " is invalid",
+        ex.getMessage());
+
+    verify(streamEventEmitter, never()).streamStarted(randomStreamName, namespace);
+    verify(streamEventEmitter, never()).streamCompleted(randomStreamName, namespace);
+    verify(streamEventEmitter, never()).streamTimedOut(randomStreamName, namespace);
+    verify(streamEventEmitter, never()).streamFailed(randomStreamName, namespace);
+  }
+
+  @Test
+  void givenAInvalidSourceType_shouldThrowIllegalStateException() {
+    when(targetEventHandler.sendEvents(any(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
+    String sourceType = StringUtils.getRandomString();
+    stream.getSpec().getSource().setType(sourceType);
+
+    stream = mockKubeDb.addOrReplaceStream(stream);
+    var ex = assertThrows(IllegalArgumentException.class, () -> streamLauncher
+        .launchStream(randomStreamName, namespace));
+
+    assertEquals("SGStream source type " + sourceType + " is invalid",
+        ex.getMessage());
 
     verify(streamEventEmitter, never()).streamStarted(randomStreamName, namespace);
     verify(streamEventEmitter, never()).streamCompleted(randomStreamName, namespace);
@@ -210,8 +222,8 @@ class StreamLauncherTest {
   void givenAValidStream_shouldSetRunningConditionsBeforeExecutingTheJob() {
     ArgumentCaptor<StackGresStream> captor = ArgumentCaptor.forClass(StackGresStream.class);
 
-    when(streamCloudEventJob.runJob(captor.capture()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+    when(targetEventHandler.sendEvents(captor.capture(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
 
     streamLauncher.launchStream(randomStreamName, namespace);
 
@@ -234,9 +246,9 @@ class StreamLauncherTest {
   }
 
   @Test
-  void givenAValidStream_shouldSetCompletedConditionsAfterExecutingTheJob() {
-    when(streamCloudEventJob.runJob(any()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+  void givenAValidStream_shouldNotSetCompletedConditionsAfterExecutingTheJobIfTombstoneWasNotSent() {
+    when(targetEventHandler.sendEvents(any(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
 
     streamLauncher.launchStream(randomStreamName, namespace);
 
@@ -245,9 +257,9 @@ class StreamLauncherTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(StreamStatusCondition.STREAM_FALSE_RUNNING::isCondition));
+        .anyMatch(StreamStatusCondition.STREAM_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(StreamStatusCondition.STREAM_COMPLETED::isCondition));
+        .anyMatch(StreamStatusCondition.STREAM_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
         .anyMatch(StreamStatusCondition.STREAM_FALSE_FAILED::isCondition));
 
@@ -259,7 +271,7 @@ class StreamLauncherTest {
 
   @Test
   void givenAValidStream_shouldSetFailedConditionsIdTheJobFails() {
-    when(streamCloudEventJob.runJob(any()))
+    when(targetEventHandler.sendEvents(any(), any()))
         .thenThrow(new RuntimeException("failed job"));
 
     assertThrows(RuntimeException.class, () -> streamLauncher.launchStream(randomStreamName, namespace));
@@ -285,8 +297,8 @@ class StreamLauncherTest {
   void givenAValidStreamRetry_shouldSetRunningConditionsBeforeExecutingTheJob() {
     ArgumentCaptor<StackGresStream> captor = ArgumentCaptor.forClass(StackGresStream.class);
 
-    when(streamCloudEventJob.runJob(captor.capture()))
-        .thenAnswer(invocation -> getStreamEventStateCompletableFuture());
+    when(targetEventHandler.sendEvents(captor.capture(), any()))
+        .thenAnswer(invocation -> getCompletedCompletableFuture());
 
     Instant previousOpStarted = Instant.now();
     stream.setStatus(new StackGresStreamStatus());
