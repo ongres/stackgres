@@ -37,6 +37,10 @@
       <artifactId>debezium-connector-postgres</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-connector-jdbc</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jdbc-postgresql</artifactId>
     </dependency>

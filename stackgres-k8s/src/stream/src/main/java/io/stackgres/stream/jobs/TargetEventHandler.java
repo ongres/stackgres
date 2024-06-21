@@ -9,8 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 import io.stackgres.common.crd.sgstream.StackGresStream;
 
-public interface StreamEventStateHandler {
+public interface TargetEventHandler {
 
-  CompletableFuture<Void> sendEvents(StackGresStream stream);
+  CompletableFuture<Void> sendEvents(StackGresStream stream, SourceEventHandler sourceEventHandler);
 
 }

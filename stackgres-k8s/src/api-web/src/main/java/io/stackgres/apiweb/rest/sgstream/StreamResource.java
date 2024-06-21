@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest.stream;
+package io.stackgres.apiweb.rest.sgstream;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +17,7 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.stream.StreamDto;
 import io.stackgres.apiweb.dto.stream.StreamSource;
 import io.stackgres.apiweb.dto.stream.StreamSpec;
+import io.stackgres.apiweb.dto.stream.StreamTarget;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -61,8 +62,10 @@ import org.jooq.lambda.tuple.Tuple2;
 public class StreamResource
     extends AbstractCustomResourceService<StreamDto, StackGresStream> {
 
-  public static final String DEFAULT_USERNAME_KEY = "username";
-  public static final String DEFAULT_PASSWORD_KEY = "password";
+  public static final String DEFAULT_SOURCE_USERNAME_KEY = "source-username";
+  public static final String DEFAULT_SOURCE_PASSWORD_KEY = "source-password";
+  public static final String DEFAULT_TARGET_USERNAME_KEY = "target-username";
+  public static final String DEFAULT_TARGET_PASSWORD_KEY = "target-password";
 
   private final ResourceWriter<Secret> secretWriter;
   private final ResourceFinder<Secret> secretFinder;
@@ -172,29 +175,76 @@ public class StreamResource
   }
 
   private List<Secret> getSecretsToCreate(StreamDto resource) {
-    return Optional.ofNullable(resource.getSpec())
-        .map(StreamSpec::getSource)
-        .map(StreamSource::getSgCluster)
-        .stream()
-        .flatMap(sgCluster -> {
-          return Seq.<Secret>of()
-              .append(Optional.of(true)
-                  .filter(ignore -> sgCluster.getUsernameValue() != null)
-                  .map(ignore -> updateCredentialSecret(
-                      resource,
-                      DEFAULT_USERNAME_KEY,
-                      sgCluster::getUsernameValue,
-                      sgCluster::getUsername,
-                      sgCluster::setUsername)))
-              .append(Optional.of(true)
-                  .filter(ignore -> sgCluster.getPasswordValue() != null)
-                  .map(ignore -> updateCredentialSecret(
-                      resource,
-                      DEFAULT_PASSWORD_KEY,
-                      sgCluster::getPasswordValue,
-                      sgCluster::getPassword,
-                      sgCluster::setPassword)));
-        })
+    return Seq.<Secret>of()
+        .append(Optional.ofNullable(resource.getSpec())
+            .map(StreamSpec::getSource)
+            .map(StreamSource::getSgCluster)
+            .stream()
+            .flatMap(sgCluster -> {
+              return Seq.<Secret>of()
+                  .append(Optional.of(true)
+                      .filter(ignore -> sgCluster.getUsernameValue() != null)
+                      .map(ignore -> updateCredentialSecret(
+                          resource,
+                          DEFAULT_SOURCE_USERNAME_KEY,
+                          sgCluster::getUsernameValue,
+                          sgCluster::getUsername,
+                          sgCluster::setUsername)))
+                  .append(Optional.of(true)
+                      .filter(ignore -> sgCluster.getPasswordValue() != null)
+                      .map(ignore -> updateCredentialSecret(
+                          resource,
+                          DEFAULT_SOURCE_PASSWORD_KEY,
+                          sgCluster::getPasswordValue,
+                          sgCluster::getPassword,
+                          sgCluster::setPassword)));
+            }))
+        .append(Optional.ofNullable(resource.getSpec())
+            .map(StreamSpec::getSource)
+            .map(StreamSource::getPostgres)
+            .stream()
+            .flatMap(postgres -> {
+              return Seq.<Secret>of()
+                  .append(Optional.of(true)
+                      .filter(ignore -> postgres.getUsernameValue() != null)
+                      .map(ignore -> updateCredentialSecret(
+                          resource,
+                          DEFAULT_SOURCE_USERNAME_KEY,
+                          postgres::getUsernameValue,
+                          postgres::getUsername,
+                          postgres::setUsername)))
+                  .append(Optional.of(true)
+                      .filter(ignore -> postgres.getPasswordValue() != null)
+                      .map(ignore -> updateCredentialSecret(
+                          resource,
+                          DEFAULT_SOURCE_PASSWORD_KEY,
+                          postgres::getPasswordValue,
+                          postgres::getPassword,
+                          postgres::setPassword)));
+            }))
+        .append(Optional.ofNullable(resource.getSpec())
+            .map(StreamSpec::getTarget)
+            .map(StreamTarget::getSgCluster)
+            .stream()
+            .flatMap(sgCluster -> {
+              return Seq.<Secret>of()
+                  .append(Optional.of(true)
+                      .filter(ignore -> sgCluster.getUsernameValue() != null)
+                      .map(ignore -> updateCredentialSecret(
+                          resource,
+                          DEFAULT_TARGET_USERNAME_KEY,
+                          sgCluster::getUsernameValue,
+                          sgCluster::getUsername,
+                          sgCluster::setUsername)))
+                  .append(Optional.of(true)
+                      .filter(ignore -> sgCluster.getPasswordValue() != null)
+                      .map(ignore -> updateCredentialSecret(
+                          resource,
+                          DEFAULT_TARGET_PASSWORD_KEY,
+                          sgCluster::getPasswordValue,
+                          sgCluster::getPassword,
+                          sgCluster::setPassword)));
+            }))
         .toList();
   }
 

@@ -7,22 +7,22 @@ package io.stackgres.stream.jobs;
 
 import java.util.Objects;
 
-import io.stackgres.common.crd.sgstream.StreamTargetType;
+import io.stackgres.common.crd.sgstream.StreamSourceType;
 import jakarta.enterprise.util.AnnotationLiteral;
 
-public class StreamTargetOperationLiteral extends AnnotationLiteral<StreamTargetOperation>
-    implements StreamTargetOperation {
+public class StreamSourceOperationLiteral extends AnnotationLiteral<StreamSourceOperation>
+    implements StreamSourceOperation {
 
   private static final long serialVersionUID = 1L;
 
-  private final StreamTargetType value;
+  private final StreamSourceType value;
 
-  public StreamTargetOperationLiteral(StreamTargetType value) {
+  public StreamSourceOperationLiteral(StreamSourceType value) {
     this.value = value;
   }
 
   @Override
-  public StreamTargetType value() {
+  public StreamSourceType value() {
     return value;
   }
 
@@ -37,7 +37,7 @@ public class StreamTargetOperationLiteral extends AnnotationLiteral<StreamTarget
     if (!super.equals(o)) {
       return false;
     }
-    StreamTargetOperationLiteral that = (StreamTargetOperationLiteral) o;
+    StreamSourceOperationLiteral that = (StreamSourceOperationLiteral) o;
     return Objects.equals(value, that.value);
   }
 

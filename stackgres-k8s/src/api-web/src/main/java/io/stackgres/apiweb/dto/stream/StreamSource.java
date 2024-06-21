@@ -17,6 +17,8 @@ public class StreamSource {
 
   private StreamSourceSgCluster sgCluster;
 
+  private StreamSourcePostgres postgres;
+
   public String getType() {
     return type;
   }
@@ -31,6 +33,14 @@ public class StreamSource {
 
   public void setSgCluster(StreamSourceSgCluster sgCluster) {
     this.sgCluster = sgCluster;
+  }
+
+  public StreamSourcePostgres getPostgres() {
+    return postgres;
+  }
+
+  public void setPostgres(StreamSourcePostgres postgres) {
+    this.postgres = postgres;
   }
 
   @Override

@@ -10,6 +10,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.stackgres.common.crd.sgstream.StreamTargetType;
 import jakarta.inject.Qualifier;
 
 @Qualifier
@@ -17,5 +18,6 @@ import jakarta.inject.Qualifier;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StreamTargetOperation {
 
-  String value();
+  StreamTargetType value();
+
 }

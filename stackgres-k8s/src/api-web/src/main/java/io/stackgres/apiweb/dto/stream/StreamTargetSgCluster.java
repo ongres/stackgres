@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.stream;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -14,7 +12,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class StreamSourceSgCluster {
+public class StreamTargetSgCluster {
 
   private String name;
 
@@ -24,15 +22,15 @@ public class StreamSourceSgCluster {
 
   private SecretKeySelector password;
 
-  private List<String> includes;
-
-  private List<String> excludes;
-
-  private StreamSourcePostgresDebeziumProperties debeziumProperties;
-
   private String usernameValue;
 
   private String passwordValue;
+
+  private Boolean skipDdlImport;
+
+  private String ddlImportRoleSkipFilter;
+
+  private StreamTargetJdbcSinkDebeziumProperties debeziumProperties;
 
   public String getName() {
     return name;
@@ -66,31 +64,6 @@ public class StreamSourceSgCluster {
     this.password = password;
   }
 
-  public List<String> getIncludes() {
-    return includes;
-  }
-
-  public void setIncludes(List<String> includes) {
-    this.includes = includes;
-  }
-
-  public List<String> getExcludes() {
-    return excludes;
-  }
-
-  public void setExcludes(List<String> excludes) {
-    this.excludes = excludes;
-  }
-
-  public StreamSourcePostgresDebeziumProperties getDebeziumProperties() {
-    return debeziumProperties;
-  }
-
-  public void setDebeziumProperties(
-      StreamSourcePostgresDebeziumProperties debeziumProperties) {
-    this.debeziumProperties = debeziumProperties;
-  }
-
   public String getUsernameValue() {
     return usernameValue;
   }
@@ -105,6 +78,31 @@ public class StreamSourceSgCluster {
 
   public void setPasswordValue(String passwordValue) {
     this.passwordValue = passwordValue;
+  }
+
+  public Boolean getSkipDdlImport() {
+    return skipDdlImport;
+  }
+
+  public void setSkipDdlImport(Boolean skipDdlImport) {
+    this.skipDdlImport = skipDdlImport;
+  }
+
+  public String getDdlImportRoleSkipFilter() {
+    return ddlImportRoleSkipFilter;
+  }
+
+  public void setDdlImportRoleSkipFilter(String ddlImportRoleSkipFilter) {
+    this.ddlImportRoleSkipFilter = ddlImportRoleSkipFilter;
+  }
+
+  public StreamTargetJdbcSinkDebeziumProperties getDebeziumProperties() {
+    return debeziumProperties;
+  }
+
+  public void setDebeziumProperties(
+      StreamTargetJdbcSinkDebeziumProperties debeziumProperties) {
+    this.debeziumProperties = debeziumProperties;
   }
 
   @Override

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest.stream;
+package io.stackgres.apiweb.rest.sgstream;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.stream.StreamDto;

@@ -176,6 +176,9 @@ public class DefaultOperatorLockHolder implements OperatorLockHolder {
   }
 
   private void releaseLock() {
+    if (!leader.get()) {
+      return;
+    }
     List<StackGresConfig> configs = scanner.getResources();
     if (configs.size() == 0) {
       throw new IllegalArgumentException("No SGConfig found. Please create an SGConfig for the"

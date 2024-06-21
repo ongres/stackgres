@@ -23,10 +23,12 @@ import jakarta.validation.constraints.NotNull;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresStreamSourceSgCluster {
+public class StackGresStreamSourcePostgres {
 
   @NotNull
-  private String name;
+  private String host;
+
+  private Integer port;
 
   private String database;
 
@@ -43,12 +45,20 @@ public class StackGresStreamSourceSgCluster {
   @Valid
   private StackGresStreamSourcePostgresDebeziumProperties debeziumProperties;
 
-  public String getName() {
-    return name;
+  public String getHost() {
+    return host;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setHost(String host) {
+    this.host = host;
+  }
+
+  public Integer getPort() {
+    return port;
+  }
+
+  public void setPort(Integer port) {
+    this.port = port;
   }
 
   public String getDatabase() {
@@ -102,8 +112,8 @@ public class StackGresStreamSourceSgCluster {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, debeziumProperties, excludes, includes, name, password,
-        username);
+    return Objects.hash(database, debeziumProperties, excludes, host, includes, password,
+        port, username);
   }
 
   @Override
@@ -111,15 +121,15 @@ public class StackGresStreamSourceSgCluster {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresStreamSourceSgCluster)) {
+    if (!(obj instanceof StackGresStreamSourcePostgres)) {
       return false;
     }
-    StackGresStreamSourceSgCluster other = (StackGresStreamSourceSgCluster) obj;
+    StackGresStreamSourcePostgres other = (StackGresStreamSourcePostgres) obj;
     return Objects.equals(database, other.database)
         && Objects.equals(debeziumProperties, other.debeziumProperties)
-        && Objects.equals(excludes, other.excludes) && Objects.equals(includes, other.includes)
-        && Objects.equals(name, other.name) && Objects.equals(password, other.password)
-        && Objects.equals(username, other.username);
+        && Objects.equals(excludes, other.excludes) && Objects.equals(host, other.host)
+        && Objects.equals(includes, other.includes) && Objects.equals(password, other.password)
+        && Objects.equals(port, other.port) && Objects.equals(username, other.username);
   }
 
   @Override

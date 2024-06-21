@@ -54,7 +54,7 @@ CREATE TABLE test(i bigint, PRIMARY KEY(i));
 INSERT INTO test SELECT * FROM generate_series(1, 3);
 
 DO $$BEGIN
-EXECUTE 'CREATE TABLE complex(i bigint,'
+EXECUTE 'CREATE FUNCTION create_complex_table() RETURNS void AS $sql$CREATE TABLE complex(i bigint,'
   || (SELECT string_agg(col_def, ', ') FROM (
     SELECT quote_ident('c_' || t.typname) || ' ' || pg_catalog.format_type(t.oid, NULL) AS col_def
   FROM pg_catalog.pg_type t LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
@@ -63,11 +63,11 @@ EXECUTE 'CREATE TABLE complex(i bigint,'
   AND pg_catalog.pg_type_is_visible(t.oid)
   AND t.typtype NOT IN ('p')
   AND t.typcategory NOT IN ('U','Z')
-  ORDER BY t.typname)) || ', PRIMARY KEY (i))';
+  ORDER BY t.typname)) || ', PRIMARY KEY (i))' || '$sql$ LANGUAGE sql';
 END$$;
 
 DO $$BEGIN
-EXECUTE 'CREATE FUNCTION insert_complex(i bigint) RETURNS void AS $sql$INSERT INTO complex SELECT i, '
+EXECUTE 'CREATE FUNCTION insert_complex(i bigint) RETURNS void LANGUAGE plpgsql AS $plpgsql$BEGIN EXECUTE $insert$INSERT INTO complex SELECT $insert$ || i || $insert$, '
     || (SELECT string_agg(col_def, ', ')
       FROM (
         SELECT (
@@ -100,9 +100,10 @@ EXECUTE 'CREATE FUNCTION insert_complex(i bigint) RETURNS void AS $sql$INSERT IN
   AND pg_catalog.pg_type_is_visible(t.oid)
   AND t.typtype NOT IN ('p')
   AND t.typcategory NOT IN ('U','Z')
-  ORDER BY t.typname)) || '$sql$ LANGUAGE sql';
+  ORDER BY t.typname)) || '$insert$; END$plpgsql$;';
 END$$;
 
+SELECT create_complex_table();
 SELECT insert_complex(i) FROM generate_series(1, 3) AS i; 
 EOF
 
@@ -117,7 +118,7 @@ spec:
     type: SGCluster
     sgCluster:
       name: "$CLUSTER_NAME"
-      debeziumConnectorProperties:
+      debeziumProperties:
         includeUnknownDatatypes: true
   target:
     type: CloudEvent

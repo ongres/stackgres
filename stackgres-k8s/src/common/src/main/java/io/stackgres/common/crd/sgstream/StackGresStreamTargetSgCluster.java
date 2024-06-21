@@ -5,7 +5,6 @@
 
 package io.stackgres.common.crd.sgstream;
 
-import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,7 +22,7 @@ import jakarta.validation.constraints.NotNull;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresStreamSourceSgCluster {
+public class StackGresStreamTargetSgCluster {
 
   @NotNull
   private String name;
@@ -36,12 +35,12 @@ public class StackGresStreamSourceSgCluster {
   @Valid
   private SecretKeySelector password;
 
-  private List<String> includes;
+  private Boolean skipDdlImport;
 
-  private List<String> excludes;
+  private String ddlImportRoleSkipFilter;
 
   @Valid
-  private StackGresStreamSourcePostgresDebeziumProperties debeziumProperties;
+  private StackGresStreamTargetJdbcSinkDebeziumProperties debeziumProperties;
 
   public String getName() {
     return name;
@@ -75,35 +74,35 @@ public class StackGresStreamSourceSgCluster {
     this.password = password;
   }
 
-  public List<String> getIncludes() {
-    return includes;
+  public Boolean getSkipDdlImport() {
+    return skipDdlImport;
   }
 
-  public void setIncludes(List<String> includes) {
-    this.includes = includes;
+  public void setSkipDdlImport(Boolean skipDdlImport) {
+    this.skipDdlImport = skipDdlImport;
   }
 
-  public List<String> getExcludes() {
-    return excludes;
+  public String getDdlImportRoleSkipFilter() {
+    return ddlImportRoleSkipFilter;
   }
 
-  public void setExcludes(List<String> excludes) {
-    this.excludes = excludes;
+  public void setDdlImportRoleSkipFilter(String ddlImportRoleSkipFilter) {
+    this.ddlImportRoleSkipFilter = ddlImportRoleSkipFilter;
   }
 
-  public StackGresStreamSourcePostgresDebeziumProperties getDebeziumProperties() {
+  public StackGresStreamTargetJdbcSinkDebeziumProperties getDebeziumProperties() {
     return debeziumProperties;
   }
 
   public void setDebeziumProperties(
-      StackGresStreamSourcePostgresDebeziumProperties debeziumProperties) {
+      StackGresStreamTargetJdbcSinkDebeziumProperties debeziumProperties) {
     this.debeziumProperties = debeziumProperties;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, debeziumProperties, excludes, includes, name, password,
-        username);
+    return Objects.hash(database, ddlImportRoleSkipFilter, debeziumProperties, name, password,
+        skipDdlImport, username);
   }
 
   @Override
@@ -111,14 +110,15 @@ public class StackGresStreamSourceSgCluster {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresStreamSourceSgCluster)) {
+    if (!(obj instanceof StackGresStreamTargetSgCluster)) {
       return false;
     }
-    StackGresStreamSourceSgCluster other = (StackGresStreamSourceSgCluster) obj;
+    StackGresStreamTargetSgCluster other = (StackGresStreamTargetSgCluster) obj;
     return Objects.equals(database, other.database)
+        && Objects.equals(ddlImportRoleSkipFilter, other.ddlImportRoleSkipFilter)
         && Objects.equals(debeziumProperties, other.debeziumProperties)
-        && Objects.equals(excludes, other.excludes) && Objects.equals(includes, other.includes)
         && Objects.equals(name, other.name) && Objects.equals(password, other.password)
+        && Objects.equals(skipDdlImport, other.skipDdlImport)
         && Objects.equals(username, other.username);
   }
 

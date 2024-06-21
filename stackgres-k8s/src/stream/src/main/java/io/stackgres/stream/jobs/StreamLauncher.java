@@ -19,7 +19,9 @@ import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamStatus;
+import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamStatusCondition;
+import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.stream.app.StreamProperty;
@@ -50,8 +52,15 @@ public class StreamLauncher {
   LockAcquirer lockAcquirer;
 
   @Inject
+  StreamJob streamJob;
+
+  @Inject
   @Any
-  Instance<StreamJob> instance;
+  Instance<SourceEventHandler> sourceEventHandlerInstance;
+
+  @Inject
+  @Any
+  Instance<TargetEventHandler> targetEventHandlerInstance;
 
   @Inject
   StreamEventEmitter streamEventEmitter;
@@ -64,68 +73,85 @@ public class StreamLauncher {
         .orElseThrow(() -> new IllegalArgumentException(StackGresStream.KIND + " "
             + streamName + " does not exists in namespace " + namespace));
 
-    Instance<StreamJob> jobImpl =
-        instance.select(new StreamTargetOperationLiteral(stream.getSpec().getTarget().getType()));
+    LOGGER.info("Initializing conditions for SGStream {}", stream.getMetadata().getName());
+    final StackGresStream initializedStream = streamScheduler.update(stream,
+        (currentStream) -> {
+          var status = Optional.ofNullable(currentStream.getStatus())
+              .or(() -> Optional.of(new StackGresStreamStatus()))
+              .map(streamStatus -> {
+                streamStatus.setConditions(getStartingConditions());
+                return streamStatus;
+              })
+              .orElseThrow();
+          currentStream.setStatus(status);
+        });
 
-    if (jobImpl.isResolvable()) {
-      LOGGER.info("Initializing conditions for SGStream {}", stream.getMetadata().getName());
-      final StackGresStream initializedStream = streamScheduler.update(stream,
-          (currentStream) -> {
-            var status = Optional.ofNullable(currentStream.getStatus())
-                .or(() -> Optional.of(new StackGresStreamStatus()))
-                .map(streamStatus -> {
-                  streamStatus.setConditions(getStartingConditions());
-                  return streamStatus;
-                })
-                .orElseThrow();
-            currentStream.setStatus(status);
-          });
+    final Instance<SourceEventHandler> sourceEventHandlerImpl =
+        sourceEventHandlerInstance.select(new StreamSourceOperationLiteral(
+            StreamSourceType.fromString(stream.getSpec().getSource().getType())));
 
-      try {
-        final int lockPollInterval = Integer.parseInt(STREAM_LOCK_POLL_INTERVAL.getString());
-        final int duration = Integer.parseInt(STREAM_LOCK_DURATION.getString());
+    if (sourceEventHandlerImpl.isAmbiguous()) {
+      throw new IllegalStateException("Multiple implementations of the stream source type "
+          + stream.getSpec().getSource().getType() + " found");
+    } else if (!sourceEventHandlerImpl.isResolvable()) {
+      throw new IllegalStateException("Implementation of stream source type "
+          + stream.getSpec().getSource().getType()
+          + " not found");
+    }
 
-        LockRequest lockRequest = LockRequest.builder()
-            .namespace(initializedStream.getMetadata().getNamespace())
-            .serviceAccount(StreamProperty.SERVICE_ACCOUNT.getString())
-            .podName(StreamProperty.POD_NAME.getString())
-            .pollInterval(lockPollInterval)
-            .duration(duration)
-            .lockResourceName(initializedStream.getMetadata().getName())
-            .build();
+    final Instance<TargetEventHandler> targetEventHandlerImpl =
+        targetEventHandlerInstance.select(new StreamTargetOperationLiteral(
+            StreamTargetType.fromString(stream.getSpec().getTarget().getType())));
 
-        Infrastructure.setDroppedExceptionHandler(err -> LOGGER.error("Dropped exception ", err));
-
-        var streamUni =
-            lockAcquirer.lockRun(lockRequest, Uni.createFrom().voidItem()
-                .invoke(() -> streamEventEmitter
-                    .streamStarted(streamName, namespace))
-                .chain(() -> Uni.createFrom()
-                    .completionStage(jobImpl.get().runJob(initializedStream)))
-                .invoke(() -> streamEventEmitter
-                    .streamCompleted(streamName, namespace)))
-            .runSubscriptionOn(executorService.getExecutorService());
-        streamUni.await().indefinitely();
-
-        LOGGER.info("Operation completed for SGStream {}", streamName);
-        updateToCompletedConditions(streamName, namespace);
-      } catch (TimeoutException timeoutEx) {
-        updateToTimeoutConditions(streamName, namespace);
-        streamEventEmitter.streamTimedOut(streamName, namespace);
-        throw timeoutEx;
-      } catch (Exception e) {
-        LOGGER.info("Unexpected exception for SGStream {}", streamName, e);
-        updateToFailedConditions(streamName, namespace);
-        streamEventEmitter.streamFailed(streamName, namespace);
-        throw e;
-      }
-    } else if (jobImpl.isAmbiguous()) {
+    if (targetEventHandlerImpl.isAmbiguous()) {
       throw new IllegalStateException("Multiple implementations of the stream target type "
           + stream.getSpec().getTarget().getType() + " found");
-    } else {
+    } else if (!targetEventHandlerImpl.isResolvable()) {
       throw new IllegalStateException("Implementation of stream target type "
           + stream.getSpec().getTarget().getType()
           + " not found");
+    }
+
+    try {
+      final int lockPollInterval = Integer.parseInt(STREAM_LOCK_POLL_INTERVAL.getString());
+      final int duration = Integer.parseInt(STREAM_LOCK_DURATION.getString());
+
+      LockRequest lockRequest = LockRequest.builder()
+          .namespace(initializedStream.getMetadata().getNamespace())
+          .serviceAccount(StreamProperty.SERVICE_ACCOUNT.getString())
+          .podName(StreamProperty.POD_NAME.getString())
+          .pollInterval(lockPollInterval)
+          .duration(duration)
+          .lockResourceName(initializedStream.getMetadata().getName())
+          .build();
+
+      Infrastructure.setDroppedExceptionHandler(err -> LOGGER.error("Dropped exception ", err));
+
+      var streamUni =
+          lockAcquirer.lockRun(lockRequest, Uni.createFrom().voidItem()
+              .invoke(() -> streamEventEmitter
+                  .streamStarted(streamName, namespace))
+              .chain(() -> Uni.createFrom()
+                  .completionStage(streamJob.runJob(
+                      initializedStream,
+                      sourceEventHandlerImpl.get(),
+                      targetEventHandlerImpl.get())))
+              .invoke(() -> streamEventEmitter
+                  .streamCompleted(streamName, namespace)))
+          .runSubscriptionOn(executorService.getExecutorService());
+      streamUni.await().indefinitely();
+
+      LOGGER.info("Operation completed for SGStream {}", streamName);
+      updateToCompletedConditions(streamName, namespace);
+    } catch (TimeoutException timeoutEx) {
+      updateToTimeoutConditions(streamName, namespace);
+      streamEventEmitter.streamTimedOut(streamName, namespace);
+      throw timeoutEx;
+    } catch (Exception e) {
+      LOGGER.info("Unexpected exception for SGStream {}", streamName, e);
+      updateToFailedConditions(streamName, namespace);
+      streamEventEmitter.streamFailed(streamName, namespace);
+      throw e;
     }
   }
 

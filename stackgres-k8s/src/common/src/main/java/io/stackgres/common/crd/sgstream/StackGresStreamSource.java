@@ -28,11 +28,14 @@ import jakarta.validation.constraints.AssertTrue;
 public class StackGresStreamSource {
 
   @ValidEnum(enumClass = StreamSourceType.class, allowNulls = false,
-      message = "type must be SGCluster")
+      message = "type must be one of SGCluster or Postgres")
   private String type;
 
   @Valid
   private StackGresStreamSourceSgCluster sgCluster;
+
+  @Valid
+  private StackGresStreamSourcePostgres postgres;
 
   @ReferencedField("type")
   interface Type extends FieldReference {
@@ -42,6 +45,10 @@ public class StackGresStreamSource {
   interface SgCluster extends FieldReference {
   }
 
+  @ReferencedField("postgres")
+  interface Postgres extends FieldReference {
+  }
+
   @JsonIgnore
   @AssertTrue(message = "type must match corresponding section.",
       payload = Type.class)
@@ -49,7 +56,9 @@ public class StackGresStreamSource {
     if (type != null) {
       switch (type) {
         case "SGCluster":
-          return true;
+          return postgres == null;
+        case "Postgres":
+          return sgCluster == null;
         default:
           break;
       }
@@ -62,6 +71,13 @@ public class StackGresStreamSource {
       payload = SgCluster.class)
   public boolean isSgClusterPresent() {
     return !Objects.equals(type, "SGCluster") || sgCluster != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "postgres must not be null",
+      payload = Postgres.class)
+  public boolean isPostgresPresent() {
+    return !Objects.equals(type, "Postgres") || postgres != null;
   }
 
   public String getType() {
@@ -80,9 +96,17 @@ public class StackGresStreamSource {
     this.sgCluster = sgCluster;
   }
 
+  public StackGresStreamSourcePostgres getPostgres() {
+    return postgres;
+  }
+
+  public void setPostgres(StackGresStreamSourcePostgres postgres) {
+    this.postgres = postgres;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(sgCluster, type);
+    return Objects.hash(postgres, sgCluster, type);
   }
 
   @Override
@@ -94,7 +118,8 @@ public class StackGresStreamSource {
       return false;
     }
     StackGresStreamSource other = (StackGresStreamSource) obj;
-    return Objects.equals(sgCluster, other.sgCluster) && Objects.equals(type, other.type);
+    return Objects.equals(postgres, other.postgres) && Objects.equals(sgCluster, other.sgCluster)
+        && Objects.equals(type, other.type);
   }
 
   @Override

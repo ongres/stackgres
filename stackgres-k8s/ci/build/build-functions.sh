@@ -396,7 +396,7 @@ build_image() {
   echo
   if {
       [ "$DO_BUILD" != true ] \
-        && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
+        && ! printf " $DO_BUILD_MODULES " | grep -qF " $MODULE " \
         && grep -q "^$IMAGE_NAME=" "stackgres-k8s/ci/build/target/image-digests.$BUILD_HASH"
     }
   then
@@ -405,7 +405,7 @@ build_image() {
   else
     if {
         [ "$DO_BUILD" != true ] \
-          && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
+          && ! printf " $DO_BUILD_MODULES " | grep -qF " $MODULE " \
           && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
       }
     then
@@ -489,7 +489,7 @@ generate_image_hashes() {
 
   init_hash
 
-  BUILD_HASH="$(echo "$*" | md5sum)"
+  BUILD_HASH="$(echo "$*" | md5sum | cut -d ' ' -f 1)"
   printf %s "$BUILD_HASH" > stackgres-k8s/ci/build/target/build_hash
   PROJECT_HASH_PATH="stackgres-k8s/ci/build/target/project_hash.$BUILD_HASH"
   if ! test -f "$PROJECT_HASH_PATH" \
@@ -542,7 +542,7 @@ init_config() {
 
   mkdir -p stackgres-k8s/ci/build/target
 
-  CONFIG_HASH="$(md5sum stackgres-k8s/ci/build/config.yml)"
+  CONFIG_HASH="$(md5sum stackgres-k8s/ci/build/config.yml | cut -d ' ' -f 1)"
   if ! test -f stackgres-k8s/ci/build/target/config.json \
     || ! test -f stackgres-k8s/ci/build/target/config.yml.md5 \
     || [ "$(printf %s "$CONFIG_HASH")" != "$(cat stackgres-k8s/ci/build/target/config.yml.md5)" ]
@@ -557,7 +557,7 @@ init_config() {
 
   mkdir -p stackgres-k8s/ci/build/target
 
-  CONFIG_HASH="$(md5sum stackgres-k8s/ci/build/config.yml)"
+  CONFIG_HASH="$(md5sum stackgres-k8s/ci/build/config.yml | cut -d ' ' -f 1)"
   if ! test -f stackgres-k8s/ci/build/target/config.json \
     || ! test -f stackgres-k8s/ci/build/target/config.yml.md5 \
     || [ "$(printf %s "$CONFIG_HASH")" != "$(cat stackgres-k8s/ci/build/target/config.yml.md5)" ]

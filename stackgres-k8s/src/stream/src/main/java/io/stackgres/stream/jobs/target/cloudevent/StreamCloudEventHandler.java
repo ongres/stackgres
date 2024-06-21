@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.stream.jobs.cloudevent;
+package io.stackgres.stream.jobs.target.cloudevent;
 
 import java.net.URI;
 import java.time.Duration;
@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -25,10 +24,12 @@ import io.debezium.engine.format.CloudEvents;
 import io.stackgres.common.RetryUtil;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetCloudEventHttp;
-import io.stackgres.stream.jobs.DebeziumEngineHandler;
+import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.stream.jobs.Metrics;
-import io.stackgres.stream.jobs.StateHandler;
-import io.stackgres.stream.jobs.StreamEventStateHandler;
+import io.stackgres.stream.jobs.SourceEventHandler;
+import io.stackgres.stream.jobs.StreamTargetOperation;
+import io.stackgres.stream.jobs.TargetEventConsumer;
+import io.stackgres.stream.jobs.TargetEventHandler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Client;
@@ -40,8 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-@StateHandler("CloudEvent")
-public class StreamCloudEventStateHandler implements StreamEventStateHandler {
+@StreamTargetOperation(StreamTargetType.CLOUD_EVENT)
+public class StreamCloudEventHandler implements TargetEventHandler {
 
   private static final String CLOUDEVENT_ID_HEADER = "ce-id";
   private static final String CLOUDEVENT_SPECVERSION_HEADER = "ce-specversion";
@@ -54,10 +55,7 @@ public class StreamCloudEventStateHandler implements StreamEventStateHandler {
           CLOUDEVENT_TYPE_HEADER,
           CLOUDEVENT_SOURCE_HEADER);
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StreamCloudEventStateHandler.class);
-
-  @Inject
-  DebeziumEngineHandler debeziumEngineHandler;
+  private static final Logger LOGGER = LoggerFactory.getLogger(StreamCloudEventHandler.class);
 
   @Inject
   Metrics metrics;
@@ -65,7 +63,7 @@ public class StreamCloudEventStateHandler implements StreamEventStateHandler {
   private final JsonMapper jsonMapper = new JsonMapper();
 
   @Override
-  public CompletableFuture<Void> sendEvents(StackGresStream stream) {
+  public CompletableFuture<Void> sendEvents(StackGresStream stream, SourceEventHandler sourceEventHandler) {
     ClientBuilder brokerClientBuilder = ClientBuilder.newBuilder();
     var http = Optional.of(stream.getSpec().getTarget().getCloudEvent().getHttp());
     http
@@ -100,7 +98,7 @@ public class StreamCloudEventStateHandler implements StreamEventStateHandler {
           stream, baseUri, brokerClientBuilder.build(),
           retryBackoffDelay);
     }
-    return debeziumEngineHandler.streamChangeEvents(stream, CloudEvents.class, handler);
+    return sourceEventHandler.streamChangeEvents(stream, CloudEvents.class, handler);
   }
 
   class RetryWithLimitHandler extends RetryHandler {
@@ -115,14 +113,14 @@ public class StreamCloudEventStateHandler implements StreamEventStateHandler {
     }
 
     @Override
-    public void accept(ChangeEvent<String, String> changeEvent) {
+    public void consumeEvent(ChangeEvent<String, String> changeEvent) {
       RetryUtil.retryWithLimit(() -> sendCloudEvent(changeEvent), ex -> true,
           retryLimit, retryBackoffDelay, retryBackoffDelay, retryBackoffDelay);
     }
     
   }
 
-  class RetryHandler implements Consumer<ChangeEvent<String, String>> {
+  class RetryHandler implements TargetEventConsumer<String> {
     final StackGresStream stream;
     final URI baseUri;
     final Client brokerClient;
@@ -147,7 +145,7 @@ public class StreamCloudEventStateHandler implements StreamEventStateHandler {
     }
 
     @Override
-    public void accept(ChangeEvent<String, String> changeEvent) {
+    public void consumeEvent(ChangeEvent<String, String> changeEvent) {
       RetryUtil.retry(() -> sendCloudEvent(changeEvent), ex -> true,
           retryBackoffDelay * 10 / 100, retryBackoffDelay, retryBackoffDelay * 10 / 100);
     }

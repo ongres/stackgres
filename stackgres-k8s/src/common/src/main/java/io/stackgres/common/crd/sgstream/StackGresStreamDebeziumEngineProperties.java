@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgstream;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -32,6 +33,12 @@ public class StackGresStreamDebeziumEngineProperties {
   private Integer errorsRetryDelayInitialMs;
 
   private Integer errorsRetryDelayMaxMs;
+
+  @DebeziumMapOptions(generateSummary = true)
+  private Map<String, Map<String, String>> transforms;
+
+  @DebeziumMapOptions(generateSummary = true)
+  private Map<String, Map<String, String>> predicates;
 
   public String getOffsetCommitPolicy() {
     return offsetCommitPolicy;
@@ -81,10 +88,26 @@ public class StackGresStreamDebeziumEngineProperties {
     this.errorsRetryDelayMaxMs = errorsRetryDelayMaxMs;
   }
 
+  public Map<String, Map<String, String>> getTransforms() {
+    return transforms;
+  }
+
+  public void setTransforms(Map<String, Map<String, String>> transforms) {
+    this.transforms = transforms;
+  }
+
+  public Map<String, Map<String, String>> getPredicates() {
+    return predicates;
+  }
+
+  public void setPredicates(Map<String, Map<String, String>> predicates) {
+    this.predicates = predicates;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(errorsMaxRetries, errorsRetryDelayInitialMs, errorsRetryDelayMaxMs,
-        offsetCommitPolicy, offsetFlushIntervalMs, offsetFlushTimeoutMs);
+        offsetCommitPolicy, offsetFlushIntervalMs, offsetFlushTimeoutMs, predicates, transforms);
   }
 
   @Override
@@ -101,7 +124,9 @@ public class StackGresStreamDebeziumEngineProperties {
         && Objects.equals(errorsRetryDelayMaxMs, other.errorsRetryDelayMaxMs)
         && Objects.equals(offsetCommitPolicy, other.offsetCommitPolicy)
         && Objects.equals(offsetFlushIntervalMs, other.offsetFlushIntervalMs)
-        && Objects.equals(offsetFlushTimeoutMs, other.offsetFlushTimeoutMs);
+        && Objects.equals(offsetFlushTimeoutMs, other.offsetFlushTimeoutMs)
+        && Objects.equals(predicates, other.predicates)
+        && Objects.equals(transforms, other.transforms);
   }
 
   @Override
