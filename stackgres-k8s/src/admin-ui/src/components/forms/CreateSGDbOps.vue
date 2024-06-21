@@ -25,7 +25,7 @@
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                 </div>
 
-                <span class="warning" v-if="nameColission">
+                <span class="warning" v-if="nameCollision">
                     There's already a <strong>SGDbOps</strong> with the same name on this namespace. Please specify a different name or create the operation on another namespace.
                 </span>
             </div>
@@ -849,17 +849,21 @@
                 return store.state.sgclusters
             },
             
-            nameColission() {
+            nameCollision() {
 
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgdbops.forEach(function(item, index){
-                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
-                })
+                if(store.state.sgdbops !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgdbops.forEach(function(item, index){
+                        if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                            nameCollision = true
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false;
+                }
             },
 
             isReady() {

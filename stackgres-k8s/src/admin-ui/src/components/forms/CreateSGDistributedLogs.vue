@@ -2,6 +2,12 @@
     <div id="create-logs-server" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
+       
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
 
         <form id="createLogsServer" class="form logsForm" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
@@ -45,7 +51,7 @@
                             <input v-model="name" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
                             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.metadata.name')"></span>
 
-                            <span class="warning topAnchor" v-if="nameColission && !editMode">
+                            <span class="warning topAnchor" v-if="nameCollision && !editMode">
                                 There's already a <strong>SGDistributedLogs</strong> with the same name on this namespace. Please specify a different name or create the server on another namespace.
                             </span>
                         </div>
@@ -615,17 +621,21 @@
             },
 
             
-            nameColission() {
+            nameCollision() {
 
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgdistributedlogs.forEach(function(item, index){
-                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
-                })
+                if(store.state.sgdistributedlogs !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgdistributedlogs.forEach(function(item, index){
+                        if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                            nameCollision = true
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false;
+                }
             },
             
             isReady() {
@@ -637,7 +647,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgdistributedlogs !== null) ) {
                     vm.advancedMode = true;
                     store.state.sgdistributedlogs.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {

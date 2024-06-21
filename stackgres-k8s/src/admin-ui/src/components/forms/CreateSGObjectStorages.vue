@@ -3,6 +3,12 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
+
         <form id="createObjectStorage" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
                 <h2>
@@ -18,7 +24,7 @@
                 </div>
             </div>
             
-            <span class="warning topLeft" v-if="nameColission && !editMode">
+            <span class="warning topLeft" v-if="nameCollision && !editMode">
                 There's already an <strong>SGObjectStorage</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
             </span>
 
@@ -327,19 +333,22 @@
         },
         computed: {
 
-            nameColission() {
+            nameCollision() {
+                if(store.state.sgobjectstorages !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgobjectstorages.forEach(function(item){
+                        if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
+                            nameCollision = true;
+                            return false
+                        }
+                    })
 
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgobjectstorages.forEach(function(item){
-                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
-                        nameColission = true;
-                        return false
-                    }
-                })
-
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false;
+                }
             },
 
             config() {
@@ -347,7 +356,7 @@
                 var vm = this;
                 var conf = {};
                 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgobjectstorages !== null)) {
                     store.state.sgobjectstorages.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.type = config.data.spec.type;

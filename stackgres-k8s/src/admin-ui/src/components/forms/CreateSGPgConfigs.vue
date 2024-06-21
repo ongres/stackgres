@@ -3,6 +3,12 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
+
         <form id="createPgConfig" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
                 <h2>
@@ -26,7 +32,7 @@
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresVersion')"></span>
                 </div>
 
-                <span class="warning topLeft" v-if="nameColission && !editMode">
+                <span class="warning topLeft" v-if="nameCollision && !editMode">
                     There's already a <strong>SGPostgresConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
                 </span>
             </div>
@@ -120,23 +126,27 @@
         },
         computed: {
             
-            nameColission() {
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgpgconfigs.forEach(function(item, index) {
-                    if( (item.name == vc.pgConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
-                })
+            nameCollision() {
+                if(store.state.sgpgconfigs !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgpgconfigs.forEach(function(item, index) {
+                        if( (item.name == vc.pgConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                            nameCollision = true
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false
+                }
             },
 
             config() {
                 var vm = this;
                 var config = {};
 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgpgconfigs !== null)) {
                     store.state.sgpgconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;

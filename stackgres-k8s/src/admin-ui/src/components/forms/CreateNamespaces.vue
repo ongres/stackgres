@@ -15,7 +15,7 @@
                 </div>
             </div>
 
-             <span class="warning topLeft" v-if="nameColission">
+             <span class="warning topLeft" v-if="nameCollision">
                 There's already a <strong>Namespace</strong> with the same name you specified, please choose a different name.
             </span>
 
@@ -46,7 +46,7 @@
         
         computed: {
 
-            nameColission() {
+            nameCollision() {
                 return store.state.allNamespaces.includes(this.name)
             }
 

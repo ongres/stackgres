@@ -37,7 +37,14 @@
                         <th class="actions"></th>
 					</thead>
 					<tbody>
-						<template v-if="!scripts.length">
+						<template v-if="scripts === null">
+							<tr class="no-results">
+								<td colspan="999">
+									Loading data...
+								</td>
+							</tr>
+						</template>
+						<template v-else-if="!scripts.length">
 							<tr class="no-results">
 								<td colspan="999" v-if="iCan('create','sgscripts',$route.params.namespace)">
 									No script configurations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgscripts/new'" title="Add New Script Configuration">create a new one?</router-link>
@@ -47,65 +54,72 @@
 								</td>
 							</tr>
 						</template>
-						<template v-for="(baseScript, index) in scripts">
-							<template  v-if="(index >= pagination.start) && (index < pagination.end)">
-								<tr class="base">
-									<td class="hasTooltip">
-										<span>
-											<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
-												{{ baseScript.name }}
-											</router-link>
-										</span>
-									</td>
-                                    <td class="center icon" :class="hasProp(baseScript,'data.spec.managedVersions') ? baseScript.data.spec.managedVersions.toString() : 'true'" :data-val="hasProp(baseScript, 'data.spec.managedVersions') ? baseScript.data.spec.managedVersions : 'true'">
-										<span>
+						<template v-else>
+							<template v-for="(baseScript, index) in scripts">
+								<template  v-if="(index >= pagination.start) && (index < pagination.end)">
+									<tr class="base">
+										<td class="hasTooltip">
+											<span>
+												<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
+													{{ baseScript.name }}
+												</router-link>
+											</span>
+										</td>
+										<td class="center icon" :class="hasProp(baseScript,'data.spec.managedVersions') ? baseScript.data.spec.managedVersions.toString() : 'true'" :data-val="hasProp(baseScript, 'data.spec.managedVersions') ? baseScript.data.spec.managedVersions : 'true'">
+											<span>
+												<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
+													<span></span>
+												</router-link>
+											</span>
+										</td>
+										<td class="center icon" :class="hasProp(baseScript,'data.spec.continueOnError') ? baseScript.data.spec.continueOnError.toString() : 'false'" :data-val="hasProp(baseScript, 'data.spec.continueOnError') ? baseScript.data.spec.continueOnError : 'false'">
+											<span>
+												<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
+													<span></span>
+												</router-link>
+											</span>
+										</td>
+										<td class="hasTooltip textRight">
+											<span>
+												<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
+													{{ baseScript.data.spec.scripts.length }}
+												</router-link>
+											</span>
+										</td>
+										<td class="center icon" :class="isDefaultScript(baseScript) ? 'true' : 'false'" :data-val="isDefaultScript(baseScript)">
 											<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
 												<span></span>
 											</router-link>
-										</span>
-									</td>
-                                    <td class="center icon" :class="hasProp(baseScript,'data.spec.continueOnError') ? baseScript.data.spec.continueOnError.toString() : 'false'" :data-val="hasProp(baseScript, 'data.spec.continueOnError') ? baseScript.data.spec.continueOnError : 'false'">
-										<span>
-											<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
-												<span></span>
-											</router-link>
-										</span>
-									</td>
-                                    <td class="hasTooltip textRight">
-										<span>
-											<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
-												{{ baseScript.data.spec.scripts.length }}
-											</router-link>
-										</span>
-									</td>
-                                    <td class="center icon" :class="isDefaultScript(baseScript) ? 'true' : 'false'" :data-val="isDefaultScript(baseScript)">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" class="noColor">
-                                            <span></span>
-                                        </router-link>
-                                    </td>
-									<td class="actions">
-										<router-link v-if="iCan('patch','sgscripts',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name + '/edit'" title="Edit Script" class="editCRD" :class="isDefaultScript(baseScript) && 'disabled'"></router-link>
-										<a v-if="iCan('create','sgscripts',$route.params.namespace)" @click="cloneCRD('SGScripts', $route.params.namespace, baseScript.name)" class="cloneCRD" title="Clone Script"></a>
-										<a v-if="iCan('delete','sgscripts',$route.params.namespace)" @click="deleteCRD('sgscripts',$route.params.namespace, baseScript.name)" class="delete deleteCRD" title="Delete Script" :class="isDefaultScript(baseScript) && 'disabled'"></a>
-									</td>
-								</tr>
+										</td>
+										<td class="actions">
+											<router-link v-if="iCan('patch','sgscripts',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name + '/edit'" title="Edit Script" class="editCRD" :class="isDefaultScript(baseScript) && 'disabled'"></router-link>
+											<a v-if="iCan('create','sgscripts',$route.params.namespace)" @click="cloneCRD('SGScripts', $route.params.namespace, baseScript.name)" class="cloneCRD" title="Clone Script"></a>
+											<a v-if="iCan('delete','sgscripts',$route.params.namespace)" @click="deleteCRD('sgscripts',$route.params.namespace, baseScript.name)" class="delete deleteCRD" title="Delete Script" :class="isDefaultScript(baseScript) && 'disabled'"></a>
+										</td>
+									</tr>
+								</template>
 							</template>
 						</template>
 					</tbody>
 				</table>
-				<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < scripts.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="scripts .length" @page-change="pageChange" align="center" ref="page"></v-page>
+				<v-page :key="'pagination-'+pagination.rows"  v-if="( (scripts !== null) && (pagination.rows < scripts.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="scripts .length" @page-change="pageChange" align="center" ref="page"></v-page>
 				<div id="nameTooltip">
 					<div class="info"></div>
 				</div>
 			</template>
 
 			<template v-else>
-				<template v-for="baseScript in scripts" v-if="baseScript.name == $route.params.name">
+				<template v-if="scripts === null">
+					<div class="warningText">
+						Loading data...
+					</div>
+				</template>
+				<template v-else>
 					<h2>Script Details</h2>
 					
 					<div class="configurationDetails">
-                         <CRDSummary :crd="crd" kind="SGScript" :details="true"></CRDSummary>
-					</div>			
+						<CRDSummary :crd="crd" kind="SGScript" :details="true"></CRDSummary>
+					</div>
 				</template>
 			</template>
 		</div>
@@ -140,11 +154,19 @@
         computed: {
 
 			scripts () {
-				return this.sortTable( [...(store.state.sgscripts.filter(s => (s.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return (
+					(store.state.sgscripts !== null)
+						? this.sortTable( [...(store.state.sgscripts.filter(s => (s.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+						: null
+				)
 			},
 
 			crd () {
-				return store.state.sgscripts.find(s => (s.data.metadata.namespace == this.$route.params.namespace) && (s.data.metadata.name == this.$route.params.name))
+				return (
+					(store.state.sgscripts !== null)
+						? store.state.sgscripts.find(p => (p.data.metadata.namespace == this.$route.params.namespace) && (p.data.metadata.name == this.$route.params.name))
+						: null
+				)
 			}
 
 		},

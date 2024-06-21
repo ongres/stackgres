@@ -116,51 +116,55 @@
 		computed: {
 
 			cluster() {
-				let vc = this;
-				let cluster = store.state.sgshardedclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
-
-				if(typeof cluster != 'undefined') {
-
-					let clusterPods = this.hasProp(cluster, 'stats.coordinator.pods') && this.hasProp(cluster, 'stats.coordinator.pods') 
-						? cluster.stats.coordinator.pods.concat(cluster.stats.shards.pods)
-						: []
-
-					// Read Grafana URL
-					if(!vc.$route.params.hasOwnProperty('pod')) {
-						
-						let primaryNode = clusterPods.find(p => (p.role == 'primary'));
-
-						if(typeof primaryNode != 'undefined') {
-							if(vc.$route.path.endsWith('/'))
-								router.replace(vc.$route.path + primaryNode.name + '/' + vc.dashboard.name)
-							else 
-								router.replace(vc.$route.path + '/' + primaryNode.name + '/' + vc.dashboard.name)
-						}
-					} else if(typeof clusterPods.find(p => (p.name == vc.$route.params.pod)) != 'undefined') {
-
-							if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
-								vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgshardedclusters');
-								vc.dashboard = {
-									name: 'db-info',
-									url: ''
-								};
-								vc.goTo(vc.dashboardUrl);
-							}
-							
-							if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
-								vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'sgshardedclusters');
-								vc.timeRange = '';
-								vc.goTo(vc.dashboardUrl);
-							}
-
-					} else {
-						store.commit('notFound',true)
-					}
-
-                    return cluster;
+				if(store.state.sgshardedclusters === null) {
+					return null
 				} else {
-                    return null
-                }
+					let vc = this;
+					let cluster = store.state.sgshardedclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
+
+					if(typeof cluster != 'undefined') {
+
+						let clusterPods = this.hasProp(cluster, 'stats.coordinator.pods') && this.hasProp(cluster, 'stats.coordinator.pods') 
+							? cluster.stats.coordinator.pods.concat(cluster.stats.shards.pods)
+							: []
+
+						// Read Grafana URL
+						if(!vc.$route.params.hasOwnProperty('pod')) {
+							
+							let primaryNode = clusterPods.find(p => (p.role == 'primary'));
+
+							if(typeof primaryNode != 'undefined') {
+								if(vc.$route.path.endsWith('/'))
+									router.replace(vc.$route.path + primaryNode.name + '/' + vc.dashboard.name)
+								else 
+									router.replace(vc.$route.path + '/' + primaryNode.name + '/' + vc.dashboard.name)
+							}
+						} else if(typeof clusterPods.find(p => (p.name == vc.$route.params.pod)) != 'undefined') {
+
+								if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
+									vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgshardedclusters');
+									vc.dashboard = {
+										name: 'db-info',
+										url: ''
+									};
+									vc.goTo(vc.dashboardUrl);
+								}
+								
+								if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
+									vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'sgshardedclusters');
+									vc.timeRange = '';
+									vc.goTo(vc.dashboardUrl);
+								}
+
+						} else {
+							store.commit('notFound',true)
+						}
+
+						return cluster;
+					} else {
+						return null
+					}
+				}
 			},
 
 			theme() {

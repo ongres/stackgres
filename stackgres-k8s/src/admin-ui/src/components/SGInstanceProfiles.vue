@@ -37,7 +37,14 @@
 						<th class="actions"></th>
 					</thead>
 					<tbody>
-						<template v-if="!config.length">
+						<template v-if="config === null">
+							<tr class="no-results">
+								<td colspan="999">
+									Loading data...
+								</td>
+							</tr>
+						</template>
+						<template v-else-if="!config.length">
 							<tr class="no-results">
 								<td v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" colspan="6">
 									No profiles have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles/new'" title="Add New Instance Profile">create a new one?</router-link>
@@ -81,7 +88,7 @@
 										<td class="actions">
 											<router-link v-if="iCan('patch','sginstanceprofiles',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sginstanceprofile/' + conf.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
 											<a v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" @click="cloneCRD('SGInstanceProfiles', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Profile"></a>
-											<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" @click="deleteCRD('sginstanceprofiles',$route.params.namespace, conf.name)" class="delete deleteCRD" title="Delete Configuration" :class="(conf.data.status.clusters.length || (typeof logsClusters.find(l => ( (l.data.metadata.namespace == conf.data.metadata.namespace) && (l.data.spec.sgInstanceProfile == conf.name) ))) != 'undefined') ? 'disabled' : ''"></a>
+											<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" @click="deleteCRD('sginstanceprofiles',$route.params.namespace, conf.name)" class="delete deleteCRD" title="Delete Configuration" :class="(conf.data.status.clusters.length || (typeof sgDistributedLogs.find(l => ( (l.data.metadata.namespace == conf.data.metadata.namespace) && (l.data.spec.sgInstanceProfile == conf.name) ))) != 'undefined') ? 'disabled' : ''"></a>
 										</td>
 									</tr>
 								</template>
@@ -89,14 +96,19 @@
 						</template>
 					</tbody>
 				</table>
-				<v-page :key="'pagination-'+pagination.rows" v-if="pagination.rows < config.length" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="config.length" @page-change="pageChange" align="center" ref="page"></v-page>
+				<v-page :key="'pagination-'+pagination.rows" v-if="( (config !== null) && (pagination.rows < config.length) )" v-model="pagination.current" :page-size-menu="(pagination.rows > 1) ? [ pagination.rows, pagination.rows*2, pagination.rows*3 ] : [1]" :total-row="config.length" @page-change="pageChange" align="center" ref="page"></v-page>
 				<div id="nameTooltip">
 					<div class="info"></div>
 				</div>
 			</template>
 			
 			<template v-else>
-				<template v-for="conf in config" v-if="conf.name == $route.params.name">
+				<template v-if="config === null">
+					<div class="warningText">
+						Loading data...
+					</div>
+				</template>
+				<template v-else>
 					<h2>Profile Details</h2>
 					
 					<div class="configurationDetails">	
@@ -135,11 +147,19 @@
 		computed: {
 
 			config () {
-				return this.sortTable( [...(store.state.sginstanceprofiles.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return (
+					(store.state.sginstanceprofiles !== null)
+						? this.sortTable( [...(store.state.sginstanceprofiles.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+						: null
+				)
 			},
 
-			logsClusters(){
-                return store.state.sgdistributedlogs
+			sgDistributedLogs() {
+				return (
+					(store.state.sgdistributedlogs !== null)
+						? store.state.sgdistributedlogs
+						: []
+				)
             },
 
 			tooltips() {
@@ -147,7 +167,11 @@
 			},
 
 			crd () {
-				return store.state.sginstanceprofiles.find(p => (p.data.metadata.namespace == this.$route.params.namespace) && (p.data.metadata.name == this.$route.params.name))
+				return (
+					(store.state.sginstanceprofiles !== null)
+						? store.state.sginstanceprofiles.find(p => (p.data.metadata.namespace == this.$route.params.namespace) && (p.data.metadata.name == this.$route.params.name))
+						: null
+				)
 			}
 
 		},

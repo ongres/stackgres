@@ -3,6 +3,12 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
+
         <form id="createProfile" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
@@ -51,7 +57,7 @@
                         </div>
                     </div>
 
-                    <span class="warning topLeft" v-if="nameColission && !editMode">
+                    <span class="warning topLeft" v-if="nameCollision && !editMode">
                         There's already a <strong>SGInstanceProfile</strong> with the same name on this namespace. Please specify a different name or create the profile on another namespace
                     </span>
 
@@ -638,23 +644,27 @@
                 return store.state.tooltipsText
             },
 
-            nameColission() {
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sginstanceprofiles.forEach(function(item, index) {
-                    if( (item.name == vc.profileName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
-                })
+            nameCollision() {
+                if(store.state.sginstanceprofiles !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sginstanceprofiles.forEach(function(item, index) {
+                        if( (item.name == vc.profileName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                            nameCollision = true
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false
+                }
             },
 
             config() {
                 var vm = this;
                 var config = {};
                 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sginstanceprofiles !== null)) {
                     store.state.sginstanceprofiles.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.profileCPU = conf.data.spec.cpu.match(/\d+/g)[0];

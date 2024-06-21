@@ -27,7 +27,14 @@
                             </th>
                         </thead>
                         <tbody>
-                            <template v-if="!events.length">
+                            <template v-if="events === null">
+                                <tr class="no-results">
+                                    <td colspan="999">
+                                        Loading data...
+                                    </td>
+                                </tr>
+                            </template>
+                            <template v-else-if="!events.length">
                                 <tr class="no-results">
                                     <td colspan="999">
                                         No recent events have been recorded for this cluster
@@ -196,7 +203,7 @@
 
 		data: function() {
 			return {
-				events: [],
+				events: null,
 				eventsPooling: null,
 				showInvolvedObjectsColumn: false
 			}

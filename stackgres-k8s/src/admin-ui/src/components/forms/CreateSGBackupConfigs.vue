@@ -20,7 +20,7 @@
                 </div>
             </div>
             
-            <span class="warning topLeft" v-if="nameColission && !editMode">
+            <span class="warning topLeft" v-if="nameCollision && !editMode">
                 There's already a <strong>SGBackupConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
             </span>
             
@@ -416,17 +416,17 @@
         },
         computed: {
 
-            nameColission() {
+            nameCollision() {
 
                 const vc = this;
-                var nameColission = false;
+                var nameCollision = false;
                 
                 store.state.sgbackupconfigs.forEach(function(item, index){
                     if( (item.name == vc.backupConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
+                        nameCollision = true
                 })
 
-                return nameColission
+                return nameCollision
             },
 
             config() {

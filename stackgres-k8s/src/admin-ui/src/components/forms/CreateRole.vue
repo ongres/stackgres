@@ -35,7 +35,7 @@
                 </div>
             </div>
 
-             <span class="warning topLeft" v-if="nameColission && !editMode">
+             <span class="warning topLeft" v-if="nameCollision && !editMode">
                 There's already a <strong>Role</strong> with the same name on this namespace. Please specify a different name or create the role on another namespace
             </span>
 
@@ -201,7 +201,7 @@
                     ))
             },
 
-            nameColission() {
+            nameCollision() {
                 return !this.editMode && (typeof this.roleData !== 'undefined');
             },
 

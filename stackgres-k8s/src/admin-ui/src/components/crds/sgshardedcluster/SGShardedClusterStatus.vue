@@ -259,23 +259,31 @@
 		computed: {
 
 			sgshardedcluster () {
-				return store.state.sgshardedclusters.find( cluster => (cluster.name == this.$route.params.name) && (cluster.data.metadata.namespace == this.$route.params.namespace) )
+				return (
+					(store.state.sgshardedclusters !== null)
+						? store.state.sgshardedclusters.find( cluster => (cluster.name == this.$route.params.name) && (cluster.data.metadata.namespace == this.$route.params.namespace) )
+						: null
+				)
 			},
-
+				
 			sgclusters () {
-				return store.state.sgclusters.filter( cluster => (this.sgshardedcluster.data.status.clusters.includes(cluster.name)) && (cluster.data.metadata.namespace == this.$route.params.namespace) )
+				return (
+					(store.state.sgclusters !== null)
+						? store.state.sgclusters.filter( cluster => (this.sgshardedcluster.data.status.clusters.includes(cluster.name)) && (cluster.data.metadata.namespace == this.$route.params.namespace) )
+						: null
+				)
 			},
 
 			hasClusters() {
-				return (this.hasProp(this.sgshardedcluster, 'data.status.clusters') && this.sgshardedcluster.data.status.clusters.length)
+				return ((this.sgshardedcluster !== null) && this.hasProp(this.sgshardedcluster, 'data.status.clusters') && this.sgshardedcluster.data.status.clusters.length)
 			},
 
 			hasPods() {
-				return ( (this.hasProp(this.sgshardedcluster, 'stats.coordinator.pods') && this.sgshardedcluster.stats.coordinator.pods.length) || ((this.hasProp(this.sgshardedcluster, 'stats.shards.pods') && this.sgshardedcluster.stats.shards.pods.length) ) )
+				return ((this.sgshardedcluster !== null) && (this.hasProp(this.sgshardedcluster, 'stats.coordinator.pods') && this.sgshardedcluster.stats.coordinator.pods.length) || ((this.hasProp(this.sgshardedcluster, 'stats.shards.pods') && this.sgshardedcluster.stats.shards.pods.length) ) )
 			},
 
 			podsReady() {
-				return (this.hasPods && this.hasProp(this.sgshardedcluster, 'stats.coordinator.podsReady') && this.sgshardedcluster.stats.coordinator.podsReady && this.hasProp(this.sgshardedcluster, 'stats.shards.podsReady') && this.sgshardedcluster.stats.shards.podsReady)
+				return ((this.sgshardedcluster !== null) && this.hasPods && this.hasProp(this.sgshardedcluster, 'stats.coordinator.podsReady') && this.sgshardedcluster.stats.coordinator.podsReady && this.hasProp(this.sgshardedcluster, 'stats.shards.podsReady') && this.sgshardedcluster.stats.shards.podsReady)
 			}
 
 		},

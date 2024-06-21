@@ -3,6 +3,12 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
+        
         <form id="createCluster" class="form" @submit.prevent v-if="!editMode || editReady">
 
             <div class="header stickyHeader">
@@ -104,7 +110,7 @@
                                 <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
                                 
-                                <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                <span class="warning topAnchor" v-if="nameCollision && !editMode">
                                     There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
                                 </span>
                             </div>
@@ -233,7 +239,7 @@
                                 <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
                                 
-                                <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                <span class="warning topAnchor" v-if="nameCollision && !editMode">
                                     There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
                                 </span>
                             </div>
@@ -704,10 +710,10 @@
                                 @change="(backups[0].sgObjectStorage == 'createNewResource') && createNewResource('sgobjectstorages')"
                                 required
                             >
-                                <option value="" disabled>{{ sgobjectstorages.length ? 'Select Storage' : 'No object storage available' }}</option>
+                                <option value="" disabled>{{ ( (sgobjectstorages !== null) && sgobjectstorages.length) ? 'Select Storage' : 'No object storage available' }}</option>
                                 <option v-for="storage in sgobjectstorages" v-if="storage.data.metadata.namespace == namespace">{{ storage.name }}</option>
                                 <template v-if="iCan('create', 'sgobjectstorages', $route.params.namespace)">
-                                    <option value="" disabled v-if="sgobjectstorages.length">– OR –</option>
+                                    <option value="" disabled v-if="( (sgobjectstorages !== null) && sgobjectstorages.length)">– OR –</option>
                                     <option value="createNewResource">Create new object storage</option>
                                 </template>
                             </select>
@@ -3575,7 +3581,7 @@
                 var vm = this;
                 var cluster = {};
                 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgclusters !== null)) {
                     store.state.sgclusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                             let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
@@ -3729,44 +3735,52 @@
                 return cluster
             },
 
-            nameColission() {
+            nameCollision() {
 
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgclusters.forEach(function(item, index){
-                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
-                        nameColission = true;
-                        return false
-                    }
-                })
+                if(store.state.sgclusters !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgclusters.forEach(function(item, index){
+                        if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
+                            nameCollision = true;
+                            return false
+                        }
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false;
+                }
             },
 
             pitrBackups () {
-                return store.state.sgbackups.filter( backup => ( 
-                    (backup.data.metadata.namespace == this.$route.params.namespace) && 
-                    (this.hasProp(backup, 'data.status.process.status')) && 
-                    (backup.data.status.process.status === 'Completed') && 
-                    (backup.data.status.backupInformation.postgresVersion.substring(0,2) == this.shortPostgresVersion)
-                )).map(
-                    (bk) => { 
-                        return { 
-                            x: bk.data.status.process.timing.stored,
-                            y: 1,
-                            name: bk.name,
-                            cluster: bk.data.spec.sgCluster,
-                            uid: bk.data.metadata.uid,
-                            isSnapshot: bk.data.status.hasOwnProperty('volumeSnapshot')
+                if(store.state.sgbackups !== null) {
+                    return store.state.sgbackups.filter( backup => ( 
+                        (backup.data.metadata.namespace == this.$route.params.namespace) && 
+                        (this.hasProp(backup, 'data.status.process.status')) && 
+                        (backup.data.status.process.status === 'Completed') && 
+                        (backup.data.status.backupInformation.postgresVersion.substring(0,2) == this.shortPostgresVersion)
+                    )).map(
+                        (bk) => { 
+                            return { 
+                                x: bk.data.status.process.timing.stored,
+                                y: 1,
+                                name: bk.name,
+                                cluster: bk.data.spec.sgCluster,
+                                uid: bk.data.metadata.uid,
+                                isSnapshot: bk.data.status.hasOwnProperty('volumeSnapshot')
+                            }
                         }
-                    }
-                )
-                .sort(
-                    (a,b) => (
-                        a.x - b.x
                     )
-                );
+                    .sort(
+                        (a,b) => (
+                            a.x - b.x
+                        )
+                    );
+                } else {
+                    return []
+                }
             },
 
             pitrAnnotations() {

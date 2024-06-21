@@ -15,7 +15,7 @@
                 </div>
             </div>
 
-            <span class="warning topLeft" v-if="nameColission && !editMode">
+            <span class="warning topLeft" v-if="nameCollision && !editMode">
                 There's already a <strong>User</strong> with the same name on this instance, please specify a different name for this user.
             </span>
 
@@ -243,7 +243,7 @@
                     ))
             },
 
-            nameColission() {
+            nameCollision() {
                 return !this.editMode && (typeof this.userData !== 'undefined');
             },
             

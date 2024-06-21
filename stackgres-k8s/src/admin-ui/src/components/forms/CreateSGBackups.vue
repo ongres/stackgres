@@ -2,6 +2,12 @@
     <div id="create-backup" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
+
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
                 
         <form id="createBackup" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
@@ -28,7 +34,7 @@
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.sgCluster')"></span>
                 </div>
 
-                <span class="warning" v-if="nameColission && !editMode">
+                <span class="warning" v-if="nameCollision && !editMode">
                     There's already a <strong>SGBackup</strong> with the same name on this namespace. Please specify a different name or create the backup on another namespace
                 </span>
 
@@ -97,24 +103,28 @@
                 return store.state.sgclusters
             },
 
-            nameColission() {
+            nameCollision() {
 
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgbackups.forEach(function(item, index){
-                    if( (item.name == vc.backupName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
-                })
+                if(store.state.sgbackups !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgbackups.forEach(function(item, index){
+                        if( (item.name == vc.backupName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                            nameCollision = true
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false;
+                }
             },
 
             backup() {
                 var vm = this;
                 var backup = {};
                 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgbackups !== null) ) {
                     store.state.sgbackups.forEach(function( bk ){
                         if( (bk.data.metadata.name === vm.$route.params.backupname) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.backupName = bk.name;

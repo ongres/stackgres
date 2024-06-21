@@ -2,6 +2,12 @@
     <div id="create-poolConfig" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
+
+        <template v-if="editMode && !editReady">
+            <span class="warningText">
+                Loading data...
+            </span>
+        </template>
         
         <form id="createPoolConfig" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
@@ -18,7 +24,7 @@
                 </div>
             </div>
 
-             <span class="warning topLeft" v-if="nameColission && !editMode">
+             <span class="warning topLeft" v-if="nameCollision && !editMode">
                 There's already a <strong>SGPoolingConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
             </span>
 
@@ -109,23 +115,27 @@
         },
         computed: {
 
-            nameColission() {
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgpoolconfigs.forEach(function(item, index) {
-                    if( (item.name == vc.poolConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
-                        nameColission = true
-                })
+            nameCollision() {
+                if(store.state.sgpoolconfigs !== null) {
+                    const vc = this;
+                    var nameCollision = false;
+                    
+                    store.state.sgpoolconfigs.forEach(function(item, index) {
+                        if( (item.name == vc.poolConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
+                            nameCollision = true
+                    })
 
-                return nameColission
+                    return nameCollision
+                } else {
+                    return false
+                }
             },
 
             config() {
                 var vm = this;
                 var config = {};
 
-                if( vm.editMode && !vm.editReady ) {
+                if( vm.editMode && !vm.editReady && (store.state.sgpoolconfigs !== null)) {
                     store.state.sgpoolconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.poolConfigParams = vm.getParams(conf);
