@@ -272,57 +272,72 @@ import sgApi from '../../api/sgApi';
                 const vc = this;
                 let c = '';
                 let l = '';
-                const componentName = vc.$route.meta.componentName;
+                let isDeletable = false;
+                const kind = vc.$route.meta.componentName.toLowerCase() + 's';
 
-                if(store.state[componentName] === null) {
+                if(store.state[kind] === null) {
                     return false;
                 } else {
-                    switch(componentName) {
+                    switch(kind) {
                         
-                        case 'SGObjectStorage':
+                        case 'sgobjectorages':
                             // Looks for a cluster that depends on this resource
                             if(store.state.sgclusters !== null) {
                                 c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ( vc.hasProp(c, 'data.spec.configurations.backups.sgObjectStorage') &&  (c.data.spec.configurations.backups.sgObjectStorage == vc.$route.params.name)))
                                 // If there is any then it can't be deleted
-                                return (typeof c == 'undefined')
+                                isDeletable = (typeof c == 'undefined')
                             } else {
-                                return false;
+                                isDeletable = false;
                             }
-                        case 'SGDistributedLog':
+                            break;
+                        case 'sgdistributedlogs':
                             if(store.state.sgclusters !== null) {
                                 c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
-                                return (typeof c == 'undefined')
+                                isDeletable = (typeof c == 'undefined')
                             } else {
-                                return false;
+                                isDeletable = false;
                             }
-                        case 'SGInstanceProfile':
+                            break;
+                        case 'sginstanceprofiles':
                             if( (store.state.sgclusters !== null) && (store.state.sgdistributedlogs !== null)) {
                                 c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name));
                                 l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.sgInstanceProfile == vc.$route.params.name))
                                 return ((typeof c == 'undefined') && (typeof l == 'undefined'))
                             } else {
-                                return false;
+                                isDeletable = false;
                             }
-                        case 'SGPgConfig':
+                            break;
+                        case 'sgpgconfigs':
                             if( (store.state.sgclusters !== null) && (store.state.sgdistributedlogs !== null)) {
                                 c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name));
                                 l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
                                 return ((typeof c == 'undefined') && (typeof l == 'undefined'))
                             } else {
-                                return false;
+                                isDeletable = false;
                             }
-                        case 'SGPoolConfig':
+                            break;
+                        case 'sgpoolconfigs':
                             if(store.state.sgclusters !== null) {
                                 c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
-                                return (typeof c == 'undefined') 
+                                isDeletable = (typeof c == 'undefined')
                             } else {
-                                return false;
+                                isDeletable = false;
                             }
-                        case 'SGScript':
-                            return !vc.isDefaultScript(vc.$route.params.name)
+                            break;
+                        case 'sgscripts':
+                            isDeletable = !vc.isDefaultScript(vc.$route.params.name)
+                            break;
+                        default:
+                            if(store.state[kind] !== null) {
+                                c = store.state[kind].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.metadata.name == vc.$route.params.name))
+                                isDeletable = (typeof c !== 'undefined')
+                            } else {
+                                isDeletable = false;
+                            }
+                            break;
                     }
 
-                    return true;
+                    return isDeletable;
                 }
             },
             
