@@ -5,9 +5,9 @@ url: /administration/replication/remote/replicatefrom
 description: This section details the cluster cascading replication.
 ---
 
-The `replicateFrom` feature is explained in the [SGCluster CRD]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplicatefrom" %}}) but here is a practical guide to accomplish the setup.
+The standby cluster feature is explained in the [SGCluster CRD]({{% relref "06-crd-reference/01-sgcluster/#sgclusterspecreplicatefrom" %}}) but here is a practical guide to accomplish the setup.
 
-Since `replicateFrom` works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), when using streaming replication, it is required that the main cluster leader member or a simple stand alone Postgres server, is accessible from the new cluster replica. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that in k8s a service should be ready to expose the cluster service.
+Since the standby cluster feature works through the Patroni [*Standby Cluster* concept](https://patroni.readthedocs.io/en/latest/standby_cluster.html), when using streaming replication, it is required that the main cluster leader member or a simple stand alone Postgres server, is accessible from the new cluster replica. Based on the DC architecture or k8s Cloud provider, enabling connections to the WAN must be done. Beforehand, consider that in k8s a service should be ready to expose the cluster service.
 
 StackGres requires to setup 3 users in the `replicateFrom` spec using the specific keys `superuser`, `replication`, and `authenticator` (that may be the same user in the source server) in order to properly functioning. The 3 (or 2 or 1) users must exists in the main cluster that is being replicated. To create each of those users you can fallow the next commad examples:
 
@@ -67,17 +67,8 @@ type: Opaque
 EOF
 ```
 
-In the new remote StackGres deployment, where a new StackGres Cluster will be created as Standby Leader, equal CRDs are required before proceed. Create them accordingly as follows:
-
-- Namespace
-- StorageClass - Setting up the same storage or better performance is strongly recommended.
-- SGInstanceProfile
-- SGPostgresConfig
-- SGPoolingConfig
-- Service
-- SGBackupConfig (if any)
-- SGScript (if any)
-- Secrets
+In the new remote StackGres deployment, where a new StackGres Cluster will be created as Standby Leader, equal CRDs are required before proceed. 
+The same steps should be applyed, refer to the [Installation section]({{% relref "04-administration-guide/01-stackgres-installation/"%}}) for details.
 
 Now, the environment is ready for the SGCluster to be created. The next example contains extra entries to give a wider view of the options included in a production-like system. Beware of review and complete fields as backups (if you will take backups from your Standby Cluster), the number of instances, and the port number exposed in the main cluster among others.
 
