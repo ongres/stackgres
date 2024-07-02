@@ -70,6 +70,8 @@ EOF
 In the new remote StackGres deployment, where a new StackGres Cluster will be created as Standby Leader, equal CRDs are required before proceed. 
 The same steps should be applyed, refer to the [Installation section]({{% relref "04-administration-guide/01-stackgres-installation/"%}}) for details.
 
+> Note: Currently, it is required to create the `postgresql.conf` and the `pg_hba.conf` files in the source data directory Postgres server if these files doesn't exists. There is an issue created about this bug, please see and follow instruction in https://gitlab.com/ongresinc/stackgres/-/issues/2821
+
 Now, the environment is ready for the SGCluster to be created. The next example contains extra entries to give a wider view of the options included in a production-like system. Beware of review and complete fields as backups (if you will take backups from your Standby Cluster), the number of instances, and the port number exposed in the main cluster among others.
 
 ```yml
