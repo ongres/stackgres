@@ -16,7 +16,7 @@ StackGres source code is licensed under the [OSI](https://opensource.org/license
 
 ## Is there a “GPL-free” commercial license for StackGres?
 
-Yes. Contact us at stackgres at ongres doc com if you want a trial or commercial license that does not contain the GPL clauses.
+Yes. Contact us at StackGres at Ongres doc com if you want a trial or commercial license that does not contain the GPL clauses.
 
 ## Will you ever switch from an open-source license to a source-available one?
 

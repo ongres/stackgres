@@ -10,7 +10,7 @@ showToc: true
 When creating a cluster, StackGres randomly generates passwords, for the `postgres` superuser and others.
 The passwords are stored in a secret (named as the cluster).
 
-By default, a Stackgres cluster initialization creates 3 users:
+By default, a StackGres cluster initialization creates 3 users:
 
 - `superuser`
 - `replication`
@@ -18,7 +18,7 @@ By default, a Stackgres cluster initialization creates 3 users:
 
 The passwords are stored in that secret under the keys `<user>-password`.
 
-Assuming that we have a Stackgres cluster named `cluster`, we can get the passwords with the following commands:
+Assuming that we have a StackGres cluster named `cluster`, we can get the passwords with the following commands:
 
 - **superuser / postgres:**
 

@@ -23,13 +23,13 @@ Create the required permissions and the user with following characteristics (tha
 Create the `stackgres-demo-k8s-user` user:
 
 ```
-oci iam user create --name stackgres-demo-k8s-user --description 'Stackgres backup user'
+oci iam user create --name stackgres-demo-k8s-user --description 'StackGres backup user'
 ```
 
 Create the group that the user will be a part of, which will have access to the bucket:
 
 ```
-oci iam group create --name stackgres-backup-group --description 'Stackgres backup group'
+oci iam group create --name stackgres-backup-group --description 'StackGres backup group'
 ```
 
 Add the user to the group:
@@ -61,7 +61,7 @@ Create a policy to allow the created group to use the bucket:
   oci iam policy create \
   --compartment-id $s3compartment_id \
   --name stackfres-backup-policy \
-  --description 'Policy to use the bucket for Stackgres backups' \
+  --description 'Policy to use the bucket for StackGres backups' \
   --statements '["Allow group stackgres-backup-group to use bucket on compartment id '$s3compartment_id' where target.bucket.name = '/''backup-demo-of-stackgres-io'/''"]'
 ```
 

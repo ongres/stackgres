@@ -9,7 +9,7 @@ showToc: true
 When creating a sharded cluster, StackGres randomly generates passwords, for the `postgres` superuser and others.
 The passwords are stored in a secret (named as the sharded cluster).
 
-By default, a Stackgres sharded cluster initialization creates 3 users:
+By default, a StackGres sharded cluster initialization creates 3 users:
 
 - `superuser`
 - `replication`
@@ -17,7 +17,7 @@ By default, a Stackgres sharded cluster initialization creates 3 users:
 
 The passwords are stored in that secret under the keys `<user>-password`.
 
-Assuming that we have a Stackgres sharded cluster named `cluster`, we can get the passwords with the following commands:
+Assuming that we have a StackGres sharded cluster named `cluster`, we can get the passwords with the following commands:
 
 - **superuser / postgres:**
 
