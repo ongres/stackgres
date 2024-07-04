@@ -17,4 +17,4 @@ Envoy will send the additional metrics, and as long as there is a Prometheus ins
 
 The StackGres web console includes built-in Grafana dashboards to visualize these metrics.
 
-Have a look at the [Monitoring Guide]({{% relref "04-administration-guide/06-monitoring" %}}) to learn more about how to configure monitoring.
+Have a look at the [Monitoring Guide]({{% relref "04-administration-guide/08-monitoring" %}}) to learn more about how to configure monitoring.

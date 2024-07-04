@@ -38,7 +38,7 @@ spec:
   sgInstanceProfile: 'size-s'
 ```
 
-See also [Cluster Creation section]({{% relref "04-administration-guide/02-cluster-creation" %}}).
+See also [Cluster Creation section]({{% relref "04-administration-guide/03-cluster-creation" %}}).
 
 {{% include "generated/SGCluster.md" %}}
 

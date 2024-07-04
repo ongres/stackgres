@@ -48,6 +48,6 @@ spec:
         key: create-stackgres-schema.sql
 ```
 
-See also [SQL Scripts section]({{%  relref "04-administration-guide/04-sql-scripts" %}}).
+See also [SQL Scripts section]({{%  relref "04-administration-guide/06-sql-scripts" %}}).
 
 {{% include "generated/SGScript.md" %}}

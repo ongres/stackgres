@@ -49,7 +49,7 @@ spec:
           max_user_connections: '100'
 ```
 
-See also [Coonection Pooling Configuration section]({{%  relref "04-administration-guide/03-configuration/03-connection-pooling" %}}).
+See also [Coonection Pooling Configuration section]({{%  relref "04-administration-guide/04-configuration/03-connection-pooling" %}}).
 
 {{% include "generated/SGPoolingConfig.md" %}}
 

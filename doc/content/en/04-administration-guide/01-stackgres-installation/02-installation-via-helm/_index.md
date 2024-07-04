@@ -56,7 +56,7 @@ helm install --create-namespace --namespace stackgres stackgres-operator \
 > **Important:** This example only works if you already have a running monitoring setup (here running in namespace `monitoring`), otherwise the StackGres installation will fail.
 
 The example above is based on the Kube Prometheus Stack Helm chart.
-To install the full setup, run the following installation commands *before* you install StackGres, or have a look at the [Monitoring]({{% relref "04-administration-guide/06-monitoring" %}}) guide.
+To install the full setup, run the following installation commands *before* you install StackGres, or have a look at the [Monitoring]({{% relref "04-administration-guide/08-monitoring" %}}) guide.
 
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -68,7 +68,7 @@ helm install --create-namespace --namespace monitoring \
  prometheus prometheus-community/kube-prometheus-stack
 ```
 
-The [Monitoring]({{% relref "04-administration-guide/06-monitoring" %}}) guide explains this in greater detail.
+The [Monitoring]({{% relref "04-administration-guide/08-monitoring" %}}) guide explains this in greater detail.
 
 ## Waiting for Operator Startup
 
@@ -88,4 +88,4 @@ stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
 
 ```
 
-Now we can continue with [creating a StackGres cluster]({{% relref "04-administration-guide/02-cluster-creation" %}}).
+Now we can continue with [creating a StackGres cluster]({{% relref "04-administration-guide/03-cluster-creation" %}}).

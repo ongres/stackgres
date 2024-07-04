@@ -12,7 +12,7 @@ Please observe the following rules when contributing to StackGres:
 
 * [Create an issue](https://gitlab.com/ongresinc/stackgres/issues/new) with any question or improvements about the source code, to keep the discussion organized.
 
-* Contact us at stackgres at ongres dot com before sending a merge request, to have a contributor agreement signed with us.
+* Contact us at StackGres at Ongres dot com before sending a merge request, to have a contributor agreement signed with us.
   This is a requirement for your merge request to be merged upstream.
 
 * Changes and merge requests should be performed from the `development` branch, instead of `main`.

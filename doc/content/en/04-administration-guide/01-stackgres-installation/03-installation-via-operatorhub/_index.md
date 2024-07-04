@@ -111,7 +111,7 @@ Remember to remove the generated password hint from the secret to avoid security
     kubectl patch secret --namespace stackgres stackgres-restapi-admin --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 ```
 
-Modify the configuration by patching the stackgres SGConfig
+Modify the configuration by patching the StackGres SGConfig
 
 ```
 cat << EOF | kubectl patch -n openshift-operators sgconfig stackgres --type merge -p "$(cat)"
@@ -173,7 +173,7 @@ To watch the operator installation you may look at Pods in the `openshift-operat
 kubectl get pod -n openshift-operators --watch
 ```
 
-Modify the configuration by patching the stackgres SGConfig:
+Modify the configuration by patching the StackGres SGConfig:
 
 ```
 cat << EOF | kubectl patch -n openshift-operators sgconfig stackgres --type merge -p "$(cat)"

@@ -14,6 +14,6 @@ This web console is targeted for internal use by DBAs and can be exposed via `Lo
 The web console can be accessed via default admin credentials, via Kubernetes RBAC for user authentication, or SSO integration.
 It also comes with a REST API for further flexibility.
 
-Have a look at the [Admin UI Guide]({{% relref "04-administration-guide/10-admin-ui" %}}) to learn more about how to access and use it.
+Have a look at the [Admin UI Guide]({{% relref "04-administration-guide/13-admin-ui" %}}) to learn more about how to access and use it.
 
 > The web console supports both light and dark modes to optimize your user experience.

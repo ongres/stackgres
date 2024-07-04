@@ -17,4 +17,4 @@ To support high log volume ingestion, this log-dedicated database is enhanced vi
 The aggregated logs can then be queried via SQL from the centralized location or visualized via the web console, which includes search and filter capabilities.
 The logs are enhanced with rich metadata, which helps for any Postgres troubleshooting.
 
-Have a look at the [Distributed Logs Guide]({{% relref "04-administration-guide/09-distributed-logs" %}}) to learn more about how to configure distributed logs.
+Have a look at the [Distributed Logs Guide]({{% relref "04-administration-guide/12-distributed-logs" %}}) to learn more about how to configure distributed logs.

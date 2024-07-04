@@ -73,7 +73,7 @@ status:
     startWalFile: 00000002000000000000000E
 ```
 
-See also [Backups section]({{%  relref "04-administration-guide/04-backups#backups" %}}).
+See also [Backups section]({{%  relref "04-administration-guide/05-backups#backups" %}}).
 
 The SGBackup represents a manual or automatically generated backup of an SGCluster configured with an SGObjectStorage.
 
