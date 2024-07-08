@@ -515,7 +515,15 @@ EOF
         {"name":"APP_OPTS","value":$EXTRA_OPTS},
         {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
         ,
-        {"name":"SGCONFIG_NAMESPACE","value":"$SGCONFIG_NAMESPACE"}
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    cat << INNER_EOF
+        {"name":"SGCONFIG_NAMESPACE","value":"$CLUSTER_NAMESPACE"}
+INNER_EOF
+  fi
+)
       ]
 $(
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
@@ -567,6 +575,14 @@ EOF
     return 1
   else
     echo "SUCCESS. The StackGres restapi service was available."
+  fi
+
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | grep -qxF 0'
+  then
+    echo "FAILED. The StackGres jobs still running."
+    return 1
+  else
+    echo "SUCCESS. The StackGres jobs all cleaned up."
   fi
 
   if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
