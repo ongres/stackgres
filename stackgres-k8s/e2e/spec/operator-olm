@@ -42,7 +42,12 @@ e2e_test() {
 
   run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
 
-  run_test "Check that operator can be deleted" check_operator_delete
+  if [ "$E2E_SKIP_CHECK_OPERATOR_DELETE" = true ]
+  then
+    echo "Skip operator deletion check"
+  else
+    run_test "Check that operator can be deleted" check_operator_delete
+  fi
 }
 
 check_operator_install() {
@@ -197,6 +202,13 @@ EOF
         -Dquarkus.log.category.\"io.stackgres.operator.conciliation\".level=TRACE 
     " | tr -s ' \n' ' ' | jq -s -R .)"
 
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
   cat << EOF > "$LOG_PATH/stackgres-subscription-$STACKGRES_VERSION.yaml"
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -220,7 +232,15 @@ spec:
       {"name":"APP_OPTS","value":$EXTRA_OPTS},
       {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
       ,
-      {"name":"SGCONFIG_NAMESPACE","value":"$SGCONFIG_NAMESPACE"}
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    cat << INNER_EOF
+      {"name":"SGCONFIG_NAMESPACE","value":"$CLUSTER_NAMESPACE"}
+INNER_EOF
+  fi
+)
     ]
 $(
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
@@ -281,6 +301,14 @@ check_operator_installed() {
     return 1
   else
     echo "SUCCESS. The StackGres restapi service was available."
+  fi
+
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | grep -qxF 0'
+  then
+    echo "FAILED. The StackGres jobs still running."
+    return 1
+  else
+    echo "SUCCESS. The StackGres jobs all cleaned up."
   fi
 
   if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
@@ -554,13 +582,6 @@ EOF
 
   OPERATOR_NAMESPACE="$(generate_operator_namespace)"
   kubectl create namespace "${OPERATOR_NAMESPACE}"
-
-  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
-  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
-    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
-  then
-    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
-  fi
 
   cat << EOF > "$LOG_PATH/operator-catalog-source.yaml"
 apiVersion: operators.coreos.com/v1alpha1
