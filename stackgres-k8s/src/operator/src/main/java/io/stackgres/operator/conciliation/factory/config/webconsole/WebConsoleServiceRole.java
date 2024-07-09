@@ -51,7 +51,7 @@ public class WebConsoleServiceRole
    */
   @Override
   public @NotNull Stream<HasMetadata> generateResource(StackGresConfigContext context) {
-    if (sgConfigNamespace.or(() -> operatorNamespace).equals(operatorNamespace)
+    if (sgConfigNamespace.equals(operatorNamespace)
         && (!Optional.ofNullable(context.getSource().getSpec())
             .map(StackGresConfigSpec::getDeploy)
             .map(StackGresConfigDeploy::getRestapi)
