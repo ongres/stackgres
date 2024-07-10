@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster.backup;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -75,6 +76,7 @@ public class ShardedBackupCronRole implements ResourceGenerator<StackGresSharded
         .endMetadata()
         .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()
+            .flatMap(List::stream)
             .map(LocalObjectReference.class::cast)
             .toList())
         .build();

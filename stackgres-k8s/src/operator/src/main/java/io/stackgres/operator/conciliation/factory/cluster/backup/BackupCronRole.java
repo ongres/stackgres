@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -74,8 +75,10 @@ public class BackupCronRole implements ResourceGenerator<StackGresClusterContext
         .withNamespace(serviceAccountNamespace)
         .withLabels(labels)
         .endMetadata()
-        .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
+        .withImagePullSecrets(
+            Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()
+            .flatMap(List::stream)
             .map(LocalObjectReference.class::cast)
             .toList())
         .build();
