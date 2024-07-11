@@ -536,7 +536,7 @@ EOF
 EOF
     done
 
-    cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
+    cat << EOF >> "stackgres-k8s/ci/build/target/junit-build.hashes.xml.$BUILD_HASH"
   </testsuite>
 </testsuites>
 EOF
