@@ -524,10 +524,10 @@ EOF
     done
 
     rm -rf "stackgres-k8s/ci/build/target/image-type-hashes.$BUILD_HASH"
-    for MODULE_TYPE_IMAGE_HASHES in stackgres-k8s/ci/build/target/*-image-hashes
+    for MODULE_TYPE_IMAGE_HASHES in "stackgres-k8s/ci/build/target/"*"-image-hashes.$BUILD_HASH"
     do
       local MODULE_TYPE="${MODULE_TYPE_IMAGE_HASHES##*/}"
-      MODULE_TYPE="${MODULE_TYPE%-image-hashes}"
+      MODULE_TYPE="${MODULE_TYPE%-image-hashes.*}"
       local MODULE_TYPE_HASH
       MODULE_TYPE_HASH="$(md5sum "$MODULE_TYPE_IMAGE_HASHES" | cut -d ' ' -f 1 | tr -d '\n')"
       printf '%s=%s\n' "$MODULE_TYPE" "$MODULE_TYPE_HASH" >> "stackgres-k8s/ci/build/target/image-type-hashes.$BUILD_HASH"
