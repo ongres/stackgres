@@ -3,13 +3,6 @@
 # shellcheck disable=SC1090
 . "$(dirname "$0")/build-functions.sh"
 
-set -e
-
-# shellcheck disable=SC2015
-[ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] \
-  && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
-  && true || false
-
 set +e
 
 (
@@ -31,10 +24,16 @@ then
 
   echo "Building $* ..."
 
-  mkdir -p $HOME/.docker                                                                                                                                                                               
-  cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
-  echo | docker login "$CI_REGISTRY" || \
-    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  if [ "x$DOCKER_AUTH_CONFIG" != x ]
+  then
+    mkdir -p $HOME/.docker
+    cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"
+  fi
+  if [ "x$CI_REGISTRY" != x ]
+  then
+    echo | docker login "$CI_REGISTRY" || \
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  fi
   set +e
   sh stackgres-k8s/ci/build/build.sh "$@"
   EXIT_CODE="$?"
@@ -66,10 +65,16 @@ then
 
   echo "Extracting files from $2 ..."
 
-  mkdir -p $HOME/.docker                                                                                                                                                                               
-  cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
-  echo | docker login "$CI_REGISTRY" || \
-    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  if [ "x$DOCKER_AUTH_CONFIG" != x ]
+  then
+    mkdir -p $HOME/.docker
+    cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"
+  fi
+  if [ "x$CI_REGISTRY" != x ]
+  then
+    echo | docker login "$CI_REGISTRY" || \
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  fi
   sh stackgres-k8s/ci/build/build-functions.sh generate_image_hashes
   sh stackgres-k8s/ci/build/build-functions.sh extract "$@"
 
