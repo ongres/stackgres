@@ -339,6 +339,13 @@ EOF
 }
 
 e2e_upgrade_operator() {
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
   echo "Upgrading operator bundle ($STACKGRES_VERSION)"
 
   if [ "$STACKGRES_PREVIOUS_VERSION" = 1.6.0 ]
@@ -480,13 +487,6 @@ INNER_EOF
 )
 EOF
 
-  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
-  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
-    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
-  then
-    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
-  fi
-
   EXTRA_OPTS="$(printf %s "
         -Dquarkus.log.category.\"io.stackgres\".level=DEBUG 
         -Dquarkus.log.category.\"io.quarkus\".level=INFO 
@@ -515,12 +515,12 @@ EOF
         {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
         {"name":"APP_OPTS","value":$EXTRA_OPTS},
         {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
-        ,
 $(
   if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
     && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
   then
     cat << INNER_EOF
+        ,
         {"name":"SGCONFIG_NAMESPACE","value":"$CLUSTER_NAMESPACE"}
 INNER_EOF
   fi
@@ -578,7 +578,7 @@ EOF
     echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | grep -qxF 0'
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
   then
     echo "FAILED. The StackGres jobs still running."
     return 1

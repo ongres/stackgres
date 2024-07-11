@@ -830,7 +830,7 @@ before_operator_install_or_upgrade() {
 after_operator_install_or_upgrade() {
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator$'
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
-  wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | grep -qxF 0'
+  wait_until eval 'kubectl get job -n "$OPERATOR_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
   if [ "$OPERATOR_FROM" != true ] && [ "$EXTENSIONS_CACHE_ENABLED" = true ]
   then
     wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator-extensions-cache$'

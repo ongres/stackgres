@@ -51,6 +51,13 @@ e2e_test() {
 }
 
 check_operator_install() {
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
   install_operator_olm
 
   check_operator_installed
@@ -202,13 +209,6 @@ EOF
         -Dquarkus.log.category.\"io.stackgres.operator.conciliation\".level=TRACE 
     " | tr -s ' \n' ' ' | jq -s -R .)"
 
-  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
-  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
-    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
-  then
-    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
-  fi
-
   cat << EOF > "$LOG_PATH/stackgres-subscription-$STACKGRES_VERSION.yaml"
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -303,7 +303,7 @@ check_operator_installed() {
     echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | grep -qxF 0'
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
   then
     echo "FAILED. The StackGres jobs still running."
     return 1
@@ -431,6 +431,13 @@ create_or_replace_cluster_from_backup() {
 }
 
 check_operator_delete() {
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
   kubectl delete subscription -n "$OPERATOR_NAMESPACE" stackgres
 
   kubectl delete clusterserviceversion -n "$OPERATOR_NAMESPACE" "stackgres.v$BUNDLE_STACKGRES_VERSION"
