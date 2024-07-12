@@ -21,7 +21,8 @@ import io.stackgres.stream.app.StreamProperty;
 
 public class DebeziumAnnotationSignalChannelReader implements SignalChannelReader {
 
-  private static final String STACKGRES_IO_DEBEZIUM_SIGNAL_KEY_PREFIX = "debezium-signal." + StackGresContext.STACKGRES_KEY_PREFIX;
+  private static final String STACKGRES_IO_DEBEZIUM_SIGNAL_KEY_PREFIX =
+      "debezium-signal." + StackGresContext.STACKGRES_KEY_PREFIX;
 
   static CustomResourceFinder<StackGresStream> streamFinder;
 

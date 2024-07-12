@@ -69,10 +69,14 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
 
   public static String slotName(StackGresStream stream) {
     return Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
-        .filter(sgCluster -> Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.SGCLUSTER.toString()))
+        .filter(sgCluster -> Objects.equals(
+            stream.getSpec().getSource().getType(),
+            StreamSourceType.SGCLUSTER.toString()))
         .map(StackGresStreamSourceSgCluster::getDebeziumProperties)
         .or(() -> Optional.ofNullable(stream.getSpec().getSource().getPostgres())
-            .filter(postgres -> Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.POSTGRES.toString()))
+            .filter(postgres -> Objects.equals(
+                stream.getSpec().getSource().getType(),
+                StreamSourceType.POSTGRES.toString()))
             .map(StackGresStreamSourcePostgres::getDebeziumProperties))
         .map(StackGresStreamSourcePostgresDebeziumProperties::getSlotName)
         .orElseGet(() -> (stream.getMetadata().getNamespace() + "_" + stream.getMetadata().getName())
