@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgconfig.StackGresAuthenticationType;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
@@ -61,8 +62,6 @@ import org.jooq.lambda.tuple.Tuple;
 public class WebConsoleDeployment
     implements ResourceGenerator<StackGresConfigContext> {
 
-  private static final Pattern IMAGE_NAME_WITH_REGISTRY_PATTERN =
-      Pattern.compile("^[^/]+\\.[^/]+/.*$");
   private static final Pattern URL_PATTERN = Pattern.compile("^https?://[^/]+(/.*)$");
   private static final String WEBCONSOLE_CERTS = "web-certs";
   private static final String ADMINUI_NGINX = "adminui-nginx";
@@ -156,10 +155,7 @@ public class WebConsoleDeployment
         .withContainers(
             new ContainerBuilder()
             .withName("stackgres-restapi")
-            .withImage(getImageNameWithTag(
-                context,
-                restapi.map(StackGresConfigRestapi::getImage),
-                "stackgres/restapi"))
+            .withImage(StackGresUtil.getRestapiImageNameWithTag(context))
             .withImagePullPolicy(
                 restapi
                 .map(StackGresConfigRestapi::getImage)
@@ -424,10 +420,7 @@ public class WebConsoleDeployment
             .build(),
             new ContainerBuilder()
             .withName("stackgres-adminui")
-            .withImage(getImageNameWithTag(
-                context,
-                adminui.map(StackGresConfigAdminui::getImage),
-                "stackgres/admin-ui"))
+            .withImage(StackGresUtil.getAdminuiImageNameWithTag(context))
             .withImagePullPolicy(
                 adminui
                 .map(StackGresConfigAdminui::getImage)
@@ -616,25 +609,6 @@ public class WebConsoleDeployment
         .endTemplate()
         .endSpec()
         .build());
-  }
-
-  public String getImageNameWithTag(
-      StackGresConfigContext context,
-      Optional<StackGresConfigImage> image,
-      String defaultImageName) {
-    final String containerRegistry = context.getSource().getSpec().getContainerRegistry();
-    String imageName = image
-        .map(StackGresConfigImage::getName)
-        .orElse(defaultImageName);
-    String imageTag = image
-        .map(StackGresConfigImage::getTag)
-        .or(() -> StackGresProperty.OPERATOR_IMAGE_VERSION.get())
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Can not determine the image tag."
-                + " Missing OPERATOR_IMAGE_VERSION environment variable"));
-    return IMAGE_NAME_WITH_REGISTRY_PATTERN.matcher(imageName).matches()
-        ? imageName + ":" + imageTag
-            : containerRegistry + "/" + imageName + ":" + imageTag;
   }
 
 }

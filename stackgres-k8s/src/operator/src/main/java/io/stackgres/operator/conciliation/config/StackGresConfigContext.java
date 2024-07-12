@@ -10,13 +10,19 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.client.VersionInfo;
+import io.stackgres.common.ConfigContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface StackGresConfigContext extends GenerationContext<StackGresConfig> {
+public interface StackGresConfigContext extends GenerationContext<StackGresConfig>, ConfigContext {
+
+  @Override
+  default StackGresConfig getConfig() {
+    return getSource();
+  }
 
   Optional<VersionInfo> getKubernetesVersion();
 

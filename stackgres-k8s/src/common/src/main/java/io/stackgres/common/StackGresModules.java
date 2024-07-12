@@ -8,7 +8,7 @@ package io.stackgres.common;
 import com.google.common.collect.ImmutableList;
 import org.jooq.lambda.Seq;
 
-public enum StackGresController {
+public enum StackGresModules {
 
   CLUSTER_CONTROLLER("cluster-controller",
       StackGresProperty.SG_IMAGE_CLUSTER_CONTROLLER,
@@ -17,17 +17,21 @@ public enum StackGresController {
   DISTRIBUTEDLOGS_CONTROLLER("distributedlogs-controller",
       StackGresProperty.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER,
       StackGresProperty.OPERATOR_IMAGE_VERSION,
-      "%1$s/stackgres/distributedlogs-controller:%2$s");
+      "%1$s/stackgres/distributedlogs-controller:%2$s"),
+  STREAM("stream",
+      StackGresProperty.SG_IMAGE_STREAM,
+      StackGresProperty.OPERATOR_IMAGE_VERSION,
+      "%1$s/stackgres/stream:%2$s");
 
   final String name;
   final StackGresProperty imageTemplateProperty;
   final String defaultImageTemplate;
   final StackGresProperty componentVersionProperty;
-  final ImmutableList<StackGresController> subComponents;
+  final ImmutableList<StackGresModules> subComponents;
 
-  StackGresController(String name, StackGresProperty imageTemplateProperty,
+  StackGresModules(String name, StackGresProperty imageTemplateProperty,
       StackGresProperty componentVersionProperty,
-      String defaultImageTemplate, StackGresController...subComponents) {
+      String defaultImageTemplate, StackGresModules...subComponents) {
     this.name = name;
     this.imageTemplateProperty = imageTemplateProperty;
     this.defaultImageTemplate = defaultImageTemplate;
