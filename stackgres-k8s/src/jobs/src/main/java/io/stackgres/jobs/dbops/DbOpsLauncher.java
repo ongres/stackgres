@@ -66,6 +66,13 @@ public class DbOpsLauncher {
         .orElseThrow(() -> new IllegalArgumentException(StackGresDbOps.KIND + " "
             + dbOpName + " does not exists in namespace " + namespace));
 
+    if (Optional.ofNullable(dbOps.getStatus())
+        .map(StackGresDbOpsStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(DbOpsStatusCondition.DBOPS_COMPLETED::isCondition)) {
+      throw new IllegalStateException("The SGDbOps " + dbOps.getMetadata().getName() + " is already completed.");
+    }  
     Instance<DatabaseOperationJob> jobImpl =
         instance.select(new DatabaseOperationLiteral(dbOps.getSpec().getOp()));
 
@@ -126,11 +133,11 @@ public class DbOpsLauncher {
         updateToTimeoutConditions(dbOpName, namespace);
         databaseOperationEventEmitter.operationTimedOut(dbOpName, namespace);
         throw timeoutEx;
-      } catch (Exception e) {
-        LOGGER.info("Unexpected exception for SGDbOps {}", dbOpName, e);
+      } catch (Exception ex) {
+        LOGGER.info("Unexpected exception for SGDbOps {}", dbOpName, ex);
         updateToFailedConditions(dbOpName, namespace);
         databaseOperationEventEmitter.operationFailed(dbOpName, namespace);
-        throw e;
+        throw ex;
       }
     } else if (jobImpl.isAmbiguous()) {
       throw new IllegalStateException("Multiple implementations of the operation "

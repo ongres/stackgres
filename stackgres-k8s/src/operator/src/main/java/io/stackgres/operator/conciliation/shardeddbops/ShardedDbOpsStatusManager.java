@@ -51,9 +51,7 @@ public class ShardedDbOpsStatusManager
         .stream()
         .flatMap(List::stream)
         .filter(condition -> Objects.equals(condition.getType(),
-            ShardedDbOpsStatusCondition.Type.COMPLETED.getType())
-            || Objects.equals(condition.getType(),
-                ShardedDbOpsStatusCondition.Type.FAILED.getType()))
+            ShardedDbOpsStatusCondition.Type.COMPLETED.getType()))
         .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
       isJobFailedAndStatusNotUpdated = false;
     } else {
@@ -79,18 +77,29 @@ public class ShardedDbOpsStatusManager
           .map(Job::getStatus)
           .map(JobStatus::getFailed)
           .orElse(0);
-      source.getStatus().setOpRetries(Math.max(0, failed - 1) + (failed > 0 ? active : 0));
+      source.getStatus().setOpRetries(
+          Math.max(0, failed - 1) + (failed > 0 ? active : 0));
     }
 
     if (isJobFailedAndStatusNotUpdated) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(
-            "ShardedDbOps {} failed since the job failed but status condition is neither completed or failed",
-            getShardedDbOpsId(source));
+      if (source.getStatus() == null) {
+        source.setStatus(new StackGresShardedDbOpsStatus());
       }
       updateCondition(getFalseRunning(), source);
       updateCondition(getFalseCompleted(), source);
-      updateCondition(getFailedDueToUnexpectedFailure(), source);
+      if (Optional.of(source)
+          .map(StackGresShardedDbOps::getStatus)
+          .map(StackGresShardedDbOpsStatus::getConditions)
+          .stream()
+          .flatMap(List::stream)
+          .filter(condition -> Objects.equals(condition.getType(),
+              ShardedDbOpsStatusCondition.Type.FAILED.getType()))
+          .noneMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
+        LOGGER.warn(
+            "ShardedDbOps {} failed since the job completed but status condition is neither completed or failed",
+            getShardedDbOpsId(source));
+        updateCondition(getFailedDueToUnexpectedFailure(), source);
+      }
     }
     return source;
   }

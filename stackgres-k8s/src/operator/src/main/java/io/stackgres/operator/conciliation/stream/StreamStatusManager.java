@@ -51,9 +51,7 @@ public class StreamStatusManager
         .stream()
         .flatMap(List::stream)
         .filter(condition -> Objects.equals(condition.getType(),
-            StreamStatusCondition.Type.COMPLETED.getType())
-            || Objects.equals(condition.getType(),
-                StreamStatusCondition.Type.FAILED.getType()))
+            StreamStatusCondition.Type.COMPLETED.getType()))
         .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
       isJobFinishedAndStatusNotUpdated = false;
     } else {
@@ -70,20 +68,27 @@ public class StreamStatusManager
           .filter(condition -> Objects.equals(condition.getType(), "Failed")
               || Objects.equals(condition.getType(), "Completed"))
           .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"));
-      if (source.getStatus() == null) {
-        source.setStatus(new StackGresStreamStatus());
-      }
     }
 
     if (isJobFinishedAndStatusNotUpdated) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(
-            "Stream {} failed since the job failed but status condition is neither completed or failed",
-            getStreamId(source));
+      if (source.getStatus() == null) {
+        source.setStatus(new StackGresStreamStatus());
       }
       updateCondition(getFalseRunning(), source);
       updateCondition(getFalseCompleted(), source);
-      updateCondition(getFailedDueToUnexpectedFailure(), source);
+      if (Optional.of(source)
+          .map(StackGresStream::getStatus)
+          .map(StackGresStreamStatus::getConditions)
+          .stream()
+          .flatMap(List::stream)
+          .filter(condition -> Objects.equals(condition.getType(),
+              StreamStatusCondition.Type.FAILED.getType()))
+          .noneMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
+        LOGGER.warn(
+            "Stream {} failed since the job completed but status condition is neither completed or failed",
+            getStreamId(source));
+        updateCondition(getFailedDueToUnexpectedFailure(), source);
+      }
     }
     return source;
   }
