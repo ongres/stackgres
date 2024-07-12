@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,6 +67,11 @@ public class Condition implements io.stackgres.operatorframework.resource.Condit
   @Override
   public void setLastTransitionTime(String lastTransitionTime) {
     this.lastTransitionTime = lastTransitionTime;
+  }
+
+  public Condition setLastTransitionTime() {
+    this.lastTransitionTime = Instant.now().toString();
+    return this;
   }
 
   @Override

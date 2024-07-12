@@ -86,7 +86,7 @@ public class ShardedDbOpsStatusManager
         source.setStatus(new StackGresShardedDbOpsStatus());
       }
       updateCondition(getFalseRunning(), source);
-      updateCondition(getFalseCompleted(), source);
+      updateCondition(getCompleted(), source);
       if (Optional.of(source)
           .map(StackGresShardedDbOps::getStatus)
           .map(StackGresShardedDbOpsStatus::getConditions)
@@ -108,8 +108,8 @@ public class ShardedDbOpsStatusManager
     return ShardedDbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition();
   }
 
-  protected Condition getFalseCompleted() {
-    return ShardedDbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition();
+  protected Condition getCompleted() {
+    return ShardedDbOpsStatusCondition.DBOPS_COMPLETED.getCondition();
   }
 
   protected Condition getFailedDueToUnexpectedFailure() {

@@ -127,13 +127,35 @@ class StreamStatusManagerTest {
     statusManager.refreshCondition(stream);
 
     Assertions.assertEquals(expectedStream, stream);
-    verify(jobFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(jobFinder, times(1)).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void failedStreamWithCompletedJob_shouldUpdateResource() {
+    stream.setStatus(new StackGresStreamStatus());
+    stream.getStatus().setConditions(List.of(
+        StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
+        StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition(),
+        StreamStatusCondition.STREAM_FAILED.getCondition().setLastTransitionTime()));
+    when(jobFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(completedJob));
+
+    statusManager.refreshCondition(stream);
+
+    assertCondition(
+        StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
+        stream.getStatus().getConditions());
+    assertCondition(
+        StreamStatusCondition.STREAM_COMPLETED.getCondition(),
+        stream.getStatus().getConditions());
+    assertCondition(
+        StreamStatusCondition.STREAM_FAILED.getCondition(),
+        stream.getStatus().getConditions());
+    verify(jobFinder, times(1)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void noJob_shouldNotUpdateResource() {
-    expectedStream.setStatus(new StackGresStreamStatus());
-
     when(jobFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
 
@@ -145,8 +167,6 @@ class StreamStatusManagerTest {
 
   @Test
   void runningJob_shouldNotUpdateResource() {
-    expectedStream.setStatus(new StackGresStreamStatus());
-
     when(jobFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(runningJob));
 
@@ -167,7 +187,7 @@ class StreamStatusManagerTest {
         StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
         stream.getStatus().getConditions());
     assertCondition(
-        StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition(),
+        StreamStatusCondition.STREAM_COMPLETED.getCondition(),
         stream.getStatus().getConditions());
     assertCondition(
         StreamStatusCondition.STREAM_FAILED.getCondition(),
@@ -187,7 +207,7 @@ class StreamStatusManagerTest {
         StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
         stream.getStatus().getConditions());
     assertCondition(
-        StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition(),
+        StreamStatusCondition.STREAM_COMPLETED.getCondition(),
         stream.getStatus().getConditions());
     assertCondition(
         StreamStatusCondition.STREAM_FAILED.getCondition(),
@@ -214,7 +234,7 @@ class StreamStatusManagerTest {
         StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
         stream.getStatus().getConditions());
     assertCondition(
-        StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition(),
+        StreamStatusCondition.STREAM_COMPLETED.getCondition(),
         stream.getStatus().getConditions());
     assertCondition(
         StreamStatusCondition.STREAM_FAILED.getCondition(),

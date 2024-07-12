@@ -75,7 +75,7 @@ public class StreamStatusManager
         source.setStatus(new StackGresStreamStatus());
       }
       updateCondition(getFalseRunning(), source);
-      updateCondition(getFalseCompleted(), source);
+      updateCondition(getCompleted(), source);
       if (Optional.of(source)
           .map(StackGresStream::getStatus)
           .map(StackGresStreamStatus::getConditions)
@@ -97,8 +97,8 @@ public class StreamStatusManager
     return StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition();
   }
 
-  protected Condition getFalseCompleted() {
-    return StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition();
+  protected Condition getCompleted() {
+    return StreamStatusCondition.STREAM_COMPLETED.getCondition();
   }
 
   protected Condition getFailedDueToUnexpectedFailure() {
