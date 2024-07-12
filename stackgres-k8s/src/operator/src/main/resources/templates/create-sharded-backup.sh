@@ -219,7 +219,7 @@ spec:
   maxRetries: 0
 EOF
 )"
-    if ! printf %s "$BACKUP_YAML" | kubectl create -f - > /tmp/backup-create-backup 2>&1
+    if ! printf %s "$BACKUP_YAML" | kubectl replace --force -f - > /tmp/backup-create-backup 2>&1
     then
       cat /tmp/backup-create-backup > /tmp/backup-push
       kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[

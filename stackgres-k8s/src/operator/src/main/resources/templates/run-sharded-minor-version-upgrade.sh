@@ -35,7 +35,7 @@ spec:
     postgresVersion: $POSTGRES_VERSION
 EOF
 )"
-    if ! printf %s "$DBOPS_YAML" | kubectl create -f - > /tmp/dbops-create-dbops 2>&1
+    if ! printf %s "$DBOPS_YAML" | kubectl replace --force -f - > /tmp/dbops-create-dbops 2>&1
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not create SGDbOps: $(cat /tmp/dbops-create-dbops)" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       exit 1
