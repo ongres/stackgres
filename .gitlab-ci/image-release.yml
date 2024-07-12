@@ -125,6 +125,13 @@ release distributedlogs-controller jvm image amd64:
     LOCK_FILE: stackgres-distributedlogs-controller-release-jvm-release-image
     IMAGE_MODULE_NAME: distributedlogs-controller-jvm-release-image
 
+release stream jvm image amd64:
+  extends: .release jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-release-jvm-release-image
+    IMAGE_MODULE_NAME: stream-jvm-release-image
+
 release operator native image amd64:
   extends: .release native image amd64
   variables:
@@ -159,6 +166,13 @@ release distributedlogs-controller native image amd64:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
     LOCK_FILE: stackgres-distributedlogs-controller-release-native-release-image
     IMAGE_MODULE_NAME: distributedlogs-controller-native-release-image
+
+release stream native image amd64:
+  extends: .release native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-release-native-release-image
+    IMAGE_MODULE_NAME: stream-native-release-image
 
 release admin-ui image amd64:
   extends: .release image
@@ -244,6 +258,13 @@ release distributedlogs-controller jvm image arm64:
     LOCK_FILE: stackgres-distributedlogs-controller-release-jvm-release-image
     IMAGE_MODULE_NAME: distributedlogs-controller-jvm-release-image
 
+release stream jvm image arm64:
+  extends: .release jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-release-jvm-release-image
+    IMAGE_MODULE_NAME: stream-jvm-release-image
+
 release operator native image arm64:
   extends: .release native image arm64
   variables:
@@ -278,6 +299,13 @@ release distributedlogs-controller native image arm64:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
     LOCK_FILE: stackgres-distributedlogs-controller-release-native-release-image
     IMAGE_MODULE_NAME: distributedlogs-controller-native-release-image
+
+release stream native image arm64:
+  extends: .release native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-release-native-release-image
+    IMAGE_MODULE_NAME: stream-native-release-image
 
 release admin-ui image arm64:
   extends: .release image
@@ -348,6 +376,11 @@ release distributedlogs-controller jvm image multi archs:
   variables:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
 
+release stream jvm image multi archs:
+  extends: .release jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+
 release operator native image multi archs:
   extends: .release native image multi archs
   variables:
@@ -372,6 +405,11 @@ release distributedlogs-controller native image multi archs:
   extends: .release native image multi archs
   variables:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+
+release stream native image multi archs:
+  extends: .release native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
 
 release admin-ui image multi archs:
   extends: .release image multi archs
