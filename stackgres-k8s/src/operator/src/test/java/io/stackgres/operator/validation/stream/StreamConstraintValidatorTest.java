@@ -262,6 +262,7 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
         cloudEvent.setBinding("http");
         cloudEvent.setFormat("json");
         cloudEvent.setHttp(new StackGresStreamTargetCloudEventHttp());
+        cloudEvent.getHttp().setUrl("test");
         spec.getTarget().setCloudEvent(cloudEvent);
         break;
       case SGCLUSTER:
