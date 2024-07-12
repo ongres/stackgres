@@ -35,8 +35,9 @@ import org.jetbrains.annotations.NotNull;
 public class WebConsoleServiceRole
     implements ResourceGenerator<StackGresConfigContext> {
 
-  private final Optional<String> sgConfigNamespace = OperatorProperty.SGCONFIG_NAMESPACE.get();
-  private final Optional<String> operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.get();
+  private final String sgConfigNamespace = OperatorProperty.SGCONFIG_NAMESPACE.get()
+      .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getString);
+  private final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
 
   private final LabelFactoryForConfig labelFactory;
 
@@ -50,7 +51,7 @@ public class WebConsoleServiceRole
    */
   @Override
   public @NotNull Stream<HasMetadata> generateResource(StackGresConfigContext context) {
-    if (sgConfigNamespace.or(() -> operatorNamespace).equals(operatorNamespace)
+    if (sgConfigNamespace.equals(operatorNamespace)
         && (!Optional.ofNullable(context.getSource().getSpec())
             .map(StackGresConfigSpec::getDeploy)
             .map(StackGresConfigDeploy::getRestapi)

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.shardeddbops;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -80,6 +81,7 @@ public class ShardedDbOpsRole implements ResourceGenerator<StackGresShardedDbOps
         .endMetadata()
         .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()
+            .flatMap(List::stream)
             .map(LocalObjectReference.class::cast)
             .toList())
         .build();

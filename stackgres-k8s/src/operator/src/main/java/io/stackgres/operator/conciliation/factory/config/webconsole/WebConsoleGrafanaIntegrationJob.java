@@ -112,10 +112,10 @@ public class WebConsoleGrafanaIntegrationJob
                 .map(LocalObjectReference::new)
                 .toList()))
             .append(Optional.ofNullable(context.getSource().getSpec().getImagePullSecrets())
-                .map(imagePullSecrets -> imagePullSecrets
-                    .stream()
-                    .map(LocalObjectReference.class::cast)
-                    .toList()))
+                .stream()
+                .flatMap(List::stream)
+                .map(LocalObjectReference.class::cast)
+                .toList())
             .flatMap(List::stream)
             .toList())
         .build(),
@@ -215,9 +215,8 @@ public class WebConsoleGrafanaIntegrationJob
             .withEnv(
                 new EnvVarBuilder()
                 .withName("SGCONFIG_NAMESPACE")
-                .withValue(Optional.ofNullable(System.getenv(
-                    OperatorProperty.SGCONFIG_NAMESPACE.getEnvironmentVariableName()))
-                    .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getEnvironmentVariableName))
+                .withValue(OperatorProperty.SGCONFIG_NAMESPACE.get()
+                    .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getString))
                 .build(),
                 new EnvVarBuilder()
                 .withName("OPERATOR_NAME")

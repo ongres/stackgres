@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -79,6 +80,7 @@ public class PatroniRole implements
         .endMetadata()
         .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()
+            .flatMap(List::stream)
             .map(LocalObjectReference.class::cast)
             .toList())
         .build();
