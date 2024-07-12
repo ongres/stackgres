@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.management.InstanceNotFoundException;
@@ -120,7 +121,7 @@ public class StreamReconciliator
       ObjectName sectionMetricsName = new ObjectName(mbeanName);
       var sectionMetricsMBean = platformMBeanServer.getMBeanInfo(sectionMetricsName);
       for (Field field : statusSectionClass.getDeclaredFields()) {
-        String attributeName = field.getName().substring(0, 1).toUpperCase()
+        String attributeName = field.getName().substring(0, 1).toUpperCase(Locale.US)
             + field.getName().substring(1);
         String setterMethodName = "set" + attributeName;
         Method setterMethod = statusSectionClass.getMethod(setterMethodName, field.getType());

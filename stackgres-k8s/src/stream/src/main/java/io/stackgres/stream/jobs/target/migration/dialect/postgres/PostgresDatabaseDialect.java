@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.Locale;
 import java.util.Optional;
 
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
@@ -119,7 +120,7 @@ public class PostgresDatabaseDialect extends GeneralDatabaseDialect {
     @Override
     public String getQueryBindingWithValueCast(ColumnDescriptor column, Schema schema, Type type) {
         if (schema.type() == Schema.Type.STRING) {
-            final String typeName = column.getTypeName().toLowerCase();
+            final String typeName = column.getTypeName().toLowerCase(Locale.US);
             if ("uuid".equals(typeName)) {
                 return "cast(? as uuid)";
             }
@@ -205,7 +206,7 @@ public class PostgresDatabaseDialect extends GeneralDatabaseDialect {
             // If they're quoted, we shouldn't lowercase the column name.
             if (!getIdentifierHelper().toIdentifier(columnName).isQuoted()) {
                 // PostgreSQL defaults to lower case for identifiers
-                columnName = columnName.toLowerCase();
+                columnName = columnName.toLowerCase(Locale.US);
             }
         }
         return columnName;

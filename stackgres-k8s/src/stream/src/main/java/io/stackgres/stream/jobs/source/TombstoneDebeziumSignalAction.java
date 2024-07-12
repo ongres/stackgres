@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.pipeline.signal.SignalPayload;
@@ -192,6 +193,8 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
     }
   }
 
+  @SuppressFBWarnings(value = "VA_FORMAT_STRING_USES_NEWLINE",
+      justification = "False positive")
   private void cleanupSource() {
     if (Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.SGCLUSTER.toString())
         || Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.POSTGRES.toString())) {

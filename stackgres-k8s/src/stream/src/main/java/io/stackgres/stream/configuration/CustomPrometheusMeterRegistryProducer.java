@@ -29,11 +29,10 @@ public class CustomPrometheusMeterRegistryProducer extends PrometheusMeterRegist
   @Override
   public String scrape() {
     StringBuilder sb = new StringBuilder();
-    sb.append(this.scrape());
+    sb.append(super.scrape());
     if (jmxCollectorRegistry != null) {
       sb.append(jmxCollectorRegistry.scrape());
     }
-
     return sb.toString();
   }
 }

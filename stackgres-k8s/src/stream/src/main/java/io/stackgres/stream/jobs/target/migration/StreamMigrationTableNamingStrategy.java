@@ -21,7 +21,7 @@ public class StreamMigrationTableNamingStrategy extends DefaultTableNamingStrate
   public String resolveTableName(JdbcSinkConnectorConfig config, SinkRecord record) {
     String table = super.resolveTableName(config, record);
     final String originalName = record.topic().substring(StreamMigrationTableNamingStrategy.topicPrefix.length());
-    table = config.getTableNameFormat().replace("${original}", originalName);
+    table = table.replace("${original}", originalName);
     return table;
   }
 

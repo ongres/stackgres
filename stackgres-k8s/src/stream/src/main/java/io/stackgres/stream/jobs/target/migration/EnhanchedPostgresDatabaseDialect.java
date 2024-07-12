@@ -6,6 +6,7 @@
 package io.stackgres.stream.jobs.target.migration;
 
 import java.util.List;
+import java.util.Locale;
 
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.relational.ColumnDescriptor;
@@ -24,7 +25,7 @@ public class EnhanchedPostgresDatabaseDialect extends PostgresDatabaseDialect {
 
   @Override
   public String getQueryBindingWithValueCast(ColumnDescriptor column, Schema schema, Type type) {
-    final String typeName = column.getTypeName().toLowerCase();
+    final String typeName = column.getTypeName().toLowerCase(Locale.US);
     if ("smallserial".equals(typeName)) {
       return "?::smallint";
     }

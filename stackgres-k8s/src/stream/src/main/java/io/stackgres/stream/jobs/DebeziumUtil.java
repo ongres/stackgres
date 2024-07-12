@@ -8,6 +8,7 @@ package io.stackgres.stream.jobs;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -31,8 +32,8 @@ public interface DebeziumUtil {
       if (!List.of(String.class, Boolean.class, Integer.class, List.class, Map.class).contains(field.getType())) {
         continue;
       }
-      String property = field.getName().replaceAll("([A-Z])", ".$1").toLowerCase();
-      String getterMethodName = "get" + field.getName().substring(0, 1).toUpperCase()
+      String property = field.getName().replaceAll("([A-Z])", ".$1").toLowerCase(Locale.US);
+      String getterMethodName = "get" + field.getName().substring(0, 1).toUpperCase(Locale.US)
           + field.getName().substring(1);
       Method getterMethod;
       try {

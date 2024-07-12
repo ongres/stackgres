@@ -121,7 +121,6 @@ public class StreamCloudEventHandler implements TargetEventHandler {
   }
 
   class RetryHandler implements TargetEventConsumer<String> {
-    final StackGresStream stream;
     final URI baseUri;
     final Client brokerClient;
     final int retryBackoffDelay;
@@ -130,7 +129,6 @@ public class StreamCloudEventHandler implements TargetEventHandler {
     RetryHandler(
         StackGresStream stream, URI baseUri, Client brokerClient,
         int retryBackoffDelay) {
-      this.stream = stream;
       this.baseUri = baseUri;
       this.brokerClient = brokerClient;
       this.retryBackoffDelay = retryBackoffDelay;
