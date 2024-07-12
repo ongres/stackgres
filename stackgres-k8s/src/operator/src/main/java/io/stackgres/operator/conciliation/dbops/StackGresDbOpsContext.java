@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.dbops;
 import java.util.Optional;
 
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.ConfigContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -18,7 +19,7 @@ import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>, ClusterContext {
+public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>, ClusterContext, ConfigContext {
 
   StackGresConfig getConfig();
 

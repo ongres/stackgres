@@ -24,7 +24,7 @@ import io.stackgres.common.ClusterPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresController;
+import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -71,7 +71,7 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
   public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.CLUSTER_CONTROLLER.getName())
-        .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
+        .withImage(StackGresModules.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(
             new EnvVarBuilder()
@@ -234,7 +234,7 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
         StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
-        StackGresController.CLUSTER_CONTROLLER.getVersion());
+        StackGresModules.CLUSTER_CONTROLLER.getVersion());
   }
 
 }

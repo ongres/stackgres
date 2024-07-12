@@ -29,7 +29,7 @@ import org.jooq.lambda.Seq;
 @Singleton
 @OperatorVersionBinder
 public class StreamPersistentVolumeClaim
-    implements ResourceGenerator<StackGresStreamContext>, StreamDeploymentOrJobFactory {
+    implements ResourceGenerator<StackGresStreamContext> {
 
   private final LabelFactoryForStream streamLabelFactory;
 

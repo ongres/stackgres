@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StreamPath;
 import io.stackgres.common.StreamUtil;
@@ -51,7 +52,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class StreamDeploymentOrJob implements ResourceGenerator<StackGresStreamContext>, StreamDeploymentOrJobFactory {
+public class StreamDeploymentOrJob implements ResourceGenerator<StackGresStreamContext> {
 
   private final LabelFactoryForStream labelFactory;
   private final ResourceFactory<StackGresStreamContext, PodSecurityContext> podSecurityFactory;
@@ -129,8 +130,8 @@ public class StreamDeploymentOrJob implements ResourceGenerator<StackGresStreamC
             .build())
         .withContainers(new ContainerBuilder()
             .withName("stream")
+            .withImage(StackGresModules.STREAM.getImageName())
             .withImagePullPolicy(getDefaultPullPolicy())
-            .withImage(getImageName())
             .withResources(Optional.of(stream)
                 .map(StackGresStream::getSpec)
                 .map(StackGresStreamSpec::getPods)

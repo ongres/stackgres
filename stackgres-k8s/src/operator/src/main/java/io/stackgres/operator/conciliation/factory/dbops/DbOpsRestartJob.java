@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
@@ -116,8 +117,8 @@ public class DbOpsRestartJob implements DbOpsJobFactory {
             .build())
         .withContainers(new ContainerBuilder()
             .withName("run-dbops")
+            .withImage(StackGresUtil.getJobsImageNameWithTag(context))
             .withImagePullPolicy(getDefaultPullPolicy())
-            .withImage(getImageName())
             .addToEnv(
                 new EnvVarBuilder()
                     .withName(OperatorProperty.OPERATOR_NAME.getEnvironmentVariableName())

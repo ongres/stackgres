@@ -27,7 +27,7 @@ import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresController;
+import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
@@ -69,7 +69,7 @@ public class DistributedLogsController
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.DISTRIBUTEDLOGS_CONTROLLER.getName())
-        .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
+        .withImage(StackGresModules.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
@@ -191,7 +191,7 @@ public class DistributedLogsController
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY,
-        StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getVersion());
+        StackGresModules.DISTRIBUTEDLOGS_CONTROLLER.getVersion());
   }
 
 }
