@@ -4,18 +4,20 @@ node:
 
 dynamic_resources:
   cds_config:
+    resource_api_version: V3
     path_config_source:
       path: /etc/envoy/envoy-cds.json
       watched_directory:
         path: /etc/envoy
   lds_config:
+    resource_api_version: V3
     path_config_source:
       path: /etc/envoy/envoy-lds.json
       watched_directory:
         path: /etc/envoy
 
 admin:
-  access_log_path: "/dev/null"
+  access_log: []
   address:
     socket_address:
       address: 0.0.0.0
