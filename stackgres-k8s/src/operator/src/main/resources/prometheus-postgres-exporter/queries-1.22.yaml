@@ -918,7 +918,6 @@ pgbouncer_show_clients:
     SELECT _.type,
     _."user",
     _.database,
-    _.replication,
     _.state,
     _.addr,
     _.port,
@@ -936,7 +935,7 @@ pgbouncer_show_clients:
     _.application_name,
     _.prepared_statements
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
-    AS _(type text, "user" text, database text, replication text, state text, addr text, port integer, local_addr text, local_port integer,
+    AS _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
     ptr text, link text, remote_pid integer, tls text, application_name text, prepared_statements integer);
   metrics:
@@ -1025,9 +1024,6 @@ pgbouncer_show_pools:
     - database:
         usage: "LABEL"
         description: "Database name"
-    - replication:
-        usage: "LABEL"
-        description: "Replication type"
     - user:
         usage: "LABEL"
         description: "User name"
@@ -1080,11 +1076,10 @@ pgbouncer_show_pools:
 pgbouncer_show_databases:
   master: true
   query: |
-    SELECT _.name,
+    select _.name,
     _.host,
     _.port,
     _.database,
-    _.replication,
     _.force_user,
     _.pool_size,
     _.min_pool_size,
@@ -1095,7 +1090,7 @@ pgbouncer_show_databases:
     _.paused,
     _.disabled
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
-    AS _(name text, host text, port integer, database text, replication text, force_user text, pool_size integer, min_pool_size integer,
+    AS _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
       reserve_pool integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
   metrics:
     - name:
@@ -1110,9 +1105,6 @@ pgbouncer_show_databases:
     - database:
         usage: "LABEL"
         description: "Actual database name pgbouncer connects to."
-    - replication:
-        usage: "LABEL"
-        description: "Replication type"
     - force_user:
         usage: "LABEL"
         description: "When the user is part of the connection string the connection between pgbouncer and PostgreSQL is forced to the given user"
@@ -1144,10 +1136,9 @@ pgbouncer_show_databases:
 pgbouncer_show_stats:
   master: true
   query: |
-    SELECT _.database,
+    select _.database,
     _.total_xact_count,
     _.total_query_count,
-    _.total_server_assignment_count,
     _.total_received,
     _.total_sent,
     _.total_xact_time,
@@ -1155,15 +1146,14 @@ pgbouncer_show_stats:
     _.total_wait_time,
     _.avg_xact_count,
     _.avg_query_count,
-    _.avg_server_assignment_count,
     _.avg_recv,
     _.avg_sent,
     _.avg_xact_time,
     _.avg_query_time,
     _.avg_wait_time
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats'::text)
-    AS _(database text, total_xact_count bigint, total_query_count bigint, total_server_assignment_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
-      total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_server_assignment_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
+    AS _(database text, total_xact_count bigint, total_query_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
+      total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
       avg_wait_time bigint);
   metrics:
     - database:
@@ -1175,9 +1165,6 @@ pgbouncer_show_stats:
     - total_query_count:
         usage: "GAUGE"
         description: "Total number of SQL queries pooled"
-    - total_server_assignment_count:
-        usage: "GAUGE"
-        description: "Total times a server was assigned to a client"
     - total_received:
         usage: "GAUGE"
         description: "Total volume in bytes of network traffic received"
@@ -1199,9 +1186,6 @@ pgbouncer_show_stats:
     - avg_query_count:
         usage: "GAUGE"
         description: "Average queries per second in last stat period"
-    - avg_server_assignment_count:
-        usage: "GAUGE"
-        description: "Average number of times a server as assigned to a client per second in the last stat period"
     - avg_recv:
         usage: "GAUGE"
         description: "Average received from clients bytes per second"
