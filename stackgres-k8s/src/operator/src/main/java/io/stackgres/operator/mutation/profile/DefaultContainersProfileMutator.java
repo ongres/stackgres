@@ -93,6 +93,7 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
       Map<String, StackGresProfileContainer> containers) {
     for (var container : Stream.of(StackGresContainer.values())
         .filter(Predicates.not(StackGresContainer.PATRONI::equals))
+        .filter(Predicates.not(StackGresContainer.STREAM_CONTROLLER::equals))
         .toList()) {
       var containerProfile = containers.get(container.getNameWithPrefix());
       if (containerProfile == null) {
