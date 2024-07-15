@@ -1445,7 +1445,7 @@ spec:
                               * log
                               * bootstrap
                               * citus
-                              * postgresql # with the exception of postgresql.pg_ctl_timeout
+                              * postgresql # with the exception of callbacks and postgresql.pg_ctl_timeout
                               * restapi
                               * ctl
                               * watchdog

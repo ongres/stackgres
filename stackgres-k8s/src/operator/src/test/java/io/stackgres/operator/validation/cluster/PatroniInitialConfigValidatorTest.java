@@ -132,9 +132,11 @@ class PatroniInitialConfigValidatorTest {
   void givenAnUpdateWithPatroniInitialConfigWithCallbacksChanged_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
     review.getRequest().getOldObject().getSpec().getConfigurations()
-        .getPatroni().getInitialConfig().put("postgresql", Map.of("callbacks", Map.of("on_role_change", "sh -c 'echo \"on_role_change: $*\"'")));
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_role_change", "sh -c 'echo \"on_role_change: $*\"'")));
     review.getRequest().getObject().getSpec().getConfigurations()
-        .getPatroni().getInitialConfig().put("postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
 
     validator.validate(review);
   }
@@ -143,7 +145,8 @@ class PatroniInitialConfigValidatorTest {
   void givenAnUpdateWithPatroniInitialConfigWithCallbacksAdded_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
     review.getRequest().getObject().getSpec().getConfigurations()
-    .getPatroni().getInitialConfig().put("postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
+    .getPatroni().getInitialConfig().put(
+        "postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
 
     validator.validate(review);
   }
@@ -155,7 +158,8 @@ class PatroniInitialConfigValidatorTest {
     review.getRequest().getObject().getSpec().getConfigurations().getPatroni()
         .setInitialConfig(new StackGresClusterPatroniConfig());
     review.getRequest().getObject().getSpec().getConfigurations()
-        .getPatroni().getInitialConfig().put("postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
 
     validator.validate(review);
   }
@@ -164,7 +168,8 @@ class PatroniInitialConfigValidatorTest {
   void givenAnUpdateWithPatroniInitialConfigWithCallbacksRemoved_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
     review.getRequest().getOldObject().getSpec().getConfigurations()
-        .getPatroni().getInitialConfig().put("postgresql", Map.of("callbacks", Map.of("on_role_change", "sh -c 'echo \"on_role_change: $*\"'")));
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_role_change", "sh -c 'echo \"on_role_change: $*\"'")));
 
     validator.validate(review);
   }
