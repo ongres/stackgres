@@ -1,5 +1,5 @@
 .images:
-  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.24
+  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.26
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.8
   jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.18-4
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.10-7.1716497702
