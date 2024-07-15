@@ -639,6 +639,9 @@ spec:
                             When provided will indicate were the backups and WAL files will be stored.
                             
                             The first path indicate the coordinator path and the other paths indicate the shards paths
+
+                            > **WARNING**: Most users should leave this field empty since having it manually set could be dangerous. If the value is repeated due to re-creating an SGShardedCluster or
+                             re-using the same value in another SGShardedCluster and you may get a mixed WAL history with unrecoverable backups.
                         useVolumeSnapshot:
                           type: boolean
                           description: |
