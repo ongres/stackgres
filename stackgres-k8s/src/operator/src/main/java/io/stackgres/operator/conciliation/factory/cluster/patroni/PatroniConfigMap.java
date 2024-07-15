@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,8 +97,6 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   public @NotNull ConfigMap buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final String pgVersion = getPostgresFlavorComponent(cluster).get(cluster).getVersion(
-        cluster.getSpec().getPostgres().getVersion());
 
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
