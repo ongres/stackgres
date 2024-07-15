@@ -70,6 +70,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
   private static final Pattern PG_CTL_TIMEOUT_LINE_PATTERN = Pattern.compile("^ pg_ctl_timeout:.*$");
   private static final Pattern CALLBACKS_LINE_PATTERN = Pattern.compile("^ callbacks:.*$");
+  private static final Pattern PRE_PROMOTE_LINE_PATTERN = Pattern.compile("^ pre_promote:.*$");
+  private static final Pattern BEFORE_STOP_LINE_PATTERN = Pattern.compile("^ before_stop:.*$");
 
   private static final String NOLOADBALANCE_TAG = PatroniUtil.NOLOADBALANCE_TAG;
   private static final String NOFAILOVER_TAG = PatroniUtil.NOFAILOVER_TAG;
@@ -191,6 +193,20 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
         .noneMatch(callbacks::equals);
     if (callbacksNeedsUpdate) {
       addOrReplacePatroniPostgresqlCallbacks(callbacks);
+    }
+    final String prePromote = getPrePromoteAsYamlString(cluster);
+    boolean prePromoteNeedsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONFIG_PATH))
+        .filter(line -> PRE_PROMOTE_LINE_PATTERN.matcher(line).matches())
+        .noneMatch(prePromote::equals);
+    if (prePromoteNeedsUpdate) {
+      addOrReplacePatroniPostgresqlPrePromote(prePromote);
+    }
+    final String beforeStop = getBeforeStopAsYamlString(cluster);
+    boolean beforeStopNeedsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONFIG_PATH))
+        .filter(line -> BEFORE_STOP_LINE_PATTERN.matcher(line).matches())
+        .noneMatch(beforeStop::equals);
+    if (beforeStopNeedsUpdate) {
+      addOrReplacePatroniPostgresqlBeforeStop(beforeStop);
     }
     if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
       PatroniCommandUtil.reloadPatroniConfig();
@@ -338,6 +354,64 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     } else {
       FluentProcess.start("sed", "-i",
           String.format("s/^postgresql:$/postgresql:\\n%s/", escapedCallbacks),
+          PATRONI_CONFIG_PATH.toString()).join();
+    }
+  }
+
+  private String getPrePromoteAsYamlString(final StackGresCluster cluster) {
+    return String.format("  pre_promote: %s",
+        Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .flatMap(StackGresClusterPatroniConfig::getPrePromote)
+        .map(String::valueOf)
+        .orElse(""));
+  }
+
+  private void addOrReplacePatroniPostgresqlPrePromote(final String prePromote) {
+    var hasPrePromote =
+        FluentProcess.start("grep", "-q", "^ *pre_promote:.*$",
+        PATRONI_CONFIG_PATH.toString()).tryGet();
+    String escapedPrePromote = prePromote
+        .replace("\\", "\\\\")
+        .replace("/", "\\/");
+    if (hasPrePromote.exception().isEmpty()) {
+      FluentProcess.start("sed", "-i",
+          String.format("s/^ *pre_promote:.*$/%s/", escapedPrePromote),
+          PATRONI_CONFIG_PATH.toString()).join();
+    } else {
+      FluentProcess.start("sed", "-i",
+          String.format("s/^postgresql:$/postgresql:\\n%s/", escapedPrePromote),
+          PATRONI_CONFIG_PATH.toString()).join();
+    }
+  }
+
+  private String getBeforeStopAsYamlString(final StackGresCluster cluster) {
+    return String.format("  before_stop: %s",
+        Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .flatMap(StackGresClusterPatroniConfig::getBeforeStop)
+        .map(String::valueOf)
+        .orElse(""));
+  }
+
+  private void addOrReplacePatroniPostgresqlBeforeStop(final String beforeStop) {
+    var hasBeforeStop =
+        FluentProcess.start("grep", "-q", "^ *before_stop:.*$",
+        PATRONI_CONFIG_PATH.toString()).tryGet();
+    String escapedBeforeStop = beforeStop
+        .replace("\\", "\\\\")
+        .replace("/", "\\/");
+    if (hasBeforeStop.exception().isEmpty()) {
+      FluentProcess.start("sed", "-i",
+          String.format("s/^ *before_stop:.*$/%s/", escapedBeforeStop),
+          PATRONI_CONFIG_PATH.toString()).join();
+    } else {
+      FluentProcess.start("sed", "-i",
+          String.format("s/^postgresql:$/postgresql:\\n%s/", escapedBeforeStop),
           PATRONI_CONFIG_PATH.toString()).join();
     }
   }

@@ -77,6 +77,34 @@ public class StackGresClusterPatroniConfig extends JsonObject {
         .ifPresent(postgresql -> postgresql.put("callbacks", new JsonObject(callbacks)));
   }
 
+  @JsonIgnore
+  public Optional<String> getPrePromote() {
+    return getPostgresql()
+        .map(postgresql -> postgresql.get("pre_promote"))
+        .filter(String.class::isInstance)
+        .map(String.class::cast);
+  }
+
+  @JsonIgnore
+  public void setPrePromote(String prePromote) {
+    getWritablePostgresql()
+        .ifPresent(postgresql -> postgresql.put("pre_promote", prePromote));
+  }
+
+  @JsonIgnore
+  public Optional<String> getBeforeStop() {
+    return getPostgresql()
+        .map(postgresql -> postgresql.get("before_stop"))
+        .filter(String.class::isInstance)
+        .map(String.class::cast);
+  }
+
+  @JsonIgnore
+  public void setBeforeStop(String beforeStop) {
+    getWritablePostgresql()
+        .ifPresent(postgresql -> postgresql.put("before_stop", beforeStop));
+  }
+
   private Optional<JsonObject> getWritablePostgresql() {
     return Optional.of(this)
         .filter(config -> config.hasWritableObject("postgresql"))
