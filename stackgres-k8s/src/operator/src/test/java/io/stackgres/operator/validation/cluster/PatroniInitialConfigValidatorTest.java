@@ -145,8 +145,8 @@ class PatroniInitialConfigValidatorTest {
   void givenAnUpdateWithPatroniInitialConfigWithCallbacksAdded_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
     review.getRequest().getObject().getSpec().getConfigurations()
-    .getPatroni().getInitialConfig().put(
-        "postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_start", "sh -c 'echo \"on_start: $*\"'")));
 
     validator.validate(review);
   }
