@@ -38,7 +38,7 @@ public class StackGresClusterPatroniConfig extends JsonObject {
     return Optional.of(this)
         .filter(config -> config.hasObject("citus"))
         .map(config -> config.getObject("citus"))
-        .map(config -> config.get("group"))
+        .map(citus -> citus.get("group"))
         .filter(Integer.class::isInstance)
         .map(Integer.class::cast);
   }
@@ -53,22 +53,43 @@ public class StackGresClusterPatroniConfig extends JsonObject {
   @JsonIgnore
   public Optional<Integer> getPgCtlTimeout() {
     return getPostgresql()
-        .map(config -> config.get("pg_ctl_timeout"))
+        .map(postgresql -> postgresql.get("pg_ctl_timeout"))
         .filter(Integer.class::isInstance)
         .map(Integer.class::cast);
   }
 
   @JsonIgnore
   public void setPgCtlTimeout(Integer pgCtlTimeout) {
-    Optional.of(this)
+    getWritablePostgresql()
+        .ifPresent(postgresql -> postgresql.put("pg_ctl_timeout", pgCtlTimeout));
+  }
+
+  @JsonIgnore
+  public Optional<Map<String, Object>> getCallbacks() {
+    return getPostgresql()
+        .filter(config -> config.hasObject("callbacks"))
+        .map(config -> config.getObject("callbacks"));
+  }
+
+  @JsonIgnore
+  public void setCallbacks(Map<String, Object> callbacks) {
+    getWritablePostgresql()
+        .ifPresent(postgresql -> postgresql.put("callbacks", new JsonObject(callbacks)));
+  }
+
+  private Optional<JsonObject> getWritablePostgresql() {
+    return Optional.of(this)
         .filter(config -> config.hasWritableObject("postgresql"))
         .or(() -> Optional.of(this)
             .map(config -> {
+              var oldPostgresql = Optional.of(config)
+                  .filter(c -> c.hasObject("postgresql"))
+                  .map(c -> c.getObject("postgresql"));
               config.put("postgresql", new JsonObject());
+              oldPostgresql.ifPresent(postgresql -> config.getObject("postgresql").putAll(postgresql));
               return this;
             }))
-        .map(config -> config.getObject("postgresql"))
-        .ifPresent(postgresql -> postgresql.put("pg_ctl_timeout", pgCtlTimeout));
+        .map(config -> config.getObject("postgresql"));
   }
 
   @JsonIgnore

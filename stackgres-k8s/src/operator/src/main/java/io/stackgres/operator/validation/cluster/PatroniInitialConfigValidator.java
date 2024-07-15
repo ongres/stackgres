@@ -49,8 +49,14 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
       var oldPgCtlTimeout = oldPatroniInitialConfig
           .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout);
           
-      if (!Objects.equals(pgCtlTimeout, oldPgCtlTimeout)) {
-        if (pgCtlTimeout.isPresent() && oldPatroniInitialConfig.isEmpty()) {
+      var callbacks = patroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getCallbacks);
+      var oldCallbacks = oldPatroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getCallbacks);
+
+      if (!Objects.equals(pgCtlTimeout, oldPgCtlTimeout)
+          || !Objects.equals(callbacks, oldCallbacks)) {
+        if ((pgCtlTimeout.isPresent() || callbacks.isPresent()) && oldPatroniInitialConfig.isEmpty()) {
           if (oldSpec.getConfigurations() == null) {
             oldSpec.setConfigurations(new StackGresClusterConfigurations());
           }
@@ -67,9 +73,14 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
         }
         final Optional<StackGresClusterPatroniConfig> modifiableOldPatroniInitialConfig = oldPatroniInitialConfig;
         pgCtlTimeout
-            .ifPresentOrElse(
-                value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)),
-                () -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.removePostgresql()));
+            .ifPresent(
+                value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)));
+        callbacks
+            .ifPresent(
+                value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setCallbacks(value)));
+        if (pgCtlTimeout.isEmpty() && callbacks.isEmpty()) {
+          modifiableOldPatroniInitialConfig.ifPresent(config -> config.removePostgresql());
+        }
       }
 
       if (!Objects.equals(oldPatroniInitialConfig, patroniInitialConfig)) {
