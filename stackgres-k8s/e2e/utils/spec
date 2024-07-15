@@ -346,7 +346,8 @@ run_spec() {
       fi
       "$FUNCTION"
     done
-    if [ "$SPEC_VALUE" != none ]
+    if [ "$SPEC_VALUE" != none ] \
+      && [ "$E2E_USE_TEST_CACHE_PER_TEST" = true ]
     then
       store_test_result "$SPEC_NAME" "$SPEC_VALUE"
     fi
