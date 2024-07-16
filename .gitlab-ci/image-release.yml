@@ -167,7 +167,7 @@ release distributedlogs-controller native image amd64:
     LOCK_FILE: stackgres-distributedlogs-controller-release-native-release-image
     IMAGE_MODULE_NAME: distributedlogs-controller-native-release-image
 
-release stream native image amd64:
+.release stream native image amd64:
   extends: .release native image amd64
   variables:
     IMAGE_BASE_NAME: stackgres/stream
@@ -300,7 +300,7 @@ release distributedlogs-controller native image arm64:
     LOCK_FILE: stackgres-distributedlogs-controller-release-native-release-image
     IMAGE_MODULE_NAME: distributedlogs-controller-native-release-image
 
-release stream native image arm64:
+.release stream native image arm64:
   extends: .release native image arm64
   variables:
     IMAGE_BASE_NAME: stackgres/stream
@@ -406,7 +406,7 @@ release distributedlogs-controller native image multi archs:
   variables:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
 
-release stream native image multi archs:
+.release stream native image multi archs:
   extends: .release native image multi archs
   variables:
     IMAGE_BASE_NAME: stackgres/stream

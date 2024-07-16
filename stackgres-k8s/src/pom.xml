@@ -54,6 +54,7 @@
     <stackgres.operatorCertificateSecretName>stackgres-operator-certs</stackgres.operatorCertificateSecretName>
     <stackgres.jobNamespace>stackgres</stackgres.jobNamespace>
     <stackgres.operatorImageVersion>main-jvm</stackgres.operatorImageVersion>
+    <stackgres.operatorJvmImageVersion>main-jvm</stackgres.operatorJvmImageVersion>
     <stackgres.operatorIP>localhost</stackgres.operatorIP>
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>

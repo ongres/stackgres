@@ -20,7 +20,7 @@ public enum StackGresModules {
       "%1$s/stackgres/distributedlogs-controller:%2$s"),
   STREAM("stream",
       StackGresProperty.SG_IMAGE_STREAM,
-      StackGresProperty.OPERATOR_IMAGE_VERSION,
+      StackGresProperty.OPERATOR_JVM_IMAGE_VERSION,
       "%1$s/stackgres/stream:%2$s");
 
   final String name;

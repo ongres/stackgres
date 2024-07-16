@@ -80,7 +80,7 @@ build distributedlogs-controller native executable amd64:
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"
     MODULE: "distributedlogs-controller-native"
 
-build stream native executable amd64:
+.build stream native executable amd64:
   extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-stream"
@@ -135,7 +135,7 @@ build distributedlogs-controller native executable arm64:
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"
     MODULE: "distributedlogs-controller-native"
 
-build stream native executable arm64:
+.build stream native executable arm64:
   extends: .build native executable arm64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-stream"
