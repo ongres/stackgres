@@ -855,14 +855,29 @@ pg_stat_current_waiting_query:
 pg_stat_progress_vacuum:
   query: |
     SELECT
-        datname, heap_blks_total, heap_blks_scanned,
-        heap_blks_vacuumed , index_vacuum_count , max_dead_tuples , num_dead_tuples
-    FROM pg_stat_progress_vacuum;
+      datname,
+      nspname AS schemaname,
+      relname,
+      heap_blks_total,
+      heap_blks_scanned,
+      heap_blks_vacuumed,
+      index_vacuum_count,
+      max_dead_tuples,
+      num_dead_tuples
+    FROM pg_stat_progress_vacuum
+    JOIN pg_class ON (pg_stat_progress_vacuum.relid = pg_class.oid)
+    JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid);
   master: true
   metrics:
     - datname:
         usage: "LABEL"
         description: "Name of the database to which this backend is connected"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that this table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of this table"
     - heap_blks_total:
         usage: "GAUGE"
         description: "Total number of heap blocks in the table"
