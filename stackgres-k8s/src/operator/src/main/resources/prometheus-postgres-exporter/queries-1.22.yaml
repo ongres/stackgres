@@ -854,19 +854,38 @@ pg_stat_current_waiting_query:
 
 pg_stat_progress_vacuum:
   query: |
-    SELECT
-      datname,
-      nspname AS schemaname,
-      relname,
-      heap_blks_total,
-      heap_blks_scanned,
-      heap_blks_vacuumed,
-      index_vacuum_count,
-      max_dead_tuples,
-      num_dead_tuples
-    FROM pg_stat_progress_vacuum
-    JOIN pg_class ON (pg_stat_progress_vacuum.relid = pg_class.oid)
-    JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid);
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+    SELECT datname FROM pg_database
+    WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT DISTINCT ON (datname, schemaname, relname) _.* FROM databases,
+    LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        '
+        SELECT
+          datname,
+          nspname AS schemaname,
+          relname,
+          heap_blks_total,
+          heap_blks_scanned,
+          heap_blks_vacuumed,
+          index_vacuum_count,
+          max_dead_tuples,
+          num_dead_tuples
+        FROM pg_stat_progress_vacuum
+        JOIN pg_class ON (pg_stat_progress_vacuum.relid = pg_class.oid)
+        JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
+        ')
+        AS (datname text,
+            schemaname text,
+            relname text,
+            heap_blks_total bigint,
+            heap_blks_scanned bigint,
+            heap_blks_vacuumed bigint,
+            index_vacuum_count bigint,
+            max_dead_tuples bigint,
+            num_dead_tuples bigint)) AS _;
   master: true
   metrics:
     - datname:
@@ -899,16 +918,47 @@ pg_stat_progress_vacuum:
 
 pg_stat_progress_cluster:
   query: |
-    SELECT
-       datname,
-       heap_tuples_scanned, heap_tuples_written, heap_blks_total,
-       heap_blks_scanned, index_rebuild_count
-    FROM pg_stat_progress_cluster;
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+    SELECT datname FROM pg_database
+    WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT DISTINCT ON (datname, schemaname, relname) _.* FROM databases,
+    LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        '
+        SELECT
+          datname,
+          nspname AS schemaname,
+          relname,
+          heap_tuples_scanned,
+          heap_tuples_written,
+          heap_blks_total,
+          heap_blks_scanned,
+          index_rebuild_count
+        FROM pg_stat_progress_cluster
+        JOIN pg_class ON (pg_stat_progress_cluster.relid = pg_class.oid)
+        JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
+        ')
+        AS (datname text,
+            schemaname text,
+            relname text,
+            heap_tuples_scanned bigint,
+            heap_tuples_written bigint,
+            heap_blks_total bigint,
+            heap_blks_scanned bigint,
+            index_rebuild_count bigint)) AS _;
   master: true
   metrics:
     - datname:
         usage: "LABEL"
         description: "Name of the database to which this backend is connected"
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema that this table is in"
+    - relname:
+        usage: "LABEL"
+        description: "Name of this table"
     - heap_tuples_scanned:
         usage: "GAUGE"
         description: "Number of heap tuples scanned. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
