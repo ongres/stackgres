@@ -38,6 +38,7 @@ e2e_test_uninstall() {
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
       -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
+    echo "Skip $SPEC_NAME for Kubernetes older than 1.23"
     return
   fi
 
