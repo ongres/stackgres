@@ -221,7 +221,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
       final String data;
       try {
         queries = (ObjectNode) yamlMapper
-                .readTree(PostgresExporter.class.getResource("/prometheus-postgres-exporter/queries.yaml"));
+                .readTree(PostgresExporter.class.getResource("/prometheus-postgres-exporter/queries-1.22.yaml"));
 
         var fieldNames = Seq.seq(queries.fieldNames()).toList();
         for (var fieldName : fieldNames) {
