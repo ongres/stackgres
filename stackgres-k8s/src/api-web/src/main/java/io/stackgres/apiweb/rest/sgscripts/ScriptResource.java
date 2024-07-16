@@ -299,6 +299,10 @@ public class ScriptResource
     return scriptName + "-" + index;
   }
 
+  public static String scriptEntryResourceName(String scriptName, String suffix, int index) {
+    return scriptName + "-" + suffix + "-" + index;
+  }
+
   @Override
   protected void updateSpec(StackGresScript resourceToUpdate, StackGresScript resource) {
     resourceToUpdate.setSpec(resource.getSpec());

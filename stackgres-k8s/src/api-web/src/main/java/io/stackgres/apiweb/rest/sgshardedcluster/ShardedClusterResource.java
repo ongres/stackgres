@@ -233,7 +233,11 @@ public class ShardedClusterResource
 
   ShardedClusterDto setScripts(ShardedClusterDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
-    getScriptEntries(resource)
+    Seq
+        .concat(
+            getScriptEntriesForCoordinator(resource).stream(),
+            getScriptEntriesForShards(resource).stream(),
+            getScriptEntriesForShardsOverride(resource).stream().map(Tuple2::v2).flatMap(List::stream))
         .forEach(managedScriptEntry -> {
           var script = scriptFinder
               .findByNameAndNamespace(managedScriptEntry.getSgScript(), namespace);
@@ -246,18 +250,28 @@ public class ShardedClusterResource
   }
 
   ShardedClusterDto setConfigMaps(ShardedClusterDto resource) {
-    final String namespace = resource.getMetadata().getNamespace();
-    Seq.of(Optional.ofNullable(resource.getSpec())
-        .map(ShardedClusterSpec::getCoordinator)
-        .map(ShardedClusterCoordinator::getManagedSql)
-        .map(ClusterManagedSql::getScripts),
-        Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getShards)
-            .map(ShardedClusterShards::getManagedSql)
-            .map(ClusterManagedSql::getScripts))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(List::stream)
+    setConfigMaps(
+        resource,
+        "coord",
+        getScriptEntriesForCoordinator(resource));
+    setConfigMaps(
+        resource,
+        "shards",
+        getScriptEntriesForShards(resource));
+    getScriptEntriesForShardsOverride(resource)
+        .forEach(override -> setConfigMaps(
+            resource,
+            "shard" + override.v1.intValue(),
+            override.v2));
+    return resource;
+  }
+
+  void setConfigMaps(
+      ShardedClusterDto resource,
+      String suffix,
+      List<ClusterManagedScriptEntry> scripts) {
+    String namespace = resource.getMetadata().getNamespace();
+    Seq.seq(scripts)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
                 .map(ScriptSpec::getScripts)
@@ -267,7 +281,7 @@ public class ShardedClusterResource
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null
             && t.v2.getScriptFrom().getConfigMapKeyRef() != null)
-        .map(t -> extractConfigMapInfo(t.v1, t.v2, t.v3.intValue()))
+        .map(t -> extractConfigMapInfo(t.v1, t.v2, suffix, t.v3.intValue()))
         .filter(t -> t.v2.v3 != null)
         .grouped(t -> t.v2.v3.getName())
         .flatMap(t -> {
@@ -280,11 +294,49 @@ public class ShardedClusterResource
               .orElse(Seq.empty());
         })
         .forEach(t -> t.v2.accept(t.v1));
-    return resource;
   }
 
-  private void createOrUpdateScripts(ShardedClusterDto resource) {
-    var scriptsToCreate = getScriptsToCreate(resource)
+  void createOrUpdateScripts(ShardedClusterDto resource) {
+    createOrUpdateScripts(
+        resource,
+        "coordinator",
+        "coord",
+        "spec.coordinator",
+        Optional.ofNullable(resource.getSpec())
+        .map(ShardedClusterSpec::getCoordinator)
+        .map(ShardedClusterCoordinator::getManagedSql)
+        .map(ClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .toList());
+    createOrUpdateScripts(
+        resource,
+        "shards",
+        "shards",
+        "spec.shards",
+        Optional.ofNullable(resource.getSpec())
+        .map(ShardedClusterSpec::getShards)
+        .map(ShardedClusterShards::getManagedSql)
+        .map(ClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .toList());
+    getScriptEntriesForShardsOverride(resource)
+        .forEach(override -> createOrUpdateScripts(
+            resource,
+            "shards override " + (override.v1.intValue() + 1),
+            "shard" + override.v1.intValue(),
+            "spec.shards.overrides[" + override.v1.intValue() + "]",
+            override.v2));
+  }
+
+  void createOrUpdateScripts(
+      ShardedClusterDto resource,
+      String section,
+      String prefix,
+      String path,
+      List<ClusterManagedScriptEntry> scripts) {
+    var scriptsToCreate = getScriptsToCreate(resource, prefix, scripts)
         .stream()
         .filter(t -> isNotDefaultScript(t.v2))
         .map(t -> t.concat(
@@ -296,7 +348,8 @@ public class ShardedClusterResource
         .grouped(t -> t.v2.getMetadata().getName())
         .anyMatch(t -> t.v2.count() > 1)) {
       throw new IllegalArgumentException(
-          "script entries can not reference the same script more than once. Repeated SGScripts are: "
+          "script entries can not reference the same script more than once for " + section + "."
+              + " Repeated SGScripts are: "
               + Seq.seq(scriptsToCreate)
               .grouped(t -> t.v2.getMetadata().getName())
               .map(t -> t.map2(Stream::toList))
@@ -304,7 +357,7 @@ public class ShardedClusterResource
               .map(Tuple2::v1)
               .toString(", "));
     }
-    var secretsToCreate = Seq.seq(getSecretsToCreate(resource))
+    var secretsToCreate = Seq.seq(getSecretsToCreate(resource, prefix, scripts))
         .grouped(secret -> secret.getMetadata().getName())
         .flatMap(t -> t.v2.reduce(
             Optional.<Secret>empty(),
@@ -321,7 +374,7 @@ public class ShardedClusterResource
                 secret.getMetadata().getName(),
                 secret.getMetadata().getNamespace())))
         .toList();
-    var configMapsToCreate = Seq.seq(getConfigMapsToCreate(resource))
+    var configMapsToCreate = Seq.seq(getConfigMapsToCreate(resource, prefix, scripts))
         .grouped(configMap -> configMap.getMetadata().getName())
         .flatMap(t -> t.v2.reduce(
             Optional.<ConfigMap>empty(),
@@ -357,17 +410,20 @@ public class ShardedClusterResource
         .forEach(secretWriter::update);
     scriptsToCreate.stream()
         .filter(t -> t.v3.isEmpty())
-        .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::create));
+        .forEach(t -> addFieldPrefixOnScriptValidationError(path, t.v1, t.v2, scriptScheduler::create));
     scriptsToCreate.stream()
         .filter(t -> t.v3.isPresent())
-        .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::update));
+        .forEach(t -> addFieldPrefixOnScriptValidationError(path, t.v1, t.v2, scriptScheduler::update));
   }
 
-  private boolean isNotDefaultScript(StackGresScript script) {
+  boolean isNotDefaultScript(StackGresScript script) {
     return !script.getMetadata().getName().endsWith(ManagedSqlUtil.DEFAULT_SCRIPT_NAME_SUFFIX);
   }
 
-  private void addFieldPrefixOnScriptValidationError(Integer sgScriptIndex, StackGresScript script,
+  void addFieldPrefixOnScriptValidationError(
+      String path,
+      Integer sgScriptIndex,
+      StackGresScript script,
       Consumer<StackGresScript> consumer) {
     try {
       consumer.accept(script);
@@ -377,7 +433,7 @@ public class ShardedClusterResource
           && ex.getStatus().getDetails() != null
           && ex.getStatus().getDetails().getName() != null
           && ex.getStatus().getDetails().getName().startsWith("spec.")) {
-        final String fieldPrefix = "spec.managedSql.scripts[" + sgScriptIndex + "].scriptSpec.";
+        final String fieldPrefix = path + ".managedSql.scripts[" + sgScriptIndex + "].scriptSpec.";
         ex.getStatus().getDetails().setName(
             fieldPrefix + ex.getStatus().getDetails().getName().substring("spec.".length()));
         Optional.ofNullable(ex.getStatus().getDetails().getCauses())
@@ -391,8 +447,11 @@ public class ShardedClusterResource
     }
   }
 
-  private List<Tuple2<Integer, StackGresScript>> getScriptsToCreate(ShardedClusterDto resource) {
-    return getScriptEntries(resource)
+  List<Tuple2<Integer, StackGresScript>> getScriptsToCreate(
+      ShardedClusterDto resource,
+      String prefix,
+      List<ClusterManagedScriptEntry> scripts) {
+    return Seq.seq(scripts)
         .zipWithIndex()
         .filter(t -> t.v1.getScriptSpec() != null)
         .map(t -> {
@@ -400,7 +459,7 @@ public class ShardedClusterResource
           script.setMetadata(new ObjectMeta());
           if (t.v1.getSgScript() == null) {
             t.v1.setSgScript(scriptResourceName(
-                resource, t.v2.intValue()));
+                resource, prefix, t.v2.intValue()));
           }
           script.getMetadata().setName(t.v1.getSgScript());
           script.getMetadata().setNamespace(resource.getMetadata().getNamespace());
@@ -417,8 +476,11 @@ public class ShardedClusterResource
         .toList();
   }
 
-  private List<ConfigMap> getConfigMapsToCreate(ShardedClusterDto resource) {
-    return getScriptEntries(resource)
+  List<ConfigMap> getConfigMapsToCreate(
+      ShardedClusterDto resource,
+      String prefix,
+      List<ClusterManagedScriptEntry> scripts) {
+    return Seq.seq(scripts)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
                 .map(ScriptSpec::getScripts)
@@ -432,7 +494,7 @@ public class ShardedClusterResource
           ScriptFrom clusterScriptFrom = t.v2.getScriptFrom();
           final String configMapScript = clusterScriptFrom.getConfigMapScript();
           if (clusterScriptFrom.getConfigMapKeyRef() == null) {
-            String configMapName = scriptEntryResourceName(t.v1, t.v3.intValue());
+            String configMapName = scriptEntryResourceName(t.v1, prefix, t.v3.intValue());
             ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
             configMapKeyRef.setName(configMapName);
             configMapKeyRef.setKey(DEFAULT_SCRIPT_KEY);
@@ -450,8 +512,11 @@ public class ShardedClusterResource
         .toList();
   }
 
-  private List<Secret> getSecretsToCreate(ShardedClusterDto resource) {
-    return getScriptEntries(resource)
+  List<Secret> getSecretsToCreate(
+      ShardedClusterDto resource,
+      String prefix,
+      List<ClusterManagedScriptEntry> scripts) {
+    return Seq.seq(scripts)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
                 .map(ScriptSpec::getScripts)
@@ -466,7 +531,7 @@ public class ShardedClusterResource
           final String secretScript = ResourceUtil
               .encodeSecret(clusterScriptFrom.getSecretScript());
           if (clusterScriptFrom.getSecretKeyRef() == null) {
-            String secretName = scriptEntryResourceName(t.v1, t.v3.intValue());
+            String secretName = scriptEntryResourceName(t.v1, prefix, t.v3.intValue());
             SecretKeySelector secretKeyRef = new SecretKeySelector();
             secretKeyRef.setName(secretName);
             secretKeyRef.setKey(DEFAULT_SCRIPT_KEY);
@@ -489,10 +554,11 @@ public class ShardedClusterResource
       extractConfigMapInfo(
           ClusterManagedScriptEntry managedScriptEntry,
           ScriptEntry scriptEntry,
+          String suffix,
           int index) {
     return Tuple
         .<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>tuple(
-            scriptEntryResourceName(managedScriptEntry, index),
+            scriptEntryResourceName(managedScriptEntry, suffix, index),
             Tuple
                 .<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>tuple(
                     scriptEntry.getScriptFrom().getConfigMapScript(),
@@ -501,35 +567,55 @@ public class ShardedClusterResource
                     scriptEntry.getScriptFrom()::setConfigMapKeyRef));
   }
 
-  private String scriptResourceName(ShardedClusterDto cluster,
+  String scriptResourceName(
+      ShardedClusterDto cluster,
+      String suffix,
       int index) {
-    return cluster.getMetadata().getName() + "-managed-sql-" + index;
+    return cluster.getMetadata().getName() + "-managed-sql-" + suffix + "-" + index;
   }
 
-  private String scriptEntryResourceName(ClusterManagedScriptEntry managedScriptEntry, int index) {
-    return ScriptResource.scriptEntryResourceName(managedScriptEntry.getSgScript(), index);
+  String scriptEntryResourceName(ClusterManagedScriptEntry managedScriptEntry, String suffix, int index) {
+    return ScriptResource.scriptEntryResourceName(managedScriptEntry.getSgScript(), suffix, index);
   }
 
-  private Seq<ClusterManagedScriptEntry> getScriptEntries(ShardedClusterDto resource) {
-    return Seq.of(Optional.ofNullable(resource.getSpec())
-        .map(ShardedClusterSpec::getCoordinator)
-        .map(ShardedClusterCoordinator::getManagedSql)
-        .map(ClusterManagedSql::getScripts),
-        Optional.ofNullable(resource.getSpec())
+  List<ClusterManagedScriptEntry> getScriptEntriesForCoordinator(ShardedClusterDto resource) {
+    return Seq
+        .of(Optional.ofNullable(resource.getSpec())
+            .map(ShardedClusterSpec::getCoordinator)
+            .map(ShardedClusterCoordinator::getManagedSql)
+            .map(ClusterManagedSql::getScripts))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .flatMap(List::stream)
+        .toList();
+  }
+
+  List<ClusterManagedScriptEntry> getScriptEntriesForShards(ShardedClusterDto resource) {
+    return Seq
+        .of(Optional.ofNullable(resource.getSpec())
             .map(ShardedClusterSpec::getShards)
             .map(ShardedClusterShards::getManagedSql)
             .map(ClusterManagedSql::getScripts))
-        .append(Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getShards)
-            .map(ShardedClusterShards::getOverrides)
-            .stream()
-            .flatMap(List::stream)
-            .map(override -> Optional.of(override)
-                .map(ShardedClusterShard::getManagedSql)
-                .map(ClusterManagedSql::getScripts)))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .flatMap(List::stream);
+        .flatMap(List::stream)
+        .toList();
+  }
+
+  List<Tuple2<Integer, List<ClusterManagedScriptEntry>>> getScriptEntriesForShardsOverride(ShardedClusterDto resource) {
+    return Seq
+        .seq(Optional.ofNullable(resource.getSpec())
+            .map(ShardedClusterSpec::getShards)
+            .map(ShardedClusterShards::getOverrides))
+        .flatMap(List::stream)
+        .zipWithIndex()
+        .map(override -> Tuple.tuple(
+            override.v2.intValue(),
+            Optional.of(override.v1)
+            .map(ShardedClusterShard::getManagedSql)
+            .map(ClusterManagedSql::getScripts)
+            .orElse(List.of())))
+        .toList();
   }
 
   @Override
