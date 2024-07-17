@@ -9,8 +9,11 @@ e2e_test_install() {
 
   install_metric_server
   install_keda
-  install_vertical_pod_autoscaler \
-    --set-string updater.extraArgs.in-recommendation-bounds-eviction-lifetime-threshold=2s
+  if [ "$E2E_DISABLE_VPA" != true ]
+  then
+    install_vertical_pod_autoscaler \
+      --set-string updater.extraArgs.in-recommendation-bounds-eviction-lifetime-threshold=2s
+  fi
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -58,7 +61,12 @@ e2e_test() {
 
   run_test "Checking that autoscaling can be used to scale horizontally" check_horizontal_autoscaling
 
-  run_test "Checking that autoscaling can be user to scale vertically" check_vertical_autoscaling
+  if [ "$E2E_DISABLE_VPA" != true ]
+  then
+    run_test "Checking that autoscaling can be user to scale vertically" check_vertical_autoscaling
+  else
+    echo "Skipping vertical autoscaling since it has been disabled"
+  fi
 
   # run_test "Checking that autoscaling can be user to scale horizontally and vertically" check_all_autoscaling
 }
