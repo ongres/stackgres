@@ -20,6 +20,7 @@ FROM registry.access.redhat.com/ubi8/nodejs-12
 COPY package*.json ./
 
 # Use ci is faster and more reliable following package-lock.json
+RUN npm install
 RUN npm ci --only=production
 
 # Doc port listening port

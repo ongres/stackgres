@@ -19,7 +19,7 @@ then
     -e HOME="$HOME" \
     -e PROMPT_COMMAND= \
     -e PROJECT_PATH="$(pwd)" \
-    -v "$PROJECT_PATH:/project:rw" -w /project \
+    -v "$PROJECT_PATH:$PROJECT_PATH:rw" -w "$PROJECT_PATH" \
     "$IMAGE" \
     sh -ec "$*"
 else
