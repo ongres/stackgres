@@ -103,23 +103,11 @@ EOF
 }
 
 e2e_test_uninstall() {
-  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ] && [ "$(uname -m)" = x86_64 ]
-  then
-    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
-  fi
-
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
   kubectl delete clusterrolebinding stackgres-restapi-admin-full --ignore-not-found
-}
-
-e2e_test_after_all() {
-  if [ "$E2E_SKIP_SPEC_UNINSTALL" = true ] && [ "$(uname -m)" = x86_64 ]
-  then
-    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
-  fi
 }
 
 is_backup_phase() {
@@ -152,10 +140,18 @@ e2e_test() {
 
 cypress_test(){
   kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
+    sed "s/defaultCommandTimeout: .*,/defaultCommandTimeout: $((E2E_TIMEOUT * 1000)),/" cypress.config.js
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
+    sed "s/requestTimeout: .*,/requestTimeout: $((E2E_TIMEOUT * 1000)),/" cypress.config.js
+  if ! kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
     cypress run \
       --headless \
       --browser "${E2E_UI_TEST_BROWSER:-chrome}" \
       -s cypress/e2e/"$SPEC_VALUE"
+  then
+    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
+    exit 1
+  fi
 }
 
 check_index_on_not_found_resource(){

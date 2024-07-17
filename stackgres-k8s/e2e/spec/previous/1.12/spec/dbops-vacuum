@@ -186,6 +186,8 @@ spec:
 EOF
 
   if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --for condition=Completed \
+    && kubectl wait --timeout "0s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
     echo "SUCCESS. vacuum failed."

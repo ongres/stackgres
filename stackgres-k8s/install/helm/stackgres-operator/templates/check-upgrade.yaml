@@ -8,7 +8,7 @@
     {{ if $deployment.metadata.labels.version }}
       {{ $version := $deployment.metadata.labels.version }}
       {{ if not .Values.forceUpgradeFromUnsupportedVersion }}
-        {{ if or (not (regexMatch "^(1\\.10|1\\.11|1\\.12)\\." $version)) (and (not (eq $version $chart.Version)) (regexMatch "(-alpha[0-9]|-beta[0-9])" $version)) }}
+        {{ if or (not (regexMatch "^(1\\.11|1\\.12|1\\.13)\\." $version)) (and (not (eq $version $chart.Version)) (regexMatch "(-alpha[0-9]|-beta[0-9])" $version)) }}
           {{ fail (print "Upgrading from version " $version " version is not supported. You may force upgrading from an unsupported version setting the parameter \"forceUpgradeFromUnsupportedVersion\" to \"true\". If you do so do it at your own risk. It has not been tested and some functionality may break. If you are conscious of the risk of such a dangerous action we recommend to perform security upgrades of all your SGCluster and SGShardedCluster as soon as possible after upgrading from an unsupported version of the operator upgrade") }}
         {{ end }}
       {{ end }}
@@ -22,7 +22,7 @@
       {{ if $cluster.metadata.annotations }}
         {{ if (index $cluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ $version := (index $cluster.metadata.annotations "stackgres.io/operatorVersion") }}
-          {{ if (not (regexMatch "^(1\\.10|1\\.11|1\\.12)\\." $version)) }}
+          {{ if (not (regexMatch "^(1\\.11|1\\.12|1\\.13)\\." $version)) }}
             {{ fail (print "Can not upgrade due to some SGCluster still at version " $version ". You have to run a SGDbOps of type securityUpgrade on those SGClusters first.") }}
           {{ end }}
         {{ end }}
@@ -37,7 +37,7 @@
       {{ if $shardedcluster.metadata.annotations }}
         {{ if (index $shardedcluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ $version := (index $shardedcluster.metadata.annotations "stackgres.io/operatorVersion") }}
-          {{ if (not (regexMatch "^(1\\.10|1\\.11|1\\.12)\\." $version)) }}
+          {{ if (not (regexMatch "^(1\\.11|1\\.12|1\\.13)\\." $version)) }}
             {{ fail (print "Can not upgrade due to some SGShardedCluster still at version " $version ". You have to run a SGShardedDbOps of type securityUpgrade on those SGShardedClusters first.") }}
           {{ end }}
         {{ end }}
