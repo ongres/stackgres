@@ -468,11 +468,11 @@ modules:
     target_image: *ubi8_micro_image
     filtered_sources:
       - |
-        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
+        sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
       - |
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
-        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
+        sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
     sources:
       0: stackgres-k8s/install/helm/stackgres-operator/README.md
       1: stackgres-k8s/install/helm/stackgres-operator/templates
@@ -497,11 +497,11 @@ modules:
     target_image: *ubi8_micro_image
     filtered_sources:
       - |
-        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
+        sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
       - |
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
-        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
+        sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
     sources:
       0: stackgres-k8s/install/helm/stackgres-operator/README.md
       1: stackgres-k8s/install/helm/stackgres-operator/templates
