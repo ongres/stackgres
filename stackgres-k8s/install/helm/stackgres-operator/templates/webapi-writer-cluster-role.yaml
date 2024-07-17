@@ -37,7 +37,7 @@ rules:
   - customresourcedefinitions
   verbs:
   - list
-- apiGroups: [""]
+- apiGroups: ["", "storage.k8s.io"]
   resources:
   - namespaces
   - storageclasses
