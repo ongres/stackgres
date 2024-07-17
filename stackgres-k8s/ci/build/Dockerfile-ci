@@ -7,7 +7,7 @@
 #
 ###
 
-FROM registry.access.redhat.com/ubi8-minimal:8.8-1072
+FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   # From https://github.com/docker-library/docker/blob/master/20.10/cli/Dockerfile
   RUN microdnf install -y \
       ca-certificates \

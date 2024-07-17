@@ -178,6 +178,30 @@ traceable_k8s_webhook_cleanup() {
       -ec "$(k8s_remove_crd_conversion_webhook_script)"
 }
 
+k8s_webhook_cleanup_but_operator() {
+  notrace_function traceable_k8s_webhook_cleanup_but_operator "$@"
+}
+
+traceable_k8s_webhook_cleanup_but_operator() {
+  echo "Cleanup of k8s webhooks excluding operator"
+  kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+    | grep -v "^[^/]\+/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v '\(\.stackgres\.io\|stackgres-operator\)$' \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
+    | grep -v "^[^/]\+/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v '\(\.stackgres\.io\|stackgres-operator\)$' \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  kubectl get crd -o name \
+    | grep -v '\.stackgres\.io$' \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs_parallel_shell @ \
+      -ec "$(k8s_remove_crd_conversion_webhook_script)"
+}
+
 helm_cleanup_but_operator() {
   notrace_function traceable_helm_cleanup_but_operator "$@"
 }
@@ -200,18 +224,7 @@ k8s_cleanup_but_operator() {
 
 traceable_k8s_cleanup_but_operator() {
   echo "Cleanup of k8s excluding operator"
-  kubectl get crd -o name \
-    | grep -v "\.operators\.coreos\.com$" \
-    | grep -v '\.stackgres\.io$' \
-    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
-  kubectl get crd -o name \
-    | grep "\.operators\.coreos\.com$" \
-    | grep -v '\.stackgres\.io$' \
-    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  traceable_k8s_unnamespaced_cleanup_but_operator
   kubectl get namespace -o name \
     | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE$(
       [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
@@ -227,11 +240,6 @@ traceable_k8s_cleanup_but_operator() {
       | cut -d / -f 2 \
       | xargs_parallel_shell @ \
         -ec "$(k8s_finalize_namespace_script)"
-  ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
-    || kubectl get podsecuritypolicies -o name \
-      | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | xargs -r -I % kubectl delete --ignore-not-found '%'
 }
 
 k8s_async_cleanup_but_operator() {
@@ -240,6 +248,7 @@ k8s_async_cleanup_but_operator() {
 
 traceable_k8s_async_cleanup_but_operator() {
   echo "Async cleanup of k8s excluding operator"
+  traceable_k8s_unnamespaced_cleanup_but_operator
   kubectl get namespace -o name \
     | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE$(
       [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
@@ -250,6 +259,47 @@ traceable_k8s_async_cleanup_but_operator() {
         -ec "kubectl delete namespace --wait=false % \
           || kubectl get namespace % --template '{{ .status.phase }}' | grep -q 'Terminating' \
           || ! kubectl get namespace % >/dev/null 2>&1"
+}
+
+k8s_unnamespaced_cleanup_but_operator() {
+  notrace_function traceable_k8s_unnamespaced_cleanup_but_operator "$@"
+}
+
+traceable_k8s_unnamespaced_cleanup_but_operator() {
+  traceable_k8s_webhook_cleanup_but_operator
+  echo "Cleanup of k8s crds excluding operator"
+  kubectl get crd -o name \
+    | grep -v "\.operators\.coreos\.com$" \
+    | grep -v '\.stackgres\.io$' \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  kubectl get crd -o name \
+    | grep "\.operators\.coreos\.com$" \
+    | grep -v '\.stackgres\.io$' \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  echo "Cleanup of k8s clusterrolebindings excluding operator"
+  kubectl get clusterrolebinding -o name \
+    | grep -v 'stackgres' \
+    | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|cluster-admin-fast\|kindnet\)$" \
+    | grep -v "^[^/]\+/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  echo "Cleanup of k8s clusterroles excluding operator"
+  kubectl get clusterrole -o name \
+    | grep -v 'stackgres' \
+    | grep -v "^[^/]\+/\(system:.*\|admin\|cluster-admin\|cluster-admin-fast\|edit\|kindnet\|view\)$" \
+    | grep -v "^[^/]\+/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  echo "Cleanup of k8s podsecuritypolicies"
+  ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
+    || kubectl get podsecuritypolicies -o name \
+      | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+      | xargs -r -I % kubectl delete --ignore-not-found %
 }
 
 k8s_cleanup_namespace() {

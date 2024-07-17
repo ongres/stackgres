@@ -48,7 +48,7 @@ public final class StackGresDistributedLogs
 
   public static final String KIND = "SGDistributedLogs";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresDistributedLogsSpec spec;
 

@@ -28,7 +28,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsStat
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
@@ -100,7 +100,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -128,7 +128,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionFromStatusOnCreation_shouldNotFail() throws ValidationFailed {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -149,7 +149,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenSameStackGresVersionOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -175,7 +175,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -201,7 +201,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresMajorVersionOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         SECOND_PG_MAJOR_VERSION);
 
@@ -227,7 +227,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionButWrongConfigOnCreation_shouldFail() throws ValidationFailed {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -253,7 +253,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionButMissingConfigOnCreation_shouldFail() throws ValidationFailed {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -274,7 +274,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenManagedClusterOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     cluster.getMetadata().setOwnerReferences(List.of(
         new OwnerReferenceBuilder()
         .withKind("SGShardedCluster")
@@ -297,7 +297,7 @@ class ShardedDbOpsMajorVersionUpgradeValidatorTest {
         + " SGShardedCluster test", resultMessage);
   }
 
-  private ShardedDbOpsReview getCreationReview() {
+  private StackGresShardedDbOpsReview getCreationReview() {
     return AdmissionReviewFixtures.shardedDbOps().loadMajorVersionUpgradeCreate().get();
   }
 

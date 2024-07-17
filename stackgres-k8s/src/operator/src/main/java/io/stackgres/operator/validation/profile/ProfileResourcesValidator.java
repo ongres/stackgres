@@ -16,7 +16,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -27,7 +27,7 @@ import jakarta.inject.Singleton;
 public class ProfileResourcesValidator implements SgProfileValidator {
 
   @Override
-  public void validate(SgProfileReview review) throws ValidationFailed {
+  public void validate(StackGresInstanceProfileReview review) throws ValidationFailed {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
       final StackGresProfile profile = review.getRequest().getObject();

@@ -13,7 +13,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.crd.sgshardeddbops.ShardedDbOpsOperation;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -33,7 +33,7 @@ public class ShardedReshardingValidator implements ShardedDbOpsValidator {
   }
 
   @Override
-  public void validate(ShardedDbOpsReview review) throws ValidationFailed {
+  public void validate(StackGresShardedDbOpsReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.CREATE
         && ShardedDbOpsOperation.fromString(
             review.getRequest().getObject().getSpec().getOp())

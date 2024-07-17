@@ -30,6 +30,7 @@ rules:
   - sgdistributedlogs.stackgres.io
   - sgshardedclusters.stackgres.io
   - sgscripts.stackgres.io
+  - sgstreams.stackgres.io
   verbs:
   - get
 - apiGroups: ["apiextensions.k8s.io"]
@@ -37,7 +38,7 @@ rules:
   - customresourcedefinitions
   verbs:
   - list
-- apiGroups: [""]
+- apiGroups: ["", "storage.k8s.io"]
   resources:
   - namespaces
   - storageclasses
@@ -92,6 +93,9 @@ rules:
   - sgobjectstorages
   - sgscripts
   - sgshardedclusters
+  - sgshardedbackups
+  - sgshardeddbops
+  - sgstreams
   verbs:
   - watch
   - list

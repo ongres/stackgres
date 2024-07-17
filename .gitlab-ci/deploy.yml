@@ -96,6 +96,12 @@ deploy distributedlogs-controller jvm image:
   variables:
     IMAGE_NAME: "stackgres/distributedlogs-controller"
 
+deploy stream jvm image:
+  extends: .deploy jvm image
+  variables:
+    IMAGE_NAME: "stackgres/stream"
+    TARGET_REGISTRIES: "quay.io"
+
 .deploy native image:
   extends: .deploy image
   variables:
@@ -130,6 +136,12 @@ deploy distributedlogs-controller native image:
   extends: .deploy native image
   variables:
     IMAGE_NAME: "stackgres/distributedlogs-controller"
+
+.deploy stream native image:
+  extends: .deploy native image
+  variables:
+    IMAGE_NAME: "stackgres/stream"
+    TARGET_REGISTRIES: "quay.io"
 
 deploy admin-ui image:
   extends: .deploy native image

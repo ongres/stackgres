@@ -64,6 +64,8 @@ spec:
                 fieldPath: metadata.namespace
           - name: OPERATOR_IMAGE_VERSION
             value: "{{ .Values.operator.image.tag }}"
+          - name: OPERATOR_JVM_IMAGE_VERSION
+            value: "{{ .Values.operator.image.tag }}{{ if not (hasSuffix "-jvm" .Values.operator.image.tag) }}-jvm{{ end }}"
           - name: DISABLE_RECONCILIATION
             value: "true"
           - name: INSTALL_CRDS

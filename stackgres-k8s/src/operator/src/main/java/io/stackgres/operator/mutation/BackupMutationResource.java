@@ -10,7 +10,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
@@ -26,12 +26,12 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupMutationResource
-    extends AbstractMutationResource<StackGresBackup, BackupReview> {
+    extends AbstractMutationResource<StackGresBackup, StackGresBackupReview> {
 
   @Inject
   public BackupMutationResource(
       ObjectMapper objectMapper,
-      MutationPipeline<StackGresBackup, BackupReview> pipeline) {
+      MutationPipeline<StackGresBackup, StackGresBackupReview> pipeline) {
     super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
@@ -46,7 +46,7 @@ public class BackupMutationResource
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(BackupReview admissionReview) {
+  public AdmissionReviewResponse mutate(StackGresBackupReview admissionReview) {
     return super.mutate(admissionReview);
   }
 

@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +49,7 @@ class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
 
   @Test
   void givenCreationWithBlocklistedProperties_shouldFail() {
-    PgConfigReview review = validConfigReview();
+    StackGresPostgresConfigReview review = validConfigReview();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     String[] blocklistedProperties = addBlocklistProperties(pgConfig);
@@ -60,7 +60,7 @@ class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
   @ParameterizedTest
   @MethodSource("provideBlockedParameter")
   void givenCreationWithBlocklistedProperties_shouldFail(String parameter) {
-    PgConfigReview review = validConfigReview();
+    StackGresPostgresConfigReview review = validConfigReview();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     pgConfig.getSpec().getPostgresqlConf().put(parameter, "I'm being naughty");
@@ -70,7 +70,7 @@ class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
 
   @Test
   void givenUpdateWithBlocklistedProperties_shouldFail() {
-    PgConfigReview review = validConfigUpdate();
+    StackGresPostgresConfigReview review = validConfigUpdate();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     String[] blocklistedProperties = addBlocklistProperties(pgConfig);
@@ -81,7 +81,7 @@ class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
   @ParameterizedTest
   @MethodSource("provideBlockedParameter")
   void givenUpdateWithBlocklistedProperties_shouldFail(String parameter) {
-    PgConfigReview review = validConfigUpdate();
+    StackGresPostgresConfigReview review = validConfigUpdate();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     pgConfig.getSpec().getPostgresqlConf().put(parameter, "I'm being naughty");
@@ -89,7 +89,7 @@ class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
     validateThrows(review, parameter);
   }
 
-  private void validateThrows(PgConfigReview review, String... parameters) {
+  private void validateThrows(StackGresPostgresConfigReview review, String... parameters) {
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
     });

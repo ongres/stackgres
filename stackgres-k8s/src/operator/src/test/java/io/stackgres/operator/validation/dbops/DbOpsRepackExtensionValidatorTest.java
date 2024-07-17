@@ -22,7 +22,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +62,7 @@ class DbOpsRepackExtensionValidatorTest {
   @ValueSource(ints = {1, 3, 5, 8})
   void givenStackGresPgRepackInstalledExtension_shouldNotFail(int podCount) {
     // given
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     cluster.getSpec().setToInstallPostgresExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u", "pg_repack"));
@@ -84,7 +84,7 @@ class DbOpsRepackExtensionValidatorTest {
   @ValueSource(ints = {1, 3, 5, 8})
   void givenStackGresNoPgRepackExtension_shouldFail(int podCount) {
     // given
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     cluster.getSpec().setToInstallPostgresExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u"));
@@ -107,7 +107,7 @@ class DbOpsRepackExtensionValidatorTest {
   @Test
   void givenStackGresOnePodNoPgRepackExtension_shouldFail() {
     // given
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     cluster.getSpec().setToInstallPostgresExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u", "pg_repack"));
@@ -143,7 +143,7 @@ class DbOpsRepackExtensionValidatorTest {
   @Test
   void givenStackGresNoStatus_shouldFail() {
     // given
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     cluster.getSpec().setToInstallPostgresExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u", "pg_repack"));
@@ -164,8 +164,8 @@ class DbOpsRepackExtensionValidatorTest {
     verify(clusterFinder).findByNameAndNamespace(sgcluster, namespace);
   }
 
-  private DbOpsReview getCreationReview() {
-    DbOpsReview review = AdmissionReviewFixtures.dbOps().loadRepackCreate().get();
+  private StackGresDbOpsReview getCreationReview() {
+    StackGresDbOpsReview review = AdmissionReviewFixtures.dbOps().loadRepackCreate().get();
     review.getRequest().getObject().getSpec().setSgCluster("repack-cluster-demo");
     return review;
   }

@@ -2,12 +2,12 @@ ARG BASE_IMAGE
 
 FROM quay.io/ongres/patroni:v3.0.2-pg15.0-build-6.22 AS patroni_3_0_2
 FROM quay.io/ongres/patroni:v3.2.2-pg16.2-build-6.30 AS patroni_3_2_2
-FROM quay.io/ongres/patroni:v3.3.0-pg16.3-build-6.33 AS patroni_3_3_0
+FROM quay.io/ongres/patroni:v3.3.2-pg16.3-build-6.34 AS patroni_3_3_2
 
 FROM "$BASE_IMAGE"
   USER root:root
 
-  RUN microdnf install -y python3 libpq
+  RUN microdnf install -y python3.9 python3.11 libpq
   COPY --from=patroni_3_0_2 /usr/bin/patronictl /usr/bin/patronictl-3.0.2
   RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.0.2')" /usr/bin/patronictl-3.0.2
   COPY --from=patroni_3_0_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.0.2
@@ -18,10 +18,10 @@ FROM "$BASE_IMAGE"
   COPY --from=patroni_3_2_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.2.2
   COPY --from=patroni_3_2_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.2.2
 
-  COPY --from=patroni_3_3_0 /usr/bin/patronictl /usr/bin/patronictl-3.3.0
-  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.3.0')" /usr/bin/patronictl-3.3.0
-  COPY --from=patroni_3_3_0 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.3.0
-  COPY --from=patroni_3_3_0 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.3.0
+  COPY --from=patroni_3_3_2 /usr/bin/patronictl /usr/bin/patronictl-3.3.2
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.3.2')" /usr/bin/patronictl-3.3.2
+  COPY --from=patroni_3_3_2 /usr/lib64/python3.11/site-packages /usr/lib/patroni-3.3.2
+  COPY --from=patroni_3_3_2 /usr/lib/python3.11/site-packages /usr/lib/patroni-3.3.2
 
   WORKDIR '/app/'
 

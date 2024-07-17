@@ -7,7 +7,7 @@ package io.stackgres.operator.mutation.objectstorage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
 import jakarta.annotation.PostConstruct;
@@ -16,7 +16,7 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ObjectStorageDefaultValuesMutator
-    extends AbstractValuesMutator<StackGresObjectStorage, ObjectStorageReview>
+    extends AbstractValuesMutator<StackGresObjectStorage, StackGresObjectStorageReview>
     implements ObjectStorageMutator {
 
   @Inject
@@ -34,7 +34,7 @@ public class ObjectStorageDefaultValuesMutator
 
   @Override
   public StackGresObjectStorage mutate(
-      ObjectStorageReview review, StackGresObjectStorage resource) {
+      StackGresObjectStorageReview review, StackGresObjectStorage resource) {
     if (resource.getSpec().getType() != null
         && !resource.getSpec().getType().equals(defaultValue.getSpec().getType())) {
       return resource;

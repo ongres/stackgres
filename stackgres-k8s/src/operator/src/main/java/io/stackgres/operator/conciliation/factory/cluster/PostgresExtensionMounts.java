@@ -124,10 +124,10 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
             new EnvVarBuilder()
                 .withName("PATH")
                 .withValue(String.join(":",
-                    ClusterPath.PG_BIN_PATH.path(clusterContext),
-                    ClusterPath.PG_EXTRA_BIN_PATH.path(clusterContext),
                     "/usr/local/sbin",
                     "/usr/local/bin",
+                    ClusterPath.PG_BIN_PATH.path(clusterContext),
+                    ClusterPath.PG_EXTRA_BIN_PATH.path(clusterContext),
                     "/usr/sbin",
                     "/usr/bin",
                     "/sbin",

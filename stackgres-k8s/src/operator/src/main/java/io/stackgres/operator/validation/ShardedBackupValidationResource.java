@@ -7,7 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.common.ShardedBackupReview;
+import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.event.Observes;
@@ -24,13 +24,13 @@ import org.slf4j.LoggerFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ShardedBackupValidationResource
-    extends AbstractValidationResource<ShardedBackupReview> {
+    extends AbstractValidationResource<StackGresShardedBackupReview> {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ShardedBackupValidationResource.class);
 
   @Inject
-  public ShardedBackupValidationResource(ValidationPipeline<ShardedBackupReview> pipeline) {
+  public ShardedBackupValidationResource(ValidationPipeline<StackGresShardedBackupReview> pipeline) {
     super(pipeline);
   }
 
@@ -45,7 +45,7 @@ public class ShardedBackupValidationResource
 
   @Override
   @POST
-  public AdmissionReviewResponse validate(ShardedBackupReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresShardedBackupReview admissionReview) {
     return super.validate(admissionReview);
   }
 }

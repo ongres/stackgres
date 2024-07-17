@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,8 +97,6 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   public @NotNull ConfigMap buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final String pgVersion = getPostgresFlavorComponent(cluster).get(cluster).getVersion(
-        cluster.getSpec().getPostgres().getVersion());
 
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
@@ -119,7 +115,6 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:" + EnvoyUtil.PATRONI_PORT);
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());
-    data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterPath.PG_RUN_PATH.path());
 
     if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())

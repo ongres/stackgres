@@ -36,7 +36,26 @@ describe('Create SGShardedCluster', () => {
         // Create SGScript
         cy.createCRD('sgscripts', {
             metadata: {
-                name: 'script-' + resourceName, 
+                name: 'script-coord-' + resourceName, 
+                namespace: namespace
+            },
+            spec: {
+                continueOnError: false,
+                managedVersions: true,
+                scripts: [
+                    {
+                        storeStatusInDatabase: false, 
+                        retryOnError: false, 
+                        script: resourceName
+                    }
+                ]
+            } 
+        })
+
+        // Create SGScript
+        cy.createCRD('sgscripts', {
+            metadata: {
+                name: 'script-shards-' + resourceName, 
                 namespace: namespace
             },
             spec: {
@@ -408,7 +427,7 @@ describe('Create SGShardedCluster', () => {
 
         // Test Coordinator select script
         cy.get('[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[1]"]')
-            .select('script-' + resourceName)
+            .select('script-coord-' + resourceName)
 
         // Test User-Supplied Pods Sidecars
         cy.get('form#createShardedCluster li[data-step="coordinator.sidecars"]')
@@ -1016,7 +1035,7 @@ describe('Create SGShardedCluster', () => {
 
         // Test Shards select script
         cy.get('[data-field="spec.shards.managedSql.scripts.scriptSource.shards[1]"]')
-            .select('script-' + resourceName)
+            .select('script-shards-' + resourceName)
 
         // Test User-Supplied Pods Sidecars
         cy.get('form#createShardedCluster li[data-step="shards.sidecars"]')
@@ -2211,7 +2230,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@postCluster')
             .its('request.body.spec.coordinator.managedSql')
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": '' + resourceName})
-            .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
+            .and('nested.include', {"scripts[1].sgScript": 'script-coord-' + resourceName})
         cy.get('@postCluster')
             .its('request.body.spec.coordinator.pods')
             .should('nested.include', {"customVolumes[0].name": 'vol1'})
@@ -2355,7 +2374,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@postCluster')
             .its('request.body.spec.shards.managedSql')
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": '' + resourceName})
-            .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
+            .and('nested.include', {"scripts[1].sgScript": 'script-shards-' + resourceName})
         cy.get('@postCluster')
             .its('request.body.spec.shards.pods')
             .should('nested.include', {"customVolumes[0].name": 'vol1'})
@@ -3178,7 +3197,7 @@ describe('Create SGShardedCluster', () => {
         
         // Test Coordinator select script
         cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[1]"]')
-            .should('have.value', 'script-' + resourceName)
+            .should('have.value', 'script-coord-' + resourceName)
         cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[1].scriptSpec.scripts[0].script"]')
             .should('have.value', '' + resourceName)
             .clear()
@@ -3757,7 +3776,7 @@ describe('Create SGShardedCluster', () => {
         
         // Test Shards select script
         cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[1]"]')
-            .should('have.value', 'script-' + resourceName)        
+            .should('have.value', 'script-shards-' + resourceName)        
         cy.get('textarea[data-field="spec.shards.managedSql.scripts[1].scriptSpec.scripts[0].script"]')
             .should('have.value', '' + resourceName)        
             .clear()
@@ -4213,7 +4232,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.coordinator.managedSql')
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": 'test-' + resourceName})
-            .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
+            .and('nested.include', {"scripts[1].sgScript": 'script-coord-' + resourceName})
             .and('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test2-' + resourceName})
             .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test3-' + resourceName})
         cy.get('@putCluster')
@@ -4340,7 +4359,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.shards.managedSql')
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": 'test-' + resourceName})
-            .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
+            .and('nested.include', {"scripts[1].sgScript": 'script-shards-' + resourceName})
             .and('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test2-' + resourceName})
             .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test3-' + resourceName})
         cy.get('@putCluster')
@@ -4529,7 +4548,7 @@ describe('Create SGShardedCluster', () => {
             .click({force: true})
         
         cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[0]"]')
-            .select('script-' + resourceName)
+            .select('script-coord-' + resourceName)
 
         // Coordinator Add new Script
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
@@ -4558,7 +4577,7 @@ describe('Create SGShardedCluster', () => {
             .click({force: true})
         
         cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[0]"]')
-            .select('script-' + resourceName)
+            .select('script-shards-' + resourceName)
 
         // Shards Add new Script
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')

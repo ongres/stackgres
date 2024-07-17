@@ -88,13 +88,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
@@ -906,7 +906,7 @@ class ClusterResourceMockedTest extends
             resourceSpecPod.getDisableMetricsExporter());
 
         final ClusterPodPersistentVolume dtoPV = dtoSpecPods.getPersistentVolume();
-        final StackGresPodPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
+        final StackGresClusterPodsPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
         if (dtoPV != null) {
           assertNotNull(resourcePV);
           assertEquals(dtoPV.getSize(), resourcePV.getSize());
@@ -931,7 +931,7 @@ class ClusterResourceMockedTest extends
         }
 
         final ClusterPodScheduling podScheduling = dtoSpecPods.getScheduling();
-        final StackGresClusterPodScheduling resourceScheduling = resourceSpecPod.getScheduling();
+        final StackGresClusterPodsScheduling resourceScheduling = resourceSpecPod.getScheduling();
         if (podScheduling != null) {
           assertNotNull(resourceScheduling);
           assertEquals(podScheduling.getNodeSelector(), resourceScheduling.getNodeSelector());

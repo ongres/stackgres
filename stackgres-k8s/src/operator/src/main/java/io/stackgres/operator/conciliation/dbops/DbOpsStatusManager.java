@@ -44,23 +44,21 @@ public class DbOpsStatusManager
 
   @Override
   public StackGresDbOps refreshCondition(StackGresDbOps source) {
-    final boolean isJobFailedAndStatusNotUpdated;
+    final boolean isJobFinishedAndStatusNotUpdated;
     if (Optional.of(source)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getConditions)
         .stream()
         .flatMap(List::stream)
         .filter(condition -> Objects.equals(condition.getType(),
-            DbOpsStatusCondition.Type.COMPLETED.getType())
-            || Objects.equals(condition.getType(),
-                DbOpsStatusCondition.Type.FAILED.getType()))
+            DbOpsStatusCondition.Type.COMPLETED.getType()))
         .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
-      isJobFailedAndStatusNotUpdated = false;
+      isJobFinishedAndStatusNotUpdated = false;
     } else {
       final Optional<Job> job = jobFinder.findByNameAndNamespace(
           DbOpsUtil.jobName(source),
           source.getMetadata().getNamespace());
-      isJobFailedAndStatusNotUpdated = job
+      isJobFinishedAndStatusNotUpdated = job
           .map(Job::getStatus)
           .map(JobStatus::getConditions)
           .stream()
@@ -79,18 +77,29 @@ public class DbOpsStatusManager
           .map(Job::getStatus)
           .map(JobStatus::getFailed)
           .orElse(0);
-      source.getStatus().setOpRetries(Math.max(0, failed - 1) + (failed > 0 ? active : 0));
+      source.getStatus().setOpRetries(
+          Math.max(0, failed - 1) + (failed > 0 ? active : 0));
     }
 
-    if (isJobFailedAndStatusNotUpdated) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug(
-            "DbOps {} failed since the job failed but status condition is neither completed or failed",
-            getDbOpsId(source));
+    if (isJobFinishedAndStatusNotUpdated) {
+      if (source.getStatus() == null) {
+        source.setStatus(new StackGresDbOpsStatus());
       }
       updateCondition(getFalseRunning(), source);
-      updateCondition(getFalseCompleted(), source);
-      updateCondition(getFailedDueToUnexpectedFailure(), source);
+      updateCondition(getCompleted(), source);
+      if (Optional.of(source)
+          .map(StackGresDbOps::getStatus)
+          .map(StackGresDbOpsStatus::getConditions)
+          .stream()
+          .flatMap(List::stream)
+          .filter(condition -> Objects.equals(condition.getType(),
+              DbOpsStatusCondition.Type.FAILED.getType()))
+          .noneMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
+        LOGGER.warn(
+            "DbOps {} failed since the job completed but status condition is neither completed or failed",
+            getDbOpsId(source));
+        updateCondition(getFailedDueToUnexpectedFailure(), source);
+      }
     }
     return source;
   }
@@ -99,8 +108,8 @@ public class DbOpsStatusManager
     return DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition();
   }
 
-  protected Condition getFalseCompleted() {
-    return DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition();
+  protected Condition getCompleted() {
+    return DbOpsStatusCondition.DBOPS_COMPLETED.getCondition();
   }
 
   protected Condition getFailedDueToUnexpectedFailure() {

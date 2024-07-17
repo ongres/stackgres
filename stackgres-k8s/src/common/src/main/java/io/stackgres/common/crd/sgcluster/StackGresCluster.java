@@ -50,7 +50,7 @@ public final class StackGresCluster
 
   public static final String VERSION = "v1";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresClusterSpec spec;
 

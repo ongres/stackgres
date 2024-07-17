@@ -40,9 +40,9 @@ check_grafana_secret() {
 
 check_exporter_queries() {
   local METRIC
-  for METRIC in $(yq -r 'keys[]' "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/queries.yaml)
+  for METRIC in $(yq -r 'keys[]' "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/queries-1.22.yaml)
   do
-    QUERY="$(yq -r ".[\"$METRIC\"].query" "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/queries.yaml)"
+    QUERY="$(yq -r ".[\"$METRIC\"].query" "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/queries-1.22.yaml)"
     if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
       psql -v ON_ERROR_STOP=ON -c "$QUERY" > /dev/null'
     then

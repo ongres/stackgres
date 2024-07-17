@@ -32,6 +32,7 @@ That means that all error messages follow this structure:
 | [forbidden-configuration-deletion](#forbidden-configuration-deletion) | A resource that the cluster depends on is attempted to be deleted.                                                  |
 | [forbidden-configuration-update](#forbidden-configuration-update)     | A resource that the cluster depends on is attempted to be updated.                                                  |
 | [forbidden-cluster-update](#forbidden-cluster-update)                 | A certain cluster property that must not be updated is attempted to be updated.                                                     |
+| [forbidden-stream-update](#forbidden-stream-update)                   | A certain stream property that must not be updated is attempted to be updated.                                                     |
 | [invalid-storage-class](#invalid-storage-class)                       | The StackGres cluster refers to a storage class that doesn't exist.                                               |
 | [constraint-violation](#constraint-violation)                         | One of the resource properties that is created or updated violates its syntactic rules.                            |
 | [forbidden-authorization](#forbidden-authorization)                   | You don't have permission to access the Kubernetes resource based on the RBAC rules.                                   |

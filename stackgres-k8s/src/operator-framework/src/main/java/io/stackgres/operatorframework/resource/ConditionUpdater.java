@@ -8,6 +8,7 @@ package io.stackgres.operatorframework.resource;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class ConditionUpdater<T, C extends Condition> {
@@ -20,8 +21,16 @@ public abstract class ConditionUpdater<T, C extends Condition> {
     if (getConditions(context).stream()
         .filter(c -> c.getType().equals(condition.getType())
             && c.getStatus().equals(condition.getStatus()))
-        .anyMatch(c -> Instant.parse(c.getLastTransitionTime())
-            .isBefore(now.plus(1, ChronoUnit.MINUTES)))) {
+        .anyMatch(c -> Optional.ofNullable(c.getLastTransitionTime())
+            .map(time -> {
+              try {
+                return Instant.parse(time);
+              } catch (Exception ex) {
+                return null;
+              }
+            })
+            .map(now.plus(1, ChronoUnit.MINUTES)::isAfter)
+            .orElse(false))) {
       return;
     }
 

@@ -5,8 +5,10 @@
 
 package io.stackgres.common.patroni;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -42,9 +44,13 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PatroniCtl {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PatroniCtl.class);
 
   final ObjectMapper objectMapper;
   final YAMLMapper yamlMapper;
@@ -87,12 +93,11 @@ public class PatroniCtl {
         new TypeReference<List<PatroniMember>>() { };
     private static final TypeReference<List<PatroniHistoryEntry>> HISTORY_TYPE_REFERENCE =
         new TypeReference<List<PatroniHistoryEntry>>() { };
-    private static final String PYTHON_COMMAND = "python3";
 
     final CustomResource<?, ?> customResource;
     final String scope;
     final Integer group;
-    final String patroniCtlCommand;
+    final String[] patroniCtlCommands;
     final Path configPath;
     final String config;
     final Duration patroniCtlTimeout = Duration
@@ -109,7 +114,7 @@ public class PatroniCtl {
           .map(StackGresClusterPatroni::getInitialConfig)
           .flatMap(StackGresClusterPatroniConfig::getCitusGroup)
           .orElse(null);
-      this.patroniCtlCommand = patroniCtlCommand(StackGresUtil.getPatroniVersion(cluster));
+      this.patroniCtlCommands = patroniCtlCommands(StackGresUtil.getPatroniVersion(cluster));
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
           cluster, clusterLabelFactory, yamlMapper, objectMapper);
@@ -119,10 +124,23 @@ public class PatroniCtl {
       this.customResource = distributedLogs;
       this.scope = PatroniUtil.clusterScope(distributedLogs);
       this.group = null;
-      this.patroniCtlCommand = patroniCtlCommand(StackGresUtil.getPatroniVersion(distributedLogs));
+      this.patroniCtlCommands = patroniCtlCommands(StackGresUtil.getPatroniVersion(distributedLogs));
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
           distributedLogs, distributedLogsLabelFactory, yamlMapper, objectMapper);
+    }
+
+    final String[] patroniCtlCommands(String version) {
+      String command = patroniCtlCommand(version);
+      try (BufferedReader bufferedReader = new BufferedReader(new FileReader(command, StandardCharsets.UTF_8))) {
+        String firstLine = bufferedReader.readLine();
+        if (firstLine != null && firstLine.startsWith("#!")) {
+          return new String[] { firstLine.substring(2), command };
+        }
+      } catch (IOException ex) {
+        LOGGER.error("Error while trying to read file " + command, ex);
+      }
+      return new String[] { "python3.11", command };
     }
 
     final String patroniCtlCommand(String version) {
@@ -320,7 +338,7 @@ public class PatroniCtl {
 
     private FluentProcessBuilder patronictl(String command, String... args) {
       return FluentProcess
-          .builder(PYTHON_COMMAND, Seq.of(patroniCtlCommand)
+          .builder(patroniCtlCommands[0], Seq.of(patroniCtlCommands[1])
               .append("-c", configPath.toString())
               .append(command)
               .append(args)

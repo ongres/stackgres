@@ -23,7 +23,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
@@ -83,7 +83,7 @@ class ShardedDbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -99,7 +99,7 @@ class ShardedDbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenSameStackGresVersionOnCreation_shouldNotFail() throws Exception {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -116,7 +116,7 @@ class ShardedDbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -138,7 +138,7 @@ class ShardedDbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenManagedClusterOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
     cluster.getMetadata().setOwnerReferences(List.of(
         new OwnerReferenceBuilder()
         .withKind("SGShardedCluster")
@@ -161,7 +161,7 @@ class ShardedDbOpsMinorVersionUpgradeValidatorTest {
         + " SGShardedCluster test", resultMessage);
   }
 
-  private ShardedDbOpsReview getCreationReview() {
+  private StackGresShardedDbOpsReview getCreationReview() {
     return AdmissionReviewFixtures.shardedDbOps().loadMinorVersionUpgradeCreate().get();
   }
 

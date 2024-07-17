@@ -24,7 +24,7 @@ import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsRestart;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSecurityUpgrade;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSpec;
 import io.stackgres.common.validation.ValidEnum;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
@@ -37,21 +37,21 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<ShardedDbOpsReview> {
+class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresShardedDbOpsReview> {
 
   @Override
-  protected AbstractConstraintValidator<ShardedDbOpsReview> buildValidator() {
+  protected AbstractConstraintValidator<StackGresShardedDbOpsReview> buildValidator() {
     return new ShardedDbOpsConstraintValidator();
   }
 
   @Override
-  protected ShardedDbOpsReview getValidReview() {
+  protected StackGresShardedDbOpsReview getValidReview() {
     return AdmissionReviewFixtures.shardedDbOps().loadRestartCreate().get();
   }
 
   @Override
-  protected ShardedDbOpsReview getInvalidReview() {
-    final ShardedDbOpsReview review =
+  protected StackGresShardedDbOpsReview getInvalidReview() {
+    final StackGresShardedDbOpsReview review =
         AdmissionReviewFixtures.shardedDbOps().loadRestartCreate().get();
 
     review.getRequest().getObject().setSpec(null);
@@ -60,7 +60,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
 
   @Test
   void nullSpec_shouldFail() {
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().setSpec(null);
 
     checkNotNullErrorCause(StackGresShardedDbOps.class, "spec", review);
@@ -68,7 +68,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
 
   @Test
   void nullSgCluster_shouldFail() {
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setSgShardedCluster(null);
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.sgShardedCluster",
@@ -78,7 +78,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @Test
   void nullOp_shouldFail() {
 
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setOp(null);
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.op",
@@ -88,7 +88,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @Test
   void wrongOp_shouldFail() {
 
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setOp("test");
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.op",
@@ -98,7 +98,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @Test
   void wrongRunAt_shouldFail() {
 
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setRunAt("2018-01-01 01:02:03");
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.runAt",
@@ -108,7 +108,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @Test
   void wrongTimeout_shouldFail() {
 
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setTimeout("10s");
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.timeout",
@@ -118,7 +118,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @Test
   void negativeTimeout_shouldFail() {
 
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setTimeout("-PT1M");
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.timeout",
@@ -128,7 +128,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @Test
   void invalidLowMaxRetries_shouldFail() {
 
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setMaxRetries(-1);
 
     checkErrorCause(StackGresShardedDbOpsSpec.class, "spec.maxRetries",
@@ -140,7 +140,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @MethodSource("dbOpsOperationsMatrix")
   void opThatDontMatchSection_shouldFailWithMessage(
       ShardedDbOpsOperationAllowed op, ShardedDbOpsOperationAllowed section) {
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     StackGresShardedDbOpsSpec spec = review.getRequest().getObject().getSpec();
     spec.setOp(op.toString());
 
@@ -149,6 +149,32 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
     spec.setMajorVersionUpgrade(null);
     spec.setMinorVersionUpgrade(null);
     spec.setSecurityUpgrade(null);
+
+    switch (ShardedDbOpsOperation.fromString(op.toString())) {
+      case RESHARDING:
+        spec.setResharding(new StackGresShardedDbOpsResharding());
+        break;
+      case RESTART:
+        spec.setRestart(new StackGresShardedDbOpsRestart());
+        break;
+      case MAJOR_VERSION_UPGRADE:
+        var major = new StackGresShardedDbOpsMajorVersionUpgrade();
+        major.setPostgresVersion("14");
+        major.setSgPostgresConfig("conf14");
+        major.setBackupPaths(List.of("test"));
+        spec.setMajorVersionUpgrade(major);
+        break;
+      case MINOR_VERSION_UPGRADE:
+        var minor = new StackGresShardedDbOpsMinorVersionUpgrade();
+        minor.setPostgresVersion("14.1");
+        spec.setMinorVersionUpgrade(minor);
+        break;
+      case SECURITY_UPGRADE:
+        spec.setSecurityUpgrade(new StackGresShardedDbOpsSecurityUpgrade());
+        break;
+      default:
+        break;
+    }
 
     switch (ShardedDbOpsOperation.fromString(section.toString())) {
       case RESHARDING:
@@ -176,22 +202,8 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
         break;
     }
 
-    switch (ShardedDbOpsOperation.fromString(op.toString())) {
-      case MAJOR_VERSION_UPGRADE:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGShardedDbOps has invalid properties."
-            + " majorVersionUpgrade section must be provided.", 422);
-        break;
-      case MINOR_VERSION_UPGRADE:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGShardedDbOps has invalid properties."
-            + " minorVersionUpgrade section must be provided.", 422);
-        break;
-      default:
-        ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-            "SGShardedDbOps has invalid properties. op must match corresponding section.", 422);
-        break;
-    }
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "SGShardedDbOps has invalid properties. op must match corresponding section.", 422);
   }
 
   private static Stream<Arguments> dbOpsOperationsMatrix() {
@@ -212,7 +224,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @MethodSource("dbOpsOperationsSameMatrix")
   void opThatMatchSection_shouldNotFail(
       ShardedDbOpsOperationAllowed op, ShardedDbOpsOperationAllowed section) {
-    ShardedDbOpsReview review = getValidReview();
+    StackGresShardedDbOpsReview review = getValidReview();
     StackGresShardedDbOpsSpec spec = review.getRequest().getObject().getSpec();
     spec.setOp(op.toString());
 

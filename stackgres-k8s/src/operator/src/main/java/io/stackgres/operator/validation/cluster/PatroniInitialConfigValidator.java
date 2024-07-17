@@ -48,9 +48,31 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
           .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout);
       var oldPgCtlTimeout = oldPatroniInitialConfig
           .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout);
-          
-      if (!Objects.equals(pgCtlTimeout, oldPgCtlTimeout)) {
-        if (pgCtlTimeout.isPresent() && oldPatroniInitialConfig.isEmpty()) {
+
+      var callbacks = patroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getCallbacks);
+      var oldCallbacks = oldPatroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getCallbacks);
+
+      var prePromote = patroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getPrePromote);
+      var oldPrePromote = oldPatroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getPrePromote);
+
+      var beforeStop = patroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getBeforeStop);
+      var oldBeforeStop = oldPatroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getBeforeStop);
+
+      if (!Objects.equals(pgCtlTimeout, oldPgCtlTimeout)
+          || !Objects.equals(callbacks, oldCallbacks)
+          || !Objects.equals(prePromote, oldPrePromote)
+          || !Objects.equals(beforeStop, oldBeforeStop)) {
+        if ((pgCtlTimeout.isPresent()
+            || callbacks.isPresent()
+            || prePromote.isPresent()
+            || beforeStop.isPresent())
+            && oldPatroniInitialConfig.isEmpty()) {
           if (oldSpec.getConfigurations() == null) {
             oldSpec.setConfigurations(new StackGresClusterConfigurations());
           }
@@ -66,10 +88,20 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
               .map(StackGresClusterPatroni::getInitialConfig);
         }
         final Optional<StackGresClusterPatroniConfig> modifiableOldPatroniInitialConfig = oldPatroniInitialConfig;
-        pgCtlTimeout
-            .ifPresentOrElse(
-                value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)),
-                () -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.removePostgresql()));
+        pgCtlTimeout.ifPresent(
+            value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)));
+        callbacks.ifPresent(
+            value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setCallbacks(value)));
+        prePromote.ifPresent(
+            value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setPrePromote(value)));
+        beforeStop.ifPresent(
+            value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setBeforeStop(value)));
+        if (pgCtlTimeout.isEmpty()
+            && callbacks.isEmpty()
+            && prePromote.isEmpty()
+            && beforeStop.isEmpty()) {
+          modifiableOldPatroniInitialConfig.ifPresent(config -> config.removePostgresql());
+        }
       }
 
       if (!Objects.equals(oldPatroniInitialConfig, patroniInitialConfig)) {

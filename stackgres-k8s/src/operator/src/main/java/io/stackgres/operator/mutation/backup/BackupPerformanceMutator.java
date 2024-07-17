@@ -11,7 +11,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBaseBackupConfig;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -19,7 +19,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class BackupPerformanceMutator implements BackupMutator {
 
   @Override
-  public StackGresBackup mutate(BackupReview review, StackGresBackup resource) {
+  public StackGresBackup mutate(StackGresBackupReview review, StackGresBackup resource) {
     if (review.getRequest().getOperation() != Operation.CREATE
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;

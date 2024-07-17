@@ -15,8 +15,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceBuilder;
@@ -26,7 +27,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
@@ -81,14 +81,14 @@ public interface StackGresDistributedLogsUtil {
     }
     distributedLogsCluster.getSpec().setPods(new StackGresClusterPods());
     distributedLogsCluster.getSpec().getPods().setPersistentVolume(
-        new StackGresPodPersistentVolume());
+        new StackGresClusterPodsPersistentVolume());
     distributedLogsCluster.getSpec().getPods().getPersistentVolume().setSize(
         distributedLogs.getSpec().getPersistentVolume().getSize());
     distributedLogsCluster.getSpec().getPods().getPersistentVolume().setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     distributedLogsCluster.getSpec().setPostgresServices(
         buildClusterPostgresServices(distributedLogs.getSpec()));
-    distributedLogsCluster.getSpec().getPods().setScheduling(new StackGresClusterPodScheduling());
+    distributedLogsCluster.getSpec().getPods().setScheduling(new StackGresClusterPodsScheduling());
     Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getScheduling)

@@ -33,7 +33,7 @@ import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -77,7 +77,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
               .append(SUPPORTED_BABELFISH_VERSIONS)
               .toList()));
 
-  private DbOpsReview review;
+  private StackGresDbOpsReview review;
 
   @Mock
   private ExtensionMetadataManager extensionMetadataManager;

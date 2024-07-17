@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ class ShardedDbOpsSecurityUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
 
     String sgcluster = review.getRequest().getObject().getSpec().getSgShardedCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -66,7 +66,7 @@ class ShardedDbOpsSecurityUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final ShardedDbOpsReview review = getCreationReview();
+    final StackGresShardedDbOpsReview review = getCreationReview();
 
     String sgcluster = review.getRequest().getObject().getSpec().getSgShardedCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -85,7 +85,7 @@ class ShardedDbOpsSecurityUpgradeValidatorTest {
         + " supported after the upgrade is completed", resultMessage);
   }
 
-  private ShardedDbOpsReview getCreationReview() {
+  private StackGresShardedDbOpsReview getCreationReview() {
     return AdmissionReviewFixtures.shardedDbOps().loadSecurityUpgradeCreate().get();
   }
 

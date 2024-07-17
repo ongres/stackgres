@@ -14,7 +14,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class PgConfigParametersValidatorTest extends AbstractPgConfigReview {
   @ParameterizedTest
   @ValueSource(strings = {"11", "12", "13", "14"})
   void givenCreationWithInvalidProperties_shouldFail(String pgVersion) {
-    PgConfigReview review = validConfigReview();
+    StackGresPostgresConfigReview review = validConfigReview();
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     pgConfig.getSpec().setPostgresVersion(pgVersion);
     Map<String, String> postgresqlConf = pgConfig.getSpec().getPostgresqlConf();
@@ -61,7 +61,7 @@ class PgConfigParametersValidatorTest extends AbstractPgConfigReview {
   @ParameterizedTest
   @ValueSource(strings = {"11", "12", "13", "14"})
   void givenUpdateWithInvalidProperties_shouldFail(String pgVersion) {
-    PgConfigReview review = validConfigUpdate();
+    StackGresPostgresConfigReview review = validConfigUpdate();
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     pgConfig.getSpec().setPostgresVersion(pgVersion);
     Map<String, String> postgresqlConf = pgConfig.getSpec().getPostgresqlConf();
@@ -78,7 +78,7 @@ class PgConfigParametersValidatorTest extends AbstractPgConfigReview {
   @ParameterizedTest
   @ValueSource(strings = {"11", "12", "13", "14"})
   void givenCreateWithValidProperties_shouldPass(String pgVersion) {
-    PgConfigReview review = validConfigReview();
+    StackGresPostgresConfigReview review = validConfigReview();
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     pgConfig.getSpec().setPostgresVersion(pgVersion);
     Map<String, String> postgresqlConf = pgConfig.getSpec().getPostgresqlConf();
@@ -119,7 +119,7 @@ class PgConfigParametersValidatorTest extends AbstractPgConfigReview {
           + "'Allowed values: on, off'"})
   void givenParametersWithInvalidProperties_shouldFail(String param, String value, String message,
       String reason) {
-    PgConfigReview review = validConfigUpdate();
+    StackGresPostgresConfigReview review = validConfigUpdate();
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     pgConfig.getSpec().setPostgresVersion("14");
     Map<String, String> postgresqlConf = pgConfig.getSpec().getPostgresqlConf();

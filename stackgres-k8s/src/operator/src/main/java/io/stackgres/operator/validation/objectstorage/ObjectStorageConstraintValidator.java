@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.objectstorage;
 
 import io.stackgres.common.ErrorType;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ValidationType;
 import jakarta.inject.Singleton;
@@ -14,6 +14,6 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)
 public class ObjectStorageConstraintValidator
-    extends AbstractConstraintValidator<ObjectStorageReview>
+    extends AbstractConstraintValidator<StackGresObjectStorageReview>
     implements ObjectStorageValidator {
 }

@@ -23,7 +23,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
@@ -83,7 +83,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -99,7 +99,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenSameStackGresVersionOnCreation_shouldNotFail() throws Exception {
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -116,7 +116,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -138,7 +138,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenManagedClusterOnCreation_shouldFail() {
-    final DbOpsReview review = getCreationReview();
+    final StackGresDbOpsReview review = getCreationReview();
     cluster.getMetadata().setOwnerReferences(List.of(
         new OwnerReferenceBuilder()
         .withKind("SGShardedCluster")
@@ -161,7 +161,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
         + " SGShardedCluster test", resultMessage);
   }
 
-  private DbOpsReview getCreationReview() {
+  private StackGresDbOpsReview getCreationReview() {
     return AdmissionReviewFixtures.dbOps().loadMinorVersionUpgradeCreate().get();
   }
 

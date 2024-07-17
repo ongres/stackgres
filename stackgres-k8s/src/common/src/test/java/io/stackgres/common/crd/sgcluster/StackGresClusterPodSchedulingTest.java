@@ -27,7 +27,7 @@ class StackGresClusterPodSchedulingTest {
 
   @BeforeEach
   public void setup() {
-    StackGresClusterPodScheduling podNodeAffinityScheduling = Fixtures.cluster().scheduling()
+    StackGresClusterPodsScheduling podNodeAffinityScheduling = Fixtures.cluster().scheduling()
         .loadDefault().get();
     this.nodeAffinityRequiredDuringScheduling = podNodeAffinityScheduling
         .getNodeAffinity()

@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.objectstorage;
 
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.validation.AbstractValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,11 +15,11 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ObjectStorageValidationPipeline
-    extends AbstractValidationPipeline<ObjectStorageReview> {
+    extends AbstractValidationPipeline<StackGresObjectStorageReview> {
 
   @Inject
   public ObjectStorageValidationPipeline(
-      @Any Instance<Validator<ObjectStorageReview>> validatorInstances) {
+      @Any Instance<Validator<StackGresObjectStorageReview>> validatorInstances) {
     super(validatorInstances);
   }
 

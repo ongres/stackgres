@@ -9,7 +9,7 @@ import java.util.Map;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -18,34 +18,34 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingReview> {
+class PoolingConstraintValidatorTest extends ConstraintValidationTest<StackGresPoolingConfigReview> {
 
   @Override
-  protected AbstractConstraintValidator<PoolingReview> buildValidator() {
+  protected AbstractConstraintValidator<StackGresPoolingConfigReview> buildValidator() {
     return new PoolingConstraintValidator();
   }
 
   @Override
-  protected PoolingReview getValidReview() {
+  protected StackGresPoolingConfigReview getValidReview() {
     return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Override
-  protected PoolingReview getInvalidReview() {
-    final PoolingReview review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
+  protected StackGresPoolingConfigReview getInvalidReview() {
+    final StackGresPoolingConfigReview review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
     review.getRequest().getObject().setSpec(null);
     return review;
   }
 
   @Test
   void nullSpec_shouldFail() {
-    PoolingReview review = getInvalidReview();
+    StackGresPoolingConfigReview review = getInvalidReview();
     checkNotNullErrorCause(StackGresPoolingConfig.class, "spec", review);
   }
 
   @Test
   void nullPgBouncerConf_shouldFail() {
-    PoolingReview review = getValidReview();
+    StackGresPoolingConfigReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni().setPgbouncer(null);
 
     checkNotNullErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
@@ -54,7 +54,7 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
 
   @Test
   void emptyPgBouncerConf_shouldPass() throws Exception {
-    PoolingReview review = getValidReview();
+    StackGresPoolingConfigReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
         .setPgbouncer(Map.of());
 

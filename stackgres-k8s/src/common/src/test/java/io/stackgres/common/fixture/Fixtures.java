@@ -32,6 +32,8 @@ import io.stackgres.common.fixture.shardedcluster.ShardedClusterFixture;
 import io.stackgres.common.fixture.shardedcluster.ShardedClusterListFixture;
 import io.stackgres.common.fixture.shardeddbops.ShardedDbOpsFixture;
 import io.stackgres.common.fixture.shardeddbops.ShardedDbOpsListFixture;
+import io.stackgres.common.fixture.stream.StreamFixture;
+import io.stackgres.common.fixture.stream.StreamListFixture;
 import io.stackgres.common.fixture.upgrade.Upgrade;
 
 public interface Fixtures {
@@ -126,6 +128,14 @@ public interface Fixtures {
 
   static ShardedDbOpsListFixture shardedDbOpsList() {
     return new ShardedDbOpsListFixture();
+  }
+
+  static StreamFixture stream() {
+    return new StreamFixture();
+  }
+
+  static StreamListFixture streamList() {
+    return new StreamListFixture();
   }
 
   static ConfigFixture config() {

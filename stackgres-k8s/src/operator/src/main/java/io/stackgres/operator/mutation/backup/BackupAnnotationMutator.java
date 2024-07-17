@@ -10,13 +10,13 @@ import java.util.Map;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupAnnotationMutator
-    extends AbstractAnnotationMutator<StackGresBackup, BackupReview>
+    extends AbstractAnnotationMutator<StackGresBackup, StackGresBackupReview>
     implements BackupMutator {
 
   private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();

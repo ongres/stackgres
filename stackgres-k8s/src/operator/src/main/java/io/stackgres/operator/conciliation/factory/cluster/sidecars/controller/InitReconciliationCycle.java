@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
@@ -43,7 +43,7 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
   public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.CLUSTER_RECONCILIATION_CYCLE.getName())
-        .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
+        .withImage(StackGresModules.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(
             new EnvVarBuilder()

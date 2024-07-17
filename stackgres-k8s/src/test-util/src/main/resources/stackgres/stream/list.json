@@ -1,0 +1,45 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "kind": "SGStream",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "stackgres",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "source": {
+          "type": "SGCluster",
+          "sgCluster": {
+            "name": "stackgres"
+          }
+        },
+        "target": {
+          "type": "CloudEvent",
+          "cloudEvent": {
+            "binding": "http",
+            "format": "json",
+            "http": {
+              "url": "test"
+            }
+          }
+        },
+        "pods": {
+          "persistentVolume": {
+            "size": "1Gi"
+          }
+        }
+      },
+      "status": null
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

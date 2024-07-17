@@ -7,7 +7,7 @@ package io.stackgres.operator.validation;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import jakarta.enterprise.event.Observes;
@@ -23,12 +23,12 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.PROFILE_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class SgProfileValidationResource extends AbstractValidationResource<SgProfileReview> {
+public class SgProfileValidationResource extends AbstractValidationResource<StackGresInstanceProfileReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgProfileValidationResource.class);
 
   @Inject
-  public SgProfileValidationResource(ValidationPipeline<SgProfileReview> pipeline) {
+  public SgProfileValidationResource(ValidationPipeline<StackGresInstanceProfileReview> pipeline) {
     super(pipeline);
   }
 
@@ -43,7 +43,7 @@ public class SgProfileValidationResource extends AbstractValidationResource<SgPr
 
   @Override
   @POST
-  public AdmissionReviewResponse validate(SgProfileReview admissionReview) {
+  public AdmissionReviewResponse validate(StackGresInstanceProfileReview admissionReview) {
     return super.validate(admissionReview);
   }
 

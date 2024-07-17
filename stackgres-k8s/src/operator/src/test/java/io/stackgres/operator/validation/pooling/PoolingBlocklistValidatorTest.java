@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class PoolingBlocklistValidatorTest {
 
   private PgBouncerBlocklistValidator validator = new PgBouncerBlocklistValidator();
 
-  private static final PoolingReview getCreatePoolingReview() {
+  private static final StackGresPoolingConfigReview getCreatePoolingReview() {
     return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
@@ -32,7 +32,7 @@ class PoolingBlocklistValidatorTest {
 
   @Test
   void givenValidConfigurationWithDatabases_shouldNotFail() {
-    PoolingReview review = getCreatePoolingReview();
+    StackGresPoolingConfigReview review = getCreatePoolingReview();
 
     var pgBouncer = review.getRequest().getObject().getSpec()
         .getPgBouncer();
@@ -44,7 +44,7 @@ class PoolingBlocklistValidatorTest {
 
   @Test
   void givenValidConfigurationWithUsers_shouldNotFail() {
-    PoolingReview review = getCreatePoolingReview();
+    StackGresPoolingConfigReview review = getCreatePoolingReview();
 
     var pgBouncer = review.getRequest().getObject().getSpec()
         .getPgBouncer();
@@ -56,7 +56,7 @@ class PoolingBlocklistValidatorTest {
 
   @Test
   void givenConfigurationWithDatabasesBlockedParameters_shouldFail() {
-    PoolingReview review = getCreatePoolingReview();
+    StackGresPoolingConfigReview review = getCreatePoolingReview();
 
     var pgBouncer = review.getRequest().getObject().getSpec()
         .getPgBouncer();

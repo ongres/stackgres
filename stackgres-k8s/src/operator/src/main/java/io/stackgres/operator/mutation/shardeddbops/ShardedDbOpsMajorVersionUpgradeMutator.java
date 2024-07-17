@@ -19,7 +19,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigura
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -45,7 +45,7 @@ public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutat
   }
 
   @Override
-  public StackGresShardedDbOps mutate(ShardedDbOpsReview review, StackGresShardedDbOps resource) {
+  public StackGresShardedDbOps mutate(StackGresShardedDbOpsReview review, StackGresShardedDbOps resource) {
     if (review.getRequest().getOperation() != Operation.CREATE
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;

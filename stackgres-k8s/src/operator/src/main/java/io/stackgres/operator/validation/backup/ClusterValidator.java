@@ -14,7 +14,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.StackGresBackupReview;
 import io.stackgres.operator.resource.NamedResource;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -37,7 +37,7 @@ public class ClusterValidator implements BackupValidator {
   }
 
   @Override
-  public void validate(BackupReview review) throws ValidationFailed {
+  public void validate(StackGresBackupReview review) throws ValidationFailed {
     StackGresBackup backup = review.getRequest().getObject();
 
     switch (review.getRequest().getOperation()) {
@@ -56,7 +56,7 @@ public class ClusterValidator implements BackupValidator {
     }
   }
 
-  private void validateCluster(StackGresBackup backup, BackupReview review, String clusterName)
+  private void validateCluster(StackGresBackup backup, StackGresBackupReview review, String clusterName)
       throws ValidationFailed {
     if (hasStatusBackupConfig(backup)) {
       return;
@@ -96,7 +96,7 @@ public class ClusterValidator implements BackupValidator {
     }
   }
 
-  private NamedResource getClusterLocation(BackupReview review) {
+  private NamedResource getClusterLocation(StackGresBackupReview review) {
     StackGresBackup backup = review.getRequest().getObject();
     String cluster = backup.getSpec().getSgCluster();
     if (cluster.contains(".")) {

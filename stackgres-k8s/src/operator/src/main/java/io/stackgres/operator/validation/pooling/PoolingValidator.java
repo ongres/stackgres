@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.validation.pooling;
 
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
-public interface PoolingValidator extends Validator<PoolingReview> {
+public interface PoolingValidator extends Validator<StackGresPoolingConfigReview> {
 }

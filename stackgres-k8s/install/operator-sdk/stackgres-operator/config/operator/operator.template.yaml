@@ -101,6 +101,8 @@ fi
                 fieldPath: metadata.namespace
           - name: OPERATOR_IMAGE_VERSION
             value: "${VERSION}"
+          - name: OPERATOR_JVM_IMAGE_VERSION
+            value: "${VERSION%-jvm}-jvm"
           - name: OPERATOR_SERVICE_ACCOUNT
             valueFrom:
               fieldRef:

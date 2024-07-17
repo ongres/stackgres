@@ -128,6 +128,134 @@ class PatroniInitialConfigValidatorTest {
     validator.validate(review);
   }
 
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithCallbacksChanged_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_role_change", "/usr/local/bin/on_role_change")));
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_start", "/usr/local/bin/on_start")));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithCallbacksAdded_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_start", "/usr/local/bin/on_start")));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithCallbacksAddedFromScratch_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations().getPatroni().setInitialConfig(null);
+    review.getRequest().getObject().getSpec().getConfigurations().getPatroni()
+        .setInitialConfig(new StackGresClusterPatroniConfig());
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_start", "/usr/local/bin/on_start")));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithCallbacksRemoved_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put(
+            "postgresql", Map.of("callbacks", Map.of("on_role_change", "/usr/local/bin/on_role_change")));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPrePromoteChanged_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pre_promote", "/usr/local/bin/pre_promote"));
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pre_promote", "/usr/local/bin/pre_promote_2"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPrePromoteAdded_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().getConfigurations()
+    .getPatroni().getInitialConfig().put("postgresql", Map.of("pre_promote", "/usr/local/bin/pre_promote_2"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPrePromoteAddedFromScratch_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations().getPatroni().setInitialConfig(null);
+    review.getRequest().getObject().getSpec().getConfigurations().getPatroni()
+        .setInitialConfig(new StackGresClusterPatroniConfig());
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pre_promote", "/usr/local/bin/pre_promote_2"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPrePromoteRemoved_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pre_promote", "/usr/local/bin/pre_promote"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithBeforeStopChanged_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("before_stop", "/usr/local/bin/before_stop"));
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("before_stop", "/usr/local/bin/before_stop_2"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithBeforeStopAdded_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().getConfigurations()
+    .getPatroni().getInitialConfig().put("postgresql", Map.of("before_stop", "/usr/local/bin/before_stop_2"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithBeforeStopAddedFromScratch_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations().getPatroni().setInitialConfig(null);
+    review.getRequest().getObject().getSpec().getConfigurations().getPatroni()
+        .setInitialConfig(new StackGresClusterPatroniConfig());
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("before_stop", "/usr/local/bin/before_stop_2"));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithBeforeStopRemoved_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("before_stop", "/usr/local/bin/before_stop"));
+
+    validator.validate(review);
+  }
+
   private StackGresClusterReview getCreationReview() {
     return AdmissionReviewFixtures.cluster().loadCreate().get();
   }

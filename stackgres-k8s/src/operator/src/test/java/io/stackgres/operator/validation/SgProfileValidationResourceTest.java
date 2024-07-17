@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation;
 
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class SgProfileValidationResourceTest extends ValidationResourceTest<SgProfileReview> {
+class SgProfileValidationResourceTest extends ValidationResourceTest<StackGresInstanceProfileReview> {
 
   @BeforeEach
   public void setUp() {

@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.profile;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -19,35 +19,35 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileReview> {
+class ProfileConstraintValidatorTest extends ConstraintValidationTest<StackGresInstanceProfileReview> {
 
   @Override
-  protected AbstractConstraintValidator<SgProfileReview> buildValidator() {
+  protected AbstractConstraintValidator<StackGresInstanceProfileReview> buildValidator() {
     return new ProfileConstraintValidator();
   }
 
   @Override
-  protected SgProfileReview getValidReview() {
+  protected StackGresInstanceProfileReview getValidReview() {
     return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override
-  protected SgProfileReview getInvalidReview() {
-    final SgProfileReview review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
+  protected StackGresInstanceProfileReview getInvalidReview() {
+    final StackGresInstanceProfileReview review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
     review.getRequest().getObject().setSpec(null);
     return review;
   }
 
   @Test
   void nullSpec_shouldFail() {
-    SgProfileReview review = getInvalidReview();
+    StackGresInstanceProfileReview review = getInvalidReview();
 
     checkNotNullErrorCause(StackGresProfile.class, "spec", review);
   }
 
   @Test
   void givenCorrectHugePages_shouldNotFail() throws ValidationFailed {
-    SgProfileReview review = getValidReview();
+    StackGresInstanceProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
     review.getRequest().getObject().getSpec().getHugePages().setHugepages2Mi("256Mi");
 
@@ -56,7 +56,7 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
 
   @Test
   void givenHugePagesHigherThanMemory_shouldFail() {
-    SgProfileReview review = getValidReview();
+    StackGresInstanceProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
     review.getRequest().getObject().getSpec().setMemory("1Gi");
     review.getRequest().getObject().getSpec().getHugePages().setHugepages2Mi("512Mi");
@@ -71,7 +71,7 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
 
   @Test
   void givenMissingHugePagesValueSet_shouldFail() {
-    SgProfileReview review = getValidReview();
+    StackGresInstanceProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
 
     checkErrorCause(StackGresProfileHugePages.class,
@@ -83,7 +83,7 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
 
   @Test
   void givenHugePages2MiNotMultipleOf2Mi_shouldFail() {
-    SgProfileReview review = getValidReview();
+    StackGresInstanceProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
     review.getRequest().getObject().getSpec().getHugePages().setHugepages2Mi("3Mi");
 
@@ -96,7 +96,7 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
 
   @Test
   void givenHugePages1GiNotMultipleOf1Gi_shouldFail() {
-    SgProfileReview review = getValidReview();
+    StackGresInstanceProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setMemory("2Gi");
     review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
     review.getRequest().getObject().getSpec().getHugePages().setHugepages1Gi("1500Mi");

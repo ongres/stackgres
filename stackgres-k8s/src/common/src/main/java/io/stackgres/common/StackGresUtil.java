@@ -45,6 +45,11 @@ import io.quarkus.arc.ArcContainer;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
+import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
+import io.stackgres.common.crd.sgconfig.StackGresConfigJobs;
+import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
@@ -69,6 +74,8 @@ public interface StackGresUtil {
       "^\\s*(?<parameter>[^\\s=]+)"
           + "\\s*[=\\s]\\s*"
           + "(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
+  Pattern IMAGE_NAME_WITH_REGISTRY_PATTERN =
+      Pattern.compile("^[^/]+\\.[^/]+/.*$");
 
   static String statefulSetDataPersistentVolumeClaimName(ClusterContext cluster) {
     return ResourceUtil.resourceName(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
@@ -640,6 +647,52 @@ public interface StackGresUtil {
   static String getDefaultPullPolicy() {
     return StackGresProperty.SG_IMAGE_PULL_POLICY.get()
         .orElse("IfNotPresent");
+  }
+
+  static String getRestapiImageNameWithTag(ConfigContext context) {
+    return getImageNameWithTag(
+        context,
+        Optional.of(context.getConfig().getSpec())
+        .map(StackGresConfigSpec::getRestapi)
+        .map(StackGresConfigRestapi::getImage),
+        "stackgres/restapi");
+  }
+
+  static String getAdminuiImageNameWithTag(ConfigContext context) {
+    return getImageNameWithTag(
+        context,
+        Optional.of(context.getConfig().getSpec())
+        .map(StackGresConfigSpec::getAdminui)
+        .map(StackGresConfigAdminui::getImage),
+        "stackgres/admin-ui");
+  }
+
+  static String getJobsImageNameWithTag(ConfigContext context) {
+    return getImageNameWithTag(
+        context,
+        Optional.of(context.getConfig().getSpec())
+        .map(StackGresConfigSpec::getJobs)
+        .map(StackGresConfigJobs::getImage),
+        "stackgres/jobs");
+  }
+      
+  static String getImageNameWithTag(
+      ConfigContext context,
+      Optional<StackGresConfigImage> image,
+      String defaultImageName) {
+    final String containerRegistry = context.getConfig().getSpec().getContainerRegistry();
+    String imageName = image
+        .map(StackGresConfigImage::getName)
+        .orElse(defaultImageName);
+    String imageTag = image
+        .map(StackGresConfigImage::getTag)
+        .or(() -> StackGresProperty.OPERATOR_IMAGE_VERSION.get())
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Can not determine the image tag."
+                + " Missing OPERATOR_IMAGE_VERSION environment variable"));
+    return IMAGE_NAME_WITH_REGISTRY_PATTERN.matcher(imageName).matches()
+        ? imageName + ":" + imageTag
+            : containerRegistry + "/" + imageName + ":" + imageTag;
   }
 
 }

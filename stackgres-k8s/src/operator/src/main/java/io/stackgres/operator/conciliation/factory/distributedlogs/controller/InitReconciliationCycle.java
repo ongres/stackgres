@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
@@ -66,7 +66,7 @@ public class InitReconciliationCycle implements ContainerFactory<DistributedLogs
         .getMetadata();
     return new ContainerBuilder()
         .withName(StackGresInitContainer.DISTRIBUTEDLOGS_RECONCILIATION_CYCLE.getName())
-        .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
+        .withImage(StackGresModules.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
         .withEnv(
             new EnvVarBuilder()
             .withName("COMMAND")

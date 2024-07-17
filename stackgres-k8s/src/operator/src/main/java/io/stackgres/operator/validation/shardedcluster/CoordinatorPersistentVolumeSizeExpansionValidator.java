@@ -13,8 +13,8 @@ import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -73,7 +73,7 @@ public class CoordinatorPersistentVolumeSizeExpansionValidator
         .map(StackGresShardedClusterSpec::getCoordinator)
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getPersistentVolume)
-        .map(StackGresPodPersistentVolume::getStorageClass);
+        .map(StackGresClusterPodsPersistentVolume::getStorageClass);
   }
 
   @Override

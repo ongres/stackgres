@@ -48,7 +48,7 @@ public final class StackGresProfile
 
   public static final String KIND = "SGInstanceProfile";
 
-  @NotNull(message = "The specification is required")
+  @NotNull(message = "spec is required")
   @Valid
   private StackGresProfileSpec spec;
 

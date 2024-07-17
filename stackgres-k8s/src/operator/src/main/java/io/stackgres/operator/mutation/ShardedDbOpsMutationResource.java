@@ -10,7 +10,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
@@ -26,12 +26,12 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ShardedDbOpsMutationResource
-    extends AbstractMutationResource<StackGresShardedDbOps, ShardedDbOpsReview> {
+    extends AbstractMutationResource<StackGresShardedDbOps, StackGresShardedDbOpsReview> {
 
   @Inject
   public ShardedDbOpsMutationResource(
       ObjectMapper objectMapper,
-      MutationPipeline<StackGresShardedDbOps, ShardedDbOpsReview> pipeline) {
+      MutationPipeline<StackGresShardedDbOps, StackGresShardedDbOpsReview> pipeline) {
     super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
@@ -46,7 +46,7 @@ public class ShardedDbOpsMutationResource
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(ShardedDbOpsReview admissionReview) {
+  public AdmissionReviewResponse mutate(StackGresShardedDbOpsReview admissionReview) {
     return super.mutate(admissionReview);
   }
 

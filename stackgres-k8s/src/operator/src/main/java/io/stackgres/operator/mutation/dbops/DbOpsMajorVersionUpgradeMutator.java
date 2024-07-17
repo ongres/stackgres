@@ -18,7 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -44,7 +44,7 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
   }
 
   @Override
-  public StackGresDbOps mutate(DbOpsReview review, StackGresDbOps resource) {
+  public StackGresDbOps mutate(StackGresDbOpsReview review, StackGresDbOps resource) {
     if (review.getRequest().getOperation() != Operation.CREATE
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;

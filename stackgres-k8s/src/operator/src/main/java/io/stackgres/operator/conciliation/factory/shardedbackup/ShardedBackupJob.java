@@ -40,9 +40,9 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodSchedulingBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsSchedulingBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
@@ -196,16 +196,16 @@ public class ShardedBackupJob
             .map(StackGresShardedClusterSpec::getCoordinator)
             .map(StackGresClusterSpec::getPods)
             .map(StackGresClusterPods::getScheduling)
-            .map(StackGresClusterPodScheduling::getBackup)
-            .map(StackGresClusterPodSchedulingBackup::getNodeSelector)
+            .map(StackGresClusterPodsScheduling::getBackup)
+            .map(StackGresClusterPodsSchedulingBackup::getNodeSelector)
             .orElse(null))
         .withTolerations(Optional.ofNullable(cluster)
             .map(StackGresShardedCluster::getSpec)
             .map(StackGresShardedClusterSpec::getCoordinator)
             .map(StackGresClusterSpec::getPods)
             .map(StackGresClusterPods::getScheduling)
-            .map(StackGresClusterPodScheduling::getBackup)
-            .map(StackGresClusterPodSchedulingBackup::getTolerations)
+            .map(StackGresClusterPodsScheduling::getBackup)
+            .map(StackGresClusterPodsSchedulingBackup::getTolerations)
             .map(tolerations -> Seq.seq(tolerations)
                 .map(TolerationBuilder::new)
                 .map(TolerationBuilder::build)
@@ -217,24 +217,24 @@ public class ShardedBackupJob
                 .map(StackGresShardedClusterSpec::getCoordinator)
                 .map(StackGresClusterSpec::getPods)
                 .map(StackGresClusterPods::getScheduling)
-                .map(StackGresClusterPodScheduling::getBackup)
-                .map(StackGresClusterPodSchedulingBackup::getNodeAffinity)
+                .map(StackGresClusterPodsScheduling::getBackup)
+                .map(StackGresClusterPodsSchedulingBackup::getNodeAffinity)
                 .orElse(null))
             .withPodAffinity(Optional.of(cluster)
                 .map(StackGresShardedCluster::getSpec)
                 .map(StackGresShardedClusterSpec::getCoordinator)
                 .map(StackGresClusterSpec::getPods)
                 .map(StackGresClusterPods::getScheduling)
-                .map(StackGresClusterPodScheduling::getBackup)
-                .map(StackGresClusterPodSchedulingBackup::getPodAffinity)
+                .map(StackGresClusterPodsScheduling::getBackup)
+                .map(StackGresClusterPodsSchedulingBackup::getPodAffinity)
                 .orElse(null))
             .withPodAntiAffinity(Optional.of(cluster)
                 .map(StackGresShardedCluster::getSpec)
                 .map(StackGresShardedClusterSpec::getCoordinator)
                 .map(StackGresClusterSpec::getPods)
                 .map(StackGresClusterPods::getScheduling)
-                .map(StackGresClusterPodScheduling::getBackup)
-                .map(StackGresClusterPodSchedulingBackup::getPodAntiAffinity)
+                .map(StackGresClusterPodsScheduling::getBackup)
+                .map(StackGresClusterPodsSchedulingBackup::getPodAntiAffinity)
                 .orElse(null))
             .build())
         .withPriorityClassName(Optional.of(cluster)
@@ -242,8 +242,8 @@ public class ShardedBackupJob
             .map(StackGresShardedClusterSpec::getCoordinator)
             .map(StackGresClusterSpec::getPods)
             .map(StackGresClusterPods::getScheduling)
-            .map(StackGresClusterPodScheduling::getBackup)
-            .map(StackGresClusterPodSchedulingBackup::getPriorityClassName)
+            .map(StackGresClusterPodsScheduling::getBackup)
+            .map(StackGresClusterPodsSchedulingBackup::getPriorityClassName)
             .orElse(null))
         .withContainers(new ContainerBuilder()
             .withName("create-backup")

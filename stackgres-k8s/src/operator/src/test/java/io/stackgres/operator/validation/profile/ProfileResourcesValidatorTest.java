@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.profile;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePagesBuilder;
-import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.Assert;
@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProfileResourcesValidatorTest {
 
   private ProfileResourcesValidator validator = new ProfileResourcesValidator();
-  private SgProfileReview review;
+  private StackGresInstanceProfileReview review;
   
   @BeforeEach
   public void setUp() {

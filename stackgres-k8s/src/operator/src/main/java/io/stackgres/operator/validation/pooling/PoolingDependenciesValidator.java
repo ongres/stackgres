@@ -9,7 +9,7 @@ import java.util.Objects;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -18,11 +18,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class PoolingDependenciesValidator
-    extends DependenciesValidator<PoolingReview, StackGresCluster>
+    extends DependenciesValidator<StackGresPoolingConfigReview, StackGresCluster>
     implements PoolingValidator {
 
   @Override
-  public void validate(PoolingReview review, StackGresCluster resource)
+  public void validate(StackGresPoolingConfigReview review, StackGresCluster resource)
       throws ValidationFailed {
     if (Objects.equals(resource.getSpec().getConfigurations().getSgPoolingConfig(),
         review.getRequest().getName())) {

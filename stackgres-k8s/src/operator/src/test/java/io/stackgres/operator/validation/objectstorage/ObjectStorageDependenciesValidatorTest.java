@@ -9,7 +9,7 @@ import java.util.List;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfigurationBuilder;
-import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ObjectStorageDependenciesValidatorTest
-    extends DependenciesValidatorTest<ObjectStorageReview, ObjectStorageDependenciesValidator> {
+    extends DependenciesValidatorTest<StackGresObjectStorageReview, ObjectStorageDependenciesValidator> {
 
   @Override
   protected ObjectStorageDependenciesValidator setUpValidation() {
@@ -25,33 +25,33 @@ class ObjectStorageDependenciesValidatorTest
   }
 
   @Override
-  protected ObjectStorageReview getReview_givenAReviewCreation_itShouldDoNothing() {
+  protected StackGresObjectStorageReview getReview_givenAReviewCreation_itShouldDoNothing() {
     return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
   @Override
-  protected ObjectStorageReview getReview_givenAReviewUpdate_itShouldDoNothing() {
+  protected StackGresObjectStorageReview getReview_givenAReviewUpdate_itShouldDoNothing() {
     return AdmissionReviewFixtures.objectStorage().loadUpdate().get();
   }
 
   @Override
-  protected ObjectStorageReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
+  protected StackGresObjectStorageReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
     return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
-  protected ObjectStorageReview
+  protected StackGresObjectStorageReview
       getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() {
     return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
-  protected ObjectStorageReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
+  protected StackGresObjectStorageReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
     return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
-  protected void makeClusterDependant(StackGresCluster cluster, ObjectStorageReview review) {
+  protected void makeClusterDependant(StackGresCluster cluster, StackGresObjectStorageReview review) {
     cluster.getSpec().getConfigurations().setBackups(List.of(
         new StackGresClusterBackupConfigurationBuilder()
         .withSgObjectStorage(review.getRequest().getName())

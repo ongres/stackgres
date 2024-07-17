@@ -10,7 +10,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
@@ -26,12 +26,12 @@ import jakarta.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgPgBouncerMutationResource
-    extends AbstractMutationResource<StackGresPoolingConfig, PoolingReview> {
+    extends AbstractMutationResource<StackGresPoolingConfig, StackGresPoolingConfigReview> {
 
   @Inject
   public SgPgBouncerMutationResource(
       ObjectMapper objectMapper,
-      MutationPipeline<StackGresPoolingConfig, PoolingReview> pipeline) {
+      MutationPipeline<StackGresPoolingConfig, StackGresPoolingConfigReview> pipeline) {
     super(OperatorProperty.getAllowedNamespaces(), objectMapper, pipeline);
   }
 
@@ -46,7 +46,7 @@ public class SgPgBouncerMutationResource
 
   @POST
   @Override
-  public AdmissionReviewResponse mutate(PoolingReview admissionReview) {
+  public AdmissionReviewResponse mutate(StackGresPoolingConfigReview admissionReview) {
     return super.mutate(admissionReview);
   }
 

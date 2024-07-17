@@ -26,7 +26,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigura
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.ShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -46,7 +46,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
   @Mock
   private CustomResourceFinder<StackGresShardedCluster> clusterFinder;
 
-  private ShardedDbOpsReview review;
+  private StackGresShardedDbOpsReview review;
   private StackGresShardedCluster cluster;
   private ShardedDbOpsMajorVersionUpgradeMutator mutator;
   private Instant defaultTimestamp;
@@ -177,7 +177,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());
   }
 
-  private StackGresShardedDbOps mutate(ShardedDbOpsReview review) {
+  private StackGresShardedDbOps mutate(StackGresShardedDbOpsReview review) {
     return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

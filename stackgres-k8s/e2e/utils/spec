@@ -346,7 +346,8 @@ run_spec() {
       fi
       "$FUNCTION"
     done
-    if [ "$SPEC_VALUE" != none ]
+    if [ "$SPEC_VALUE" != none ] \
+      && [ "$E2E_USE_TEST_CACHE_PER_TEST" = true ]
     then
       store_test_result "$SPEC_NAME" "$SPEC_VALUE"
     fi
@@ -411,16 +412,16 @@ calculate_spec_hashes() {
 
   local HELM_MODULE_HASH JVM_IMAGE_MODULE_HASH NATIVE_IMAGE_MODULE_HASH UI_IMAGE_MODULE_HASH
   HELM_MODULE_HASH="$(
-    grep '^helm-packages=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-hashes" \
+    grep '^helm-packages=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-hashes.$(cat stackgres-k8s/ci/build/target/build_hash)" \
       | cut -d = -f 2)"
   JVM_IMAGE_MODULE_HASH="$(
-    grep '^jvm-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+    grep '^jvm-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes.$(cat stackgres-k8s/ci/build/target/build_hash)" \
       | cut -d = -f 2)"
   NATIVE_IMAGE_MODULE_HASH="$(
-    grep '^native-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+    grep '^native-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes.$(cat stackgres-k8s/ci/build/target/build_hash)" \
       | cut -d = -f 2)"
   UI_IMAGE_MODULE_HASH="$(
-    grep '^ui-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+    grep '^ui-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes.$(cat stackgres-k8s/ci/build/target/build_hash)" \
       | cut -d = -f 2)"
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"

@@ -23,7 +23,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import jakarta.inject.Inject;
@@ -32,7 +32,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 public class DbOpsMajorVersionUpgradeExtensionsValidator
-    extends AbstractExtensionsValidator<StackGresDbOps, DbOpsReview>
+    extends AbstractExtensionsValidator<StackGresDbOps, StackGresDbOpsReview>
     implements DbOpsValidator {
 
   private final ExtensionMetadataManager extensionMetadataManager;
@@ -47,7 +47,7 @@ public class DbOpsMajorVersionUpgradeExtensionsValidator
   }
 
   @Override
-  public void validate(DbOpsReview review) throws ValidationFailed {
+  public void validate(StackGresDbOpsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE, UPDATE:
         if (Optional.of(review.getRequest().getObject())
@@ -104,7 +104,7 @@ public class DbOpsMajorVersionUpgradeExtensionsValidator
   }
 
   @Override
-  protected StackGresCluster getCluster(DbOpsReview review) throws ValidationFailed {
+  protected StackGresCluster getCluster(StackGresDbOpsReview review) throws ValidationFailed {
     var cluster = getOldCluster(review);
     cluster.getSpec().getPostgres().setVersion(
         review.getRequest().getObject().getSpec().getMajorVersionUpgrade().getPostgresVersion());
@@ -112,7 +112,7 @@ public class DbOpsMajorVersionUpgradeExtensionsValidator
   }
 
   @Override
-  protected StackGresCluster getOldCluster(DbOpsReview review) throws ValidationFailed {
+  protected StackGresCluster getOldCluster(StackGresDbOpsReview review) throws ValidationFailed {
     var cluster = clusterFinder.findByNameAndNamespace(
         review.getRequest().getObject().getSpec().getSgCluster(),
         review.getRequest().getObject().getMetadata().getNamespace())

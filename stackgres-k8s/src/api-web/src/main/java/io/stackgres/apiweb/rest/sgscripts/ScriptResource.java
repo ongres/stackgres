@@ -109,7 +109,6 @@ public class ScriptResource
       ### RBAC permissions required
 
       * sgscripts list
-      * secrets get
       * configmaps get
       """)
   @Override
@@ -263,6 +262,17 @@ public class ScriptResource
                   secretScript))
               .build();
         })
+        .grouped(secret -> secret.getMetadata().getName())
+        .flatMap(t -> t.v2.reduce(
+            Optional.<Secret>empty(),
+            (merged, secret) -> merged
+            .or(() -> Optional.of(secret))
+            .map(mergedSecret -> {
+              mergedSecret.getData().putAll(secret.getData());
+              return mergedSecret;
+            }),
+            (u, v) -> v)
+            .stream())
         .toList();
   }
 
@@ -287,6 +297,10 @@ public class ScriptResource
 
   public static String scriptEntryResourceName(String scriptName, int index) {
     return scriptName + "-" + index;
+  }
+
+  public static String scriptEntryResourceName(String scriptName, String suffix, int index) {
+    return scriptName + "-" + suffix + "-" + index;
   }
 
   @Override

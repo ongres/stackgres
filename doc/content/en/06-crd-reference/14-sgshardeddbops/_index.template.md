@@ -28,11 +28,11 @@ kind: SGShardedDbOps
 metadata:
   name: restart
 spec:
- sgShardedCluster: my-cluster
- op: restart
- maxRetries: 1
- restart:
-   mode: InPlace
+  sgShardedCluster: my-cluster
+  op: restart
+  maxRetries: 1
+  restart:
+    mode: InPlace
 ```
 
 {{% include "generated/SGShardedDbOps.md" %}}

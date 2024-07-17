@@ -118,6 +118,13 @@ build distributedlogs-controller jvm image amd64:
     LOCK_FILE: stackgres-distributedlogs-controller-build-jvm-image
     IMAGE_MODULE_NAME: distributedlogs-controller-jvm-image
 
+build stream jvm image amd64:
+  extends: .build jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-build-jvm-image
+    IMAGE_MODULE_NAME: stream-jvm-image
+
 build operator native image amd64:
   extends: .build native image amd64
   variables:
@@ -152,6 +159,13 @@ build distributedlogs-controller native image amd64:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
     LOCK_FILE: stackgres-distributedlogs-controller-build-native-image
     IMAGE_MODULE_NAME: distributedlogs-controller-native-image
+
+.build stream native image amd64:
+  extends: .build native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-build-native-image
+    IMAGE_MODULE_NAME: stream-native-image
 
 build admin-ui image amd64:
   extends: .build image
@@ -229,6 +243,13 @@ build distributedlogs-controller jvm image arm64:
     LOCK_FILE: stackgres-distributedlogs-controller-build-jvm-image
     IMAGE_MODULE_NAME: distributedlogs-controller-jvm-image
 
+build stream jvm image arm64:
+  extends: .build jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-build-jvm-image
+    IMAGE_MODULE_NAME: stream-jvm-image
+
 build operator native image arm64:
   extends: .build native image arm64
   variables:
@@ -263,6 +284,13 @@ build distributedlogs-controller native image arm64:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
     LOCK_FILE: stackgres-distributedlogs-controller-build-native-image
     IMAGE_MODULE_NAME: distributedlogs-controller-native-image
+
+.build stream native image arm64:
+  extends: .build native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+    LOCK_FILE: stackgres-stream-build-native-image
+    IMAGE_MODULE_NAME: stream-native-image
 
 build admin-ui image arm64:
   extends: .build image
@@ -325,6 +353,11 @@ build distributedlogs-controller jvm image multi archs:
   variables:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
 
+build stream jvm image multi archs:
+  extends: .build jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
+
 build operator native image multi archs:
   extends: .build native image multi archs
   variables:
@@ -349,6 +382,11 @@ build distributedlogs-controller native image multi archs:
   extends: .build native image multi archs
   variables:
     IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+
+.build stream native image multi archs:
+  extends: .build native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/stream
 
 build admin-ui image multi archs:
   extends: .build image multi archs

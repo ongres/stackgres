@@ -5,7 +5,7 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_extra_hash() {
-  grep '^helm-templates=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-hashes" \
+  grep '^helm-templates=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-hashes.$(cat stackgres-k8s/ci/build/target/build_hash)" \
       | cut -d = -f 2
 }
 
