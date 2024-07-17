@@ -1,3 +1,68 @@
+# :rocket: Release 1.12.0-rc1 (2024-07-17)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.12.0-rc1 has finally landed! :sparkles: :confetti_ball: :champagne: 
+
+This release comes with a new shiny feature that allows to do change data capture (CDC) of your Postgres instances in an easy way with SGStream CRD! CDC provides real-time or near-real-time movement of data by moving and processing data continuously as new database events occur. In particular SGStream offer two main functionality, stream Postgres CDC events to a CloudEvent service or move directly data to another SGCluster instance. The feature is in an alpha stage so your feedback will be a great way to make it more stable.
+
+This release also brings fixes and security features. In particular Envoy has been updated to 1.30.4 solving a bug that was haunting us for some time preventing the new version to be included. Sadly we can not upgrade to latest version of PgBouncer due to a [regression found in version 1.23.0](), we hope to be able to include a newer version as soon as it is released.
+
+Go on and have a look to this new release of StackGres, we hope you envoy it!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Added Patroni 3.3.2
+* Added Babelfish for PostgreSQL 16.2
+* Added Envoy 1.30.4
+* Added FluentBit 3.0.7
+* Added Kubectl 1.30.2 and 1.28.11
+* Added SGStream
+* Support SGStream from Postgres or SGCluster to CloudEvent service
+* Support SGStream from Postgres or SGCluster to SGCluster
+* Allow to set Patroni callbacks, pre_promote and before_stop
+* Allow to overwrite postgres binaries using customVolumeMounts under /usr/local/bin
+* Add warning on setting manually backups paths in documentation
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Errors when setting imagePullSecrets
+* SGDbOps, SGShardedDbOps and SGStream always fail on retry
+* SGShardedCluster REST API endpoint was overlapping managed sql sections
+* pg_stat_progress_vacuum and pg_stat_progress_cluster metric is missing schema and table names
+* Broken storageclasses permissions for Web Console ClusterRoles
+
+## Web Console
+
+* Make sure sgdbop status conditions exist before requesting its data
+* Remove fixed sgconfig name
+* Include default case on isDeletable header method
+* Show "loading data" message while processing rest api info
+* Do not use deprecated fields for envoy config
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.12.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.12.0-rc1)
+
 # :rocket: Release 1.11.0 (2024-06-10)
 
 ## :notepad_spiral: NOTES

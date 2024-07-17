@@ -130,6 +130,26 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > Repeat the PR creation step above.
     > 
     > When PR is merged create a MR to `main-1.12.0-beta1` branch.
+1. [ ] Create PR on Red Hat Community Operators (wait for its completion):
+    > File that export environment variable `FORK_GIT_URL` with the git URL (make sure user can perform push on such URL) of the project that forks project `https://github.com/redhat-openshift-ecosystem/community-operators-prod` must be specified in POSIX shell script with path `~/.stackgres/operator-bundle-red-hat-community-config`
+
+    ```
+    cd stackgres-k8s/install/operator-sdk/stackgres-operator/
+    . ~/.stackgres/operator-bundle-red-hat-community-config && sh deploy-to-red-hat-community.sh
+    ```
+
+    > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
+    > 
+    > ```
+    > git checkout -b "fix-bundle-1.12.0-beta1"
+    > git add .
+    > git commit -m "fix: operator bundle deployment"
+    > git push origin "fix-bundle-1.12.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
+    > ```
+    > 
+    > Repeat the PR creation step above.
+    > 
+    > When PR is merged create a MR to `main-1.12.0-beta1` branch.
 1. [ ] Create PR on OperatorHub (wait for its completion):
     > File that export environment variable `FORK_GIT_URL` with the git URL (make sure user can perform push on such URL) of the project that forks project `https://github.com/k8s-operatorhub/community-operators` must be specified in POSIX shell script with path `~/.stackgres/operator-bundle-operatorhub-config`
 
