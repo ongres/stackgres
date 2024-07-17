@@ -54,6 +54,8 @@ export E2E_TEST_REGISTRY_PATH="$SG_CI_PROJECT_PATH"
 export E2E_USE_TEST_HASHES=true
 export E2E_USE_TEST_CACHE_PER_TEST=true
 export OPERATOR_CHART_PATH=stackgres-k8s/install/helm/target/packages/stackgres-operator.tgz
+export K8S_ARCH_VERSION="$(eval "printf %s \"\$K8S_$(uname -m | tr '[a-z]' '[A-Z]')_VERSION\"")"
+export K8S_VERSION="${K8S_ARCH_VERSION:-$K8S_VERSION}"
 
 run_all_tests_loop() {
   mkdir -p $HOME/.docker                                                                                                                                                                               
