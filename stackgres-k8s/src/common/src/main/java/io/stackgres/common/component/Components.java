@@ -67,8 +67,8 @@ public enum Components {
         StackGresProperty.SG_IMAGE_PATRONI,
         "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s",
         new Component[] {
-            Components.ComponentsV112.POSTGRESQL.getComponent(),
-            Components.ComponentsV112.BABELFISH.getComponent(),
+            Components.ComponentsV113.POSTGRESQL.getComponent(),
+            Components.ComponentsV113.BABELFISH.getComponent(),
         })),
     POSTGRES_UTIL(new Component(ComponentVersionReader.V_1_13.versionReader, "postgresql",
         StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
