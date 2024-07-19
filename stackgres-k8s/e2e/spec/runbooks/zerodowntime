@@ -7,6 +7,10 @@ e2e_test_install() {
 
   kubectl create secret -n "$CLUSTER_NAMESPACE" generic credentials --from-literal=superuser-password=sup3rus3r
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string 'cluster.postgres.version='"$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+    --set-string 'cluster.postgres.extensions[0].name=pg_cron' \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_stat_statements, auto_explain, pg_cron' \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.cron.database_name=postgres' \
     --set-string 'cluster.configurations.credentials.users.superuser.password.name=credentials' \
     --set-string 'cluster.configurations.credentials.users.superuser.password.key=superuser-password' \
     --set-string 'cluster.configurations.patroni.initialConfig.postgresql.callbacks.on_role_change=/callbacks/pre_promote' \
@@ -33,6 +37,27 @@ spec:
     port: 5432
     protocol: TCP
     targetPort: pgbouncer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: entrypoint
+spec:
+  type: ClusterIP
+  ports:
+  - name: pgport
+    port: 5432
+    protocol: TCP
+    targetPort: pgport
+  - name: pgreplication
+    port: 5433
+    protocol: TCP
+    targetPort: pgreplication
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: entrypoint
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -90,7 +115,7 @@ data:
   pgbouncer.ini: |
     [databases]
 
-    * = host=$CLUSTER_NAME port=5432
+    * = host=entrypoint port=5432
 
     [pgbouncer]
     listen_addr=0.0.0.0
@@ -168,10 +193,23 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
-  run_test "Checking that is possible to have zerodowntime using PgBouncer in transaction mode" zerodowntime_check
+  # run_test "Checking that is possible to have zerodowntime using PgBouncer in transaction mode" zerodowntime_check
+  run_test "Checking that is possible to have a major version upgrade with zerodowntime using PgBouncer in transaction mode" zerodowntime_major_version_upgrade_check
 }
 
 zerodowntime_check() {
+  kubectl patch -n "$CLUSTER_NAMESPACE" endpoints entrypoint --type merge -p '
+    subsets:
+    - addresses:
+      - ip: $(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.clusterIP }}')
+      ports:
+      - name: pgport
+        port: 7432
+        protocol: TCP
+      - name: pgreplication
+        port: 7433
+        protocol: TCP
+  ' -o yaml
   kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- pgbench postgresql://postgres:sup3rus3r@localhost/postgres -i 2>&1 | tee "$LOG_PATH/bench"
   kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- pgbench postgresql://postgres:sup3rus3r@localhost/postgres -T 120 -c 4 -j 4 -P 2 --progress-timestamp 2>&1 | tee -a "$LOG_PATH/bench" &
   BENCH_PID="$!"
@@ -226,6 +264,112 @@ zerodowntime_check() {
     kill "$(head -n 1 "$LOG_PATH/monitor")" || true
     wait "$MONITOR_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+}
+
+zerodowntime_major_version_upgrade_check() {
+  UPGRADED_CLUSTER_NAME=CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME-upgraded")"
+  STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
+
+  create_or_replace_cluster "$UPGRADED_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string 'cluster.postgres.version='"$E2E_MAJOR_TARGET_POSTGRES_VERSION" \
+    --set prifles=null \
+    --set configurations.create=false \
+    --set-string 'cluster.configurations.credentials.users.superuser.password.name=credentials' \
+    --set-string 'cluster.configurations.credentials.users.superuser.password.key=superuser-password' \
+    --set-string 'cluster.configurations.patroni.initialConfig.postgresql.callbacks.on_role_change=/callbacks/pre_promote' \
+    --set-string 'cluster.configurations.patroni.initialConfig.postgresql.before_stop=/callbacks/before_stop' \
+    --set-string 'cluster.pods.customVolumeMounts.patroni[0].name=custom-callbacks' \
+    --set-string 'cluster.pods.customVolumeMounts.patroni[0].mountPath=/callbacks' \
+    --set-string 'cluster.pods.customVolumes[0].name=callbacks' \
+    --set-string 'cluster.pods.customVolumes[0].configMap.name=callbacks' \
+    --set 'cluster.pods.customVolumes[0].configMap.defaultMode='"$(printf %d 0555)" \
+    --set 'cluster.pods.customVolumes[0].configMap.optional=false'
+  wait_cluster "$UPGRADED_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- pgbench postgresql://postgres:sup3rus3r@localhost/postgres -i 2>&1 | tee "$LOG_PATH/bench"
+  kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- pgbench postgresql://postgres:sup3rus3r@localhost/postgres -T 120 -c 4 -j 4 -P 2 --progress-timestamp 2>&1 | tee -a "$LOG_PATH/bench" &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  CLUSTER_NAMESPACE="$CLUSTER_NAMESPACE" CLUSTER_NAME="$CLUSTER_NAME" UPGRADED_CLUSTER_NAME="$UPGRADED_CLUSTER_NAME" sh -c '
+    echo $$
+    while true
+    do
+      date +%s --utc
+      echo
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO patronictl list
+      echo
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$UPGRADED_CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO patronictl list
+      echo
+      kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- psql postgresql://pgbouncer_stats:pgb0unc3r@localhost/pgbouncer \
+        -c "SHOW STATE" -c "SHOW DATABASES" -c "SHOW POOLS"
+      echo
+      sleep 2
+    done' 2>&1 | tee "$LOG_PATH/monitor" &
+  MONITOR_PID="$!"
+  trap_kill "$MONITOR_PID"
+  wait_until eval 'head -n 1 "$LOG_PATH/monitor" | kill -0 "$(cat)"'
+  trap_kill "$(head -n 1 "$LOG_PATH/monitor")"
+  sleep 5
+
+  cat << EOF | tee "$LOG_PATH/sgstream.yaml" | kubectl replace --force -f -
+apiVersion: stackgres.io/v1alpha1
+kind: SGStream
+metadata:
+  namespace: $CLUSTER_NAMESPACE 
+  name: "$STREAM_NAME"
+spec:
+  maxRetries: 0
+  source:
+    type: SGCluster
+    sgCluster:
+      name: "$CLUSTER_NAME"
+  target:
+    type: SGCluster
+    sgCluster:
+      name: "$TARGET_CLUSTER_NAME"
+  pods:
+    persistentVolume:
+      size: 1Gi
+EOF
+
+  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- psql
+CREATE TABLE heartbit (id serial, time timestamp DEFAULT clock_timestamp(), PRIMARY KEY (id));
+EOF
+
+  for ITERATION in 1 2 3 4 5
+  do
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO \
+      patronictl switchover --force "$CLUSTER_NAME" --primary "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1
+    sleep 3
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO \
+      patronictl restart --force "$CLUSTER_NAME" "$CLUSTER_NAME"-0
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO \
+      patronictl restart --force "$CLUSTER_NAME" "$CLUSTER_NAME"-1
+    sleep 3
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO \
+      patronictl switchover --force "$CLUSTER_NAME" --primary "$CLUSTER_NAME"-1 --candidate "$CLUSTER_NAME"-0
+    sleep 3
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO \
+      patronictl restart --force "$CLUSTER_NAME" "$CLUSTER_NAME"-0
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO \
+      patronictl restart --force "$CLUSTER_NAME" "$CLUSTER_NAME"-1
+    sleep 3
+  done
+  wait "$BENCH_PID"
+  if wait_until eval '! kill -0 "$BENCH_PID"' \
+    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
+  then
+    echo "SUCCESS: Benchmark terminated succesfully without any error after 10 switchovers"
+    kill "$(head -n 1 "$LOG_PATH/monitor")" || true
+    wait "$MONITOR_PID" || true
+  else
+    echo "SUCCESS: Benchmark do not terminated succesfully after 10 switchovers"
+    kill "$BENCH_PID" || true
+    kill "$(head -n 1 "$LOG_PATH/monitor")" || true
+    wait "$MONITOR_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
