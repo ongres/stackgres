@@ -247,7 +247,7 @@ public class PostgresExporterV1M11 implements ContainerFactory<ClusterContainerC
                     Unchecked.supplier(() ->
                             Resources
                                     .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-                                            "/prometheus-postgres-exporter/queries.yaml")),
+                                            "/prometheus-postgres-exporter/queries-1.22.yaml")),
                                             StandardCharsets.UTF_8).read()).get()))
             .build();
   }

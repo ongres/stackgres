@@ -134,7 +134,7 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
               }
             }
           })
-          .notifying(eventConsumer::consumeEvent)
+          .notifying(eventConsumer::consumeEvents)
           .build();
     } catch (Exception ex) {
       throw new RuntimeException("Debezium Engine initialization failed", ex);

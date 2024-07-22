@@ -5,6 +5,8 @@
 
 package io.stackgres.stream.jobs.target.migration;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +24,7 @@ import io.debezium.connector.jdbc.dialect.DatabaseDialectResolver;
 import io.debezium.connector.jdbc.dialect.postgres.PostgresDatabaseDialect;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.pipeline.signal.SignalPayload;
 import io.debezium.pipeline.signal.actions.SignalAction;
 import io.debezium.pipeline.spi.Partition;
@@ -54,6 +57,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -217,48 +221,81 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       return databaseDialect;
     }
 
+    
+
     @Override
-    public void consumeEvent(ChangeEvent<SourceRecord, SourceRecord> changeEvent) {
+    public void consumeEvents(
+        List<ChangeEvent<SourceRecord, SourceRecord>> changeEvents,
+        RecordCommitter<ChangeEvent<SourceRecord, SourceRecord>> committer) {
       try {
         if (!started) {
           throw new IllegalStateException("Not started");
         }
-        final SourceRecord sourceRecord = changeEvent.value();
-        if (snapshot
-            && !Optional.ofNullable(sourceRecord.sourceOffset().get("snapshot"))
-            .map(Object::toString)
-            .map(Boolean.TRUE.toString()::equals)
-            .orElse(false)) {
-          snapshot = false;
-          restoreIndexes();
+        if (changeEvents.isEmpty()) {
+          Unchecked.runnable(() -> committer.markBatchFinished()).run();
+          return;
         }
-        String sourceOffset = sourceRecord.sourceOffset()
-            .entrySet()
-            .stream()
-            .map(e -> e.getKey() + "=" + e.getValue().toString())
-            .collect(Collectors.joining(" "));
-        LOGGER.trace("SourceRecord: {}", sourceOffset);
-        long lsn = Long.parseLong(sourceRecord.sourceOffset().get("lsn").toString());
-        if (lastLsn != lsn) {
-          lastLsn = lsn;
-          counter = 0L;
+        final Iterator<ChangeEvent<SourceRecord, SourceRecord>> changeEventIterator = changeEvents.iterator();
+        final List<ChangeEvent<SourceRecord, SourceRecord>> committedChangeEvents = new ArrayList<>(changeEvents.size());
+        final List<SinkRecord> sinkRecords = new ArrayList<>(changeEvents.size());
+        String lastSourceOffset = null;
+        while (changeEventIterator.hasNext()) {
+          ChangeEvent<SourceRecord, SourceRecord> changeEvent = changeEventIterator.next();
+          final SourceRecord sourceRecord = changeEvent.value();
+          if (snapshot
+              && !Optional.ofNullable(sourceRecord.sourceOffset().get("snapshot"))
+              .map(Object::toString)
+              .map(Boolean.TRUE.toString()::equals)
+              .orElse(false)) {
+            snapshot = false;
+            if (!sinkRecords.isEmpty()) {
+              changeEventSink.execute(sinkRecords);
+              for (var committedChangeEvent : committedChangeEvents) {
+                Unchecked.runnable(() -> committer.markProcessed(committedChangeEvent)).run();
+              }
+              metrics.incrementTotalNumberOfEventsSent(sinkRecords.size());
+              metrics.setLastEventSent(lastSourceOffset);
+              metrics.setLastEventWasSent(true);
+            }
+            sinkRecords.clear();
+            committedChangeEvents.clear();
+            restoreIndexes();
+          }
+          String sourceOffset = sourceRecord.sourceOffset()
+              .entrySet()
+              .stream()
+              .map(e -> e.getKey() + "=" + e.getValue().toString())
+              .collect(Collectors.joining(" "));
+          LOGGER.trace("SourceRecord: {}", sourceOffset);
+          long lsn = Long.parseLong(sourceRecord.sourceOffset().get("lsn").toString());
+          if (lastLsn != lsn) {
+            lastLsn = lsn;
+            counter = 0L;
+          }
+          long kafkaPartition = (lastLsn << 32) & (counter & ((1 << 32) - 1));
+          counter++;
+          SinkRecord sinkRecord = new SinkRecord(
+              sourceRecord.topic(),
+              Optional.ofNullable(changeEvent.partition()).orElse(0).intValue(),
+              sourceRecord.keySchema(),
+              sourceRecord.key(),
+              sourceRecord.valueSchema(),
+              sourceRecord.value(),
+              kafkaPartition,
+              sourceRecord.timestamp(),
+              TimestampType.CREATE_TIME,
+              sourceRecord.headers());
+          sinkRecords.add(sinkRecord);
+          committedChangeEvents.add(changeEvent);
+          lastSourceOffset = sourceOffset;
         }
-        long kafkaPartition = (lastLsn << 32) & (counter & ((1 << 32) - 1));
-        counter++;
-        SinkRecord sinkRecord = new SinkRecord(
-            sourceRecord.topic(),
-            Optional.ofNullable(changeEvent.partition()).orElse(0).intValue(),
-            sourceRecord.keySchema(),
-            sourceRecord.key(),
-            sourceRecord.valueSchema(),
-            sourceRecord.value(),
-            kafkaPartition,
-            sourceRecord.timestamp(),
-            TimestampType.CREATE_TIME,
-            sourceRecord.headers());
-        changeEventSink.execute(List.of(sinkRecord));
-        metrics.incrementTotalNumberOfEventsSent();
-        metrics.setLastEventSent(sourceOffset);
+        changeEventSink.execute(sinkRecords);
+        for (var committedChangeEvent : committedChangeEvents) {
+          Unchecked.runnable(() -> committer.markProcessed(committedChangeEvent)).run();
+        }
+        Unchecked.runnable(() -> committer.markBatchFinished()).run();
+        metrics.incrementTotalNumberOfEventsSent(sinkRecords.size());
+        metrics.setLastEventSent(lastSourceOffset);
         metrics.setLastEventWasSent(true);
       } catch (RuntimeException ex) {
         metrics.incrementTotalNumberOfErrorsSeen();
