@@ -53,8 +53,8 @@ public class Metrics {
     return totalNumberOfEventsSent;
   }
 
-  public void incrementTotalNumberOfEventsSent() {
-    totalNumberOfEventsSent = totalNumberOfEventsSent + 1;
+  public void incrementTotalNumberOfEventsSent(int size) {
+    totalNumberOfEventsSent = totalNumberOfEventsSent + size;
     registry.gauge(STREAM_METRIC_PREFIX + "total_number_of_events_sent", totalNumberOfEventsSent);
   }
 

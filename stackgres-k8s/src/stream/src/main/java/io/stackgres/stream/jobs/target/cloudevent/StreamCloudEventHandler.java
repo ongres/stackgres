@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.engine.format.CloudEvents;
 import io.stackgres.common.RetryUtil;
 import io.stackgres.common.crd.sgstream.StackGresStream;
@@ -37,6 +38,7 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.core.Response;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +115,7 @@ public class StreamCloudEventHandler implements TargetEventHandler {
     }
 
     @Override
-    public void consumeEvent(ChangeEvent<String, String> changeEvent) {
+    protected void consumeEvent(ChangeEvent<String, String> changeEvent) {
       RetryUtil.retryWithLimit(() -> sendCloudEvent(changeEvent), ex -> true,
           retryLimit, retryBackoffDelay, retryBackoffDelay, retryBackoffDelay);
     }
@@ -143,7 +145,17 @@ public class StreamCloudEventHandler implements TargetEventHandler {
     }
 
     @Override
-    public void consumeEvent(ChangeEvent<String, String> changeEvent) {
+    public void consumeEvents(
+        List<ChangeEvent<String, String>> changeEvents,
+        RecordCommitter<ChangeEvent<String, String>> committer) {
+      for (var changeEvent : changeEvents) {
+        consumeEvent(changeEvent);
+        Unchecked.runnable(() -> committer.markProcessed(changeEvent)).run();
+      }
+      Unchecked.runnable(() -> committer.markBatchFinished()).run();
+    }
+
+    protected void consumeEvent(ChangeEvent<String, String> changeEvent) {
       RetryUtil.retry(() -> sendCloudEvent(changeEvent), ex -> true,
           retryBackoffDelay * 10 / 100, retryBackoffDelay, retryBackoffDelay * 10 / 100);
     }
@@ -169,7 +181,7 @@ public class StreamCloudEventHandler implements TargetEventHandler {
           throw new RuntimeException("Error " + response.getStatus()
               + (response.isClosed() || !response.hasEntity() ? "" : ": " + response.readEntity(String.class)));
         }
-        metrics.incrementTotalNumberOfEventsSent();
+        metrics.incrementTotalNumberOfEventsSent(1);
         metrics.setLastEventSent(recordNode.get("id").asText());
         metrics.setLastEventWasSent(true);
       } catch (RuntimeException ex) {
