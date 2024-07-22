@@ -8,7 +8,7 @@ DO $$
   BEGIN
     IF EXISTS (SELECT * FROM (
         SELECT datname, unnest(setconfig) AS setconfig
-        FROM pg_database JOIN pg_db_role_setting ON (pg_database.oid = pg_db_role_setting.setdatabase))
+        FROM pg_database JOIN pg_db_role_setting ON (pg_database.oid = pg_db_role_setting.setdatabase)) AS _
       WHERE datname = $datname$%3$s$datname$ AND setconfig = 'sgstream.ddl_import_completed=true') -- Skip schema migration if already performed
     THEN
       RETURN;
@@ -26,11 +26,11 @@ DO $$
           DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
           COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
           COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=%2$s --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-          SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+          SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) AS _
             WHERE line NOT LIKE '-- %%' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
             AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) %4$s(;| )%%' -- Skip SGCluster existing roles
           UNION ALL
-          SELECT 'ALTER ROLE ' || substring(line SIMILAR 'CREATE ROLE #"%%#";' ESCAPE '#') || ' SET sgstream.ddl_import_completed = true;' FROM input
+          SELECT 'ALTER ROLE ' || substring(line, 'CREATE ROLE #"%%#";', '#') || ' SET sgstream.ddl_import_completed = true;' FROM input
             WHERE line SIMILAR TO 'CREATE ROLE %%;'
             AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) %4$s(;| )%%' -- Skip SGCluster existing roles
             ;
@@ -39,12 +39,12 @@ DO $$
         -- Skip roles migration if already performed
         WHERE (NOT EXISTS (SELECT * FROM (
             SELECT rolname, unnest(setconfig) AS setconfig
-            FROM pg_roles JOIN pg_db_role_setting ON (pg_roles.oid = pg_db_role_setting.setrole))
+            FROM pg_roles JOIN pg_db_role_setting ON (pg_roles.oid = pg_db_role_setting.setrole)) AS _
             WHERE setconfig = 'sgstream.ddl_import_completed=true')
         OR line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) ('
           || (SELECT string_agg(rolname, '|') FROM (
             SELECT rolname, unnest(setconfig) AS setconfig
-            FROM pg_roles JOIN pg_db_role_setting ON (pg_roles.oid = pg_db_role_setting.setrole))
+            FROM pg_roles JOIN pg_db_role_setting ON (pg_roles.oid = pg_db_role_setting.setrole)) AS _
             WHERE setconfig = 'sgstream.ddl_import_completed=true')
           || ')(;| )%%')
         )
