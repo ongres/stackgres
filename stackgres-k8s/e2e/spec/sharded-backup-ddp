@@ -230,7 +230,7 @@ check_restore_sharded_backup_is_working() {
     return 1
   fi
 
-  check_init_data_after_restore
+  wait_until check_init_data_after_restore
 }
 
 create_mock_data() {

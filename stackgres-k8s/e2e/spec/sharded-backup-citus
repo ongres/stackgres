@@ -236,7 +236,7 @@ check_restore_sharded_backup_is_working() {
     return 1
   fi
 
-  check_init_data_after_restore
+  wait_until check_init_data_after_restore
 }
 
 check_restore_sharded_backup_with_pitr_is_working() {
@@ -269,7 +269,7 @@ check_restore_sharded_backup_with_pitr_is_working() {
     return 1
   fi
 
-  check_init_data_after_pitr
+  wait_until check_init_data_after_pitr
 }
 
 create_mock_data() {
