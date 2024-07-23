@@ -209,105 +209,10 @@ EOF
 
   PREVIOUS_RELEASE_NAME="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
   PREVIOUS_RELEASE_NAME="${PREVIOUS_RELEASE_NAME#*/}"
-  kubectl patch -n "$OPERATOR_NAMESPACE" sgconfig "$PREVIOUS_RELEASE_NAME" --type merge \
-    -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
-
-  if [ "$STACKGRES_PREVIOUS_VERSION" = 1.6.0 ]
+  if [ "$STACKGRES_PREVIOUS_VERSION" != 1.11.0 ] && [ "$STACKGRES_PREVIOUS_VERSION" != 1.12.0 ]
   then
-    kubectl create -f "$PROJECT_PATH"/stackgres-k8s/src/common/src/main/resources/crds/SGBackupConfig.yaml
-
-    cat << EOF | kubectl apply -f -
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: stackgres-statefulset-controller-extra
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: stackgres-statefulset-controller-extra
-subjects:
-- kind: ServiceAccount
-  name: statefulset-controller
-  namespace: kube-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: stackgres-statefulset-controller-extra
-rules:
-- apiGroups:
-  - stackgres.io
-  resources:
-  - sgclusters/finalizers
-  - sgdistributedlogs/finalizers
-  verbs:
-  - update
-EOF
-    
-    cat << EOF | kubectl apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: stackgres-operator-extra
-rules:
-- apiGroups: ["stackgres.io"]
-  resources:
-  - sgclusters/finalizers
-  - sgpgconfigs/finalizers
-  - sginstanceprofiles/finalizers
-  - sgpoolconfigs/finalizers
-  - sgbackupconfigs/finalizers
-  - sgbackups/finalizers
-  - sgdistributedlogs/finalizers
-  - sgdbops/finalizers
-  - sgobjectstorages/finalizers
-  - sgscripts/finalizers
-  - sgshardedclusters/finalizers
-  - sgshardedbackups/finalizers
-  - sgshardeddbops/finalizers
-  - sgconfigs/finalizers
-  verbs:
-  - update
-- apiGroups: ["", "apps", "batch"]
-  resources:
-  - statefulsets/finalizers
-  - persistentvolumeclaims/finalizers
-  - deployments/finalizers
-  - services/finalizers
-  - endpoints/finalizers
-  - cronjobs/finalizers
-  - jobs/finalizers
-  verbs:
-  - update
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: stackgres-operator-extra
-subjects:
-- kind: ServiceAccount
-  name: stackgres-operator
-  namespace: $OPERATOR_NAMESPACE
-roleRef:
-  kind: ClusterRole
-  name: stackgres-operator-extra
-  apiGroup: rbac.authorization.k8s.io
-EOF
-    
-    kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge -p '
-    {
-      "spec": {
-        "config": {
-          "env":[
-           {
-              "name": "USE_ARBITRARY_USER",
-              "value": "true"
-           }
-           ]
-        }
-      }
-    }'
+    kubectl patch -n "$OPERATOR_NAMESPACE" sgconfig "$PREVIOUS_RELEASE_NAME" --type merge \
+      -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
   fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$PREVIOUS_RELEASE_NAME$"
@@ -347,25 +252,6 @@ e2e_upgrade_operator() {
   fi
 
   echo "Upgrading operator bundle ($STACKGRES_VERSION)"
-
-  if [ "$STACKGRES_PREVIOUS_VERSION" = 1.6.0 ]
-  then
-    kubectl delete -f "$PROJECT_PATH"/stackgres-k8s/src/common/src/main/resources/crds/SGBackupConfig.yaml
-
-    kubectl delete clusterrolebinding stackgres-statefulset-controller-extra
-    kubectl delete clusterrole stackgres-statefulset-controller-extra
-    kubectl delete clusterrolebinding stackgres-operator-extra
-    kubectl delete clusterrole stackgres-operator-extra
-    
-    kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge -p '
-    {
-      "spec": {
-        "config": {
-          "env":[]
-        }
-      }
-    }'
-  fi
 
   # The operator-sdk does not allow to load a bundle with IfNotPresent so we have to pull it from the remote repository
   BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
@@ -561,6 +447,14 @@ EOF
     | grep -qF "'"/${EXPECTED_RESTAPI_IMAGE##*/}"'"'
 
   wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
+
+  if [ "$STACKGRES_PREVIOUS_VERSION" = 1.11.0 ] || [ "$STACKGRES_PREVIOUS_VERSION" = 1.12.0 ]
+  then
+    RELEASE_NAME="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
+    RELEASE_NAME="${RELEASE_NAME#*/}"
+    kubectl patch -n "$OPERATOR_NAMESPACE" sgconfig "$RELEASE_NAME" --type merge \
+      -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
+  fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
