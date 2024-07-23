@@ -959,6 +959,23 @@ ALTER TABLE ONLY language
 ALTER TABLE ONLY payment
     ADD CONSTRAINT payment_pkey PRIMARY KEY (payment_id);
 
+ALTER TABLE ONLY payment_p2007_01
+    ADD CONSTRAINT payment_p2007_01_pkey PRIMARY KEY (payment_id);
+
+ALTER TABLE ONLY payment_p2007_02
+    ADD CONSTRAINT payment_p2007_02_pkey PRIMARY KEY (payment_id);
+
+ALTER TABLE ONLY payment_p2007_03
+    ADD CONSTRAINT payment_p2007_03_pkey PRIMARY KEY (payment_id);
+
+ALTER TABLE ONLY payment_p2007_04
+    ADD CONSTRAINT payment_p2007_04_pkey PRIMARY KEY (payment_id);
+
+ALTER TABLE ONLY payment_p2007_05
+    ADD CONSTRAINT payment_p2007_05_pkey PRIMARY KEY (payment_id);
+
+ALTER TABLE ONLY payment_p2007_06
+    ADD CONSTRAINT payment_p2007_06_pkey PRIMARY KEY (payment_id);
 
 --
 -- Name: rental_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
@@ -1680,7 +1697,7 @@ ALTER TABLE ONLY staff
 --
 
 ALTER TABLE ONLY staff
-    ADD CONSTRAINT staff_store_id_fkey FOREIGN KEY (store_id) REFERENCES store(store_id);
+    ADD CONSTRAINT staff_store_id_fkey FOREIGN KEY (store_id) REFERENCES store(store_id) DEFERRABLE INITIALLY IMMEDIATE;
 
 
 --
@@ -1696,7 +1713,7 @@ ALTER TABLE ONLY store
 --
 
 ALTER TABLE ONLY store
-    ADD CONSTRAINT store_manager_staff_id_fkey FOREIGN KEY (manager_staff_id) REFERENCES staff(staff_id) ON UPDATE CASCADE ON DELETE RESTRICT;
+    ADD CONSTRAINT store_manager_staff_id_fkey FOREIGN KEY (manager_staff_id) REFERENCES staff(staff_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY IMMEDIATE;
 
 
 --
@@ -1707,6 +1724,116 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
+--
+-- PostgreSQL database dump some data
+--
+
+Insert into language
+ (language_id,name,last_update)
+Values
+('1','English','2006-02-15 05:02:19.000')
+;
+
+Insert into country
+ (country_id,country,last_update)
+Values
+('103','United States','2006-02-15 04:44:00.000')
+;
+
+Insert into city
+ (city_id,city,country_id,last_update)
+Values
+('135','Dallas','103','2006-02-15 04:45:25.000')
+;
+Insert into city
+ (city_id,city,country_id,last_update)
+Values
+('140','Dayton','103','2006-02-15 04:45:25.000')
+;
+
+Insert into address
+ (address_id,address,address2,district,city_id,postal_code,phone,last_update)
+Values
+ ('299','32 Pudukkottai Lane',NULL,' ','140','38834',' ','2006-02-15 04:45:30.000')
+;
+Insert into address
+ (address_id,address,address2,district,city_id,postal_code,phone,last_update)
+Values
+ ('405','530 Lausanne Lane',NULL,' ','135','11067',' ','2006-02-15 04:45:30.000')
+;
+
+Insert into actor
+ (actor_id,first_name,last_name,last_update)
+Values
+('1','PENELOPE','GUINESS','2006-02-15 04:34:33.000')
+;
+
+BEGIN;
+
+SET CONSTRAINTS all DEFERRED;
+
+Insert into store
+ (store_id,manager_staff_id,address_id,last_update)
+Values
+('1','1','405','2006-02-15 04:57:12.000')
+;
+
+Insert into staff
+ (staff_id,first_name,last_name,address_id,picture,email,store_id,active,username,password,last_update)
+Values
+ ('1','Mike','Hillyer','405',NULL,'Mike.Hillyer@sakilastaff.com','1','1','Mike','8cb2237d0679ca88db6464eac60da96345513964','2006-02-15 04:57:16.000')
+;
+
+COMMIT;
+
+Insert into category
+ (category_id,name,last_update)
+Values
+('6','Documentary','2006-02-15 04:46:27.000')
+;
+
+Insert into film
+ (film_id,title,description,release_year,language_id,original_language_id,rental_duration,rental_rate,length,replacement_cost,rating,special_features,last_update)
+Values
+ ('1','ACADEMY DINOSAUR','A Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies','2006','1',NULL,'6','0.99','86','20.99','PG',string_to_array('Deleted Scenes,Behind the Scenes',','),'2006-02-15 05:03:42.000')
+;
+
+
+Insert into inventory
+ (inventory_id,film_id,store_id,last_update)
+Values
+('1','1','1','2006-02-15 05:09:17.000')
+;
+
+Insert into film_actor
+ (actor_id,film_id,last_update)
+Values
+('1','1','2006-02-15 05:05:03.000')
+;
+
+Insert into film_category
+ (film_id,category_id,last_update)
+Values
+('1','6','2006-02-15 05:07:09.000')
+;
+
+Insert into customer
+ (customer_id,store_id,first_name,last_name,email,address_id,active,create_date,last_update)
+Values
+('1','1','MARY','SMITH','MARY.SMITH@sakilacustomer.org','299','1','2006-02-14 22:04:36.000','2006-02-15 04:57:20.000')
+;
+
+Insert into rental
+ (rental_id,rental_date,inventory_id,customer_id,return_date,staff_id,last_update)
+Values
+('1','2007-05-24 22:53:30.000','1','1','2007-05-26 22:04:30.000','1','2007-05-26 22:04:30.000')
+;
+
+Insert into payment
+ (payment_id,customer_id,staff_id,rental_id,amount,payment_date)
+Values
+ ('1','1','1','1','2.99','2007-05-25 11:30:37.000')
+;
 
 --
 -- PostgreSQL database dump complete

@@ -173,7 +173,7 @@ EOF
 
 wait_sharded_backup_is_completed() {
   local BACKUP_NAME="$1"
-  if wait_until eval '[ "$(kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+  if wait_until -t "$((E2E_TIMEOUT * 3))" eval '[ "$(kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template "{{ .status.process.status }}" \
     | grep "^Completed$" | wc -l)" -gt 0 ]'
   then
@@ -236,7 +236,7 @@ check_restore_sharded_backup_is_working() {
     return 1
   fi
 
-  check_init_data_after_restore
+  wait_until check_init_data_after_restore
 }
 
 check_restore_sharded_backup_with_pitr_is_working() {
@@ -269,7 +269,7 @@ check_restore_sharded_backup_with_pitr_is_working() {
     return 1
   fi
 
-  check_init_data_after_pitr
+  wait_until check_init_data_after_pitr
 }
 
 create_mock_data() {

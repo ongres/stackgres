@@ -7,8 +7,8 @@ e2e_exclusive_lock() {
 e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
-  kubectl create namespace "$OPERATOR_NAMESPACE"
-  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create namespace "$OPERATOR_NAMESPACE" 2>/dev/null || kubectl get namespace "$OPERATOR_NAMESPACE"
+  kubectl create namespace "$CLUSTER_NAMESPACE" 2>/dev/null || kubectl get namespace "$CLUSTER_NAMESPACE"
 }
 
 e2e_test_uninstall() {
@@ -24,10 +24,10 @@ e2e_test() {
   run_test "Check that operator can not be upgrade from an alpha version" check_operator_upgrade_alpha
   run_test "Check that operator can not be upgrade from a beta version" check_operator_upgrade_beta
   run_test "Check that operator can not be upgrade from version 0.9.5" check_operator_upgrade_0_9_5
-  run_test "Check that operator can be upgrade from version 1.9.0" check_operator_upgrade_1_9_0
-  run_test "Check that operator can be upgrade from version 1.10.0" check_operator_upgrade_1_10_0
+  run_test "Check that operator can be upgrade from version 1.11.0" check_operator_upgrade_1_11_0
+  run_test "Check that operator can be upgrade from version 1.12.0" check_operator_upgrade_1_12_0
   run_test "Check that operator can not be upgrade with an SGCluster that uses version 0.9.5" check_operator_upgrade_with_cluster_using_0_9_5
-  run_test "Check that operator can be upgrade with an SGCluster that uses version 1.9.0 and 1.10.0" check_operator_upgrade_with_cluster_using_1_9_0_and_1_10_0
+  run_test "Check that operator can be upgrade with an SGCluster that uses version 1.11.0 and 1.12.0" check_operator_upgrade_with_cluster_using_1_11_0_and_1_12_0
   run_test "Check that operator can be deleted" check_operator_delete
   run_test "Check that operator can be installed from outside" check_operator_install_outside
   run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
@@ -73,7 +73,7 @@ check_operator_install_outside() {
     wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
   done
 
-  install_operator_only --set-string service.type=NodePort --set service.nodePort=31111
+  install_operator_only --set-string adminui.service.type=NodePort --set adminui.service.nodePort=31111
 
   check_operator_installed
 }
@@ -85,7 +85,7 @@ check_operator_install_load_balancer() {
     wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
   done
 
-  install_operator_only --set service.loadBalancer.enabled=true
+  install_operator_only --set adminui.service.type=LoadBalancer
 
   check_operator_installed
 }
@@ -168,32 +168,32 @@ check_operator_upgrade_0_9_5() {
   fi
 }
 
-check_operator_upgrade_1_9_0() {
-  local PREVIOUS_VERSION=1.9.0
+check_operator_upgrade_1_12_0() {
+  local PREVIOUS_VERSION=1.12.0
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "SUCCESS. Upgrade did not failed when previous version was 1.9.0"
+    echo "SUCCESS. Upgrade did not failed when previous version was 1.12.0"
   else
-    echo "FAILED. Upgrade failed when previous version was 1.9.0"
+    echo "FAILED. Upgrade failed when previous version was 1.12.0"
     return 1
   fi
 }
 
-check_operator_upgrade_1_10_0() {
-  local PREVIOUS_VERSION=1.10.0
+check_operator_upgrade_1_11_0() {
+  local PREVIOUS_VERSION=1.11.0
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "SUCCESS. Upgrade did not failed when previous version was 1.10.0"
+    echo "SUCCESS. Upgrade did not failed when previous version was 1.11.0"
   else
-    echo "FAILED. Upgrade failed when previous version was 1.10.0"
+    echo "FAILED. Upgrade failed when previous version was 1.11.0"
     return 1
   fi
 }
@@ -222,13 +222,13 @@ check_operator_upgrade_with_cluster_using_0_9_5() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
-check_operator_upgrade_with_cluster_using_1_9_0_and_1_10_0() {
+check_operator_upgrade_with_cluster_using_1_11_0_and_1_12_0() {
   CLUSTER_1_NAME="$(get_sgcluster_name "$SPEC_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$SPEC_NAME-2")"
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
-  local PREVIOUS_VERSION_1=1.9.0
-  local PREVIOUS_VERSION_2=1.10.0
+  local PREVIOUS_VERSION_1=1.11.0
+  local PREVIOUS_VERSION_2=1.12.0
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version=13.9
@@ -254,9 +254,9 @@ check_operator_upgrade_with_cluster_using_1_9_0_and_1_10_0() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "SUCCESS. Upgrade did not failed with an SGCluster that uses version 1.9.0 and 1.10.0"
+    echo "SUCCESS. Upgrade did not failed with an SGCluster that uses version 1.10.0 and 1.11.0"
   else
-    echo "FAILED. Upgrade failed with an SGCluster that uses version 1.9.0 and 1.10.0"
+    echo "FAILED. Upgrade failed with an SGCluster that uses version 1.10.0 and 1.11.0"
     return 1
   fi
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"

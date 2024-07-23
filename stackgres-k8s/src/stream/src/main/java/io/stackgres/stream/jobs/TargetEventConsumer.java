@@ -5,11 +5,14 @@
 
 package io.stackgres.stream.jobs;
 
+import java.util.List;
+
 import io.debezium.engine.ChangeEvent;
+import io.debezium.engine.DebeziumEngine.RecordCommitter;
 
 public interface TargetEventConsumer<T> extends AutoCloseable {
 
-  void consumeEvent(ChangeEvent<T, T> event);
+  void consumeEvents(List<ChangeEvent<T, T>> events, RecordCommitter<ChangeEvent<T, T>> committer);
 
   @Override
   default void close() throws Exception {

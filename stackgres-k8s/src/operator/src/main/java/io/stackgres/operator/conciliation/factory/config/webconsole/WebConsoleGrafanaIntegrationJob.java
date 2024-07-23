@@ -54,6 +54,9 @@ import org.jooq.lambda.tuple.Tuple2;
 public class WebConsoleGrafanaIntegrationJob
     implements ResourceGenerator<StackGresConfigContext> {
 
+  private final String sgConfigNamespace = OperatorProperty.SGCONFIG_NAMESPACE.get()
+      .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getString);
+
   private final LabelFactoryForConfig labelFactory;
   private final KubectlUtil kubectl;
   private final WebConsolePodSecurityFactory webConsolePodSecurityContext;
@@ -215,8 +218,7 @@ public class WebConsoleGrafanaIntegrationJob
             .withEnv(
                 new EnvVarBuilder()
                 .withName("SGCONFIG_NAMESPACE")
-                .withValue(OperatorProperty.SGCONFIG_NAMESPACE.get()
-                    .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getString))
+                .withValue(sgConfigNamespace)
                 .build(),
                 new EnvVarBuilder()
                 .withName("OPERATOR_NAME")

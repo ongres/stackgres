@@ -67,7 +67,8 @@ e2e_test_install() {
   fi
   e2e_install_previous_operator
 
-  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create namespace "$CLUSTER_NAMESPACE" 2>/dev/null \
+    || kubectl get namespace "$CLUSTER_NAMESPACE" >/dev/null
 
   install_minio
 
@@ -1154,6 +1155,8 @@ check_namespace() {
     return 0
   else
     echo "FAIL. Namespace endpoint not return all namespaces"
+    local RETURN EXIT_CODE
+    try_function check_returned_namespaces
     return 1
   fi
 }
@@ -1163,10 +1166,13 @@ check_returned_namespaces() {
   local NAMESPACES_IN_K8S
 
   NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
-    | jq -M -S 'sort_by(.)[]' )"
+    | jq -r -M -S 'sort_by(.)[]' )"
 
-  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
-    | jq -M -S '.items[].metadata.name')"
+  NAMESPACES_IN_K8S="$(
+    [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+      && printf '%s %s' "$E2E_ALLOWED_NAMESPACES $OPERATOR_NAMESPACE" | tr ' ' '\n' | sort | uniq \
+      || kubectl get ns -o json \
+    | jq -r -M -S '.items[].metadata.name')"
 
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
