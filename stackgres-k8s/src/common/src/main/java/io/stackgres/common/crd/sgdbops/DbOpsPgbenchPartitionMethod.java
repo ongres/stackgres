@@ -7,14 +7,14 @@ package io.stackgres.common.crd.sgdbops;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum DbOpsMethodType {
+public enum DbOpsPgbenchPartitionMethod {
 
-  IN_PLACE("InPlace"),
-  REDUCED_IMPACT("ReducedImpact");
+  RANGE("range"),
+  HASH("hash");
 
   private final @NotNull String type;
 
-  DbOpsMethodType(@NotNull String type) {
+  DbOpsPgbenchPartitionMethod(@NotNull String type) {
     this.type = type;
   }
 
@@ -23,13 +23,13 @@ public enum DbOpsMethodType {
     return type;
   }
 
-  public static DbOpsMethodType fromString(String name) {
-    for (DbOpsMethodType value : values()) {
+  public static DbOpsPgbenchPartitionMethod fromString(String name) {
+    for (DbOpsPgbenchPartitionMethod value : values()) {
       if (value.type.equals(name)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("method type is invalid: " + name);
+    throw new IllegalArgumentException("pgbench partition method is invalid: " + name);
   }
 
 }

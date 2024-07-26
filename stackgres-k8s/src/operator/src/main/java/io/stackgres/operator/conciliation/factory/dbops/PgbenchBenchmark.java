@@ -6,22 +6,28 @@
 package io.stackgres.operator.conciliation.factory.dbops;
 
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkCredentials;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchCustom;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchCustomScript;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -31,6 +37,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniServices;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -68,64 +75,214 @@ public class PgbenchBenchmark extends AbstractDbOpsJob {
         .setScale(0, RoundingMode.UP)
         .toPlainString();
     final String duration = String.valueOf(Duration.parse(pgbench.getDuration()).getSeconds());
-    return ImmutableList.of(
+    final String samplingRate = Optional.ofNullable(pgbench.getSamplingRate())
+        .map(new DecimalFormat("#.000000000")::format)
+        .orElse("1.0");
+    return Seq.of(
         new EnvVarBuilder()
-            .withName("PGHOST")
-            .withValue(serviceDns)
-            .build(),
+        .withName("PGHOST")
+        .withValue(serviceDns)
+        .build(),
         new EnvVarBuilder()
-            .withName("PRIMARY_PGHOST")
-            .withValue(primaryServiceDns)
-            .build(),
+        .withName("PRIMARY_PGHOST")
+        .withValue(primaryServiceDns)
+        .build(),
         new EnvVarBuilder()
-            .withName("PGUSER")
-            .withValue("postgres")
-            .build(),
+        .withName("PGUSER")
+        .withNewValueFrom()
+        .withSecretKeyRef(Optional.ofNullable(benchmark.getCredentials())
+            .map(StackGresDbOpsBenchmarkCredentials::getUsername)
+            .map(SecretKeySelector.class::cast)
+            .orElseGet(() -> new SecretKeySelector(
+                PatroniSecret.SUPERUSER_USERNAME_KEY,
+                PatroniSecret.name(context.getCluster()),
+                false)))
+        .endValueFrom()
+        .build(),
         new EnvVarBuilder()
-            .withName("PGPASSWORD")
-            .withNewValueFrom()
-            .withNewSecretKeyRef()
-            .withName(PatroniSecret.name(context.getCluster()))
-            .withKey(PatroniSecret.SUPERUSER_PASSWORD_KEY)
-            .endSecretKeyRef()
-            .endValueFrom()
-            .build(),
+        .withName("PGPASSWORD")
+        .withNewValueFrom()
+        .withSecretKeyRef(Optional.ofNullable(benchmark.getCredentials())
+            .map(StackGresDbOpsBenchmarkCredentials::getPassword)
+            .map(SecretKeySelector.class::cast)
+            .orElseGet(() -> new SecretKeySelector(
+                PatroniSecret.SUPERUSER_PASSWORD_KEY,
+                PatroniSecret.name(context.getCluster()),
+                false)))
+        .endValueFrom()
+        .build(),
         new EnvVarBuilder()
-            .withName("SCALE")
-            .withValue(scale)
-            .build(),
+        .withName("MODE")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getMode)
+            .orElse(""))
+        .build(),
         new EnvVarBuilder()
-            .withName("DURATION")
-            .withValue(duration)
-            .build(),
+        .withName("SCALE")
+        .withValue(scale)
+        .build(),
         new EnvVarBuilder()
-            .withName("PROTOCOL")
-            .withValue(Optional.of(pgbench)
-                .map(StackGresDbOpsPgbench::getUsePreparedStatements)
-                .map(usePreparedStatements -> usePreparedStatements ? "prepared" : "simple")
-                .orElse("simple"))
-            .build(),
+        .withName("DURATION")
+        .withValue(duration)
+        .build(),
         new EnvVarBuilder()
-            .withName("READ_WRITE")
-            .withValue(Optional.of(benchmark)
-                .map(StackGresDbOpsBenchmark::isConnectionTypePrimaryService)
-                .map(String::valueOf)
-                .orElse("true"))
-            .build(),
+        .withName("SAMPLING_RATE")
+        .withValue(samplingRate)
+        .build(),
         new EnvVarBuilder()
-            .withName("CLIENTS")
-            .withValue(Optional.of(pgbench)
-                .map(StackGresDbOpsPgbench::getConcurrentClients)
-                .map(String::valueOf)
-                .orElse("1"))
-            .build(),
+        .withName("FOREIGN_KEYS")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getForeignKeys)
+            .map(Object::toString)
+            .orElse("false"))
+        .build(),
         new EnvVarBuilder()
-            .withName("JOBS")
-            .withValue(Optional.of(pgbench)
-                .map(StackGresDbOpsPgbench::getThreads)
-                .map(String::valueOf)
-                .orElse("1"))
-            .build());
+        .withName("UNLOGGED_TABLES")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getUnloggedTables)
+            .map(Object::toString)
+            .orElse("false"))
+        .build(),
+        new EnvVarBuilder()
+        .withName("PARTITION_METHOD")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getPartitionMethod)
+            .orElse(""))
+        .build(),
+        new EnvVarBuilder()
+        .withName("PARTITIONS")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getPartitions)
+            .map(Object::toString)
+            .orElse(""))
+        .build(),
+        new EnvVarBuilder()
+        .withName("INIT_STEPS")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getInitSteps)
+            .orElse(""))
+        .build(),
+        new EnvVarBuilder()
+        .withName("FILLFACTOR")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getFillfactor)
+            .map(Object::toString)
+            .orElse(""))
+        .build(),
+        new EnvVarBuilder()
+        .withName("NO_VACUUM")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getNoVacuum)
+            .map(Object::toString)
+            .orElse("false"))
+        .build(),
+        new EnvVarBuilder()
+        .withName("DATABASE")
+        .withValue(Optional.of(benchmark)
+            .map(StackGresDbOpsBenchmark::getDatabase)
+            .orElse(""))
+        .build(),
+        new EnvVarBuilder()
+        .withName("PROTOCOL")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getQueryMode)
+            .orElse("simple"))
+        .build(),
+        new EnvVarBuilder()
+        .withName("READ_WRITE")
+        .withValue(Optional.of(benchmark)
+            .map(StackGresDbOpsBenchmark::isConnectionTypePrimaryService)
+            .map(String::valueOf)
+            .orElse("true"))
+        .build(),
+        new EnvVarBuilder()
+        .withName("CLIENTS")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getConcurrentClients)
+            .map(String::valueOf)
+            .orElse("1"))
+        .build(),
+        new EnvVarBuilder()
+        .withName("JOBS")
+        .withValue(Optional.of(pgbench)
+            .map(StackGresDbOpsPgbench::getThreads)
+            .map(String::valueOf)
+            .orElse("1"))
+        .build())
+        .append(
+            Optional.ofNullable(pgbench.getCustom())
+            .map(StackGresDbOpsPgbenchCustom::getInitialization)
+            .map(script -> createEnvVarFromScript("INIT_SCRIPT", script)))
+        .append(
+            Seq.seq(Optional.ofNullable(pgbench.getCustom())
+            .map(StackGresDbOpsPgbenchCustom::getScripts))
+            .filter(Predicate.not(List::isEmpty))
+            .map(scripts -> new EnvVarBuilder()
+                .withName("SCRIPTS")
+                .withValue(scripts.stream()
+                    .map(script -> Optional.ofNullable(script.getBuiltin()).orElse("custom")
+                        + " " + Optional.ofNullable(script.getWeight()).orElse(1))
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(",")))
+                .build())
+            .append(
+                Seq.seq(Optional.ofNullable(pgbench.getCustom())
+                .map(StackGresDbOpsPgbenchCustom::getScripts))
+                .flatMap(List::stream)
+                .zipWithIndex()
+                .map(script -> createEnvVarFromScript("SCRIPT_" + script.v2, script.v1))))
+        .toList();
+  }
+
+  @Override
+  protected List<EnvVar> getSetResultEnvVars(StackGresDbOpsContext context) {
+    StackGresDbOps dbOps = context.getSource();
+    StackGresDbOpsBenchmark benchmark = dbOps.getSpec().getBenchmark();
+    StackGresDbOpsPgbench pgbench = benchmark.getPgbench();
+    final String duration = String.valueOf(Duration.parse(pgbench.getDuration()).getSeconds());
+    return Seq.of(
+        new EnvVarBuilder()
+        .withName("DURATION")
+        .withValue(duration)
+        .build())
+        .append(
+            Seq.seq(Optional.ofNullable(pgbench.getCustom())
+            .map(StackGresDbOpsPgbenchCustom::getScripts))
+            .filter(Predicate.not(List::isEmpty))
+            .map(scripts -> new EnvVarBuilder()
+                .withName("SCRIPTS")
+                .withValue(scripts.stream()
+                    .map(script -> Optional.ofNullable(script.getBuiltin()).orElse("custom")
+                        + " " + Optional.ofNullable(script.getWeight()).orElse(1))
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(",")))
+                .build()))
+        .toList();
+  }
+
+  private EnvVar createEnvVarFromScript(String name, StackGresDbOpsPgbenchCustomScript script) {
+    if (script.getScriptFrom() != null
+        && script.getScriptFrom().getConfigMapKeyRef() != null) {
+      return new EnvVarBuilder()
+          .withName(name)
+          .withNewValueFrom()
+          .withConfigMapKeyRef(script.getScriptFrom().getConfigMapKeyRef())
+          .endValueFrom()
+          .build();
+    }
+    if (script.getScriptFrom() != null
+        && script.getScriptFrom().getSecretKeyRef() != null) {
+      return new EnvVarBuilder()
+          .withName(name)
+          .withNewValueFrom()
+          .withSecretKeyRef(script.getScriptFrom().getSecretKeyRef())
+          .endValueFrom()
+          .build();
+    }
+    return new EnvVarBuilder()
+        .withName(name)
+        .withValue(script.getScript())
+        .build();
   }
 
   @Override

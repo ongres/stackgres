@@ -184,21 +184,26 @@ check_pgbench() {
     fail "pgbench did not returned the latency standard deviation unit."
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+  if [ "${E2E_POSTGRES_VERSION%%.*}" -le 13 ]
   then
-    success "pgbench returned the tps including connections establishing."
-  else
-    fail "pgbench did not returned the tps including connections establishing."
-  fi
+    if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
+    then
+      echo "SUCCESS. pgbench returned the tps including connections establishing."
+    else
+      echo "FAILED. pgbench did not returned the tps including connections establishing."
+      return 1
+    fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
-    = "tps" ]
-  then
-    success "pgbench returned the tps including connections establishing unit."
-  else
-    fail "pgbench did not returned the tps including connections establishing unit."
+    if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
+      = "tps" ]
+    then
+      echo "SUCCESS. pgbench returned the tps including connections establishing unit."
+    else
+      echo "FAILED. pgbench did not returned the tps including connections establishing unit."
+      return 1
+    fi
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \

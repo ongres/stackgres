@@ -7,14 +7,15 @@ package io.stackgres.common.crd.sgdbops;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum DbOpsMethodType {
+public enum DbOpsPgbenchQueryMode {
 
-  IN_PLACE("InPlace"),
-  REDUCED_IMPACT("ReducedImpact");
+  SIMPLE("simple"),
+  EXTENDED("extended"),
+  PREPARED("prepared");
 
   private final @NotNull String type;
 
-  DbOpsMethodType(@NotNull String type) {
+  DbOpsPgbenchQueryMode(@NotNull String type) {
     this.type = type;
   }
 
@@ -23,13 +24,13 @@ public enum DbOpsMethodType {
     return type;
   }
 
-  public static DbOpsMethodType fromString(String name) {
-    for (DbOpsMethodType value : values()) {
+  public static DbOpsPgbenchQueryMode fromString(String name) {
+    for (DbOpsPgbenchQueryMode value : values()) {
       if (value.type.equals(name)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("method type is invalid: " + name);
+    throw new IllegalArgumentException("pgbench query mode is invalid: " + name);
   }
 
 }

@@ -15,6 +15,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
@@ -31,9 +32,16 @@ public class StackGresDbOpsBenchmark {
   @NotEmpty(message = "spec.benchmark.type must be provided")
   private String type;
 
+  private String database;
+
+  @Valid
+  private StackGresDbOpsBenchmarkCredentials credentials;
+
   @Valid
   private StackGresDbOpsPgbench pgbench;
 
+  @ValidEnum(enumClass = DbOpsBenchmarkConnectionType.class, allowNulls = true,
+      message = "connectionType must be one of primary-service or replicas-service")
   private String connectionType;
 
   @ReferencedField("type")
@@ -57,14 +65,6 @@ public class StackGresDbOpsBenchmark {
   }
 
   @JsonIgnore
-  @AssertTrue(message = "type must be pgbench.",
-      payload = Type.class)
-  public boolean isConnectionTypeValid() {
-    return connectionType == null
-        || List.of("primary-service", "replicas-service").contains(connectionType);
-  }
-
-  @JsonIgnore
   public boolean isTypePgBench() {
     return Objects.equals(type, "pgbench");
   }
@@ -72,12 +72,12 @@ public class StackGresDbOpsBenchmark {
   @JsonIgnore
   public boolean isConnectionTypePrimaryService() {
     return connectionType == null
-        || Objects.equals(connectionType, "primary-service");
+        || Objects.equals(connectionType, DbOpsBenchmarkConnectionType.PRIMARY_SERVICE.toString());
   }
 
   @JsonIgnore
   public boolean isConnectionTypeReplicasService() {
-    return Objects.equals(connectionType, "replicas-service");
+    return Objects.equals(connectionType, DbOpsBenchmarkConnectionType.REPLICAS_SERVICE.toString());
   }
 
   public String getType() {
@@ -86,6 +86,22 @@ public class StackGresDbOpsBenchmark {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public String getDatabase() {
+    return database;
+  }
+
+  public void setDatabase(String database) {
+    this.database = database;
+  }
+
+  public StackGresDbOpsBenchmarkCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(StackGresDbOpsBenchmarkCredentials credentials) {
+    this.credentials = credentials;
   }
 
   public StackGresDbOpsPgbench getPgbench() {
@@ -106,7 +122,7 @@ public class StackGresDbOpsBenchmark {
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionType, pgbench, type);
+    return Objects.hash(connectionType, credentials, database, pgbench, type);
   }
 
   @Override
@@ -119,7 +135,9 @@ public class StackGresDbOpsBenchmark {
     }
     StackGresDbOpsBenchmark other = (StackGresDbOpsBenchmark) obj;
     return Objects.equals(connectionType, other.connectionType)
-        && Objects.equals(pgbench, other.pgbench) && Objects.equals(type, other.type);
+        && Objects.equals(credentials, other.credentials)
+        && Objects.equals(database, other.database) && Objects.equals(pgbench, other.pgbench)
+        && Objects.equals(type, other.type);
   }
 
   @Override
