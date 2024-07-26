@@ -29,9 +29,9 @@ public enum DbOpsOperation {
   }
 
   public static DbOpsOperation fromString(String name) {
-    for (DbOpsOperation dbOps : values()) {
-      if (dbOps.type.equals(name)) {
-        return dbOps;
+    for (DbOpsOperation value : values()) {
+      if (value.type.equals(name)) {
+        return value;
       }
     }
     throw new IllegalArgumentException("DbOps operation type is invalid: " + name);

@@ -15,6 +15,10 @@ public class DbOpsBenchmark {
 
   private String type;
 
+  private String database;
+
+  private DbOpsBenchmarkCredentials credentials;
+
   private DbOpsPgbench pgbench;
 
   private String connectionType;
@@ -25,6 +29,22 @@ public class DbOpsBenchmark {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public String getDatabase() {
+    return database;
+  }
+
+  public void setDatabase(String database) {
+    this.database = database;
+  }
+
+  public DbOpsBenchmarkCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(DbOpsBenchmarkCredentials credentials) {
+    this.credentials = credentials;
   }
 
   public DbOpsPgbench getPgbench() {

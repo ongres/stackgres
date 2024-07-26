@@ -7,14 +7,14 @@ package io.stackgres.common.crd.sgdbops;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum DbOpsMethodType {
+public enum DbOpsBenchmarkConnectionType {
 
-  IN_PLACE("InPlace"),
-  REDUCED_IMPACT("ReducedImpact");
+  PRIMARY_SERVICE("primary-service"),
+  REPLICAS_SERVICE("replicas-service");
 
   private final @NotNull String type;
 
-  DbOpsMethodType(@NotNull String type) {
+  DbOpsBenchmarkConnectionType(@NotNull String type) {
     this.type = type;
   }
 
@@ -23,13 +23,13 @@ public enum DbOpsMethodType {
     return type;
   }
 
-  public static DbOpsMethodType fromString(String name) {
-    for (DbOpsMethodType value : values()) {
+  public static DbOpsBenchmarkConnectionType fromString(String name) {
+    for (DbOpsBenchmarkConnectionType value : values()) {
       if (value.type.equals(name)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("method type is invalid: " + name);
+    throw new IllegalArgumentException("benchmark connection type is invalid: " + name);
   }
 
 }

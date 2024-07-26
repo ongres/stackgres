@@ -120,11 +120,64 @@ spec:
                       The type of benchmark that will be performed on the SGCluster. Available benchmarks are:
 
                       * `pgbench`: run [pgbench](https://www.postgresql.org/docs/current/pgbench.html) on the specified SGCluster and report the results in the status.
+                  database:
+                    type: string
+                    description: |
+                      When specified will indicate the database where the benchmark will run upon.
+                      
+                      If not specified a target database with a random name will be created and removed after the benchmark completes.
+                  credentials:
+                    type: object
+                    description: The credentials of the user that will be used by the benchmark
+                    required: ["username","password"]
+                    properties:
+                      username:
+                        type: object
+                        description: |
+                          The username that will be used by the benchmark.
+                          
+                          If not specified the default superuser username (by default postgres) will be used.
+                        required: ["name", "key"]
+                        properties:
+                          name:
+                            type: string
+                            description: |
+                              The Secret name where the username is stored.
+                          key:
+                            type: string
+                            description: |
+                              The Secret key where the username is stored.
+                      password:
+                        type: object
+                        description: |
+                          The password that will be used by the benchmark
+                          
+                          If not specified the default superuser password will be used.
+                        required: ["name", "key"]
+                        properties:
+                          name:
+                            type: string
+                            description: |
+                              The Secret name where the password is stored.
+                          key:
+                            type: string
+                            description: |
+                              The Secret key where the password is stored.
                   pgbench:
                     type: object
                     description: |
                       Configuration of [pgbench](https://www.postgresql.org/docs/current/pgbench.html) benchmark
                     properties:
+                      mode:
+                        type: string
+                        description: |
+                          The pgbench benchmark type:
+                          
+                          * `tpcb-like`: The benchmark is inspired by the [TPC-B benchmark](https://www.tpc.org/TPC_Documents_Latest_Versions/TPC-B_v2.0.0.pdf). It is the default mode when `connectionType` is set to `primary-service`.
+                          * `select-only`: The `tpcb-like` but only using SELECTs commands. It is the default mode when `connectionType` is set to `replicas-service`.
+                          * `custom`: will use the scripts in the `custom` section to initialize and and run commands for the benchmark.
+                          
+                          See also https://www.postgresql.org/docs/current/pgbench.html#TRANSACTIONS-AND-SCRIPTS
                       databaseSize:
                         type: string
                         pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
@@ -137,7 +190,21 @@ spec:
                       usePreparedStatements:
                         type: boolean
                         description: |
+                          **Deprecated** this field is ignored, use `queryMode` instead.
+  
                           Use extended query protocol with prepared statements. Defaults to: `false`.
+                      queryMode:
+                        type: string
+                        description: |
+                          Protocol to use for submitting queries to the server:
+
+                          * `simple`: use simple query protocol.
+                          * `extended`: use extended query protocol.
+                          * `prepared`: use extended query protocol with prepared statements.
+  
+                          In the prepared mode, pgbench reuses the parse analysis result starting from the second query iteration, so pgbench runs faster than in other modes.
+  
+                          The default is `simple` query protocol. See also https://www.postgresql.org/docs/current/protocol.html
                       concurrentClients:
                         type: integer
                         description: |
@@ -146,6 +213,114 @@ spec:
                         type: integer
                         description: |
                           Number of worker threads within pgbench. Using more than one thread can be helpful on multi-CPU machines. Clients are distributed as evenly as possible among available threads. Default is `1`.
+                      samplingRate:
+                        type: number
+                        description: |
+                          Sampling rate, used when collecting data, to reduce the amount of collected data. If this option is given, only the specified fraction of transactions are collected. 1.0 means all transactions will be logged, 0.05 means only 5% of the transactions will be logged.
+                      foreignKeys:
+                        type: boolean
+                        description: |
+                          Create foreign key constraints between the standard tables. (This option only take effect if `custom.initiailization` is not specified).
+                      unloggedTables:
+                        type: boolean
+                        description: |
+                          Create all tables as unlogged tables, rather than permanent tables. (This option only take effect if `custom.initiailization` is not specified).
+                      partitionMethod:
+                        type: string
+                        description: |
+                          Create a partitioned pgbench_accounts table with the specified method. Expected values are `range` or `hash`. This option requires that partitions is set to non-zero. If unspecified, default is `range`. (This option only take effect if `custom.initiailization` is not specified).
+                      partitions:
+                        type: integer
+                        description: |
+                          Create a partitioned pgbench_accounts table with the specified number of partitions of nearly equal size for the scaled number of accounts. Default is 0, meaning no partitioning. (This option only take effect if `custom.initiailization` is not specified).
+                      initSteps:
+                        type: string
+                        description: |
+                          Perform just a selected set of the normal initialization steps. init_steps specifies the initialization steps to be performed, using one character per step. Each step is invoked in the specified order. The default is dtgvp. The available steps are:
+  
+                          * `d` (Drop): Drop any existing pgbench tables.
+                          * `t` (create Tables): Create the tables used by the standard pgbench scenario, namely pgbench_accounts, pgbench_branches, pgbench_history, and pgbench_tellers.
+                          * `g` or `G` (Generate data, client-side or server-side): Generate data and load it into the standard tables, replacing any data already present.
+                            With `g` (client-side data generation), data is generated in pgbench client and then sent to the server. This uses the client/server bandwidth extensively through a COPY. pgbench uses the FREEZE option with version 14 or later of PostgreSQL to speed up subsequent VACUUM, unless partitions are enabled. Using g causes logging to print one message every 100,000 rows while generating data for the pgbench_accounts table.
+                            With `G` (server-side data generation), only small queries are sent from the pgbench client and then data is actually generated in the server. No significant bandwidth is required for this variant, but the server will do more work. Using G causes logging not to print any progress message while generating data.
+                            The default initialization behavior uses client-side data generation (equivalent to g).
+                          * `v` (Vacuum): Invoke VACUUM on the standard tables.
+                          * `p` (create Primary keys): Create primary key indexes on the standard tables.
+                          * `f` (create Foreign keys): Create foreign key constraints between the standard tables. (Note that this step is not performed by default.)
+                      fillfactor:
+                        type: integer
+                        description: |
+                          Create the pgbench_accounts, pgbench_tellers and pgbench_branches tables with the given fillfactor. Default is 100.
+                      noVacuum:
+                        type: boolean
+                        description: |
+                          Perform no vacuuming during initialization. (This option suppresses the `v` initialization step, even if it was specified in `initSteps`.)
+                      custom:
+                        type: object
+                        description: This section allow to configure custom SQL for initialization and scripts used by pgbench.
+                        required: [scripts]
+                        properties:
+                          initialization:
+                            type: object
+                            description: |
+                              The custom SQL for initialization that will be executed in place of pgbench default initialization.
+                              
+                              If not specified the default pgbench initialization will be performed instead.
+                            properties: &script-properties
+                              script:
+                                type: string
+                                description: |
+                                  Raw SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
+                              scriptFrom:
+                                type: object
+                                description: |
+                                  Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+  
+                                  Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.
+                                properties:
+                                  secretKeyRef:
+                                    type: object
+                                    description: |
+                                      A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#secretkeyselector-v1-core) that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                                    properties:
+                                      name:
+                                        type: string
+                                        description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                      key:
+                                        type: string
+                                        description: The key of the secret to select from. Must be a valid secret key.
+                                  configMapKeyRef:
+                                    type: object
+                                    description: |
+                                      A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                                    properties:
+                                      name:
+                                        type: string
+                                        description: |
+                                          The name of the ConfigMap that contains the SQL script to execute.
+                                      key:
+                                        type: string
+                                        description: |
+                                          The key name within the ConfigMap that contains the SQL script to execute.
+                          scripts:
+                            type: array
+                            description: The custom SQL scripts that will be executed by pgbench during the benchmark instead of default pgbench scripts
+                            minItems: 1
+                            items:
+                              type: object
+                              description: A custom SQL script that will be executed by pgbench during the benchmark instead of default pgbench scripts
+                              properties:
+                                <<: *script-properties
+                                builtin:
+                                  type: string
+                                  description: |
+                                    The name of the builtin script to use. See https://www.postgresql.org/docs/current/pgbench.html#PGBENCH-OPTION-BUILTIN
+                                    
+                                    When specified fields `script` and `scriptFrom` must not be set.
+                                weight:
+                                  type: integer
+                                  description: The weight of this custom SQL script.
+                                
                     required: [ "databaseSize", "duration" ]
                   connectionType:
                     type: string
@@ -512,7 +687,7 @@ spec:
                                 type: string
                                 nullable: false
                                 description: |
-                                  The latency measure unit represented in milliseconds
+                                  The latency measure unit
                           standardDeviation:
                             type: object
                             description: |
@@ -527,7 +702,7 @@ spec:
                                 type: string
                                 nullable: false
                                 description: |
-                                  The latency measure unit represented in milliseconds
+                                  The latency measure unit
                       transactionsPerSecond:
                         type: object
                         description: |
@@ -536,33 +711,71 @@ spec:
                           includingConnectionsEstablishing:
                             type: object
                             description: |
-                              Number of Transaction Per Second (tps) including connection establishing.
+                              Number of Transactions Per Second (tps) including connection establishing.
                             properties:
                               value: 
                                 type: number
-                                nullable: true
                                 description: |
-                                  The Transaction Per Second (tps) including connections establishing value
+                                  The Transactions Per Second (tps) including connections establishing value
                               unit:
                                 type: string
-                                nullable: false
                                 description: |
-                                  Transaction Per Second (tps) measure
+                                  Transactions Per Second (tps) measure unit
                           excludingConnectionsEstablishing:
                             type: object
                             description: |
-                              Number of Transaction Per Second (tps) excluding connection establishing.
+                              Number of Transactions Per Second (tps) excluding connection establishing.
                             properties:
                               value: 
                                 type: number
                                 nullable: true
                                 description: |
-                                  The Transaction Per Second (tps) excluding connections establishing value
+                                  The Transactions Per Second (tps) excluding connections establishing value
                               unit: 
                                 type: string
                                 nullable: false
                                 description: |
-                                  Transaction Per Second (tps) measure
+                                  Transactions Per Second (tps) measure unit
+                          overTime:
+                            type: object
+                            description: The Transactions Per Second (tps) values aggregated over unit of time
+                            properties:
+                              valueUnit:
+                                type: string
+                                description: The Transactions Per Second (tps) measures unit
+                              values:
+                                type: array
+                                description: The Transactions Per Second (tps) values aggregated over unit of time
+                                items:
+                                  type: number
+                              intervalDurationUnit:
+                                type: string
+                                description: The interval duration measure unit
+                              intervalDuration:
+                                type: number
+                                description: The interval duration used to aggregate the transactions per second.
+                      statements:
+                        type: array
+                        description: Average per-statement latency (execution time from the perspective of the client) of each command after the benchmark finishes
+                        items:
+                          type: object
+                          description: Average per-statement latency (execution time from the perspective of the client) of a command after the benchmark finishes
+                          properties:
+                            script:
+                              type: integer
+                              description: The script index (`0` if no custom scripts have been defined)
+                            command:
+                              type: string
+                              description: The command
+                            latency:
+                              type: number
+                              description: Average latency of the command 
+                            unit:
+                              type: string
+                              description: The average latency measure unit
+                      hdrHistogram:
+                        type: string
+                        description: Compressed and base 64 encoded HdrHistogram
               majorVersionUpgrade:
                 type: object
                 description: |

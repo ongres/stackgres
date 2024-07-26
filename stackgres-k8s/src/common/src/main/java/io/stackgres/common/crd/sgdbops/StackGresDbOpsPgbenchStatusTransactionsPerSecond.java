@@ -25,6 +25,8 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond {
 
   private StackGresDbOpsPgbenchStatusMeasure includingConnectionsEstablishing;
 
+  private StackGresDbOpsPgbenchStatusTransactionsPerSecondOverTime overTime;
+
   public StackGresDbOpsPgbenchStatusMeasure getExcludingConnectionsEstablishing() {
     return excludingConnectionsEstablishing;
   }
@@ -43,9 +45,18 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond {
     this.includingConnectionsEstablishing = includingConnectionsEstablishing;
   }
 
+  public StackGresDbOpsPgbenchStatusTransactionsPerSecondOverTime getOverTime() {
+    return overTime;
+  }
+
+  public void setOverTime(StackGresDbOpsPgbenchStatusTransactionsPerSecondOverTime overTime) {
+    this.overTime = overTime;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(excludingConnectionsEstablishing, includingConnectionsEstablishing);
+    return Objects.hash(excludingConnectionsEstablishing, includingConnectionsEstablishing,
+        overTime);
   }
 
   @Override
@@ -56,10 +67,10 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond {
     if (!(obj instanceof StackGresDbOpsPgbenchStatusTransactionsPerSecond)) {
       return false;
     }
-    StackGresDbOpsPgbenchStatusTransactionsPerSecond other =
-        (StackGresDbOpsPgbenchStatusTransactionsPerSecond) obj;
+    StackGresDbOpsPgbenchStatusTransactionsPerSecond other = (StackGresDbOpsPgbenchStatusTransactionsPerSecond) obj;
     return Objects.equals(excludingConnectionsEstablishing, other.excludingConnectionsEstablishing)
-        && Objects.equals(includingConnectionsEstablishing, other.includingConnectionsEstablishing);
+        && Objects.equals(includingConnectionsEstablishing, other.includingConnectionsEstablishing)
+        && Objects.equals(overTime, other.overTime);
   }
 
   @Override
