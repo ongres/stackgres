@@ -7,9 +7,9 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string instanceProfiles[0].name=size-s \
-    --set-string instanceProfiles[0].cpu=500m \
-    --set-string instanceProfiles[0].memory=2Gi \
-    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set-string instanceProfiles[0].cpu="${PATRONI_CPU:-500m}" \
+    --set-string instanceProfiles[0].memory="${PATRONI_MEMORY:-2Gi}" \
+    --set nonProductionOptions.disablePatroniResourceRequirements="${DISABLE_PATRONI_REQUIREMENTS:-false}" \
     --set nonProductionOptions.disableClusterResourceRequirements=true \
     --set-string "configurations.postgresconfig.postgresql\.conf.max_connections=$((E2E_PGBENCH_MAX_CLIENTS * 5 + 4))" \
     --set-string "configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=$((E2E_PGBENCH_MAX_CLIENTS * 5))" \
