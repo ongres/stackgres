@@ -8,31 +8,19 @@ package io.stackgres.stream.configuration;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class CustomPrometheusMeterRegistryProducer extends PrometheusMeterRegistry {
+public class CustomPrometheusMeterRegistryProducer {
 
-  private final JmxCollectorRegistry jmxCollectorRegistry;
-
-  public CustomPrometheusMeterRegistryProducer(PrometheusConfig config, JmxCollectorRegistry jmxCollectorRegistry) {
-    super(config);
-    this.jmxCollectorRegistry = jmxCollectorRegistry;
-  }
+  @Inject
+  JmxCollectorRegistry jmxCollectorRegistry;
 
   @Produces
   @Singleton
   public PrometheusMeterRegistry createPrometheusMeterRegistry() {
-    return new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+    return new CustomPrometheusMeterRegistry(PrometheusConfig.DEFAULT, jmxCollectorRegistry);
   }
 
-  @Override
-  public String scrape() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(super.scrape());
-    if (jmxCollectorRegistry != null) {
-      sb.append(jmxCollectorRegistry.scrape());
-    }
-    return sb.toString();
-  }
 }

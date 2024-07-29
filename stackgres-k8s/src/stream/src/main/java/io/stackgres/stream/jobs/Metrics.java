@@ -5,10 +5,14 @@
 
 package io.stackgres.stream.jobs;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -20,24 +24,42 @@ public class Metrics {
   private static final String STREAM_METRIC_PREFIX = "stream_";
 
   private final MeterRegistry registry;
+  private final Counter totalNumberOfEventsSentCounter;
+  private final Counter totalNumberOfErrorsSeenConuter;
+  private final Map<String, Number> attributes;
+  private final Map<String, Gauge> attributesGauge;
 
-  private Boolean lastEventWasSent;
+  private Boolean lastEventWasSent = true;
   private String lastEventSent;
-  private long totalNumberOfEventsSent = 0L;
+  private Long totalNumberOfEventsSent = 0L;
+  private Long totalNumberOfErrorsSeen = 0L;
   private String lastErrorSeen;
-  private long totalNumberOfErrorsSeen = 0L;
 
   @Inject
   public Metrics(MeterRegistry registry) {
     this.registry = registry;
+    Gauge
+        .builder(STREAM_METRIC_PREFIX + "last_event_was_sent", this::getLastEventWasSentAsNumber)
+        .register(registry);
+    this.totalNumberOfEventsSentCounter = Counter
+        .builder(STREAM_METRIC_PREFIX + "total_number_of_events_sent")
+        .register(registry);
+    this.totalNumberOfErrorsSeenConuter = Counter
+        .builder(STREAM_METRIC_PREFIX + "total_number_of_errors_seen")
+        .register(registry);
+    this.attributes = new HashMap<>();
+    this.attributesGauge = new HashMap<>();
   }
 
   public Boolean isLastEventWasSent() {
     return lastEventWasSent;
   }
 
-  public void setLastEventWasSent(Boolean lastEventWasSent) {
-    registry.gauge(STREAM_METRIC_PREFIX + "last_event_was_sent", lastEventWasSent == null || lastEventWasSent ? 1 : 0);
+  public Integer getLastEventWasSentAsNumber() {
+    return lastEventWasSent ? 1 : 0;
+  }
+
+  public void setLastEventWasSent(boolean lastEventWasSent) {
     this.lastEventWasSent = lastEventWasSent;
   }
 
@@ -49,13 +71,13 @@ public class Metrics {
     this.lastEventSent = lastEventSent;
   }
 
-  public long getTotalNumberOfEventsSent() {
+  public Long getTotalNumberOfEventsSent() {
     return totalNumberOfEventsSent;
   }
 
   public void incrementTotalNumberOfEventsSent(int size) {
-    totalNumberOfEventsSent = totalNumberOfEventsSent + size;
-    registry.gauge(STREAM_METRIC_PREFIX + "total_number_of_events_sent", totalNumberOfEventsSent);
+    totalNumberOfEventsSent += size;
+    totalNumberOfEventsSentCounter.increment(size);
   }
 
   public String getLastErrorSeen() {
@@ -66,13 +88,13 @@ public class Metrics {
     this.lastErrorSeen = lastErrorSeen;
   }
 
-  public long getTotalNumberOfErrorsSeen() {
+  public Long getTotalNumberOfErrorsSeen() {
     return totalNumberOfErrorsSeen;
   }
 
   public void incrementTotalNumberOfErrorsSeen() {
-    totalNumberOfErrorsSeen = totalNumberOfErrorsSeen + 1;
-    registry.gauge(STREAM_METRIC_PREFIX + "total_number_of_errors_seen", totalNumberOfErrorsSeen);
+    totalNumberOfErrorsSeen++;
+    totalNumberOfErrorsSeenConuter.increment();
   }
 
   public void gauge(String attributeName, Number attributeValueNumber) {
@@ -83,7 +105,14 @@ public class Metrics {
         .map(t -> t.v1.equals(t.v2) ? t.v1 : "_" + t.v2)
         .collect(Collectors.joining())
         .replaceAll("^_", "");
-    registry.gauge(STREAM_METRIC_PREFIX + attributeNameNormalized, attributeValueNumber);
+    attributes.put(attributeNameNormalized, attributeValueNumber);
+    attributesGauge.computeIfAbsent(
+        attributeNameNormalized,
+        key -> Gauge
+            .builder(
+                attributeNameNormalized,
+                () -> attributes.get(attributeNameNormalized))
+            .register(registry));
   }
 
 }

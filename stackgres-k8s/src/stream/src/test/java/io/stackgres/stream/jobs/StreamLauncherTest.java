@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
@@ -33,6 +35,7 @@ import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamStatusCondition;
 import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.stream.configuration.CustomPrometheusMeterRegistry;
 import io.stackgres.stream.jobs.lock.LockAcquirer;
 import io.stackgres.stream.jobs.lock.LockRequest;
 import io.stackgres.stream.jobs.lock.MockKubeDb;
@@ -67,6 +70,9 @@ class StreamLauncherTest {
 
   @InjectMock
   StreamEventEmitter streamEventEmitter;
+
+  @Inject
+  MeterRegistry meterRegistry;
 
   StackGresStream stream;
 
@@ -329,6 +335,16 @@ class StreamLauncherTest {
     verify(streamEventEmitter, times(1)).streamCompleted(randomStreamName, namespace);
     verify(streamEventEmitter, never()).streamTimedOut(randomStreamName, namespace);
     verify(streamEventEmitter, never()).streamFailed(randomStreamName, namespace);
+  }
+
+  @Test
+  void checkMeterRegistry() {
+    CompositeMeterRegistry compositeMeterRegistry = (CompositeMeterRegistry) meterRegistry;
+    compositeMeterRegistry.getRegistries().forEach(registry -> System.out.println(registry.getClass().getName()));
+    assertEquals(1, compositeMeterRegistry.getRegistries().size());
+    assertEquals(
+        CustomPrometheusMeterRegistry.class,
+        compositeMeterRegistry.getRegistries().iterator().next().getClass());
   }
 
 }
