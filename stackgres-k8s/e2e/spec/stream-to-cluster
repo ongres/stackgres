@@ -14,8 +14,8 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
-  STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
-  TARGET_CLUSTER_NAME="$(get_sgstreams_name "$SPEC_NAME-target")"
+  STREAM_NAME="$(get_sgstream_name "$SPEC_NAME-operation")"
+  TARGET_CLUSTER_NAME="$(get_sgstream_name "$SPEC_NAME-target")"
   POSTGIS_VERSION="$(get_latest_version_of_extension postgis "$E2E_POSTGRES_VERSION" || true)"
 
   install_minio

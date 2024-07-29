@@ -27,6 +27,8 @@ e2e_test_install() {
     --template '{{ (index .data "superuser-password") | base64decode }}')"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME -s 10"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME -c 'ALTER TABLE pgbench_history ADD COLUMN hid INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY'"
 }
 
 e2e_test_uninstall() {

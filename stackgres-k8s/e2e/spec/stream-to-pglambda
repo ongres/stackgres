@@ -8,7 +8,7 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
-  STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
+  STREAM_NAME="$(get_sgstream_name "$SPEC_NAME-operation")"
 
   install_knative
 

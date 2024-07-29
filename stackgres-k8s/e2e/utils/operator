@@ -1666,7 +1666,7 @@ get_sgshardeddbops_name() {
   get_cr_name "$1" sgshardeddbops.stackgres.io
 }
 
-get_sgstreams_name() {
+get_sgstream_name() {
   get_cr_name "$1" sgstreams.stackgres.io
 }
 
