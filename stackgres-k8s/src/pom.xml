@@ -29,6 +29,7 @@
   </licenses>
 
   <modules>
+    <module>checks</module>
     <module>test-util</module>
     <module>operator-framework</module>
     <module>common</module>
@@ -122,7 +123,7 @@
     <jandex-maven-plugin.version>3.1.7</jandex-maven-plugin.version>
     <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
-    <checks.location>${maven.multiModuleProjectDirectory}/checks</checks.location>
+    <checks.location>checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
     <checkstyle.header.file>${checks.location}/checkstyle-header.txt</checkstyle.header.file>
     <checkstyle.suppressions.location>${checks.location}/checkstyle-suppressions.xml</checkstyle.suppressions.location>
@@ -441,6 +442,11 @@
               <artifactId>checkstyle</artifactId>
               <version>${checkstyle.version}</version>
             </dependency>
+            <dependency>
+              <groupId>io.stackgres</groupId>
+              <artifactId>stackgres-checks</artifactId>
+              <version>1.0.0</version>
+            </dependency>
           </dependencies>
           <configuration>
             <violationSeverity>error</violationSeverity>
@@ -457,6 +463,18 @@
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
           <version>${spotbugs-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.github.spotbugs</groupId>
+              <artifactId>spotbugs</artifactId>
+              <version>${spotbugs.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>io.stackgres</groupId>
+              <artifactId>stackgres-checks</artifactId>
+              <version>1.0.0</version>
+            </dependency>
+          </dependencies>
           <configuration>
             <effort>Max</effort>
             <threshold>Low</threshold>
@@ -464,18 +482,28 @@
             <failOnError>true</failOnError>
             <addSourceDirs>true</addSourceDirs>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>com.github.spotbugs</groupId>
-              <artifactId>spotbugs</artifactId>
-              <version>${spotbugs.version}</version>
-            </dependency>
-          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-pmd-plugin</artifactId>
           <version>${pmd-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>net.sourceforge.pmd</groupId>
+              <artifactId>pmd-core</artifactId>
+              <version>${pmd.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>net.sourceforge.pmd</groupId>
+              <artifactId>pmd-java</artifactId>
+              <version>${pmd.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>io.stackgres</groupId>
+              <artifactId>stackgres-checks</artifactId>
+              <version>1.0.0</version>
+            </dependency>
+          </dependencies>
           <configuration>
             <!-- Disable PMD: Unsupported targetJdk value '21' -->
             <skip>true</skip>
@@ -488,18 +516,6 @@
               <ruleset>${pmd.ruleset.file}</ruleset>
             </rulesets>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>net.sourceforge.pmd</groupId>
-              <artifactId>pmd-core</artifactId>
-              <version>${pmd.version}</version>
-            </dependency>
-            <dependency>
-              <groupId>net.sourceforge.pmd</groupId>
-              <artifactId>pmd-java</artifactId>
-              <version>${pmd.version}</version>
-            </dependency>
-          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>

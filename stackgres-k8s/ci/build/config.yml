@@ -38,11 +38,13 @@ modules:
         -DtrimStackTrace=false
     build_commands:
       - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -pl checks'
       - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
     cache:
       - .m2/
     artifacts:
       - .m2/repository/io/stackgres/stackgres-parent
+      - .m2/repository/io/stackgres/stackgres-checks
   operator-framework-java: &operator-framework-java
     <<: *parent-java
     path: stackgres-k8s/src/operator-framework/.
@@ -51,6 +53,9 @@ modules:
       - sh stackgres-k8s/ci/build/redact-version.sh operator-framework
     sources:
       - stackgres-k8s/src/operator-framework/src/main
+    build_commands:
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
     artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
