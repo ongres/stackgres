@@ -185,13 +185,14 @@ public class StreamCloudEventHandler implements TargetEventHandler {
             .header(CLOUDEVENT_SPECVERSION_HEADER, recordNode.get("specversion").asText())
             .header(CLOUDEVENT_TYPE_HEADER, recordNode.get("type").asText())
             .header(CLOUDEVENT_SOURCE_HEADER, recordNode.get("source").asText());
-        Response response = invocationBuilder
-            .post(Entity.json(changeEvent.value()));
-        if (response.getStatus() != 200) {
-          metrics.incrementTotalNumberOfErrorsSeen();
-          metrics.setLastEventWasSent(false);
-          throw new RuntimeException("Error " + response.getStatus()
-              + (response.isClosed() || !response.hasEntity() ? "" : ": " + response.readEntity(String.class)));
+        try (Response response = invocationBuilder
+            .post(Entity.json(changeEvent.value()))) {
+          if (response.getStatus() != 200) {
+            metrics.incrementTotalNumberOfErrorsSeen();
+            metrics.setLastEventWasSent(false);
+            throw new RuntimeException("Error " + response.getStatus()
+                + (response.isClosed() || !response.hasEntity() ? "" : ": " + response.readEntity(String.class)));
+          }
         }
         metrics.incrementTotalNumberOfEventsSent(1);
         metrics.setLastEventSent(recordNode.get("id").asText());
@@ -205,6 +206,11 @@ public class StreamCloudEventHandler implements TargetEventHandler {
         metrics.setLastEventWasSent(false);
         throw new RuntimeException(ex);
       }
+    }
+
+    @Override
+    public void close() throws Exception {
+      brokerClient.close();
     }
   }
 
