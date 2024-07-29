@@ -60,7 +60,8 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
       r -> new Thread(r, "DebeziumEngine"));
 
   public static String name(StackGresStream stream) {
-    return stream.getMetadata().getNamespace() + "." + stream.getMetadata().getName();
+    return (stream.getMetadata().getNamespace() + "." + stream.getMetadata().getName())
+        .replace("-", "_");
   }
 
   public static String topicPrefix(StackGresStream stream) {
