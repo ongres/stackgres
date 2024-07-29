@@ -66,14 +66,13 @@ run_pgbench() {
     then
       try_drop_pgbench_database
     fi
-  
-    if MESSAGE="$(psql -c "CREATE DATABASE $DATABASE_NAME" 2>&1)"
+
+    try_function_with_message psql -c "CREATE DATABASE $DATABASE_NAME"
+    if [ "$(cat exit_code)" = 0 ]
     then
-      printf '%s\n' "$MESSAGE"
       create_event_service "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
     else
-      printf '%s\n' "$MESSAGE"
-      create_event_service "CreateDatabaseFailed" "Warning" "Can not create database $DATABASE_NAME: $MESSAGE"
+      create_event_service "CreateDatabaseFailed" "Warning" "Can not create database $DATABASE_NAME: $(cat message)"
       return 1
     fi
   fi
@@ -81,29 +80,27 @@ run_pgbench() {
   create_event_service "BenchmarkInitializationStarted" "Normal" "Benchamrk initialization started"
   if [ -s init-script.sql ]
   then
-    if MESSAGE="$(psql -t -A -d "$DATABASE_NAME" -f init-script.sql 2>&1)"
+    try_function_with_message psql -t -A -d "$DATABASE_NAME" -f init-script.sql
+    if [ "$(cat exit_code)" = 0 ]
     then
-      printf '%s\n' "$MESSAGE"
       create_event_service "BenchmarkInitialized" "Normal" "Benchamrk initialized"
     else
-      printf '%s\n' "$MESSAGE"
-      create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $MESSAGE"
+      create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $(cat message)"
       return 1
     fi
   else
-    if MESSAGE="$(pgbench \
+    try_function_with_message pgbench \
       -s "$SCALE" \
       -i \
       $([ -z "$INIT_STEPS" ] || printf %s=%s --init-steps "$INIT_STEPS") \
       $([ -z "$FILLFACTOR" ] || printf %s=%s --fillfactor "$FILLFACTOR") \
       $([ "$NO_VACUUM" != true ] || printf %s --no-vacuum) \
-      "$DATABASE_NAME" 2>&1)"
+      "$DATABASE_NAME"
+    if [ "$(cat exit_code)" = 0 ]
     then
-      printf '%s\n' "$MESSAGE"
       create_event_service "BenchmarkInitialized" "Normal" "Benchamrk initialized"
     else
-      printf '%s\n' "$MESSAGE"
-      create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $MESSAGE"
+      create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $(cat message)"
       return 1
     fi
   fi
@@ -112,11 +109,8 @@ run_pgbench() {
   if ! "$READ_WRITE"
   then
     create_event_service "BenchmarkPostInitializationStarted" "Normal" "Benchamrk post initialization started"
-    PGBENCH_ACCOUNTS_COUNT="$(PGHOST="$PRIMARY_PGHOST" psql -t -A -d "$DATABASE_NAME" \
-      -c "SELECT COUNT(*) FROM pgbench_accounts")"
-
-    until [ "$(psql -t -A -d "$DATABASE_NAME" \
-      -c "SELECT COUNT(*) FROM pgbench_accounts")" = "$PGBENCH_ACCOUNTS_COUNT" ]
+    until [ "$(PGHOST="$PRIMARY_PGHOST" psql -t -A -d "$DATABASE_NAME" \
+      -c "SELECT NOT EXISTS (SELECT * FROM pg_stat_replication WHERE replay_lsn != pg_current_wal_lsn())")" = "t" ]
     do
       sleep 1
     done
@@ -124,7 +118,7 @@ run_pgbench() {
   fi
 
   create_event_service "BenchmarkStarted" "Normal" "Benchamrk started"
-  if MESSAGE="$(pgbench $MODE_PARAMS \
+  try_function_with_message pgbench $MODE_PARAMS \
     -M "$PROTOCOL" \
     -s "$SCALE" \
     -T "$DURATION" \
@@ -138,14 +132,12 @@ run_pgbench() {
     $([ "$UNLOGGED_TABLES" != true ] || printf %s --unlogged-tables) \
     $([ -z "$PARTITION_METHOD" ] || printf %s=%s --partition-method "$PARTITION_METHOD") \
     $([ -z "$PARTITIONS" ] || printf %s=%s --partitions "$PARTITIONS") \
-    "$DATABASE_NAME" \
-    2>&1)"
+    "$DATABASE_NAME"
+  if [ "$(cat exit_code)" = 0 ]
   then
-    printf '%s\n' "$MESSAGE"
     create_event_service "BenchmarkCompleted" "Normal" "Benchmark completed"
   else
-    printf '%s\n' "$MESSAGE"
-    create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
+    create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $(cat message)"
     return 1
   fi
 }
@@ -156,10 +148,10 @@ try_drop_pgbench_database() {
   DROP_RETRY=3
   while [ "$DROP_RETRY" -ge 0 ]
   do
-      if MESSAGE="$(psql \
-        -d postgres \
-        -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE_NAME' AND pid != pg_backend_pid()" \
-        -c "DROP DATABASE $DATABASE_NAME" 2>&1)"
+    try_function_with_message psql \
+      -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE_NAME' AND pid != pg_backend_pid()" \
+      -c "DROP DATABASE $DATABASE_NAME"
+    if [ "$(cat exit_code)" = 0 ]
     then
       break
     fi
@@ -170,3 +162,12 @@ try_drop_pgbench_database() {
   )
 }
 
+try_function_with_message() {
+  (
+    set +e
+    (
+    { { { "$@" 2>&1; echo $? >&3; } | tee message >&4; }  3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1
+    )
+    printf %s "$?" > exit_code
+  )
+}

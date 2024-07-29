@@ -80,7 +80,7 @@ set_completed() {
   then
     TPS_INTERVAL_DURATION=1000
   fi
-  TPS_OVER_TIME_VALUES="$(cat /shared/pgbench_log.* \
+  TPS_OVER_TIME_VALUES="$(cat "$SHARED_PATH"/pgbench_log.* \
     | jq -R '[splits(" +")]' \
     | jq -c -s --arg interval_duration "$TPS_INTERVAL_DURATION" '
       ($interval_duration | tonumber) as $interval_duration
@@ -117,7 +117,7 @@ set_completed() {
         | .values
       ')"
   HRDHISTOGRAM="$(grep '^HRDHISTOGRAM: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d ' ' -f 2 \
-    printf '"%s"' "$(cat)" | grep -v '^""$' || echo null)"
+    | printf '"%s"' "$(cat)" | grep -v '^""$' || echo null)"
   kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=json \
     -p "$(cat << EOF
 [

@@ -15,7 +15,7 @@ then
   set -- "$TEST_PATH" "$@"
   cd "$(dirname "$0")"
 fi
-TEST_SHELL_PATH=.
+TEST_SHELL_PATH="$(realpath .)"
 PROJECT_PATH="$TEST_SHELL_PATH/../../.."
 TARGET_PATH="$PROJECT_PATH/target/shell"
 
@@ -35,6 +35,7 @@ run_test() {
   TEST_TARGET_PATH="$TARGET_PATH/$TEST_NAME"
   rm -rf "$TEST_TARGET_PATH"
   mkdir -p "$TEST_TARGET_PATH"
+  TEST_TARGET_PATH="$(realpath "$TEST_TARGET_PATH")"
   echo
   echo "Running $TEST_NAME..."
   echo
