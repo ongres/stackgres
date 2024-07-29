@@ -197,6 +197,7 @@ is_child() {
 
 kill_with_childs() {
   (
+  [ "$DEBUG" = true ] || set +x
   set +e
   local PID="$1"
   local SPIDS="x"
@@ -217,6 +218,7 @@ kill_with_childs() {
 
 kill_session_siblings() {
   (
+  [ "$DEBUG" = true ] || set +x
   set +e
   local PID="$(exec "$SHELL" -c 'echo $PPID')"
   local NSUID="$(id -u)"
