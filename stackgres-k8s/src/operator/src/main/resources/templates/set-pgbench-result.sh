@@ -116,7 +116,7 @@ set_completed() {
           end)
         | .values
       ')"
-  HRDHISTOGRAM="$(grep '^HRDHISTOGRAM: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d ' ' -f 2 \
+  HDRHISTOGRAM="$(grep '^HDRHISTOGRAM: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d ' ' -f 2 \
     | printf '"%s"' "$(cat)" | grep -v '^""$' || echo null)"
   kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=json \
     -p "$(cat << EOF
@@ -158,7 +158,7 @@ set_completed() {
           }
         },
         "statements": ${STATEMENTS},
-        "hdrHistogram": ${HRDHISTOGRAM}
+        "hdrHistogram": ${HDRHISTOGRAM}
       }
     }
   }

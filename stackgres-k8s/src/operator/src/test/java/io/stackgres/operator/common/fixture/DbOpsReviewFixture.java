@@ -37,6 +37,12 @@ public class DbOpsReviewFixture extends VersionedFixture<StackGresDbOpsReview> {
     return this;
   }
 
+  public DbOpsReviewFixture loadSamplingCreate() {
+    fixture = readFromJson(
+        STACKGRES_DB_OPS_ADMISSION_REVIEW_SAMPLING_CREATE_JSON);
+    return this;
+  }
+
   public DbOpsReviewFixture loadRepackCreate() {
     fixture = readFromJson(
         STACKGRES_DB_OPS_ADMISSION_REVIEW_REPACK_CREATE_JSON);

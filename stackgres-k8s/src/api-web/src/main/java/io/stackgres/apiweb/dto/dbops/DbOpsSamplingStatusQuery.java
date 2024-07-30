@@ -11,26 +11,36 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsBenchmarkStatus {
+public class DbOpsSamplingStatusQuery {
 
-  private DbOpsPgbenchStatus pgbench;
+  private String id;
 
-  private DbOpsSamplingStatus sampling;
+  private String query;
 
-  public DbOpsPgbenchStatus getPgbench() {
-    return pgbench;
+  private String timestamp;
+
+  public String getId() {
+    return id;
   }
 
-  public void setPgbench(DbOpsPgbenchStatus pgbench) {
-    this.pgbench = pgbench;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public DbOpsSamplingStatus getSampling() {
-    return sampling;
+  public String getQuery() {
+    return query;
   }
 
-  public void setSampling(DbOpsSamplingStatus sampling) {
-    this.sampling = sampling;
+  public void setQuery(String query) {
+    this.query = query;
+  }
+
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(String timestamp) {
+    this.timestamp = timestamp;
   }
 
   @Override

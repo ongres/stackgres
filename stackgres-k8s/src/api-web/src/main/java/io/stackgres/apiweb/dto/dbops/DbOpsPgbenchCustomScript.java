@@ -19,6 +19,8 @@ public class DbOpsPgbenchCustomScript {
 
   private String builtin;
 
+  private Integer replay;
+
   private Integer weight;
 
   public String getScript() {
@@ -43,6 +45,14 @@ public class DbOpsPgbenchCustomScript {
 
   public void setBuiltin(String builtin) {
     this.builtin = builtin;
+  }
+
+  public Integer getReplay() {
+    return replay;
+  }
+
+  public void setReplay(Integer replay) {
+    this.replay = replay;
   }
 
   public Integer getWeight() {
