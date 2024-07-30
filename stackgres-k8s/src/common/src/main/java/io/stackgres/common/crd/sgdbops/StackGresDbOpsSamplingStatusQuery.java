@@ -19,31 +19,41 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsBenchmarkStatus {
+public class StackGresDbOpsSamplingStatusQuery {
 
-  private StackGresDbOpsPgbenchStatus pgbench;
+  private String id;
 
-  private StackGresDbOpsSamplingStatus sampling;
+  private String query;
 
-  public StackGresDbOpsPgbenchStatus getPgbench() {
-    return pgbench;
+  private String timestamp;
+
+  public String getId() {
+    return id;
   }
 
-  public void setPgbench(StackGresDbOpsPgbenchStatus pgbench) {
-    this.pgbench = pgbench;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public StackGresDbOpsSamplingStatus getSampling() {
-    return sampling;
+  public String getQuery() {
+    return query;
   }
 
-  public void setSampling(StackGresDbOpsSamplingStatus sampling) {
-    this.sampling = sampling;
+  public void setQuery(String query) {
+    this.query = query;
+  }
+
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(String timestamp) {
+    this.timestamp = timestamp;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(pgbench, sampling);
+    return Objects.hash(id, query, timestamp);
   }
 
   @Override
@@ -51,11 +61,12 @@ public class StackGresDbOpsBenchmarkStatus {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresDbOpsBenchmarkStatus)) {
+    if (!(obj instanceof StackGresDbOpsSamplingStatusQuery)) {
       return false;
     }
-    StackGresDbOpsBenchmarkStatus other = (StackGresDbOpsBenchmarkStatus) obj;
-    return Objects.equals(pgbench, other.pgbench) && Objects.equals(sampling, other.sampling);
+    StackGresDbOpsSamplingStatusQuery other = (StackGresDbOpsSamplingStatusQuery) obj;
+    return Objects.equals(id, other.id) && Objects.equals(query, other.query)
+        && Objects.equals(timestamp, other.timestamp);
   }
 
   @Override

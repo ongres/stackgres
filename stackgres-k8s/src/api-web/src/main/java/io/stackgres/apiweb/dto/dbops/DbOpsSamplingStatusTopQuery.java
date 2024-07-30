@@ -5,32 +5,34 @@
 
 package io.stackgres.apiweb.dto.dbops;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsBenchmarkStatus {
+public class DbOpsSamplingStatusTopQuery {
 
-  private DbOpsPgbenchStatus pgbench;
+  private String id;
 
-  private DbOpsSamplingStatus sampling;
+  private Map<String, String> stats;
 
-  public DbOpsPgbenchStatus getPgbench() {
-    return pgbench;
+  public String getId() {
+    return id;
   }
 
-  public void setPgbench(DbOpsPgbenchStatus pgbench) {
-    this.pgbench = pgbench;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public DbOpsSamplingStatus getSampling() {
-    return sampling;
+  public Map<String, String> getStats() {
+    return stats;
   }
 
-  public void setSampling(DbOpsSamplingStatus sampling) {
-    this.sampling = sampling;
+  public void setStats(Map<String, String> stats) {
+    this.stats = stats;
   }
 
   @Override

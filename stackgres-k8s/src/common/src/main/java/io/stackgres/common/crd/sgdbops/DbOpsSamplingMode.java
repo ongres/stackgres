@@ -7,14 +7,15 @@ package io.stackgres.common.crd.sgdbops;
 
 import org.jetbrains.annotations.NotNull;
 
-public enum DbOpsBenchmarkType {
+public enum DbOpsSamplingMode {
 
-  PGBENCH("pgbench"),
-  SAMPLING("sampling");
+  TIME("time"),
+  CALLS("calls"),
+  CUSTOM("custom");
 
   private final @NotNull String type;
 
-  DbOpsBenchmarkType(@NotNull String type) {
+  DbOpsSamplingMode(@NotNull String type) {
     this.type = type;
   }
 
@@ -23,13 +24,13 @@ public enum DbOpsBenchmarkType {
     return type;
   }
 
-  public static DbOpsBenchmarkType fromString(String name) {
-    for (DbOpsBenchmarkType value : values()) {
+  public static DbOpsSamplingMode fromString(String name) {
+    for (DbOpsSamplingMode value : values()) {
       if (value.type.equals(name)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("benchmark type is invalid: " + name);
+    throw new IllegalArgumentException("sampling mode is invalid: " + name);
   }
 
 }

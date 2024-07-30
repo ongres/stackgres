@@ -120,6 +120,7 @@ spec:
                       The type of benchmark that will be performed on the SGCluster. Available benchmarks are:
 
                       * `pgbench`: run [pgbench](https://www.postgresql.org/docs/current/pgbench.html) on the specified SGCluster and report the results in the status.
+                      * `sampling`: samples real queries and store them in the SGDbOps status in order to be used by a `pgbench` benchmark using `replay` mode.
                   database:
                     type: string
                     description: |
@@ -163,6 +164,61 @@ spec:
                             type: string
                             description: |
                               The Secret key where the password is stored.
+                  sampling:
+                    type: object
+                    description: |
+                      Configuration of sampling benchmark.
+                    required: [ targetDatabase, topQueriesCollectDuration, samplingDuration ]
+                    properties:
+                      targetDatabase:
+                        type: string
+                        description: |
+                          The target database to be sampled. By default `postgres`.
+                          
+                          The benchmark database will be used to store the sampled queries but user must specify a target database to be sampled in the `sampling` section.
+                      topQueriesCollectDuration:
+                        type: string
+                        description: An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies how long the to wait before selecting top queries in order to collect enough stats.
+                      samplingDuration:
+                        type: string
+                        description: An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies how long will last the sampling of real queries that will be replayed later.
+                      mode:
+                        type: string
+                        description: |
+                          The mode used to select the top queries used for sampling:
+                          
+                          * `time`: The top queries will be selected among the most slow queries.
+                          * `calls`: The top queries will be selected among the most called queries.
+                          * `custom`: The `customTopQueriesQuery` will be used to select top queries.
+                      topQueriesFilter:
+                        type: string
+                        description: Regular expression for filtering representative statements when selecting top queries. Will be ignored if `mode` is set to `custom`. By default is `^ *(with|select) `. See https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP
+                      topQueriesPercentile:
+                        type: integer
+                        description: Percentile of queries to consider as part of the top queries. Will be ignored if `mode` is set to `custom`. By default `95`.
+                      topQueriesMin:
+                        type: integer
+                        description: Minimum number of queries to consider as part of the top queries. By default `5`.
+                      customTopQueriesQuery:
+                        type: string
+                        description: |
+                          The query used to select top queries. Will be ignored if `mode` is not set to `custom`.
+                          
+                          The query must return at most 2 columns:
+                          
+                          * First column returned by the query must be a column holding the query identifier, also available in pg_stat_activity (column `query_id`) and pg_stat_statements (column `queryid`).
+                          * Second column is optional and, if returned, must hold a json object containing only text keys and values stat will be used to generate the stats.
+                          
+                          See also:
+
+                          * https://www.postgresql.org/docs/current/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW
+                          * https://www.postgresql.org/docs/current/pgstatstatements.html#PGSTATSTATEMENTS-PG-STAT-STATEMENTS
+                      queries:
+                        type: integer
+                        description: Number of sampled queries to include in the result. By default `10`.
+                      omitTopQueriesInStatus:
+                        type: boolean
+                        description: When `true` omit to include the top queries stats in the SGDbOps status. By default `false`.
                   pgbench:
                     type: object
                     description: |
@@ -176,6 +232,7 @@ spec:
                           * `tpcb-like`: The benchmark is inspired by the [TPC-B benchmark](https://www.tpc.org/TPC_Documents_Latest_Versions/TPC-B_v2.0.0.pdf). It is the default mode when `connectionType` is set to `primary-service`.
                           * `select-only`: The `tpcb-like` but only using SELECTs commands. It is the default mode when `connectionType` is set to `replicas-service`.
                           * `custom`: will use the scripts in the `custom` section to initialize and and run commands for the benchmark.
+                          * `replay`: will replay the sampled queries of a sampling benchmark SGDbOps. If the `custom` section is specified it will be used instead. Queries can be referenced setting `custom.scripts.replay` to the index of the query in the sampling benchmark SGDbOps's status (index start from 0).
                           
                           See also https://www.postgresql.org/docs/current/pgbench.html#TRANSACTIONS-AND-SCRIPTS
                       databaseSize:
@@ -255,6 +312,9 @@ spec:
                         type: boolean
                         description: |
                           Perform no vacuuming during initialization. (This option suppresses the `v` initialization step, even if it was specified in `initSteps`.)
+                      samplingSGDbOps:
+                        type: string
+                        description: benchmark SGDbOps of type sampling that will be used to replay sampled queries.
                       custom:
                         type: object
                         description: This section allow to configure custom SQL for initialization and scripts used by pgbench.
@@ -316,7 +376,13 @@ spec:
                                   description: |
                                     The name of the builtin script to use. See https://www.postgresql.org/docs/current/pgbench.html#PGBENCH-OPTION-BUILTIN
                                     
-                                    When specified fields `script` and `scriptFrom` must not be set.
+                                    When specified fields `replay`, `script` and `scriptFrom` must not be set.
+                                replay:
+                                  type: integer
+                                  description: |
+                                    The index of the query in the sampling benchmark SGDbOps's status (index start from 0).
+                                    
+                                    When specified fields `builtin`, `script` and `scriptFrom` must not be set.
                                 weight:
                                   type: integer
                                   description: The weight of this custom SQL script.
@@ -653,10 +719,38 @@ spec:
                 description: |
                   The results of the benchmark
                 properties:
+                  sampling:
+                    type: object
+                    description: The results of the sampling benchmark
+                    properties:
+                      topQueries:
+                        type: object
+                        description: The top queries sampled with the stats from pg_stat_statements. If is omitted if `omitTopQueriesInStatus` is set to `true`.
+                        properties:
+                          id:
+                            type: string
+                            description: The query id of the representative statement calculated by Postgres
+                          stats:
+                            type: object
+                            description: stats collected by the top queries query
+                            additionalProperties:
+                              type: string
+                      queries:
+                        type: object
+                        description: The queries sampled.
+                        properties:
+                          id:
+                            type: string
+                            description: The query id of the representative statement calculated by Postgres
+                          query:
+                            type: string
+                            description: A sampled SQL query
+                          timestamp:
+                            type: string
+                            description: The sampled query timestamp
                   pgbench:
                     type: object
-                    description: |
-                      The results of the pgbench benchmark
+                    description: The results of the pgbench benchmark
                     properties:
                       scaleFactor:
                         type: number
@@ -740,7 +834,7 @@ spec:
                             type: object
                             description: The Transactions Per Second (tps) values aggregated over unit of time
                             properties:
-                              valueUnit:
+                              valuesUnit:
                                 type: string
                                 description: The Transactions Per Second (tps) measures unit
                               values:

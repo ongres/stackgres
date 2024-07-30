@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.dbops;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
+import io.stackgres.common.validation.ValidEnum;
 import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractConstraintValidator;
@@ -49,22 +50,37 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<Stack
 
   @Test
   void nullBenchmarkType_shouldFail() {
-
     StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().setType(null);
 
     checkErrorCause(StackGresDbOpsBenchmark.class, "spec.benchmark.type",
-        review, NotEmpty.class);
+        "spec.benchmark.type", review, ValidEnum.class);
   }
 
   @Test
   void wrongBenchmarkType_shouldFail() {
-
     StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().setType("test");
 
     checkErrorCause(StackGresDbOpsBenchmark.class, "spec.benchmark.type",
-        "spec.isTypeValid", review, AssertTrue.class);
+        "spec.benchmark.type", review, ValidEnum.class);
+  }
+
+  @Test
+  void nullPgbenchMode_shouldPass() throws Exception {
+    StackGresDbOpsReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setMode(null);
+
+    validator.validate(review);
+  }
+
+  @Test
+  void wrongPgbenchMode_shouldFail() {
+    StackGresDbOpsReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setMode("test");
+
+    checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.mode",
+        "spec.benchmark.pgbench.mode", review, ValidEnum.class);
   }
 
   @Test
@@ -89,7 +105,6 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<Stack
 
   @Test
   void wrongDuration_shouldFail() {
-
     StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDuration("10s");
 
@@ -99,7 +114,6 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<Stack
 
   @Test
   void negativeDuration_shouldFail() {
-
     StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDuration("-PT1M");
 
@@ -109,24 +123,30 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<Stack
 
   @Test
   void invalidLowConcurrentClients_shouldFail() {
-
     StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setConcurrentClients(0);
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.concurrentClients",
         review, Min.class);
-
   }
 
   @Test
   void invalidLowThreads_shouldFail() {
-
     StackGresDbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setThreads(0);
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.threads",
         review, Min.class);
+  }
 
+  @Test
+  void samplingSgDbOpsIsRequiredWhenModeIsReplay_shouldFail() {
+    StackGresDbOpsReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setMode("replay");
+    review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setSamplingSgDbOps(null);
+
+    checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.samplingSGDbOps",
+        "spec.benchmark.pgbench.isSamplingSgDbOpsValid", review, AssertTrue.class);
   }
 
 }

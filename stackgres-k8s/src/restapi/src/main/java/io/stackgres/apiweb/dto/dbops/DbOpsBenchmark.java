@@ -21,6 +21,8 @@ public class DbOpsBenchmark {
 
   private DbOpsPgbench pgbench;
 
+  private DbOpsSampling sampling;
+
   private String connectionType;
 
   public String getType() {
@@ -53,6 +55,14 @@ public class DbOpsBenchmark {
 
   public void setPgbench(DbOpsPgbench pgbench) {
     this.pgbench = pgbench;
+  }
+
+  public DbOpsSampling getSampling() {
+    return sampling;
+  }
+
+  public void setSampling(DbOpsSampling sampling) {
+    this.sampling = sampling;
   }
 
   public String getConnectionType() {

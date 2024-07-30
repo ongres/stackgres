@@ -159,8 +159,7 @@ EOF
 mock() {
   local MOCK="$(cat << EOF
 $1_mocks="$2 \$$1_mocks"
-alias $1=$1_mock_entry
-$1_mock_entry() {
+${1}() {
   {
   local E_UNSET=true
   if echo "\$-" | grep -q e

@@ -33,6 +33,8 @@ public class StackGresDbOpsPgbenchCustomScript {
 
   private String builtin;
 
+  private Integer replay;
+
   private Integer weight;
 
   @ReferencedField("script")
@@ -44,13 +46,17 @@ public class StackGresDbOpsPgbenchCustomScript {
   @ReferencedField("builtin")
   interface Builtin extends FieldReference { }
 
+  @ReferencedField("replay")
+  interface Replay extends FieldReference { }
+
   @JsonIgnore
-  @AssertTrue(message = "script, scriptFrom and builtin are mutually exclusive and required.",
-      payload = { Script.class, ScriptFrom.class, Builtin.class })
+  @AssertTrue(message = "script, scriptFrom, builtin and replay are mutually exclusive and required.",
+      payload = { Script.class, ScriptFrom.class, Builtin.class, Replay.class })
   public boolean isScriptMutuallyExclusiveAndRequired() {
-    return (script != null && scriptFrom == null && builtin == null) // NOPMD
-        || (script == null && scriptFrom != null && builtin == null) // NOPMD
-        || (script == null && scriptFrom == null && builtin != null); // NOPMD
+    return (script != null && scriptFrom == null && builtin == null && replay == null) // NOPMD
+        || (script == null && scriptFrom != null && builtin == null && replay == null) // NOPMD
+        || (script == null && scriptFrom == null && builtin != null && replay == null) // NOPMD
+        || (script == null && scriptFrom == null && builtin == null && replay != null); // NOPMD
   }
 
   public String getScript() {
@@ -77,6 +83,14 @@ public class StackGresDbOpsPgbenchCustomScript {
     this.builtin = builtin;
   }
 
+  public Integer getReplay() {
+    return replay;
+  }
+
+  public void setReplay(Integer replay) {
+    this.replay = replay;
+  }
+
   public Integer getWeight() {
     return weight;
   }
@@ -87,7 +101,7 @@ public class StackGresDbOpsPgbenchCustomScript {
 
   @Override
   public int hashCode() {
-    return Objects.hash(builtin, script, scriptFrom, weight);
+    return Objects.hash(builtin, replay, script, scriptFrom, weight);
   }
 
   @Override
@@ -99,8 +113,9 @@ public class StackGresDbOpsPgbenchCustomScript {
       return false;
     }
     StackGresDbOpsPgbenchCustomScript other = (StackGresDbOpsPgbenchCustomScript) obj;
-    return Objects.equals(builtin, other.builtin) && Objects.equals(script, other.script)
-        && Objects.equals(scriptFrom, other.scriptFrom) && Objects.equals(weight, other.weight);
+    return Objects.equals(builtin, other.builtin) && Objects.equals(replay, other.replay)
+        && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
+        && Objects.equals(weight, other.weight);
   }
 
   @Override

@@ -81,7 +81,8 @@ psql_mock() {
     ;;
     ("-t -A -c SELECT EXISTS (SELECT * FROM pg_database WHERE datname = '"*"')")
     ;;
-    ("-t -A -d "*" -c SELECT COUNT(*) FROM pgbench_accounts")
+    ("-t -A -d "*" -c SELECT NOT EXISTS (SELECT * FROM pg_stat_replication WHERE replay_lsn != pg_current_wal_lsn())")
+    printf t
     ;;
     *)
     not_mokked

@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgdbops;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,31 +20,26 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsBenchmarkStatus {
+public class StackGresDbOpsSamplingStatus {
 
-  private StackGresDbOpsPgbenchStatus pgbench;
+  private List<StackGresDbOpsSamplingStatusTopQuery> topQueries;
 
-  private StackGresDbOpsSamplingStatus sampling;
+  private List<StackGresDbOpsSamplingStatusQuery> queries;
 
-  public StackGresDbOpsPgbenchStatus getPgbench() {
-    return pgbench;
+  public List<StackGresDbOpsSamplingStatusTopQuery> getTopQueries() {
+    return topQueries;
   }
 
-  public void setPgbench(StackGresDbOpsPgbenchStatus pgbench) {
-    this.pgbench = pgbench;
+  public void setTopQueries(List<StackGresDbOpsSamplingStatusTopQuery> topQueries) {
+    this.topQueries = topQueries;
   }
 
-  public StackGresDbOpsSamplingStatus getSampling() {
-    return sampling;
+  public List<StackGresDbOpsSamplingStatusQuery> getQueries() {
+    return queries;
   }
 
-  public void setSampling(StackGresDbOpsSamplingStatus sampling) {
-    this.sampling = sampling;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(pgbench, sampling);
+  public void setQueries(List<StackGresDbOpsSamplingStatusQuery> queries) {
+    this.queries = queries;
   }
 
   @Override
@@ -51,11 +47,16 @@ public class StackGresDbOpsBenchmarkStatus {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresDbOpsBenchmarkStatus)) {
+    if (!(obj instanceof StackGresDbOpsSamplingStatus)) {
       return false;
     }
-    StackGresDbOpsBenchmarkStatus other = (StackGresDbOpsBenchmarkStatus) obj;
-    return Objects.equals(pgbench, other.pgbench) && Objects.equals(sampling, other.sampling);
+    StackGresDbOpsSamplingStatus other = (StackGresDbOpsSamplingStatus) obj;
+    return Objects.equals(queries, other.queries) && Objects.equals(topQueries, other.topQueries);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(queries, topQueries);
   }
 
   @Override

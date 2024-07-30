@@ -1,0 +1,199 @@
+#!/bin/sh
+
+check_pgbench() {
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 1 ]
+  then
+    success "pgbench job was not removed after completion."
+  else
+    fail "pgbench job was removed after completion."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.scaleFactor }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the scale factor."
+  else
+    fail "pgbench did not returned the scale factor."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsProcessed }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the transactions processed."
+  else
+    fail "pgbench did not returned the transactions processed."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.latency.average.value }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the average latency."
+  else
+    fail "pgbench did not returned the average latency."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.latency.average.unit }}')" \
+    = "ms" ]
+  then
+    success "pgbench returned the average latency unit"
+  else
+    fail "pgbench did not returned the average latency unit."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.latency.standardDeviation.value}}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the latency standard deviation."
+  else
+    fail "pgbench did not returned the latency standard deviation."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.latency.standardDeviation.unit}}')" \
+    = "ms" ]
+  then
+    success "pgbench returned the latency standard deviation unit."
+  else
+    fail "pgbench did not returned the latency standard deviation unit."
+  fi
+
+  if [ "${E2E_POSTGRES_VERSION%%.*}" -le 13 ]
+  then
+    if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+    then
+      success "pgbench returned the tps including connections establishing."
+    else
+      fail "pgbench did not returned the tps including connections establishing."
+    fi
+
+    if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
+      = "tps" ]
+    then
+      success "pgbench returned the tps including connections establishing unit."
+    else
+      fail "pgbench did not returned the tps including connections establishing unit."
+    fi
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the tps excluding connections establishing."
+  else
+    fail "pgbench did not returned the tps excluding connections establishing."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit }}')" \
+    = "tps" ]
+  then
+    success "pgbench returned the tps excluding connections establishing unit."
+  else
+    fail "pgbench did not returned the tps excluding connections establishing unit."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.overTime.values | len }}')" -gt 0 ]
+  then
+    success "pgbench returned the tps over time values."
+  else
+    fail "pgbench did not returned the tps over time values."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.pgbench.transactionsPerSecond.overTime.values 0) }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the tps over time value."
+  else
+    fail "pgbench did not returned the tps over time value."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.overTime.valuesUnit }}')" = 'tps' ]
+  then
+    success "pgbench returned the tps over time values unit."
+  else
+    fail "pgbench did not returned the tps over time values unit."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.overTime.intervalDuration }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the tps over time interval duration."
+  else
+    fail "pgbench did not returned the tps over time interval duration."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.transactionsPerSecond.overTime.intervalDurationUnit }}')" = 'ms' ]
+  then
+    success "pgbench returned the tps over time interval duration unit."
+  else
+    fail "pgbench did not returned the tps over time interval duration unit."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.statements | len }}')" -gt 0 ]
+  then
+    success "pgbench returned the statements."
+  else
+    fail "pgbench did not returned the statements."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.pgbench.statements 0).command }}' | grep .
+  then
+    success "pgbench returned the statements command."
+  else
+    fail "pgbench did not returned the statements command."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.pgbench.statements 0).latency }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+  then
+    success "pgbench returned the statements latency."
+  else
+    fail "pgbench did not returned the statements latency."
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.pgbench.statements 0).unit }}')" = ms ]
+  then
+    success "pgbench returned the statements unit."
+  else
+    fail "pgbench did not returned the statements unit."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.pgbench.statements 0).script }}' | grep -x '[0-9]\+'
+  then
+    success "pgbench returned the statements script."
+  else
+    fail "pgbench did not returned the statements script."
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.pgbench.hdrHistogram }}' | grep -x '[0-9A-Za-z+/=]\+'
+  then
+    success "pgbench returned the HdrHistogram."
+  else
+    fail "pgbench did not returned the HdrHistogram."
+  fi
+
+  RESULT="$(run_query -i 0 -p 5432 -q "SELECT EXISTS(SELECT * FROM pg_database WHERE datname LIKE 'pgbench-%')")"
+  if [ "$RESULT" = "f" ]
+  then
+    success "pgbench database was dropped."
+  else
+    fail "pgbench database was not dropped."
+  fi
+}

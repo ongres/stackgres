@@ -12,6 +12,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -71,11 +72,17 @@ public class StackGresDbOpsPgbench {
 
   private Boolean noVacuum;
 
+  @JsonProperty("samplingSGDbOps")
+  private String samplingSgDbOps;
+
   @Valid
   private StackGresDbOpsPgbenchCustom custom;
 
   @ReferencedField("duration")
   interface Duration extends FieldReference { }
+
+  @ReferencedField("samplingSGDbOps")
+  interface SamplingSgDbOps extends FieldReference { }
 
   @JsonIgnore
   @AssertTrue(message = "duration must be positive and in ISO 8601 duration format:"
@@ -90,6 +97,15 @@ public class StackGresDbOpsPgbench {
     } catch (DateTimeParseException ex) {
       return false;
     }
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "samplingSGDbOps is required when mode is replay",
+      payload = SamplingSgDbOps.class)
+  public boolean isSamplingSgDbOpsValid() {
+    return mode == null
+        || !mode.equals(DbOpsPgbenchMode.REPLAY.toString())
+        || samplingSgDbOps != null;
   }
 
   public String getMode() {
@@ -212,6 +228,14 @@ public class StackGresDbOpsPgbench {
     this.noVacuum = noVacuum;
   }
 
+  public String getSamplingSgDbOps() {
+    return samplingSgDbOps;
+  }
+
+  public void setSamplingSgDbOps(String samplingSgDbOps) {
+    this.samplingSgDbOps = samplingSgDbOps;
+  }
+
   public StackGresDbOpsPgbenchCustom getCustom() {
     return custom;
   }
@@ -223,8 +247,8 @@ public class StackGresDbOpsPgbench {
   @Override
   public int hashCode() {
     return Objects.hash(concurrentClients, custom, databaseSize, duration, fillfactor, foreignKeys,
-        initSteps, mode, noVacuum, partitionMethod, partitions, queryMode, samplingRate, threads,
-        unloggedTables, usePreparedStatements);
+        initSteps, mode, noVacuum, partitionMethod, partitions, queryMode, samplingRate,
+        samplingSgDbOps, threads, unloggedTables, usePreparedStatements);
   }
 
   @Override
@@ -246,6 +270,7 @@ public class StackGresDbOpsPgbench {
         && Objects.equals(partitions, other.partitions)
         && Objects.equals(queryMode, other.queryMode)
         && Objects.equals(samplingRate, other.samplingRate)
+        && Objects.equals(samplingSgDbOps, other.samplingSgDbOps)
         && Objects.equals(threads, other.threads)
         && Objects.equals(unloggedTables, other.unloggedTables)
         && Objects.equals(usePreparedStatements, other.usePreparedStatements);

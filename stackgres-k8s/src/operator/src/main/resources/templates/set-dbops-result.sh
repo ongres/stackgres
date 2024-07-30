@@ -108,11 +108,14 @@ set_result() {
   read_events_service_loop &
   READ_EVENTS_SERVICE_PID="$!"
   (
-  [ "$DEBUG" != true ] || set +x
+  [ "$DEBUG" = true ] || set +x
   until grep -q '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" 2>/dev/null
   do
     sleep 1
   done
+  echo "Result detected:"
+  cat "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  echo
   )
 
   kill "$READ_EVENTS_SERVICE_PID" || true

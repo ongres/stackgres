@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgdbops;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,31 +20,31 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsBenchmarkStatus {
+public class StackGresDbOpsSamplingStatusTopQuery {
 
-  private StackGresDbOpsPgbenchStatus pgbench;
+  private String id;
 
-  private StackGresDbOpsSamplingStatus sampling;
+  private Map<String, String> stats;
 
-  public StackGresDbOpsPgbenchStatus getPgbench() {
-    return pgbench;
+  public String getId() {
+    return id;
   }
 
-  public void setPgbench(StackGresDbOpsPgbenchStatus pgbench) {
-    this.pgbench = pgbench;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public StackGresDbOpsSamplingStatus getSampling() {
-    return sampling;
+  public Map<String, String> getStats() {
+    return stats;
   }
 
-  public void setSampling(StackGresDbOpsSamplingStatus sampling) {
-    this.sampling = sampling;
+  public void setStats(Map<String, String> stats) {
+    this.stats = stats;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(pgbench, sampling);
+    return Objects.hash(id, stats);
   }
 
   @Override
@@ -51,11 +52,11 @@ public class StackGresDbOpsBenchmarkStatus {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresDbOpsBenchmarkStatus)) {
+    if (!(obj instanceof StackGresDbOpsSamplingStatusTopQuery)) {
       return false;
     }
-    StackGresDbOpsBenchmarkStatus other = (StackGresDbOpsBenchmarkStatus) obj;
-    return Objects.equals(pgbench, other.pgbench) && Objects.equals(sampling, other.sampling);
+    StackGresDbOpsSamplingStatusTopQuery other = (StackGresDbOpsSamplingStatusTopQuery) obj;
+    return Objects.equals(id, other.id) && Objects.equals(stats, other.stats);
   }
 
   @Override

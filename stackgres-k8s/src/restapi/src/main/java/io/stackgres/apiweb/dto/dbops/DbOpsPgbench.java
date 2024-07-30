@@ -8,6 +8,7 @@ package io.stackgres.apiweb.dto.dbops;
 import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -44,6 +45,9 @@ public class DbOpsPgbench {
   private Integer fillfactor;
 
   private Boolean noVacuum;
+
+  @JsonProperty("samplingSGDbOps")
+  private String samplingSgDbOps;
 
   private DbOpsPgbenchCustom custom;
 
@@ -165,6 +169,14 @@ public class DbOpsPgbench {
 
   public void setNoVacuum(Boolean noVacuum) {
     this.noVacuum = noVacuum;
+  }
+
+  public String getSamplingSgDbOps() {
+    return samplingSgDbOps;
+  }
+
+  public void setSamplingSgDbOps(String samplingSgDbOps) {
+    this.samplingSgDbOps = samplingSgDbOps;
   }
 
   public DbOpsPgbenchCustom getCustom() {

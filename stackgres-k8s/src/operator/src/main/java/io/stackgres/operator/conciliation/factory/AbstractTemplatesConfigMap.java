@@ -38,6 +38,8 @@ public abstract class AbstractTemplatesConfigMap {
       ClusterPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH,
       ClusterPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH,
       ClusterPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH,
+      ClusterPath.LOCAL_BIN_RUN_SAMPLING_SH_PATH,
+      ClusterPath.LOCAL_BIN_SET_SAMPLING_RESULT_SH_PATH,
       ClusterPath.LOCAL_BIN_RUN_VACUUM_SH_PATH,
       ClusterPath.LOCAL_BIN_RUN_REPACK_SH_PATH,
       ClusterPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH,

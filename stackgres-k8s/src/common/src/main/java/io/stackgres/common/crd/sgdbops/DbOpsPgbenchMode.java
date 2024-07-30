@@ -11,7 +11,8 @@ public enum DbOpsPgbenchMode {
 
   TPCB_LIKE("tpcb-like"),
   SELECT_ONLY("select-only"),
-  CUSTOM("custom");
+  CUSTOM("custom"),
+  REPLAY("replay");
 
   private final @NotNull String type;
 

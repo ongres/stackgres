@@ -282,3 +282,13 @@ read_events_service() {
     create_event "$REASON" "$TYPE" "$(printf %s "$MESSAGE" | base64 -d)"
   done < "$SHARED_PATH/$QUEUE_NAME"
 }
+
+try_function_with_output() {
+  (
+    set +e
+    (
+    { { { "$@" 2>&1; echo $? >&3; } | tee "$SHARED_PATH/output" >&4; }  3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1
+    )
+    printf %s "$?" > "$SHARED_PATH/exit_code"
+  )
+}

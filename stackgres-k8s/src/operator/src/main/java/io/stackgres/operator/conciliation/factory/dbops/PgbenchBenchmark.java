@@ -28,6 +28,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkCredentials;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchCustom;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbenchCustomScript;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSamplingStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -220,17 +221,37 @@ public class PgbenchBenchmark extends AbstractDbOpsJob {
             .map(scripts -> new EnvVarBuilder()
                 .withName("SCRIPTS")
                 .withValue(scripts.stream()
-                    .map(script -> Optional.ofNullable(script.getBuiltin()).orElse("custom")
+                    .map(script -> Optional.ofNullable(script.getBuiltin())
+                        .or(() -> Optional.ofNullable(script.getReplay())
+                            .map(replay -> "replay:" + replay))
+                        .orElse("custom")
                         + " " + Optional.ofNullable(script.getWeight()).orElse(1))
                     .map(String::valueOf)
                     .collect(Collectors.joining(",")))
                 .build())
             .append(
                 Seq.seq(Optional.ofNullable(pgbench.getCustom())
-                .map(StackGresDbOpsPgbenchCustom::getScripts))
+                    .map(StackGresDbOpsPgbenchCustom::getScripts))
                 .flatMap(List::stream)
                 .zipWithIndex()
                 .map(script -> createEnvVarFromScript("SCRIPT_" + script.v2, script.v1))))
+        .append(
+            Seq.seq(context.getSamplingStatus()
+            .map(StackGresDbOpsSamplingStatus::getQueries))
+            .filter(Predicate.not(List::isEmpty))
+            .map(queries -> new EnvVarBuilder()
+                .withName("REPLAY_QUERIES")
+                .withValue(String.valueOf(queries.size()))
+                .build())
+            .append(
+                Seq.seq(context.getSamplingStatus()
+                    .map(StackGresDbOpsSamplingStatus::getQueries))
+                .flatMap(List::stream)
+                .zipWithIndex()
+                .map(query -> new EnvVarBuilder()
+                    .withName("REPLAY_QUERY_" + query.v2)
+                    .withValue(query.v1.getQuery())
+                    .build())))
         .toList();
   }
 

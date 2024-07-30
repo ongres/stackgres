@@ -5,7 +5,6 @@
 
 package io.stackgres.common.crd.sgdbops;
 
-import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,7 +18,6 @@ import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotEmpty;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -29,7 +27,8 @@ import jakarta.validation.constraints.NotEmpty;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsBenchmark {
 
-  @NotEmpty(message = "spec.benchmark.type must be provided")
+  @ValidEnum(enumClass = DbOpsBenchmarkType.class, allowNulls = false,
+      message = "type must be one of pgbench or sampling")
   private String type;
 
   private String database;
@@ -40,33 +39,31 @@ public class StackGresDbOpsBenchmark {
   @Valid
   private StackGresDbOpsPgbench pgbench;
 
+  @Valid
+  private StackGresDbOpsSampling sampling;
+
   @ValidEnum(enumClass = DbOpsBenchmarkConnectionType.class, allowNulls = true,
       message = "connectionType must be one of primary-service or replicas-service")
   private String connectionType;
 
-  @ReferencedField("type")
-  interface Type extends FieldReference { }
-
   @ReferencedField("pgbench")
   interface Pgbench extends FieldReference { }
 
-  @JsonIgnore
-  @AssertTrue(message = "type must be pgbench.",
-      payload = Type.class)
-  public boolean isTypeValid() {
-    return type == null || List.of("pgbench").contains(type);
-  }
+  @ReferencedField("sampling")
+  interface Sampling extends FieldReference { }
 
   @JsonIgnore
   @AssertTrue(message = "pgbench section must be provided.",
       payload = Pgbench.class)
   public boolean isPgbenchSectionProvided() {
-    return !Objects.equals(type, "pgbench") || pgbench != null;
+    return !Objects.equals(type, DbOpsBenchmarkType.PGBENCH.toString()) || pgbench != null;
   }
 
   @JsonIgnore
-  public boolean isTypePgBench() {
-    return Objects.equals(type, "pgbench");
+  @AssertTrue(message = "sampling section must be provided.",
+      payload = Sampling.class)
+  public boolean isSamplingSectionProvided() {
+    return !Objects.equals(type, DbOpsBenchmarkType.SAMPLING.toString()) || sampling != null;
   }
 
   @JsonIgnore
@@ -112,6 +109,14 @@ public class StackGresDbOpsBenchmark {
     this.pgbench = pgbench;
   }
 
+  public StackGresDbOpsSampling getSampling() {
+    return sampling;
+  }
+
+  public void setSampling(StackGresDbOpsSampling sampling) {
+    this.sampling = sampling;
+  }
+
   public String getConnectionType() {
     return connectionType;
   }
@@ -122,7 +127,7 @@ public class StackGresDbOpsBenchmark {
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionType, credentials, database, pgbench, type);
+    return Objects.hash(connectionType, credentials, database, pgbench, sampling, type);
   }
 
   @Override
@@ -137,7 +142,7 @@ public class StackGresDbOpsBenchmark {
     return Objects.equals(connectionType, other.connectionType)
         && Objects.equals(credentials, other.credentials)
         && Objects.equals(database, other.database) && Objects.equals(pgbench, other.pgbench)
-        && Objects.equals(type, other.type);
+        && Objects.equals(sampling, other.sampling) && Objects.equals(type, other.type);
   }
 
   @Override
