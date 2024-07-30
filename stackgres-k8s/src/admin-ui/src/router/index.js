@@ -7,6 +7,7 @@ import sgApi from '../api/sgApi'
 import CreateNamespace from '../components/forms/CreateNamespaces.vue'
 import CreateCluster from '../components/forms/CreateSGClusters.vue'
 import CreateShardedCluster from '../components/forms/CreateSGShardedClusters.vue'
+import CreateStream from '../components/forms/CreateSGStreams.vue'
 import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
 import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
 import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
@@ -94,6 +95,22 @@ const routes = [
     name: 'EditShardedCluster',
     meta: {
       componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgstreams/new', 
+    component: CreateStream,
+    name: 'CreateStream',
+    meta: {
+      componentName: 'SGStream' 
+    },
+  },
+  { 
+    path: '/:namespace/sgstream/:name/edit', 
+    component: CreateStream,
+    name: 'EditStream',
+    meta: {
+      componentName: 'SGStream'
     },
   },
   { 
@@ -799,6 +816,9 @@ function checkAuthError(error) {
 }
 
 function iCan( action = 'any', kind, namespace = '' ) {
+  if(kind === 'sgstreams')
+    return true;
+  
   if(namespace.length) { // If filtered by namespace
 
     if(namespace === 'all') {

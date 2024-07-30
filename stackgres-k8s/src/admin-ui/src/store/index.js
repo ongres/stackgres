@@ -29,6 +29,7 @@ export default new Vuex.Store({
     users: [],
     sgclusters: null,
     sgshardedclusters: null,
+    sgstreams: null,
     sgbackups: null,
     sgpgconfigs: null,
     sgpoolconfigs: null,
@@ -161,6 +162,10 @@ export default new Vuex.Store({
 
     addDbOps (state, dbOps) {
       state.sgdbops = [...dbOps];
+    },
+
+    addSgStreams (state, sgStreams) {
+      state.sgstreams = [...sgStreams];
     },
 
     addStorageClasses (state, storageClassesList) {
