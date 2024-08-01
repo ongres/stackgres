@@ -915,7 +915,7 @@
                                 <component :is="`style`">
                                     <template v-for="(bk, index) in pitrBackups">
                                         <template v-if="bk.isSnapshot">
-                                            #apexchartsarea-datetime .apexcharts-series-markers circle[rel="{{index}}"] {
+                                            #pitr-graph .apexcharts-series-markers circle[rel="{{index}}"] {
                                                 stroke: #FABE25;
                                             }
                                         </template>
@@ -931,7 +931,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div class="apexcharts-container">
+                                <div id="pitr-graph" class="apexcharts-container">
                                     <apexchart 
                                         type="line"
                                         :key="'pitrgraph-' + pitrBackups.length"
@@ -4394,7 +4394,7 @@
 
 <style>
 
-    .apexcharts-canvas > svg.apexcharts-svg {
+    #pitr-graph svg.apexcharts-svg {
         background: transparent !important;
     }
 
@@ -4425,20 +4425,20 @@
         top: 10px;
     }
 
-    #apexchartsarea-datetime {
+    #pitr-graph .apexcharts-canvas {
         transform: translateY(-45px);
     }
     
-    #apexchartsarea-datetime, #apexchartsarea-datetime > svg {
+    #pitr-graph .apexcharts-canvas, #pitr-graph .apexcharts-canvas > svg {
         max-height: 250px;
     }
 
-    .apexcharts-container > div {
+    #pitr-graph > div {
         max-height: 265px;
         min-height: auto !important;
     }
 
-    #apexchartsarea-datetime:before {
+    #pitr-graph .apexcharts-canvas:before {
         content: " ";
         display: block;
         height: 94px;
@@ -4453,21 +4453,21 @@
         background: rgb(54 168 255 / 30%);
     }
 
-    #apexchartsarea-datetime .apexcharts-xaxis-tick {
+    #pitr-graph .apexcharts-canvas .apexcharts-xaxis-tick {
         stroke: #909090 !important;
     }
 
-    #apexchartsarea-datetime > svg {
+    #pitr-graph .apexcharts-canvas > svg {
         position: relative;
     }
 
-    #apexchartsarea-datetime .apexcharts-series-markers > circle {
+    #pitr-graph .apexcharts-series-markers > circle {
         filter: none !important;
         cursor: pointer;
         stroke: #16A085;
     }
 
-    #apexchartsarea-datetime .apexcharts-series-markers > circle[selected="true"] {
+    #pitr-graph .apexcharts-series-markers > circle[selected="true"] {
         stroke-width: 10px !important;
         stroke-opacity: 1 !important;
         opacity: 1 !important;
