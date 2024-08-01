@@ -52,7 +52,7 @@ e2e_test_install() {
   spec:
     containers:
     - name: $CYPRESS_POD
-      image: cypress/included:10.9.0
+      image: cypress/included:10.11.0
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       env:
@@ -120,11 +120,11 @@ is_backup_phase() {
 e2e_test_values() {
   (
   cd "$UI_TESTS_RESOURCES_PATH/cypress/e2e"
-  find -name '*.cy.js' | cut -d / -f 2-
+  find . -name '*.cy.js' | cut -d / -f 2- | sort
   )
 }
 
-e2e_test() {  
+e2e_test() {
   if [ "$(uname -m)" != x86_64 ]
   then
     echo "Skipping ui test since not running in x86_64 architecture"
@@ -155,7 +155,7 @@ cypress_test(){
 }
 
 check_index_on_not_found_resource(){
-  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  RANDOM_RESOURCE="$(random_string_lowercase 8)"
   HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   assert_string_equal "200" "$HTTP_STATUS"
@@ -164,22 +164,19 @@ check_index_on_not_found_resource(){
 
   if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
   then
-    echo "SUCCESS. Returned index page on not found resource"
+    success "Returned index page on not found resource"
   else
-    echo "FAIL. Index page not returned on not found resource"
-    return 1
+    fail "Index page not returned on not found resource"
   fi
 }
 
 check_http_port(){
-  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
   HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://stackgres-restapi.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   if [ "$HTTP_STATUS" = "200" ]
   then
-    echo "SUCCESS. HTTP port is working when exposed"
+    success "HTTP port is working when exposed"
   else
-    echo "FAIL. HTTP port is not working when exposed"
-    return 1
+    fail "HTTP port is not working when exposed"
   fi
 }
