@@ -708,6 +708,7 @@ spec:
                       Indicate the type of target of this stream. Possible values are:
                       
                       * `CloudEvent`: events will be sent to a cloud event receiver.
+                      * `PgLambda`: events will trigger the execution of a lambda script by integrating with [Knative Service](https://knative.dev/docs/serving/) (Knative must be already installed).
                       * `SGCluster`: events will be sinked to an SGCluster allowing migration of data.
                   cloudEvent:
                     type: object
@@ -730,7 +731,7 @@ spec:
                         type: object
                         description: The http binding configuration.
                         required: ["url"]
-                        properties:
+                        properties: &cloud-event-http-properties
                           url:
                             type: string
                             description: The URL used to send the CloudEvents to the endpoint.
@@ -765,6 +766,73 @@ spec:
                           skipHostnameVerification:
                             type: boolean
                             description: When `true` disable hostname verification.
+                  pgLambda:
+                    type: object
+                    description: |
+                      Configuration section for `PgLambda` target type.
+                    properties:
+                      scriptType:
+                        type: string
+                        description: |
+                          The PgLambda script format (javascript by default).
+                          
+                          * `javascript`: the script will receive the following variable:
+                            * `request`: the HTTP request object. See https://nodejs.org/docs/latest-v18.x/api/http.html#class-httpclientrequest
+                            * `response`: the HTTP response object. See https://nodejs.org/docs/latest-v18.x/api/http.html#class-httpserverresponse
+                            * `event`: the CloudEvent event object. See https://github.com/cloudevents/sdk-javascript
+                      script:
+                        type: string
+                        description: |
+                          Script to execute. This field is mutually exclusive with `scriptFrom` field.
+                      scriptFrom:
+                        type: object
+                        description: |
+                          Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the script to execute. This field is mutually exclusive with `script` field.
+
+                          Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.
+                        properties:
+                          secretKeyRef:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#secretkeyselector-v1-core) that contains the script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                          configMapKeyRef:
+                            type: object
+                            description: |
+                              A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                            properties:
+                              name:
+                                type: string
+                                description: |
+                                  The name of the ConfigMap that contains the script to execute.
+                              key:
+                                type: string
+                                description: |
+                                  The key name within the ConfigMap that contains the script to execute.
+                      knative:
+                        type: object
+                        description: Knative Service configuration.
+                        properties:
+                          annotations:
+                            type: object
+                            description: Annotations to set to Knative Service
+                            additionalProperties:
+                              type: string
+                          labels:
+                            type: object
+                            description: Labels to set to Knative Service
+                            additionalProperties:
+                              type: string
+                          http:
+                            type: object
+                            description: PgLambda uses a CloudEvent http binding to send events to the Knative Service. This section allow to modify the configuration of this binding.
+                            properties: *cloud-event-http-properties
                   sgCluster:
                     type: object
                     description: |

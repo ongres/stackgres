@@ -277,5 +277,16 @@ rules:
   - create
   - delete
   - patch
+- apiGroups: ["serving.knative.dev"]
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+  - delete
+  - patch
 {{- end }}
 {{- end }}

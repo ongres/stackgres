@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamStatus;
 import io.stackgres.common.crd.sgstream.StreamStatusCondition.Status;
@@ -20,14 +19,16 @@ public interface StreamUtil {
 
   Pattern UPPERCASE_LETTER_PATTERN = Pattern.compile("([A-Z])");
 
-  String SUFFIX = "-stream";
-
-  static String roleName(StackGresCluster cluster) {
-    return roleName(cluster.getMetadata().getName());
+  public static String pglambdaUrl(StackGresStream stream) {
+    return "http://" + pglambdaServiceName(stream.getMetadata().getName()) + "." + stream.getMetadata().getNamespace();
   }
 
-  static String roleName(String clusterName) {
-    return ResourceUtil.resourceName(clusterName + SUFFIX);
+  public static String pglambdaServiceName(StackGresStream stream) {
+    return pglambdaServiceName(stream.getMetadata().getName());
+  }
+
+  public static String pglambdaServiceName(String streamName) {
+    return ResourceUtil.resourceName(streamName);
   }
 
   static boolean isAlreadyCompleted(StackGresStream stream) {

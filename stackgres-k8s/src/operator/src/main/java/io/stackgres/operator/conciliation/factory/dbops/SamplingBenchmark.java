@@ -119,6 +119,7 @@ public class SamplingBenchmark extends AbstractDbOpsJob {
         .withName("CUSTOM_TOP_QUERIES_QUERY")
         .withValue(Optional.of(sampling)
             .map(StackGresDbOpsSampling::getCustomTopQueriesQuery)
+            .map(value -> value.replace("$", "$$"))
             .orElse(""))
         .build(),
         new EnvVarBuilder()
