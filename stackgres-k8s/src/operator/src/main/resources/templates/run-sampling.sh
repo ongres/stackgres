@@ -87,10 +87,9 @@ run_sampling() {
   fi
   sort -R < "$SHARED_PATH/output" \
     | head -n "${QUERIES}" \
-    | tr '|' ' ' \
     | {
       INDEX=0
-      while read -r QUERY_ID TIMESTAMP QUERY
+      while IFS='|' read -r QUERY_ID TIMESTAMP QUERY
       do
         printf %s "$QUERY_ID" > "$SHARED_PATH/query-id-$INDEX"
         printf %s "$TIMESTAMP" > "$SHARED_PATH/timestamp-$INDEX"

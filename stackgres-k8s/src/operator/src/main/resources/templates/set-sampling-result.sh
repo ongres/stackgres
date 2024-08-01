@@ -10,8 +10,9 @@ set_completed() {
     set_failed
     return
   fi
+  QUERIES_COUNT="$QUERIES"
   QUERIES="$(
-    for INDEX in $(seq 0 "$((QUERIES - 1))")
+    for INDEX in $(seq 0 "$((QUERIES_COUNT - 1))")
     do
       if ! [ -f "$SHARED_PATH/query-id-$INDEX" ] \
         || ! [ -f "$SHARED_PATH/timestamp-$INDEX" ] \
@@ -30,7 +31,7 @@ set_completed() {
   if [ "$OMIT_TOP_QUERIES_IN_STATUS" != true ]
   then
     TOP_QUERIES="$(
-      for INDEX in $(seq 0 "$((QUERIES - 1))")
+      for INDEX in $(seq 0 "$((QUERIES_COUNT - 1))")
       do
         if ! [ -f "$SHARED_PATH/query-id-$INDEX" ]
         then
@@ -42,7 +43,7 @@ set_completed() {
         fi
         {
           jq -R . "$SHARED_PATH/query-id-$INDEX"
-          jq -R . "$SHARED_PATH/stats-$INDEX"
+          jq -R '. | fromjson' "$SHARED_PATH/stats-$INDEX"
         } \
           | jq -s '{id: .[0], stats: .[1]}'
       done \

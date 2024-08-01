@@ -61,7 +61,8 @@ run_pgbench() {
           done
           }
         )"
-     else
+     elif [ "$MODE" = replay ]
+     then
       MODE_PARAMS="$(
         INDEX=0
         for REPLAY_INDEX in $(seq 0 "$((REPLAY_QUERIES - 1))")
@@ -107,7 +108,8 @@ run_pgbench() {
       create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $(cat "$SHARED_PATH/output")"
       return 1
     fi
-  else
+  elif [ "$MODE" != replay ]
+  then
     try_function_with_output pgbench \
       -s "$SCALE" \
       -i \
@@ -122,6 +124,8 @@ run_pgbench() {
       create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $(cat "$SHARED_PATH/output")"
       return 1
     fi
+  else
+    create_event_service "BenchmarkInitialized" "Normal" "Benchamrk initialized"
   fi
   )
 
