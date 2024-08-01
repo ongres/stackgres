@@ -318,7 +318,7 @@ spec:
                       custom:
                         type: object
                         description: This section allow to configure custom SQL for initialization and scripts used by pgbench.
-                        required: [scripts]
+                        required:
                         properties:
                           initialization:
                             type: object
@@ -724,30 +724,34 @@ spec:
                     description: The results of the sampling benchmark
                     properties:
                       topQueries:
-                        type: object
+                        type: array
                         description: The top queries sampled with the stats from pg_stat_statements. If is omitted if `omitTopQueriesInStatus` is set to `true`.
-                        properties:
-                          id:
-                            type: string
-                            description: The query id of the representative statement calculated by Postgres
-                          stats:
-                            type: object
-                            description: stats collected by the top queries query
-                            additionalProperties:
+                        items:
+                          type: object
+                          properties:
+                            id:
                               type: string
+                              description: The query id of the representative statement calculated by Postgres
+                            stats:
+                              type: object
+                              description: stats collected by the top queries query
+                              additionalProperties:
+                                type: string
                       queries:
-                        type: object
+                        type: array
                         description: The queries sampled.
-                        properties:
-                          id:
-                            type: string
-                            description: The query id of the representative statement calculated by Postgres
-                          query:
-                            type: string
-                            description: A sampled SQL query
-                          timestamp:
-                            type: string
-                            description: The sampled query timestamp
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: The query id of the representative statement calculated by Postgres
+                            query:
+                              type: string
+                              description: A sampled SQL query
+                            timestamp:
+                              type: string
+                              description: The sampled query timestamp
                   pgbench:
                     type: object
                     description: The results of the pgbench benchmark

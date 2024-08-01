@@ -75,16 +75,16 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: benchmark
   benchmark:
-    database: sampling
     type: pgbench
+    database: postgres
     pgbench:
       mode: replay
       databaseSize: 100Mi
       duration: PT10S
       samplingSGDbOps: $DBOPS_NAME
       custom:
-        initialize:
-        - script: SELECT 1
+        initialization:
+          script: SELECT 1
 EOF
 
   DBOPS_NAME="$REPLAY_DBOPS_NAME" check_pgbench
@@ -114,14 +114,15 @@ spec:
   op: benchmark
   benchmark:
     type: pgbench
+    database: postgres
     pgbench:
       mode: replay
       databaseSize: 100Mi
       duration: PT10S
       samplingSGDbOps: $DBOPS_NAME
       custom:
-        initialize:
-        - script: SELECT 1
+        initialization:
+          script: SELECT 1
         scripts:
         - replay: 0
 EOF
