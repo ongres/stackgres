@@ -1,0 +1,24 @@
+{
+  "name": "pglambda-knative-serving-cloudevents",
+  "version": "1.0.0",
+  "description": "PgLambda CloudEvents in Node.js",
+  "repository": "https://gitlab.com/ongresing/stackgres",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "production": "npm start",
+    "dev": "nodemon index.js",
+    "lint": "standard --fix"
+  },
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cloudevents": "^8.0.2",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.4"
+  },
+  "devDependencies": {
+    "standard": "^17.1.0"
+  }
+}

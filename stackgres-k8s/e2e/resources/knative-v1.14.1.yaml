@@ -6966,6 +6966,7 @@ metadata:
   annotations:
     knative.dev/example-checksum: "ed77183a"
 data:
+  registries-skipping-tag-resolving: "kind.local,ko.local,dev.local,quay.io,docker.io"
   # This is the Go import path for the binary that is containerized
   # and substituted here.
   queue-sidecar-image: gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:55e7d89003b3fb97ddfaf9d65326a7ccc69b437773c3eccab43cece771bc1eda

@@ -35,6 +35,9 @@ public class StackGresStreamTarget {
   private StackGresStreamTargetCloudEvent cloudEvent;
 
   @Valid
+  private StackGresStreamTargetPgLambda pgLambda;
+
+  @Valid
   private StackGresStreamTargetSgCluster sgCluster;
 
   @ReferencedField("type")
@@ -43,6 +46,10 @@ public class StackGresStreamTarget {
 
   @ReferencedField("cloudEvent")
   interface CloudEvent extends FieldReference {
+  }
+
+  @ReferencedField("pgLambda")
+  interface PgLambda extends FieldReference {
   }
 
   @ReferencedField("sgCluster")
@@ -56,9 +63,11 @@ public class StackGresStreamTarget {
     if (type != null) {
       switch (type) {
         case "SGCluster":
-          return cloudEvent == null;
+          return cloudEvent == null && pgLambda == null;
         case "CloudEvent":
-          return sgCluster == null;
+          return sgCluster == null && pgLambda == null;
+        case "PgLambda":
+          return cloudEvent == null && sgCluster == null;
         default:
           break;
       }
@@ -80,6 +89,13 @@ public class StackGresStreamTarget {
     return !Objects.equals(type, "CloudEvent") || cloudEvent != null;
   }
 
+  @JsonIgnore
+  @AssertTrue(message = "pgLambda must not be null",
+      payload = PgLambda.class)
+  public boolean isPgLambdaPresent() {
+    return !Objects.equals(type, "PgLambda") || pgLambda != null;
+  }
+
   public String getType() {
     return type;
   }
@@ -96,6 +112,14 @@ public class StackGresStreamTarget {
     this.cloudEvent = cloudEvent;
   }
 
+  public StackGresStreamTargetPgLambda getPgLambda() {
+    return pgLambda;
+  }
+
+  public void setPgLambda(StackGresStreamTargetPgLambda pgLambda) {
+    this.pgLambda = pgLambda;
+  }
+
   public StackGresStreamTargetSgCluster getSgCluster() {
     return sgCluster;
   }
@@ -106,7 +130,7 @@ public class StackGresStreamTarget {
 
   @Override
   public int hashCode() {
-    return Objects.hash(cloudEvent, sgCluster, type);
+    return Objects.hash(cloudEvent, pgLambda, sgCluster, type);
   }
 
   @Override
@@ -118,7 +142,7 @@ public class StackGresStreamTarget {
       return false;
     }
     StackGresStreamTarget other = (StackGresStreamTarget) obj;
-    return Objects.equals(cloudEvent, other.cloudEvent)
+    return Objects.equals(cloudEvent, other.cloudEvent) && Objects.equals(pgLambda, other.pgLambda)
         && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(type, other.type);
   }
 

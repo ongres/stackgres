@@ -302,7 +302,7 @@ public class PgbenchBenchmark extends AbstractDbOpsJob {
     }
     return new EnvVarBuilder()
         .withName(name)
-        .withValue(script.getScript())
+        .withValue(script.getScript().replace("$", "$$"))
         .build();
   }
 
