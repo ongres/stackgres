@@ -290,11 +290,10 @@ test_constraint_violation_api_error() {
 
   if [ "$HTTP_STATUS" = "422" ]
   then
-    echo "SUCCESS. Operator api validated the profile"
+    success "Operator api validated the profile"
   else
     ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST')"
-    echo "FAIL. Status is not what is expected. HTTP_STATUS=$HTTP_STATUS. RESONSE:$ERROR_RESPONSE"
-    return 1
+    fail "Status is not what is expected. HTTP_STATUS=$HTTP_STATUS. RESONSE:$ERROR_RESPONSE"
   fi
 
   ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-profile.json" -e '-X POST')"

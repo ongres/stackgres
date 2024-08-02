@@ -119,10 +119,9 @@ check_pgbouncer_defaults(){
 check_pgbouncer_data(){
   get_pgbouncer_configmap | grep "$1 = " | grep "$2"
   if [ $? -eq 0 ]; then
-    echo "SUCCESS. $2 is appearing for the $1"
+    success "$2 is appearing for the $1"
   else
-    echo "FAIL. $2 is not appearing"
-    return 1
+    fail "$2 is not appearing"
   fi
 }
 
@@ -133,10 +132,9 @@ check_parameter_count(){
 
   if assert_string_equal "$COUNT" "$PARAM_COUNT"
   then
-    echo "SUCCESS. $PARAM is appearing only $COUNT time(s)"
+    success "$PARAM is appearing only $COUNT time(s)"
   else
-    echo "FAIL. $PARAM is appearing more than once"
-    return 1
+    fail "$PARAM is appearing more than once"
   fi
 }
 

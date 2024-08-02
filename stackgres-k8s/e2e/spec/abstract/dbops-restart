@@ -54,10 +54,9 @@ check_restart_prevent_updates_to_cluster() {
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1
   then
-    echo "FAILED. Cluster has been updated while locked."
-    return 1
+    fail "Cluster has been updated while locked."
   else
-    echo "SUCCESS. Cluster has not been updated while locked."
+    success "Cluster has not been updated while locked."
   fi
 }
 
@@ -89,10 +88,9 @@ check_restart() {
   INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | jq '.status.restart.initialInstances | length')"
   if printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q "^$INITIAL_INSTANCES$"
   then
-    echo "SUCCESS. Instances after restart match the initial instances in status ($INITIAL_INSTANCES)"
+    success "Instances after restart match the initial instances in status ($INITIAL_INSTANCES)"
   else
-    echo "FAILED. Instances after restart ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
-    return 1
+    fail "Instances after restart ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
   fi
 
   local DBOPS_CREATION_TIMESTAMP
@@ -106,10 +104,9 @@ check_restart() {
     POD_CREATION_TIMESTAMP="$(date -d "$POD_CREATION_TIMESTAMP" +%s)"
     if [ "$POD_CREATION_TIMESTAMP" -lt "$DBOPS_CREATION_TIMESTAMP" ]
     then
-      echo "FAILED. Pod $POD was not restarted"
-      return 1
+      fail "Pod $POD was not restarted"
     else
-      echo "SUCCESS. Pod $POD was restarted"
+      success "Pod $POD was restarted"
     fi
   done
   for POD in $NOT_RESTARTED_PODS
@@ -118,10 +115,9 @@ check_restart() {
     POD_CREATION_TIMESTAMP="$(date -d "$POD_CREATION_TIMESTAMP" +%s)"
     if [ "$POD_CREATION_TIMESTAMP" -lt "$DBOPS_CREATION_TIMESTAMP" ]
     then
-      echo "SUCCESS. Pod $POD was not restarted"
+      success "Pod $POD was not restarted"
     else
-      echo "FAILED. Pod $POD was restarted"
-      return 1
+      fail "Pod $POD was restarted"
     fi
   done
 
@@ -129,10 +125,9 @@ check_restart() {
     -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. restart job was not removed after completion."
+    success "restart job was not removed after completion."
   else
-    echo "FAILED. restart job was removed after completion."
-    return 1
+    fail "restart job was removed after completion."
   fi
 
   local FINAL_DBOPS_JOB_NAME
@@ -140,10 +135,9 @@ check_restart() {
     -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
   if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
   then
-    echo "SUCCESS. restart Job was not re-created."
+    success "restart Job was not re-created."
   else
-    echo "FAILED. restart Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
-    return 1
+    fail "restart Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
   fi
 
   if [ "$SKIP_CHECK_DATA" != true ]

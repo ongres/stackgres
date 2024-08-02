@@ -281,7 +281,7 @@ spec() {
 
   echo
   echo "================================================================"
-  echo "Running $SPEC_NAME tests"
+  echo " 🛠️  Running $SPEC_NAME tests"
   echo "================================================================"
   echo
 
@@ -306,7 +306,7 @@ spec() {
   then
     store_test_result "$SPEC_NAME"
   fi
-  echo "$SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log
+  echo "✅ $SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
 run_spec() {
@@ -389,7 +389,7 @@ run_test() {
   shift
   echo
   echo "----------------------------------------------------------------"
-  echo "⚙️  Running test $TEST_NAME"
+  echo " ⚙️  Running test $TEST_NAME"
   echo "----------------------------------------------------------------"
   echo
   local RESULT
@@ -399,7 +399,7 @@ run_test() {
   then
     return "$EXIT_CODE"
   fi
-  echo "✅ $TEST_NAME. SUCCESS."
+  echo "☑️ $TEST_NAME. SUCCESS."
   for FUNCTION in $E2E_AFTER_RUN_TEST_FUNCTION
   do
     "$FUNCTION"

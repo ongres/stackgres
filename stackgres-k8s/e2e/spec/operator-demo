@@ -97,28 +97,25 @@ test_yamls() {
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
-    echo "FAILED. The demo StackGres operator service was not available."
-    return 1
+    fail "The demo StackGres operator service was not available."
   else
-    echo "SUCCESS. The demo StackGres operator service was available."
+    success "The demo StackGres operator service was available."
   fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
   then
-    echo "FAILED. The demo StackGres restapi service was not available."
-    return 1
+    fail "The demo StackGres restapi service was not available."
   else
-    echo "SUCCESS. The demo StackGres restapi service was available."
+    success "The demo StackGres restapi service was available."
   fi
 
   if grep -q http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
   then
     if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
-      echo "FAILED. The demo StackGres extensions cache service was not available."
-      return 1
+      fail "The demo StackGres extensions cache service was not available."
     else
-      echo "SUCCESS. The demo StackGres extensions cache service was available."
+      success "The demo StackGres extensions cache service was available."
     fi
   fi
 
@@ -128,10 +125,9 @@ test_yamls() {
 
   if wait_pods_running "${CLUSTER_NAMESPACE}" 2 "simple-[^[:space:]]\+"
   then
-    echo "SUCCESS. The demo StackGres cluster pods are running."
+    success "The demo StackGres cluster pods are running."
   else
-    echo "FAILED. The demo StackGres cluster pods are not running."
-    return 1
+    fail "The demo StackGres cluster pods are not running."
   fi
 
   echo "Creating MinIO resources"
@@ -139,26 +135,23 @@ test_yamls() {
 
   if wait_pods_running "${CLUSTER_NAMESPACE}" 1 "minio-[^[:space:]]\+"
   then
-    echo "SUCCESS. The demo MinIO pod is running."
+    success "The demo MinIO pod is running."
   else
-    echo "FAILED. The demo MinIO pod is not running."
-    return 1
+    fail "The demo MinIO pod is not running."
   fi
 
   echo "Testing Cluster readability"
   if kubectl exec simple-0 -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
   then
-    echo "SUCCESS. The demo StackGres cluster primary is available."
+    success "The demo StackGres cluster primary is available."
   else
-    echo "FAILED. The demo StackGres cluster primary is not available."
-    return 1
+    fail "The demo StackGres cluster primary is not available."
   fi
   if kubectl exec simple-1 -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
   then
-    echo "SUCCESS. The demo StackGres cluster secondary is available."
+    success "The demo StackGres cluster secondary is available."
   else
-    echo "FAILED. The demo StackGres cluster secondary is not available."
-    return 1
+    fail "The demo StackGres cluster secondary is not available."
   fi
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -169,10 +162,9 @@ test_yamls() {
 
   if wait_pods_terminated "${CLUSTER_NAMESPACE}" 0 "minio-[^[:space:]]\+"
   then
-    echo "SUCCESS. The demo MinIO pod has been terminated."
+    success "The demo MinIO pod has been terminated."
   else
-    echo "FAILED. The demo MinIO pod has not been terminated."
-    return 1
+    fail "The demo MinIO pod has not been terminated."
   fi
 
   echo "Deleting demo cluster"
@@ -181,10 +173,9 @@ test_yamls() {
 
   if wait_pods_terminated "${CLUSTER_NAMESPACE}" 0 "simple-[^[:space:]]\+"
   then
-    echo "SUCCESS. The demo StackGres cluster pods have been terminated."
+    success "The demo StackGres cluster pods have been terminated."
   else
-    echo "FAILED. The demo StackGres cluster pods have not been terminated."
-    return 1
+    fail "The demo StackGres cluster pods have not been terminated."
   fi
 
   echo "Deleting demo operator"
@@ -192,10 +183,9 @@ test_yamls() {
 
   if wait_until is_demo_operator_namespace_removed
   then
-    echo "SUCCESS. The demo StackGres operator namespace has been removed."
+    success "The demo StackGres operator namespace has been removed."
   else
-    echo "FAILED. The demo StackGres operator namespace has not been removed."
-    return 1
+    fail "The demo StackGres operator namespace has not been removed."
   fi
 }
 
@@ -224,28 +214,25 @@ test_packages() {
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
-    echo "FAILED. The StackGres operator service was not available."
-    return 1
+    fail "The StackGres operator service was not available."
   else
-    echo "SUCCESS. The StackGres operator service was available."
+    success "The StackGres operator service was available."
   fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
   then
-    echo "FAILED. The StackGres restapi service was not available."
-    return 1
+    fail "The StackGres restapi service was not available."
   else
-    echo "SUCCESS. The StackGres restapi service was available."
+    success "The StackGres restapi service was available."
   fi
 
   if [ "$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .extensions.cache.enabled)" = true ]
   then
     if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
-      echo "FAILED. The demo StackGres extensions cache service was not available."
-      return 1
+      fail "The demo StackGres extensions cache service was not available."
     else
-      echo "SUCCESS. The demo StackGres extensions cache service was available."
+      success "The demo StackGres extensions cache service was available."
     fi
   fi
 
@@ -260,26 +247,23 @@ test_packages() {
 
   if wait_pods_running "${CLUSTER_NAMESPACE}" 2 "$CLUSTER_NAME-[^[:space:]]\+"
   then
-    echo "SUCCESS. The demo StackGres cluster pods are running."
+    success "The demo StackGres cluster pods are running."
   else
-    echo "FAILED. The demo StackGres cluster pods are not running."
-    return 1
+    fail "The demo StackGres cluster pods are not running."
   fi
 
   echo "Testing Cluster readability"
   if kubectl exec "${CLUSTER_NAME}-0" -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
   then
-    echo "SUCCESS. The demo package StackGres cluster primary is available."
+    success "The demo package StackGres cluster primary is available."
   else
-    echo "FAILED. The demo package StackGres cluster primary is not available."
-    return 1
+    fail "The demo package StackGres cluster primary is not available."
   fi
   if kubectl exec "${CLUSTER_NAME}-1" -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
   then
-    echo "SUCCESS. The demo package StackGres cluster secondary is available."
+    success "The demo package StackGres cluster secondary is available."
   else
-    echo "FAILED. The demo package StackGres cluster secondary is not available."
-    return 1
+    fail "The demo package StackGres cluster secondary is not available."
   fi
 
   check_namespace
@@ -289,21 +273,19 @@ test_packages() {
 
   if wait_pods_terminated "${CLUSTER_NAMESPACE}" 0 "simple-[^[:space:]]\+"
   then
-    echo "SUCCESS. The demo package StackGres cluster pods have been terminated."
+    success "The demo package StackGres cluster pods have been terminated."
   else
-    echo "FAILED. The demo package StackGres cluster pods have not been terminated."
-    return 1
+    fail "The demo package StackGres cluster pods have not been terminated."
   fi
 }
 
 check_namespace() {
   if wait_until check_returned_namespaces
   then
-    echo "SUCCESS. Namespace endpoint returned all namespaces"
+    success "Namespace endpoint returned all namespaces"
     return 0
   else
-    echo "FAIL. Namespace endpoint not return all namespaces"
-    return 1
+    fail "Namespace endpoint not return all namespaces"
   fi
 }
 

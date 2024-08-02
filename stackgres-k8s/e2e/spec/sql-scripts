@@ -43,10 +43,9 @@ check_wrap_in_transaction() {
     && ! run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_wrap_in_transaction$"
   then
-    echo "SUCCESS: wrap in transaction rollback successfully"
+    success "wrap in transaction rollback successfully"
   else
-    echo "FAIL: wrap in transaction didn't rollback"
-    return 1
+    fail "wrap in transaction didn't rollback"
   fi
 
   kubectl patch sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-scripts" \
@@ -55,10 +54,9 @@ check_wrap_in_transaction() {
   if wait_until eval 'run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_wrap_in_transaction$"'
   then
-    echo "SUCCESS: wrap in transaction worked successfully"
+    success "wrap in transaction worked successfully"
   else
-    echo "FAIL: wrap in transaction didn't worked"
-    return 1
+    fail "wrap in transaction didn't worked"
   fi
 }
 
@@ -69,10 +67,9 @@ check_store_status_in_database() {
     && ! run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_store_status_in_database$"
   then
-    echo "SUCCESS: store status in database rollback successfully"
+    success "store status in database rollback successfully"
   else
-    echo "FAIL: store status in database didn't rollback"
-    return 1
+    fail "store status in database didn't rollback"
   fi
 
   kubectl patch sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-scripts" \
@@ -81,10 +78,9 @@ check_store_status_in_database() {
   if wait_until eval 'run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_store_status_in_database$"'
   then
-    echo "SUCCESS: store status in database worked successfully"
+    success "store status in database worked successfully"
   else
-    echo "FAIL: store status in database didn't worked"
-    return 1
+    fail "store status in database didn't worked"
   fi
 }
 
@@ -93,10 +89,9 @@ check_retry_on_error() {
   if wait_until eval 'run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_retry_on_error$"'
   then
-    echo "SUCCESS: retry on error worked successfully"
+    success "retry on error worked successfully"
   else
-    echo "FAIL: retry on error didn't worked"
-    return 1
+    fail "retry on error didn't worked"
   fi
 }
 
@@ -121,10 +116,9 @@ EOF
   if wait_until eval 'run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_continue_on_error$"'
   then
-    echo "SUCCESS: continue on error worked successfully"
+    success "continue on error worked successfully"
   else
-    echo "FAIL: continue on error didn't worked"
-    return 1
+    fail "continue on error didn't worked"
   fi
 }
 
@@ -149,9 +143,8 @@ EOF
   if wait_until -t 10 eval 'run_query -p 5432 -i "1" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
     | grep -q "^test_dont_continue_on_error$"'
   then
-    echo "FAIL: don't continue on error didn't worked"
-    return 1
+    fail "don't continue on error didn't worked"
   else
-    echo "SUCCESS: don't continue on error worked successfully"
+    success "don't continue on error worked successfully"
   fi
 }

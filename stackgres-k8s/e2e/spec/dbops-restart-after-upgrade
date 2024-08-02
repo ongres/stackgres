@@ -215,10 +215,9 @@ check_before_operator_upgrade() {
     if wait_until eval 'kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" \
       --for condition=PendingRestart=false --timeout 0'
     then
-      echo "SUCCESS. $RESOURCE is not pending restart after creation"
+      success "$RESOURCE is not pending restart after creation"
     else
-      echo "FAIL. $RESOURCE is pending restart after creation"
-      return 1
+      fail "$RESOURCE is pending restart after creation"
     fi
   done
 }
@@ -234,7 +233,7 @@ check_operator_upgrade() {
   fi
   if [ "${POD_OPERATOR_IMAGE#*/}" = "${STACKGRES_PREVIOUS_OPERATOR_IMAGE#*/}" ]
   then
-    echo "SUCCESS. Operator pod is using the previous operator image"
+    success "Operator pod is using the previous operator image"
   else
     echo "FAILURE. Operator pod is not using the previous operator image"
     echo
@@ -260,7 +259,7 @@ check_operator_upgrade() {
   fi
   if [ "${POD_RESTAPI_IMAGE#*/}" = "${STACKGRES_PREVIOUS_RESTAPI_IMAGE#*/}" ]
   then
-    echo "SUCCESS. Restapi pod is using the previous restapi image"
+    success "Restapi pod is using the previous restapi image"
   else
     echo "FAILURE. Restapi pod is not using the previous restapi image"
     echo
@@ -284,7 +283,7 @@ check_operator_upgrade() {
   fi
   if [ "${POD_OPERATOR_IMAGE#*/}" = "${STACKGRES_OPERATOR_IMAGE#*/}" ]
   then
-    echo "SUCCESS. Operator pod is using the new operator image"
+    success "Operator pod is using the new operator image"
   else
     echo "FAILURE. Operator pod is not using the new operator image"
     echo
@@ -304,7 +303,7 @@ check_operator_upgrade() {
   fi
   if [ "${POD_RESTAPI_IMAGE#*/}" = "${STACKGRES_RESTAPI_IMAGE#*/}" ]
   then
-    echo "SUCCESS. Operator pod is using the new restapi image"
+    success "Operator pod is using the new restapi image"
   else
     echo "FAILURE. Operator pod is not using the new restapi image"
     echo
@@ -359,10 +358,9 @@ EOF
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1
   then
-    echo "FAILED. Cluster has been updated while locked."
-    return 1
+    fail "Cluster has been updated while locked."
   else
-    echo "SUCCESS. Cluster has not been updated while locked."
+    success "Cluster has not been updated while locked."
   fi
 }
 
@@ -388,10 +386,9 @@ check_cluster_after_restart() {
   if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --for condition=PendingRestart=false --timeout 0'
   then
-    echo "SUCCESS. Cluster $CLUSTER_NAME is not pending restart after restart"
+    success "Cluster $CLUSTER_NAME is not pending restart after restart"
   else
-    echo "FAIL. Cluster $CLUSTER_NAME is pending restart after restart"
-    return 1
+    fail "Cluster $CLUSTER_NAME is pending restart after restart"
   fi
 
   local STS_UPDATE_REVISION
@@ -426,7 +423,7 @@ check_cluster_after_restart() {
     fi
     if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
     then
-      echo "SUCCESS. Pod $POD is using the latest patroni image"
+      success "Pod $POD is using the latest patroni image"
     else
       echo "FAILURE. Pod $POD is not using the latest patroni image"
       echo
@@ -442,7 +439,7 @@ check_cluster_after_restart() {
     --template '{{ .spec.type }}')"
   if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
   then
-    echo "SUCCESS. Cluster $CLUSTER_NAME primary service is of type ExternalName"
+    success "Cluster $CLUSTER_NAME primary service is of type ExternalName"
   else
     echo "FAILURE. Cluster $CLUSTER_NAME primary service is not of type ExternalName"
     return 1
@@ -468,9 +465,8 @@ check_sts_is_not_altered() {
 
   if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then
-    echo "SUCCESS. StatefulSet $TARGET_CLUSTER is not being altered on operator upgrade"
+    success "StatefulSet $TARGET_CLUSTER is not being altered on operator upgrade"
   else 
-    echo "FAIL. StatefulSet $TARGET_CLUSTER is being altered on operator upgrade"
-    return 1
+    fail "StatefulSet $TARGET_CLUSTER is being altered on operator upgrade"
   fi
 }

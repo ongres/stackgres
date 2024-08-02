@@ -40,9 +40,8 @@ check_replica_can_catch_up_from_backup_storage() {
   try_function wait_until check_mock_data_replication "$CLUSTER_NAME"
   if "$RESULT"
   then
-    echo "SUCCESS. Replica catch-up from backup storage"
+    success "Replica catch-up from backup storage"
   else
-    echo "FAIL. Replica didn't catch-up from backup storage"
-    return 1
+    fail "Replica didn't catch-up from backup storage"
   fi
 }

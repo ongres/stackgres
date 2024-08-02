@@ -35,20 +35,18 @@ EOF
     && kubectl wait --timeout "0s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
-    echo "SUCCESS. restart failed."
+    success "restart failed."
   else
-    echo "FAILED. restart did not fail."
-    return 1
+    fail "restart did not fail."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. restart job was not removed after failure."
+    success "restart job was not removed after failure."
   else
-    echo "FAILED. restart job was removed after failure."
-    return 1
+    fail "restart job was removed after failure."
   fi
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
@@ -57,10 +55,9 @@ EOF
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
-    echo "SUCCESS. restart job was removed after sgdbops was removed."
+    success "restart job was removed after sgdbops was removed."
   else
-    echo "FAILED. restart job was not removed after sgdbops was removed."
-    return 1
+    fail "restart job was not removed after sgdbops was removed."
   fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3

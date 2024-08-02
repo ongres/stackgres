@@ -129,113 +129,101 @@ check_pgbench() {
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. pgbench job was not removed after completion."
+    success "pgbench job was not removed after completion."
   else
-    echo "FAILED. pgbench job was removed after completion."
-    return 1
+    fail "pgbench job was removed after completion."
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.scaleFactor }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
-    echo "SUCCESS. pgbench returned the scale factor."
+    success "pgbench returned the scale factor."
   else
-    echo "FAILED. pgbench did not returned the scale factor."
-    return 1
+    fail "pgbench did not returned the scale factor."
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsProcessed }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
-    echo "SUCCESS. pgbench returned the transactions processed."
+    success "pgbench returned the transactions processed."
   else
-    echo "FAILED. pgbench did not returned the transactions processed."
-    return 1
+    fail "pgbench did not returned the transactions processed."
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.average.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
-    echo "SUCCESS. pgbench returned the average latency."
+    success "pgbench returned the average latency."
   else
-    echo "FAILED. pgbench did not returned the average latency."
-    return 1
+    fail "pgbench did not returned the average latency."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.average.unit }}')" \
     = "ms" ]
   then
-    echo "SUCCESS. pgbench returned the average latency unit"
+    success "pgbench returned the average latency unit"
   else
-    echo "FAILED. pgbench did not returned the average latency unit."
-    return 1
+    fail "pgbench did not returned the average latency unit."
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.standardDeviation.value}}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
-    echo "SUCCESS. pgbench returned the latency standard deviation."
+    success "pgbench returned the latency standard deviation."
   else
-    echo "FAILED. pgbench did not returned the latency standard deviation."
-    return 1
+    fail "pgbench did not returned the latency standard deviation."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.latency.standardDeviation.unit}}')" \
     = "ms" ]
   then
-    echo "SUCCESS. pgbench returned the latency standard deviation unit."
+    success "pgbench returned the latency standard deviation unit."
   else
-    echo "FAILED. pgbench did not returned the latency standard deviation unit."
-    return 1
+    fail "pgbench did not returned the latency standard deviation unit."
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
-    echo "SUCCESS. pgbench returned the tps including connections establishing."
+    success "pgbench returned the tps including connections establishing."
   else
-    echo "FAILED. pgbench did not returned the tps including connections establishing."
-    return 1
+    fail "pgbench did not returned the tps including connections establishing."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit }}')" \
     = "tps" ]
   then
-    echo "SUCCESS. pgbench returned the tps including connections establishing unit."
+    success "pgbench returned the tps including connections establishing unit."
   else
-    echo "FAILED. pgbench did not returned the tps including connections establishing unit."
-    return 1
+    fail "pgbench did not returned the tps including connections establishing unit."
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value }}' | grep '[0-9]\+\(\.[0-9]\+\)\?'
   then
-    echo "SUCCESS. pgbench returned the tps excluding connections establishing."
+    success "pgbench returned the tps excluding connections establishing."
   else
-    echo "FAILED. pgbench did not returned the tps excluding connections establishing."
-    return 1
+    fail "pgbench did not returned the tps excluding connections establishing."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --template '{{ .status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.unit }}')" \
     = "tps" ]
   then
-    echo "SUCCESS. pgbench returned the tps excluding connections establishing unit."
+    success "pgbench returned the tps excluding connections establishing unit."
   else
-    echo "FAILED. pgbench did not returned the tps excluding connections establishing unit."
-    return 1
+    fail "pgbench did not returned the tps excluding connections establishing unit."
   fi
 
   RESULT="$(run_query -i 0 -p 5432 -q "SELECT EXISTS(SELECT * FROM pg_database WHERE datname = 'pgbench')")"
   if [ "$RESULT" = "f" ]
   then
-    echo "SUCCESS. pgbench database was dropped."
+    success "pgbench database was dropped."
   else
-    echo "FAILED. pgbench database was not dropped."
-    return 1
+    fail "pgbench database was not dropped."
   fi
 }
 
@@ -262,20 +250,18 @@ EOF
     && kubectl wait --timeout "0s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
-    echo "SUCCESS. pgbench failed."
+    success "pgbench failed."
   else
-    echo "FAILED. pgbench did not fail."
-    return 1
+    fail "pgbench did not fail."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. pgbench job was not removed after failure."
+    success "pgbench job was not removed after failure."
   else
-    echo "FAILED. pgbench job was removed after failure."
-    return 1
+    fail "pgbench job was removed after failure."
   fi
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
@@ -284,9 +270,8 @@ EOF
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 0 ]'
   then
-    echo "SUCCESS. pgbench job was removed after sgdbops was removed."
+    success "pgbench job was removed after sgdbops was removed."
   else
-    echo "FAILED. pgbench job was not removed after sgdbops was removed."
-    return 1
+    fail "pgbench job was not removed after sgdbops was removed."
   fi
 }

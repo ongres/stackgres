@@ -62,30 +62,27 @@ check_sync_replication_is_working() {
   if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
     psql -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
   then
-    echo "SUCCESS: sync replication is set for primary"
+    success "sync replication is set for primary"
   else
-    echo "FAIL: sync replication is not set for primary"
-    return 1
+    fail "sync replication is not set for primary"
   fi
 
   local RESULT EXIT_CODE
   try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test;"
   if "$RESULT"
   then
-    echo "SUCCESS: It's possible to create a database in the primary node"
+    success "It's possible to create a database in the primary node"
   else
-    echo "FAIL: It should be possible to create a database in the primary node" 
-    return 1
+    fail "It should be possible to create a database in the primary node" 
   fi
 
   wait_until check_connectivity -i 1
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test > "${LOG_PATH}/test1.log"
   if "$RESULT"
   then
-    echo "FAIL: It's possible to create a table in the replica node"
-    return 1
+    fail "It's possible to create a table in the replica node"
   else
-    echo "SUCCESS: It's not be possible to create a table in the replica node" 
+    success "It's not be possible to create a table in the replica node" 
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
@@ -98,18 +95,16 @@ check_sync_replication_is_working() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary with sync replication where sucessful."
+    success "inserts on the primary with sync replication where successful."
   else
-    echo "FAIL: inserts on the primary with sync replication where not sucessful."
-    return 1
+    fail "inserts on the primary with sync replication where not successful."
   fi
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
   then
-    echo "SUCCESS: sync replication is working"
+    success "sync replication is working"
   else
-    echo "FAIL: sync replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "sync replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 }
 
@@ -118,10 +113,9 @@ check_replica_in_ha_read_group_not_in_replicas_service() {
   try_function wait_until eval 'check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
   then
-    echo "SUCCESS: first replica IP was exposed by replicas sevices"
+    success "first replica IP was exposed by replicas sevices"
   else
-    echo "FAIL: first replica IP was not exposed by replicas sevices"
-    return 1
+    fail "first replica IP was not exposed by replicas sevices"
   fi
 }
 
@@ -130,10 +124,9 @@ check_replica_in_none_group_not_in_replicas_service() {
   try_function wait_until eval 'check_pod_ip_not_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
   then
-    echo "SUCCESS: second replica IP was not exposed by replicas sevices"
+    success "second replica IP was not exposed by replicas sevices"
   else
-    echo "FAIL: second replica IP was exposed by replicas sevices"
-    return 1
+    fail "second replica IP was exposed by replicas sevices"
   fi
 }
 
@@ -150,20 +143,18 @@ check_replica_in_none_group_not_elegible_as_primary() {
   try_function wait_until eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}") = master ]'
   if "$RESULT"
   then
-    echo "SUCCESS: first replica IP was elected as primary"
+    success "first replica IP was elected as primary"
   else
-    echo "FAIL: first replica IP was not elected as primary"
-    return 1
+    fail "first replica IP was not elected as primary"
   fi
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   local RESULT EXIT_CODE
   try_function wait_until -t 10 eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.role }}") = master ]'
   if "$RESULT"
   then
-    echo "FAIL: second replica IP was elected as primary"
-    return 1
+    fail "second replica IP was elected as primary"
   else
-    echo "SUCCESS: second replica IP was not elected as primary"
+    success "second replica IP was not elected as primary"
   fi
 }
 
@@ -179,10 +170,9 @@ check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
   try_function wait_until eval 'check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
   then
-    echo "SUCCESS: second replica IP was exposed by replicas sevices"
+    success "second replica IP was exposed by replicas sevices"
   else
-    echo "FAIL: second replica IP was not exposed by replicas sevices"
-    return 1
+    fail "second replica IP was not exposed by replicas sevices"
   fi
 }
 
@@ -211,10 +201,9 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
   try_function wait_until eval 'check_pod_ip_not_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
   then
-    echo "SUCCESS: old primary IP was not exposed by replicas sevices"
+    success "old primary IP was not exposed by replicas sevices"
   else
-    echo "FAIL: old primary IP was exposed by replicas sevices"
-    return 1
+    fail "old primary IP was exposed by replicas sevices"
   fi
   wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2"
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
@@ -232,10 +221,9 @@ check_strict_sync_replication_is_working() {
   try_function wait_until -t 10 eval 'kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" --for=condition=PendingRestart --timeout 0'
   if "$RESULT"
   then
-    echo "FAIL: cluster is pending restart after changing the replication mode"
-    return 1
+    fail "cluster is pending restart after changing the replication mode"
   else
-    echo "SUCCESS: cluster is not pending restart after changing the replication mode"
+    success "cluster is not pending restart after changing the replication mode"
   fi
 
   local RESULT EXIT_CODE
@@ -243,10 +231,9 @@ check_strict_sync_replication_is_working() {
     psql -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
   if "$RESULT"
   then
-    echo "SUCCESS: strict sync replication is set for primary"
+    success "strict sync replication is set for primary"
   else
-    echo "FAIL: strict sync replication is not set for primary"
-    return 1
+    fail "strict sync replication is not set for primary"
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test
@@ -259,18 +246,16 @@ check_strict_sync_replication_is_working() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary with strict sync replication where sucessful."
+    success "inserts on the primary with strict sync replication where successful."
   else
-    echo "FAIL: inserts on the primary with strict sync replication where not sucessful."
-    return 1
+    fail "inserts on the primary with strict sync replication where not successful."
   fi
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
   then
-    echo "SUCCESS: strict sync replication is working"
+    success "strict sync replication is working"
   else
-    echo "FAIL: strict sync replication is not working. The records don't match between primary and replica for the fibonacci_strict table"
-    return 1
+    fail "strict sync replication is not working. The records don't match between primary and replica for the fibonacci_strict table"
   fi
 }
 
@@ -287,30 +272,27 @@ check_sync_all_replication_is_working() {
   if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
     psql -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
   then
-    echo "SUCCESS: sync all replication is set for primary"
+    success "sync all replication is set for primary"
   else
-    echo "FAIL: sync all replication is not set for primary"
-    return 1
+    fail "sync all replication is not set for primary"
   fi
 
   local RESULT EXIT_CODE
   try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test_all;"
   if "$RESULT"
   then
-    echo "SUCCESS: It's possible to create a database in the primary node"
+    success "It's possible to create a database in the primary node"
   else
-    echo "FAIL: It should be possible to create a database in the primary node" 
-    return 1
+    fail "It should be possible to create a database in the primary node" 
   fi
 
   wait_until check_connectivity -i 1
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test_all > "${LOG_PATH}/test_all1.log"
   if "$RESULT"
   then
-    echo "FAIL: It's possible to create a table in the replica node"
-    return 1
+    fail "It's possible to create a table in the replica node"
   else
-    echo "SUCCESS: It's not be possible to create a table in the replica node" 
+    success "It's not be possible to create a table in the replica node" 
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test_all
@@ -323,18 +305,16 @@ check_sync_all_replication_is_working() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary with sync replication where sucessful."
+    success "inserts on the primary with sync replication where successful."
   else
-    echo "FAIL: inserts on the primary with sync replication where not sucessful."
-    return 1
+    fail "inserts on the primary with sync replication where not successful."
   fi
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
   then
-    echo "SUCCESS: sync replication is working"
+    success "sync replication is working"
   else
-    echo "FAIL: sync replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "sync replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 }
 
@@ -350,10 +330,9 @@ check_strict_sync_all_replication_is_working() {
   try_function wait_until -t 10 eval 'kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" --for=condition=PendingRestart --timeout 0'
   if "$RESULT"
   then
-    echo "FAIL: cluster is pending restart after changing the replication mode"
-    return 1
+    fail "cluster is pending restart after changing the replication mode"
   else
-    echo "SUCCESS: cluster is not pending restart after changing the replication mode"
+    success "cluster is not pending restart after changing the replication mode"
   fi
 
   local RESULT EXIT_CODE
@@ -361,10 +340,9 @@ check_strict_sync_all_replication_is_working() {
     psql -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
   if "$RESULT"
   then
-    echo "SUCCESS: strict sync all replication is set for primary"
+    success "strict sync all replication is set for primary"
   else
-    echo "FAIL: strict sync all replication is not set for primary"
-    return 1
+    fail "strict sync all replication is not set for primary"
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test_all
@@ -377,18 +355,16 @@ check_strict_sync_all_replication_is_working() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary with strict sync all replication where sucessful."
+    success "inserts on the primary with strict sync all replication where successful."
   else
-    echo "FAIL: inserts on the primary with strict sync all replication where not sucessful."
-    return 1
+    fail "inserts on the primary with strict sync all replication where not successful."
   fi
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
   then
-    echo "SUCCESS: strict sync all replication is working"
+    success "strict sync all replication is working"
   else
-    echo "FAIL: strict sync all replication is not working. The records don't match between primary and replica for the fibonacci_strict table"
-    return 1
+    fail "strict sync all replication is not working. The records don't match between primary and replica for the fibonacci_strict table"
   fi
 }
 
@@ -425,10 +401,9 @@ check_pod_ip_exposed_by_service() {
     --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
   if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
   then
-    echo "SUCCESS: pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
+    success "pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else
-    echo "FAIL: pod $POD_NAME IP was not exposed by sevice $SERVICE_NAME"
-    return 1
+    fail "pod $POD_NAME IP was not exposed by sevice $SERVICE_NAME"
   fi
 }
 
@@ -442,10 +417,9 @@ check_pod_ip_not_exposed_by_service() {
     --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
   if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
   then
-    echo "FAIL: pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
-    return 1
+    fail "pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else
-    echo "SUCCESS: pod $POD_NAME IP was not exposed by sevice $SERVICE_NAME"
+    success "pod $POD_NAME IP was not exposed by sevice $SERVICE_NAME"
   fi
 }
 

@@ -6,10 +6,9 @@ wait_dbops_is_completed() {
     --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
     | grep -q "^Completed$"'
   then
-    echo "SUCCESS. The dbops has completed"
+    success "The dbops has completed"
   else
-    echo "FAIL. The dbops has failed or did not completed"
-    return 1
+    fail "The dbops has failed or did not completed"
   fi
 }
 
@@ -19,9 +18,8 @@ wait_sharded_dbops_is_completed() {
     --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
     | grep -q "^Completed$"'
   then
-    echo "SUCCESS. The sharded dbops has completed"
+    success "The sharded dbops has completed"
   else
-    echo "FAIL. The sharded dbops has failed or did not completed"
-    return 1
+    fail "The sharded dbops has failed or did not completed"
   fi
 }

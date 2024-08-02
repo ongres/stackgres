@@ -81,30 +81,27 @@ check_dbops_events() {
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"SGDbOps\" and .involvedObject.name == \"$DBOPS_NAME\")" \
     | grep -q "^true$"
   then
-    echo "SUCCESS. SGDbOps events for $DBOPS_NAME included in json response"
+    success "SGDbOps events for $DBOPS_NAME included in json response"
   else
-    echo "FAIL. SGDbOps events for $DBOPS_NAME not included in json response"
-    return 1
+    fail "SGDbOps events for $DBOPS_NAME not included in json response"
   fi
 
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Job\")" \
     | grep -q "^true$"
   then
-    echo "SUCCESS. Job events included in json response"
+    success "Job events included in json response"
   else
-    echo "FAIL. Job events not included in json response"
-    return 1
+    fail "Job events not included in json response"
   fi
 
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgdbops/$DBOPS_NAME/events" \
     | jq -r "any(.metadata.namespace == \"$CLUSTER_NAMESPACE\" and .involvedObject.kind == \"Pod\")" \
     | grep -q "^true$"
   then
-    echo "SUCCESS. Pods events included in json response"
+    success "Pods events included in json response"
   else
-    echo "FAIL. Pods events not included in json response"
-    return 1
+    fail "Pods events not included in json response"
   fi
 }
 
@@ -119,10 +116,9 @@ test_authentication_api_error() {
 check_authentication_error() {
   if [ "$HTTP_STATUS" = "401" ]
   then
-    echo "SUCCESS. Request returned expected authentication error"
+    success "Request returned expected authentication error"
   else
-    echo "FAIL. Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
-    return 1
+    fail "Request returned unexpected response status $HTTP_STATUS instead of the expected authentication error."
   fi
 }
 

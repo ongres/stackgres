@@ -70,10 +70,9 @@ EOF
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME_POST" \
     --template "{{ .status.process.status }}")" = Completed ]'
   then
-    echo "SUCCESS. The backup has completed"
+    success "The backup has completed"
   else
-    echo "FAIL. The backup has failed"
-    return 1
+    fail "The backup has failed"
   fi
 
   cat << EOF | kubectl create -f -
@@ -102,9 +101,9 @@ EOF
   if kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template "{{ .spec.majorVersionUpgrade.backupPath }}" \
     | grep -q "^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/[^/]\+/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}$"
   then
-    echo "SUCCESS. DbOps path was added to spec"
+    success "DbOps path was added to spec"
   else
-    echo "FAIL. DbOps path was not added to spec"
+    fail "DbOps path was not added to spec"
     return 1
   fi
 
@@ -113,10 +112,9 @@ EOF
   if kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }' \
     | grep -q "^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/[^/]\+/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}$"
   then
-    echo "SUCCESS. Backup path was added to cluster backup configuration after major version upgrade"
+    success "Backup path was added to cluster backup configuration after major version upgrade"
   else
-    echo "FAIL. Backup path was not added to cluster backup configuration after major version upgrade"
-    return 1
+    fail "Backup path was not added to cluster backup configuration after major version upgrade"
   fi
 
   cat << EOF | kubectl create -f -
@@ -133,10 +131,9 @@ EOF
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME_PRE" \
     --template "{{ .status.process.status }}")" = Completed ]'
   then
-    echo "SUCCESS. The backup has completed"
+    success "The backup has completed"
   else
-    echo "FAIL. The backup has failed"
-    return 1
+    fail "The backup has failed"
   fi
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
@@ -207,9 +204,8 @@ EOF
 
   if ! kubectl create -f "$LOG_PATH"/failing-dbops.yaml
   then
-    echo "SUCCESS. The SGDbOps creation has failed"
+    success "The SGDbOps creation has failed"
   else
-    echo "FAIL. The SGDbOps creation has not failed"
-    return 1
+    fail "The SGDbOps creation has not failed"
   fi
 }

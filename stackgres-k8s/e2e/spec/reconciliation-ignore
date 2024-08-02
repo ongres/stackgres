@@ -63,10 +63,9 @@ EOF
 
   if wait_until -t "15" has_cluster_generated_resources
   then
-    echo "FAIL. Cluster where created"
-    return 1
+    fail "Cluster where created"
   else
-    echo "SUCCESS. Cluster resources wheren't created"
+    success "Cluster resources wheren't created"
   fi
 
 }
@@ -82,10 +81,9 @@ ignore_sgcluster_patch(){
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
-    echo "FAIL. SGCluster is not being ignored"
-    return 1
+    fail "SGCluster is not being ignored"
   else
-    echo "SUCCESS. SGCluster is being ignored"
+    success "SGCluster is being ignored"
   fi
   
 }
@@ -95,10 +93,9 @@ resume_sgcluster_reconciliation(){
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
-    echo "SUCCESS. SGCluster is not being ignored"    
+    success "SGCluster is not being ignored"    
   else
-    echo "FAIL. SGCluster is being ignored"
-    return 1
+    fail "SGCluster is being ignored"
   fi
 }
 
@@ -120,10 +117,9 @@ EOF
 
   if wait_until -t "15" has_logs_generated_resources
   then
-    echo "FAIL. Distributed logs cluster where created"
-    return 1
+    fail "Distributed logs cluster where created"
   else
-    echo "SUCCESS. Distributed logs cluster resources wheren't created"
+    success "Distributed logs cluster resources wheren't created"
   fi
 }
 
@@ -140,10 +136,9 @@ ignore_sgdistributedlogs_patch(){
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
   then
-    echo "FAIL. Distributed logs is not being ignored"
-    return 1
+    fail "Distributed logs is not being ignored"
   else
-    echo "SUCCESS. Distributed logs is being ignored"
+    success "Distributed logs is being ignored"
   fi
 }
 
@@ -152,10 +147,9 @@ resume_sgdistributedlogs_reconciliation(){
 
   if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
   then
-    echo "SUCCESS. Distributed logs is not being ignored"    
+    success "Distributed logs is not being ignored"    
   else
-    echo "FAIL. Distributed logs is being ignored"
-    return 1
+    fail "Distributed logs is being ignored"
   fi
 }
 

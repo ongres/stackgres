@@ -60,14 +60,12 @@ generated_ssl_check() {
     RESPONSE_REPLICA="$(run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
-      echo "SUCCESS: Connections are possible using SSL"
+      success "Connections are possible using SSL"
     else
-      echo "FAIL: Cannot connect to replica db using SSL"
-      return 1
+      fail "Cannot connect to replica db using SSL"
     fi
   else
-    echo "FAIL: Cannot connect to primary db using SSL"
-    return 1
+    fail "Cannot connect to primary db using SSL"
   fi
 }
 
@@ -107,14 +105,12 @@ provided_ssl_check() {
     RESPONSE_REPLICA="$(wait_until run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
-      echo "SUCCESS: Connections are possible using SSL"
+      success "Connections are possible using SSL"
     else
-      echo "FAIL: Cannot connect to replica db using SSL"
-      return 1
+      fail "Cannot connect to replica db using SSL"
     fi
   else
-    echo "FAIL: Cannot connect to primary db using SSL"
-    return 1
+    fail "Cannot connect to primary db using SSL"
   fi
 }
 
@@ -126,14 +122,12 @@ no_ssl_check() {
     RESPONSE_REPLICA="$(wait_until run_query -m disable -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
-      echo "SUCCESS: Connections are possible without SSL"
+      success "Connections are possible without SSL"
     else
-      echo "FAIL: Cannot connect to replica db without SSL"
-      return 1
+      fail "Cannot connect to replica db without SSL"
     fi
   else
-    echo "FAIL: Cannot connect to primary db without SSL"
-    return 1
+    fail "Cannot connect to primary db without SSL"
   fi
 }
 
@@ -142,9 +136,8 @@ replication_ssl_check() {
   if wait_until eval '[ "$(run_query -m disable -h "$CLUSTER_NAME" -i 1 -p 5432 \
     -q "SELECT ssl FROM pg_stat_ssl INNER JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid WHERE usename = '"'"'replicator'"'"'")" = "t" ]'
   then
-    echo "SUCCESS: Replication is using SSL"
+    success "Replication is using SSL"
   else
-    echo "FAIL: Replication is not using SSL"
-    return 1
+    fail "Replication is not using SSL"
   fi
 }

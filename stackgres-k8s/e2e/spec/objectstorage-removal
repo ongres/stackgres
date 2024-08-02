@@ -26,20 +26,18 @@ e2e_test() {
 delete_with_cluster() {
   if ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sgobjectstorages.stackgres.io backupconf 2>&1)"
   then
-    echo "FAIL: It should not be able to delete sgobjectstorage"
-    return 1
+    fail "It should not be able to delete sgobjectstorage"
   else
-    echo "SUCCESS: Good it has failed"
+    success "Good it has failed"
   fi
 
   if echo "$ERROR" | grep -q "Can't delete sgobjectstorages.stackgres.io backupconf"
   then
-    echo "SUCCESS: Error message was the expected"
+    success "Error message was the expected"
     return 0
   else
     ERROR="$(cat "$LOG_PATH/test1.log")"
-    echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
-    return 1
+    fail "Error is not what it should be. ERROR ${ERROR}"
   fi
 }
 
@@ -48,10 +46,9 @@ delete_whitout_cluster() {
 
   if ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sgobjectstorages.stackgres.io backupconf 2>&1)"
   then
-    echo "SUCCESS: Good. It has deleted the configuration"
+    success "Good. It has deleted the configuration"
     return 0
   else
-    echo "FAIL: It should be able to delete the posgresconf. ERROR ${ERROR}"
-    return 1
+    fail "It should be able to delete the posgresconf. ERROR ${ERROR}"
   fi
 }

@@ -50,34 +50,30 @@ check_switchover() {
   if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
     patronictl switchover --primary "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force
   then
-    echo "SUCCESS. The switchover has been performed"
+    success "The switchover has been performed"
   else
-    echo "FAIL. The switchover operation failed"
-    return 1
+    fail "The switchover operation failed"
   fi
 
   if wait_until run_query -i 0 -p 5432
   then
-    echo "SUCCESS. The replica becomed available"
+    success "The replica becomed available"
   else
-    echo "FAIL. The replica is not available"
-    return 1
+    fail "The replica is not available"
   fi
 
   if ! run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^t$'
   then
-    echo "SUCCESS. The primary is now the node at index 1"
+    success "The primary is now the node at index 1"
   else
-    echo "FAIL. The node at index 1 is not the primary"
-    return 1
+    fail "The node at index 1 is not the primary"
   fi
 
   if ! run_query -i 0 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^f$'
   then
-    echo "SUCCESS. The replica is now the node at index 0"
+    success "The replica is now the node at index 0"
   else
-    echo "FAIL. The node at index 0 is not a replica"
-    return 1
+    fail "The node at index 0 is not a replica"
   fi
 }
 

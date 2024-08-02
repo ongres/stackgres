@@ -24,10 +24,9 @@ e2e_test_install() {
     | jq -s "length")" = 2 ]'
   if "$RESULT"
   then
-    echo "SUCCESS. pg_repack was installed"
+    success "pg_repack was installed"
   else
-    echo "FAIL. pg_repack was not installed"
-    return 1
+    fail "pg_repack was not installed"
   fi
 
   DBOPS_NAME=repack

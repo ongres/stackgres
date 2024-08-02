@@ -51,7 +51,7 @@ EOF
       patronictl failover --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
   if "$RESULT"
   then
-    echo "SUCCESS. $CLUSTER_NAME-1 has been promoted to primary and $CLUSTER_NAME-0 has been removed abruptly!"
+    success "$CLUSTER_NAME-1 has been promoted to primary and $CLUSTER_NAME-0 has been removed abruptly!"
   else
     echo "FAILURE. $CLUSTER_NAME-1 has not been promoted to primary or $CLUSTER_NAME-0 has not been removed abruptly!"
   fi
@@ -64,10 +64,9 @@ EOF
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" --template "{{ .metadata.labels.role }}" \
       | grep -qF "replica"'
   then
-    echo "SUCCESS: Old primary has been converted to replica"
+    success "Old primary has been converted to replica"
   else
-    echo "FAIL: Old primary has not been converted to replica"
-    return 1
+    fail "Old primary has not been converted to replica"
   fi
 
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
@@ -78,9 +77,9 @@ EOF
   EXPECTED_COUNT="$(run_query -i 1 -p 5432 -q "SELECT COUNT(*) FROM test")"
   if wait_until eval '[ "$EXPECTED_COUNT" = "$(run_query -i 0 -p 5432 -q "SELECT COUNT(*) FROM test")" ]'
   then
-    echo "SUCCESS: Old primary is replicating correctly from new primary"
+    success "Old primary is replicating correctly from new primary"
   else
-    echo "FAIL: Old primary is not replicating correctly from new primary"
+    fail_no_return "Old primary is not replicating correctly from new primary"
     echo "Expected count: $EXPECTED_COUNT"
     echo "Actual count: $(run_query -i 0 -p 5432 -q "SELECT COUNT(*) FROM test")"
     return 1

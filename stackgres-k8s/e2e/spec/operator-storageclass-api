@@ -26,9 +26,9 @@ check_storage_classes() {
 
   if [ "$STORAGE_CLASSES_IN_RESPONSE" = "$STORAGE_CLASSES_IN_K8S" ]
   then
-    echo "SUCCESS. Storage classes endpoint returned all storage classes"
+    success "Storage classes endpoint returned all storage classes"
   else
-    echo "FAIL. Storage classes endpoint did not return all storage classes. Expected $STORAGE_CLASSES_IN_K8S, actual $STORAGE_CLASSES_IN_K8S"
+    fail_no_return "Storage classes endpoint did not return all storage classes. Expected $STORAGE_CLASSES_IN_K8S, actual $STORAGE_CLASSES_IN_K8S"
   fi
 }
 
@@ -44,10 +44,9 @@ check_storage_classes_status() {
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "SUCCESS. Storage classes endpoint is available"
+    success "Storage classes endpoint is available"
   else
-    echo "FAIL. Storage classes endpoint is not available"
-    return 1
+    fail "Storage classes endpoint is not available"
   fi
 }
 

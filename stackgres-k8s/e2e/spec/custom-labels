@@ -37,10 +37,9 @@ check_label(){
 
   if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
   then
-    echo "SUCCESS. Custom labels were created"
+    success "Custom labels were created"
   else
-    echo "FAIL. Custom labels did not match the expected value"
-    return 1
+    fail "Custom labels did not match the expected value"
   fi
 }
 
@@ -102,11 +101,9 @@ assert_http_status_succcess(){
   HTTP_STATUS="$1"
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "SUCCESS. Successful request"
-    return 0
+    success "Successful request"
   else
-    echo "FAIL. Request not sucessful"
-    return 1
+    fail "Request not successful"
   fi
 }
 

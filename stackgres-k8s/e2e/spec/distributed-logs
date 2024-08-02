@@ -75,10 +75,9 @@ check_latest_timescaledb_version_is_installed() {
       | select(.name == \"timescaledb\" and .version == \"$TIMESCALE_VERSION\") | length" \
     | jq -s "length")" = 1 ]'
   then
-    echo "SUCCESS. Latest version of timescaledb ($TIMESCALE_VERSION) was installed"
+    success "Latest version of timescaledb ($TIMESCALE_VERSION) was installed"
   else
-    echo "FAIL. Latest version of timescaledb ($TIMESCALE_VERSION) was not installed"
-    return 1
+    fail "Latest version of timescaledb ($TIMESCALE_VERSION) was not installed"
   fi
 }
 
@@ -89,10 +88,9 @@ default_annotations(){
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "FAIL. Default annotations not created"
-    return 1
+    fail "Default annotations not created"
   else
-    echo "SUCCESS. Defaults annotations created"
+    success "Defaults annotations created"
   fi
 }
 
@@ -136,10 +134,9 @@ check_distributed_logs_attach_to_clusters() {
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry '$TEXT' created for $CLUSTER_NAME"
+      success "Log entry '$TEXT' created for $CLUSTER_NAME"
     else
-      echo "FAIL: Cannot create log entry '$TEXT' for $CLUSTER_NAME"
-      return 1
+      fail "Cannot create log entry '$TEXT' for $CLUSTER_NAME"
     fi
   done
 
@@ -150,10 +147,9 @@ check_distributed_logs_attach_to_clusters() {
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry '$TEXT' created for $COPY_CLUSTER_NAME"
+      success "Log entry '$TEXT' created for $COPY_CLUSTER_NAME"
     else
-      echo "FAIL: Cannot create log entry '$TEXT' for $COPY_CLUSTER_NAME"
-      return 1
+      fail "Cannot create log entry '$TEXT' for $COPY_CLUSTER_NAME"
     fi
   done
 
@@ -163,10 +159,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^1$"'
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' included in json response for cluster $CLUSTER_NAME"
+      success "Cluster log entry '$TEXT' included in json response for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' not included in json response for cluster $CLUSTER_NAME"
-      return 1
+      fail "Cluster log entry '$TEXT' not included in json response for cluster $CLUSTER_NAME"
     fi
   done
 
@@ -174,10 +169,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" -copy | grep -q "^1$"'
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' included in json response for cluster $COPY_CLUSTER_NAME"
+      success "Cluster log entry '$TEXT' included in json response for cluster $COPY_CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' not included in json response for cluster $COPY_CLUSTER_NAME"
-      return 1
+      fail "Cluster log entry '$TEXT' not included in json response for cluster $COPY_CLUSTER_NAME"
     fi
   done
 
@@ -185,10 +179,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if get_logs_count_with_text "$TEXT" | grep -q "^0$"
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $COPY_CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME"
+      success "Cluster log entry '$TEXT' for cluster $COPY_CLUSTER_NAME not included in json response for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' for cluster $COPY_CLUSTER_NAME included in json response for cluster $CLUSTER_NAME"
-      return 1
+      fail "Cluster log entry '$TEXT' for cluster $COPY_CLUSTER_NAME included in json response for cluster $CLUSTER_NAME"
     fi
   done
 
@@ -196,10 +189,9 @@ check_distributed_logs_attach_to_clusters() {
   do
     if get_logs_count_with_text "$TEXT" -copy | grep -q "^0$"
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME not included in json response for cluster $COPY_CLUSTER_NAME"
+      success "Cluster log entry '$TEXT' for cluster $CLUSTER_NAME not included in json response for cluster $COPY_CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' for cluster $CLUSTER_NAME included in json response for cluster $COPY_CLUSTER_NAME"
-      return 1
+      fail "Cluster log entry '$TEXT' for cluster $CLUSTER_NAME included in json response for cluster $COPY_CLUSTER_NAME"
     fi
   done
 }
@@ -218,10 +210,9 @@ check_distributed_logs_query_endpoint() {
   RESPONSE="$(get_logs_count_with_text distributed-logs-works)"
   if echo "$RESPONSE" | grep -q "^1$"
   then
-    echo "SUCCESS: Cluster log entry included in json response"
+    success "Cluster log entry included in json response"
   else
-    echo "FAIL: Cluster log entry not included in json response"
-    return 1
+    fail "Cluster log entry not included in json response"
   fi
 
   RESPONSE="$(get_logs_entries_with_text distributed-logs-works)"
@@ -245,73 +236,65 @@ check_distributed_logs_query_endpoint() {
     && echo "$RESPONSE" | jq 'any(has("sqlStateCode"))' | grep -q true \
     && echo "$RESPONSE" | jq 'any(has("applicationName"))' | grep -q true
   then
-    echo "SUCCESS: Cluster log entry has correct values"
+    success "Cluster log entry has correct values"
   else
-    echo "FAIL: Cluster log entry has incorrect values: $(echo "$RESPONSE" | jq -c .)"
-    return 1
+    fail "Cluster log entry has incorrect values: $(echo "$RESPONSE" | jq -c .)"
   fi
 
   RESPONSE="$(get_logs_count_with_text_after_log_with_text distributed-logs-works distributed-logs-still-works)"
   if echo "$RESPONSE" | grep -q "^1$"
   then
-    echo "SUCCESS: Cluster log entry included in next json response with asc ordering"
+    success "Cluster log entry included in next json response with asc ordering"
   else
-    echo "FAIL: Cluster log entry not included in next json response with asc ordering"
-    return 1
+    fail "Cluster log entry not included in next json response with asc ordering"
   fi
 
   RESPONSE="$(get_logs_count_with_text_before_log_with_text distributed-logs-works distributed-logs-worked)"
   if echo "$RESPONSE" | grep -q "^1$"
   then
-    echo "SUCCESS: Cluster log entry included in next json response with desc ordering"
+    success "Cluster log entry included in next json response with desc ordering"
   else
-    echo "FAIL: Cluster log entry not included in next json response with desc ordering"
-    return 1
+    fail "Cluster log entry not included in next json response with desc ordering"
   fi
 
   RESPONSE="$(get_logs_count_between_log_with_texts_desc distributed-logs-still-works distributed-logs-works distributed-logs-worked)"
   if echo "$RESPONSE" | grep -q "^2$"
   then
-    echo "SUCCESS: Cluster log entries included in json response with from, to and desc ordering "
+    success "Cluster log entries included in json response with from, to and desc ordering "
   else
-    echo "FAIL: Cluster log entries not included in json response with from, to and desc ordering"
-    return 1
+    fail "Cluster log entries not included in json response with from, to and desc ordering"
   fi
 
   RESPONSE="$(get_logs_count_between_log_with_texts_asc distributed-logs-worked distributed-logs-works distributed-logs-still-works)"
   if echo "$RESPONSE" | grep -q "^2$"
   then
-    echo "SUCCESS: Cluster log entries included in json response with from, to and asc ordering"
+    success "Cluster log entries included in json response with from, to and asc ordering"
   else
-    echo "FAIL: Cluster log entries not included in json response with from, to and asc ordering"
-    return 1
+    fail "Cluster log entries not included in json response with from, to and asc ordering"
   fi
 
   RESPONSE="$(get_postgres_logs_count_with_text distributed-logs-works)"
   if echo "$RESPONSE" | grep -q "^1$"
   then
-    echo "SUCCESS: Cluster log entry included in json response for postgres"
+    success "Cluster log entry included in json response for postgres"
   else
-    echo "FAIL: Cluster log entry not included in json response for postgres"
-    return 1
+    fail "Cluster log entry not included in json response for postgres"
   fi
 
   RESPONSE="$(get_patroni_logs_count)"
   if echo "$RESPONSE" | grep -q "^0$"
   then
-    echo "FAIL: Cluster log entry not included in json response for patroni"
-    return 1
+    fail "Cluster log entry not included in json response for patroni"
   else
-    echo "SUCCESS: Cluster log entry included in json response for patroni"
+    success "Cluster log entry included in json response for patroni"
   fi
 
   RESPONSE="$(get_error_and_info_logs_count)"
   if echo "$RESPONSE" | grep -q "^0$"
   then
-    echo "FAIL: Cluster log entry not included in json response for error and info"
-    return 1
+    fail "Cluster log entry not included in json response for error and info"
   else
-    echo "SUCCESS: Cluster log entry included in json response for error and info"
+    success "Cluster log entry included in json response for error and info"
   fi
 
   for field in \
@@ -325,10 +308,9 @@ check_distributed_logs_query_endpoint() {
     RESPONSE="$(get_logs_count_with_filter_of_log_with_text distributed-logs-works "$field")"
     if echo "$RESPONSE" | grep -q "^1$"
     then
-      echo "SUCCESS: Cluster log entry included in json response with filter on $field"
+      success "Cluster log entry included in json response with filter on $field"
     else
-      echo "FAIL: Cluster log entry not included in json response with filter on $field"
-      return 1
+      fail "Cluster log entry not included in json response with filter on $field"
     fi
   done
 }
@@ -490,10 +472,9 @@ check_retention() {
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
-      echo "SUCCESS: Log entry '$TEXT' created"
+      success "Log entry '$TEXT' created"
     else
-      echo "FAIL: Cannot create log entry '$TEXT'"
-      return 1
+      fail "Cannot create log entry '$TEXT'"
     fi
   done
 
@@ -501,10 +482,9 @@ check_retention() {
   do
     if wait_until eval 'get_logs_count_with_text "$TEXT" | grep -q "^0$"'
     then
-      echo "SUCCESS: Cluster log entry '$TEXT' was removed for cluster $CLUSTER_NAME"
+      success "Cluster log entry '$TEXT' was removed for cluster $CLUSTER_NAME"
     else
-      echo "FAIL: Cluster log entry '$TEXT' was not removed for cluster $CLUSTER_NAME"
-      return 1
+      fail "Cluster log entry '$TEXT' was not removed for cluster $CLUSTER_NAME"
     fi
   done
 }

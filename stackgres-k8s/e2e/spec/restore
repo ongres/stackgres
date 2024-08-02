@@ -198,10 +198,9 @@ check_backup_can_be_restored() {
   if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "<no value>"
   then
-    echo "SUCCESS: backup not performed using volume snapshot"
+    success "backup not performed using volume snapshot"
   else
-    echo "FAIL: backup performed using volume snapshot"
-    return 1
+    fail "backup performed using volume snapshot"
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -224,10 +223,9 @@ check_volume_snapshot_backup_can_be_restored() {
   if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_VOLUME_SNAPSHOT_NAME" \
     --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "$BACKUP_VOLUME_SNAPSHOT_NAME"
   then
-    echo "SUCCESS: backup performed using volume snapshot"
+    success "backup performed using volume snapshot"
   else
-    echo "FAIL: backup not performed using volume snapshot"
-    return 1
+    fail "backup not performed using volume snapshot"
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -255,10 +253,9 @@ check_init_data_after_restore() {
     | tr -d '\n' \
     | grep -q "^1235813$"
   then
-    echo "SUCCESS: restore primary db restored successfully"
+    success "restore primary db restored successfully"
   else
-    echo "FAIL: primary db not restored successfully"
-    return 1
+    fail "primary db not restored successfully"
   fi
 }
 
@@ -275,10 +272,9 @@ check_replica_data_after_restore() {
     | tr -d '\n' \
     | grep -q "^1235813$"
   then
-    echo "SUCCESS: restore replica db restored successfully"
+    success "restore replica db restored successfully"
   else
-    echo "FAIL: replica db not restored successfully"
-    return 1
+    fail "replica db not restored successfully"
   fi
 }
 
@@ -295,15 +291,13 @@ check_replication_after_restore() {
   then
     if wait_until eval 'run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d "\n" | grep -qxF "$PRIMARY_RESPONSE"'
     then
-      echo "SUCCESS: replication is working"
+      success "replication is working"
       return 0
     else
-      echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-      return 1
+      fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
     fi
   else
-    echo "FAIL: inserts on the primary where not sucessful."
-    return 1
+    fail "inserts on the primary where not successful."
   fi
 }
 
@@ -323,15 +317,14 @@ check_backup_pg_version() {
     echo "ERROR: It should not be able to install a cluster with postgres version that is different than the backup pg version"
     return 1
   else
-    echo "SUCCESS: Cluster was not created"
+    success "Cluster was not created"
   fi
 
   if grep -q "Cannot restore from SGBackup $BACKUP_NAME" "$LOG_PATH/create-alter-cluster.log"
   then
-    echo "SUCCESS: Error message was the expected"
+    success "Error message was the expected"
   else 
-    echo "FAIL: Unexpected error message $ERROR_MESSAGE"
-    return 1
+    fail "Unexpected error message $ERROR_MESSAGE"
   fi
 }
 
@@ -352,10 +345,9 @@ check_restore_using_pitr() {
     | tr -d '\n' \
     | grep -q "^123$"
   then
-    echo "SUCCESS: restore replica db restored successfully using PITR"
+    success "restore replica db restored successfully using PITR"
   else
-    echo "FAIL: replica db not restored successfully using PITR"
-    return 1
+    fail "replica db not restored successfully using PITR"
   fi
 }
 
@@ -382,10 +374,9 @@ EOF
     exec-with-env backup -- wal-g backup-list --json 2>/dev/null)"
   if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
   then
-    echo "SUCCESS. Backup was not removed when a copy still exists"
+    success "Backup was not removed when a copy still exists"
   else
-    echo "FAIL. Backup was removed when a copy still exists"
-    return 1
+    fail "Backup was removed when a copy still exists"
   fi
 }
 
@@ -412,10 +403,9 @@ EOF
     exec-with-env backup -- wal-g backup-list --json 2>/dev/null)"
   if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
   then
-    echo "FAIL. Backup was not removed when no copy exists"
-    return 1
+    fail "Backup was not removed when no copy exists"
   else
-    echo "SUCCESS. Backup was removed when no copy exists"
+    success "Backup was removed when no copy exists"
   fi
 }
 
@@ -424,10 +414,9 @@ check_delete_backup_dont_require_restart() {
     kubectl wait sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --for=condition=PendingRestart --timeout 0'
   then
-    echo "SUCCESS: Cluster is not pending restart."
+    success "Cluster is not pending restart."
   else
-    echo "FAIL: Cluster is pending restart."
-    return 1
+    fail "Cluster is pending restart."
   fi
 
   kubectl patch sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
@@ -435,10 +424,9 @@ check_delete_backup_dont_require_restart() {
 
   if wait_until eval '[ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.status.replicas}")" -eq 1 ]'
   then
-    echo "SUCCESS: Cluster is still reconciled."
+    success "Cluster is still reconciled."
   else
-    echo "FAIL: Cluster is not reconciled."
-    return 1
+    fail "Cluster is not reconciled."
   fi
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
@@ -448,17 +436,15 @@ check_delete_backup_dont_require_restart() {
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 1
   if "$RESULT"
   then
-    echo "SUCCESS: Cluster can be restarted."
+    success "Cluster can be restarted."
   else
-    echo "FAIL: Cluster can not be restarted."
-    return 1
+    fail "Cluster can not be restarted."
   fi
   try_function wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   if "$RESULT"
   then
-    echo "SUCCESS: Cluster primary has been elected."
+    success "Cluster primary has been elected."
   else
-    echo "FAIL: Cluster primary has not been elected."
-    return 1
+    fail "Cluster primary has not been elected."
   fi
 }

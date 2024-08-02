@@ -35,10 +35,9 @@ check_cluster_can_be_created_after_cert_manager_integration() {
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
   if "$RESULT"
   then
-    echo "SUCCESS. Cluster can be installed"
+    success "Cluster can be installed"
   else
-    echo "FAIL. Cluster can not be installed"
-    return 1
+    fail "Cluster can not be installed"
   fi
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"

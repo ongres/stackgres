@@ -78,10 +78,9 @@ check_sharded_backup_is_working() {
     --template='{{ range .status.sgBackups }}{{ . }} {{ end }}' \
     | grep -qFx "$SHARDED_BACKUP_NAME_0-coord $SHARDED_BACKUP_NAME_0-shard0 $SHARDED_BACKUP_NAME_0-shard1 "
   then
-    echo "SUCCESS: Backups are referenced correctly in the sharded backup"
+    success "Backups are referenced correctly in the sharded backup"
   else
-    echo "FAIL: Backups are not referenced correctly in the sharded backup"
-    return 1
+    fail "Backups are not referenced correctly in the sharded backup"
   fi
 
   CLUSTER_NAME="$SHARDED_CLUSTER_NAME"
@@ -94,10 +93,9 @@ check_sharded_backup_is_working() {
 
   if ! kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME_0" >/dev/null 2>&1
   then
-    echo "SUCCESS: Sharded backups retention policy is working"
+    success "Sharded backups retention policy is working"
   else
-    echo "FAIL: Sharded backups retention policy is not working"
-    return 1
+    fail "Sharded backups retention policy is not working"
   fi
 }
 
@@ -106,10 +104,9 @@ check_automatic_sharded_backup_is_working() {
 
   if wait_until is_automatic_sharded_backup_cr_completed
   then
-    echo "SUCCESS. The full automatic sharded backup is available"
+    success "The full automatic sharded backup is available"
   else
-    echo "FAIL. The full automatic sharded backup is not available"
-    return 1
+    fail "The full automatic sharded backup is not available"
   fi
 
   local BACKUP_NAMES
@@ -120,8 +117,7 @@ check_automatic_sharded_backup_is_working() {
 
   if [ -z "$BACKUP_NAMES" ]
   then
-    echo "FAIL. Can not retrieve backups associated to the full automatic sharded backup"
-    return 1
+    fail "Can not retrieve backups associated to the full automatic sharded backup"
   fi
 
   local BACKUP_NAME
@@ -140,10 +136,9 @@ check_automatic_sharded_backup_is_working() {
 
       check_control_data
 
-      echo "SUCCESS. The full backup $BACKUP_NAME is available"
+      success "The full backup $BACKUP_NAME is available"
     else
-      echo "FAIL. The full backup $BACKUP_NAME is not available"
-      return 1
+      fail "The full backup $BACKUP_NAME is not available"
     fi
   done
 
@@ -171,10 +166,9 @@ wait_sharded_backup_is_completed() {
     --template "{{ .status.process.status }}" \
     | grep "^Completed$" | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The sharded backup CR has complete"
+    success "The sharded backup CR has complete"
   else
-    echo "FAIL. The sharded backup CR has failed"
-    return 1
+    fail "The sharded backup CR has failed"
   fi
 }
 
@@ -224,10 +218,9 @@ check_restore_sharded_backup_is_working() {
 
   if "$RESULT"
   then
-    echo "SUCCESS. The sharded cluster has been recovered from the sharded backup"
+    success "The sharded cluster has been recovered from the sharded backup"
   else
-    echo "FAIL. The sharded cluster has not been recovered from the sharded backup"
-    return 1
+    fail "The sharded cluster has not been recovered from the sharded backup"
   fi
 
   wait_until check_init_data_after_restore
@@ -283,10 +276,9 @@ check_init_data_after_restore() {
     | tr -d '\n' \
     | grep -q "^-35791401-35791400-35791399-35791397-35791394-357913891235813$"
   then
-    echo "SUCCESS: restore primary db restored successfully"
+    success "restore primary db restored successfully"
   else
-    echo "FAIL: primary db not restored successfully"
-    return 1
+    fail "primary db not restored successfully"
   fi
 }
 
@@ -298,9 +290,8 @@ check_init_data_after_pitr() {
     | tr -d '\n' \
     | grep -q "^-35791401-35791400-35791399123$"
   then
-    echo "SUCCESS: restore primary db restored with PITR successfully"
+    success "restore primary db restored with PITR successfully"
   else
-    echo "FAIL: primary db not restored with PITR successfully"
-    return 1
+    fail "primary db not restored with PITR successfully"
   fi
 }

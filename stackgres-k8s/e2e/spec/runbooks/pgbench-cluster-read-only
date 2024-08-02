@@ -41,7 +41,7 @@ benchmark_cluster() {
   if wait_until eval '! kill -0 "$BENCH_PID"' \
     && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
   then
-    echo "SUCCESS: Benchmark terminated succesfully"
+    echo "success Benchmark terminated succesfully"
   else
     echo "FAIL: Benchmark not terminated succesfully"
     kill "$BENCH_PID" || true

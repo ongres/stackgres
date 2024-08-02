@@ -20,19 +20,18 @@ delete_with_cluster() {
     echo "ERROR: It should not be able to delete pgbouncerconf"
     return 1
   else
-    echo "SUCCESS: Good it has failed"
+    success "Good it has failed"
   fi
   
   echo "$ERROR_MESSAGE" > "${LOG_PATH}/test1.log"
 
   if grep -q "Can't delete sgpoolconfigs.stackgres.io pgbouncerconf" "$LOG_PATH/test1.log"
   then
-    echo "SUCCESS: Error message was the expected"
+    success "Error message was the expected"
     return 0
   else
     ERROR="$(cat "$LOG_PATH/test1.log")"
-    echo "FAIL: Error is not what it should be. ERROR: ${ERROR}"
-    return 1
+    fail "Error is not what it should be. ERROR: ${ERROR}"
   fi
 }
 
@@ -41,11 +40,10 @@ delete_whitout_cluster() {
 
   if kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf
   then
-    echo "SUCCESS: Good. It has deleted the configuration"
+    success "Good. It has deleted the configuration"
     return 0
   else
     ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpoolconfigs.stackgres.io pgbouncerconf)"
-    echo "FAIL: It should be able to delete the pgbouncerconf. ERROR $ERROR"
-    return 1
+    fail "It should be able to delete the pgbouncerconf. ERROR $ERROR"
   fi
 }

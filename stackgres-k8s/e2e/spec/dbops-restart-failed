@@ -24,10 +24,9 @@ check_restart_cluster_fail() {
       -p '[{"op":"replace","path":"/spec/postgresql.conf/shared_preload_libraries","value":"pg_stat_statements, auto_explain, invalid-lib"}]' \
       >/dev/null 2>&1
     then
-      echo "SUCCESS. sgpgconfig has been updated."
+      success "sgpgconfig has been updated."
     else
-      echo "FAILED. sgpgconfig has not been updated."
-      return 1
+      fail "sgpgconfig has not been updated."
   fi
 
   cat << EOF | kubectl create -f -
@@ -50,20 +49,18 @@ EOF
     && kubectl wait --timeout "0s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
-    echo "SUCCESS. The restart operation failed."
+    success "The restart operation failed."
   else
-    echo "FAILED. The restart operation did not fail."
-    return 1
+    fail "The restart operation did not fail."
   fi
 
   if kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" postgresconf --type json \
     -p '[{"op":"replace","path":"/spec/postgresql.conf/shared_preload_libraries","value":"pg_stat_statements, auto_explain"}]' \
     >/dev/null 2>&1
   then
-    echo "SUCCESS. sgpgconfig has been updated."
+    success "sgpgconfig has been updated."
   else
-    echo "FAILED. sgpgconfig has not been updated."
-    return 1
+    fail "sgpgconfig has not been updated."
   fi
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" > /dev/null 2>&1

@@ -99,9 +99,9 @@ check_horizontal_autoscaling() {
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
     | wc -l | grep -qxF 2'
   then
-    echo "SUCCESS: KEDA can scale the cluster based on connections"
+    success "KEDA can scale the cluster based on connections"
   else
-    echo "FAIL: KEDA can not scale the cluster based on connections"
+    fail_no_return "KEDA can not scale the cluster based on connections"
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
@@ -147,9 +147,9 @@ check_vertical_autoscaling() {
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
     | wc -l | grep -qxF 1'
   then
-    echo "SUCCESS: VerticalPodAutoscaler can scale vertically the primary of the cluster based on CPU"
+    success "VerticalPodAutoscaler can scale vertically the primary of the cluster based on CPU"
   else
-    echo "FAIL: VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
+    fail_no_return "VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
@@ -170,9 +170,9 @@ check_vertical_autoscaling() {
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
     | wc -l | grep -qxF 1'
   then
-    echo "SUCCESS: VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
+    success "VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
   else
-    echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
+    fail_no_return "VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
@@ -232,9 +232,9 @@ check_all_autoscaling() {
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
     | wc -l | grep -qxF 2'
   then
-    echo "SUCCESS: KEDA can scale the cluster based on connections"
+    success "KEDA can scale the cluster based on connections"
   else
-    echo "FAIL: KEDA can not scale the cluster based on connections"
+    fail_no_return "KEDA can not scale the cluster based on connections"
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
@@ -245,9 +245,9 @@ check_all_autoscaling() {
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq" \
     | wc -l | grep -qxF 2'
   then
-    echo "SUCCESS: VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
+    success "VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
   else
-    echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
+    fail_no_return "VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \

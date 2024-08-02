@@ -27,10 +27,9 @@ check_rbac_success() {
 
   if [ "$HTTP_STATUS" = "200" ]
   then
-    echo "SUCCESS. rbac can-i endpoint is available"
+    success "rbac can-i endpoint is available"
   else
-    echo "FAIL. rbac can-i endpoint is not available"
-    return 1
+    fail "rbac can-i endpoint is not available"
   fi
 }
 
@@ -47,10 +46,9 @@ check_rbac_failure() {
 
   if [ "$HTTP_STATUS" = "403" ]
   then
-    echo "SUCCESS. rbac can-i endpoint is available"
+    success "rbac can-i endpoint is available"
   else
-    echo "FAIL. rbac can-i endpoint is not available"
-    return 1
+    fail "rbac can-i endpoint is not available"
   fi
 }
 
@@ -62,9 +60,8 @@ check_rbac_list() {
 
   if [ "$PERMISSIONS_IN_RESPONSE" = '["get","list","create","patch","delete"]' ]
   then
-    echo "SUCCESS. rbac can-i permissions list is available"
+    success "rbac can-i permissions list is available"
   else
-    echo "FAIL. rbac can-i permissions list is available"
-    return 1
+    fail "rbac can-i permissions list is not available $PERMISSIONS_IN_RESPONSE"
   fi
 }
