@@ -318,7 +318,6 @@ spec:
                       custom:
                         type: object
                         description: This section allow to configure custom SQL for initialization and scripts used by pgbench.
-                        required:
                         properties:
                           initialization:
                             type: object
@@ -386,7 +385,6 @@ spec:
                                 weight:
                                   type: integer
                                   description: The weight of this custom SQL script.
-                                
                     required: [ "databaseSize", "duration" ]
                   connectionType:
                     type: string
