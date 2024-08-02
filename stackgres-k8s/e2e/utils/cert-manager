@@ -5,15 +5,31 @@ cert_manager_namespace() {
 }
 
 install_cert_manager() {
-  helm install cert-manager "$E2E_PATH/helm/cert-manager-v1.8.2.tgz" \
+  helm install cert-manager "$E2E_PATH/helm/cert-manager-v1.15.1.tgz" \
     --create-namespace \
     --namespace "$(cert_manager_namespace)" \
     --create-namespace \
-    --set installCRDs=true \
+    --set crds.enabled=true \
     --set prometheus.enabled=false \
     "$@"
 
   wait_pods_running "$(cert_manager_namespace)" 3
+
+  kubectl -n "$(cert_manager_namespace)" create secret tls ca-dev-key-pair \
+    --key="$E2E_PATH/certs/intermediate_ca-key.test-cert" \
+    --cert="$E2E_PATH/certs/bundle.test-cert" --dry-run=client -o json \
+    | kubectl -n "$(cert_manager_namespace)" apply -f -
+
+  kubectl -n "$(cert_manager_namespace)" apply -f -<<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ca-dev-issuer
+  namespace: $(cert_manager_namespace)
+spec:
+  ca:
+    secretName: ca-dev-key-pair
+EOF
 }
 
 uninstall_cert_manager() {

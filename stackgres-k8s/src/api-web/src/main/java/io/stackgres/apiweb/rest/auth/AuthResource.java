@@ -8,10 +8,12 @@ package io.stackgres.apiweb.rest.auth;
 import java.net.URI;
 import java.util.Map;
 
+import io.quarkus.oidc.OidcSession;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.security.AuthConfig;
+import io.stackgres.apiweb.security.AuthType;
 import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
 import io.stackgres.apiweb.security.TokenUtils;
@@ -69,6 +71,9 @@ public class AuthResource {
   @Inject
   AuthConfig config;
 
+  @Inject
+  OidcSession oidcSession;
+
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = "application/json",
@@ -103,6 +108,26 @@ public class AuthResource {
           .cacheControl(NO_CACHE)
           .build();
     }
+  }
+
+  @APIResponse(responseCode = "200", description = "OK")
+  @Operation(summary = "Logout", description = """
+      Log out an active OIDC session.
+
+      ### RBAC permissions required
+
+      None
+      """)
+  @GET
+  @Path("logout")
+  @Authenticated
+  public Response logout() {
+    if (config.type() == AuthType.OIDC) {
+      // Invalidate the session
+      oidcSession.logout().await().indefinitely();
+    }
+    // Redirect to the post-logout page
+    return Response.ok().build();
   }
 
   @APIResponse(responseCode = "200", description = "OK")

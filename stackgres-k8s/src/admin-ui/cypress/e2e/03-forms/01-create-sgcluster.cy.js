@@ -355,6 +355,51 @@ describe('Create SGCluster', () => {
             .should('nested.include',{'enabledFeatureGates[0]': "babelfish-flavor"})
     });
 
+    it('Restore cluster from an SGBackup', () => {
+        cy.visit(namespace + '/sgclusters/new?restoreFromBackup=ui-0&postgresVersion=' + Cypress.env('postgres_version'))
+
+        // Advanced mode should be enabled
+        cy.get('input#advancedMode')
+            .should('be.checked')
+
+        // Form should start at Initialization step
+        cy.get('li[data-step="initialization"]')
+            .should('have.class', 'active')
+
+        // Backup selection graph should be visible
+        cy.get('#pitr-graph .apexcharts-canvas')
+            .should('be.visible')
+
+        // Backup "ui-0" should be selected in the graph
+        cy.get('.apexcharts-series-markers circle[selected="true"]')
+            .should('be.visible')
+
+        // Initialization should be "ui-0"
+        cy.get('input[data-field="spec.initialData.restore.fromBackup"]')
+            .should('be.visible')
+            .should('have.value', 'ui-0')
+            .should('be.disabled')
+
+        // PITR input should be available
+        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]')
+            .should('be.visible')
+            .should('be.enabled')
+            .should('have.value', '')
+            .should('have.class', 'ready')
+        
+        // Cluster name should have a default value
+        cy.get('li[data-step="cluster"]')
+            .click()
+
+        cy.get('input[data-field="metadata.name"]')
+            .invoke('val').should('contain', 'restore-from-ui-0-')
+
+        // Postgres version should match that of backup's
+        cy.get('ul#postgresVersion li.selected')
+            .invoke('text').should('contain', 'Postgres ' + Cypress.env('postgres_version'))
+
+    });
+
     it('Creating an advanced SGCluster should be possible', () => {
         // Choose custom wizard
         cy.get('[data-field="formTemplate.custom"]')
@@ -486,7 +531,7 @@ describe('Create SGCluster', () => {
             .click()
         
         // Choose Backup (We're always assuming there's a backup with name "ui-0" on the specified namespace)
-        cy.get('#apexchartsarea-datetime .apexcharts-series-markers > circle[rel="0"]')
+        cy.get('#pitr-graph .apexcharts-series-markers > circle[rel="0"]')
             .click()
          
         // Set PITR
@@ -2655,51 +2700,6 @@ describe('Create SGCluster', () => {
 
         cy.get('input#prometheusAutobind')
             .should('not.be.checked')
-
-    }); 
-
-    it('Restore cluster from an SGBackup', () => {
-        cy.visit(namespace + '/sgclusters/new?restoreFromBackup=ui-0&postgresVersion=' + Cypress.env('postgres_version'))
-
-        // Advanced mode should be enabled
-        cy.get('input#advancedMode')
-            .should('be.checked')
-
-        // Form should start at Initialization step
-        cy.get('li[data-step="initialization"]')
-            .should('have.class', 'active')
-
-        // Backup selection graph should be visible
-        cy.get('#apexchartsarea-datetime')
-            .should('be.visible')
-
-        // Backup "ui-0" should be selected in the graph
-        cy.get('.apexcharts-series-markers circle[selected="true"]')
-            .should('be.visible')
-
-        // Initialization should be "ui-0"
-        cy.get('input[data-field="spec.initialData.restore.fromBackup"]')
-            .should('be.visible')
-            .should('have.value', 'ui-0')
-            .should('be.disabled')
-
-        // PITR input should be available
-        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]')
-            .should('be.visible')
-            .should('be.enabled')
-            .should('have.value', '')
-            .should('have.class', 'ready')
-        
-        // Cluster name should have a default value
-        cy.get('li[data-step="cluster"]')
-            .click()
-
-        cy.get('input[data-field="metadata.name"]')
-            .invoke('val').should('contain', 'restore-from-ui-0-')
-
-        // Postgres version should match that of backup's
-        cy.get('ul#postgresVersion li.selected')
-            .invoke('text').should('contain', 'Postgres ' + Cypress.env('postgres_version'))
 
     });
 

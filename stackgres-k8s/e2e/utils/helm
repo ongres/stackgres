@@ -1,12 +1,18 @@
 #!/bin/sh
 
 setup_helm() {
-  echo "Helm version $(helm version | cut -d '"' -f 2)"
-  echo
+  echo "Helm version $(helm version --short)"
 
-  if helm version | grep -q '^\(3\.[^012]\.\|[^0123]\.\|[1-9][0-9]\+\.\)'
-  then
-    echo "Helm 3.3+ is required"
+  HELM_VERSION_FULL="$(helm version --short)"
+  HELM_VERSION=$(echo "${HELM_VERSION_FULL#v}" | cut -d'-' -f1 | cut -d'+' -f1)
+  HELM_VERSION_MAJOR=$(echo "$HELM_VERSION" | cut -d'.' -f1)
+  HELM_VERSION_MINOR=$(echo "$HELM_VERSION" | cut -d'.' -f2)
+  HELM_VERSION_PATCH=$(echo "$HELM_VERSION" | cut -d'.' -f3)
+
+  if [ "$HELM_VERSION_MAJOR" -eq 3 ] && [ "$HELM_VERSION_MINOR" -ge 9 ]; then
+    echo "Helm version is at least 3.9+ ($HELM_VERSION_MAJOR.$HELM_VERSION_MINOR.$HELM_VERSION_PATCH)"
+  else
+    fail "Helm 3.9+ is required"
     exit 1
   fi
 

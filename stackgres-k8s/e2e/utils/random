@@ -1,9 +1,10 @@
 #!/bin/sh
+# shellcheck disable=SC2018
 
 random_string(){
-  echo "$(cat /dev/urandom | tr -dc 'a-zA-Z' | head -c 1)$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c "${1:-31}")"
+  printf "%s" "$(tr -dc 'a-zA-Z' </dev/urandom | head -c 1)$(tr -dc 'a-zA-Z0-9' </dev/urandom | head -c "${1:-31}")"
 }
 
 random_string_lowercase(){
-  echo "$(cat /dev/urandom | tr -dc 'a-z' | head -c 1)$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c "${1:-31}")"
+  printf "%s" "$(tr -dc 'a-z' </dev/urandom | head -c 1)$(tr -dc 'a-z0-9' </dev/urandom | head -c "${1:-31}")"
 }

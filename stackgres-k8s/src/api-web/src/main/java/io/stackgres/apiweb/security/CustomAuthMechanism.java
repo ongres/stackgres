@@ -19,7 +19,6 @@ import io.vertx.ext.web.RoutingContext;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
-import jakarta.inject.Inject;
 
 /**
  * Allows to switch between local JWT authentication and OIDC authentication.
@@ -29,14 +28,17 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class CustomAuthMechanism implements HttpAuthenticationMechanism {
 
-  @Inject
   AuthConfig config;
 
-  @Inject
   JWTAuthMechanism jwt;
 
-  @Inject
   OidcAuthenticationMechanism oidc;
+
+  CustomAuthMechanism(AuthConfig config, JWTAuthMechanism jwt, OidcAuthenticationMechanism oidc) {
+    this.config = config;
+    this.jwt = jwt;
+    this.oidc = oidc;
+  }
 
   @Override
   public Uni<SecurityIdentity> authenticate(RoutingContext context,

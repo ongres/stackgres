@@ -1,0 +1,82 @@
+#!/bin/sh
+# shellcheck disable=SC3043
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  install_metallb
+  install_cert_manager
+  install_contour
+  install_keycloak
+  install_dex
+
+  LB_IP=$(printf "%s" "$CONTOUR_LB_IP" | sed 's/\./-/g')
+  KC_HOST=$(printf "keycloak-%s.nip.io" "$LB_IP")
+  DEX_HOST=$(printf "dex-%s.nip.io" "$LB_IP")
+  SG_HOST=$(printf "stackgres-%s.nip.io" "$LB_IP")
+  export SG_HOST
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only \
+    --set grafana.autoEmbed=false \
+    --set-string authentication.type=oidc \
+    --set-string authentication.oidc.tlsVerification=none \
+    --set-string authentication.oidc.authServerUrl="https://$DEX_HOST" \
+    --set-string authentication.oidc.clientId=quarkus-client \
+    --set-string authentication.oidc.credentialsSecret=dex-client-secret
+    # --set-string authentication.oidc.authServerUrl="https://$KC_HOST/realms/stackgres" \
+    # --set-string authentication.oidc.clientId=web-api \
+    # --set-string authentication.oidc.credentialsSecret=kc-client-secret
+
+  cat <<EOF | kubectl -n "$OPERATOR_NAMESPACE" create -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stackgres-web
+  annotations:
+    cert-manager.io/cluster-issuer: ca-dev-issuer
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+    - secretName: stackgres-tls
+      hosts:
+        - ${SG_HOST}
+  rules:
+    - host: ${SG_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stackgres-restapi
+                port:
+                  number: 443
+EOF
+
+  kubectl -n "$OPERATOR_NAMESPACE" annotate service stackgres-restapi \
+    projectcontour.io/upstream-protocol.tls="443"
+
+  echo "🐘 Access StackGres web-console: https://$SG_HOST"
+}
+
+e2e_test_uninstall() {
+  # uninstall_contour
+  # uninstall_cert_manager
+  # uninstall_metallb
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Test service" service_check
+}
+
+service_check() {
+  echo "🐘 Access StackGres web-console: https://$SG_HOST"
+}

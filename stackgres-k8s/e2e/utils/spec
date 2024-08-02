@@ -37,6 +37,13 @@ export E2E_HASH_VARIABLES='
     STACKGRES_TARGET_VERSION
     '
 
+ESCAPE=$(printf "\033")
+NOCOLOR="${ESCAPE}[0m"
+RED="${ESCAPE}[91m"
+GREEN="${ESCAPE}[92m"
+YELLOW="${ESCAPE}[93m"
+BLUE="${ESCAPE}[94m"
+
 setup_spec() {
   if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_VERSION%.*}" != "${STACKGRES_TARGET_VERSION%.*}" ]
   then
@@ -286,7 +293,7 @@ spec() {
   then
     echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.completed"
     echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.failed"
-    echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
+    echo "❌ $SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     if [ "$E2E_SPEC_TRY_UNINSTALL_ON_FAILURE" = "true" ]
     then
       cleanup_spec || true
@@ -382,7 +389,7 @@ run_test() {
   shift
   echo
   echo "----------------------------------------------------------------"
-  echo "Running test $TEST_NAME"
+  echo "⚙️  Running test $TEST_NAME"
   echo "----------------------------------------------------------------"
   echo
   local RESULT
@@ -392,7 +399,7 @@ run_test() {
   then
     return "$EXIT_CODE"
   fi
-  echo "$TEST_NAME. SUCCESS."
+  echo "✅ $TEST_NAME. SUCCESS."
   for FUNCTION in $E2E_AFTER_RUN_TEST_FUNCTION
   do
     "$FUNCTION"
@@ -661,7 +668,7 @@ show_test_result_summary() {
   done < "$TARGET_PATH/already-passed-tests"
   if [ "$ANY_TEST_ALREADY_PASSED" = true ]
   then
-    echo "Already passed tests:"
+    echo "${BLUE}Already passed tests${NOCOLOR}:"
     echo
     while read -r TEST_NAME
     do
@@ -681,7 +688,7 @@ show_test_result_summary() {
 
   if [ -s "$TARGET_PATH/uniq-passed-tests" ]
   then
-    echo "Passed tests:"
+    echo "${GREEN}Passed tests${NOCOLOR}:"
     echo
     while read -r TEST_NAME
     do
@@ -691,7 +698,7 @@ show_test_result_summary() {
   elif [ "$({ wc -l "$TARGET_PATH/uniq-runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
     "$({ wc -l "$TARGET_PATH/uniq-passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
-    echo "Passed tests:"
+    echo "${YELLOW}Passed tests${NOCOLOR}:"
     echo
     echo "None :("
     echo
@@ -700,7 +707,7 @@ show_test_result_summary() {
   if [ "$({ wc -l "$TARGET_PATH/uniq-runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
     "$({ wc -l "$TARGET_PATH/uniq-passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
-    echo "Failed tests:"
+    echo "${RED}Failed tests${NOCOLOR}:"
     echo
     while read -r TEST_NAME
     do
@@ -713,9 +720,9 @@ show_test_result_summary() {
   else
     if [ "$EXIT_CODE" != 0 ]
     then
-      echo "Something went bad?! :_("
+      echo "Something went bad?! 😢"
     else
-      echo "Everything went well! :)"
+      echo "Everything went well! 😀"
     fi
     echo
   fi
