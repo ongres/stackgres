@@ -48,10 +48,9 @@ should_sgcluster_has_node_affinity_preferred_during_scheduling(){
     | jq -r '.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight')" \
     = "1" ]
   then
-    echo "SUCCESS. cluster has the configured node affinity preferred during execution weight property"
+    success "cluster has the configured node affinity preferred during execution weight property"
   else
-    echo "FAIL. cluster has not the configured node affinity preferred during execution weight property"
-    return 1
+    fail "cluster has not the configured node affinity preferred during execution weight property"
   fi
 }
 
@@ -66,10 +65,9 @@ EOF
     )"
   if "$RESULT"
   then
-    echo "SUCCESS. cluster's StatefulSet has the configured node affinity required during execution key match"
+    success "cluster's StatefulSet has the configured node affinity required during execution key match"
   else
-    echo "FAIL. cluster's StatefulSet has not the configured node affinity required during execution key match"
-    return 1
+    fail "cluster's StatefulSet has not the configured node affinity required during execution key match"
   fi
 
   assert_sts_node_affinity_required_during_scheduling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
@@ -87,10 +85,9 @@ EOF
     )"
   if "$RESULT"
   then
-    echo "SUCCESS. cluster's StatefulSet has the configured node affinity preferred during execution key match"
+    success "cluster's StatefulSet has the configured node affinity preferred during execution key match"
   else
-    echo "FAIL. cluster's StatefulSet has not the configured node affinity preferred during execution key match"
-    return 1
+    fail "cluster's StatefulSet has not the configured node affinity preferred during execution key match"
   fi
 
   assert_sts_node_affinity_preferred_during_scheduling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
@@ -100,10 +97,9 @@ EOF
       | jq -r ".spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight")" \
     = "1" ]
   then
-    echo "SUCCESS. cluster's StatefulSet has the configured node affinity preferred during execution weight property"
+    success "cluster's StatefulSet has the configured node affinity preferred during execution weight property"
   else
-    echo "FAIL. cluster's StatefulSet has not the configured node affinity preferred during execution weight property"
-    return 1
+    fail "cluster's StatefulSet has not the configured node affinity preferred during execution weight property"
   fi
 }
 
@@ -115,10 +111,9 @@ assert_sts_node_affinity_preferred_during_scheduling_match_property(){
       | jq -r ".spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].$PROPERTY")" \
     = "$PROPERTY_VALUE" ]
   then
-    echo "SUCCESS. StatefulSet has the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
+    success "StatefulSet has the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   else
-    echo "FAIL. StatefulSet has not the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
-    return 1
+    fail "StatefulSet has not the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   fi
 }
 assert_sts_node_affinity_required_during_scheduling_match_property(){
@@ -129,10 +124,9 @@ assert_sts_node_affinity_required_during_scheduling_match_property(){
       | jq -r ".spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].$PROPERTY")" \
     = "$PROPERTY_VALUE" ]
   then
-    echo "SUCCESS. StatefulSet has the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
+    success "StatefulSet has the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   else
-    echo "FAIL. StatefulSet has not the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
-    return 1
+    fail "StatefulSet has not the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   fi
 }
 
@@ -144,10 +138,9 @@ assert_cluster_node_affinity_preferred_during_scheduling_match_property(){
       | jq -r ".spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].$PROPERTY")" \
     = "$PROPERTY_VALUE" ]
   then
-    echo "SUCCESS. cluster has the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
+    success "cluster has the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   else
-    echo "FAIL. cluster has not the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
-    return 1
+    fail "cluster has not the configured node affinity preferred during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   fi
 }
 assert_cluster_node_affinity_required_during_scheduling_match_property(){
@@ -158,9 +151,8 @@ assert_cluster_node_affinity_required_during_scheduling_match_property(){
       | jq -r ".spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].$PROPERTY")" \
     = "$PROPERTY_VALUE" ]
   then
-    echo "SUCCESS. cluster has the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
+    success "cluster has the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   else
-    echo "FAIL. cluster has not the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
-    return 1
+    fail "cluster has not the configured node affinity required during scheduling with match for $PROPERTY set to $PROPERTY_VALUE"
   fi
 }

@@ -47,10 +47,9 @@ check_manual_backup() {
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
       -o name | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The manual backup CR is running"
+    success "The manual backup CR is running"
   else
-    echo "FAIL. The manual backup CR is not running"
-    return 1
+    fail "The manual backup CR is not running"
   fi
 
   wait_backup_is_completed "$BACKUP_NAME" "$NODE"
@@ -61,17 +60,15 @@ check_manual_backup() {
 
   if [ -z "$ACTUAL_BACKUP_NAME" ]
   then
-    echo "FAIL. Backup name not found"
-    return 1
+    fail "Backup name not found"
   fi
 
   if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
   then
-    echo "SUCCESS. The full backup of created CR is available"
+    success "The full backup of created CR is available"
   else
-    echo "FAIL. The full backup of created CR is not available"
-    return 1
+    fail "The full backup of created CR is not available"
   fi
 
   check_is_managed_lifecycle_value "$BACKUP_NAME" false
@@ -88,28 +85,25 @@ check_manual_backup() {
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
-    echo "FAIL. Default annotations not created"
-    return 1
+    fail "Default annotations not created"
   else
-    echo "SUCCESS. Defaults annotations created"
+    success "Defaults annotations created"
   fi
 
   create_backup "$BACKUP_3_NAME" false
 
   if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
   then
-    echo "SUCCESS. The backup retention has been honored. Old backups deleted"
+    success "The backup retention has been honored. Old backups deleted"
   else
-    echo "FAIL. The backup retention has not been honored. Old backups not deleted"
-    return 1
+    fail "The backup retention has not been honored. Old backups not deleted"
   fi
 
   if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
-    echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
+    success "The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
-    return 1
+    fail "The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
   fi
 
   kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
@@ -119,9 +113,8 @@ check_manual_backup() {
   if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
   then
-    echo "SUCCESS. The full backup of deleted CR has been removed"
+    success "The full backup of deleted CR has been removed"
   else
-    echo "FAIL. The full backup of deleted CR has not been removed"
-    return 1
+    fail "The full backup of deleted CR has not been removed"
   fi
 }

@@ -50,10 +50,9 @@ EOF
   if [ "$VACUUM_JOB_UID" = "$(kubectl get job -n "$CLUSTER_NAMESPACE" -l app=StackGresDbOps \
     --template '{{ range .items }}{{ printf "%s" .metadata.uid }}{{ end }}')" ]
   then
-    echo "SUCCESS. DbOps was not re-created"
+    success "DbOps was not re-created"
   else
-    echo "FAIL. DbOps was re-created"
-    return 1
+    fail "DbOps was re-created"
   fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
@@ -64,10 +63,9 @@ check_cluster_clean(){
   
   if exec_postgresutil 'psql -lqt | cut -d \| -f 1 | grep -qw "test"'
   then
-    echo "FAIL. Reset cluster is not clean"
-    return 1
+    fail "Reset cluster is not clean"
   else
-    echo "SUCCESS. Reset cluster is clean"
+    success "Reset cluster is clean"
   fi
 }
 

@@ -20,16 +20,15 @@ delete_with_cluster() {
     echo "INFO: It should not be able to delete size-s"
     return 1
   else
-    echo "SUCCESS: Good it has failed"
+    success "Good it has failed"
   fi
 
   if echo "$ERROR" | grep -q "Can't delete sginstanceprofiles.stackgres.io size-s"
   then
-    echo "SUCCESS: Error message was the expected"
+    success "Error message was the expected"
     return 0
   else
-    echo "FAIL: Error is not what it should be. ERROR ${ERROR}"
-    return 1
+    fail "Error is not what it should be. ERROR ${ERROR}"
   fi
 }
 
@@ -38,10 +37,9 @@ delete_whitout_cluster(){
 
   if ERROR="$(kubectl get -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-s 2>&1)"
   then
-    echo "SUCCESS: Good. It has deleted the configuration"
+    success "Good. It has deleted the configuration"
     return 0
   else
-    echo "FAIL: It should be able to delete the size-s. ERROR ${ERROR}"
-    return 1
+    fail "It should be able to delete the size-s. ERROR ${ERROR}"
   fi
 }

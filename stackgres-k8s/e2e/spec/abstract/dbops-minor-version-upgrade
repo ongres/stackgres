@@ -39,10 +39,9 @@ reset_cluster() {
 EOF
         )" >/dev/null 2>&1
   then
-    echo "FAILED. Changed SGCluster postgres version directly."
-    return 1
+    fail "Changed SGCluster postgres version directly."
   else
-    echo "SUCCESS. Could not change SGCluster postgres version directly."
+    success "Could not change SGCluster postgres version directly."
   fi
 }
 
@@ -64,10 +63,9 @@ check_restart() {
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1
   then
-    echo "FAILED. Cluster has been updated while locked."
-    return 1
+    fail "Cluster has been updated while locked."
   else
-    echo "SUCCESS. Cluster has not been updated while locked."
+    success "Cluster has not been updated while locked."
   fi
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
@@ -77,10 +75,9 @@ check_restart() {
   INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | jq '.status.restart.initialInstances | length')"
   if printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q "^$INITIAL_INSTANCES$"
   then
-    echo "SUCCESS. Instances after minor version upgrade match the initial instances in status ($INITIAL_INSTANCES)"
+    success "Instances after minor version upgrade match the initial instances in status ($INITIAL_INSTANCES)"
   else
-    echo "FAILED. Instances after minor version upgrade ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
-    return 1
+    fail "Instances after minor version upgrade ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
   fi
 
   local DBOPS_CREATION_TIMESTAMP
@@ -94,10 +91,9 @@ check_restart() {
     POD_CREATION_TIMESTAMP="$(date -d "$POD_CREATION_TIMESTAMP" +%s)"
     if [ "$POD_CREATION_TIMESTAMP" -lt "$DBOPS_CREATION_TIMESTAMP" ]
     then
-      echo "FAILED. Pod $POD was not restarted"
-      return 1
+      fail "Pod $POD was not restarted"
     else
-      echo "SUCCESS. Pod $POD was restarted"
+      success "Pod $POD was restarted"
     fi
   done
   for POD in $NOT_RESTARTED_PODS
@@ -106,10 +102,9 @@ check_restart() {
     POD_CREATION_TIMESTAMP="$(date -d "$POD_CREATION_TIMESTAMP" +%s)"
     if [ "$POD_CREATION_TIMESTAMP" -lt "$DBOPS_CREATION_TIMESTAMP" ]
     then
-      echo "SUCCESS. Pod $POD was not restarted"
+      success "Pod $POD was not restarted"
     else
-      echo "FAILED. Pod $POD was restarted"
-      return 1
+      fail "Pod $POD was restarted"
     fi
   done
 
@@ -117,10 +112,9 @@ check_restart() {
     -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. minor version upgrade job was not removed after completion."
+    success "minor version upgrade job was not removed after completion."
   else
-    echo "FAILED. minor version upgrade job was removed after completion."
-    return 1
+    fail "minor version upgrade job was removed after completion."
   fi
 
   local FINAL_DBOPS_JOB_NAME
@@ -128,19 +122,17 @@ check_restart() {
     -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
   if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
   then
-    echo "SUCCESS. minor version upgrade Job was not re-created."
+    success "minor version upgrade Job was not re-created."
   else
-    echo "FAILED. minor version upgrade Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
-    return 1
+    fail "minor version upgrade Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
     --template '{{ .spec.postgres.version }}')" = "$E2E_MINOR_TARGET_POSTGRES_VERSION" ]
   then
-    echo "SUCCESS. cluster postgres version has been updated."
+    success "cluster postgres version has been updated."
   else
-    echo "FAILED. cluster postgres version has not been updated."
-    return 1
+    fail "cluster postgres version has not been updated."
   fi
 
   if [ "$SKIP_CHECK_DATA" != true ]

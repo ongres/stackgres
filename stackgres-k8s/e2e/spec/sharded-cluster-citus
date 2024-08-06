@@ -57,10 +57,9 @@ service_check() {
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
-    echo "SUCCESS: Connections are possible using services"
+    success "Connections are possible using services"
   else
-    echo "FAIL: Cannot connect to primary db using a kubernetes service"
-    return 1
+    fail "Cannot connect to primary db using a kubernetes service"
   fi
 }
 
@@ -71,10 +70,9 @@ sharded_check() {
 
   if [ "$EXIT_CODE" = 0 ]
   then
-    echo "SUCCESS: Sharding coordinator service is working"
+    success "Sharding coordinator service is working"
   else
-    echo "FAIL: Sharding coordinator service is not working"
-    return 1
+    fail "Sharding coordinator service is not working"
   fi
 
   try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
@@ -82,10 +80,9 @@ sharded_check() {
 
   if [ "$EXIT_CODE" = 0 ]
   then
-    echo "SUCCESS: Sharding primary coordinator service is working"
+    success "Sharding primary coordinator service is working"
   else
-    echo "FAIL: Sharding primary coordinator service is not working"
-    return 1
+    fail "Sharding primary coordinator service is not working"
   fi
 
   try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME-shards" -i 1 -p 5432 \
@@ -93,10 +90,9 @@ sharded_check() {
 
   if [ "$EXIT_CODE" = 0 ]
   then
-    echo "SUCCESS: Sharding shards service is working"
+    success "Sharding shards service is working"
   else
-    echo "FAIL: Sharding shards service is not working"
-    return 1
+    fail "Sharding shards service is not working"
   fi
 
   try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME-reads" -i 1 -p 5432 \
@@ -104,10 +100,9 @@ sharded_check() {
 
   if [ "$EXIT_CODE" = 0 ]
   then
-    echo "SUCCESS: Setting citus.max_client_connections is correctly configured"
+    success "Setting citus.max_client_connections is correctly configured"
   else
-    echo "FAIL: Setting citus.max_client_connections is not correctly configured"
-    return 1
+    fail "Setting citus.max_client_connections is not correctly configured"
   fi
 }
 
@@ -118,10 +113,9 @@ pgbouncer_database_check() {
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
   then
-    echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_admin using service"
+    success "psql could connect to the pgbouncer database with pgobuncer_admin using service"
   else
-    echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_admin using service"
-    return 1
+    fail "psql could not connect to the pgbouncer database with pgobuncer_admin using service"
   fi
 
   if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- env \
@@ -130,10 +124,9 @@ pgbouncer_database_check() {
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
   then
-    echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_stats using service"
+    success "psql could connect to the pgbouncer database with pgobuncer_stats using service"
   else
-    echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_stats using service"
-    return 1
+    fail "psql could not connect to the pgbouncer database with pgobuncer_stats using service"
   fi
 }
 

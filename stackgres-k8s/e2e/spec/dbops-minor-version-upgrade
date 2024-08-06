@@ -82,10 +82,9 @@ check_minor_version_upgrade() {
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1
   then
-    echo "FAILED. Cluster has been updated while locked."
-    return 1
+    fail "Cluster has been updated while locked."
   else
-    echo "SUCCESS. Cluster has not been updated while locked."
+    success "Cluster has not been updated while locked."
   fi
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
@@ -94,10 +93,9 @@ check_minor_version_upgrade() {
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. Minor version upgrade job was not removed after completion."
+    success "Minor version upgrade job was not removed after completion."
   else
-    echo "FAILED. Minor version upgrade job was removed after completion."
-    return 1
+    fail "Minor version upgrade job was removed after completion."
   fi
 
   check_mock_data_samehost "$CLUSTER_NAME"

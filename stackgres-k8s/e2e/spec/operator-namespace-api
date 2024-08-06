@@ -21,11 +21,10 @@ check_namespace() {
 
   if wait_until check_returned_namespaces
   then
-    echo "SUCCESS. Namespace endpoint returned all namespaces"
+    success "Namespace endpoint returned all namespaces"
     return 0
   else
-    echo "FAIL. Namespace endpoint not return all namespaces. Expected $NAMESPACES_IN_K8S, actual $NAMESPACES_IN_K8S"
-    return 1
+    fail "Namespace endpoint not return all namespaces. Expected $NAMESPACES_IN_K8S, actual $NAMESPACES_IN_K8S"
   fi
 }
 
@@ -50,11 +49,10 @@ check_namespace_status() {
 
   if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ] || [ "$HTTP_STATUS" = "204" ]
   then
-    echo "SUCCESS. Namespace endpoint is available"
+    success "Namespace endpoint is available"
     return 0
   else
-    echo "FAIL. Namespace endpoint is not available"
-    return 1
+    fail "Namespace endpoint is not available"
   fi
 }
 

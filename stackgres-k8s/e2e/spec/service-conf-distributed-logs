@@ -27,30 +27,27 @@ distributedlogs_services_enabled_by_default(){
     --template "{{ (index .items 0).spec.postgresServices.primary.type }}")" \
     = "ClusterIP" ]
   then
-    echo "SUCCESS. Distributed logs primary postgres service was created correctly and with type ClusterIP by default"
+    success "Distributed logs primary postgres service was created correctly and with type ClusterIP by default"
   else
-    echo "FAIL. Distributed logs primary postgres service was not created correctly and with type ClusterIP by default"
-    return 1
+    fail "Distributed logs primary postgres service was not created correctly and with type ClusterIP by default"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" \
     --template "{{ (index .items 0).spec.postgresServices.replicas.enabled }}")" \
     = "true" ]
   then
-    echo "SUCCESS. Distributed logs replicas are enabled"
+    success "Distributed logs replicas are enabled"
   else
-    echo "FAIL. Distributed logs replicas are not enabled"
-    return 1
+    fail "Distributed logs replicas are not enabled"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" \
     --template "{{ (index .items 0).spec.postgresServices.replicas.type }}")" \
     = "ClusterIP" ]
   then
-    echo "SUCCESS. Distributed logs posgtres service replicas was created correctly and with type ClusterIP by default"
+    success "Distributed logs posgtres service replicas was created correctly and with type ClusterIP by default"
   else
-    echo "FAIL. Distributed logs posgtres service replicas was not created correctly and with type ClusterIP by default"
-    return 1
+    fail "Distributed logs posgtres service replicas was not created correctly and with type ClusterIP by default"
   fi
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -73,30 +70,27 @@ distributedlogs_services_full_enabled(){
     --template "{{ (index .items 0).spec.postgresServices.primary.type }}")" \
     = "NodePort" ]
   then
-    echo "SUCCESS. Distributed logs primary service was created correctly and with type NodePort"
+    success "Distributed logs primary service was created correctly and with type NodePort"
   else
-    echo "FAIL. Distributed logs primary service was not created with correct type NodePort"
-    return 1
+    fail "Distributed logs primary service was not created with correct type NodePort"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" \
     --template "{{ (index .items 0).spec.postgresServices.replicas.enabled }}")" \
     = "true" ]
   then
-    echo "SUCCESS. Distributed logs replicas are enabled"
+    success "Distributed logs replicas are enabled"
   else
-    echo "FAIL. Distributed logs replicas are not enabled"
-    return 1
+    fail "Distributed logs replicas are not enabled"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" \
     --template "{{ (index .items 0).spec.postgresServices.replicas.type }}")" \
     = "NodePort" ]
   then
-    echo "SUCCESS. Distributed logs replica has the type NodePort"
+    success "Distributed logs replica has the type NodePort"
   else
-    echo "FAIL. Distributed logs replica has not the type NodePort"
-    return 1
+    fail "Distributed logs replica has not the type NodePort"
   fi
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

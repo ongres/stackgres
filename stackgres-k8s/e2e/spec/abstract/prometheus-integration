@@ -31,10 +31,9 @@ check_grafana_secret() {
   try_function wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
   if "$RESULT"
   then
-    echo "SUCCESS. Grafana URL can be retrieved"
+    success "Grafana URL can be retrieved"
   else
-    echo "FAIL. Grafana URL can not be retrieved"
-    return 1
+    fail "Grafana URL can not be retrieved"
   fi
 }
 
@@ -110,27 +109,25 @@ check_envoy_pod_monitor() {
 check_grafana_embedded() {
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
   then
-    echo "SUCCESS. Grafana URL can be retrieved"
+    success "Grafana URL can be retrieved"
   else
-    echo "FAIL. Grafana URL can not be retrieved"
-    return 1
+    fail "Grafana URL can not be retrieved"
   fi
 
   GRAFANA_URL="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" --fail)"
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" -o /dev/null --fail
   then
-    echo "SUCCESS. Grafana URL $GRAFANA_URL is accessible"
+    success "Grafana URL $GRAFANA_URL is accessible"
   else
-    echo "FAIL. Grafana URL $GRAFANA_URL is not accessible"
-    return 1
+    fail "Grafana URL $GRAFANA_URL is not accessible"
   fi
 
   if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail | grep -q "\(<grafana-app \|<title>Grafana</title>\)"'
   then
-    echo "SUCCESS. Grafana URL $GRAFANA_URL is returning grafana Web"
+    success "Grafana URL $GRAFANA_URL is returning grafana Web"
   else
-    echo "FAIL. Grafana URL $GRAFANA_URL is not returning grafana Web"
+    fail_no_return "Grafana URL $GRAFANA_URL is not returning grafana Web"
     kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "$GRAFANA_URL" --fail
     return 1
   fi

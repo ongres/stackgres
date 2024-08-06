@@ -172,10 +172,9 @@ EOF
 EOF
         )" >/dev/null 2>&1
   then
-    echo "FAILED. Changed SGCluster postgres version directly."
-    return 1
+    fail "Changed SGCluster postgres version directly."
   else
-    echo "SUCCESS. Could not change SGCluster postgres version directly."
+    success "Could not change SGCluster postgres version directly."
   fi
 }
 
@@ -188,10 +187,9 @@ check_major_version_upgrade() {
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1
   then
-    echo "FAILED. Cluster has been updated while locked."
-    return 1
+    fail "Cluster has been updated while locked."
   else
-    echo "SUCCESS. Cluster has not been updated while locked."
+    success "Cluster has not been updated while locked."
   fi
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
@@ -200,19 +198,17 @@ check_major_version_upgrade() {
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. major version upgrade job was not removed after completion."
+    success "major version upgrade job was not removed after completion."
   else
-    echo "FAILED. major version upgrade job was removed after completion."
-    return 1
+    fail "major version upgrade job was removed after completion."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
     --template '{{ .spec.postgres.version }}')" = "$E2E_MAJOR_TARGET_POSTGRES_VERSION" ]
   then
-    echo "SUCCESS. cluster postgres version has been updated."
+    success "cluster postgres version has been updated."
   else
-    echo "FAILED. cluster postgres version has not been updated."
-    return 1
+    fail "cluster postgres version has not been updated."
   fi
 
   wait_until run_query -i 0 -q "SELECT 1;"
@@ -230,10 +226,9 @@ check_major_version_upgrade_check() {
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1
   then
-    echo "FAILED. Cluster has been updated while locked."
-    return 1
+    fail "Cluster has been updated while locked."
   else
-    echo "SUCCESS. Cluster has not been updated while locked."
+    success "Cluster has not been updated while locked."
   fi
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
@@ -242,19 +237,17 @@ check_major_version_upgrade_check() {
     -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
-    echo "SUCCESS. major version upgrade job was not removed after completion."
+    success "major version upgrade job was not removed after completion."
   else
-    echo "FAILED. major version upgrade job was removed after completion."
-    return 1
+    fail "major version upgrade job was removed after completion."
   fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
     --template '{{ .spec.postgres.version }}')" = "$E2E_MAJOR_SOURCE_POSTGRES_VERSION" ]
   then
-    echo "SUCCESS. cluster postgres version has not been updated."
+    success "cluster postgres version has not been updated."
   else
-    echo "FAILED. cluster postgres version has been updated."
-    return 1
+    fail "cluster postgres version has been updated."
   fi
 
   wait_until run_query -i 0 -q "SELECT 1;"

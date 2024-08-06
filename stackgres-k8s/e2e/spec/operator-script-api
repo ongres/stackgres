@@ -412,10 +412,9 @@ check_create_script_with_inline_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$SCRIPT" \
     -o jsonpath="{.spec.scripts[0].script}")" = "CREATE DATABASE test" ]
   then
-    echo "SUCCESS. Init inline script was added to script configuration"
+    success "Init inline script was added to script configuration"
   else
-    echo "FAIL. Init inline script was NOT added to script configuration"
-    return 1
+    fail "Init inline script was NOT added to script configuration"
   fi
 
   if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$SCRIPT" \
@@ -425,10 +424,9 @@ check_create_script_with_inline_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$SCRIPT" \
     -o jsonpath="{.spec.scripts[1].script}")" = "CREATE TABLE fibonacci(num integer)" ]
   then
-    echo "SUCCESS. Table inline script was added to script configuration"
+    success "Table inline script was added to script configuration"
   else
-    echo "FAIL. Table inline script was NOT added to script configuration"
-    return 1
+    fail "Table inline script was NOT added to script configuration"
   fi
 }
 
@@ -464,10 +462,9 @@ check_create_script_with_secret_and_configmap_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$SCRIPT" \
     -o jsonpath="{.spec.scripts[0].scriptFrom.secretKeyRef.key}")" = "script" ]
   then
-    echo "SUCCESS. Secret was added to script configuration"
+    success "Secret was added to script configuration"
   else
-    echo "FAIL. Secret was NOT added to script configuration"
-    return 1
+    fail "Secret was NOT added to script configuration"
   fi
 
   if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$SCRIPT" \
@@ -479,10 +476,9 @@ check_create_script_with_secret_and_configmap_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$SCRIPT" \
     -o jsonpath="{.spec.scripts[1].scriptFrom.configMapKeyRef.key}")" = "script" ]
   then
-    echo "SUCCESS. ConfigMap was added to script configuration"
+    success "ConfigMap was added to script configuration"
   else
-    echo "FAIL. ConfigMap was NOT added to script configuration"
-    return 1
+    fail "ConfigMap was NOT added to script configuration"
   fi
 
   OPERATOR_SCRIPT="$(get_script_from_api)"
@@ -493,10 +489,9 @@ check_create_script_with_secret_and_configmap_script() {
     && [ "$(echo "$OPERATOR_SCRIPT" | jq -r ".spec.scripts[0].scriptFrom.secretKeyRef.key")" = "script" ] \
     && [ "$(echo "$OPERATOR_SCRIPT" | jq -r ".spec.scripts[0].scriptFrom.secretScript")" = "null" ]
   then
-    echo "SUCCESS. Secret was added to script configuration"
+    success "Secret was added to script configuration"
   else
-    echo "FAIL. Secret was NOT added to script configuration"
-    return 1
+    fail "Secret was NOT added to script configuration"
   fi
 
   if [ "$(echo "$OPERATOR_SCRIPT" | jq -r ".spec.scripts[1].name")" = "table" ] \
@@ -505,10 +500,9 @@ check_create_script_with_secret_and_configmap_script() {
     && [ "$(echo "$OPERATOR_SCRIPT" | jq -r ".spec.scripts[1].scriptFrom.configMapKeyRef.key")" = "script" ] \
     && [ "$(echo "$OPERATOR_SCRIPT" | jq -r ".spec.scripts[1].scriptFrom.configMapScript")" = "CREATE TABLE fibonacci(num integer)" ]
   then
-    echo "SUCCESS. ConfigMap was added to script configuration"
+    success "ConfigMap was added to script configuration"
   else
-    echo "FAIL. ConfigMap was NOT added to script configuration"
-    return 1
+    fail "ConfigMap was NOT added to script configuration"
   fi
 
   kubectl delete secret -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null

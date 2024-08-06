@@ -84,7 +84,7 @@ EOF
 
   wait_until is_backup_phase "Completed"
 
-  echo "SUCCESS. Backup completed"
+  success "Backup completed"
 }
 
 compare_backup_with_backupconf(){
@@ -123,16 +123,15 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  echo "SUCCESS. Cluster restored from backup $BACKUP_NAME"
+  success "Cluster restored from backup $BACKUP_NAME"
 }
 
 check_restored_data() {
   REPLICA_RESPONSE="$(run_query -p 5432 -h "$RESTORED_CLUSTER_NAME-replicas" -c "$RESTORED_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -i 1 -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
   if [ "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: restore replica db restored successfully"
+    success "restore replica db restored successfully"
   else
-    echo "FAIL: replica db not restored"
-    return 1
+    fail "replica db not restored"
   fi
 }

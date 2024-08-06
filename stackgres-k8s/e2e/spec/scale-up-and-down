@@ -36,37 +36,33 @@ check_scaledown() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
   if "$RESULT"
   then
-    echo "SUCCESS. The number of instances has been changed"
+    success "The number of instances has been changed"
   else
-    echo "FAIL. Can not change the number of instances"
-    return 1
+    fail "Can not change the number of instances"
   fi
 
   try_function wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
   if "$RESULT"
   then
-    echo "SUCCESS. The number of pods has changed"
+    success "The number of pods has changed"
   else
-    echo "FAIL. The number of pods did not changed"
-    return 1
+    fail "The number of pods did not changed"
   fi
 
   if kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep -q "^pod/${CLUSTER_NAME}-1"
   then
-    echo "FAIL. The secondary instance was not disposed :("
-    return 1
+    fail "The secondary instance was not disposed :("
   else
-    echo "SUCCESS. The secondary instance was disposed!"
+    success "The secondary instance was disposed!"
   fi
 
   local AFTER_SCALEDOWN_PRIMARY_UID
   AFTER_SCALEDOWN_PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.uid }}')"
   if [ "$AFTER_SCALEDOWN_PRIMARY_UID" = "$PRIMARY_UID" ]
   then
-    echo "SUCCESS. The primary instance was not disposed!"
+    success "The primary instance was not disposed!"
   else
-    echo "FAIL. The primary instance was disposed :("
-    return 1
+    fail "The primary instance was disposed :("
   fi
 
   check_cluster_pod_count 1
@@ -80,28 +76,26 @@ check_scalezero() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 0
   if "$RESULT"
   then
-    echo "SUCCESS. The number of instances has been changed"
+    success "The number of instances has been changed"
   else
-    echo "FAIL. Can not change the number of instances"
-    return 1
+    fail "Can not change the number of instances"
   fi
 
   try_function wait_pods_terminated "$CLUSTER_NAMESPACE" 0 "$CLUSTER_NAME-[01]"
   if "$RESULT"
   then
-    echo "SUCCESS. The number of pods has changed"
+    success "The number of pods has changed"
   else
-    echo "FAIL. The number of pods did not changed"
-    return 1
+    fail "The number of pods did not changed"
   fi
 
   if kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep -q "^pod/${CLUSTER_NAME}-"
   then
-    echo "FAIL. Some instance was not disposed :("
+    fail_no_return "Some instance was not disposed :("
     kubectl get pod -n "$CLUSTER_NAMESPACE" -o name || true
     return 1
   else
-    echo "SUCCESS. All instances were disposed!"
+    success "All instances were disposed!"
   fi
 
   check_cluster_pod_count 0
@@ -111,29 +105,26 @@ check_scalezero() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
   if "$RESULT"
   then
-    echo "SUCCESS. The number of instances has been changed"
+    success "The number of instances has been changed"
   else
-    echo "FAIL. Can not change the number of instances"
-    return 1
+    fail "Can not change the number of instances"
   fi
 
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
   if "$RESULT"
   then
-    echo "SUCCESS. The number of pods has changed"
+    success "The number of pods has changed"
   else
-    echo "FAIL. The number of pods did not changed"
-    return 1
+    fail "The number of pods did not changed"
   fi
 
   local AFTER_SCALEDOWN_PRIMARY_NAME
   AFTER_SCALEDOWN_PRIMARY_NAME="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.name }}')"
   if kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.name }}' | grep -qxF "$CLUSTER_NAME"-0 
   then
-    echo "SUCCESS. The primary instance $CLUSTER_NAME-0 has been restored!"
+    success "The primary instance $CLUSTER_NAME-0 has been restored!"
   else
-    echo "FAIL. The primary instance $CLUSTER_NAME-0 was not restored :("
-    return 1
+    fail "The primary instance $CLUSTER_NAME-0 was not restored :("
   fi
 
   check_cluster_pod_count 1
@@ -148,37 +139,33 @@ check_scaleup() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
   if "$RESULT"
   then
-    echo "SUCCESS. The number of instances has been changed"
+    success "The number of instances has been changed"
   else
-    echo "FAIL. Can not change the number of instances"
-    return 1
+    fail "Can not change the number of instances"
   fi
 
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[01]"
   if "$RESULT"
   then
-    echo "SUCCESS. The number of pods has changed"
+    success "The number of pods has changed"
   else
-    echo "FAIL. The number of pods did not changed"
-    return 1
+    fail "The number of pods did not changed"
   fi
 
   if kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep -q "^pod/${CLUSTER_NAME}-1"
   then
-    echo "SUCCESS. The secondary instance was created!"
+    success "The secondary instance was created!"
   else
-    echo "FAIL. The secondary instance was not created :("
-    return 1
+    fail "The secondary instance was not created :("
   fi
 
   local AFTER_SCALEUP_PRIMARY_UID
   AFTER_SCALEUP_PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.uid }}')"
   if [ "$AFTER_SCALEUP_PRIMARY_UID" = "$PRIMARY_UID" ]
   then
-    echo "SUCCESS. The primary instance was not disposed!"
+    success "The primary instance was not disposed!"
   else
-    echo "FAIL. The primary instance was disposed :("
-    return 1
+    fail "The primary instance was disposed :("
   fi
 
   check_cluster_pod_count 2
@@ -188,10 +175,9 @@ check_switchover() {
   if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
     patronictl switchover --primary "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force
   then
-    echo "SUCCESS. The switchover has been performed"
+    success "The switchover has been performed"
   else
-    echo "FAIL. The switchover operation failed"
-    return 1
+    fail "The switchover operation failed"
   fi
 
   local RESULT=false
@@ -200,7 +186,7 @@ check_switchover() {
   do
     if run_query -i 0 -p 5432
     then
-      echo "SUCCESS. The replica becomed available"
+      success "The replica becomed available"
       RESULT=true
       break
     fi
@@ -208,26 +194,23 @@ check_switchover() {
   done
   if ! "$RESULT"
   then
-    echo "FAIL. The replica is not available"
-    return 1
+    fail "The replica is not available"
   fi
 
   local IS_IN_RECOVERY="$(run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()")"
   if [ "$IS_IN_RECOVERY" = 'f' ]
   then
-    echo "SUCCESS. The primary is now the pod at index 1"
+    success "The primary is now the pod at index 1"
   else
-    echo "FAIL. The pod at index 1 is not the primary"
-    return 1
+    fail "The pod at index 1 is not the primary"
   fi
 
   local IS_IN_RECOVERY="$(run_query -i 0 -p 5432 -q "SELECT pg_is_in_recovery()")"
   if [ "$IS_IN_RECOVERY" = 't' ]
   then
-    echo "SUCCESS. The replica is now the pod at index 0"
+    success "The replica is now the pod at index 0"
   else
-    echo "FAIL. The pod at index 0 is not a replica"
-    return 1
+    fail "The pod at index 0 is not a replica"
   fi
 
   check_cluster_pod_count 2
@@ -242,37 +225,33 @@ check_scaledown_when_primary_last_pod() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
   if "$RESULT"
   then
-    echo "SUCCESS. The number of instances has been changed"
+    success "The number of instances has been changed"
   else
-    echo "FAIL. Can not change the number of instances"
-    return 1
+    fail "Can not change the number of instances"
   fi
 
   try_function wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
   if "$RESULT"
   then
-    echo "SUCCESS. The number of pods has changed"
+    success "The number of pods has changed"
   else
-    echo "FAIL. The number of pods did not changed"
-    return 1
+    fail "The number of pods did not changed"
   fi
 
   if kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep -q "^pod/${CLUSTER_NAME}-1"
   then
-    echo "SUCCESS. The primary instance was not disposed!"
+    success "The primary instance was not disposed!"
   else
-    echo "FAIL. The primary instance was disposed :("
-    return 1
+    fail "The primary instance was disposed :("
   fi
 
   local AFTER_SCALEDOWN_PRIMARY_UID
   AFTER_SCALEDOWN_PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-1 --template '{{ .metadata.uid }}')"
   if [ "$AFTER_SCALEDOWN_PRIMARY_UID" = "$PRIMARY_UID" ]
   then
-    echo "SUCCESS. The primary instance was not disposed!"
+    success "The primary instance was not disposed!"
   else
-    echo "FAIL. The primary instance was disposed :("
-    return 1
+    fail "The primary instance was disposed :("
   fi
 
   check_cluster_pod_count 1
@@ -286,19 +265,17 @@ check_delete_primary_when_beyond_last_pod() {
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 1 "${CLUSTER_NAME}-1"
   if "$RESULT"
   then
-    echo "SUCCESS. Primary pod started after deleting it"
+    success "Primary pod started after deleting it"
   else
-    echo "FAIL. Primary pod didn't started after deleting it"
-    return 1
+    fail "Primary pod didn't started after deleting it"
   fi
 
   local IS_IN_RECOVERY="$(run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()")"
   if [ "$IS_IN_RECOVERY" = 'f' ]
   then
-    echo "SUCCESS. The primary is still the pod at index 1"
+    success "The primary is still the pod at index 1"
   else
-    echo "FAIL. The pod at index 1 is not the primary"
-    return 1
+    fail "The pod at index 1 is not the primary"
   fi
 
   wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -317,37 +294,33 @@ check_scaleup_when_primary_beyond_last_pod() {
   try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
   if "$RESULT"
   then
-    echo "SUCCESS. The number of instances has been changed"
+    success "The number of instances has been changed"
   else
-    echo "FAIL. Can not change the number of instances"
-    return 1
+    fail "Can not change the number of instances"
   fi
 
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[01]"
   if "$RESULT"
   then
-    echo "SUCCESS. The number of pods has changed"
+    success "The number of pods has changed"
   else
-    echo "FAIL. The number of pods did not changed"
-    return 1
+    fail "The number of pods did not changed"
   fi
 
   if kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep -q "^pod/${CLUSTER_NAME}-1"
   then
-    echo "SUCCESS. The primary instance was not disposed!"
+    success "The primary instance was not disposed!"
   else
-    echo "FAIL. The primary instance was disposed :("
-    return 1
+    fail "The primary instance was disposed :("
   fi
 
   local AFTER_SCALEUP_PRIMARY_UID
   AFTER_SCALEUP_PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-1 --template '{{ .metadata.uid }}')"
   if [ "$AFTER_SCALEUP_PRIMARY_UID" = "$PRIMARY_UID" ]
   then
-    echo "SUCCESS. The primary instance was not disposed!"
+    success "The primary instance was not disposed!"
   else
-    echo "FAIL. The primary instance was disposed :("
-    return 1
+    fail "The primary instance was disposed :("
   fi
 
   check_cluster_pod_count 2
@@ -359,28 +332,25 @@ check_cluster_pod_count() {
   ACTUAL_INSTANCES="$(get_all_cluster_pod_count)"
   if [ "$ACTUAL_INSTANCES" = "$EXPECTED_INSTANCES" ]
   then
-    echo "SUCCESS. The number of instances returned by stackgres/sgclusters is $EXPECTED_INSTANCES"
+    success "The number of instances returned by stackgres/sgclusters is $EXPECTED_INSTANCES"
   else
-    echo "FAIL. The number of instances returned by stackgres/sgclusters is $ACTUAL_INSTANCES"
-    return 1
+    fail "The number of instances returned by stackgres/sgclusters is $ACTUAL_INSTANCES"
   fi
 
   ACTUAL_INSTANCES="$(get_cluster_pod_count)"
   if [ "$ACTUAL_INSTANCES" = "$EXPECTED_INSTANCES" ]
   then
-    echo "SUCCESS. The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $EXPECTED_INSTANCES"
+    success "The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $EXPECTED_INSTANCES"
   else
-    echo "FAIL. The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $ACTUAL_INSTANCES"
-    return 1
+    fail "The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $ACTUAL_INSTANCES"
   fi
 
   ACTUAL_INSTANCES="$(get_cluster_stats_pod_count)"
   if [ "$ACTUAL_INSTANCES" = "$EXPECTED_INSTANCES" ]
   then
-    echo "SUCCESS. The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $EXPECTED_INSTANCES"
+    success "The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $EXPECTED_INSTANCES"
   else
-    echo "FAIL. The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $ACTUAL_INSTANCES"
-    return 1
+    fail "The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $ACTUAL_INSTANCES"
   fi
 }
 

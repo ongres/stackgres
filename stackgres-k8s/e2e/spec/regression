@@ -37,10 +37,9 @@ check_persistent_volume_claim_size() {
 
   if [ "$VOLUME_CLAIM_CAPACITY" = "128Mi" ]
   then
-    echo "SUCCESS. Volume Size is the requested"
+    success "Volume Size is the requested"
   else
-    echo "FAIL. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
-    return 1
+    fail "Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
   fi 
 }
 
@@ -58,10 +57,9 @@ get_shared_memory() {
 check_jit() {
   if run_query -i 0 -p 5432 -q "set jit=on; set jit_above_cost = 0.001;  select 1;" > /dev/null
   then
-      echo "SUCCESS: JIT is working as expected"
+      success "JIT is working as expected"
   else 
-      echo "FAIL: JIT is not working as expected"
-      return 1
+      fail "JIT is not working as expected"
   fi
 }
 
@@ -71,10 +69,9 @@ check_persistent_volume_claim_is_updated() {
 
   if wait_until check_persistent_volume_claim "256Mi"
   then
-    echo "SUCCESS. Volume Size is the requested"
+    success "Volume Size is the requested"
   else
-    echo "FAIL. Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
-    return 1
+    fail "Volume is not the requested. Actual: $VOLUME_CLAIM_CAPACITY"
   fi 
 }
 

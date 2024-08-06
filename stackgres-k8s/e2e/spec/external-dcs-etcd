@@ -62,26 +62,23 @@ check_external_dcs_is_working() {
   CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_HOST=test try_function generate_mock_data "$CLUSTER_NEAR_NAME"
   if "$RESULT"
   then
-    echo "SUCCESS. Cluster using external DCS was able to write some data on primary service"
+    success "Cluster using external DCS was able to write some data on primary service"
   else
-    echo "FAILED. Cluster using external DCS was not able to write some data on primary service"
-    return 1
+    fail "Cluster using external DCS was not able to write some data on primary service"
   fi
   CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_HOST=test try_function check_mock_data_samehost "$CLUSTER_NEAR_NAME"
   if "$RESULT"
   then
-    echo "SUCCESS. Cluster using external DCS was able to read some data from primary service"
+    success "Cluster using external DCS was able to read some data from primary service"
   else
-    echo "FAILED. Cluster using external DCS was not able to read some data from primary service"
-    return 1
+    fail "Cluster using external DCS was not able to read some data from primary service"
   fi
   CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_HOST=test try_function check_mock_data_replication "$CLUSTER_NEAR_NAME"
   if "$RESULT"
   then
-    echo "SUCCESS. Cluster using external DCS was able to read some data from replicas service"
+    success "Cluster using external DCS was able to read some data from replicas service"
   else
-    echo "FAILED. Cluster using external DCS was not able to read some data from replicas service"
-    return 1
+    fail "Cluster using external DCS was not able to read some data from replicas service"
   fi
 }
 
@@ -117,10 +114,9 @@ check_external_dcs_two_clusters_is_working() {
   CLUSTER_NAMESPACE="$CLUSTER_FAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_FAR_NAME" CLUSTER_HOST="$CLUSTER_FAR_NAME-replicas" try_function check_mock_data_samehost "$CLUSTER_FAR_NAME"
   if "$RESULT"
   then
-    echo "SUCCESS. Cluster using external DCS is replicating from cluster using same DCS and scope and was able to read some data from replicas service"
+    success "Cluster using external DCS is replicating from cluster using same DCS and scope and was able to read some data from replicas service"
   else
-    echo "FAILED. Cluster using external DCS is not replicating from cluster using same DCS and scope or was not able to read some data from replicas service"
-    return 1
+    fail "Cluster using external DCS is not replicating from cluster using same DCS and scope or was not able to read some data from replicas service"
   fi
 }
 

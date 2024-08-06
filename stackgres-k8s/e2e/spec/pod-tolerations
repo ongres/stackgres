@@ -45,50 +45,45 @@ check_sgcluster_has_node_tolerations() {
     --template "{{ (index .spec.pods.scheduling.tolerations 0).effect }}")" \
     = "NoExecute" ]
   then
-    echo "SUCCESS. sgcluster has the configured toleration effect"
+    success "sgcluster has the configured toleration effect"
   else
-    echo "FAIL. sgcluster has not the configured toleration effect"
-    return 1
+    fail "sgcluster has not the configured toleration effect"
   fi
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.pods.scheduling.tolerations 0).key }}")" \
     = "$NODE_LABEL_KEY" ]
   then
-    echo "SUCCESS. sgcluster has the configured toleration key"
+    success "sgcluster has the configured toleration key"
   else
-    echo "FAIL. sgcluster has not the configured toleration key"
-    return 1
+    fail "sgcluster has not the configured toleration key"
   fi
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.pods.scheduling.tolerations 0).operator }}")" \
     = "Equal" ]
   then
-    echo "SUCCESS. sgcluster has the configured toleration operator"
+    success "sgcluster has the configured toleration operator"
   else
-    echo "FAIL. sgcluster has not the configured toleration operator"
-    return 1
+    fail "sgcluster has not the configured toleration operator"
   fi
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.pods.scheduling.tolerations 0).value }}")" \
     = "$NODE_LABEL_VALUE" ]
   then
-    echo "SUCCESS. sgcluster has the configured toleration value"
+    success "sgcluster has the configured toleration value"
   else
-    echo "FAIL. sgcluster has not the configured toleration value"
-    return 1
+    fail "sgcluster has not the configured toleration value"
   fi
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.pods.scheduling.tolerations 0).tolerationSeconds }}")" \
     = "1" ]
   then
-    echo "SUCCESS. sgcluster has the configured toleration tolerationSeconds"
+    success "sgcluster has the configured toleration tolerationSeconds"
   else
-    echo "FAIL. sgcluster has not the configured toleration tolerationSeconds"
-    return 1
+    fail "sgcluster has not the configured toleration tolerationSeconds"
   fi
 }
 
@@ -102,50 +97,45 @@ EOF
     )"
   if "$RESULT"
   then
-    echo "SUCCESS. sgcluster's StatefulSet has the configured toleration effect"
+    success "sgcluster's StatefulSet has the configured toleration effect"
   else
-    echo "FAIL. sgcluster's StatefulSet has not the configured toleration effect"
-    return 1
+    fail "sgcluster's StatefulSet has not the configured toleration effect"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.template.spec.tolerations 0).key }}")" \
     = "$NODE_LABEL_KEY" ]
   then
-    echo "SUCCESS. sgcluster's StatefulSet has the configured toleration key"
+    success "sgcluster's StatefulSet has the configured toleration key"
   else
-    echo "FAIL. sgcluster's StatefulSet has not the configured toleration key"
-    return 1
+    fail "sgcluster's StatefulSet has not the configured toleration key"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.template.spec.tolerations 0).operator }}")" \
     = "Equal" ]
   then
-    echo "SUCCESS. sgcluster's StatefulSet has the configured toleration operator"
+    success "sgcluster's StatefulSet has the configured toleration operator"
   else
-    echo "FAIL. sgcluster's StatefulSet has not the configured toleration operator"
-    return 1
+    fail "sgcluster's StatefulSet has not the configured toleration operator"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.template.spec.tolerations 0).value }}")" \
     = "$NODE_LABEL_VALUE" ]
   then
-    echo "SUCCESS. sgcluster's StatefulSet has the configured toleration value"
+    success "sgcluster's StatefulSet has the configured toleration value"
   else
-    echo "FAIL. sgcluster's StatefulSet has not the configured toleration value"
-    return 1
+    fail "sgcluster's StatefulSet has not the configured toleration value"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ (index .spec.template.spec.tolerations 0).tolerationSeconds }}")" \
     = "1" ]
   then
-    echo "SUCCESS. sgcluster's StatefulSet has the configured toleration tolerationSeconds"
+    success "sgcluster's StatefulSet has the configured toleration tolerationSeconds"
   else
-    echo "FAIL. sgcluster's StatefulSet has not the configured toleration tolerationSeconds"
-    return 1
+    fail "sgcluster's StatefulSet has not the configured toleration tolerationSeconds"
   fi
 }
 
@@ -154,50 +144,45 @@ check_sgdistributedlogs_has_node_tolerations() {
     --template "{{ (index .spec.scheduling.tolerations 0).effect }}")" \
     = "NoExecute" ]
   then
-    echo "SUCCESS. sgdistributedlogs has the configured toleration effect"
+    success "sgdistributedlogs has the configured toleration effect"
   else
-    echo "FAIL. sgdistributedlogs has not the configured toleration effect"
-    return 1
+    fail "sgdistributedlogs has not the configured toleration effect"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.scheduling.tolerations 0).key }}")" \
     = "$NODE_LABEL_KEY" ]
   then
-    echo "SUCCESS. sgdistributedlogs has the configured toleration key"
+    success "sgdistributedlogs has the configured toleration key"
   else
-    echo "FAIL. sgdistributedlogs has not the configured toleration key"
-    return 1
+    fail "sgdistributedlogs has not the configured toleration key"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.scheduling.tolerations 0).operator }}")" \
     = "Equal" ]
   then
-    echo "SUCCESS. sgdistributedlogs has the configured toleration operator"
+    success "sgdistributedlogs has the configured toleration operator"
   else
-    echo "FAIL. sgdistributedlogs has not the configured toleration operator"
-    return 1
+    fail "sgdistributedlogs has not the configured toleration operator"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.scheduling.tolerations 0).value }}")" \
     = "$NODE_LABEL_VALUE" ]
   then
-    echo "SUCCESS. sgdistributedlogs has the configured toleration value"
+    success "sgdistributedlogs has the configured toleration value"
   else
-    echo "FAIL. sgdistributedlogs has not the configured toleration value"
-    return 1
+    fail "sgdistributedlogs has not the configured toleration value"
   fi
 
   if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.scheduling.tolerations 0).tolerationSeconds }}")" \
     = "1" ]
   then
-    echo "SUCCESS. sgdistributedlogs has the configured toleration tolerationSeconds"
+    success "sgdistributedlogs has the configured toleration tolerationSeconds"
   else
-    echo "FAIL. sgdistributedlogs has not the configured toleration tolerationSeconds"
-    return 1
+    fail "sgdistributedlogs has not the configured toleration tolerationSeconds"
   fi
 }
 
@@ -211,49 +196,44 @@ EOF
     )"
   if "$RESULT"
   then
-    echo "SUCCESS. sgdistributedlogs's StatefulSet has the configured toleration effect"
+    success "sgdistributedlogs's StatefulSet has the configured toleration effect"
   else
-    echo "FAIL. sgdistributedlogs's StatefulSet has not the configured toleration effect"
-    return 1
+    fail "sgdistributedlogs's StatefulSet has not the configured toleration effect"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.template.spec.tolerations 0).key }}")" \
     = "$NODE_LABEL_KEY" ]
   then
-    echo "SUCCESS. sgdistributedlogs's StatefulSet has the configured toleration key"
+    success "sgdistributedlogs's StatefulSet has the configured toleration key"
   else
-    echo "FAIL. sgdistributedlogs's StatefulSet has not the configured toleration key"
-    return 1
+    fail "sgdistributedlogs's StatefulSet has not the configured toleration key"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.template.spec.tolerations 0).operator }}")" \
     = "Equal" ]
   then
-    echo "SUCCESS. sgdistributedlogs's StatefulSet has the configured toleration operator"
+    success "sgdistributedlogs's StatefulSet has the configured toleration operator"
   else
-    echo "FAIL. sgdistributedlogs's StatefulSet has not the configured toleration operator"
-    return 1
+    fail "sgdistributedlogs's StatefulSet has not the configured toleration operator"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.template.spec.tolerations 0).value }}")" \
     = "$NODE_LABEL_VALUE" ]
   then
-    echo "SUCCESS. sgdistributedlogs's StatefulSet has the configured toleration value"
+    success "sgdistributedlogs's StatefulSet has the configured toleration value"
   else
-    echo "FAIL. sgdistributedlogs's StatefulSet has not the configured toleration value"
-    return 1
+    fail "sgdistributedlogs's StatefulSet has not the configured toleration value"
   fi
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "distributedlogs" \
     --template "{{ (index .spec.template.spec.tolerations 0).tolerationSeconds }}")" \
     = "1" ]
   then
-    echo "SUCCESS. sgdistributedlogs's StatefulSet has the configured toleration tolerationSeconds"
+    success "sgdistributedlogs's StatefulSet has the configured toleration tolerationSeconds"
   else
-    echo "FAIL. sgdistributedlogs's StatefulSet has not the configured toleration tolerationSeconds"
-    return 1
+    fail "sgdistributedlogs's StatefulSet has not the configured toleration tolerationSeconds"
   fi
 }

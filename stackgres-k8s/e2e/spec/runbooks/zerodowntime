@@ -217,11 +217,11 @@ zerodowntime_check() {
   if wait_until eval '! kill -0 "$BENCH_PID"' \
     && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
   then
-    echo "SUCCESS: Benchmark terminated succesfully without any error after 10 switchovers"
+    echo "success Benchmark terminated succesfully without any error after 10 switchovers"
     kill "$(head -n 1 "$LOG_PATH/monitor")" || true
     wait "$MONITOR_PID" || true
   else
-    echo "SUCCESS: Benchmark do not terminated succesfully after 10 switchovers"
+    echo "success Benchmark do not terminated succesfully after 10 switchovers"
     kill "$BENCH_PID" || true
     kill "$(head -n 1 "$LOG_PATH/monitor")" || true
     wait "$MONITOR_PID" || true

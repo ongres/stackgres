@@ -3,13 +3,18 @@
 
 success() {
   local MSG="$1"
-  printf "SUCCESS: %s\n" "$MSG"
+  printf "✔ SUCCESS: %s\n" "$MSG"
 }
 
 fail() {
   local MSG="$1"
-  printf "FAIL: %s\n" "$MSG"
+  printf "✗ FAIL: %s\n" "$MSG"
   return 1
+}
+
+fail_no_return() {
+  local MSG="$1"
+  printf "✗ FAIL: %s\n" "$MSG"
 }
 
 assert_string_contains() {

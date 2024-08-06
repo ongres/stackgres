@@ -56,10 +56,9 @@ service_check() {
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
-    echo "SUCCESS: Connections are possible using services"
+    success "Connections are possible using services"
   else
-    echo "FAIL: Cannot connect to primary db using a kubernetes service"
-    return 1
+    fail "Cannot connect to primary db using a kubernetes service"
   fi
 }
 
@@ -70,10 +69,9 @@ sharded_check() {
 
   if [ "$EXIT_CODE" = 0 ]
   then
-    echo "SUCCESS: Sharding coordinator service is working"
+    success "Sharding coordinator service is working"
   else
-    echo "FAIL: Sharding coordinator service is not working"
-    return 1
+    fail "Sharding coordinator service is not working"
   fi
 
   try_function wait_until eval 'run_query -c "$CLUSTER_NAME-shard0" -h "$CLUSTER_NAME-shards" -i 1 -p 5432 \
@@ -81,10 +79,9 @@ sharded_check() {
 
   if [ "$EXIT_CODE" = 0 ]
   then
-    echo "SUCCESS: Sharding shards service is working"
+    success "Sharding shards service is working"
   else
-    echo "FAIL: Sharding shards service is not working"
-    return 1
+    fail "Sharding shards service is not working"
   fi
 }
 

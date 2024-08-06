@@ -41,10 +41,9 @@ check_sharded_dbops_resharding_is_working() {
   if ! kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
   then
-    echo "SUCCESS. The sharded cluster requires resharding"
+    success "The sharded cluster requires resharding"
   else
-    echo "FAIL. The sharded cluster does not requires resharding"
-    return 1
+    fail "The sharded cluster does not requires resharding"
   fi
 
   cat << EOF | kubectl create -f -
@@ -68,9 +67,8 @@ EOF
   if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
   then
-    echo "SUCCESS. The sharded cluster has been resharded"
+    success "The sharded cluster has been resharded"
   else
-    echo "FAIL. The sharded cluster has not been resharded"
-    return 1
+    fail "The sharded cluster has not been resharded"
   fi
 }

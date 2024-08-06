@@ -83,7 +83,7 @@ benchmark_cluster_vertical_autoscaling() {
         | head -n 1)"
       AUTOSCALE_CHANGED="$(date +%s)"
       echo "$AUTOSCALE_CHANGED $LATEST_CPU_QUANTITY" >> "$LOG_PATH/autoscale-changed"
-      echo "SUCCESS: VerticalPodAutoscaler scaled vertically the primary of the cluster based on CPU to $LATEST_CPU_QUANTITY"
+      echo "success VerticalPodAutoscaler scaled vertically the primary of the cluster based on CPU to $LATEST_CPU_QUANTITY"
     else
       echo "FAIL: VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
       kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
@@ -108,7 +108,7 @@ benchmark_cluster_vertical_autoscaling() {
   if wait_until eval '! kill -0 "$BENCH_PID"' \
     && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench-autoscaled"
   then
-    echo "SUCCESS: Benchmark terminated succesfully"
+    echo "success Benchmark terminated succesfully"
   else
     echo "FAIL: Benchmark not terminated succesfully"
     kill "$BENCH_PID" || true

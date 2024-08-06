@@ -41,30 +41,27 @@ check_replication_is_working() {
     psql -At -c 'SHOW synchronous_standby_names')"
   if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
   then
-    echo "SUCCESS: async replication is set for primary"
+    success "async replication is set for primary"
   else
-    echo "FAIL: async replication is not set for primary"
-    return 1
+    fail "async replication is not set for primary"
   fi
 
   local RESULT EXIT_CODE
   try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test;"
   if "$RESULT"
   then
-    echo "SUCCESS: It's possible to create a database in the primary node"
+    success "It's possible to create a database in the primary node"
   else
-    echo "FAIL: It should be possible to create a database in the primary node" 
-    return 1
+    fail "It should be possible to create a database in the primary node" 
   fi
 
   wait_until check_connectivity -i 1
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test > "${LOG_PATH}/test1.log"
   if "$RESULT"
   then
-    echo "FAIL: It's possible to create a table in the replica node"
-    return 1
+    fail "It's possible to create a table in the replica node"
   else
-    echo "SUCCESS: Good it is not possible to create a table in the replica node" 
+    success "Good it is not possible to create a table in the replica node" 
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
@@ -76,10 +73,9 @@ check_replication_is_working() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary where sucessful."
+    success "inserts on the primary where successful."
   else
-    echo "FAIL: inserts on the primary where not sucessful."
-    return 1
+    fail "inserts on the primary where not successful."
   fi
 
   try_function wait_until eval '
@@ -88,20 +84,18 @@ check_replication_is_working() {
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 
   if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using basebackup$"
   then
-    echo "SUCCESS: replication has bootstrapped from basebackup"
+    success "replication has bootstrapped from basebackup"
   else
     kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
     echo
-    echo "FAIL: replication has not bootstrapped from basebackup"
-    return 1
+    fail "replication has not bootstrapped from basebackup"
   fi
 }
 
@@ -118,20 +112,18 @@ check_replication_is_working_from_replica() {
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 
   if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using replica_basebackup$"
   then
-    echo "SUCCESS: replication has bootstrapped from replica_basebackup"
+    success "replication has bootstrapped from replica_basebackup"
   else
     kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
     echo
-    echo "FAIL: replication has not bootstrapped from replica_basebackup"
-    return 1
+    fail "replication has not bootstrapped from replica_basebackup"
   fi
 }
 
@@ -165,20 +157,18 @@ EOF
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 
   if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using backup$"
   then
-    echo "SUCCESS: replication has bootstrapped from backup"
+    success "replication has bootstrapped from backup"
   else
     kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
     echo
-    echo "FAIL: replication has not bootstrapped from backup"
-    return 1
+    fail "replication has not bootstrapped from backup"
   fi
 }
 
@@ -201,29 +191,26 @@ check_replication_is_working_from_newly_created_backup() {
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 
   if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using backup$"
   then
-    echo "SUCCESS: replication has bootstrapped from backup"
+    success "replication has bootstrapped from backup"
   else
     kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
     echo
-    echo "FAIL: replication has not bootstrapped from backup"
-    return 1
+    fail "replication has not bootstrapped from backup"
   fi
 
   if kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
     | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
     | grep -qxF "$CLUSTER_NAME"
   then
-    echo "FAIL: replication has not bootstrapped from newly created backup"
-    return 1
+    fail "replication has not bootstrapped from newly created backup"
   else
-    echo "SUCCESS: replication has bootstrapped from newly created backup"
+    success "replication has bootstrapped from newly created backup"
   fi
 }

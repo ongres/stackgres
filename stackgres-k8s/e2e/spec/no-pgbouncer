@@ -43,14 +43,12 @@ ports_check() {
 
     if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
     then
-      echo "SUCCESS: All ports are ok"
+      success "All ports are ok"
     else 
-      echo "FAIL: Not all 3 ports of the replica node are working"
-      return 1
+      fail "Not all 3 ports of the replica node are working"
     fi
   else 
-      echo "FAIL: Not all 3 ports of the primary node are working"
-      return 1
+      fail "Not all 3 ports of the primary node are working"
   fi
 }
 
@@ -62,29 +60,25 @@ service_check() {
     RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
-      echo "SUCCESS: Connections are possible using services"
+      success "Connections are possible using services"
     else
-      echo "FAIL: Cannot connect to replica db using a kubernetes service"
-      return 1
+      fail "Cannot connect to replica db using a kubernetes service"
     fi
   else
-    echo "FAIL: Cannot connect to primary db using a kubernetes service"
-    return 1
+    fail "Cannot connect to primary db using a kubernetes service"
   fi
 }
 
 check_no_pgbouncer() {
   if run_query -i 0 -p 6432 > /dev/null
   then
-    echo "FAIL: pgbouncer port on primary server is open"
-    return 1
+    fail "pgbouncer port on primary server is open"
   else
     if run_query -i 1 -p 6432 > /dev/null
     then
-      echo "FAIL: pgbouncer port on replica server is open"
-      return 1
+      fail "pgbouncer port on replica server is open"
     else
-      echo "SUCCESS: pgbouncer connections are closed"
+      success "pgbouncer connections are closed"
     fi
   fi
 }

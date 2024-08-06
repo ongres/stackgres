@@ -36,10 +36,9 @@ custom_container_check() {
       | grep -qF "pgadmin_header_logo"'
   if "$RESULT"
   then
-    echo "SUCCESS: PgAdmin container is running as expected and is aviable on primary service"
+    success "PgAdmin container is running as expected and is aviable on primary service"
   else
-    echo "FAIL: PgAdmin container is not running as expected or is not aviable on primary service"
-    return 1
+    fail "PgAdmin container is not running as expected or is not aviable on primary service"
   fi
 
   try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" curl -- \
@@ -48,10 +47,9 @@ custom_container_check() {
       | grep -qF "pgadmin_header_logo"'
   if "$RESULT"
   then
-    echo "SUCCESS: PgAdmin container is running as expected and is aviable on replicas service"
+    success "PgAdmin container is running as expected and is aviable on replicas service"
   else
-    echo "FAIL: PgAdmin container is not running as expected or is not aviable on replicas service"
-    return 1
+    fail "PgAdmin container is not running as expected or is not aviable on replicas service"
   fi
 
   try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" curl -- \
@@ -61,10 +59,9 @@ custom_container_check() {
       | grep -qxF "walsender"'
   if "$RESULT"
   then
-    echo "SUCCESS: PostgRest container is running as expected and is aviable on primary service"
+    success "PostgRest container is running as expected and is aviable on primary service"
   else
-    echo "FAIL: PostgRest container is not running as expected or is not aviable on primary service"
-    return 1
+    fail "PostgRest container is not running as expected or is not aviable on primary service"
   fi
 
   try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" curl -- \
@@ -74,10 +71,9 @@ custom_container_check() {
       | grep -qxF "walreceiver"'
   if "$RESULT"
   then
-    echo "SUCCESS: PostgRest container is running as expected and is aviable on replicas service"
+    success "PostgRest container is running as expected and is aviable on replicas service"
   else
-    echo "FAIL: PostgRest container is not running as expected or is not aviable on replicas service"
-    return 1
+    fail "PostgRest container is not running as expected or is not aviable on replicas service"
   fi
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" \
@@ -87,19 +83,17 @@ custom_container_check() {
       | grep -qx "Database cluster state:\s\+shut down"'
   if "$RESULT"
   then
-    echo "SUCCESS: pg_controldata init container is running as expected and is aviable on primary service"
+    success "pg_controldata init container is running as expected and is aviable on primary service"
   else
-    echo "FAIL: pg_controldata init container is not running as expected or is not aviable on primary service"
-    return 1
+    fail "pg_controldata init container is not running as expected or is not aviable on primary service"
   fi
 
   try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c custom-pg-controldata \
       | grep -qx "Database cluster state:\s\+shut down in recovery"'
   if "$RESULT"
   then
-    echo "SUCCESS: pg_controldata init container is running as expected and is aviable on primary service"
+    success "pg_controldata init container is running as expected and is aviable on primary service"
   else
-    echo "FAIL: pg_controldata init container is not running as expected or is not aviable on primary service"
-    return 1
+    fail "pg_controldata init container is not running as expected or is not aviable on primary service"
   fi
 }

@@ -143,26 +143,23 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.snapshot.snapshotCompleted | grep -qxF true'
   then
-    echo "SUCCESS: snapshot completed"
+    success "snapshot completed"
   else
-    echo "FAIL: snapshot did not completed"
-    return 1
+    fail "snapshot did not completed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.snapshot.rowsScanned["public.test"]' | grep -qxF 3
   then
-    echo "SUCCESS: test table scanned"
+    success "test table scanned"
   else
-    echo "FAIL: test table not scanned"
-    return 1
+    fail "test table not scanned"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.snapshot.rowsScanned["public.complex"]' | grep -qxF 3
   then
-    echo "SUCCESS: complex table scanned"
+    success "complex table scanned"
   else
-    echo "FAIL: complex table not scanned"
-    return 1
+    fail "complex table not scanned"
   fi
 
   cat << 'EOF' | tee "$LOG_PATH/insert-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
@@ -173,41 +170,36 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.connected | grep -qxF true'
   then
-    echo "SUCCESS: streaming started"
+    success "streaming started"
   else
-    echo "FAIL: streaming not started"
-    return 1
+    fail "streaming not started"
   fi
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF 2'
   then
-    echo "SUCCESS: streaming transaction successful"
+    success "streaming transaction successful"
   else
-    echo "FAIL: streaming transaction failed"
-    return 1
+    fail "streaming transaction failed"
   fi
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.streaming.totalNumberOfCreateEventsSeen' | grep -qxF 6'
   then
-    echo "SUCCESS: streaming events successful"
+    success "streaming events successful"
   else
-    echo "FAIL: streaming events failed"
-    return 1
+    fail "streaming events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.events.totalNumberOfEventsSent' | grep -qxF 12
   then
-    echo "SUCCESS: sent events successful"
+    success "sent events successful"
   else
-    echo "FAIL: sent events failed"
-    return 1
+    fail "sent events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.events.lastEventWasSent' | grep -qxF true
   then
-    echo "SUCCESS: sent last event successful"
+    success "sent last event successful"
   else
-    echo "FAIL: sent last event failed"
-    return 1
+    fail "sent last event failed"
   fi
 }

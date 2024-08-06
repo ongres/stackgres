@@ -64,7 +64,7 @@ benchmark_cluster_horizontal_autoscaling() {
     | wc -l | grep -qxF 2'
   then
     AUTOSCALE_START="$(date +%s)"
-    echo "SUCCESS: KEDA can scale the cluster based on connections"
+    echo "success KEDA can scale the cluster based on connections"
   else
     echo "FAIL: KEDA can not scale the cluster based on connections"
     kill "$CONNECTION_BENCH_PID" || true
@@ -76,7 +76,7 @@ benchmark_cluster_horizontal_autoscaling() {
   if wait_until eval '! kill -0 "$CONNECTION_BENCH_PID"' \
     && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
   then
-    echo "SUCCESS: Benchmark terminated succesfully"
+    echo "success Benchmark terminated succesfully"
   else
     echo "FAIL: Benchmark not terminated succesfully"
     kill "$CONNECTION_BENCH_PID" || true

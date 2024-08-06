@@ -201,10 +201,9 @@ EOF
 
   if ! wait_until -t "$((E2E_TIMEOUT * 4))" eval 'kubectl get sgconfig -A -o name | wc -l | grep -qxF 1'
   then
-    echo "FAILED. The StackGres SGConfig was not found."
-    return 1
+    fail "The StackGres SGConfig was not found."
   else
-    echo "SUCCESS. The StackGres SGConfig was found."
+    success "The StackGres SGConfig was found."
   fi
 
   PREVIOUS_RELEASE_NAME="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
@@ -217,28 +216,25 @@ EOF
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$PREVIOUS_RELEASE_NAME$"
   then
-    echo "FAILED. The StackGres operator service was not available."
-    return 1
+    fail "The StackGres operator service was not available."
   else
-    echo "SUCCESS. The StackGres operator service was available."
+    success "The StackGres operator service was available."
   fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
   then
-    echo "FAILED. The StackGres restapi service was not available."
-    return 1
+    fail "The StackGres restapi service was not available."
   else
-    echo "SUCCESS. The StackGres restapi service was available."
+    success "The StackGres restapi service was available."
   fi
 
   if [ "$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
   then
     if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
-      echo "FAILED. The demo StackGres extensions cache service was not available."
-      return 1
+      fail "The demo StackGres extensions cache service was not available."
     else
-      echo "SUCCESS. The demo StackGres extensions cache service was available."
+      success "The demo StackGres extensions cache service was available."
     fi
   fi
 }
@@ -458,36 +454,32 @@ EOF
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
-    echo "FAILED. The StackGres operator service was not available."
-    return 1
+    fail "The StackGres operator service was not available."
   else
-    echo "SUCCESS. The StackGres operator service was available."
+    success "The StackGres operator service was available."
   fi
 
   if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-restapi$"
   then
-    echo "FAILED. The StackGres restapi service was not available."
-    return 1
+    fail "The StackGres restapi service was not available."
   else
-    echo "SUCCESS. The StackGres restapi service was available."
+    success "The StackGres restapi service was available."
   fi
 
   if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
   then
-    echo "FAILED. The StackGres jobs still running."
-    return 1
+    fail "The StackGres jobs still running."
   else
-    echo "SUCCESS. The StackGres jobs all cleaned up."
+    success "The StackGres jobs all cleaned up."
   fi
 
   if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
   then
     if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
-      echo "FAILED. The demo StackGres extensions cache service was not available."
-      return 1
+      fail "The demo StackGres extensions cache service was not available."
     else
-      echo "SUCCESS. The demo StackGres extensions cache service was available."
+      success "The demo StackGres extensions cache service was available."
     fi
   fi
 

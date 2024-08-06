@@ -50,12 +50,10 @@ ports_check() {
 
     if ! ( [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ] )
     then
-      echo "FAIL: Not all 4 ports of the replica node are working"
-      return 1
+      fail "Not all 4 ports of the replica node are working"
     fi
   else 
-      echo "FAIL: Not all 4 ports of the primary node are working"
-      return 1
+      fail "Not all 4 ports of the primary node are working"
   fi
 }
 
@@ -67,24 +65,21 @@ service_check() {
     RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
-      echo "SUCCESS: Connections are possible using services"
+      success "Connections are possible using services"
     else
-      echo "FAIL: Cannot connect to replica db using a kubernetes service"
-      return 1
+      fail "Cannot connect to replica db using a kubernetes service"
     fi
   else
-    echo "FAIL: Cannot connect to primary db using a kubernetes service"
-    return 1
+    fail "Cannot connect to primary db using a kubernetes service"
   fi
 }
 
 psql_is_storing_history_check() {
   if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- touch /var/lib/postgresql/.psql_history > /dev/null 2>&1
   then
-    echo "SUCCESS: psql could save history to file"
+    success "psql could save history to file"
   else
-    echo "FAIL: psql could not save history to file"
-    return 1
+    fail "psql could not save history to file"
   fi
 }
 
@@ -95,10 +90,9 @@ pgbouncer_database_check() {
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
   then
-    echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_admin using service"
+    success "psql could connect to the pgbouncer database with pgobuncer_admin using service"
   else
-    echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_admin using service"
-    return 1
+    fail "psql could not connect to the pgbouncer database with pgobuncer_admin using service"
   fi
 
   if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0" -c "postgres-util" -- env \
@@ -107,10 +101,9 @@ pgbouncer_database_check() {
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
   then
-    echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_stats using service"
+    success "psql could connect to the pgbouncer database with pgobuncer_stats using service"
   else
-    echo "FAIL: psql could not connect to the pgbouncer database with pgobuncer_stats using service"
-    return 1
+    fail "psql could not connect to the pgbouncer database with pgobuncer_stats using service"
   fi
 }
 
@@ -129,9 +122,9 @@ pgbouncer_users_check() {
   RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 1 -p 5432 -u user1:test || true)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
-    echo "SUCCESS: Connections are possible using user1 in pgbouncer users section"
+    success "Connections are possible using user1 in pgbouncer users section"
   else
-    echo "FAIL: Cannot connect using user1 in pgbouncer users section"
+    fail_no_return "Cannot connect using user1 in pgbouncer users section"
     echo
     echo "Content of /etc/pgbouncer:"
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c pgbouncer -- grep . /etc/pgbouncer -R
@@ -141,9 +134,9 @@ pgbouncer_users_check() {
   RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 1 -p 5432 -u user2:test || true)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
-    echo "SUCCESS: Connections are possible using user2 in pgbouncer users section"
+    success "Connections are possible using user2 in pgbouncer users section"
   else
-    echo "FAIL: Cannot connect using user2 in pgbouncer users section"
+    fail_no_return "Cannot connect using user2 in pgbouncer users section"
     echo
     echo "Content of /etc/pgbouncer:"
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c pgbouncer -- grep . /etc/pgbouncer -R

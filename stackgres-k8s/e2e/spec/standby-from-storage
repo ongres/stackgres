@@ -91,30 +91,27 @@ check_standby_is_working() {
     psql -At -c 'SHOW synchronous_standby_names')"
   if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
   then
-    echo "SUCCESS: async replication is set for leader"
+    success "async replication is set for leader"
   else
-    echo "FAIL: async replication is not set for leader"
-    return 1
+    fail "async replication is not set for leader"
   fi
 
   local RESULT EXIT_CODE
   try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test;"
   if "$RESULT"
   then
-    echo "FAIL: It should not be possible to create a database in the leader node of the standby cluster"
-    return 1
+    fail "It should not be possible to create a database in the leader node of the standby cluster"
   else
-    echo "SUCCESS: It is not possible to create a database in the leader node of the standby cluster" 
+    success "It is not possible to create a database in the leader node of the standby cluster" 
   fi
 
   wait_until check_connectivity -i 1
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" > "${LOG_PATH}/test1.log"
   if "$RESULT"
   then
-    echo "FAIL: It's possible to create a table in the replica node"
-    return 1
+    fail "It's possible to create a table in the replica node"
   else
-    echo "SUCCESS: Good it is not possible to create a table in the replica node" 
+    success "Good it is not possible to create a table in the replica node" 
   fi
 
   run_query -c "primary-$CLUSTER_NAME" -p 5432 -h "primary-$CLUSTER_NAME" -i 0 -q "CREATE DATABASE test;"
@@ -129,10 +126,9 @@ check_standby_is_working() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary where sucessful."
+    success "inserts on the primary where successful."
   else
-    echo "FAIL: inserts on the primary where not sucessful."
-    return 1
+    fail "inserts on the primary where not successful."
   fi
 
   try_function wait_until eval '
@@ -141,10 +137,9 @@ check_standby_is_working() {
     '
   if "$RESULT"
   then
-    echo "SUCCESS: standby replication is working"
+    success "standby replication is working"
   else
-    echo "FAIL: standby replication  is not working. The records don't match between primary and standby for the fibonacci table"
-    return 1
+    fail "standby replication  is not working. The records don't match between primary and standby for the fibonacci table"
   fi
 
   try_function wait_until eval '
@@ -153,10 +148,9 @@ check_standby_is_working() {
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 }
 
@@ -172,10 +166,9 @@ check_standby_can_be_converted_to_primary() {
   try_function wait_until run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test2;"
   if "$RESULT"
   then
-    echo "SUCCESS: The leader node of the standby cluster was converted to a primary" 
+    success "The leader node of the standby cluster was converted to a primary" 
   else
-    echo "FAIL: The leader node of the standby cluster was not converted to a primary"
-    return 1
+    fail "The leader node of the standby cluster was not converted to a primary"
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 0 -q "CREATE TABLE fibonacci(num integer);" -d test2
@@ -187,10 +180,9 @@ check_standby_can_be_converted_to_primary() {
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary where sucessful."
+    success "inserts on the primary where successful."
   else
-    echo "FAIL: inserts on the primary where not sucessful."
-    return 1
+    fail "inserts on the primary where not successful."
   fi
 
   try_function wait_until eval '
@@ -199,10 +191,9 @@ check_standby_can_be_converted_to_primary() {
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 }
 
@@ -243,30 +234,27 @@ EOF
     )"
   if "$RESULT"
   then
-    echo "SUCCESS: The leader node of the standby cluster is following the primary cluster" 
+    success "The leader node of the standby cluster is following the primary cluster" 
   else
-    echo "FAIL: The leader node of the standby cluster is not following the primary cluster"
-    return 1
+    fail "The leader node of the standby cluster is not following the primary cluster"
   fi
 
   local RESULT EXIT_CODE
   try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test2;"
   if "$RESULT"
   then
-    echo "FAIL: It should not be possible to create a database in the leader node of the standby cluster"
-    return 1
+    fail "It should not be possible to create a database in the leader node of the standby cluster"
   else
-    echo "SUCCESS: It is not possible to create a database in the leader node of the standby cluster" 
+    success "It is not possible to create a database in the leader node of the standby cluster" 
   fi
 
   wait_until check_connectivity -i 1
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" > "${LOG_PATH}/test1.log"
   if "$RESULT"
   then
-    echo "FAIL: It's possible to create a table in the replica node"
-    return 1
+    fail "It's possible to create a table in the replica node"
   else
-    echo "SUCCESS: Good it is not possible to create a table in the replica node" 
+    success "Good it is not possible to create a table in the replica node" 
   fi
 
   run_query -c "primary-$CLUSTER_NAME" -p 5432 -h "primary-$CLUSTER_NAME" -i 0 -q "CREATE DATABASE test2;"
@@ -279,10 +267,9 @@ EOF
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    echo "SUCCESS: inserts on the primary where sucessful."
+    success "inserts on the primary where successful."
   else
-    echo "FAIL: inserts on the primary where not sucessful."
-    return 1
+    fail "inserts on the primary where not successful."
   fi
 
   try_function wait_until eval '
@@ -291,10 +278,9 @@ EOF
     '
   if "$RESULT"
   then
-    echo "SUCCESS: standby replication is working"
+    success "standby replication is working"
   else
-    echo "FAIL: standby replication  is not working. The records don't match between primary and standby for the fibonacci table"
-    return 1
+    fail "standby replication  is not working. The records don't match between primary and standby for the fibonacci table"
   fi
 
   try_function wait_until eval '
@@ -303,10 +289,9 @@ EOF
     '
   if "$RESULT"
   then
-    echo "SUCCESS: replication is working"
+    success "replication is working"
   else
-    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-    return 1
+    fail "replication is not working. The records don't match between primary and replica for the fibonacci table"
   fi
 }
 

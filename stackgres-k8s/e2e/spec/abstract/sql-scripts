@@ -24,10 +24,9 @@ check_user() {
   if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT usename FROM pg_catalog.pg_user;" -d "$DATABASE" \
     | grep -q "^sakila$"
   then
-    echo "SUCCESS: sakila user was created successfully"
+    success "sakila user was created successfully"
   else
-    echo "FAIL: sakila user was not created"
-    return 1
+    fail "sakila user was not created"
   fi
 }
 
@@ -53,10 +52,9 @@ check_database() {
   if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT datname FROM pg_catalog.pg_database;" -d "$DATABASE" \
     | grep -q "^$DATABASE$"
   then
-    echo "SUCCESS: sakila database was created successfully"
+    success "sakila database was created successfully"
   else
-    echo "FAIL: sakila database was not created"
-    return 1
+    fail "sakila database was not created"
   fi
 }
 
@@ -84,9 +82,8 @@ check_schema() {
     && run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_catalog.pg_tables;" -d "$DATABASE" \
     | grep -q "^store$"
   then
-    echo "SUCCESS: sakila schema was created successfully"
+    success "sakila schema was created successfully"
   else
-    echo "FAIL: sakila schema was not created"
-    return 1
+    fail "sakila schema was not created"
   fi
 }

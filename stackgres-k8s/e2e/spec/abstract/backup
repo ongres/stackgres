@@ -19,10 +19,9 @@ check_wal_archive() {
   try_function wait_until try_check_wal_archive "$NODE"
   if "$RESULT"
   then
-    echo "SUCCESS. The WAL is available"
+    success "The WAL is available"
   else
-    echo "FAIL. The WAL is not available"
-    return 1
+    fail "The WAL is not available"
   fi
 }
 
@@ -61,20 +60,18 @@ check_automatic_backup() {
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The automatic backup CR is running"
+    success "The automatic backup CR is running"
   else
-    echo "FAIL. The automatic backup CR is not running"
-    return 1
+    fail "The automatic backup CR is not running"
   fi
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
     --template "{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print \"\n\" }}{{ end }}" \
     | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The automatic backup CR has completed"
+    success "The automatic backup CR has completed"
   else
-    echo "FAIL. The automatic backup CR has failed"
-    return 1
+    fail "The automatic backup CR has failed"
   fi
 }
 
@@ -92,8 +89,7 @@ check_timelines(){
 
   if [ "$EXPECTED_TIMELINE" != "$ACTUAL_TIMELINE" ]
   then
-   echo "FAIL. Timeline of $(echo "$BACKUP_LINE" | cut -d ' ' -f 1) with walFile $(echo "$BACKUP_LINE" | cut -d ' ' -f 3) is incorrect. Actual timeline: $ACTUAL_TIMELINE"
-   return 1
+   fail "Timeline of $(echo "$BACKUP_LINE" | cut -d ' ' -f 1) with walFile $(echo "$BACKUP_LINE" | cut -d ' ' -f 3) is incorrect. Actual timeline: $ACTUAL_TIMELINE"
   else
     echo "Backup $(echo "$BACKUP_LINE" | cut -d ' ' -f 1) timeline is correct"
   fi
@@ -114,8 +110,7 @@ check_control_data(){
 
         if [ "$EXPECTED_CONTROL_DATA_LENGTH" != "$ACTUAL_CONTROL_DATA_LENGTH" ]
         then
-          echo "FAIL. Backup $BACKUP_NAME has invalid controlData. Expected $EXPECTED_CONTROL_DATA_LENGTH fields, found $ACTUAL_CONTROL_DATA_LENGTH"
-          return 1
+          fail "Backup $BACKUP_NAME has invalid controlData. Expected $EXPECTED_CONTROL_DATA_LENGTH fields, found $ACTUAL_CONTROL_DATA_LENGTH"
         else
           echo "Backup $BACKUP_NAME has valid controlData"
         fi
@@ -127,10 +122,9 @@ check_automatic_backup_cr() {
 
   if wait_until is_automatic_backup_cr_completed "$NODE"
   then
-    echo "SUCCESS. The full backup is available"
+    success "The full backup is available"
   else
-    echo "FAIL. The full backup is not available"
-    return 1
+    fail "The full backup is not available"
   fi
 }
 
@@ -145,10 +139,9 @@ is_automatic_backup_cr_completed() {
   if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
   then
-    echo "SUCCESS. The automatic backup is available"
+    success "The automatic backup is available"
   else
-    echo "FAIL. The automatic backup is not available"
-    return 1
+    fail "The automatic backup is not available"
   fi
 }
 
@@ -159,10 +152,9 @@ wait_backup_is_completed() {
     --template "{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
     | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
-    echo "SUCCESS. The manual backup CR has complete"
+    success "The manual backup CR has complete"
   else
-    echo "FAIL. The manual backup CR has failed"
-    return 1
+    fail "The manual backup CR has failed"
   fi
 }
 
@@ -189,10 +181,9 @@ check_is_managed_lifecycle_value() {
 
   if [ "$ACTUAL_MANAGED_LYFECYCLE" != "$EXPECTED_MANAGED_LYFECYCLE" ]
   then
-    echo "FAIL. Backup /status/process/managedLifecycle expected to be $EXPECTED_MANAGED_LYFECYCLE but was $ACTUAL_MANAGED_LYFECYCLE"
-    return 1
+    fail "Backup /status/process/managedLifecycle expected to be $EXPECTED_MANAGED_LYFECYCLE but was $ACTUAL_MANAGED_LYFECYCLE"
   else
-    echo "SUCCESS. Backup /status/process/managedLifecycle was $EXPECTED_MANAGED_LYFECYCLE"
+    success "Backup /status/process/managedLifecycle was $EXPECTED_MANAGED_LYFECYCLE"
   fi
 }
 
@@ -203,10 +194,9 @@ check_backup_retention() {
     --template "{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print \"\n\" }}{{ end }}" \
     | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -ge 2 ]'
   then
-    echo "SUCCESS. The maximum retainable backups are available"
+    success "The maximum retainable backups are available"
   else
-    echo "FAIL. The maximum retainable backups are not available"
-    return 1
+    fail "The maximum retainable backups are not available"
   fi
 
   local BACKUP_NAME
@@ -223,19 +213,18 @@ check_backup_retention() {
 
   if wait_until -t "$((E2E_TIMEOUT * 2))" eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
   then
-    echo "SUCCESS. The backup retention has been honored. Old backups $BACKUP_NAME deleted"
+    success "The backup retention has been honored. Old backups $BACKUP_NAME deleted"
   else
-    echo "FAIL. The backup retention has not been honored. Old backups $BACKUP_NAME not deleted"
+    fail_no_return "The backup retention has not been honored. Old backups $BACKUP_NAME not deleted"
     kubectl get sgbackup -n "$CLUSTER_NAMESPACE"
     return 1
   fi
 
   if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
-    echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
+    success "The backup retention has been honored. Remaining backups are 2"
   else
-    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
-    return 1
+    fail "The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
   fi
 }
 

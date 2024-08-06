@@ -59,7 +59,7 @@ check_operator_delete() {
   for app in operator restapi; do
     if wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
     then
-      echo "SUCCESS. Deployment 'stackgres-${app}' was deleted."
+      success "Deployment 'stackgres-${app}' was deleted."
     else
       echo "FAILED. Deployment 'stackgres-${app}' was not deleted."
     fi
@@ -106,22 +106,20 @@ check_operator_installed() {
   for app in operator restapi; do
     REPLICAS="$(kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" --template '{{ .spec.replicas }}')"
     if [ "$REPLICAS" = "1" ]; then
-      echo "SUCCESS. Deployment 'stackgres-${app}' has 1 replica."
+      success "Deployment 'stackgres-${app}' has 1 replica."
       continue
     fi
 
-    echo "FAILED. Deployment 'stackgres-${app}' was $REPLICAS replicas."
-    return 1
+    fail "Deployment 'stackgres-${app}' was $REPLICAS replicas."
   done
 
   for app in operator restapi; do
     if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
-      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
+      success "Deployment 'stackgres-${app}' was rolled out."
       continue
     fi
 
-    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
-    return 1
+    fail "Deployment 'stackgres-${app}' was not rolled out."
   done
 }
 
@@ -132,10 +130,9 @@ check_operator_upgrade_alpha() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "FAILED. Upgrade did not failed when previous version was alpha"
-    return 1
+    fail "Upgrade did not failed when previous version was alpha"
   else
-    echo "SUCCESS. Upgrade failed when previous version was alpha"
+    success "Upgrade failed when previous version was alpha"
   fi
 }
 
@@ -146,10 +143,9 @@ check_operator_upgrade_beta() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "FAILED. Upgrade did not failed when previous version was beta"
-    return 1
+    fail "Upgrade did not failed when previous version was beta"
   else
-    echo "SUCCESS. Upgrade failed when previous version was beta"
+    success "Upgrade failed when previous version was beta"
   fi
 }
 
@@ -161,10 +157,9 @@ check_operator_upgrade_0_9_5() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "FAILED. Upgrade did not failed when previous version was 0.9.5"
-    return 1
+    fail "Upgrade did not failed when previous version was 0.9.5"
   else
-    echo "SUCCESS. Upgrade failed when previous version was 0.9.5"
+    success "Upgrade failed when previous version was 0.9.5"
   fi
 }
 
@@ -176,10 +171,9 @@ check_operator_upgrade_1_12_0() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "SUCCESS. Upgrade did not failed when previous version was 1.12.0"
+    success "Upgrade did not failed when previous version was 1.12.0"
   else
-    echo "FAILED. Upgrade failed when previous version was 1.12.0"
-    return 1
+    fail "Upgrade failed when previous version was 1.12.0"
   fi
 }
 
@@ -191,10 +185,9 @@ check_operator_upgrade_1_11_0() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "SUCCESS. Upgrade did not failed when previous version was 1.11.0"
+    success "Upgrade did not failed when previous version was 1.11.0"
   else
-    echo "FAILED. Upgrade failed when previous version was 1.11.0"
-    return 1
+    fail "Upgrade failed when previous version was 1.11.0"
   fi
 }
 
@@ -214,10 +207,9 @@ check_operator_upgrade_with_cluster_using_0_9_5() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "FAILED. Upgrade did not failed with an SGCluster that uses version 0.9.5"
-    return 1
+    fail "Upgrade did not failed with an SGCluster that uses version 0.9.5"
   else
-    echo "SUCCESS. Upgrade failed with an SGCluster that uses version 0.9.5"
+    success "Upgrade failed with an SGCluster that uses version 0.9.5"
   fi
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
@@ -254,10 +246,9 @@ check_operator_upgrade_with_cluster_using_1_11_0_and_1_12_0() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    echo "SUCCESS. Upgrade did not failed with an SGCluster that uses version 1.10.0 and 1.11.0"
+    success "Upgrade did not failed with an SGCluster that uses version 1.10.0 and 1.11.0"
   else
-    echo "FAILED. Upgrade failed with an SGCluster that uses version 1.10.0 and 1.11.0"
-    return 1
+    fail "Upgrade failed with an SGCluster that uses version 1.10.0 and 1.11.0"
   fi
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   remove_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"

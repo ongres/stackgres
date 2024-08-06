@@ -220,7 +220,7 @@ test_cluster_component_versions_are_annotated() {
   do
     if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/postgresql-version']}")" = "$POSTGRESQL_VERSION" ]
     then
-      echo "SUCCESS. Version of component 'postgresql' is $POSTGRESQL_VERSION for por $POD"
+      success "Version of component 'postgresql' is $POSTGRESQL_VERSION for por $POD"
     else
       echo "FALIURE. Version of component 'postgresql' is not $POSTGRESQL_VERSION for por $POD"
       return 1
@@ -228,7 +228,7 @@ test_cluster_component_versions_are_annotated() {
 
     if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/patroni-version']}")" = "$PATRONI_VERSION" ]
     then
-      echo "SUCCESS. Version of component 'patroni' is $PATRONI_VERSION for por $POD"
+      success "Version of component 'patroni' is $PATRONI_VERSION for por $POD"
     else
       echo "FALIURE. Version of component 'patroni' is not $PATRONI_VERSION for por $POD"
       return 1
@@ -236,7 +236,7 @@ test_cluster_component_versions_are_annotated() {
 
     if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/envoy-version']}")" = "$ENVOY_VERSION" ]
     then
-      echo "SUCCESS. Version of component 'envoy' is $ENVOY_VERSION for por $POD"
+      success "Version of component 'envoy' is $ENVOY_VERSION for por $POD"
     else
       echo "FALIURE. Version of component 'envoy' is not $ENVOY_VERSION for por $POD"
       return 1
@@ -244,7 +244,7 @@ test_cluster_component_versions_are_annotated() {
 
     if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/pgbouncer-version']}")" = "$PGBOUNCER_VERSION" ]
     then
-      echo "SUCCESS. Version of component 'pgbouncer' is $PGBOUNCER_VERSION for por $POD"
+      success "Version of component 'pgbouncer' is $PGBOUNCER_VERSION for por $POD"
     else
       echo "FALIURE. Version of component 'pgbouncer' is not $PGBOUNCER_VERSION for por $POD"
       return 1
@@ -252,7 +252,7 @@ test_cluster_component_versions_are_annotated() {
 
     if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/prometheus-postgres-exporter-version']}")" = "$PROMETHEUS_POSTGRES_EXPORTER_VERSION" ]
     then
-      echo "SUCCESS. Version of component 'prometheus-postgres-exporter' is $PROMETHEUS_POSTGRES_EXPORTER_VERSION for por $POD"
+      success "Version of component 'prometheus-postgres-exporter' is $PROMETHEUS_POSTGRES_EXPORTER_VERSION for por $POD"
     else
       echo "FALIURE. Version of component 'prometheus-postgres-exporter' is not $PROMETHEUS_POSTGRES_EXPORTER_VERSION for por $POD"
       return 1
@@ -551,10 +551,9 @@ check_create_cluster_with_inline_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
     -o jsonpath="{.spec.scripts[0].script}")" = "CREATE DATABASE test" ]
   then
-    echo "SUCCESS. Init inline script was added to cluster configuration"
+    success "Init inline script was added to cluster configuration"
   else
-    echo "FAIL. Init inline script was NOT added to cluster configuration"
-    return 1
+    fail "Init inline script was NOT added to cluster configuration"
   fi
 
   if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
@@ -564,10 +563,9 @@ check_create_cluster_with_inline_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
     -o jsonpath="{.spec.scripts[1].script}")" = "CREATE TABLE fibonacci(num integer)" ]
   then
-    echo "SUCCESS. Table inline script was added to cluster configuration"
+    success "Table inline script was added to cluster configuration"
   else
-    echo "FAIL. Table inline script was NOT added to cluster configuration"
-    return 1
+    fail "Table inline script was NOT added to cluster configuration"
   fi
 
   OPERATOR_CLUSTER="$(get_cluster_from_api)"
@@ -579,10 +577,9 @@ check_create_cluster_with_inline_script() {
     && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
         '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].script')" = "CREATE DATABASE test" ]
   then
-    echo "SUCCESS. Init inline script was added to cluster configuration"
+    success "Init inline script was added to cluster configuration"
   else
-    echo "FAIL. Init inline script was NOT added to cluster configuration"
-    return 1
+    fail "Init inline script was NOT added to cluster configuration"
   fi
 
   if [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
@@ -592,10 +589,9 @@ check_create_cluster_with_inline_script() {
     && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
         '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].script')" = "CREATE TABLE fibonacci(num integer)" ]
   then
-    echo "SUCCESS. Table inline script was added to script configuration"
+    success "Table inline script was added to script configuration"
   else
-    echo "FAIL. Table inline script was NOT added to script configuration"
-    return 1
+    fail "Table inline script was NOT added to script configuration"
   fi
 }
 
@@ -637,10 +633,9 @@ check_create_cluster_with_secret_and_configmap_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
     -o jsonpath="{.spec.scripts[0].scriptFrom.secretKeyRef.key}")" = "script" ]
   then
-    echo "SUCCESS. Secret script was added to cluster configuration"
+    success "Secret script was added to cluster configuration"
   else
-    echo "FAIL. Secret script was NOT added to cluster configuration"
-    return 1
+    fail "Secret script was NOT added to cluster configuration"
   fi
 
   if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
@@ -652,10 +647,9 @@ check_create_cluster_with_secret_and_configmap_script() {
     && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
     -o jsonpath="{.spec.scripts[1].scriptFrom.configMapKeyRef.key}")" = "script" ]
   then
-    echo "SUCCESS. ConfigMap script was added to cluster configuration"
+    success "ConfigMap script was added to cluster configuration"
   else
-    echo "FAIL. ConfigMap script was NOT added to cluster configuration"
-    return 1
+    fail "ConfigMap script was NOT added to cluster configuration"
   fi
 
   OPERATOR_CLUSTER="$(get_cluster_from_api)"
@@ -671,10 +665,9 @@ check_create_cluster_with_secret_and_configmap_script() {
     && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
         '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].scriptFrom.secretScript')" = "null" ]
   then
-    echo "SUCCESS. Secret script was added to cluster configuration"
+    success "Secret script was added to cluster configuration"
   else
-    echo "FAIL. Secret script was NOT added to cluster configuration"
-    return 1
+    fail "Secret script was NOT added to cluster configuration"
   fi
 
   if [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
@@ -688,10 +681,9 @@ check_create_cluster_with_secret_and_configmap_script() {
     && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
         '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].scriptFrom.configMapScript')" = "CREATE TABLE fibonacci(num integer)" ]
   then
-    echo "SUCCESS. ConfigMap script was added to script configuration"
+    success "ConfigMap script was added to script configuration"
   else
-    echo "FAIL. ConfigMap script was NOT added to script configuration"
-    return 1
+    fail "ConfigMap script was NOT added to script configuration"
   fi
 
   kubectl delete secret -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null

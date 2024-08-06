@@ -235,37 +235,33 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.snapshot.snapshotCompleted | grep -qxF true'
   then
-    echo "SUCCESS: snapshot completed"
+    success "snapshot completed"
   else
-    echo "FAIL: snapshot did not completed"
-    return 1
+    fail "snapshot did not completed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.snapshot.rowsScanned["public.test"]' | grep -qxF 3
   then
-    echo "SUCCESS: test table scanned"
+    success "test table scanned"
   else
-    echo "FAIL: test table not scanned"
-    return 1
+    fail "test table not scanned"
   fi
 
   cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
   do
     if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.snapshot.rowsScanned["public.complex_'"$TYPE_NAME"'"]' | grep -qxF 3
     then
-      echo "SUCCESS: complex_$TYPE_NAME table scanned"
+      success "complex_$TYPE_NAME table scanned"
     else
-      echo "FAIL: complex_$TYPE_NAME table not scanned"
-      return 1
+      fail "complex_$TYPE_NAME table not scanned"
     fi
   done
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.connected | grep -qxF true'
   then
-    echo "SUCCESS: streaming started"
+    success "streaming started"
   else
-    echo "FAIL: streaming not started"
-    return 1
+    fail "streaming not started"
   fi
 
   cat << 'EOF' | tee "$LOG_PATH/insert-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
@@ -276,29 +272,26 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 2 ))"
   then
-    echo "SUCCESS: streaming insert transaction successful"
+    success "streaming insert transaction successful"
   else
-    echo "FAIL: streaming insert transaction failed"
-    return 1
+    fail "streaming insert transaction failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF 0 \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF 0
   then
-    echo "SUCCESS: streaming insert events successful"
+    success "streaming insert events successful"
   else
-    echo "FAIL: streaming insert events failed"
-    return 1
+    fail "streaming insert events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 6 ))"
   then
-    echo "SUCCESS: sent insert events successful"
+    success "sent insert events successful"
   else
-    echo "FAIL: sent insert events failed"
-    return 1
+    fail "sent insert events failed"
   fi
 
   cat << EOF | tee "$LOG_PATH/delete-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
@@ -316,29 +309,26 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 3 + TYPE_COUNT ))"
   then
-    echo "SUCCESS: streaming delete transaction successful"
+    success "streaming delete transaction successful"
   else
-    echo "FAIL: streaming delete transaction failed"
-    return 1
+    fail "streaming delete transaction failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF 0 \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
   then
-    echo "SUCCESS: streaming delete events successful"
+    success "streaming delete events successful"
   else
-    echo "FAIL: streaming delete events failed"
-    return 1
+    fail "streaming delete events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 4 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 8 ))"
   then
-    echo "SUCCESS: sent delete events successful"
+    success "sent delete events successful"
   else
-    echo "FAIL: sent delete events failed"
-    return 1
+    fail "sent delete events failed"
   fi
 
   cat << EOF | tee "$LOG_PATH/update-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
@@ -387,29 +377,26 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 4 + TYPE_COUNT * 2 ))"
   then
-    echo "SUCCESS: streaming update transaction successful"
+    success "streaming update transaction successful"
   else
-    echo "FAIL: streaming update transaction failed"
-    return 1
+    fail "streaming update transaction failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
   then
-    echo "SUCCESS: streaming update events successful"
+    success "streaming update events successful"
   else
-    echo "FAIL: streaming update events failed"
-    return 1
+    fail "streaming update events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 5 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 9 ))"
   then
-    echo "SUCCESS: sent update events successful"
+    success "sent update events successful"
   else
-    echo "FAIL: sent update events failed"
-    return 1
+    fail "sent update events failed"
   fi
 
   cat << 'EOF' | tee "$LOG_PATH/alter-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
@@ -426,47 +413,42 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 6 + TYPE_COUNT * 2 ))"
   then
-    echo "SUCCESS: streaming alter transaction successful"
+    success "streaming alter transaction successful"
   else
-    echo "FAIL: streaming alter transaction failed"
-    return 1
+    fail "streaming alter transaction failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 + 6 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
   then
-    echo "SUCCESS: streaming alter events successful"
+    success "streaming alter events successful"
   else
-    echo "FAIL: streaming alter events failed"
-    return 1
+    fail "streaming alter events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 5 + 6 ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 9 + 6 ))"
   then
-    echo "SUCCESS: sent alter events successful"
+    success "sent alter events successful"
   else
-    echo "FAIL: sent alter events failed"
-    return 1
+    fail "sent alter events failed"
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.lastEventWasSent | grep -qxF true
   then
-    echo "SUCCESS: sent last event successful"
+    success "sent last event successful"
   else
-    echo "FAIL: sent last event failed"
-    return 1
+    fail "sent last event failed"
   fi
 
   kubectl annotate sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" debezium-signal.stackgres.io/tombstone=
 
   if kubectl wait --timeout="${E2E_TIMEOUT}s" sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" --for=condition=Completed
   then
-    echo "SUCCESS: stream has completed"
+    success "stream has completed"
   else
-    echo "FAIL: stream has not completed"
-    return 1
+    fail "stream has not completed"
   fi
 
   if [ "$SKIP_DDL_IMPORT" != true ]
@@ -490,10 +472,9 @@ EOF
     run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$QUERY" | grep -v '^COPY ' > "$LOG_PATH/actual-schema"
     if diff "$LOG_PATH/expected-schema" "$LOG_PATH/actual-schema"
     then
-      echo "SUCCESS: schema was migrated successfully"
+      success "schema was migrated successfully"
     else
-      echo "FAIL: schema was not migrated successfully"
-      return 1
+      fail "schema was not migrated successfully"
     fi
   fi
 }
@@ -531,28 +512,25 @@ EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.snapshot.snapshotCompleted | grep -qxF true'
   then
-    echo "SUCCESS: snapshot completed"
+    success "snapshot completed"
   else
-    echo "FAIL: snapshot did not completed"
-    return 1
+    fail "snapshot did not completed"
   fi
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.connected | grep -qxF true'
   then
-    echo "SUCCESS: streaming started"
+    success "streaming started"
   else
-    echo "FAIL: streaming not started"
-    return 1
+    fail "streaming not started"
   fi
 
   kubectl annotate sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" debezium-signal.stackgres.io/tombstone=
 
   if kubectl wait --timeout="${E2E_TIMEOUT}s" sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" --for=condition=Completed
   then
-    echo "SUCCESS: stream has completed"
+    success "stream has completed"
   else
-    echo "FAIL: stream has not completed"
-    return 1
+    fail "stream has not completed"
   fi
 
   local SCHEMA_QUERY
@@ -573,10 +551,9 @@ EOF
   run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/actual-schema"
   if diff "$LOG_PATH/expected-schema" "$LOG_PATH/actual-schema"
   then
-    echo "SUCCESS: sakila schema was migrated successfully"
+    success "sakila schema was migrated successfully"
   else
-    echo "FAIL: sakila schema was not migrated successfully"
-    return 1
+    fail "sakila schema was not migrated successfully"
   fi
 
   local DATA_QUERY
@@ -596,10 +573,9 @@ EOF
   run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/actual-data"
   if diff "$LOG_PATH/expected-data" "$LOG_PATH/actual-data"
   then
-    echo "SUCCESS: sakila data was migrated successfully"
+    success "sakila data was migrated successfully"
   else
-    echo "FAIL: sakila data was not migrated successfully"
-    return 1
+    fail "sakila data was not migrated successfully"
   fi
 }
 
