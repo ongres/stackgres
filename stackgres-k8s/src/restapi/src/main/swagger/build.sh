@@ -121,7 +121,7 @@ REQUIRED_PATHS="$(yq -r '. as $o|paths|select(.[0] == "paths" and .[(length - 1)
 DEFINED_PATHS="$(yq -r '. as $o|paths|select(.[0] == "components" and .[1] == "schemas" and (.|length) == 3)|.[(length - 1)]' "$MERGED_SWAGGER_YAML_FILE" | sort | uniq)"
 if [ "$REQUIRED_PATHS" != "$DEFINED_PATHS" ]
 then
-  echo "Some types are missing, please add them to the stackgres-k8s/src/api-web/src/main/swagger folder."
+  echo "Some types are missing, please add them to the stackgres-k8s/src/restapi/src/main/swagger folder."
   echo
   echo "Required types:"
   echo
@@ -145,7 +145,7 @@ EOF
 
 if [ -n "$NULL_PATHS" ]
 then
-  echo "Some fields are null, please review files in the stackgres-k8s/src/api-web/src/main/swagger folder for the following paths:"
+  echo "Some fields are null, please review files in the stackgres-k8s/src/restapi/src/main/swagger folder for the following paths:"
   echo
   echo "$NULL_PATHS"
   echo

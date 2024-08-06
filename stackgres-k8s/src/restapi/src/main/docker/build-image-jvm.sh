@@ -15,4 +15,4 @@ TARGET_RESTAPI_IMAGE_NAME="${TARGET_RESTAPI_IMAGE_NAME:-$RESTAPI_IMAGE_NAME}"
 docker build -t "$TARGET_RESTAPI_IMAGE_NAME" \
   --build-arg BASE_IMAGE="$BASE_IMAGE" \
   --build-arg STACKGRES_VERSION="$STACKGRES_VERSION" \
-  -f api-web/src/main/docker/Dockerfile.jvm api-web
+  -f restapi/src/main/docker/Dockerfile.jvm restapi

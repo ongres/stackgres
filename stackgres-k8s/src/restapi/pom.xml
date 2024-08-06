@@ -247,7 +247,7 @@
                         <cleanup>remove</cleanup>
                         <from>${docker.image}</from>
                         <assembly>
-                          <targetDir>/api-web</targetDir>
+                          <targetDir>/restapi</targetDir>
                           <inline>
                             <fileSets>
                               <fileSet>
@@ -267,7 +267,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/api-web/src/main/docker/build-image-jvm.sh</arg>
+                          <arg>/restapi/src/main/docker/build-image-jvm.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>300000</time>
@@ -328,7 +328,7 @@
                         <cleanup>remove</cleanup>
                         <from>${docker.image}</from>
                         <assembly>
-                          <targetDir>/api-web</targetDir>
+                          <targetDir>/restapi</targetDir>
                           <inline>
                             <fileSets>
                               <fileSet>
@@ -348,7 +348,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/api-web/src/main/docker/build-image-native.sh</arg>
+                          <arg>/restapi/src/main/docker/build-image-native.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>600000</time>

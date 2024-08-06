@@ -33,7 +33,7 @@
     <module>operator-framework</module>
     <module>common</module>
     <module>operator</module>
-    <module>api-web</module>
+    <module>restapi</module>
     <module>cluster-controller</module>
     <module>distributedlogs-controller</module>
     <module>jobs</module>

@@ -42,7 +42,7 @@ swagger validations:
     - build amd64
   script:
     - |
-      yajsv -s stackgres-k8s/src/api-web/src/main/swagger/schema.json stackgres-k8s/src/api-web/target/swagger-merged.json
+      yajsv -s stackgres-k8s/src/restapi/src/main/swagger/schema.json stackgres-k8s/src/restapi/target/swagger-merged.json
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,

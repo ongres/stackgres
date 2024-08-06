@@ -1736,7 +1736,7 @@ EOF
     --set-string developer.patches.operator.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.operator.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.restapi.volumes[0].name=app 
-    --set-string developer.patches.restapi.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app) 
+    --set-string developer.patches.restapi.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app) 
     --set-string developer.patches.restapi.volumeMounts[0].name=app 
     --set-string developer.patches.restapi.volumeMounts[0].mountPath=/app/app 
     --set-string developer.patches.restapi.volumeMounts[0].subPath=app 

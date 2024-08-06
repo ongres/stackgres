@@ -127,7 +127,7 @@ reset_k8s() {
     k8s_copy_to_extra_mount_build_path
     KIND_EXTRA_MOUNTS="$KIND_EXTRA_MOUNTS
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app)
-      $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)
+      $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app)
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public)
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)
@@ -514,9 +514,9 @@ k8s_copy_to_extra_mount_build_path() {
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app
   cp -a "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app/. \
     "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app/.
-  mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app
-  cp -a "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app/. \
-    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app/.
+  mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/restapi/target/quarkus-app/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app/.
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public
   cp -a "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public/. \
     "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public/.

@@ -39,7 +39,7 @@ class OidcAuthResourceTest {
 
   @BeforeAll
   public static void init()
-      throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+      throws FailingHttpStatusCodeException, IOException {
     webClient = new WebClient();
     webClient.setCssErrorHandler(new SilentCssErrorHandler());
     HtmlPage page = webClient.getPage("http://localhost:8081/stackgres/applications");

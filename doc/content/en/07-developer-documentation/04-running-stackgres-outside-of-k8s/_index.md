@@ -103,7 +103,7 @@ helm install stackgres-operator stackgres-k8s/install/helm/stackgres-operator \
   --set-string cert.key="$(base64 -w0 stackgres-k8s/src/operator/src/test/resources/certs/server-key.pem)"
 ```
 
-This will install StackGres excluding the StackGres REST API (api-web).
+This will install StackGres excluding the StackGres REST API (restapi).
 The `stackgres-restapi` service will not point to a pod but instead to `172.17.0.1:8443` (served by the local Java process or dev mode we're about to start):
 
 ```
@@ -128,7 +128,7 @@ First build the project (see the [Building StackGres]({{% relref "07-developer-d
 ```
 cd stackgres-k8s/src/
 ./mvnw clean install -DskipTests
-cd api-web/
+cd restapi/
 java \
  -Dquarkus.http.ssl.certificate.files=$(pwd)/../operator/src/test/resources/certs/server.crt \
  -Dquarkus.http.ssl.certificate.key-files=$(pwd)/../operator/src/test/resources/certs/server-key.pem \
@@ -161,7 +161,7 @@ We then query the SGclusters using the REST API.
 Of course, you can use Quarkus' dev mode for the REST API as well:
 
 ```
-cd stackgres-k8s/src/api-web/
+cd stackgres-k8s/src/restapi/
 mvn \
  -Dquarkus.http.ssl.certificate.files=$(pwd)/../operator/src/test/resources/certs/server.crt \
  -Dquarkus.http.ssl.certificate.key-files=$(pwd)/../operator/src/test/resources/certs/server-key.pem \

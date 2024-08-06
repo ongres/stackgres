@@ -118,27 +118,27 @@ modules:
       - stackgres-k8s/src/operator/target
   restapi-java:
     <<: *operator-framework-java
-    path: stackgres-k8s/src/api-web/.
+    path: stackgres-k8s/src/restapi/.
     filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh api-web
+      - sh stackgres-k8s/ci/build/redact-version.sh restapi
     sources:
-      - stackgres-k8s/src/api-web/src/main/java
-      - stackgres-k8s/src/api-web/src/main/resources
-      - stackgres-k8s/src/api-web/src/main/swagger
+      - stackgres-k8s/src/restapi/src/main/java
+      - stackgres-k8s/src/restapi/src/main/resources
+      - stackgres-k8s/src/restapi/src/main/swagger
     post_build_commands:
-      - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+      - 'sh $SHELL_XTRACE stackgres-k8s/src/restapi/src/main/swagger/build.sh'
     artifacts:
-      - stackgres-k8s/src/api-web/target
+      - stackgres-k8s/src/restapi/target
       - .m2/repository/io/stackgres/stackgres-restapi
   restapi-java-test:
     <<: *operator-framework-java-test
-    path: stackgres-k8s/src/api-web/.
+    path: stackgres-k8s/src/restapi/.
     filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh api-web
+      - sh stackgres-k8s/ci/build/redact-version.sh restapi
     sources:
-      - stackgres-k8s/src/api-web/src/test
+      - stackgres-k8s/src/restapi/src/test
     artifacts:
-      - stackgres-k8s/src/api-web/target
+      - stackgres-k8s/src/restapi/target
   jobs-java:
     <<: *operator-framework-java
     path: stackgres-k8s/src/jobs/.
@@ -263,9 +263,9 @@ modules:
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
   restapi-native:
     <<: *native
-    path: stackgres-k8s/src/api-web
+    path: stackgres-k8s/src/restapi
     artifacts:
-      - stackgres-k8s/src/api-web/target/stackgres-restapi-runner
+      - stackgres-k8s/src/restapi/target/stackgres-restapi-runner
   jobs-native:
     <<: *native
     path: stackgres-k8s/src/jobs
@@ -304,17 +304,17 @@ modules:
       2: stackgres-k8s/src/operator/target/quarkus-app
   restapi-jvm-image: &restapi-jvm-image
     <<: *operator-jvm-image
-    path: stackgres-k8s/src/api-web
+    path: stackgres-k8s/src/restapi
     dockerfile:
       <<: *jvm-image-dockerfile
-      path: stackgres-k8s/src/api-web/src/main/docker/Dockerfile.jvm
+      path: stackgres-k8s/src/restapi/src/main/docker/Dockerfile.jvm
       args:
         <<: *jvm-image-args
-        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh api-web)
+        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh restapi)
     artifacts: &restapi-jvm-image-artifacts
-      0: stackgres-k8s/src/api-web/src/main/docker/LICENCE
-      1: stackgres-k8s/src/api-web/src/main/docker/stackgres-restapi.jvm.sh
-      2: stackgres-k8s/src/api-web/target/quarkus-app
+      0: stackgres-k8s/src/restapi/src/main/docker/LICENCE
+      1: stackgres-k8s/src/restapi/src/main/docker/stackgres-restapi.jvm.sh
+      2: stackgres-k8s/src/restapi/target/quarkus-app
   jobs-jvm-image: &jobs-jvm-image
     <<: *operator-jvm-image
     path: stackgres-k8s/src/jobs
@@ -400,17 +400,17 @@ modules:
       2: stackgres-k8s/src/operator/src/main/docker/stackgres-operator.native.sh
   restapi-native-image: &restapi-native-image
     <<: *operator-native-image
-    path: stackgres-k8s/src/api-web
+    path: stackgres-k8s/src/restapi
     dockerfile:
       <<: *native-image-dockerfile
-      path: stackgres-k8s/src/api-web/src/main/docker/Dockerfile.native
+      path: stackgres-k8s/src/restapi/src/main/docker/Dockerfile.native
       args:
         <<: *native-image-args
-        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh api-web)
+        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh restapi)
     artifacts: &restapi-native-image-artifacts
-      0: stackgres-k8s/src/api-web/src/main/docker/LICENCE
-      1: stackgres-k8s/src/api-web/target/stackgres-restapi-runner
-      2: stackgres-k8s/src/api-web/src/main/docker/stackgres-restapi.native.sh
+      0: stackgres-k8s/src/restapi/src/main/docker/LICENCE
+      1: stackgres-k8s/src/restapi/target/stackgres-restapi-runner
+      2: stackgres-k8s/src/restapi/src/main/docker/stackgres-restapi.native.sh
   jobs-native-image: &jobs-native-image
     <<: *operator-native-image
     path: stackgres-k8s/src/jobs
@@ -644,7 +644,7 @@ modules:
     type: native-release-image
     artifacts:
       <<: *restapi-native-image-artifacts
-      999: stackgres-k8s/src/api-web/pom.xml
+      999: stackgres-k8s/src/restapi/pom.xml
   jobs-native-release-image:
     <<: *jobs-native-image
     type: native-release-image

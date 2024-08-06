@@ -11,12 +11,12 @@
         --extract operator-framework-java-test:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
         --extract common-java-test:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
         --extract operator-java-test:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
-        --extract restapi-java-test:'stackgres-k8s/src/api-web/target/surefire-reports/TEST-*.xml' \
+        --extract restapi-java-test:'stackgres-k8s/src/restapi/target/surefire-reports/TEST-*.xml' \
         --extract jobs-java-test:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
         --extract cluster-controller-java-test:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
         --extract distributedlogs-controller-java-test:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
         --extract stream-java-test:'stackgres-k8s/src/stream/target/surefire-reports/TEST-*.xml' \
-        --extract restapi-java:'stackgres-k8s/src/api-web/target/swagger*' \
+        --extract restapi-java:'stackgres-k8s/src/restapi/target/swagger*' \
         parent-java \
         operator-framework-java operator-framework-java-test \
         test-util-java \
@@ -48,7 +48,7 @@
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
     paths:
         - stackgres-k8s/ci/build/target/*
-        - stackgres-k8s/src/api-web/target/swagger*
+        - stackgres-k8s/src/restapi/target/swagger*
         - stackgres-k8s/ci/build/target
 
 build amd64:
