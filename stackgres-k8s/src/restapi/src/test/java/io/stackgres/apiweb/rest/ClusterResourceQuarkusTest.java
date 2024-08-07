@@ -142,7 +142,6 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
         .then()
-        .log().all()
         .statusCode(200);
   }
 
