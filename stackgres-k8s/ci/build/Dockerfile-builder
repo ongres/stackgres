@@ -7,7 +7,7 @@
 #
 ###
 
-FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21.0.3
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21.0.4
   USER root
   RUN microdnf --nodocs install python3-pip jq util-linux findutils && microdnf clean all
   RUN pip3 install yamllint yq
