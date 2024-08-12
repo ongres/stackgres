@@ -288,7 +288,7 @@ $(
         volumes:
           - name: app
             hostPath:
-              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)"
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app)"
         volumeMounts:
           - name: app
             mountPath: /app/app

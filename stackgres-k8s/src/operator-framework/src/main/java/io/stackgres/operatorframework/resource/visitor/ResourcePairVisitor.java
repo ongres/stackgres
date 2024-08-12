@@ -64,6 +64,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeDevice;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeNodeAffinity;
+import io.fabric8.kubernetes.api.model.VolumeResourceRequirements;
 import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
@@ -559,7 +560,21 @@ public class ResourcePairVisitor<T, C> {
                 PersistentVolumeClaimSpec::getAdditionalProperties,
                 PersistentVolumeClaimSpec::setAdditionalProperty))
         .visitWith(PersistentVolumeClaimSpec::getResources, PersistentVolumeClaimSpec::setResources,
-            this::visitResourceRequirements);
+            this::visitVolumeResourceRequirements);
+  }
+
+  /**
+   * Visit using a pair visitor.
+   */
+  public PairVisitor<VolumeResourceRequirements, T> visitVolumeResourceRequirements(
+      PairVisitor<VolumeResourceRequirements, T> pairVisitor) {
+    return pairVisitor.visit()
+        .visitMap(VolumeResourceRequirements::getAdditionalProperties,
+            additionalPropertiesSetter(
+                VolumeResourceRequirements::getAdditionalProperties,
+                VolumeResourceRequirements::setAdditionalProperty))
+        .visitMap(VolumeResourceRequirements::getLimits, VolumeResourceRequirements::setLimits)
+        .visitMap(VolumeResourceRequirements::getRequests, VolumeResourceRequirements::setRequests);
   }
 
   /**

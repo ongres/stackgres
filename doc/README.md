@@ -13,7 +13,7 @@ You can build the doc in the following way:
 # pre-requisites
 cd stackgres-k8s/src
 ./mvnw clean package -DskipTests
-sh api-web/src/main/swagger/build.sh
+sh restapi/src/main/swagger/build.sh
 cd -
 
 doc/build.sh

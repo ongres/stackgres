@@ -29,55 +29,77 @@ public class CustomVolumeMount extends io.fabric8.kubernetes.api.model.VolumeMou
     super();
   }
 
-  public CustomVolumeMount(String mountPath, String mountPropagation, String name, Boolean readOnly, String subPath,
-      String subPathExpr) {
-    super(mountPath, mountPropagation, name, readOnly, subPath, subPathExpr);
+  public CustomVolumeMount(String mountPath, String mountPropagation, String name, Boolean readOnly,
+      String recursiveReadOnly, String subPath, String subPathExpr) {
+    super(mountPath, mountPropagation, name, readOnly, recursiveReadOnly, subPath, subPathExpr);
   }
 
+  @Override
   public String getMountPath() {
     return super.getMountPath();
   }
 
+  @Override
   public void setMountPath(String mountPath) {
     super.setMountPath(mountPath);
   }
 
+  @Override
   public String getMountPropagation() {
     return super.getMountPropagation();
   }
 
+  @Override
   public void setMountPropagation(String mountPropagation) {
     super.setMountPropagation(mountPropagation);
   }
 
+  @Override
   public String getName() {
     return super.getName();
   }
 
+  @Override
   public void setName(String name) {
     super.setName(name);
   }
 
+  @Override
   public Boolean getReadOnly() {
     return super.getReadOnly();
   }
 
+  @Override
   public void setReadOnly(Boolean readOnly) {
     super.setReadOnly(readOnly);
   }
 
+  @Override
+  public String getRecursiveReadOnly() {
+    return super.getRecursiveReadOnly();
+  }
+
+  @Override
+  public void setRecursiveReadOnly(String recursiveReadOnly) {
+    super.setRecursiveReadOnly(recursiveReadOnly);
+  }
+
+  @Override
   public String getSubPath() {
     return super.getSubPath();
   }
 
+  @Override
   public void setSubPath(String subPath) {
     super.setSubPath(subPath);
   }
 
+  @Override
   public String getSubPathExpr() {
     return super.getSubPathExpr();
   }
 
+  @Override
   public void setSubPathExpr(String subPathExpr) {
     super.setSubPathExpr(subPathExpr);
   }

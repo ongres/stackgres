@@ -15,7 +15,7 @@ mkdir -p target
 rm -rf target/public
 
 mkdir -p target/public/info
-cp ../api-web/target/swagger-merged.json target/public/info/sg-tooltips.json
+cp ../restapi/target/swagger-merged.json target/public/info/sg-tooltips.json
 
 mkdir -p target/public/info
 # Export SG version to show on the UI

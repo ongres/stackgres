@@ -76,8 +76,8 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         StackGresContext.REST_PASSWORD_KEY,
         ResourceUtil.encodeSecret(TokenUtils.sha256(
             Optional.ofNullable(userDto.getApiUsername())
-            .orElse(userDto.getK8sUsername())
-            + userDto.getPassword())));
+                .orElse(userDto.getK8sUsername())
+                + userDto.getPassword())));
     roleBinding = new RoleBindingBuilder()
         .withNewMetadata()
         .withNamespace("test")
@@ -129,7 +129,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(200)
         .body("metadata.namespace", equalTo(namespace),
             "metadata.name", equalTo(userDto.getMetadata().getName()),
@@ -153,7 +152,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(200)
         .body("metadata.namespace", equalTo(namespace),
             "metadata.name", equalTo(userDto.getMetadata().getName()),
@@ -183,7 +181,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(200)
         .body("metadata.namespace", equalTo(namespace),
             "metadata.name", equalTo(userDto.getMetadata().getName()),
@@ -215,7 +212,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .put("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(200)
         .body("metadata.namespace", equalTo(namespace),
             "metadata.name", equalTo(userDto.getMetadata().getName()),
@@ -249,7 +245,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .put("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(200)
         .body("metadata.namespace", equalTo(namespace),
             "metadata.name", equalTo(userDto.getMetadata().getName()),
@@ -282,7 +277,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .put("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(200)
         .body("metadata.namespace", equalTo(namespace),
             "metadata.name", equalTo(userDto.getMetadata().getName()),
@@ -317,7 +311,6 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .delete("/stackgres/users")
         .then()
-        .log().all()
         .statusCode(204);
     var user = mockServer.getClient().secrets()
         .inNamespace(namespace)
@@ -374,8 +367,8 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
     assertEquals(
         ResourceUtil.encodeSecret(TokenUtils.sha256(
             Optional.ofNullable(userDto.getApiUsername())
-            .orElse(userDto.getK8sUsername())
-            + userDto.getPassword())),
+                .orElse(userDto.getK8sUsername())
+                + userDto.getPassword())),
         user.getData().get(StackGresContext.REST_PASSWORD_KEY));
   }
 

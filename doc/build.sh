@@ -14,17 +14,17 @@ cp "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml"
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh stackgres-k8s/ci/build/version.sh)}"
 echo "current_version: \"$STACKGRES_VERSION\"" > "$(dirname "$0")/data/versions.yml"
 
-if [ ! -f "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" ]
+if [ ! -f "$(dirname "$0")/../stackgres-k8s/src/restapi/target/swagger-merged.yaml" ]
 then
   echo "Please build Stackgres operator and swagger first:"
   echo
   echo "cd stackgres-k8s/src"
   echo "./mvnw clean package -DskipTests"
-  echo "sh api-web/src/main/swagger/build.sh"
+  echo "sh restapi/src/main/swagger/build.sh"
   echo
   exit 1
 fi
-cp "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" "$(dirname "$0")/themes/sg-doc/static/sg-swagger.yaml"
+cp "$(dirname "$0")/../stackgres-k8s/src/restapi/target/swagger-merged.yaml" "$(dirname "$0")/themes/sg-doc/static/sg-swagger.yaml"
 
 mkdir -p "$(dirname "$0")/generated"
 CRD_PATH="$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds"

@@ -72,7 +72,6 @@ class ApplicationResourceTest implements AuthenticatedResourceTest {
         .when()
         .post("/stackgres/applications/{publisher}/{name}")
         .then()
-        .log().all()
         .statusCode(200);
   }
 

@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest-client</artifactId>
+      <artifactId>quarkus-resteasy-client</artifactId>
     </dependency>
     <dependency>
       <groupId>io.sundr</groupId>
@@ -134,22 +134,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-test-kubernetes-client</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.sourceforge.htmlunit</groupId>
-      <artifactId>htmlunit</artifactId>
-      <version>2.36.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpmime</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -213,7 +197,8 @@
         </property>
       </activation>
       <properties>
-        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
       </properties>
     </profile>
     <profile>
@@ -247,7 +232,7 @@
                         <cleanup>remove</cleanup>
                         <from>${docker.image}</from>
                         <assembly>
-                          <targetDir>/api-web</targetDir>
+                          <targetDir>/restapi</targetDir>
                           <inline>
                             <fileSets>
                               <fileSet>
@@ -267,7 +252,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/api-web/src/main/docker/build-image-jvm.sh</arg>
+                          <arg>/restapi/src/main/docker/build-image-jvm.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>300000</time>
@@ -328,7 +313,7 @@
                         <cleanup>remove</cleanup>
                         <from>${docker.image}</from>
                         <assembly>
-                          <targetDir>/api-web</targetDir>
+                          <targetDir>/restapi</targetDir>
                           <inline>
                             <fileSets>
                               <fileSet>
@@ -348,7 +333,7 @@
                         <entrypoint>
                           <arg>/bin/sh</arg>
                           <arg>-ex</arg>
-                          <arg>/api-web/src/main/docker/build-image-native.sh</arg>
+                          <arg>/restapi/src/main/docker/build-image-native.sh</arg>
                         </entrypoint>
                         <wait>
                           <time>600000</time>
