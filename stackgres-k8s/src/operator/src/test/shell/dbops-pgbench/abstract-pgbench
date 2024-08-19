@@ -16,7 +16,7 @@ DURATION=10
 POSTGRES_MAJOR_VERSION=12
 
 shell_unit_test_dbops_init() {
-  cp "$TEST_SHELL_PATH/dbops-pgbench/pgbench.log" "$SHARED_PATH/pgbench_log.1"
+  cp "$TEST_SHELL_PATH/dbops-pgbench/pgbench.log.out" "$SHARED_PATH/pgbench_log.1"
 }
 
 shell_unit_test_dbops_pgbench() {
