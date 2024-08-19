@@ -162,10 +162,12 @@ run_pgbench() {
     return 1
   fi
 
-  echo "HDRHISTOGRAM: $(
-    cat pgbench_log.* \
-      | cut -d ' ' -f 3 \
-      | try_function_with_output python -c "$(cat << EOF
+  if python -c 'from hdrh.histogram import HdrHistogram'
+  then
+    echo "HDRHISTOGRAM: $(
+      cat pgbench_log.* \
+        | cut -d ' ' -f 3 \
+        | try_function_with_output python -c "$(cat << EOF
 import sys
 from hdrh.histogram import HdrHistogram
 histogram = HdrHistogram(1, 60 * 60 * 1000, 2)
@@ -173,13 +175,14 @@ for line in sys.stdin:
   histogram.record_value(float(line))
 sys.stdout.write(histogram.encode().decode("utf-8"))
 EOF
-        )")"
-  if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
-  then
-    create_event_service "BenchmarkCompleted" "Normal" "Benchmark completed"
-  else
-    create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $(cat "$SHARED_PATH/output")"
-    return 1
+          )")"
+    if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
+    then
+      create_event_service "BenchmarkCompleted" "Normal" "Benchmark completed"
+    else
+      create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $(cat "$SHARED_PATH/output")"
+      return 1
+    fi
   fi
 }
 
