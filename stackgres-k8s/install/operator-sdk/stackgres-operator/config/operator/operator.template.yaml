@@ -103,6 +103,8 @@ fi
             value: "${VERSION}"
           - name: OPERATOR_JVM_IMAGE_VERSION
             value: "${VERSION%-jvm}-jvm"
+          - name: OPERATOR_NATIVE_IMAGE_VERSION
+            value: "${VERSION%-jvm}"
           - name: OPERATOR_SERVICE_ACCOUNT
             valueFrom:
               fieldRef:

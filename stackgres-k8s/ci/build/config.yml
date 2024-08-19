@@ -703,7 +703,7 @@ modules:
   operator-release-openshift-bundle-image:
     <<: *operator-openshift-bundle-image
     type: operator-release-bundle-image
-  pglambda-json-image:
+  pglambda-javascript-image:
     type: pglambda
     platform_dependent: true
     path: stackgres-k8s/src/stream
@@ -784,4 +784,4 @@ stages:
   - operator-release-bundle-image: operator-release-bundle
   - operator-release-openshift-bundle: helm-release-packages
   - operator-release-openshift-bundle-image: operator-release-openshift-bundle
-  - pglambda-json-image: null
+  - pglambda-javascript-image: null

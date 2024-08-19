@@ -35,6 +35,7 @@ test_yamls() {
   echo "Mocking stackgres-operator-demo.yml"
   OPERATOR_IMAGE_VERSION_LN="$(( $(grep -n 'name: OPERATOR_IMAGE_VERSION$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 1))"
   OPERATOR_JVM_IMAGE_VERSION_LN="$(( $(grep -n 'name: OPERATOR_JVM_IMAGE_VERSION$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 1))"
+  OPERATOR_NATIVE_IMAGE_VERSION_LN="$(( $(grep -n 'name: OPERATOR_NATIVE_IMAGE_VERSION$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 1))"
   OPERATOR_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/operator$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
   RESTAPI_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/restapi$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
   JOBS_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/jobs$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
@@ -46,6 +47,7 @@ test_yamls() {
     | sed "s|image: \"\([^/]\+/\)\?stackgres/operator:.*\"$|image: '$OPERATOR_IMAGE_NAME'|" \
     | sed "${OPERATOR_IMAGE_VERSION_LN}s/value: .*$/value: '$IMAGE_TAG'/" \
     | sed "${OPERATOR_JVM_IMAGE_VERSION_LN}s/value: .*$/value: '${IMAGE_TAG%-jvm}-jvm'/" \
+    | sed "${OPERATOR_NATIVE_IMAGE_VERSION_LN}s/value: .*$/value: '${IMAGE_TAG%-jvm}'/" \
     | sed "s|imagePullPolicy:.*[a-zA-Z].*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
     | sed "${OPERATOR_IMAGE_TAG_LN}s/tag: .*$/tag: '$IMAGE_TAG'/" \
     | sed "${RESTAPI_IMAGE_TAG_LN}s/tag: .*$/tag: '$IMAGE_TAG'/" \
@@ -69,6 +71,7 @@ test_yamls() {
   grep -qF "value: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "value: '$IMAGE_TAG'" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "value: '${IMAGE_TAG%-jvm}-jvm'" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -qF "value: '${IMAGE_TAG%-jvm}'" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "imagePullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
   if [ "$IMAGE_TAG" != "$ADMINUI_IMAGE_TAG" ]
   then

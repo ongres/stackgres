@@ -163,6 +163,14 @@ deploy operator openshift bundle image:
     IMAGE_PUSH_TAG_SUFFIX: "-openshift"
     TARGET_REGISTRIES: "quay.io"
 
+deploy pglambda javascript image:
+  extends: .deploy image
+  variables:
+    IMAGE_NAME: "stackgres/pglambdas"
+    IMAGE_TAG_SUFFIX: "-javascript"
+    IMAGE_PUSH_TAG_SUFFIX: "-javascript"
+    TARGET_REGISTRIES: "quay.io"
+
 deploy helm packages and templates:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: deploy

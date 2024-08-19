@@ -17,6 +17,7 @@ export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBL
 export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/distributedlogs-controller:$IMAGE_TAG"
 export STREAM_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/stream:${NATIVE_IMAGE_TAG}-jvm"
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/admin-ui:$ADMINUI_IMAGE_TAG"
+export PGLAMBDA_JAVASCRIPT_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/pglambda:${NATIVE_IMAGE_TAG}-javascript"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
@@ -94,7 +95,8 @@ build_all() {
     distributedlogs-controller-jvm-image \
     stream-jvm-image \
     admin-ui-image \
-    operator-bundle-image
+    operator-bundle-image \
+    pglambda-javascript-image
 EOF
     fi
     )
@@ -135,6 +137,8 @@ EOF
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
@@ -142,6 +146,7 @@ EOF
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" "$STREAM_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
   fi
 }
 
@@ -354,6 +359,7 @@ load_operator_k8s() {
     local ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     local ORIGINAL_STREAM_IMAGE_NAME="$STREAM_IMAGE_NAME"
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
+    local ORIGINAL_PGLAMBDA_JAVASCRIPT_IMAGE_NAME="$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
     local IMAGE_TAG="$1"
     local ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
     local OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%:*}:$IMAGE_TAG"
@@ -363,6 +369,7 @@ load_operator_k8s() {
     local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
     local STREAM_IMAGE_NAME="${STREAM_IMAGE_NAME%:*}:$IMAGE_TAG"
     local ADMINUI_IMAGE_NAME="${ADMINUI_IMAGE_NAME%:*}:$ADMINUI_IMAGE_TAG"
+    local PGLAMBDA_JAVASCRIPT_IMAGE_NAME="${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_IMAGE_TAG}-javascript"
     docker_tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
@@ -370,6 +377,7 @@ load_operator_k8s() {
     docker_tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     docker_tag "$ORIGINAL_STREAM_IMAGE_NAME" "$STREAM_IMAGE_NAME"
     docker_tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
+    docker_tag "$ORIGINAL_PGLAMBDA_JAVASCRIPT_IMAGE_NAME" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
     load_operator_k8s_only
   else
     load_operator_k8s_only
@@ -386,7 +394,8 @@ load_operator_k8s_only() {
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
     "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
     "$STREAM_IMAGE_NAME" \
-    "$ADMINUI_IMAGE_NAME"
+    "$ADMINUI_IMAGE_NAME" \
+    "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
   done | xargs_parallel_shell % "$E2E_PATH/e2e" load_image_k8s '%'
@@ -414,7 +423,8 @@ push_operator_images() {
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
     "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
     "$STREAM_IMAGE_NAME" \
-    "$ADMINUI_IMAGE_NAME"
+    "$ADMINUI_IMAGE_NAME" \
+    "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
   do
     echo "$IMAGE_NAME"
   done | xargs_shell % "$E2E_PATH/e2e" \
@@ -989,6 +999,7 @@ get_operator_images() {
   echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$TAG"
   echo "${STREAM_IMAGE_NAME%:*}:${NATIVE_TAG}-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
+  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
 }
 
 get_operator_images_pre_1_12_0_alpha1() {

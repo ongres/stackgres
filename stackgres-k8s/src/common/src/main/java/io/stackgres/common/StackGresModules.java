@@ -24,7 +24,7 @@ public enum StackGresModules {
       "%1$s/stackgres/stream:%2$s"),
   PGLAMBDA("pglambda",
       StackGresProperty.SG_IMAGE_PGLAMBDA,
-      StackGresProperty.OPERATOR_JVM_IMAGE_VERSION,
+      StackGresProperty.OPERATOR_NATIVE_IMAGE_VERSION,
       "%1$s/stackgres/pglambda:%2$s-%3$s");
 
   final String name;

@@ -65,7 +65,9 @@ spec:
           - name: OPERATOR_IMAGE_VERSION
             value: "{{ .Values.operator.image.tag }}"
           - name: OPERATOR_JVM_IMAGE_VERSION
-            value: "{{ .Values.operator.image.tag }}{{ if not (hasSuffix "-jvm" .Values.operator.image.tag) }}-jvm{{ end }}"
+            value: "{{ trimSuffix "-jvm" .Values.operator.image.tag }}-jvm"
+          - name: OPERATOR_NATIVE_IMAGE_VERSION
+            value: "{{ trimSuffix "-jvm" .Values.operator.image.tag }}"
           - name: DISABLE_RECONCILIATION
             value: "true"
           - name: INSTALL_CRDS
