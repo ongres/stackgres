@@ -56,9 +56,7 @@ update_k8s_config() {
     then
       local CONTAINER_NAME
       CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
-      CONTAINER_NAME="${CONTAINER_NAME:-$(docker ps --filter name=^$(cat /etc/hostname) --format '{{.Names}}' 2>/dev/null)}"
-      CONTAINER_NAME="${CONTAINER_NAME:-$(cat /etc/hostname)}"
-      CONTAINER_NAME="${CONTAINER_NAME:-$(hostname)}"
+      CONTAINER_NAME="${CONTAINER_NAME:-$(docker ps --filter name="^$(cat /etc/hostname)" --format '{{.Names}}')}"
       docker inspect "$CONTAINER_NAME" \
         -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
         | grep -q '^kind$' \
