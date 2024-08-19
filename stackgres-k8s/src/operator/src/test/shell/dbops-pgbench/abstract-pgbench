@@ -109,3 +109,17 @@ pgbench_mock() {
     ;;
   esac
 }
+
+mock python python_mock
+
+python_mock() {
+  mokked
+  case "$*" in
+    ("-c "*"from hdrh.histogram import HdrHistogram"*)
+    echo 'HISTFAAAACl4nJNpmSzMwMDAxQABzFCaEUzOmNZg/wEi0NzIyPSYlWmpGBMAh4gG4A=='
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
