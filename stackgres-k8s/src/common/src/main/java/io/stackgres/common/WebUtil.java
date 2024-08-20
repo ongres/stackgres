@@ -12,6 +12,8 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -45,7 +47,7 @@ public interface WebUtil {
     }
   }
 
-  static boolean checkUnsecureUri(String uri, Map<String, Object> headers) {
+  static Optional<Exception> checkUnsecureUri(String uri, Map<String, Object> headers) {
     try {
       ClientBuilder clientBuilder = ClientBuilder.newBuilder();
       try (Closer closer = Closer.create()) {
@@ -58,11 +60,13 @@ public interface WebUtil {
             .headers(new MultivaluedHashMap<>(headers))
             .buildGet()
             .invoke();
-        return response.getStatus() == Response.Status.OK.getStatusCode();
+        return Optional.of(response.getStatus())
+            .filter(Predicate.not(Integer.valueOf(Response.Status.OK.getStatusCode())::equals))
+            .map(status -> new Exception("Invalid status code " + status));
       }
     } catch (IOException | IllegalArgumentException | ProcessingException
         | KeyManagementException | NoSuchAlgorithmException ex) {
-      return false;
+      return Optional.of(ex);
     }
   }
 
