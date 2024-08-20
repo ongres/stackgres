@@ -244,8 +244,8 @@ modules:
       - export HOME=/project
       - npm install --verbose --unsafe-perm
       - |
-        ! grep -q 'later-cov' node_modules/prettycron/node_modules/later/index.js \
-          || sed -i 's/^require\(.*\);$/require(".\/later");/' node_modules/prettycron/node_modules/later/index.js
+        ! grep -q 'LATER_COV' node_modules/prettycron/node_modules/later/index.js \
+          || sed -i "s#^ *require\(.*LATER_COV.*\); *\$#require('./later');#" node_modules/prettycron/node_modules/later/index.js
       - npm run build
       - sh $SHELL_XTRACE build.sh
     cache:
