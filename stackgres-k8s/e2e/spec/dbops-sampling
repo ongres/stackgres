@@ -87,10 +87,9 @@ spec:
           script: SELECT 1
 EOF
 
-  DBOPS_NAME="$REPLAY_DBOPS_NAME" check_pgbench
+  check_pgbench "$REPLAY_DBOPS_NAME"
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    -o json \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
     | jq -r '.status.benchmark.sampling.queries[].query' \
     | grep -xF "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
       --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
@@ -127,10 +126,9 @@ spec:
         - replay: 0
 EOF
 
-  DBOPS_NAME="$REPLAY_DBOPS_NAME" check_pgbench
+  check_pgbench "$REPLAY_DBOPS_NAME"
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    -o json \
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
     | jq -r '.status.benchmark.sampling.queries[0].query' \
     | grep -xF "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
       --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
@@ -203,11 +201,13 @@ check_sampling() {
   fi
 
   if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ (index .status.benchmark.sampling.queries 0).command }}' | grep .
+    --template '{{ if (index .status.benchmark.sampling.queries 0).query }}true{{ end }}' | grep -qxF true \
+    && kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.sampling.queries 0).query }}' | grep .
   then
-    echo "SUCCESS. sampling returned the queries command."
+    echo "SUCCESS. sampling returned the queries query."
   else
-    echo "FAILED. sampling did not returned the queries command."
+    echo "FAILED. sampling did not returned the queries query."
     return 1
   fi
 

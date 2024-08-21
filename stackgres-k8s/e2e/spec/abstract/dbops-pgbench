@@ -1,6 +1,8 @@
 #!/bin/sh
 
 check_pgbench() {
+  local DBOPS_NAME="${1:-$DBOPS_NAME}"
+
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
