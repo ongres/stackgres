@@ -33,6 +33,8 @@ public class DbOpsSampling {
 
   private Boolean omitTopQueriesInStatus;
 
+  private Integer samplingMinInterval;
+
   public String getTargetDatabase() {
     return targetDatabase;
   }
@@ -111,6 +113,14 @@ public class DbOpsSampling {
 
   public void setOmitTopQueriesInStatus(Boolean omitTopQueriesInStatus) {
     this.omitTopQueriesInStatus = omitTopQueriesInStatus;
+  }
+
+  public Integer getSamplingMinInterval() {
+    return samplingMinInterval;
+  }
+
+  public void setSamplingMinInterval(Integer samplingMinInterval) {
+    this.samplingMinInterval = samplingMinInterval;
   }
 
   @Override

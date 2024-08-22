@@ -171,9 +171,10 @@ BEGIN
     INSERT INTO sampling.queries
       SELECT query, query_id, clock_timestamp() FROM pg_stat_activity
       WHERE query_id IN (SELECT query_id FROM sampling.topqueries)
-      AND NOT EXISTS (SELECT * FROM sampling.queries WHERE queries.query = pg_stat_activity.query);
+      AND NOT EXISTS (SELECT * FROM sampling.queries WHERE queries.query = pg_stat_activity.query)
+      AND datname = '$TARGET_DATABASE';
     COMMIT;
-    PERFORM pg_sleep(0.01);
+    PERFORM pg_sleep(${SAMPLING_MIN_INTERVAL}/1000000.0);
   END LOOP;
 END\$plpgsql\$;
 

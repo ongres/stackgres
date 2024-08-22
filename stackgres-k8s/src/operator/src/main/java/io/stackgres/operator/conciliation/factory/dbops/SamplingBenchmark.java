@@ -150,6 +150,13 @@ public class SamplingBenchmark extends AbstractDbOpsJob {
             .orElse("95"))
         .build(),
         new EnvVarBuilder()
+        .withName("SAMPLING_MIN_INTERVAL")
+        .withValue(Optional.of(sampling)
+            .map(StackGresDbOpsSampling::getSamplingMinInterval)
+            .map(Object::toString)
+            .orElse("10000"))
+        .build(),
+        new EnvVarBuilder()
         .withName("DATABASE")
         .withValue(Optional.of(benchmark)
             .map(StackGresDbOpsBenchmark::getDatabase)

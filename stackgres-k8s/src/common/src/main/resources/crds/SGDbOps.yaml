@@ -219,6 +219,9 @@ spec:
                       omitTopQueriesInStatus:
                         type: boolean
                         description: When `true` omit to include the top queries stats in the SGDbOps status. By default `false`.
+                      samplingMinInterval:
+                        type: integer
+                        description: Minimum number of microseconds the sampler will wait between each sample is taken. By default `10000` (10 milliseconds).
                   pgbench:
                     type: object
                     description: |

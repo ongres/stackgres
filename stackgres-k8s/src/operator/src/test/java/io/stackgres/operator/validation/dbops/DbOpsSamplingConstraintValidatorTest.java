@@ -163,4 +163,13 @@ class DbOpsSamplingConstraintValidatorTest extends ConstraintValidationTest<Stac
         review, Min.class);
   }
 
+  @Test
+  void invalidLowSamplingMinInterval_shouldFail() {
+    StackGresDbOpsReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getBenchmark().getSampling().setSamplingMinInterval(-1);
+
+    checkErrorCause(StackGresDbOpsSampling.class, "spec.benchmark.sampling.samplingMinInterval",
+        review, Min.class);
+  }
+
 }

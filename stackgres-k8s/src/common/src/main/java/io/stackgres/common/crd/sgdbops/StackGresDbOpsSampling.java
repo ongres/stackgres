@@ -58,6 +58,9 @@ public class StackGresDbOpsSampling {
 
   private Boolean omitTopQueriesInStatus;
 
+  @Min(value = 0, message = "samplingMinInterval must be greather or equals to 0.")
+  private Integer samplingMinInterval;
+
   @ReferencedField("topQueriesCollectDuration")
   interface TopQueriesCollectDuration extends FieldReference { }
 
@@ -174,11 +177,19 @@ public class StackGresDbOpsSampling {
     this.omitTopQueriesInStatus = omitTopQueriesInStatus;
   }
 
+  public Integer getSamplingMinInterval() {
+    return samplingMinInterval;
+  }
+
+  public void setSamplingMinInterval(Integer samplingMinInterval) {
+    this.samplingMinInterval = samplingMinInterval;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(customTopQueriesQuery, mode, omitTopQueriesInStatus, queries,
-        samplingDuration, targetDatabase, topQueriesCollectDuration, topQueriesFilter,
-        topQueriesMin, topQueriesPercentile);
+        samplingDuration, samplingMinInterval, targetDatabase, topQueriesCollectDuration,
+        topQueriesFilter, topQueriesMin, topQueriesPercentile);
   }
 
   @Override
@@ -195,6 +206,7 @@ public class StackGresDbOpsSampling {
         && Objects.equals(omitTopQueriesInStatus, other.omitTopQueriesInStatus)
         && Objects.equals(queries, other.queries)
         && Objects.equals(samplingDuration, other.samplingDuration)
+        && Objects.equals(samplingMinInterval, other.samplingMinInterval)
         && Objects.equals(targetDatabase, other.targetDatabase)
         && Objects.equals(topQueriesCollectDuration, other.topQueriesCollectDuration)
         && Objects.equals(topQueriesFilter, other.topQueriesFilter)
