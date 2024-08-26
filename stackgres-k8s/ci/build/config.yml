@@ -718,7 +718,7 @@ modules:
       0: stackgres-k8s/src/stream/src/main/docker/LICENCE
       1: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/index.js
       2: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/package.json
-      3: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/package-lock.json
+      3: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/package-lock.json.out
 stages:
   - parent-java: null
   - operator-framework-java: parent-java

@@ -4,7 +4,7 @@ FROM "$BASE_IMAGE"
   COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
 
   COPY 'src/main/docker/pglambda/javascript/package.json' ./
-  COPY 'src/main/docker/pglambda/javascript/package-lock.json' ./
+  COPY 'src/main/docker/pglambda/javascript/package-lock.json.out' ./package-lock.json
   RUN npm install
   RUN npm ci --only=production
   
