@@ -1201,7 +1201,8 @@ traceable_get_component_versions() {
   else
     curl -f -s "$(get_versions_url "$VERSION")"
   fi
-  ) | grep -F "$COMPONENT=" \
+  ) | tr -d " " | sed -e :a -e '/\\$/N; s/\\\n//; ta' \
+    | grep -F "$COMPONENT=" \
     | cut -d '=' -f 2 | tr ',' '\n' \
     | sort -t ' ' -k 1V,1V
 }
