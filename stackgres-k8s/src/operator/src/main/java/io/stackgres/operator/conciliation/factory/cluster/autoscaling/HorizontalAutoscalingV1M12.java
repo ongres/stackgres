@@ -31,8 +31,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_13)
-public class HorizontalAutoscaling implements ResourceGenerator<StackGresClusterContext> {
+@OperatorVersionBinder(stopAt = StackGresVersion.V_1_12)
+public class HorizontalAutoscalingV1M12 implements ResourceGenerator<StackGresClusterContext> {
 
   public static String name(StackGresCluster cluster) {
     return ResourceUtil.resourceName(cluster.getMetadata().getName());
@@ -45,7 +45,7 @@ public class HorizontalAutoscaling implements ResourceGenerator<StackGresCluster
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  public HorizontalAutoscaling(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public HorizontalAutoscalingV1M12(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
 
@@ -149,20 +149,20 @@ public class HorizontalAutoscaling implements ResourceGenerator<StackGresCluster
                           'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
                           'show databases'::text)
                         AS _(
-                          name text, host text, port integer, database text, force_user text,
-                          pool_size integer, min_pool_size integer, reserve_pool integer, server_lifetime integer,
-                          pool_mode text, max_connections integer, current_connections integer,
-                          paused boolean, disabled boolean)),
+                          name text, host text, port integer, database text,
+                          force_user text, pool_size integer, min_pool_size integer,
+                          reserve_pool integer, pool_mode text, max_connections integer,
+                          current_connections integer, paused boolean, disabled boolean)),
                       active_connections (size) AS (
                         SELECT SUM(_.current_connections)::numeric
                         FROM dblink(
                           'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
                           'show databases'::text)
                         AS _(
-                          name text, host text, port integer, database text, force_user text,
-                          pool_size integer, min_pool_size integer, reserve_pool integer, server_lifetime integer,
-                          pool_mode text, max_connections integer, current_connections integer,
-                          paused boolean, disabled boolean))
+                          name text, host text, port integer, database text,
+                          force_user text, pool_size integer, min_pool_size integer,
+                          reserve_pool integer, pool_mode text, max_connections integer,
+                          current_connections integer, paused boolean, disabled boolean))
                     SELECT active_connections.size / max_connections.size AS connection_usage
                     FROM max_connections, active_connections; 
                     """)))
