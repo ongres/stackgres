@@ -39,8 +39,8 @@ modules:
         -DtrimStackTrace=false
     build_commands:
       - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
-      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -pl checks'
       - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -pl checks'
     cache:
       - .m2/
     artifacts:
