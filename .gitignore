@@ -92,6 +92,7 @@ local.properties
 
 # Annotation Processing
 .apt_generated
+.apt_generated_tests
 
 .sts4-cache/
 

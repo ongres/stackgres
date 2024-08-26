@@ -5,18 +5,11 @@ pg_replication:
     CASE
       WHEN pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() THEN 0
       ELSE extract (EPOCH FROM now() - pg_last_xact_replay_timestamp())::integer
-    END AS lag,
-    CASE
-      WHEN pg_is_in_recovery() THEN 1
-      ELSE 0
-    END AS is_replica;
+    END AS lag;
   metrics:
     - lag:
         usage: "GAUGE"
         description: "Replication lag behind master in seconds"
-    - is_replica:
-        usage: "GAUGE"
-        description: "Indicates if this host is a replica"
 
 pg_postmaster:
   master: true
