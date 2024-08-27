@@ -21,7 +21,11 @@ public enum StackGresModules {
   STREAM("stream",
       StackGresProperty.SG_IMAGE_STREAM,
       StackGresProperty.OPERATOR_JVM_IMAGE_VERSION,
-      "%1$s/stackgres/stream:%2$s");
+      "%1$s/stackgres/stream:%2$s"),
+  PGLAMBDA("pglambda",
+      StackGresProperty.SG_IMAGE_PGLAMBDA,
+      StackGresProperty.OPERATOR_NATIVE_IMAGE_VERSION,
+      "%1$s/stackgres/pglambda:%2$s-%3$s");
 
   final String name;
   final StackGresProperty imageTemplateProperty;
@@ -63,9 +67,10 @@ public enum StackGresModules {
     return version();
   }
 
-  public String getImageName() {
+  public String getImageName(String...parameters) {
     return String.format(imageTemplate(),
         Seq.of(StackGresProperty.SG_CONTAINER_REGISTRY.getString(), version())
+        .append(parameters)
         .toArray(Object[]::new));
   }
 }

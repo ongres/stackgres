@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 public enum StreamTargetType {
 
   CLOUD_EVENT("CloudEvent"),
+  PG_LAMBDA("PgLambda"),
   SGCLUSTER("SGCluster");
 
   private final @NotNull String type;

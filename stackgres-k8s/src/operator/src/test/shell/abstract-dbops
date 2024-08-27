@@ -33,6 +33,12 @@ shell_unit_test_skip() {
 shell_unit_test_dbops() {
   rm -rf "$SHARED_PATH"
   mkdir -p "$SHARED_PATH"
+  SHARED_PATH="$(realpath "$SHARED_PATH")"
+
+  if command -v shell_unit_test_dbops_init >/dev/null
+  then
+    shell_unit_test_dbops_init
+  fi
 
   . "$PROJECT_PATH/src/main/resources/templates/set-dbops-running.sh"
 

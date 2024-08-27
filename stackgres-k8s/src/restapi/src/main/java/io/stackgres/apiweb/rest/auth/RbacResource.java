@@ -48,6 +48,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.crd.sgstream.StackGresStream;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -247,7 +248,8 @@ public class RbacResource {
         HasMetadata.getFullResourceName(StackGresPoolingConfig.class),
         HasMetadata.getFullResourceName(StackGresShardedCluster.class),
         HasMetadata.getFullResourceName(StackGresShardedBackup.class),
-        HasMetadata.getFullResourceName(StackGresShardedDbOps.class));
+        HasMetadata.getFullResourceName(StackGresShardedDbOps.class),
+        HasMetadata.getFullResourceName(StackGresStream.class));
   }
 
   private static List<String> getVerbs() {

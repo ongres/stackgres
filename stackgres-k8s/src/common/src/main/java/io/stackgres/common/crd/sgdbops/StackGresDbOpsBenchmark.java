@@ -5,7 +5,6 @@
 
 package io.stackgres.common.crd.sgdbops;
 
-import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,10 +14,10 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotEmpty;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -28,56 +27,54 @@ import jakarta.validation.constraints.NotEmpty;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsBenchmark {
 
-  @NotEmpty(message = "spec.benchmark.type must be provided")
+  @ValidEnum(enumClass = DbOpsBenchmarkType.class, allowNulls = false,
+      message = "type must be one of pgbench or sampling")
   private String type;
+
+  private String database;
+
+  @Valid
+  private StackGresDbOpsBenchmarkCredentials credentials;
 
   @Valid
   private StackGresDbOpsPgbench pgbench;
 
-  private String connectionType;
+  @Valid
+  private StackGresDbOpsSampling sampling;
 
-  @ReferencedField("type")
-  interface Type extends FieldReference { }
+  @ValidEnum(enumClass = DbOpsBenchmarkConnectionType.class, allowNulls = true,
+      message = "connectionType must be one of primary-service or replicas-service")
+  private String connectionType;
 
   @ReferencedField("pgbench")
   interface Pgbench extends FieldReference { }
 
-  @JsonIgnore
-  @AssertTrue(message = "type must be pgbench.",
-      payload = Type.class)
-  public boolean isTypeValid() {
-    return type == null || List.of("pgbench").contains(type);
-  }
+  @ReferencedField("sampling")
+  interface Sampling extends FieldReference { }
 
   @JsonIgnore
   @AssertTrue(message = "pgbench section must be provided.",
       payload = Pgbench.class)
   public boolean isPgbenchSectionProvided() {
-    return !Objects.equals(type, "pgbench") || pgbench != null;
+    return !Objects.equals(type, DbOpsBenchmarkType.PGBENCH.toString()) || pgbench != null;
   }
 
   @JsonIgnore
-  @AssertTrue(message = "type must be pgbench.",
-      payload = Type.class)
-  public boolean isConnectionTypeValid() {
-    return connectionType == null
-        || List.of("primary-service", "replicas-service").contains(connectionType);
-  }
-
-  @JsonIgnore
-  public boolean isTypePgBench() {
-    return Objects.equals(type, "pgbench");
+  @AssertTrue(message = "sampling section must be provided.",
+      payload = Sampling.class)
+  public boolean isSamplingSectionProvided() {
+    return !Objects.equals(type, DbOpsBenchmarkType.SAMPLING.toString()) || sampling != null;
   }
 
   @JsonIgnore
   public boolean isConnectionTypePrimaryService() {
     return connectionType == null
-        || Objects.equals(connectionType, "primary-service");
+        || Objects.equals(connectionType, DbOpsBenchmarkConnectionType.PRIMARY_SERVICE.toString());
   }
 
   @JsonIgnore
   public boolean isConnectionTypeReplicasService() {
-    return Objects.equals(connectionType, "replicas-service");
+    return Objects.equals(connectionType, DbOpsBenchmarkConnectionType.REPLICAS_SERVICE.toString());
   }
 
   public String getType() {
@@ -88,12 +85,36 @@ public class StackGresDbOpsBenchmark {
     this.type = type;
   }
 
+  public String getDatabase() {
+    return database;
+  }
+
+  public void setDatabase(String database) {
+    this.database = database;
+  }
+
+  public StackGresDbOpsBenchmarkCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(StackGresDbOpsBenchmarkCredentials credentials) {
+    this.credentials = credentials;
+  }
+
   public StackGresDbOpsPgbench getPgbench() {
     return pgbench;
   }
 
   public void setPgbench(StackGresDbOpsPgbench pgbench) {
     this.pgbench = pgbench;
+  }
+
+  public StackGresDbOpsSampling getSampling() {
+    return sampling;
+  }
+
+  public void setSampling(StackGresDbOpsSampling sampling) {
+    this.sampling = sampling;
   }
 
   public String getConnectionType() {
@@ -106,7 +127,7 @@ public class StackGresDbOpsBenchmark {
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectionType, pgbench, type);
+    return Objects.hash(connectionType, credentials, database, pgbench, sampling, type);
   }
 
   @Override
@@ -119,7 +140,9 @@ public class StackGresDbOpsBenchmark {
     }
     StackGresDbOpsBenchmark other = (StackGresDbOpsBenchmark) obj;
     return Objects.equals(connectionType, other.connectionType)
-        && Objects.equals(pgbench, other.pgbench) && Objects.equals(type, other.type);
+        && Objects.equals(credentials, other.credentials)
+        && Objects.equals(database, other.database) && Objects.equals(pgbench, other.pgbench)
+        && Objects.equals(sampling, other.sampling) && Objects.equals(type, other.type);
   }
 
   @Override

@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.external.keda.ScaledObjectBuilder;
 import io.stackgres.common.crd.external.keda.TriggerAuthenticationBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -30,7 +31,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_13)
 public class HorizontalAutoscaling implements ResourceGenerator<StackGresClusterContext> {
 
   public static String name(StackGresCluster cluster) {
@@ -148,20 +149,20 @@ public class HorizontalAutoscaling implements ResourceGenerator<StackGresCluster
                           'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
                           'show databases'::text)
                         AS _(
-                          name text, host text, port integer, database text,
-                          force_user text, pool_size integer, min_pool_size integer,
-                          reserve_pool integer, pool_mode text, max_connections integer,
-                          current_connections integer, paused boolean, disabled boolean)),
+                          name text, host text, port integer, database text, force_user text,
+                          pool_size integer, min_pool_size integer, reserve_pool integer, server_lifetime integer,
+                          pool_mode text, max_connections integer, current_connections integer,
+                          paused boolean, disabled boolean)),
                       active_connections (size) AS (
                         SELECT SUM(_.current_connections)::numeric
                         FROM dblink(
                           'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
                           'show databases'::text)
                         AS _(
-                          name text, host text, port integer, database text,
-                          force_user text, pool_size integer, min_pool_size integer,
-                          reserve_pool integer, pool_mode text, max_connections integer,
-                          current_connections integer, paused boolean, disabled boolean))
+                          name text, host text, port integer, database text, force_user text,
+                          pool_size integer, min_pool_size integer, reserve_pool integer, server_lifetime integer,
+                          pool_mode text, max_connections integer, current_connections integer,
+                          paused boolean, disabled boolean))
                     SELECT active_connections.size / max_connections.size AS connection_usage
                     FROM max_connections, active_connections; 
                     """)))

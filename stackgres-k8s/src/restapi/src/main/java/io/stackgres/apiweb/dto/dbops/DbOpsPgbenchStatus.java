@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.dbops;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -22,6 +23,10 @@ public class DbOpsPgbenchStatus {
   private DbOpsPgbenchStatusLatency latency;
 
   private DbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond;
+
+  private String hdrHistogram;
+
+  private List<DbOpsPgbenchStatusStatementLatency> statements;
 
   public BigDecimal getScaleFactor() {
     return scaleFactor;
@@ -54,6 +59,22 @@ public class DbOpsPgbenchStatus {
   public void setTransactionsPerSecond(
       DbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond) {
     this.transactionsPerSecond = transactionsPerSecond;
+  }
+
+  public String getHdrHistogram() {
+    return hdrHistogram;
+  }
+
+  public void setHdrHistogram(String hdrHistogram) {
+    this.hdrHistogram = hdrHistogram;
+  }
+
+  public List<DbOpsPgbenchStatusStatementLatency> getStatements() {
+    return statements;
+  }
+
+  public void setStatements(List<DbOpsPgbenchStatusStatementLatency> statements) {
+    this.statements = statements;
   }
 
   @Override

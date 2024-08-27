@@ -24,14 +24,12 @@ public enum DbOpsMethodType {
   }
 
   public static DbOpsMethodType fromString(String name) {
-    switch (name) {
-      case "InPlace":
-        return IN_PLACE;
-      case "ReducedImpact":
-        return REDUCED_IMPACT;
-      default:
-        throw new IllegalArgumentException("DbOps method type is invalid: " + name);
+    for (DbOpsMethodType value : values()) {
+      if (value.type.equals(name)) {
+        return value;
+      }
     }
+    throw new IllegalArgumentException("method type is invalid: " + name);
   }
 
 }

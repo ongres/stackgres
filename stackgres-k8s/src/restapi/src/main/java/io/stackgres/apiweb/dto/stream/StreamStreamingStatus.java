@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.stream;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -41,7 +42,7 @@ public class StreamStreamingStatus {
 
   private Integer numberOfCommittedTransactions;
 
-  private Integer sourceEventPosition;
+  private Map<String, String> sourceEventPosition;
 
   private String lastTransactionId;
 
@@ -153,11 +154,11 @@ public class StreamStreamingStatus {
     this.numberOfCommittedTransactions = numberOfCommittedTransactions;
   }
 
-  public Integer getSourceEventPosition() {
+  public Map<String, String> getSourceEventPosition() {
     return sourceEventPosition;
   }
 
-  public void setSourceEventPosition(Integer sourceEventPosition) {
+  public void setSourceEventPosition(Map<String, String> sourceEventPosition) {
     this.sourceEventPosition = sourceEventPosition;
   }
 

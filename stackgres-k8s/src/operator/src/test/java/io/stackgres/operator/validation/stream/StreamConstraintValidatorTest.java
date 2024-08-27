@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgstream.StackGresStreamSpec;
 import io.stackgres.common.crd.sgstream.StackGresStreamTarget;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetCloudEvent;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetCloudEventHttp;
+import io.stackgres.common.crd.sgstream.StackGresStreamTargetPgLambda;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetSgCluster;
 import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamTargetType;
@@ -252,6 +253,11 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
         sgCluster.setName("test");
         spec.getTarget().setSgCluster(sgCluster);
         break;
+      case PG_LAMBDA:
+        var pgLambda = new StackGresStreamTargetPgLambda();
+        pgLambda.setScript("test");
+        spec.getTarget().setPgLambda(pgLambda);
+        break;
       default:
         break;
     }
@@ -269,6 +275,11 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
         var sgCluster = new StackGresStreamTargetSgCluster();
         sgCluster.setName("test");
         spec.getTarget().setSgCluster(sgCluster);
+        break;
+      case PG_LAMBDA:
+        var pgLambda = new StackGresStreamTargetPgLambda();
+        pgLambda.setScript("test");
+        spec.getTarget().setPgLambda(pgLambda);
         break;
       default:
         break;
@@ -314,6 +325,11 @@ class StreamConstraintValidatorTest extends ConstraintValidationTest<StackGresSt
         var sgCluster = new StackGresStreamTargetSgCluster();
         sgCluster.setName("test");
         spec.getTarget().setSgCluster(sgCluster);
+        break;
+      case PG_LAMBDA:
+        var pgLambda = new StackGresStreamTargetPgLambda();
+        pgLambda.setScript("test");
+        spec.getTarget().setPgLambda(pgLambda);
         break;
       default:
         break;

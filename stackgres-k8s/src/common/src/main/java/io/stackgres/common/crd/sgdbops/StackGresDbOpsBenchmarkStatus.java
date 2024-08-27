@@ -23,6 +23,8 @@ public class StackGresDbOpsBenchmarkStatus {
 
   private StackGresDbOpsPgbenchStatus pgbench;
 
+  private StackGresDbOpsSamplingStatus sampling;
+
   public StackGresDbOpsPgbenchStatus getPgbench() {
     return pgbench;
   }
@@ -31,9 +33,17 @@ public class StackGresDbOpsBenchmarkStatus {
     this.pgbench = pgbench;
   }
 
+  public StackGresDbOpsSamplingStatus getSampling() {
+    return sampling;
+  }
+
+  public void setSampling(StackGresDbOpsSamplingStatus sampling) {
+    this.sampling = sampling;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(pgbench);
+    return Objects.hash(pgbench, sampling);
   }
 
   @Override
@@ -45,7 +55,7 @@ public class StackGresDbOpsBenchmarkStatus {
       return false;
     }
     StackGresDbOpsBenchmarkStatus other = (StackGresDbOpsBenchmarkStatus) obj;
-    return Objects.equals(pgbench, other.pgbench);
+    return Objects.equals(pgbench, other.pgbench) && Objects.equals(sampling, other.sampling);
   }
 
   @Override

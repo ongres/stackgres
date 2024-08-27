@@ -17,6 +17,8 @@ public class StreamTarget {
 
   private StreamTargetCloudEvent cloudEvent;
 
+  private StreamTargetPgLambda pgLambda;
+
   private StreamTargetSgCluster sgCluster;
 
   public String getType() {
@@ -33,6 +35,14 @@ public class StreamTarget {
 
   public void setCloudEvent(StreamTargetCloudEvent cloudEvent) {
     this.cloudEvent = cloudEvent;
+  }
+
+  public StreamTargetPgLambda getPgLambda() {
+    return pgLambda;
+  }
+
+  public void setPgLambda(StreamTargetPgLambda pgLambda) {
+    this.pgLambda = pgLambda;
   }
 
   public StreamTargetSgCluster getSgCluster() {

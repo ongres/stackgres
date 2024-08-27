@@ -63,9 +63,9 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(StackGresContainer.POSTGRES_EXPORTER)
-@OperatorVersionBinder(stopAt = StackGresVersion.V_1_11)
+@OperatorVersionBinder(stopAt = StackGresVersion.V_1_12)
 @RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
-public class PostgresExporterV1M11 implements ContainerFactory<ClusterContainerContext>,
+public class PostgresExporterV1M12 implements ContainerFactory<ClusterContainerContext>,
         VolumeFactory<StackGresClusterContext> {
 
   public static final String POSTGRES_EXPORTER_PORT_NAME = "pgexporter";
@@ -83,7 +83,7 @@ public class PostgresExporterV1M11 implements ContainerFactory<ClusterContainerC
   protected final YamlMapperProvider yamlMapperProvider;
 
   @Inject
-  public PostgresExporterV1M11(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public PostgresExporterV1M12(LabelFactoryForCluster<StackGresCluster> labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts, PostgresSocketMount postgresSocket,
       ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts, YamlMapperProvider yamlMapperProvider) {
     super();
@@ -221,7 +221,7 @@ public class PostgresExporterV1M11 implements ContainerFactory<ClusterContainerC
       final String data;
       try {
         queries = (ObjectNode) yamlMapper
-                .readTree(PostgresExporterV1M11.class.getResource("/prometheus-postgres-exporter/queries-1.22.yaml"));
+                .readTree(PostgresExporterV1M12.class.getResource("/prometheus-postgres-exporter/queries-1.22.yaml"));
 
         var fieldNames = Seq.seq(queries.fieldNames()).toList();
         for (var fieldName : fieldNames) {

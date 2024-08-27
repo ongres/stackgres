@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgdbops;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -29,6 +30,10 @@ public class StackGresDbOpsPgbenchStatus {
   private StackGresDbOpsPgbenchStatusLatency latency;
 
   private StackGresDbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond;
+
+  private String hdrHistogram;
+
+  private List<StackGresDbOpsPgbenchStatusStatementLatency> statements;
 
   public BigDecimal getScaleFactor() {
     return scaleFactor;
@@ -63,6 +68,22 @@ public class StackGresDbOpsPgbenchStatus {
     this.transactionsPerSecond = transactionsPerSecond;
   }
 
+  public String getHdrHistogram() {
+    return hdrHistogram;
+  }
+
+  public void setHdrHistogram(String hdrHistogram) {
+    this.hdrHistogram = hdrHistogram;
+  }
+
+  public List<StackGresDbOpsPgbenchStatusStatementLatency> getStatements() {
+    return statements;
+  }
+
+  public void setStatements(List<StackGresDbOpsPgbenchStatusStatementLatency> statements) {
+    this.statements = statements;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -72,16 +93,17 @@ public class StackGresDbOpsPgbenchStatus {
       return false;
     }
     StackGresDbOpsPgbenchStatus other = (StackGresDbOpsPgbenchStatus) obj;
-    return Objects.equals(latency, other.latency)
-        && Objects.equals(scaleFactor, other.scaleFactor)
-        && Objects.equals(transactionsPerSecond,
-            other.transactionsPerSecond)
+    return Objects.equals(hdrHistogram, other.hdrHistogram)
+        && Objects.equals(latency, other.latency) && Objects.equals(scaleFactor, other.scaleFactor)
+        && Objects.equals(statements, other.statements)
+        && Objects.equals(transactionsPerSecond, other.transactionsPerSecond)
         && Objects.equals(transactionsProcessed, other.transactionsProcessed);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(latency, transactionsPerSecond);
+    return Objects.hash(hdrHistogram, latency, scaleFactor, statements, transactionsPerSecond,
+        transactionsProcessed);
   }
 
   @Override

@@ -35,6 +35,8 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH(LOCAL_BIN_PATH, "set-dbops-result.sh"),
   LOCAL_BIN_RUN_PGBENCH_SH_PATH(LOCAL_BIN_PATH, "dbops/pgbench/run-pgbench.sh"),
   LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH(LOCAL_BIN_PATH, "dbops/pgbench/set-pgbench-result.sh"),
+  LOCAL_BIN_RUN_SAMPLING_SH_PATH(LOCAL_BIN_PATH, "dbops/sampling/run-sampling.sh"),
+  LOCAL_BIN_SET_SAMPLING_RESULT_SH_PATH(LOCAL_BIN_PATH, "dbops/sampling/set-sampling-result.sh"),
   LOCAL_BIN_RUN_VACUUM_SH_PATH(LOCAL_BIN_PATH, "dbops/vacuum/run-vacuum.sh"),
   LOCAL_BIN_RUN_REPACK_SH_PATH(LOCAL_BIN_PATH, "dbops/repack/run-repack.sh"),
   LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH(LOCAL_BIN_PATH,

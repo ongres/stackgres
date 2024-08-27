@@ -66,8 +66,14 @@ public class StreamCloudEventHandler implements TargetEventHandler {
 
   @Override
   public CompletableFuture<Void> sendEvents(StackGresStream stream, SourceEventHandler sourceEventHandler) {
-    ClientBuilder brokerClientBuilder = ClientBuilder.newBuilder();
+    final URI baseUri = URI.create(stream.getSpec().getTarget().getCloudEvent().getHttp().getUrl());
     var http = Optional.of(stream.getSpec().getTarget().getCloudEvent().getHttp());
+    final RetryHandler handler = createHandler(baseUri, http);
+    return sourceEventHandler.streamChangeEvents(stream, CloudEvents.class, handler);
+  }
+
+  protected RetryHandler createHandler(final URI baseUri, Optional<StackGresStreamTargetCloudEventHttp> http) {
+    ClientBuilder brokerClientBuilder = ClientBuilder.newBuilder();
     http
         .map(StackGresStreamTargetCloudEventHttp::getConnectTimeout)
         .map(Duration::parse)
@@ -83,34 +89,45 @@ public class StreamCloudEventHandler implements TargetEventHandler {
         .filter(skipHostnameVerification -> skipHostnameVerification)
         .ifPresent(skipHostnameVerification -> brokerClientBuilder.hostnameVerifier(
             (hostname, session) -> true));
-    URI baseUri = URI.create(stream.getSpec().getTarget().getCloudEvent().getHttp().getUrl());
-    int retryBackoffDelay = Optional.of(stream.getSpec().getTarget().getCloudEvent().getHttp())
+    int retryBackoffDelay = http
         .map(StackGresStreamTargetCloudEventHttp::getRetryBackoffDelay)
         .orElse(60)
         * 1000;
-    var retryLimit = Optional.of(stream.getSpec().getTarget().getCloudEvent().getHttp())
+    var retryLimit = http
         .map(StackGresStreamTargetCloudEventHttp::getRetryLimit);
+    Map<String, String> headers = http
+        .map(StackGresStreamTargetCloudEventHttp::getHeaders)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .filter(Predicate.not(entry -> CLOUDEVENT_HEADERS.contains(entry.getKey())))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     final RetryHandler handler;
     if (retryLimit.isPresent()) {
       handler = new RetryWithLimitHandler(
-          stream, baseUri, brokerClientBuilder.build(),
-          retryBackoffDelay, retryLimit.get().intValue());
+          baseUri, brokerClientBuilder.build(),
+          retryBackoffDelay, retryLimit.get().intValue(),
+          headers);
     } else {
       handler = new RetryHandler(
-          stream, baseUri, brokerClientBuilder.build(),
-          retryBackoffDelay);
+          baseUri, brokerClientBuilder.build(),
+          retryBackoffDelay,
+          headers);
     }
-    return sourceEventHandler.streamChangeEvents(stream, CloudEvents.class, handler);
+    return handler;
   }
 
-  class RetryWithLimitHandler extends RetryHandler {
+  protected class RetryWithLimitHandler extends RetryHandler {
 
     private final int retryLimit;
 
     public RetryWithLimitHandler(
-        StackGresStream stream, URI baseUri, Client brokerClient,
-        int retryBackoffDelay, int retryLimit) {
-      super(stream, baseUri, brokerClient, retryBackoffDelay);
+        URI baseUri,
+        Client brokerClient,
+        int retryBackoffDelay,
+        int retryLimit,
+        Map<String, String> headers) {
+      super(baseUri, brokerClient, retryBackoffDelay, headers);
       this.retryLimit = retryLimit;
     }
 
@@ -122,26 +139,21 @@ public class StreamCloudEventHandler implements TargetEventHandler {
     
   }
 
-  class RetryHandler implements TargetEventConsumer<String> {
+  protected class RetryHandler implements TargetEventConsumer<String> {
     final URI baseUri;
     final Client brokerClient;
     final int retryBackoffDelay;
     final Map<String, String> headers;
 
     RetryHandler(
-        StackGresStream stream, URI baseUri, Client brokerClient,
-        int retryBackoffDelay) {
+        URI baseUri,
+        Client brokerClient,
+        int retryBackoffDelay,
+        Map<String, String> headers) {
       this.baseUri = baseUri;
       this.brokerClient = brokerClient;
       this.retryBackoffDelay = retryBackoffDelay;
-      this.headers =
-          Optional.of(stream.getSpec().getTarget().getCloudEvent().getHttp())
-          .map(StackGresStreamTargetCloudEventHttp::getHeaders)
-          .stream()
-          .map(Map::entrySet)
-          .flatMap(Set::stream)
-          .filter(Predicate.not(entry -> CLOUDEVENT_HEADERS.contains(entry.getKey())))
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      this.headers = headers;
     }
 
     @Override

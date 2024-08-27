@@ -34,7 +34,7 @@ public class VersionReader {
       properties.load(is);
       return Seq.seq(properties)
           .collect(ImmutableMap.toImmutableMap(
-              t -> t.v1.toString(), t -> t.v2.toString()));
+              t -> t.v1.toString(), t -> t.v2.toString().replaceAll("[ \\n\\r]", "")));
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }

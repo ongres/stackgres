@@ -15,12 +15,22 @@ public class DbOpsBenchmarkStatus {
 
   private DbOpsPgbenchStatus pgbench;
 
+  private DbOpsSamplingStatus sampling;
+
   public DbOpsPgbenchStatus getPgbench() {
     return pgbench;
   }
 
   public void setPgbench(DbOpsPgbenchStatus pgbench) {
     this.pgbench = pgbench;
+  }
+
+  public DbOpsSamplingStatus getSampling() {
+    return sampling;
+  }
+
+  public void setSampling(DbOpsSamplingStatus sampling) {
+    this.sampling = sampling;
   }
 
   @Override

@@ -462,3 +462,51 @@ build operator openshift bundle image multi archs:
   extends: .build operator bundle image multi archs
   variables:
     IMAGE_SUFFIX: '-openshift'
+
+.build pglambda javascript image amd64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-javascript-amd64'
+    IMAGE_BASE_NAME: stackgres/pglambda
+
+.build pglambda javascript image arm64:
+  extends: .build image
+  dependencies:
+    - build arm64
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-javascript-arm64'
+    IMAGE_BASE_NAME: stackgres/pglambda
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+build pglambda javascript image amd64:
+  extends: .build pglambda javascript image amd64
+  variables:
+    LOCK_FILE: stackgres-pglambda-javascript-build-image
+    IMAGE_MODULE_NAME: pglambda-javascript-image
+
+build pglambda javascript image arm64:
+  extends: .build pglambda javascript image arm64
+  variables:
+    LOCK_FILE: stackgres-pglambda-javascript-build-image
+    IMAGE_MODULE_NAME: pglambda-javascript-image
+
+.build pglambda javascript image multi archs:
+  extends: .build image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_BASE_NAME: stackgres/pglambda
+
+build pglambda javascript image multi archs:
+  extends: .build pglambda javascript image multi archs
+  variables:
+    IMAGE_SUFFIX: '-javascript'

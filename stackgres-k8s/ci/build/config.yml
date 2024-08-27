@@ -6,6 +6,7 @@
   ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.4-1194
   admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-50.1720405266
   admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-16
+  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-114.1720405264
 platforms:
   - linux/x86_64
   - linux/aarch64
@@ -39,10 +40,12 @@ modules:
     build_commands:
       - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
       - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -pl checks'
     cache:
       - .m2/
     artifacts:
       - .m2/repository/io/stackgres/stackgres-parent
+      - .m2/repository/io/stackgres/stackgres-checks
   operator-framework-java: &operator-framework-java
     <<: *parent-java
     path: stackgres-k8s/src/operator-framework/.
@@ -51,6 +54,9 @@ modules:
       - sh stackgres-k8s/ci/build/redact-version.sh operator-framework
     sources:
       - stackgres-k8s/src/operator-framework/src/main
+    build_commands:
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
     artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
@@ -238,8 +244,8 @@ modules:
       - export HOME=/project
       - npm install --verbose --unsafe-perm
       - |
-        ! grep -q 'later-cov' node_modules/prettycron/node_modules/later/index.js \
-          || sed -i 's/^require\(.*\);$/require(".\/later");/' node_modules/prettycron/node_modules/later/index.js
+        ! grep -q 'LATER_COV' node_modules/prettycron/node_modules/later/index.js \
+          || sed -i "s#^ *require\(.*LATER_COV.*\); *\$#require('./later');#" node_modules/prettycron/node_modules/later/index.js
       - npm run build
       - sh $SHELL_XTRACE build.sh
     cache:
@@ -697,6 +703,22 @@ modules:
   operator-release-openshift-bundle-image:
     <<: *operator-openshift-bundle-image
     type: operator-release-bundle-image
+  pglambda-javascript-image:
+    type: pglambda
+    platform_dependent: true
+    path: stackgres-k8s/src/stream
+    target_image: *pglambda_nodejs_image
+    dockerfile:
+      path: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/Dockerfile
+      args:
+        BASE_IMAGE: $TARGET_IMAGE_NAME
+      seds:
+        - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
+    artifacts:
+      0: stackgres-k8s/src/stream/src/main/docker/LICENCE
+      1: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/index.js
+      2: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/package.json
+      3: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/package-lock.json.out
 stages:
   - parent-java: null
   - operator-framework-java: parent-java
@@ -762,3 +784,4 @@ stages:
   - operator-release-bundle-image: operator-release-bundle
   - operator-release-openshift-bundle: helm-release-packages
   - operator-release-openshift-bundle-image: operator-release-openshift-bundle
+  - pglambda-javascript-image: null

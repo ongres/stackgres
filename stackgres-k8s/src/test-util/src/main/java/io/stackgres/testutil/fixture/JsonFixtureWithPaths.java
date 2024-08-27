@@ -311,6 +311,9 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_DB_OPS_ADMISSION_REVIEW_RESTART_CREATE_JSON =
       "stackgres/db_ops/admission_review/restart_create.json";
 
+  String STACKGRES_DB_OPS_ADMISSION_REVIEW_SAMPLING_CREATE_JSON =
+      "stackgres/db_ops/admission_review/sampling_create.json";
+
   String STACKGRES_DB_OPS_ADMISSION_REVIEW_SECURITY_UPGRADE_CREATE_JSON =
       "stackgres/db_ops/admission_review/security_upgrade_create.json";
 

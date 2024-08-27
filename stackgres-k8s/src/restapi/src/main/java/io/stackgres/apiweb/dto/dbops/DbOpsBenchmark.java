@@ -15,7 +15,13 @@ public class DbOpsBenchmark {
 
   private String type;
 
+  private String database;
+
+  private DbOpsBenchmarkCredentials credentials;
+
   private DbOpsPgbench pgbench;
+
+  private DbOpsSampling sampling;
 
   private String connectionType;
 
@@ -27,12 +33,36 @@ public class DbOpsBenchmark {
     this.type = type;
   }
 
+  public String getDatabase() {
+    return database;
+  }
+
+  public void setDatabase(String database) {
+    this.database = database;
+  }
+
+  public DbOpsBenchmarkCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(DbOpsBenchmarkCredentials credentials) {
+    this.credentials = credentials;
+  }
+
   public DbOpsPgbench getPgbench() {
     return pgbench;
   }
 
   public void setPgbench(DbOpsPgbench pgbench) {
     this.pgbench = pgbench;
+  }
+
+  public DbOpsSampling getSampling() {
+    return sampling;
+  }
+
+  public void setSampling(DbOpsSampling sampling) {
+    this.sampling = sampling;
   }
 
   public String getConnectionType() {

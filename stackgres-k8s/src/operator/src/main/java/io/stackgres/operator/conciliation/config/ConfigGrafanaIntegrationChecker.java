@@ -15,9 +15,14 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatusGrafana;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ConfigGrafanaIntegrationChecker {
+
+  protected static final Logger LOGGER = LoggerFactory
+      .getLogger(ConfigGrafanaIntegrationChecker.class);
 
   public boolean isGrafanaEmbedded(StackGresConfig config) {
     return Optional.of(config.getSpec())
@@ -42,9 +47,17 @@ public class ConfigGrafanaIntegrationChecker {
         && Optional.ofNullable(config.getStatus())
         .map(StackGresConfigStatus::getGrafana)
         .map(grafana -> grafana.getUrls().stream()
-            .allMatch(url -> url.indexOf(":") >= 0
-              && WebUtil.checkUnsecureUri(url.substring(url.indexOf(":") + 1),
-                  Map.of("Authorization", "Bearer " + grafana.getToken()))))
+            .allMatch(url -> {
+              if (url.indexOf(":") >= 0) {
+                var check = WebUtil.checkUnsecureUri(url.substring(url.indexOf(":") + 1),
+                    Map.of("Authorization", "Bearer " + grafana.getToken()));
+                if (check.isEmpty()) {
+                  return true;
+                }
+                LOGGER.warn("Check failed for URL {}", url, check.get());
+              }
+              return false;
+            }))
         .orElse(false);
   }
 

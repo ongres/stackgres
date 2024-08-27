@@ -14,13 +14,12 @@ e2e_test_install() {
   load_image_k8s dev.local/cloudevents-nodejs
 
   install_knative
-  install_minio
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
@@ -135,7 +134,7 @@ spec:
       http:
         url: $(knative_url)
         headers:
-         Host: cloudevents-nodejs.$CLUSTER_NAMESPACE
+          Host: cloudevents-nodejs.$CLUSTER_NAMESPACE
   pods:
     persistentVolume:
       size: 1Gi

@@ -14,7 +14,12 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSamplingStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -38,6 +43,8 @@ public class DbOpsRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
+  private final CustomResourceFinder<StackGresDbOps> dbOpsFinder;
+
   private final ResourceGenerationDiscoverer<StackGresDbOpsContext> discoverer;
 
   @Inject
@@ -45,10 +52,12 @@ public class DbOpsRequiredResourcesGenerator
       CustomResourceScanner<StackGresConfig> configScanner,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
+      CustomResourceFinder<StackGresDbOps> dbOpsFinder,
       ResourceGenerationDiscoverer<StackGresDbOpsContext> discoverer) {
     this.configScanner = configScanner;
     this.clusterFinder = clusterFinder;
     this.profileFinder = profileFinder;
+    this.dbOpsFinder = dbOpsFinder;
     this.discoverer = discoverer;
   }
 
@@ -75,11 +84,25 @@ public class DbOpsRequiredResourcesGenerator
         .flatMap(profileName -> profileFinder
             .findByNameAndNamespace(profileName, dbOpsNamespace));
 
+    final Optional<StackGresDbOpsSamplingStatus> samplingStatus = Optional.of(dbOps.getSpec())
+        .map(StackGresDbOpsSpec::getBenchmark)
+        .map(StackGresDbOpsBenchmark::getPgbench)
+        .map(StackGresDbOpsPgbench::getSamplingSgDbOps)
+        .map(samplingDbOpsName -> dbOpsFinder
+            .findByNameAndNamespace(samplingDbOpsName, dbOpsNamespace)
+            .map(StackGresDbOps::getStatus)
+            .map(StackGresDbOpsStatus::getBenchmark)
+            .map(StackGresDbOpsBenchmarkStatus::getSampling)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "SGDbOps " + samplingDbOpsName
+                + " was not found or has no has no sampling status")));
+
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
         .foundProfile(profile)
+        .samplingStatus(samplingStatus)
         .build();
 
     return discoverer.generateResources(context);

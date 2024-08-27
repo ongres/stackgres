@@ -5,18 +5,11 @@ pg_replication:
     CASE
       WHEN pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() THEN 0
       ELSE extract (EPOCH FROM now() - pg_last_xact_replay_timestamp())::integer
-    END AS lag,
-    CASE
-      WHEN pg_is_in_recovery() THEN 1
-      ELSE 0
-    END AS is_replica;
+    END AS lag;
   metrics:
     - lag:
         usage: "GAUGE"
         description: "Replication lag behind master in seconds"
-    - is_replica:
-        usage: "GAUGE"
-        description: "Indicates if this host is a replica"
 
 pg_postmaster:
   master: true
@@ -1149,19 +1142,19 @@ pgbouncer_show_databases:
     _.host,
     _.port,
     _.database,
-    _.replication,
     _.force_user,
     _.pool_size,
     _.min_pool_size,
     _.reserve_pool,
+    _.server_lifetime,
     _.pool_mode,
     _.max_connections,
     _.current_connections,
     _.paused,
     _.disabled
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
-    AS _(name text, host text, port integer, database text, replication text, force_user text, pool_size integer, min_pool_size integer,
-      reserve_pool integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
+    AS _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
+      reserve_pool integer, server_lifetime integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
   metrics:
     - name:
         usage: "LABEL"
@@ -1175,9 +1168,6 @@ pgbouncer_show_databases:
     - database:
         usage: "LABEL"
         description: "Actual database name pgbouncer connects to."
-    - replication:
-        usage: "LABEL"
-        description: "Replication type"
     - force_user:
         usage: "LABEL"
         description: "When the user is part of the connection string the connection between pgbouncer and PostgreSQL is forced to the given user"
@@ -1190,6 +1180,9 @@ pgbouncer_show_databases:
     - reserve_pool:
         usage: "GAUGE"
         description: "Maximum number of additional connections for this database"
+    - server_lifetime:
+        usage: "GAUGE"
+        description: "The maximum lifetime of a server connection for this database"
     - pool_mode:
         usage: "LABEL"
         description: "The database override pool_mode"

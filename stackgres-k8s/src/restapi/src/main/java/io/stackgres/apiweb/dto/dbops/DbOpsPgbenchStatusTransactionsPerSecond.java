@@ -17,6 +17,8 @@ public class DbOpsPgbenchStatusTransactionsPerSecond {
 
   private DbOpsPgbenchStatusMeasure includingConnectionsEstablishing;
 
+  private DbOpsPgbenchStatusTransactionsPerSecondOverTime overTime;
+
   public DbOpsPgbenchStatusMeasure getExcludingConnectionsEstablishing() {
     return excludingConnectionsEstablishing;
   }
@@ -42,6 +44,14 @@ public class DbOpsPgbenchStatusTransactionsPerSecond {
   public void setIncludingConnectionsEstablishing(DbOpsPgbenchStatusMeasure
       includingConnectionsEstablishing) {
     this.includingConnectionsEstablishing = includingConnectionsEstablishing;
+  }
+
+  public DbOpsPgbenchStatusTransactionsPerSecondOverTime getOverTime() {
+    return overTime;
+  }
+
+  public void setOverTime(DbOpsPgbenchStatusTransactionsPerSecondOverTime overTime) {
+    this.overTime = overTime;
   }
 
   @Override
