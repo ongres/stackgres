@@ -1,0 +1,182 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
+  echo "E2E_UI_POSTGRES_VERSION=$E2E_UI_POSTGRES_VERSION"
+  echo "E2E_UI_TEST_BROWSER=${E2E_UI_TEST_BROWSER:-chrome}"
+}
+
+e2e_test_install() {
+  if [ "$(uname -m)" != x86_64 ]
+  then
+    return
+  fi
+
+  E2E_UI_POSTGRES_VERSION="${E2E_UI_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
+
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  install_prometheus_operator
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only \
+    --set adminui.service.exposeHTTP=true \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+
+  kubectl delete clusterrolebinding stackgres-restapi-admin-full --ignore-not-found
+  kubectl create clusterrolebinding stackgres-restapi-admin-full --user=admin --clusterrole=cluster-admin
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  install_minio
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string "cluster.postgres.version=$E2E_UI_POSTGRES_VERSION"
+
+  local PASSWORD
+  PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -o jsonpath="{.data.clearPassword}" | base64 -d)"
+  CYPRESS_POD="cypress"
+  
+  cat << EOF | kubectl apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: $CYPRESS_POD
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    containers:
+    - name: $CYPRESS_POD
+      image: cypress/included:10.11.0
+      command: [ "sh", "-c", "while true; do sleep 300; done" ]
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: CYPRESS_BASE_URL
+        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
+      - name: CYPRESS_VIDEO
+        value: "false" 
+      - name: CYPRESS_host
+        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
+      - name: CYPRESS_api
+        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/stackgres"
+      - name: CYPRESS_username
+        value: "admin"
+      - name: CYPRESS_password
+        value: "$PASSWORD"
+      - name: CYPRESS_k8s_namespace
+        value: $CLUSTER_NAMESPACE
+      - name: CYPRESS_postgres_version
+        value: "$E2E_UI_POSTGRES_VERSION"
+    restartPolicy: Always
+    terminationGracePeriodSeconds: 0
+EOF
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 5
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.config.js" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+
+  BACKUP_NAME=ui-0
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
+
+  openssl req -x509 -nodes -subj "/CN=localhost" \
+    -newkey rsa:4096 -keyout "$LOG_PATH"/key.pem -out "$LOG_PATH"/cert.pem -sha256 -days 365
+  kubectl -n "$CLUSTER_NAMESPACE" create secret tls cert-cluster --cert="$LOG_PATH"/cert.pem --key="$LOG_PATH"/key.pem
+}
+
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+
+  kubectl delete clusterrolebinding stackgres-restapi-admin-full --ignore-not-found
+}
+
+is_backup_phase() {
+  local NAMESPACE="$1"
+  local NAME="$2"
+  local STATUS="$3"
+  [ "$(kubectl get sgbackup -n "$NAMESPACE" "$NAME" -o=jsonpath='{.status.process.status}')" = "$STATUS" ]
+}
+
+e2e_test_values() {
+  (
+  cd "$UI_TESTS_RESOURCES_PATH/cypress/e2e"
+  find . -name '*.cy.js' | cut -d / -f 2- | sort
+  )
+}
+
+e2e_test() {
+  if [ "$(uname -m)" != x86_64 ]
+  then
+    echo "Skipping ui test since not running in x86_64 architecture"
+    return
+  fi
+
+  run_test "Cypress ${E2E_UI_TEST_BROWSER:-chrome} tests $SPEC_VALUE should pass" cypress_test
+
+  run_test "Nginx must return the index page when a resource is not found" check_index_on_not_found_resource
+
+  run_test "Nginx must work correctly on HTTP port when HTTP is exposed" check_http_port
+}
+
+cypress_test(){
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
+    sed "s/defaultCommandTimeout: .*,/defaultCommandTimeout: $((E2E_TIMEOUT * 1000)),/" cypress.config.js
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
+    sed "s/requestTimeout: .*,/requestTimeout: $((E2E_TIMEOUT * 1000)),/" cypress.config.js
+  if ! kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
+    cypress run \
+      --headless \
+      --browser "${E2E_UI_TEST_BROWSER:-chrome}" \
+      -s cypress/e2e/"$SPEC_VALUE"
+  then
+    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
+    exit 1
+  fi
+}
+
+check_index_on_not_found_resource(){
+  RANDOM_RESOURCE="$(random_string_lowercase 8)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
+
+  assert_string_equal "200" "$HTTP_STATUS"
+
+  HTTP_RESPONSE="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -L 2>/dev/null)"
+
+  if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
+  then
+    success "Returned index page on not found resource"
+  else
+    fail "Index page not returned on not found resource"
+  fi
+}
+
+check_http_port(){
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://stackgres-restapi.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
+
+  if [ "$HTTP_STATUS" = "200" ]
+  then
+    success "HTTP port is working when exposed"
+  else
+    fail "HTTP port is not working when exposed"
+  fi
+}
