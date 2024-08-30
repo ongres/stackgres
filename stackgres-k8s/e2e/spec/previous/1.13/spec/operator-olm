@@ -1,0 +1,676 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  RANDOM_VALUE="$(random_string)"
+  CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
+
+  e2e_cleanup
+
+  e2e_load_images
+
+  install_prometheus_operator
+
+  e2e_install_olm
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  install_minio
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+  DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
+}
+
+e2e_test_uninstall() {
+  e2e_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+e2e_test() {
+  run_test "Check that operator can be installed" check_operator_install
+
+  run_test "Check that resources can be created" check_resources_creation
+
+  run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
+
+  if [ "$E2E_SKIP_CHECK_OPERATOR_DELETE" = true ]
+  then
+    echo "Skip operator deletion check"
+  else
+    run_test "Check that operator can be deleted" check_operator_delete
+  fi
+}
+
+check_operator_install() {
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
+  install_operator_olm
+
+  check_operator_installed
+}
+
+install_operator_olm() {
+  echo "Installing of operator bundle ($STACKGRES_VERSION)"
+  cat << EOF > "$LOG_PATH/stackgres-operator-group.yaml"
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec:
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+  then
+    cat << INNER_EOF
+  targetNamespaces:
+$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' '\n' | sed 's/^/  - /')
+INNER_EOF
+  fi
+)
+EOF
+  kubectl create -f "$LOG_PATH/stackgres-operator-group.yaml"
+
+  cat << EOF > "$LOG_PATH/sgconfig-patch.yaml"
+apiVersion: stackgres.io/v1
+kind: SGConfig
+spec:
+  operator:
+    image:
+      tag: "$IMAGE_TAG"
+  restapi:
+    image:
+      tag: "$IMAGE_TAG"
+  adminui:
+    image:
+      tag: "$ADMINUI_IMAGE_TAG"
+  jobs:
+    image:
+      tag: "$IMAGE_TAG"
+  developer:
+    version: $STACKGRES_VERSION
+$(
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    cat << INNER_EOF
+    patches:
+      restapi:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      adminui:
+        volumes:
+          - name: admin
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public)"
+        volumeMounts:
+          - name: admin
+            mountPath: /opt/app-root/src/admin
+      jobs:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      clusterController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      distributedlogsController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+INNER_EOF
+  fi
+)
+EOF
+
+  EXTRA_OPTS="$(printf %s "
+        -Dquarkus.log.category.\"io.stackgres\".level=DEBUG 
+        -Dquarkus.log.category.\"io.quarkus\".level=INFO 
+        -Dquarkus.log.category.\"io.stackgres.dbops\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.backup\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.wal-g\".level=INFO 
+        -Dquarkus.log.category.\"io.stackgres.patroni\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.fluent-bit\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.fluentd\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.prometheus-postgres-exporter\".level=TRACE 
+        -Dquarkus.log.category.\"okhttp3.logging.HttpLoggingInterceptor\".level=$(
+          # shellcheck disable=SC2015
+          [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO) 
+        -Dquarkus.log.category.\"stackgres-extensions-cache\".level=DEBUG 
+        -Dquarkus.log.category.\"io.stackgres.operator.conciliation\".level=TRACE 
+    " | tr -s ' \n' ' ' | jq -s -R .)"
+
+  cat << EOF > "$LOG_PATH/stackgres-subscription-$STACKGRES_VERSION.yaml"
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  channel: stable
+  name: stackgres
+  source: operator-catalog
+  sourceNamespace: $OPERATOR_NAMESPACE
+  installPlanApproval: Manual
+  startingCSV: stackgres.v$BUNDLE_STACKGRES_VERSION
+  config:
+    resources: {}
+    env: [
+      $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
+      {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
+      {"name":"SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER","value":"${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}"},
+      {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
+      {"name":"APP_OPTS","value":$EXTRA_OPTS},
+      {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
+      ,
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    cat << INNER_EOF
+      {"name":"SGCONFIG_NAMESPACE","value":"$CLUSTER_NAMESPACE"}
+INNER_EOF
+  fi
+)
+    ]
+$(
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    cat << INNER_EOF
+  ,
+  volumes:[
+    {"name":"app","hostPath":{"path":"$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app)"}}],
+  volumeMounts:[
+    {"name":"app","mountPath":"/app/app","subPath":"app"},
+    {"name":"app","mountPath":"/app/lib","subPath":"lib"},
+    {"name":"app","mountPath":"/app/quarkus","subPath":"quarkus"},
+    {"name":"app","mountPath":"/app/quarkus-run.jar","subPath":"quarkus-run.jar"}]
+INNER_EOF
+  fi
+)
+EOF
+  kubectl create -f "$LOG_PATH/stackgres-subscription-$STACKGRES_VERSION.yaml"
+  INSTALL_PLAN="$(wait_until eval 'kubectl get installplan -n "$OPERATOR_NAMESPACE" -o json \
+    | jq -r ".items[]|select(.status != null and (.spec.clusterServiceVersionNames[0] | gsub(\"-.*\";\"\")) == \"stackgres.v${BUNDLE_STACKGRES_VERSION%-*}\").metadata.name" \
+    | grep .')"
+  kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge -p '{"spec":{"approved":true}}'
+
+  wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION" -o name | grep -q .'
+
+  wait_until -t "$((E2E_TIMEOUT * 3))" eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
+
+  if ! wait_until eval 'kubectl get sgconfig -A -o name | wc -l | grep -qxF 1'
+  then
+    fail "The StackGres SGConfig was not found."
+  else
+    success "The StackGres SGConfig was found."
+  fi
+
+  wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
+
+  RELEASE_NAME="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
+  RELEASE_NAME="${RELEASE_NAME#*/}"
+  kubectl patch -n "$SGCONFIG_NAMESPACE" sgconfig "$RELEASE_NAME" --type merge \
+    -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
+}
+
+check_operator_installed() {
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$RELEASE_NAME$"
+  then
+    fail "The StackGres operator service was not available."
+  else
+    success "The StackGres operator service was available."
+  fi
+
+  if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-restapi$"
+  then
+    fail "The StackGres restapi service was not available."
+  else
+    success "The StackGres restapi service was available."
+  fi
+
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
+  then
+    fail "The StackGres jobs still running."
+  else
+    success "The StackGres jobs all cleaned up."
+  fi
+
+  if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
+  then
+    if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
+    then
+      fail "The demo StackGres extensions cache service was not available."
+    else
+      success "The demo StackGres extensions cache service was available."
+    fi
+  fi
+
+  local PASSWORD
+  PASSWORD="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json \
+    | jq -r '.spec.authentication.password | select(. != null)' | tr -d '\n')"
+  if [ -n "$PASSWORD" ]
+  then
+    kubectl patch secret -n "$SGCONFIG_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
+  fi
+}
+
+check_resources_creation() {
+  wait_until create_or_replace_distributed_logs
+
+  wait_until create_or_replace_cluster_with_backups
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_1_NAME-[0-9]\+"
+
+  BACKUP_NAME="$(get_sgbackup_name "$CLUSTER_NAME-backup-1")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/$(kubectl get crd sgbackups.stackgres.io --template '{{ (index .spec.versions 0).name }}')
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  sgCluster: "$CLUSTER_1_NAME"
+  managedLifecycle: false
+EOF
+  
+  wait_until e2e_is_backup_phase "Completed"
+
+  remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" secret-script \
+    --from-literal=script="CREATE DATABASE secret_managed_sql;"
+  kubectl create configmap -n "$CLUSTER_NAMESPACE" configmap-script \
+    --from-literal=script="CREATE DATABASE configmap_managed_sql;"
+  wait_until create_or_replace_cluster_from_backup
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+
+  wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+
+  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
+}
+
+create_or_replace_distributed_logs() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles[0].name=size-s \
+    --set instanceProfiles[0].cpu=125m \
+    --set instanceProfiles[0].memory=512Mi \
+    --set configurations.objectstorage.create=true \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set cluster.configurations.backups.performance.maxDiskBandwidth=10485760 \
+    --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
+    --set-string configurations.postgresconfig.postgresql\\.conf.max_connections=100 \
+    --set-string configurations.postgresconfig.postgresql\\.conf.invalid_param=true \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=true \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string distributedLogs.persistentVolume.size=128Mi
+}
+
+create_or_replace_cluster_with_backups() {
+  create_or_replace_cluster \
+    "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.sgInstanceProfile=size-s \
+    --set cluster.prometheusAutobind=true \
+    --set configurations.objectstorage.create=false \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set cluster.configurations.backups.performance.maxDiskBandwidth=10485760 \
+    --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+}
+
+create_or_replace_cluster_from_backup() {
+  create_or_replace_cluster \
+    "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.sgInstanceProfile=size-s \
+    --set cluster.prometheusAutobind=true \
+    --set configurations.objectstorage.create=false \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set cluster.configurations.backups.performance.maxDiskBandwidth=10485760 \
+    --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
+    --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;" \
+    --set-string cluster.managedSql.scripts[1].scriptFrom.secretKeyRef.name=secret-script \
+    --set-string cluster.managedSql.scripts[1].scriptFrom.secretKeyRef.key=script \
+    --set-string cluster.managedSql.scripts[2].scriptFrom.configMapKeyRef.name=configmap-script \
+    --set-string cluster.managedSql.scripts[2].scriptFrom.configMapKeyRef.key=script \
+    --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
+    --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
+    --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
+    --set-string cluster.metadata.annotations.primaryService.primary-service-label="$RANDOM_VALUE" \
+    --set-string cluster.metadata.annotations.replicasService.replicas-service-label="$RANDOM_VALUE" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=false \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+}
+
+check_operator_delete() {
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
+  kubectl delete subscription -n "$OPERATOR_NAMESPACE" stackgres
+
+  kubectl delete clusterserviceversion -n "$OPERATOR_NAMESPACE" "stackgres.v$BUNDLE_STACKGRES_VERSION"
+
+  check_operator_deleted
+}
+
+check_operator_deleted() {
+  if wait_until kubectl get service -n "$OPERATOR_NAMESPACE" -o name | grep -c "/$RELEASE_NAME$" | grep -qxF 0 \
+    && wait_until kubectl get deployment -n "$OPERATOR_NAMESPACE" -o name | grep -c "/$RELEASE_NAME$" | grep -qxF 0
+  then
+    success "The StackGres operator service was not available."
+  else
+    fail "The StackGres operator service was available."
+  fi
+
+  if wait_until kubectl get service -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-restapi$" | grep -qxF 0 \
+    && wait_until kubectl get deployment -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-restapi$" | grep -qxF 0
+  then
+    fail "The StackGres restapi service was not available."
+  else
+    success "The StackGres restapi service was available."
+  fi
+
+  if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
+  then
+    if wait_until kubectl get service -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-operator-extensions-cache$" | grep -qxF 0 \
+      && wait_until kubectl get statefulset -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-operator-extensions-cache$" | grep -qxF 0
+    then
+      fail "The demo StackGres extensions cache service was not available."
+    else
+      success "The demo StackGres extensions cache service was available."
+    fi
+  fi
+}
+
+e2e_cleanup() {
+  ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
+  k8s_unnamespaced_cleanup
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup || true
+}
+
+e2e_load_images() {
+  BUNDLE_STACKGRES_VERSION="$(printf %s "$STACKGRES_VERSION" | tr A-Z a-z)"
+
+  OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX=""
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX="-openshift"
+  fi
+  OPERATOR_BUNDLE_IMAGE_TAG="${IMAGE_TAG%-jvm}$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
+  OPERATOR_BUNDLE_IMAGE_TAG="$(printf %s "$OPERATOR_BUNDLE_IMAGE_TAG" | tr A-Z a-z)"
+
+  OPERATOR_BUNDLE_PUBLIC_REGISTRY="${OPERATOR_BUNDLE_PUBLIC_REGISTRY:-quay.io}"
+  OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH="${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH:-/stackgres}"
+  OPERATOR_BUNDLE_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
+  OPERATOR_BUNDLE_CATALOG_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-catalog:$OPERATOR_BUNDLE_IMAGE_TAG"
+
+  # The operator-registry check the images from the remote repository
+  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
+  BUNDLE_OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%%:*}:$BUNDLE_STACKGRES_VERSION"
+  EXPECTED_OPERATOR_IMAGE="$BUNDLE_OPERATOR_IMAGE_NAME"
+
+  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ] \
+    && test -f stackgres-k8s/ci/build/target/image-hashes."$(cat stackgres-k8s/ci/build/target/build_hash)" \
+    && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1
+  then
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" "$OPERATOR_BUNDLE_IMAGE_NAME"
+    docker tag "$OPERATOR_BUNDLE_IMAGE_NAME" "$BUNDLE_IMAGE_NAME"
+    docker tag "$OPERATOR_IMAGE_NAME" "$BUNDLE_OPERATOR_IMAGE_NAME"
+    load_image_k8s "$OPERATOR_BUNDLE_IMAGE_NAME"
+    load_image_k8s "$BUNDLE_IMAGE_NAME"
+    load_image_k8s "$BUNDLE_OPERATOR_IMAGE_NAME"
+    BUNDLE_IMAGE_DIGEST="$(docker manifest inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r .config.digest 2>/dev/null || true)"
+    if [ -z "$BUNDLE_IMAGE_DIGEST" ] \
+      || [ "$BUNDLE_IMAGE_DIGEST" \
+        != "$(docker inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r '.[0].RepoDigests[0]|split("@")[1]' 2>/dev/null)" ]
+    then
+      docker push "$BUNDLE_IMAGE_NAME"
+    fi
+  fi
+}
+
+e2e_install_olm() {
+  if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
+  then
+    e2e_properly_tag_not_found_import_images &
+    trap_kill "$!"
+    kubectl delete clusterrole system:controller:operator-lifecycle-manager 2>/dev/null \
+      || ! kubectl get clusterrole system:controller:operator-lifecycle-manager 2>/dev/null
+    wait_until eval '! kubectl get namespace olm > /dev/null 2>&1'
+    operator-sdk olm install \
+      --timeout "${E2E_TIMEOUT}s"
+  fi
+
+  CATALOG_IMAGE_NAME="${E2E_CATALOG_IMAGE_REGISTRY:-$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
+  mkdir -p "$LOG_PATH/operator-catalog"
+  opm generate dockerfile "$LOG_PATH/operator-catalog"
+  echo > "$LOG_PATH/README.md"
+  opm init stackgres \
+    --default-channel=stable \
+    --description="$LOG_PATH/README.md" \
+    --output yaml > "$LOG_PATH/operator-catalog/operator.yaml"
+  opm render "$BUNDLE_IMAGE_NAME" \
+    --output=yaml >> "$LOG_PATH/operator-catalog/operator.yaml"
+  cat << EOF >> "$LOG_PATH/operator-catalog/operator.yaml"
+---
+schema: olm.channel
+package: stackgres
+name: stable
+entries:
+  - name: stackgres.v$BUNDLE_STACKGRES_VERSION
+EOF
+  sed -i "s/^name: stackgres.v${BUNDLE_STACKGRES_VERSION%-*}.*$/name: stackgres.v$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  sed -i "s/^    version: ${BUNDLE_STACKGRES_VERSION%-*}.*$/    version: $BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  sed -i "s/^- image: \([^:]\+\):${BUNDLE_STACKGRES_VERSION%-*}.*$/- image: \1:$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  opm validate "$LOG_PATH/operator-catalog"
+  (
+  cd "$LOG_PATH"
+  docker build . \
+    -f "operator-catalog.Dockerfile" \
+    -t "$CATALOG_IMAGE_NAME"
+  )
+  docker push "$CATALOG_IMAGE_NAME"
+
+  if [ "$E2E_SKIP_LOAD_OPERATOR_BUNDLE" != true ]
+  then
+    if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
+    then
+      echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+      e2e_load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH"
+    fi
+    IMAGES="$(e2e_get_operator_images "$STACKGRES_VERSION")"
+    for IMAGE in $IMAGES
+    do
+      docker_tag "$IMAGE" "${IMAGE%:*}:$(printf %s "$STACKGRES_VERSION$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX" | tr A-Z a-z)"
+    done
+    OPERATOR_IMAGES="$(get_operator_images "$STACKGRES_VERSION")"
+    for IMAGE in $OPERATOR_IMAGES
+    do
+      docker_tag "$IMAGE" "${IMAGE%:*}:$BUNDLE_STACKGRES_VERSION"
+    done
+    echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+  fi
+
+  OPERATOR_NAMESPACE="$(generate_operator_namespace)"
+  kubectl create namespace "${OPERATOR_NAMESPACE}"
+
+  cat << EOF > "$LOG_PATH/operator-catalog-source.yaml"
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: operator-catalog
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  sourceType: grpc
+  image: $CATALOG_IMAGE_NAME
+  displayName: Helm Operator Catalog
+  publisher: OnGres
+  updateStrategy:
+    registryPoll:
+      interval: 10m
+EOF
+  kubectl create -f "$LOG_PATH/operator-catalog-source.yaml"
+}
+
+e2e_load_operator_images_from() {
+  local REPOSITORY="${1:-$OPERATOR_BUNDLE_PUBLIC_REGISTRY}"
+  local IMAGE_PATH="${2:-$OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}"
+  local VERSION="${3:-$STACKGRES_VERSION}"
+  local IMAGES
+  IMAGES="$(e2e_get_operator_images "$VERSION")"
+  printf '%s' "$IMAGES" \
+    | xargs_parallel_shell % "$E2E_PATH/e2e" \
+      pull_image_from "$REPOSITORY" "${IMAGE_PATH%/}/stackgres" "%"
+}
+
+e2e_get_operator_images() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  local NATIVE_TAG="$VERSION"
+  if [ "$VERSION" = "$STACKGRES_VERSION" ]
+  then
+    NATIVE_TAG="${IMAGE_TAG%-jvm}"
+  fi
+  local TAG="$NATIVE_TAG-jvm"
+  if [ "$VERSION" = "$STACKGRES_VERSION" ] \
+    && [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
+  then
+    TAG="$NATIVE_TAG"
+  fi
+  echo "${OPERATOR_BUNDLE_IMAGE_NAME%:*}:$NATIVE_TAG"
+}
+
+e2e_properly_tag_not_found_import_images() {
+  echo "Looking for import-* images to tag properly"
+  event_watch  --follow \
+    | stdbuf -o0 grep '\simage "\(.*library/import-[^@]\+@sha256:[^"]\+\)": not found' \
+    | stdbuf -o0 sed 's#^.*\simage "\(.*library/import-[^@]\+@sha256:[^"]\+\)": not found.*$#\1#' \
+    | (
+      while read IMAGE_NAME
+      do
+        echo "Detected import-* image $IMAGE_NAME to tag properly into k8s env $E2E_ENV"
+        tag_image_k8s "${IMAGE_NAME#*library/}" "$IMAGE_NAME"
+      done
+      )
+}
+
+e2e_is_backup_phase() {
+  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
+}
+
+check_namespace() {
+  if wait_until check_returned_namespaces
+  then
+    success "Namespace endpoint returned all namespaces"
+    return 0
+  else
+    fail_no_return "Namespace endpoint not return all namespaces"
+    local RETURN EXIT_CODE
+    try_function check_returned_namespaces
+    return 1
+  fi
+}
+
+check_returned_namespaces() {
+  local NAMESPACES_IN_RESPONSE
+  local NAMESPACES_IN_K8S
+
+  NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
+    | jq -r -M -S 'sort_by(.)[]' )"
+
+  NAMESPACES_IN_K8S="$(
+    [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+      && printf '%s' "$E2E_ALLOWED_NAMESPACES" | tr ' ' '\n' | sort | uniq \
+      || kubectl get ns -o json \
+    | jq -r -M -S '.items[].metadata.name')"
+
+  [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
+}

@@ -166,7 +166,7 @@ deploy operator openshift bundle image:
 deploy pglambda javascript image:
   extends: .deploy image
   variables:
-    IMAGE_NAME: "stackgres/pglambdas"
+    IMAGE_NAME: "stackgres/pglambda"
     IMAGE_TAG_SUFFIX: "-javascript"
     IMAGE_PUSH_TAG_SUFFIX: "-javascript"
     TARGET_REGISTRIES: "quay.io"

@@ -1,0 +1,231 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/dbops-pgbench"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-pgbench")"
+}
+
+e2e_test_install() {
+  DBOPS_NAME=sampling
+  REPLAY_DBOPS_NAME=pgbench-replay
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that sampling is working" check_sampling_is_working
+
+  run_test "Checking that pgbench is working with replay" check_pgbench_replay_is_working
+  
+  run_test "Checking that pgbench is working with replay script" check_pgbench_replay_script_is_working
+}
+
+check_sampling_is_working() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
+    -- psql -c 'CREATE DATABASE sampling'
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
+    -- pgbench -s 10 -i -I dtgv
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
+    -- pgbench -s 10 -T 30 &
+  PGBENCH_PID="$!"
+  trap_kill "$PGBENCH_PID"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    database: sampling
+    type: sampling
+    sampling:
+      targetDatabase: postgres
+      topQueriesCollectDuration: PT10S
+      samplingDuration: PT10S
+EOF
+
+  wait_until eval '[ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template "{{ .status.opRetries }}")" = "0" ]'
+  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o yaml > "$LOG_PATH/sgdbops.yaml"
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+  kubectl create -f "$LOG_PATH/sgdbops.yaml"
+
+  check_sampling
+  
+  kill "$PGBENCH_PID" || true
+}
+
+check_pgbench_replay_is_working() {
+  cat << EOF | kubectl replace --force -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $REPLAY_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    database: postgres
+    pgbench:
+      mode: replay
+      databaseSize: 100Mi
+      duration: PT10S
+      samplingSGDbOps: $DBOPS_NAME
+      custom:
+        initialization:
+          script: SELECT 1
+EOF
+
+  check_pgbench "$REPLAY_DBOPS_NAME"
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
+    | jq -r '.status.benchmark.sampling.queries[].query' \
+    | grep -xF "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
+  then
+    echo "SUCCESS. pgbench returned the sampled statements command."
+  else
+    echo "FAILED. pgbench did not returned the sampled statements command."
+    return 1
+  fi
+}
+
+check_pgbench_replay_script_is_working() {
+  cat << EOF | kubectl replace --force -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $REPLAY_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: benchmark
+  benchmark:
+    type: pgbench
+    database: postgres
+    pgbench:
+      mode: replay
+      databaseSize: 100Mi
+      duration: PT10S
+      samplingSGDbOps: $DBOPS_NAME
+      custom:
+        initialization:
+          script: SELECT 1
+        scripts:
+        - replay: 0
+EOF
+
+  check_pgbench "$REPLAY_DBOPS_NAME"
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
+    | jq -r '.status.benchmark.sampling.queries[0].query' \
+    | grep -xF "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
+  then
+    echo "SUCCESS. pgbench returned the first sampled statements command."
+  else
+    echo "FAILED. pgbench did not returned the first sampled statements command."
+    return 1
+  fi
+}
+
+check_sampling() {
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
+    -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
+    -o name 2>/dev/null | wc -l)" = 1 ]
+  then
+    echo "SUCCESS. sampling job was not removed after completion."
+  else
+    echo "FAILED. sampling job was removed after completion."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.sampling.topQueries | len }}')" -gt 0 ]
+  then
+    echo "SUCCESS. sampling returned the top queries."
+  else
+    echo "FAILED. sampling did not returned the top queries."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.sampling.topQueries 0).id }}' | grep -x '[-0-9]\+'
+  then
+    echo "SUCCESS. sampling returned the top queries query id."
+  else
+    echo "FAILED. sampling did not returned the top queries query id."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.sampling.topQueries 0).stats.calls }}' | grep -x '[0-9]\+'
+  then
+    echo "SUCCESS. sampling returned the top queries query stats."
+  else
+    echo "FAILED. sampling did not returned the top queries query stats."
+    return 1
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ .status.benchmark.sampling.queries | len }}')" -gt 0 ]
+  then
+    echo "SUCCESS. sampling returned the queries."
+  else
+    echo "FAILED. sampling did not returned the queries."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.sampling.queries 0).id }}' | grep -x '[-0-9]\+'
+  then
+    echo "SUCCESS. sampling returned the queries query id."
+  else
+    echo "FAILED. sampling did not returned the queries query id."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ if (index .status.benchmark.sampling.queries 0).query }}true{{ end }}' | grep -qxF true \
+    && kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.sampling.queries 0).query }}' | grep .
+  then
+    echo "SUCCESS. sampling returned the queries query."
+  else
+    echo "FAILED. sampling did not returned the queries query."
+    return 1
+  fi
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.sampling.queries 0).timestamp }}' | grep -x '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z'
+  then
+    echo "SUCCESS. sampling returned the queries timestamp."
+  else
+    echo "FAILED. sampling did not returned the queries timestamp."
+    return 1
+  fi
+
+  RESULT="$(run_query -i 0 -p 5432 -q "SELECT EXISTS(SELECT * FROM pg_database WHERE datname LIKE 'sampling-%')")"
+  if [ "$RESULT" = "f" ]
+  then
+    echo "SUCCESS. sampling database was dropped."
+  else
+    echo "FAILED. sampling database was not dropped."
+    return 1
+  fi
+}
