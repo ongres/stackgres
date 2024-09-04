@@ -74,6 +74,18 @@ then
   exit 1
 fi
 
+if [ "x$PREVIOUS_VERSION" != xnone ]
+then
+  PREVIOUS_VERSION="${PREVIOUS_VERSION:-$(
+    ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
+      | cut -d / -f 9 | grep -v '.-rc.' | sort -t ' ' -k 1V,1 | tail -n 1)}"
+  if [ ! -d "$FORK_GIT_PATH/operators/$PROJECT_NAME/$PREVIOUS_VERSION" ] || [ "x$PREVIOUS_VERSION" = x ]
+  then
+    echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
+    exit 1
+  fi
+fi
+
 echo "Copying new files to path operators/$PROJECT_NAME/$STACKGRES_VERSION from quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
 (
 rm -rf "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
@@ -138,6 +150,17 @@ then
   deploy_extra_steps
 fi
 
+if [ "x$PREVIOUS_VERSION" != xnone ]
+then
+  if [ ! -d "$FORK_GIT_PATH/operators/$PROJECT_NAME/$PREVIOUS_VERSION" ] || [ "x$PREVIOUS_VERSION" = x ]
+  then
+    echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
+    exit 1
+  fi
+  echo "Setting previous version to: $PREVIOUS_VERSION"
+  sed -i "s/^\( *\)\(version: .*\)$/\1\2\n\1replaces: stackgres.v$PREVIOUS_VERSION/" \
+    "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml
+fi
 if [ "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
   != "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml" ]
 then

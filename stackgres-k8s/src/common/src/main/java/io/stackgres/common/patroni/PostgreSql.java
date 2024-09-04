@@ -5,6 +5,7 @@
 
 package io.stackgres.common.patroni;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,6 +29,9 @@ public class PostgreSql {
   @JsonProperty("use_pg_rewind")
   private Boolean usePgRewind;
 
+  @JsonProperty("pg_hba")
+  private List<String> pgHba;
+
   @JsonProperty("parameters")
   private Map<String, String> parameters;
 
@@ -50,6 +54,14 @@ public class PostgreSql {
     this.usePgRewind = usePgRewind;
   }
 
+  public List<String> getPgHba() {
+    return pgHba;
+  }
+
+  public void setPgHba(List<String> pgHba) {
+    this.pgHba = pgHba;
+  }
+
   public Map<String, String> getParameters() {
     return parameters;
   }
@@ -68,7 +80,7 @@ public class PostgreSql {
 
   @Override
   public int hashCode() {
-    return Objects.hash(parameters, recoveryConf, usePgRewind, useSlots);
+    return Objects.hash(parameters, pgHba, recoveryConf, usePgRewind, useSlots);
   }
 
   @Override
@@ -80,7 +92,7 @@ public class PostgreSql {
       return false;
     }
     PostgreSql other = (PostgreSql) obj;
-    return Objects.equals(parameters, other.parameters)
+    return Objects.equals(parameters, other.parameters) && Objects.equals(pgHba, other.pgHba)
         && Objects.equals(recoveryConf, other.recoveryConf)
         && Objects.equals(usePgRewind, other.usePgRewind)
         && Objects.equals(useSlots, other.useSlots);

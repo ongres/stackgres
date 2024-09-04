@@ -145,6 +145,8 @@ then
   echo
   grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
   echo
+  echo 'Copying pg_hba.conf from the original data folder to the upgraded data folder:'
+  cp -v "$PG_DATA_PATH/pg_hba.conf" "$PG_UPGRADE_PATH/$TARGET_VERSION/data/pg_hba.conf"
   touch "$PG_UPGRADE_PATH/$TARGET_VERSION/data/.pg_upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   )
 fi

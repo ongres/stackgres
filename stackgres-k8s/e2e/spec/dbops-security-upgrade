@@ -714,6 +714,7 @@ check_cluster_before_security_upgrade() {
     PATRONI_CONFIG="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_CONFIG_ENDPOINTS_NAME" --template '{{ .metadata.annotations.config }}')"
     PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
       | if .synchronous_mode then . else del(.synchronous_node_count) end
+      | del(.postgresql.pg_hba)
       ')"
     jq -Sc '.
       | if .synchronous_mode then . else del(.synchronous_node_count) end
