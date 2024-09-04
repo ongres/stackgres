@@ -524,8 +524,15 @@ export const sgclusterform = {
             return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
         },
 
-        addNodeSelectorRequirement(affinity) {
-            affinity.push({ key: '', operator: '', values: [ '' ] })
+        addNodeSelectorRequirement(affinity, prop = '') {
+            if(prop.length) {
+                if(!affinity.hasOwnProperty(prop)) {
+                    affinity[prop] = [];
+                }
+                affinity[prop].push({ key: '', operator: '', values: [ '' ] });
+            } else {
+                affinity.push({ key: '', operator: '', values: [ '' ] })
+            }
         },
 
         addRequiredAffinityTerm(term = this.requiredAffinity, path = '') {
