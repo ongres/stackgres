@@ -18,6 +18,8 @@ e2e_test_install() {
 }
 
 e2e_test() {
+  run_test "Checking that it is not possible to connect to postgres without a password" check_password_required
+
   run_test "Checking that all 4 ports (5432, 6432, 7432, 7433) in the patroni pods are openned and listening for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
@@ -33,6 +35,15 @@ e2e_test() {
   run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
 
   run_test "Check that users configured in pgbouncer can access using the service" pgbouncer_users_check
+}
+
+check_password_required() {
+  if kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    fail "was possible to connect to the cluster without password"
+  else
+    success "was not possible to connect to the cluster without password"
+  fi
 }
 
 ports_check() {
