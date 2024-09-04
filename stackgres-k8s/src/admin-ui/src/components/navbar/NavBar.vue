@@ -311,7 +311,7 @@
 			},
 
 			sgConfigName() {
-				return store.state.sgconfigs.length ? store.state.sgconfigs[0].metadata.name : null
+				return (store.state.sgconfigs !== null) ? store.state.sgconfigs[0].metadata.name : null
 			}
 
 		},
