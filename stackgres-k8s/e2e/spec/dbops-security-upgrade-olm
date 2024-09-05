@@ -37,9 +37,16 @@ e2e_load_images() {
   BUNDLE_OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%%:*}:$BUNDLE_STACKGRES_VERSION"
   EXPECTED_OPERATOR_IMAGE="$BUNDLE_OPERATOR_IMAGE_NAME"
 
-  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ] \
-    && test -f stackgres-k8s/ci/build/target/image-hashes."$(cat stackgres-k8s/ci/build/target/build_hash)" \
-    && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1
+  if [ "$E2E_FORCE_BUNDLE_PULL" = "true" ]
+  then
+    docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
+  fi
+  if [ "$E2E_FORCE_BUNDLE_PULL" = "true" ] \
+    || {
+      [ "$E2E_FORCE_IMAGE_PULL" != "true" ] \
+      && test -f stackgres-k8s/ci/build/target/image-hashes."$(cat stackgres-k8s/ci/build/target/build_hash)" \
+      && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1
+    }
   then
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" "$OPERATOR_BUNDLE_IMAGE_NAME"
     docker tag "$OPERATOR_BUNDLE_IMAGE_NAME" "$BUNDLE_IMAGE_NAME"
