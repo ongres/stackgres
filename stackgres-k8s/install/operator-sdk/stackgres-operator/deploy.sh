@@ -78,7 +78,7 @@ if [ "x$PREVIOUS_VERSION" != xnone ]
 then
   PREVIOUS_VERSION="${PREVIOUS_VERSION:-$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 9 | grep -v '.-rc.' | sort -t ' ' -k 1V,1 | tail -n 1)}"
+      | cut -d / -f 5 | grep -v '.-rc.' | sort -t ' ' -k 1V,1 | tail -n 1)}"
   if [ ! -d "$FORK_GIT_PATH/operators/$PROJECT_NAME/$PREVIOUS_VERSION" ] || [ "x$PREVIOUS_VERSION" = x ]
   then
     echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
