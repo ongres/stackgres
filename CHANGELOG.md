@@ -2,7 +2,9 @@
 
 ## :notepad_spiral: NOTES
 
-StackGres 1.13.0 is out! This release brings new feature for benchmark SGDbOps and SGStream. :confetti_ball: :champagne: 
+StackGres 1.13.0 is out! This release brings new feature for benchmark SGDbOps and SGStream and an important security patch that fix a bug allowing remote connections without password after a major version upgrade. :confetti_ball: :champagne: :bug: :gun:
+
+Please make sure to apply the changes as mentioned in [this issue](https://gitlab.com/ongresinc/stackgres/-/issues/2873) to mitigate the bug for existing clusters.
 
 So, what you are waiting for to try this release and have a look to the future of StackGres! 
 
