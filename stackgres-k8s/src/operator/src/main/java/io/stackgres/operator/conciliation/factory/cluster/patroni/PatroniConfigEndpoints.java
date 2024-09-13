@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -216,6 +217,13 @@ public class PatroniConfigEndpoints
     patroniConf.setPostgresql(new PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setUseSlots(true);
+    patroniConf.getPostgresql().setPgHba(List.of(
+        "local all all trust",
+        "host all all 127.0.0.1/32 md5",
+        "host all all ::1/128 md5",
+        "local replication all trust",
+        "host all all 0.0.0.0/0 md5",
+        "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " 0.0.0.0/0 md5"));
     patroniConf.getPostgresql().setParameters(
         getPostgresConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
     patroniConf.getPostgresql().setRecoveryConf(

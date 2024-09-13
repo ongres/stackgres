@@ -1,3 +1,119 @@
+# :rocket: Release 1.13.0 (09-09-2024)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.13.0 is out! This release brings new feature for benchmark SGDbOps and SGStream and an important security patch that fix a bug allowing remote connections without password after a major version upgrade. :confetti_ball: :champagne: :bug: :gun:
+
+Please make sure to apply the changes as mentioned in [this issue](https://gitlab.com/ongresinc/stackgres/-/issues/2873) to mitigate the bug for existing clusters.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Kubernetes 1.31
+* Support Postgres 16.4, 15.8, 14.13, 13.16, 12.20
+* Support wal-g 3.0.3
+* Support PgBouncer 1.23.1
+* Support prometheus exporter 0.15.0
+* Support FluentBit 3.1.6
+* Support Fluentd 1.17.1
+* Support Babelfish Compass 2024.07
+* Added sampling and pgbench replay to benchmark SGDbOps
+* Support PgLambda target in SGStream
+* Improved pgbench spec and status
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* SGDbOps major version upgrade leave a pg_hba.conf with trust permissions that allow the connection of remote users without requesting a password.
+* SGStream REST API GET endpoint returns 500 on sourceEventPosition
+* Added SGStream to the can-i REST API endpoint
+* Typo in SGStream.spec.pods.scheduling (was schedule)
+* Support OIDC providers that don't implement end_session_endpoint
+
+## Web Console
+
+* Replace PITR graph default selectors with custom ID
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.13.0/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.13.0)
+
+# :rocket: Release 1.13.0-rc2 (2024-09-04)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.13.0-rc2 is out! This release brings new feature for benchmark SGDbOps and SGStream. :confetti_ball: :champagne: 
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Kubernetes 1.31
+* Support Postgres 16.4, 15.8, 14.13, 13.16, 12.20
+* Support wal-g 3.0.3
+* Support PgBouncer 1.23.1
+* Support prometheus exporter 0.15.0
+* Support FluentBit 3.1.6
+* Support Fluentd 1.17.1
+* Support Babelfish Compass 2024.07
+* Added sampling and pgbench replay to benchmark SGDbOps
+* Support PgLambda target in SGStream
+* Improved pgbench spec and status
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* SGDbOps major version upgrade leave a pg_hba.conf with trust permissions that allow the connection of remote users without requesting a password. 
+* SGStream REST API GET endpoint returns 500 on sourceEventPosition
+* Added SGStream to the can-i REST API endpoint
+* Typo in SGStream.spec.pods.scheduling (was schedule)
+* Support OIDC providers that don't implement end_session_endpoint
+
+## Web Console
+
+* Replace PITR graph default selectors with custom ID
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.13.0-rc2/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.13.0-rc2)
+
 # :rocket: Release 1.13.0-rc1 (2024-08-27)
 
 ## :notepad_spiral: NOTES

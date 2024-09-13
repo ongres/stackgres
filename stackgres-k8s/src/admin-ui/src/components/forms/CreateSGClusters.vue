@@ -3154,7 +3154,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></span> 
                                         </label>
                                     </div>
-                                    <fieldset v-if="requiredAffinityTerm.matchExpressions.length">
+                                    <fieldset v-if="(requiredAffinityTerm.hasOwnProperty('matchExpressions') && requiredAffinityTerm.matchExpressions.length)">
                                         <div class="section" v-for="(expression, expIndex) in requiredAffinityTerm.matchExpressions">
                                             <div class="header">
                                                 <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items">
@@ -3202,8 +3202,8 @@
                                         </div>
                                     </fieldset>
                                 </fieldset>
-                                <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchExpressions.length && 'topBorder'">
-                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
+                                <div class="fieldsetFooter" :class="(requiredAffinityTerm.hasOwnProperty('matchExpressions') && !requiredAffinityTerm.matchExpressions.length) && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm, 'matchExpressions')">Add Expression</a>
                                 </div>
 
                                 <fieldset class="affinityMatch noMargin">
@@ -3213,7 +3213,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></span> 
                                         </label>
                                     </div>
-                                    <fieldset v-if="requiredAffinityTerm.matchFields.length">
+                                    <fieldset v-if="(requiredAffinityTerm.hasOwnProperty('matchFields') && requiredAffinityTerm.matchFields.length)">
                                         <div class="section" v-for="(field, fieldIndex) in requiredAffinityTerm.matchFields">
                                             <div class="header">
                                                 <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items">
@@ -3240,7 +3240,7 @@
                                                 </div>
                                             </div>
 
-                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues">
+                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues noMargin">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
                                                         {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
@@ -3261,8 +3261,8 @@
                                         </div>
                                     </fieldset>
                                 </fieldset>
-                                <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchFields.length && 'topBorder'">
-                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
+                                <div class="fieldsetFooter" :class="(requiredAffinityTerm.hasOwnProperty('matchFields') && !requiredAffinityTerm.matchFields.length) && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm, 'matchFields')">Add Field</a>
                                 </div>
                             </div>
                         </fieldset>
@@ -3302,7 +3302,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></span>
                                         </label>
                                     </div>
-                                    <fieldset v-if="preferredAffinityTerm.preference.matchExpressions.length">
+                                    <fieldset v-if="(preferredAffinityTerm.preference.hasOwnProperty('matchExpressions') && preferredAffinityTerm.preference.matchExpressions.length)">
                                         <div class="section" v-for="(expression, expIndex) in preferredAffinityTerm.preference.matchExpressions">
                                             <div class="header">
                                                 <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items">
@@ -3329,7 +3329,7 @@
                                                 </div>
                                             </div>
 
-                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues">
+                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues noMargin">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
                                                         {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
@@ -3350,8 +3350,8 @@
                                         </div>
                                     </fieldset>
                                 </fieldset>
-                                <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchExpressions.length && 'topBorder'">
-                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
+                                <div class="fieldsetFooter" :class="(preferredAffinityTerm.preference.hasOwnProperty('matchExpressions') && !preferredAffinityTerm.preference.matchExpressions.length) && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference, 'matchExpressions')">Add Expression</a>
                                 </div>
 
                                 <fieldset class="affinityMatch noMargin">
@@ -3361,7 +3361,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></span>
                                         </label>
                                     </div>
-                                    <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
+                                    <fieldset v-if="(preferredAffinityTerm.preference.hasOwnProperty('matchFields') && preferredAffinityTerm.preference.matchFields.length)">
                                         <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
                                             <div class="header">
                                                 <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items">
@@ -3388,7 +3388,7 @@
                                                 </div>
                                             </div>
 
-                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues">
+                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues noMargin">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
                                                         {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
@@ -3409,8 +3409,8 @@
                                         </div>
                                     </fieldset>
                                 </fieldset>
-                                <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchFields.length && 'topBorder'">
-                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
+                                <div class="fieldsetFooter" :class="(preferredAffinityTerm.preference.hasOwnProperty('matchFields') && !preferredAffinityTerm.preference.matchFields.length) && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference, 'matchFields')">Add Field</a>
                                 </div>
 
                                 <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>

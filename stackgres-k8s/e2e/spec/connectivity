@@ -18,6 +18,8 @@ e2e_test_install() {
 }
 
 e2e_test() {
+  run_test "Checking that it is not possible to connect to postgres without a password" check_password_required
+
   run_test "Checking that all 4 ports (5432, 6432, 7432, 7433) in the patroni pods are openned and listening for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
@@ -33,6 +35,55 @@ e2e_test() {
   run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
 
   run_test "Check that users configured in pgbouncer can access using the service" pgbouncer_users_check
+}
+
+check_password_required() {
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    fail "was possible to connect to the cluster without password"
+  else
+    success "was not possible to connect to the cluster without password"
+  fi
+
+  cat << EOF | kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- bash -c "$(cat)"
+echo '
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 trust
+local   replication     all                                     trust
+host    replication     all             127.0.0.1/32            trust
+host    replication     all             ::1/128                 trust
+
+host all all 0.0.0.0/0 md5
+host replication replicator 0.0.0.0/0 md5
+' | tee /var/lib/postgresql/data/pg_hba.conf
+psql -c 'SELECT pg_reload_conf();'
+EOF
+
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    success "was possible to connect to the cluster without password after changing configuration"
+  else
+    fail "was not possible to connect to the cluster without password after changing configuration"
+  fi
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  if wait_until check_password_is_required
+  then
+    success "was not possible to connect to the cluster without password after changing configuration and restarting the cluster"
+  else
+    fail "was possible to connect to the cluster without password after changing configuration and restarting the cluster"
+  fi
+}
+
+check_password_is_required() {
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    return 1
+  fi
 }
 
 ports_check() {

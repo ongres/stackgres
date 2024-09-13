@@ -150,18 +150,36 @@ public class PatroniSecret
       StackGresClusterContext context,
       Map<String, String> previousSecretData,
       Map<String, String> data) {
-    data.put(REPLICATION_USERNAME_KEY, context.getReplicationUsername()
+    var replicatorCredentials = getReplicatorCredentials(context, previousSecretData);
+    data.put(REPLICATION_USERNAME_KEY, replicatorCredentials.v1);
+    data.put(REPLICATION_USERNAME_ENV, replicatorCredentials.v1);
+    data.put(REPLICATION_PASSWORD_KEY, replicatorCredentials.v2);
+    data.put(REPLICATION_PASSWORD_ENV, replicatorCredentials.v2);
+  }
+
+  public static Tuple2<String, String> getReplicatorCredentials(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+
+    return getReplicatorCredentials(context, previousSecretData);
+  }
+
+  private static Tuple2<String, String> getReplicatorCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData) {
+    return Tuple.tuple(
+        context.getReplicationUsername()
         .orElse(previousSecretData
             .getOrDefault(REPLICATION_USERNAME_KEY, previousSecretData
-                .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME))));
-    data.put(REPLICATION_USERNAME_ENV, data.get(REPLICATION_USERNAME_KEY));
-    data.put(REPLICATION_PASSWORD_KEY, context.getReplicationPassword()
+                .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME))),
+        context.getReplicationPassword()
         .orElse(previousSecretData
             .getOrDefault(REPLICATION_PASSWORD_KEY, previousSecretData
                 .getOrDefault(REPLICATION_PASSWORD_ENV,
                   context.getGeneratedReplicationPassword()))));
-    data.put(REPLICATION_PASSWORD_ENV, context.getReplicationPassword()
-        .orElse(data.get(REPLICATION_PASSWORD_KEY)));
   }
 
   private void setAuthenticatorCredentials(
