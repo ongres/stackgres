@@ -60,7 +60,7 @@
   description: Day 2 Operations for sharded clusters, including restarts, resharding, etc
 - kind: SGStream
   name: sgstreams.stackgres.io
-  version: v1
+  version: v1alpha1
   displayName: StackGres Stream
   description: Stream Change Data Captured (CDC) events
 - kind: SGConfig
