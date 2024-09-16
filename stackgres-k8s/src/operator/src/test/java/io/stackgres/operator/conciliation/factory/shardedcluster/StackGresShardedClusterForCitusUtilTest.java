@@ -12,7 +12,6 @@ import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -57,7 +56,7 @@ class StackGresShardedClusterForCitusUtilTest {
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
         new StackGresClusterPostgresServiceBuilder()
-        .withEnabled(false)
+        .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
   }
@@ -87,7 +86,7 @@ class StackGresShardedClusterForCitusUtilTest {
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
         new StackGresClusterPostgresServiceBuilder()
-        .withEnabled(false)
+        .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
   }
@@ -120,7 +119,7 @@ class StackGresShardedClusterForCitusUtilTest {
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
         new StackGresClusterPostgresServiceBuilder()
-        .withEnabled(false)
+        .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
   }
@@ -236,8 +235,6 @@ class StackGresShardedClusterForCitusUtilTest {
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
     setMinimalCoordinatorAndShards(shardedCluster);
-    var coordinatorPrimary =
-        shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary();
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
     checkCoordinatorWithGlobalSettings(
         shardedCluster,
@@ -246,16 +243,10 @@ class StackGresShardedClusterForCitusUtilTest {
         cluster,
         0);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
-        .withEnabled(Optional.ofNullable(coordinatorPrimary.getEnabled()).orElse(true))
-        .withCustomPorts(
-            shardedCluster.getSpec().getPostgresServices().getCoordinator().getCustomPorts())
-        .build(),
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
-        .withEnabled(false)
-        .build(),
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getAny(),
         cluster.getSpec().getPostgresServices().getReplicas());
   }
 
@@ -271,8 +262,6 @@ class StackGresShardedClusterForCitusUtilTest {
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
     setMinimalCoordinatorAndShards(shardedCluster);
-    var shardsPrimary =
-        shardedCluster.getSpec().getPostgresServices().getShards().getPrimaries();
     var cluster = getShardsCluster(JsonUtil.copy(shardedCluster), 0);
     checkClusterWithGlobalSettings(
         shardedCluster,
@@ -281,11 +270,7 @@ class StackGresShardedClusterForCitusUtilTest {
         cluster,
         1);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
-        .withEnabled(Optional.ofNullable(shardsPrimary.getEnabled()).orElse(true))
-        .withCustomPorts(
-            shardedCluster.getSpec().getPostgresServices().getShards().getCustomPorts())
-        .build(),
+        shardedCluster.getSpec().getPostgresServices().getShards().getPrimaries(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
         new StackGresClusterPostgresServiceBuilder()
