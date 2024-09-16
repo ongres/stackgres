@@ -378,12 +378,13 @@ public class ClusterRequiredResourcesGenerator
             .map(Instant::parse)
             .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
             .isPresent())
-        .sorted(Comparator.comparing(backup -> Optional.ofNullable(backup.getStatus())
+        .sorted(Comparator.comparing((StackGresBackup backup) -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getTiming)
             .map(StackGresBackupTiming::getEnd)
             .map(Instant::parse)
-            .get()))
+            .get())
+            .reversed())
         .map(backup -> Tuple.tuple(
             backup,
             Optional.of(backup)
