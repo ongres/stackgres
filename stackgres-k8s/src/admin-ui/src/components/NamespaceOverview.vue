@@ -114,6 +114,62 @@
                 </table>
             </div>
 
+            <div class="card" v-if="iCan('any','sgstreams',$route.params.namespace)">
+                <table class="fullWidth">
+                    <thead>
+                        <th class="crdName">
+                            <template v-if="iCan('list', 'sgstreams', $route.params.namespace)">
+                                <router-link :to="'/' + $route.params.namespace + '/sgstreams/'" title="Stream Overview">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g><path d="M16.3 18.8h-4.5c-1 0-1.9-.4-2.6-1.1l-7.6-7.6c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l7.6 7.6c.2.2.5.3.8.3h2.7l-12-12c-.5-.5-.7-1.3-.4-1.9S3 1.2 3.7 1.2h4.5c1 0 1.9.4 2.6 1.1l7.6 7.6c.5.5.5 1.3 0 1.8s-1.3.5-1.8 0L9 4.1c-.2-.2-.5-.3-.8-.3H5.5l12 12c.5.5.7 1.2.4 1.9s-.9 1.1-1.6 1.1M4.5 18.8c-.3 0-.6-.1-.9-.4l-2-2c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l2 2c.5.5.5 1.3 0 1.8s-.6.4-.9.4M17 4.8c-1 0-1.8-.8-1.8-1.8S16 1.2 17 1.2s1.8.8 1.8 1.8S18 4.8 17 4.8" class="cls-1"/></g></svg>
+                                    <span>SGStream <i class="length">{{ sgstreams.length }}</i></span>
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g><path d="M16.3 18.8h-4.5c-1 0-1.9-.4-2.6-1.1l-7.6-7.6c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l7.6 7.6c.2.2.5.3.8.3h2.7l-12-12c-.5-.5-.7-1.3-.4-1.9S3 1.2 3.7 1.2h4.5c1 0 1.9.4 2.6 1.1l7.6 7.6c.5.5.5 1.3 0 1.8s-1.3.5-1.8 0L9 4.1c-.2-.2-.5-.3-.8-.3H5.5l12 12c.5.5.7 1.2.4 1.9s-.9 1.1-1.6 1.1M4.5 18.8c-.3 0-.6-.1-.9-.4l-2-2c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l2 2c.5.5.5 1.3 0 1.8s-.6.4-.9.4M17 4.8c-1 0-1.8-.8-1.8-1.8S16 1.2 17 1.2s1.8.8 1.8 1.8S18 4.8 17 4.8" class="cls-1"/></g></svg>
+                                <span>SGStream <i class="length">{{ sgstreams.length }}</i></span>
+                            </template>
+                        </th>
+                        <th class="icon invisible">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgstreams/new'"
+                                title="Create Stream"
+                                v-if="iCan('create', 'sgstreams', $route.params.namespace)"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
+                            </router-link>
+                        </th>
+                    </thead>
+                    <tbody>
+                        <template v-if="!sgstreams.length">
+                            <tr class="no-results">
+                                <td colspan="999" v-if="iCan('create', 'sgstreams', $route.params.namespace)">
+                                    No streams have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgstreams/new'" title="Create Stream">create a new one?</router-link>
+                                </td>
+                                <td v-else colspan="2">
+                                    No streams have been found. You don't have enough permissions to create a new one.
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <template v-for="stream in sgstreams">
+                                <tr>
+                                    <td class="hasTooltip">
+                                        <span>
+                                            <router-link :to="'/' + $route.params.namespace + '/sgstream/' + stream.name" title="Stream Status">
+                                                {{ stream.name }}
+                                            </router-link>
+                                        </span>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgstream/' + stream.name" title="Stream Status" target="_blank"></router-link>
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="card" v-if="iCan('any', 'sginstanceprofiles', $route.params.namespace)">
                 <table class="fullWidth">
                     <thead>
@@ -598,43 +654,69 @@ export default {
 
     computed: {
         clusters () {
-            return store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgclusters !== null) 
+                ? store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         sgshardedclusters () {
-            return store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgshardedclusters !== null) 
+                ? store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+                : []
+        },
+
+        sgstreams () {
+            return (store.state.sgstreams !== null) 
+                ? store.state.sgstreams.filter(stream => (stream.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         profiles () {
-            return store.state.sginstanceprofiles.filter(profile => (profile.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sginstanceprofiles !== null) 
+                ? store.state.sginstanceprofiles.filter(profile => (profile.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         pgconfigs () {
-            return store.state.sgpgconfigs.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgpgconfigs !== null) 
+                ? store.state.sgpgconfigs.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         poolconfigs () {
-            return store.state.sgpoolconfigs.filter(poolconfig => (poolconfig.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgpoolconfigs !== null) 
+                ? store.state.sgpoolconfigs.filter(poolconfig => (poolconfig.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         objectstorages () {
-            return store.state.sgobjectstorages.filter(config => (config.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgobjectstorages !== null) 
+                ? store.state.sgobjectstorages.filter(config => (config.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         sgscripts () {
-            return store.state.sgscripts.filter(config => (config.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgscripts !== null) 
+                ? store.state.sgscripts.filter(config => (config.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         logsservers () {
-            return store.state.sgdistributedlogs.filter(logserver => (logserver.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgdistributedlogs !== null) 
+                ? store.state.sgdistributedlogs.filter(logserver => (logserver.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         backups () {
-            return store.state.sgbackups.filter(backup => (backup.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgbackups !== null) 
+                ? store.state.sgbackups.filter(backup => (backup.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         dbops () {
-            return store.state.sgdbops.filter(op => (op.data.metadata.namespace == this.$route.params.namespace))
+            return (store.state.sgdbops !== null) 
+                ? store.state.sgdbops.filter(op => (op.data.metadata.namespace == this.$route.params.namespace))
+                : []
         },
 
         tooltips () {

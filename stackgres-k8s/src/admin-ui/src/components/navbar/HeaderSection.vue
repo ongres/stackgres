@@ -36,7 +36,7 @@
                         <span class="component" :class="$route.meta.componentName.toLowerCase()"></span>
 
                         <template v-if="($route.meta.componentName !== 'SGConfig') && (currentPath.name || $route.name.startsWith('Create') || $route.params.hasOwnProperty('backupname'))">
-                            <template v-if="( ( (kind === 'users') && havePermissionsTo.get.users ) || iCan('list', kind, $route.params.namespace))">
+                            <template v-if="( ( (kind === 'users') && havePermissionsTo.get.users ) || (kind === 'sgstreams') || iCan('list', kind, $route.params.namespace))">
                                 <router-link :to="'/' + currentPath.namespace + '/' + kind" :title="$route.meta.componentName + 's'">
                                     {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
                                 </router-link>
@@ -466,6 +466,11 @@ import sgApi from '../../api/sgApi';
 
     .component.sgshardedcluster {
         background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0ibTE5IDE1LjMtMS40LTEuMmMtLjQtLjMtMS0uMy0xLjMuMS0uMy40LS4zIDEgLjEgMS4zaC4xbC4yLjItNS42IDIuMXYtNC4xbC4yLjFjLjEuMS4zLjEuNS4xLjMgMCAuNi0uMi44LS41LjMtLjQuMS0xLS4zLTEuM2wtMS42LS45Yy0uMy0uMi0uNi0uMi0uOSAwbC0xLjYuOWMtLjQuMy0uNi44LS4zIDEuMy4yLjQuOC42IDEuMi40bC4yLS4xdjRsLTUuNi0yLjEuMi0uMmMuNC0uMy41LS45LjItMS4zcy0uOS0uNS0xLjMtLjJMMSAxNS4zYy0uMi4yLS40LjUtLjMuOUwxIDE4Yy4xLjUuNi44IDEuMS44LjQtLjEuOC0uNS44LS45di0uNWw2LjkgMi41YzAgLjEuMS4xLjIuMWguMWMuMSAwIC4yIDAgLjMtLjFsNi44LTIuNXYuM2MtLjEuNS4zIDEgLjggMS4xaC4yYy40IDAgLjgtLjMuOS0uOGwuMy0xLjhjLS4xLS4zLS4yLS43LS40LS45Ii8+PHBhdGggZD0iTTEwIDBDNC45IDAgLjkgMi4yLjkgNS4xdjYuM2MwIC42LjQgMSAxIDFoLjJjLjQgMCAuOC0uMy44LS44LjEuMS4yLjEuNC4yaC4xYy4xIDAgLjEuMS4yLjEuMS4xLjMuMS40LjIuMSAwIC4xLjEuMi4xcy4xIDAgLjIuMWguMWMuMS4xLjIuMS4zLjEuMSAwIC4yLjEuMy4xLjQgMCAuOC0uMy45LS42IDAtLjEgMC0uMS4xLS4yLjEtLjUtLjItLjktLjYtMS4xLS4yLS4xLS40LS4yLS42LS4yLS4zLS4xLS42LS4zLS45LS41LS4xLS4xLS4yLS4xLS4yLS4ybC0uMS0uMWMtLjItLjEtLjQtLjMtLjUtLjUtLjItLjItLjItLjQtLjMtLjZ2LS4zYzIuMSAxLjMgNC42IDIgNy4xIDEuOSAyLjUuMSA1LS42IDcuMS0xLjl2LjJjMCAuMi0uMS41LS4zLjctLjEuMi0uMy40LS41LjVsLS4xLjFjLS4xLjEtLjIuMS0uMy4yLS4zLjItLjYuMy0uOS41LS4yLjEtLjQuMi0uNi4yLS40LjItLjcuNi0uNiAxLjEgMCAuMSAwIC4xLjEuMi4xLjQuNS42LjkuNi4xIDAgLjIgMCAuNC0uMS4xLS4xLjItLjEuNC0uMWguMWMuMSAwIC4xLS4xLjItLjFzLjEtLjEuMi0uMWMuMS0uMS4yLS4xLjQtLjIuMSAwIC4xLS4xLjItLjFoLjFjLjEtLjEuMy0uMS40LS4yIDAgLjQuMy44LjguOGguMmMuNiAwIDEtLjQgMS0xVjUuMUMxOS4xIDIuMiAxNS4xIDAgMTAgMG0wIDguMUM1LjggOC4xIDIuOSA2LjUgMi45IDVTNS44IDIgMTAgMnM3LjEgMS42IDcuMSAzLjEtMi45IDMtNy4xIDMiLz48L2c+PC9zdmc+);
+        transform: scale(.8) translateY(-3px);
+    }
+
+    .component.sgstream {
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMzNmE4ZmZ9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzEiPjxwYXRoIGQ9Ik0xNi4zIDE4LjhoLTQuNWMtMSAwLTEuOS0uNC0yLjYtMS4xbC03LjYtNy42Yy0uNS0uNS0uNS0xLjMgMC0xLjhzMS4zLS41IDEuOCAwbDcuNiA3LjZjLjIuMi41LjMuOC4zaDIuN2wtMTItMTJjLS41LS41LS43LTEuMy0uNC0xLjlTMyAxLjIgMy43IDEuMmg0LjVjMSAwIDEuOS40IDIuNiAxLjFsNy42IDcuNmMuNS41LjUgMS4zIDAgMS44cy0xLjMuNS0xLjggMEw5IDQuMWMtLjItLjItLjUtLjMtLjgtLjNINS41bDEyIDEyYy41LjUuNyAxLjIuNCAxLjlzLS45IDEuMS0xLjYgMS4xTTQuNSAxOC44Yy0uMyAwLS42LS4xLS45LS40bC0yLTJjLS41LS41LS41LTEuMyAwLTEuOHMxLjMtLjUgMS44IDBsMiAyYy41LjUuNSAxLjMgMCAxLjhzLS42LjQtLjkuNE0xNyA0LjhjLTEgMC0xLjgtLjgtMS44LTEuOFMxNiAxLjIgMTcgMS4yczEuOC44IDEuOCAxLjhTMTggNC44IDE3IDQuOCIgY2xhc3M9ImNscy0xIi8+PC9nPjwvc3ZnPg==);
         transform: scale(.8) translateY(-3px);
     }
 

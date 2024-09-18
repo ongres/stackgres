@@ -45,6 +45,17 @@
                                         <router-link :to="'/' + namespace + '/sgshardedclusters'" title="Sharded Clusters Overview" target="_blank"></router-link>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td class="kind">
+                                        <router-link :to="'/' + namespace + '/sgstreams'" title="Streams Overview">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g><path d="M16.3 18.8h-4.5c-1 0-1.9-.4-2.6-1.1l-7.6-7.6c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l7.6 7.6c.2.2.5.3.8.3h2.7l-12-12c-.5-.5-.7-1.3-.4-1.9S3 1.2 3.7 1.2h4.5c1 0 1.9.4 2.6 1.1l7.6 7.6c.5.5.5 1.3 0 1.8s-1.3.5-1.8 0L9 4.1c-.2-.2-.5-.3-.8-.3H5.5l12 12c.5.5.7 1.2.4 1.9s-.9 1.1-1.6 1.1M4.5 18.8c-.3 0-.6-.1-.9-.4l-2-2c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l2 2c.5.5.5 1.3 0 1.8s-.6.4-.9.4M17 4.8c-1 0-1.8-.8-1.8-1.8S16 1.2 17 1.2s1.8.8 1.8 1.8S18 4.8 17 4.8" class="cls-1"/></g></svg>
+                                            <span>SGStreams <i class="length">{{ (sgstreams === null) ? '-' : sgstreams.filter(c => c.data.metadata.namespace == namespace).length }}</i></span>
+                                        </router-link>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + namespace + '/sgstreams'" title="Streams Overview" target="_blank"></router-link>
+                                    </td>
+                                </tr>
                                 <tr v-if="iCan('list', 'sginstanceprofiles', namespace)">
                                     <td class="kind">
                                         <router-link :to="'/' + namespace + '/sginstanceprofiles'" title="Instance Profiles">
@@ -183,6 +194,10 @@ export default {
             return store.state.sgshardedclusters
         },
 
+        sgstreams () {
+            return store.state.sgstreams
+        },
+
         profiles () {
             return store.state.sginstanceprofiles
         },
@@ -216,7 +231,7 @@ export default {
         },
 
         usedNamespaces() {
-            const kinds = ['sgclusters', 'sgshardedclusters', 'sginstanceprofiles', 'sgpgconfigs', 'sgpoolconfigs', 'sgobjectstorages', 'sgdistributedlogs', 'sgbackups', 'sgdbops', 'sgobjectstorages', 'sgscripts'];
+            const kinds = ['sgclusters', 'sgshardedclusters', 'sgstreams', 'sginstanceprofiles', 'sgpgconfigs', 'sgpoolconfigs', 'sgobjectstorages', 'sgdistributedlogs', 'sgbackups', 'sgdbops', 'sgobjectstorages', 'sgscripts'];
             const usedNamespaces = store.state.allNamespaces.filter( ns => (
                 typeof kinds.find( k => (
                         (store.state[k] !== null) &&
