@@ -2609,8 +2609,8 @@ fieldset {
     margin: 0;
 } */
 
-.form .header {
-    border-bottom: 1px solid var(--gray2);
+.form .header, .sectionHeader {
+    border-bottom: 1px solid var(--borderColor);
     display: inline-block;
     width: 100%;
     padding-bottom: 5px;
@@ -5287,4 +5287,81 @@ i.length {
 .darkmode i.length {
     border-color: var(--inputBg);
     background: var(--borderColor);
+}
+
+/* ApexCharts Styling */
+.apexcharts-menu {
+    background: var(--activeBg) !important;
+    border-color: var(--borderColor) !important;
+}
+
+.apexcharts-theme-light .apexcharts-menu-item:hover {
+    background: var(--activeBg) !important;
+}
+
+text.apexcharts-text, #hdrHistogram svg text {
+    fill: var(--textColor) !important;
+}
+
+.apexcharts-tooltip-title {
+    background: transparent !important;
+    border-bottom-color: var(--borderColor) !important;
+}
+
+.apexcharts-tooltip {
+    border-color: var(--borderColor) !important;
+}
+
+.apexcharts-grid line {
+    stroke: var(--borderColor) !important;
+}
+
+#benchmark-statements .apexcharts-series path {
+    stroke-width: 0 !important;
+}
+
+.benchmarkGraph .apexcharts-canvas:not([style$="350px;"]) {
+    max-height: 350px;
+    overflow: hidden;
+    background: url(../img/loader.gif) center center no-repeat;
+    background-size: 30px;
+}
+
+.benchmarkGraph > div {
+    max-height: 365px;
+    min-height: auto !important;
+}
+
+.benchmarkGraph .apexcharts-canvas > svg:not([height="350"]) {
+    display: none;
+}
+
+#hdrHistogram {
+    margin-bottom: 60px;
+    min-height: 365px;
+    background: url(../img/loader.gif) center center no-repeat;
+    background-size: 30px;
+}
+
+#hdrHistogram > div {
+    background: var(--bgColor);
+}
+
+#hdrHistogram svg {
+    margin-top: -60px;
+}
+
+#hdrHistogram p {
+    margin-top: -40px;
+    position: relative;
+    z-index: 2;
+}
+
+#hdrHistogram rect {
+    fill: transparent !important;
+
+}
+
+#hdrHistogram svg > g:first-of-type {
+    display: none !important;
 }
