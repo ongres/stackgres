@@ -464,6 +464,110 @@
                             </div>
                         </template>
 
+                        <!-- Benchmark graphs -->
+                        <template v-if="( (op.data.spec.op == 'benchmark') && hasProp(op, 'data.status.benchmark.pgbench') )">
+                            <div id="benchmarkStats">
+                                <template v-if="hasProp(op, 'data.status.benchmark.pgbench.transactionsPerSecond.overTime')">
+                                    <div id="benchmark-tpsOverTime" class="benchmarkGraph">
+                                        <h3 class="sectionHeader">
+                                            TPS over-time
+                                        </h3>
+
+                                        <apexchart 
+                                            type="line" 
+                                            :options="{
+                                                chart: {
+                                                    type: 'bar',
+                                                    id: '-tpsOverTimeGraph',
+                                                    height: '350px',
+                                                    animations: {
+                                                        enabled: false
+                                                    }
+                                                },
+                                                tooltip: {
+                                                    enabled: true
+                                                },
+                                                stroke: {
+                                                    width: 1
+                                                },
+                                                yaxis: {
+                                                    title: {
+                                                        text: 'TPS'
+                                                    },
+                                                },
+                                                xaxis: {
+                                                    show: false,
+                                                    labels: {
+                                                        show: false
+                                                    },
+                                                    axisBorder: {
+                                                        show: false
+                                                    },
+                                                    axisTicks: {
+                                                        show: false
+                                                    }
+                                                },
+                                                tooltip: {
+                                                    shared: false,
+                                                }
+                                            }"
+                                            :series="[{
+                                                name: 'TPS',
+                                                data: op.data.status.benchmark.pgbench.transactionsPerSecond.overTime.values
+                                            }]">
+                                        </apexchart>
+                                    </div>
+                                </template>
+
+                                <template v-if="hasProp(op, 'data.status.benchmark.pgbench.hdrHistogram')">
+                                    <div id="benchmark-histogram">
+                                        <h3 class="sectionHeader">
+                                            Time Percentiles
+                                        </h3>
+
+                                        <div id="hdrHistogram">
+                                            {{ getHdrHistogram(op.data.status.benchmark.pgbench.hdrHistogram) }}
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template v-if="hasProp(op, 'data.status.benchmark.pgbench.statements')">
+                                    <div id="benchmark-statements" class="benchmarkGraph">
+                                        <h3 class="sectionHeader">
+                                            Statements
+                                        </h3>
+
+                                        <apexchart 
+                                            type="bar" 
+                                            :options="{
+                                                chart: {
+                                                    id: '-statements',
+                                                    height: '350px',
+                                                    animations: {
+                                                        enabled: false
+                                                    }
+                                                },
+                                                plotOptions: {
+                                                    bar: {
+                                                        horizontal: true,
+                                                    }
+                                                },
+                                                dataLabels: {
+                                                    enabled: false
+                                                },
+                                                xaxis: {
+                                                    categories: op.data.status.benchmark.pgbench.statements.map((s) => (s.command))
+                                                },
+                                            }"
+                                            :series="[{
+                                                data: op.data.status.benchmark.pgbench.statements.map((s) => (s.latency))
+                                            }]">
+                                        </apexchart>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
                         <!--Events-->
                         <template v-if="op.data.hasOwnProperty('status')">
                             <div>
@@ -493,7 +597,14 @@
                                             </th>
                                         </thead>
                                         <tbody>
-                                            <template v-if="!events.length">
+                                            <template v-if="(events === null)">
+                                                <tr class="no-results">
+                                                    <td colspan="999">
+                                                        Loading events info...
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template v-else-if="!events.length">
                                                 <tr class="no-results">
                                                     <td colspan="999">
                                                         No recent events have been recorded for this operation.
@@ -700,11 +811,12 @@
 </template>
 
 <script>
-    import { mixin } from './mixins/mixin'
-    import store from '../store'
-    import moment from 'moment'
-    import sgApi from '../api/sgApi'
-    import CRDSummary from './forms/summary/CRDSummary.vue'
+    import { mixin } from './mixins/mixin';
+    import store from '../store';
+    import moment from 'moment';
+    import sgApi from '../api/sgApi';
+    import CRDSummary from './forms/summary/CRDSummary.vue';
+    import HdrHistogramWidget from "hdr-histogram-widget";
 
     export default {
         name: 'SGDbOps',
@@ -736,7 +848,7 @@
 				},
                 podConnections: {},
                 pollClusterStats: 0,
-                events: [],
+                events: null,
                 eventsPooling: null
             }
         },
@@ -744,10 +856,12 @@
         mounted: function() {
 			const vc = this;
 
-			vc.getOpEvents();
-			vc.eventsPooling = setInterval( function() {
-				vc.getOpEvents()
-			}, 10000);
+            if(vc.$route.params.hasOwnProperty('name')) {
+                vc.getOpEvents();
+                vc.eventsPooling = setInterval( function() {
+                    vc.getOpEvents()
+                }, 10000);
+            }
 		},
 
         methods: {
@@ -852,14 +966,13 @@
 
             getOpEvents() {
 				const vc = this;
-				
-				sgApi
+
+                sgApi
 				.getResourceDetails('sgdbops', vc.$route.params.namespace, vc.$route.params.name, 'events')
 				.then( function(response) {
 					vc.events = [...response.data]
 
                     vc.events.sort((a,b) => {
-						
 						if(moment(a.firstTimestamp).isValid && moment(b.firstTimestamp).isValid) {
 
 							if(moment(a.firstTimestamp).isBefore(moment(b.firstTimestamp)))
@@ -870,11 +983,35 @@
 
 						}
 					});
+
 				}).catch(function(err) {
 					console.log(err);
 					vc.checkAuthError(err);
 				});
 			},
+
+            getStatementsYAxis(statements) {
+                return statements.map( (s) => (s.command) );
+            },
+
+            getStatementsXAxis(statements) {
+                return statements.map( (s) => (s.latency) );
+            },
+
+            getHdrHistogram(histogramData) {
+                /* const opHistogram = hdr.decodeFromCompressedBase64(histogramData);
+                console.log(histogramData);
+                console.log(opHistogram); */
+
+                const opHistogram = {
+                    percentiles: histogramData
+                }
+                HdrHistogramWidget.display(
+                    opHistogram,
+                    'milliseconds',                   // default is milliseconds
+                    document.getElementById("hdrHistogram")  // default is document.body
+                );
+            }
         },
         
         computed: {
@@ -974,12 +1111,12 @@
 						? store.state.sgdbops.find(o => (o.data.metadata.namespace == this.$route.params.namespace) && (o.data.metadata.name == this.$route.params.name))
 						: null
 				)
-			}
+			},
         },
 
         beforeDestroy: function() {
             clearInterval(this.pollClusterStats);
-            clearInterval(this.eventsPooling)
+            clearInterval(this.eventsPooling);
         }
     }
 </script>
