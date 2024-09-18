@@ -331,6 +331,31 @@ export const mixin = {
               });
       
             }
+
+            if ( vc.iCan('list', 'sgstreams', 'all') && ( !kind.length || (kind == 'sgstreams') ) ){
+              /* SGStreams Data */
+              sgApi
+              .get('sgstreams')
+              .then( function(response){
+    
+                vc.lookupCRDs('sgstreams', response.data);
+      
+                let sgstreams = [];
+      
+                response.data.forEach(function(item, index){
+                  sgstreams.push({
+                    name: item.metadata.name,
+                    data: item
+                  })
+                })
+    
+                store.commit('addSgStreams', sgstreams);
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
       
             if ( vc.iCan('list', 'sgbackups', 'all') && ( !kind.length || (kind == 'sgbackups') )) {
               

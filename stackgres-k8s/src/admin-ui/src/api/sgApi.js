@@ -10,6 +10,7 @@ const resources = {
   namespaces: '/namespaces',
   sgclusters: '/sgclusters',
   sgshardedclusters: '/sgshardedclusters',
+  sgstreams: '/sgstreams',
   sginstanceprofiles: '/sginstanceprofiles',
   sgbackups: '/sgbackups',
   sgpgconfigs: '/sgpgconfigs',

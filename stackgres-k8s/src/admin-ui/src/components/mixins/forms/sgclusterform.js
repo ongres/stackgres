@@ -372,16 +372,49 @@ export const sgclusterform = {
 
         },
 
-        pushLabel(el) {
-            el.push( { label: '', value: '' } )
+        pushLabel(el, prop = '') {
+            if(prop.length) {
+                if(this.isNull(el[prop]) ) {
+                    this.$set(el, prop, [{ label: '', value: '' }]);
+                } else {
+                    el[prop].push( { label: '', value: '' } );
+                }
+            } else {
+                if(el === null) {
+                    el = [];
+                }
+                el.push( { label: '', value: '' } )
+            }
         },
 
-        pushAnnotation(el) {
-            el.push( { annotation: '', value: '' } )
+        pushAnnotation(el, prop = '') {
+            if(prop.length) {
+                if(this.isNull(el[prop]) ) {
+                    this.$set(el, prop, [{ annotation: '', value: '' }]);
+                } else {
+                    el[prop].push( { annotation: '', value: '' } );
+                }
+            } else {
+                if(el === null) {
+                    el = [];
+                }
+                el.push( { annotation: '', value: '' } );
+            }
         },
 
-        pushToleration (tolerations = this.tolerations) {
-            tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
+        pushToleration (el = this.tolerations, prop = '') {
+            if(prop.length) {
+                if(this.isNull(el[prop]) ) {
+                    this.$set(el, prop, [{ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null }]);
+                } else {
+                    el[prop].push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null });
+                }
+            } else {
+                if(el === null) {
+                    el = [];
+                }
+                el.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
+            }
         },
 
         setVersion( version = 'latest') {
@@ -537,6 +570,10 @@ export const sgclusterform = {
 
         addRequiredAffinityTerm(term = this.requiredAffinity, path = '') {
             if(!path.length) {
+                if(term === null) {
+                    term = [];
+                }
+
                 term.push({
                     matchExpressions: [
                         { key: '', operator: '', values: [ '' ] }
@@ -547,17 +584,26 @@ export const sgclusterform = {
                 });
             } else {
                 let [prop, ...pathSplit] = path.split('.');
-                    
-                if(!term.hasOwnProperty(prop)) {
-                    this.$set(term, prop, pathSplit.length ? {} : []);
+                
+                if(!term.hasOwnProperty(prop) || (term[prop] === null) ) {
+                    this.$set(
+                        term, prop, 
+                            pathSplit.length
+                                ? {} 
+                                : []
+                        );
                 }
-
-                this.addRequiredAffinityTerm(term[prop], pathSplit.join('.'));
+                
+                this.addRequiredAffinityTerm(term[prop], pathSplit.length ? pathSplit.join('.') : '');
             }
         },
         
         addPreferredAffinityTerm(term = this.preferredAffinity, path = '') {
             if(!path.length) {
+                if(term === null) {
+                    term = [];
+                }
+
                 term.push({
                     preference: {
                         matchExpressions: [
@@ -571,12 +617,17 @@ export const sgclusterform = {
                 });
             } else {
                 let [prop, ...pathSplit] = path.split('.');
-                    
-                if(!term.hasOwnProperty(prop)) {
-                    this.$set(term, prop, pathSplit.length ? {} : []);
-                }
 
-                this.addPreferredAffinityTerm(term[prop], pathSplit.join('.'));
+                if(!term.hasOwnProperty(prop) || (term[prop] === null) ) {
+                    this.$set(
+                        term, prop, 
+                            pathSplit.length
+                                ? {} 
+                                : []
+                        );
+                }
+                
+                this.addPreferredAffinityTerm(term[prop], pathSplit.length ? pathSplit.join('.') : '');
             }
         },
 

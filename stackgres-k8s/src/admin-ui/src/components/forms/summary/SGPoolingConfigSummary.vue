@@ -105,7 +105,6 @@
 
 <script>
     import { mixin } from './../../mixins/mixin'
-    import store from '../../../store'
 
     export default {
         name: 'SGPoolingConfigSummary',

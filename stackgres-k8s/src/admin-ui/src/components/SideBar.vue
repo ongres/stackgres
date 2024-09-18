@@ -113,6 +113,43 @@
 				</ul>
 			</div>
 
+			<div
+				class="set"
+				 v-if="iCan('any','sgstreams', currentPath.namespace)" 
+				:class="isBrowsing('sgstream') ? 'active' : ''"
+			>
+				<ul>
+					<li class="crdName">
+						<template v-if="iCan('list', 'sgstreams', currentPath.namespace)">
+							<router-link :to="'/' + currentPath.namespace + '/sgstreams'" title="SGStreams Overview" class="view nav-item">
+								<span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g><path d="M16.3 18.8h-4.5c-1 0-1.9-.4-2.6-1.1l-7.6-7.6c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l7.6 7.6c.2.2.5.3.8.3h2.7l-12-12c-.5-.5-.7-1.3-.4-1.9S3 1.2 3.7 1.2h4.5c1 0 1.9.4 2.6 1.1l7.6 7.6c.5.5.5 1.3 0 1.8s-1.3.5-1.8 0L9 4.1c-.2-.2-.5-.3-.8-.3H5.5l12 12c.5.5.7 1.2.4 1.9s-.9 1.1-1.6 1.1M4.5 18.8c-.3 0-.6-.1-.9-.4l-2-2c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l2 2c.5.5.5 1.3 0 1.8s-.6.4-.9.4M17 4.8c-1 0-1.8-.8-1.8-1.8S16 1.2 17 1.2s1.8.8 1.8 1.8S18 4.8 17 4.8" class="cls-1"/></g></svg></span>
+								<h3 :class="isCollapsed ? 'submenuTitle' : ''">StackGres Streams</h3>
+							</router-link>
+						</template>
+						<template v-else>
+							<span class="nav-item noHoverPointer">
+								<span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g><path d="M16.3 18.8h-4.5c-1 0-1.9-.4-2.6-1.1l-7.6-7.6c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l7.6 7.6c.2.2.5.3.8.3h2.7l-12-12c-.5-.5-.7-1.3-.4-1.9S3 1.2 3.7 1.2h4.5c1 0 1.9.4 2.6 1.1l7.6 7.6c.5.5.5 1.3 0 1.8s-1.3.5-1.8 0L9 4.1c-.2-.2-.5-.3-.8-.3H5.5l12 12c.5.5.7 1.2.4 1.9s-.9 1.1-1.6 1.1M4.5 18.8c-.3 0-.6-.1-.9-.4l-2-2c-.5-.5-.5-1.3 0-1.8s1.3-.5 1.8 0l2 2c.5.5.5 1.3 0 1.8s-.6.4-.9.4M17 4.8c-1 0-1.8-.8-1.8-1.8S16 1.2 17 1.2s1.8.8 1.8 1.8S18 4.8 17 4.8" class="cls-1"/></g></svg></span>
+								<h3 :class="isCollapsed ? 'submenuTitle' : ''">StackGres Streams</h3>
+							</span>
+						</template>
+
+						<router-link :to="'/' + currentPath.namespace + '/sgstreams/new'" class="addnew" v-if="iCan('create', 'sgstreams', currentPath.namespace)">
+							<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19"><g transform="translate(-573 -706)"><g transform="translate(573 706)" fill="none" stroke="#00adb5" stroke-width="2"><circle cx="9.5" cy="9.5" r="9.5" stroke="none"/><circle cx="9.5" cy="9.5" r="8.5" fill="none"/></g><g transform="translate(-30.5 28.8)"><g transform="translate(609 686)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g><g transform="translate(613.7 682.7) rotate(90)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g></g></g></svg>
+						</router-link>
+					</li>
+
+					<li><ul class="crdSubmenu">
+						<template v-for="stream in sgStreams">
+							<li v-if="stream.data.metadata.namespace == currentPath.namespace" :class="'sgstream-'+stream.data.metadata.namespace+'-'+stream.name">
+								<router-link :to="'/' + stream.data.metadata.namespace + '/sgstream/' + stream.name" class="item stream" :title="stream.name" :class="(currentPath.component.includes('SGStream') && (currentPath.name == stream.name)) ? 'router-link-exact-active' : ''">
+									{{ stream.name }}
+								</router-link>
+							</li>
+						</template>
+					</ul></li>
+				</ul>
+			</div>
+
 			<div v-if="iCan('any','sginstanceprofiles', currentPath.namespace)" class="prof set" :class="isBrowsing('sginstanceprofile') ? 'active' : ''">
 				<ul>
 					<li class="crdName">
@@ -504,6 +541,10 @@
 			
 			shardedClusters () {
 				return store.state.sgshardedclusters
+			},
+
+			sgStreams () {
+				return store.state.sgstreams
 			},
 
 			logsClusters () {
