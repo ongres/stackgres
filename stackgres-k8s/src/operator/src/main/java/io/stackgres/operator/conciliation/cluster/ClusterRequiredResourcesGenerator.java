@@ -22,18 +22,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
-import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
-import io.stackgres.common.crd.external.prometheus.Prometheus;
-import io.stackgres.common.crd.external.prometheus.PrometheusInstallation;
-import io.stackgres.common.crd.external.prometheus.PrometheusSpec;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
@@ -75,12 +70,10 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -115,8 +108,6 @@ public class ClusterRequiredResourcesGenerator
 
   private final ResourceFinder<Secret> secretFinder;
 
-  private final CustomResourceScanner<Prometheus> prometheusScanner;
-
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -124,8 +115,6 @@ public class ClusterRequiredResourcesGenerator
   private final ResourceScanner<Pod> podScanner;
 
   private final BackupEnvVarFactory backupEnvVarFactory;
-
-  private final OperatorPropertyContext operatorContext;
 
   private final ResourceGenerationDiscoverer<StackGresClusterContext> discoverer;
 
@@ -140,12 +129,10 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
-      CustomResourceScanner<Prometheus> prometheusScanner,
       CustomResourceScanner<StackGresBackup> backupScanner,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       ResourceScanner<Pod> podScanner,
       BackupEnvVarFactory backupEnvVarFactory,
-      OperatorPropertyContext operatorContext,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.configScanner = configScanner;
@@ -156,25 +143,11 @@ public class ClusterRequiredResourcesGenerator
     this.profileFinder = profileFinder;
     this.backupFinder = backupFinder;
     this.secretFinder = secretFinder;
-    this.prometheusScanner = prometheusScanner;
     this.backupScanner = backupScanner;
     this.labelFactory = labelFactory;
     this.podScanner = podScanner;
     this.backupEnvVarFactory = backupEnvVarFactory;
-    this.operatorContext = operatorContext;
     this.discoverer = discoverer;
-  }
-
-  private static PrometheusInstallation toPrometheusInstallation(Prometheus pc) {
-    Map<String, String> matchLabels = Optional.ofNullable(pc.getSpec())
-        .map(PrometheusSpec::getPodMonitorSelector)
-        .map(LabelSelector::getMatchLabels)
-        .map(Map::copyOf)
-        .orElse(Map.of());
-    PrometheusInstallation pi = new PrometheusInstallation();
-    pi.setNamespace(pc.getMetadata().getNamespace());
-    pi.setMatchLabels(matchLabels);
-    return pi;
   }
 
   @Override
@@ -352,7 +325,6 @@ public class ClusterRequiredResourcesGenerator
         .userPasswordForBinding(userPasswordForBinding)
         .postgresSslCertificate(postgresSsl.certificate)
         .postgresSslPrivateKey(postgresSsl.privateKey)
-        .prometheusContext(getPrometheusContext(cluster))
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .build();
 
@@ -875,29 +847,6 @@ public class ClusterRequiredResourcesGenerator
         .map(StackGresClusterRestore::getFromBackup)
         .map(StackGresClusterRestoreFromBackup::getName)
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
-  }
-
-  public Optional<PrometheusContext> getPrometheusContext(StackGresCluster cluster) {
-    boolean isAutobindAllowed = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
-
-    boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
-        .getPrometheusAutobind()).orElse(false);
-
-    if (isAutobindAllowed && isPrometheusAutobindEnabled) {
-      LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
-
-      final Optional<List<Prometheus>> prometheusConfigsOpt = prometheusScanner
-          .findResources();
-
-      return prometheusConfigsOpt
-          .map(prometheusConfigs -> prometheusConfigs.stream()
-              .map(ClusterRequiredResourcesGenerator::toPrometheusInstallation)
-              .toList())
-          .map(installations -> new PrometheusContext(!installations.isEmpty(), installations));
-
-    } else {
-      return Optional.of(new PrometheusContext(false, null));
-    }
   }
 
 }

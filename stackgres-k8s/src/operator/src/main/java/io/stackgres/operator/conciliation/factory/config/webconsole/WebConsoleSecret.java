@@ -133,7 +133,7 @@ public class WebConsoleSecret
               Optional.ofNullable(context.getSource().getSpec())
               .map(StackGresConfigSpec::getCert)
               .map(StackGresConfigCert::getWebCertDuration)
-              .orElse(730),
+              .orElse(DEFAULT_DURATION),
               ChronoUnit.DAYS));
       data.put("tls.crt", generated.v1);
       data.put("tls.key", generated.v2);

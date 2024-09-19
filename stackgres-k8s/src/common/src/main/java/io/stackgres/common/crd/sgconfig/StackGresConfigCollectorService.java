@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.external.prometheus;
+package io.stackgres.common.crd.sgconfig;
 
-import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -20,31 +20,24 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class PrometheusInstallation {
+public class StackGresConfigCollectorService extends StackGresConfigService {
 
-  private String namespace;
+  private ServiceSpec spec;
 
-  private Map<String, String> matchLabels;
-
-  public String getNamespace() {
-    return namespace;
+  public ServiceSpec getSpec() {
+    return spec;
   }
 
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
-  }
-
-  public Map<String, String> getMatchLabels() {
-    return matchLabels;
-  }
-
-  public void setMatchLabels(Map<String, String> matchLabels) {
-    this.matchLabels = matchLabels;
+  public void setSpec(ServiceSpec spec) {
+    this.spec = spec;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(matchLabels, namespace);
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(spec);
+    return result;
   }
 
   @Override
@@ -52,12 +45,14 @@ public class PrometheusInstallation {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof PrometheusInstallation)) {
+    if (!super.equals(obj)) {
       return false;
     }
-    PrometheusInstallation other = (PrometheusInstallation) obj;
-    return Objects.equals(matchLabels, other.matchLabels)
-        && Objects.equals(namespace, other.namespace);
+    if (!(obj instanceof StackGresConfigCollectorService)) {
+      return false;
+    }
+    StackGresConfigCollectorService other = (StackGresConfigCollectorService) obj;
+    return Objects.equals(spec, other.spec);
   }
 
   @Override
@@ -66,4 +61,3 @@ public class PrometheusInstallation {
   }
 
 }
-

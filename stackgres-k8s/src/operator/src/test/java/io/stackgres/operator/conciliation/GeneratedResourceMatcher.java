@@ -26,7 +26,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.testutil.GeneratorTestUtil;
@@ -72,7 +71,6 @@ public class GeneratedResourceMatcher {
         .profile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)
         .databaseSecret(Optional.ofNullable(databaseSecret))
-        .prometheusContext(new PrometheusContext(false, null))
         .build();
   }
 

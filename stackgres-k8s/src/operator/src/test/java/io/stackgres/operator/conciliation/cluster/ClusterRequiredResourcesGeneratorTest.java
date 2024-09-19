@@ -5,23 +5,16 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.crd.external.prometheus.PodMonitor;
-import io.stackgres.common.crd.external.prometheus.Prometheus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
-import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -270,62 +263,6 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
     verify(profileConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenADefaultPrometheusInstallation_shouldGeneratePodMonitors() {
-    System.setProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName(), "true");
-
-    mockBackupConfig();
-    mockPgConfig();
-    mockPoolingConfig();
-    mockProfile();
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(backup));
-    mockSecrets();
-
-    when(prometheusScanner.findResources()).thenReturn(Optional.of(
-        Fixtures.prometheusList().loadDefault().get().getItems()));
-
-    List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
-
-    var podMonitors = generatedResources.stream()
-        .filter(r -> r.getKind().equals(PodMonitor.KIND))
-        .count();
-
-    assertEquals(3, podMonitors);
-    verify(prometheusScanner).findResources();
-    System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
-  }
-
-  @Test
-  void givenAPrometheusInstallationWithNoPodMonitorSelector_shouldGeneratePodMonitors() {
-    System.setProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName(), "true");
-
-    mockBackupConfig();
-    mockPgConfig();
-    mockPoolingConfig();
-    mockProfile();
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(backup));
-    mockSecrets();
-
-    List<Prometheus> listPrometheus = Fixtures.prometheusList().loadDefault().get()
-            .getItems()
-            .stream()
-            .peek(pc -> pc.getSpec().setPodMonitorSelector(null))
-            .toList();
-
-    when(prometheusScanner.findResources()).thenReturn(Optional.of(listPrometheus));
-
-    List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
-
-    var podMonitors = generatedResources.stream()
-        .filter(r -> r.getKind().equals(HasMetadata.getKind(PodMonitor.class)))
-        .count();
-
-    assertEquals(3, podMonitors);
-    System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 
 }

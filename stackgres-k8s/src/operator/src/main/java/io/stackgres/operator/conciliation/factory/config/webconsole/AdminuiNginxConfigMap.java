@@ -16,7 +16,6 @@ import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
-import io.stackgres.common.crd.sgconfig.StackGresConfigCert;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForConfig;
@@ -53,10 +52,6 @@ public class AdminuiNginxConfigMap
     if (!Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)
-        .orElse(true)
-        || !Optional.ofNullable(context.getSource().getSpec())
-        .map(StackGresConfigSpec::getCert)
-        .map(StackGresConfigCert::getCreateForWebApi)
         .orElse(true)) {
       return Stream.of();
     }

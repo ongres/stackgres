@@ -19,4 +19,8 @@ public interface LabelMapperForConfig
     return getKeyPrefix(resource) + StackGresContext.GRAFANA_INTEGRATION_KEY;
   }
 
+  default String collectorKey(StackGresConfig resource) {
+    return getKeyPrefix(resource) + StackGresContext.COLLECTOR_KEY;
+  }
+
 }

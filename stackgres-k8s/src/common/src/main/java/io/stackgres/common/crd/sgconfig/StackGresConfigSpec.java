@@ -50,6 +50,8 @@ public class StackGresConfigSpec {
 
   private StackGresConfigAdminui adminui;
 
+  private StackGresConfigCollector collector;
+
   private StackGresConfigJobs jobs;
 
   private StackGresConfigDeploy deploy;
@@ -172,6 +174,14 @@ public class StackGresConfigSpec {
     this.adminui = adminui;
   }
 
+  public StackGresConfigCollector getCollector() {
+    return collector;
+  }
+
+  public void setCollector(StackGresConfigCollector collector) {
+    this.collector = collector;
+  }
+
   public StackGresConfigJobs getJobs() {
     return jobs;
   }
@@ -247,7 +257,7 @@ public class StackGresConfigSpec {
   @Override
   public int hashCode() {
     return Objects.hash(adminui, allowImpersonationForRestApi, allowedNamespaceLabelSelector,
-        allowedNamespaces, authentication, cert, containerRegistry, deploy, developer,
+        allowedNamespaces, authentication, cert, collector, containerRegistry, deploy, developer,
         disableClusterRole, disableCrdsAndWebhooksUpdate, extensions, grafana, imagePullPolicy,
         imagePullSecrets, jobs, operator, prometheus, restapi, serviceAccount, sgConfigNamespace,
         shardingSphere);
@@ -267,6 +277,7 @@ public class StackGresConfigSpec {
         && Objects.equals(allowedNamespaceLabelSelector, other.allowedNamespaceLabelSelector)
         && Objects.equals(allowedNamespaces, other.allowedNamespaces)
         && Objects.equals(authentication, other.authentication) && Objects.equals(cert, other.cert)
+        && Objects.equals(collector, other.collector)
         && Objects.equals(containerRegistry, other.containerRegistry)
         && Objects.equals(deploy, other.deploy) && Objects.equals(developer, other.developer)
         && Objects.equals(disableClusterRole, other.disableClusterRole)

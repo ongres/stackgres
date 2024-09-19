@@ -21,6 +21,7 @@ public interface StackGresContext {
   String WRONG_VALUE = Boolean.FALSE.toString();
   String RESTAPI_KEY = "restapi";
   String GRAFANA_INTEGRATION_KEY = "grafana-integration";
+  String COLLECTOR_KEY = "collector";
   String CLUSTER_KEY = "cluster";
   String BACKUP_KEY = "backup";
   String DBOPS_KEY = "db-ops";

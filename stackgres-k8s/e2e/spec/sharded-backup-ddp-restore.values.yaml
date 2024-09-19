@@ -12,7 +12,6 @@ cluster:
   configurations:
     backups:
       sgObjectStorage: backupconf
-  prometheusAutobind: false
   disableBackups: true
 shardedCluster:
   type: ddp

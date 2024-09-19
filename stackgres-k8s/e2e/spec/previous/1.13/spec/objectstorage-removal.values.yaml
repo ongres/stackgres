@@ -12,6 +12,5 @@ cluster:
     backups:
       cronSchedule: '0 5 31 2 *'
       sgObjectStorage: backupconf
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

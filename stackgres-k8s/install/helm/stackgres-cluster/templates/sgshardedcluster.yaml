@@ -29,6 +29,10 @@ spec:
   {{- end }}
   {{- if or .Values.shardedCluster.configurations .Values.cluster.configurations.backups }}
   configurations:
+    {{- with .Values.cluster.configurations.observability }}
+    observability:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- if not .Values.cluster.disableBackups }}
     {{- with .Values.cluster.configurations.backups }}
     {{- if .sgObjectStorage }}
@@ -140,9 +144,6 @@ spec:
       {{- with .Values.cluster.pods.disablePostgresUtil }}
       disablePostgresUtil: {{ . }}
       {{- end }}
-      {{- with .Values.cluster.pods.disableMetricsExporter }}
-      disableMetricsExporter: {{ . }}
-      {{- end }}
       {{- with .Values.cluster.pods.scheduling }}
       scheduling:
         {{- toYaml . | nindent 8 }}
@@ -202,9 +203,6 @@ spec:
       {{- end }}
       {{- with .Values.shardedCluster.shards.pods.disablePostgresUtil }}
       disablePostgresUtil: {{ . }}
-      {{- end }}
-      {{- with .Values.shardedCluster.shards.pods.disableMetricsExporter }}
-      disableMetricsExporter: {{ . }}
       {{- end }}
       {{- with .Values.shardedCluster.shards.pods.scheduling }}
       scheduling:

@@ -9,11 +9,8 @@ cluster:
     persistentVolume:
       size: 128Mi
     managementPolicy: Parallel
-  configurations:
-    sgBackupConfig: null
   initialData:
     restore:
       downloadDiskConcurrency: 1
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

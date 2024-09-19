@@ -145,6 +145,7 @@ EOF
 
   OPERATOR_NAMESPACE="$(generate_operator_namespace)"
   kubectl create namespace "${OPERATOR_NAMESPACE}"
+  kubectl label namespace "$OPERATOR_NAMESPACE" --overwrite monitoring=true
 
   cat << EOF > "$LOG_PATH/operator-catalog-source.yaml"
 apiVersion: operators.coreos.com/v1alpha1

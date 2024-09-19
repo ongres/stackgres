@@ -13,6 +13,5 @@ cluster:
       retention: 2
       cronSchedule: '0 5 31 2 *'
       sgObjectStorage: objectstorage
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

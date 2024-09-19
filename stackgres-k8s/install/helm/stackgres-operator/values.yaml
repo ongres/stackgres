@@ -46,7 +46,7 @@ operator:
 
 # Section to configure REST API Pod
 restapi:
-  # -- REST API Pod name
+  # -- REST API Deployment name
   name: stackgres-restapi
   # Section to configure REST API image
   image:
@@ -116,6 +116,117 @@ adminui:
     # -- (integer) The HTTP port used to expose the Service on Kubernetes nodes
     nodePortHTTP:
 
+# Section to configure OpenTelemetry Collector
+collector:
+  # -- OpenTelemetry Collector Deployment/DeamonSet base name
+  name: stackgres-collector
+  # Section to configure OpenTelemetry Collector image
+  image:
+    # -- OpenTelemetry Collector image name
+    name: "docker.io/otel/opentelemetry-collector-contrib"
+    # -- OpenTelemetry Collector image tag
+    tag: "0.109.0"
+    # -- OpenTelemetry Collector image pull policy
+    pullPolicy: "IfNotPresent"
+  # Section to configure OpenTelemetry Collector Daemonset
+  daemonset:
+    # -- When true the OpenTelemetry Collector Daemonset will be enabled
+    enabled: false
+    # -- OpenTelemetry Collector Daemonset Pod resources
+    resources: {}
+    # -- OpenTelemetry Collector Daemonset Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+    affinity: {}
+    # -- OpenTelemetry Collector Daemonset Pod annotations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+    annotations: {}
+    # -- OpenTelemetry Collector Daemonset Pod node slector
+    nodeSelector: {}
+    # -- OpenTelemetry Collector Daemonset Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+    tolerations: []
+  # -- OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+  resources: {}
+  # -- OpenTelemetry Collector Pod affinity
+  affinity: {}
+  # -- OpenTelemetry Collector Pod annotations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+  annotations: {}
+  # -- OpenTelemetry Collector Pod node slector
+  nodeSelector: {}
+  # -- OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+  tolerations: []
+  # Section to configure OpenTelemetry Collector ServiceAccount
+  serviceAccount:
+    # -- OpenTelemetry Collector ServiceAccount annotations
+    annotations: {}
+  # Section to configure OpenTelemetry Collector Service
+  service:
+    # -- OpenTelemetry Collector Service annotations
+    annotations: {}
+    # Section to configure OpenTelemetry Collector Service specs. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#servicespec-v1-core
+    spec:
+      type: ClusterIP
+      ports:
+        - name: prom-http
+          protocol: TCP
+          port: 9464
+          targetPort: prom-http
+  # Section to configure OpenTelemetry Collector Ports. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#containerport-v1-core
+  ports:
+  - containerPort: 9464
+    name: prom-http
+    protocol: TCP
+  # Section to configure OpenTelemetry Collector Volume Mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+  volumeMounts: []
+  # Section to configure OpenTelemetry Collector Volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+  volumes: []
+  # Section to configure OpenTelemetry Collector Configuration. See https://opentelemetry.io/docs/collector/configuration
+  config:
+    processors: {}
+    receivers: {}
+    exporters:
+      debug:
+        verbosity: detailed
+        sampling_initial: 5
+        sampling_thereafter: 200
+      prometheus:
+        endpoint: "0.0.0.0:9464"
+        send_timestamps: true
+        metric_expiration: 180m
+        enable_open_metrics: false
+        resource_to_telemetry_conversion:
+          enabled: false
+    service:
+      extensions: []
+      pipelines:
+        metrics:
+          receivers:
+          - prometheus
+          processors:
+          exporters:
+          - debug
+          - prometheus
+  # Section to configure OpenTelemetry Collector integration with Prometheus Operator.
+  prometheusOperator:
+    # -- If set to false or monitors is set automatic bind to Prometheus
+    #   created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) will be disabled.
+    # If disabled the cluster will not be binded to Prometheus automatically and will require manual configuration.
+    # Will be ignored if monitors is set
+    allowDiscovery: true
+    # Optional section to configure PodMonitors for specific Prometheus instances
+    # *WARNING*: resources created by this integration that does set
+    #  the metadata namespace to the same as the operator will not
+    #  be removed when removing the helm chart. Changing the namespace
+    #  may require configure the Prometheus CR properly in order to
+    #  discover PodMonitor in such namespace.
+    monitors:
+    # - name: # <Prometheus CR name reference> # Required. Will allow to create a PodMonitor in the Prometheus CR namespace that will scrape from the collector Pod pointing by default to the prometheus exporter
+    #   namespace: # <Prometheus CR namespace reference> # Required. Will allow to create a PodMonitor in the Prometheus CR namespace that will scrape from the collector Pod pointing by default to the prometheus exporter
+    #   metadata: # overwrite some PodMonitor metadata
+    #     name:
+    #     namespace: # changing the namespace may require configure the Prometheus CR properly in order to discover PodMonitor in such namespace.
+    #     labels:
+    #     annotations:
+    #     ownerReferences:
+    #   spec: {} # PodMonitor spec that will be overwritten by the operator
+
 # Section to configure Operator Installation Jobs
 jobs:
   # Section to configure Operator Installation Jobs image
@@ -143,6 +254,8 @@ deploy:
   operator: true
   # -- When set to `true` the Web Console / REST API will be deployed.
   restapi: true
+  # -- When set to `true` the OpenTelemetry Collector will be deployed.
+  collector: true
 
 # Section to configure the Operator, REST API and Web Console certificates and JWT RSA key-pair.
 cert:
@@ -153,6 +266,8 @@ cert:
   createForOperator: true
   # -- When set to `true` the Web Console / REST API certificate will be created.
   createForWebApi: true
+  # -- When set to `true` the OpenTelemetry Collector certificate will be created.
+  createForCollector: true
   # -- (string) The Secret name with the Operator Webhooks certificate issued by the Kubernetes cluster CA
   #   of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
   secretName:
@@ -240,14 +355,6 @@ authentication:
       # name:
       # key -- (string) 
       # key:
-
-# Section to configure Prometheus integration. 
-prometheus:
-  # -- If set to false disable automatic bind to Prometheus
-  #   created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
-  # If disabled the cluster will not be binded to Prometheus automatically and will require manual
-  #   intervention by the Kubernetes cluster administrator.
-  allowAutobind: true
 
 # Section to configure Grafana integration 
 grafana:

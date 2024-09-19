@@ -126,8 +126,5 @@ cluster:
       - name: custom-pgadmin-config
         mountPath: /pgadmin4/config_distro.py
         subPath: config_distro.py
-  configurations:
-    sgBackupConfig: null
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

@@ -16,6 +16,8 @@ e2e_test_install() {
 
   e2e_install_olm
 
+  kubectl label namespace "$OPERATOR_NAMESPACE" --overwrite monitoring=true
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   install_minio
@@ -388,7 +390,7 @@ create_or_replace_cluster_with_backups() {
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
-    --set cluster.prometheusAutobind=true \
+    --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
@@ -404,7 +406,7 @@ create_or_replace_cluster_from_backup() {
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
-    --set cluster.prometheusAutobind=true \
+    --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \

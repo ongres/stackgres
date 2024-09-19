@@ -13,6 +13,5 @@ cluster:
     persistentVolume:
       size: 128Mi
     managementPolicy: Parallel
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminuiService;
-import io.stackgres.common.crd.sgconfig.StackGresConfigCert;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigService;
@@ -49,10 +48,6 @@ public class WebConsoleService
     if (!Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)
-        .orElse(true)
-        || !Optional.ofNullable(context.getSource().getSpec())
-        .map(StackGresConfigSpec::getCert)
-        .map(StackGresConfigCert::getCreateForWebApi)
         .orElse(true)) {
       return Stream.of();
     }

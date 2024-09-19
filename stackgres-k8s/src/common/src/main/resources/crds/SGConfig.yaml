@@ -211,7 +211,7 @@ spec:
                   name:
                     type: string
                     default: stackgres-restapi
-                    description: REST API container name
+                    description: REST API Deployment name
                   image:
                     type: object
                     description: Section to configure REST API image
@@ -335,6 +335,190 @@ spec:
                       nodePortHTTP:
                         type: integer
                         description: The HTTP port used to expose the Service on Kubernetes nodes
+              collector:
+                type: object
+                description: Section to configure OpenTelemetry Collector
+                properties:
+                  name:
+                    type: string
+                    default: stackgres-collector
+                    description: OpenTelemetry Collector Deploymnet/Deamonset base name
+                  image:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector image
+                    properties:
+                      name:
+                        type: string
+                        default: "docker.io/otel/opentelemetry-collector-contrib"
+                        description: OpenTelemetry Collector image name
+                      tag:
+                        type: string
+                        description: OpenTelemetry Collector image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: OpenTelemetry Collector image pull policy
+                  daemonset:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                        description: |
+                          When set to `true` it enables the creation of a DaemonSet of OpenTelemetry Collectors
+                           that will be scraping from the SGCluster Pods and allow to scale the observability architecture.
+                        default: false
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector Pod annotations
+                      resources:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                      nodeSelector:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector Pod node selector
+                      tolerations:
+                        type: array
+                        description: OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                        items:
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
+                      affinity:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod annotations
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod node selector
+                  tolerations:
+                    type: array
+                    description: OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
+                  service:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector Service
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector Service annotations
+                      spec:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: Section to configure OpenTelemetry Collector Service specs. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#servicespec-v1-core
+                  ports:
+                    type: array
+                    description: Section to configure OpenTelemetry Collector ports. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#containerport-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  volumeMounts:
+                    type: array
+                    description: Section to configure OpenTelemetry Collector Volume Mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  volumes:
+                    type: array
+                    description: Section to configure OpenTelemetry Collector Volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  config:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Section to configure OpenTelemetry Collector Configuration. See https://opentelemetry.io/docs/collector/configuration
+                  prometheusOperator:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector integration with Prometheus Operator.
+                    properties:
+                      allowDiscovery:
+                        type: boolean
+                        default: true
+                        description: |
+                          If set to false or monitors is set automatic bind to Prometheus
+                           created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) will be disabled.
+                          If disabled the cluster will not be binded to Prometheus automatically and will require manual configuration.
+                          Will be ignored if monitors is set
+                      monitors:
+                        type: array
+                        description: |
+                          Optional section to configure PodMonitors for specific Prometheus instances
+                          
+                          *WARNING*: resources created by this integration that does set
+                           the metadata namespace to the same as the operator will not
+                           be removed when removing the helm chart. Changing the namespace
+                           may require configure the Prometheus CR properly in order to
+                           discover PodMonitor in such namespace.
+                        items:
+                          type: object
+                          description: Section to configure a PodMonitor for a specific Prometheus instance that will scrape from the collector Pod pointing by default to the prometheus exporter
+                          properties:
+                            name:
+                              type: string
+                              description: The name of the Prometheus resource that will scrape from the collector Pod pointing by default to the prometheus exporter
+                            namespace:
+                              type: string
+                              description: The namespace of the Prometheus resource that will scrape from the collector Pod pointing by default to the prometheus exporter
+                            metadata:
+                              type: object
+                              description: Section to overwrite some PodMonitor metadata
+                              properties:
+                                name:
+                                  type: string
+                                  description: The name of the PodMonitor
+                                namespace:
+                                  type: string
+                                  description: The namespace of the PodMonitor. Changing the namespace may require configure the Prometheus CR properly in order to discover PodMonitor in such namespace.
+                                labels:
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                  description: The labels to set for the PodMonitor
+                                annotations:
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                  description: The labels to set for the PodMonitor
+                                ownerReferences:
+                                  type: array
+                                  description: The ownerReferences to set for the PodMonitor in order to be garbage collected by the specified object.
+                                  items:
+                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
+                            spec:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: The PodMonitor spec that will be overwritten by the operator. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.PodMonitorSpec
               jobs:
                 type: object
                 description: Section to configure Operator Installation Jobs
@@ -402,6 +586,10 @@ spec:
                     type: boolean
                     default: true
                     description: When set to `true` the Web Console / REST API will be deployed.
+                  collector:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the OpenTelemetry Collector will be deployed.
               cert:
                 type: object
                 description: Section to configure the Operator, REST API and Web Console certificates and JWT RSA key-pair.
@@ -420,6 +608,10 @@ spec:
                     type: boolean
                     default: true
                     description: When set to `true` the Web Console / REST API certificate will be created.
+                  createForCollector:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the OpenTelemetry Collector certificate will be created.
                   secretName:
                     type: string
                     description: |
@@ -460,6 +652,21 @@ spec:
                     description: |
                       The duration in days of the generated RSA key pair for the Web Console / REST API after which it will expire and be regenerated.
                       If not specified it will be set to 730 (2 years) by default.
+                  collectorSecretName:
+                    type: string
+                    description: |
+                      The Secret name with the OpenTelemetry Collector certificate
+                       of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  regenerateCollectorCert:
+                    type: boolean
+                    description: |
+                      When set to `true` the OpenTelemetry Collector certificates will be regenerated if `createForCollector` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  collectorCertDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated certificate for the OpenTelemetry Collector after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
                   certManager:
                     type: object
                     description: Section to configure cert-manager integration to generate Operator certificates
@@ -468,7 +675,7 @@ spec:
                         type: boolean
                         default: false
                         description: |
-                          When set to `true` then Issuer and Certificate for Operator and Web Console / REST API
+                          When set to `true` then Issuer and Certificate for Operator, Web Console / REST API and OpenTelemetry Collector
                            Pods will be generated
                       duration:
                         type: string

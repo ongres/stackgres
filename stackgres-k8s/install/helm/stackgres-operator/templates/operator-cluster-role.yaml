@@ -87,7 +87,7 @@ rules:
   - patch
   - update
 {{- end }}
-{{- if $.Values.prometheus.allowAutobind }}
+{{- if (or $.Values.collector.prometheusOperator.allowDiscovery (gt (len $.Values.collector.prometheusOperator.monitors) 0)) }}
 - apiGroups: ["apiextensions.k8s.io"]
   resources:
   - customresourcedefinitions
@@ -222,7 +222,7 @@ rules:
   - get
   - watch
   - create
-{{- if $.Values.prometheus.allowAutobind }}
+{{- if (or $.Values.collector.prometheusOperator.allowDiscovery (gt (len $.Values.collector.prometheusOperator.monitors) 0)) }}
 - apiGroups: ["monitoring.coreos.com"]
   resources:
   - servicemonitors

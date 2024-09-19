@@ -158,6 +158,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     setPostgres(cluster, spec);
     setPostgresSsl(cluster, spec);
     setPostgresExtensions(cluster, spec);
+    setConfigurationsObservability(cluster, spec);
     setConfigurationsBackups(cluster, spec, index);
     setConfigurationsCredentials(cluster, spec);
     setMetadata(cluster, spec, index);
@@ -216,6 +217,19 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     if (cluster.getStatus() != null) {
       spec.setToInstallPostgresExtensions(cluster.getStatus().getToInstallPostgresExtensions());
     }
+  }
+
+  void setConfigurationsObservability(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    Optional.ofNullable(cluster.getSpec())
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getObservability)
+        .ifPresent(observability -> {
+          if (spec.getConfigurations() == null) {
+            spec.setConfigurations(new StackGresClusterConfigurations());
+          }
+          spec.getConfigurations().setObservability(observability);
+        });
   }
 
   void setConfigurationsBackups(

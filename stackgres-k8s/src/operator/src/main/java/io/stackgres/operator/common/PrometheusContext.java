@@ -5,28 +5,77 @@
 
 package io.stackgres.operator.common;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import io.stackgres.common.crd.external.prometheus.PrometheusInstallation;
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.stackgres.common.crd.external.prometheus.Prometheus;
+import io.stackgres.common.crd.external.prometheus.PrometheusSpec;
+import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorPrometheusOperatorMonitor;
 
 public class PrometheusContext {
 
-  private final Boolean createPodMonitor;
-  private final List<PrometheusInstallation> prometheusInstallations;
+  private final String namespace;
 
-  public PrometheusContext(Boolean createPodMonitor,
-      List<PrometheusInstallation> prometheusInstallations) {
-    super();
-    this.createPodMonitor = createPodMonitor;
-    this.prometheusInstallations = prometheusInstallations;
+  private final String name;
+
+  private final Map<String, String> matchLabels;
+
+  private final StackGresConfigCollectorPrometheusOperatorMonitor monitor;
+
+  public PrometheusContext(
+      String namespace,
+      String name,
+      Map<String, String> matchLabels,
+      StackGresConfigCollectorPrometheusOperatorMonitor monitor) {
+    this.namespace = namespace;
+    this.name = name;
+    this.matchLabels = matchLabels;
+    this.monitor = monitor;
   }
 
-  public Boolean getCreatePodMonitor() {
-    return createPodMonitor;
+  public String getNamespace() {
+    return namespace;
   }
 
-  public List<PrometheusInstallation> getPrometheusInstallations() {
-    return prometheusInstallations;
+  public String getName() {
+    return name;
+  }
+
+  public Map<String, String> getMatchLabels() {
+    return matchLabels;
+  }
+
+  public Optional<StackGresConfigCollectorPrometheusOperatorMonitor> getMonitor() {
+    return Optional.ofNullable(monitor);
+  }
+
+  public static PrometheusContext toPrometheusContext(Prometheus prometheus) {
+    Map<String, String> matchLabels = Optional.ofNullable(prometheus.getSpec())
+        .map(PrometheusSpec::getPodMonitorSelector)
+        .map(LabelSelector::getMatchLabels)
+        .map(Map::copyOf)
+        .orElse(Map.of());
+    return new PrometheusContext(
+        prometheus.getMetadata().getNamespace(),
+        prometheus.getMetadata().getName(),
+        matchLabels,
+        null);
+  }
+
+  public static PrometheusContext toPrometheusContext(
+      Prometheus prometheus,
+      StackGresConfigCollectorPrometheusOperatorMonitor monitor) {
+    Map<String, String> matchLabels = Optional.ofNullable(prometheus.getSpec())
+        .map(PrometheusSpec::getPodMonitorSelector)
+        .map(LabelSelector::getMatchLabels)
+        .map(Map::copyOf)
+        .orElse(Map.of());
+    return new PrometheusContext(
+        prometheus.getMetadata().getNamespace(),
+        prometheus.getMetadata().getName(),
+        matchLabels,
+        monitor);
   }
 
 }

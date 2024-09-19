@@ -21,7 +21,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import jakarta.inject.Inject;
@@ -70,7 +69,6 @@ class ClusterResourceGenerationDiscovererTest
         .objectStorage(objectStorage)
         .backupSecrets(Map.of("minio", secret.get()))
         .poolingConfig(pooling)
-        .prometheusContext(new PrometheusContext(false, null))
         .databaseSecret(secret)
         .currentInstances(0)
         .build();

@@ -11,8 +11,8 @@ cluster:
       size: 128Mi
     managementPolicy: Parallel
   configurations:
-    sgBackupConfig: null
+    observability:
+      prometheusAutobind: false
   sgInstanceProfile: 'size-s'
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

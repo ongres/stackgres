@@ -15,12 +15,22 @@ public class ConfigDeploy {
 
   private Boolean restapi;
 
+  private Boolean collector;
+
   public Boolean getRestapi() {
     return restapi;
   }
 
   public void setRestapi(Boolean restapi) {
     this.restapi = restapi;
+  }
+
+  public Boolean getCollector() {
+    return collector;
+  }
+
+  public void setCollector(Boolean collector) {
+    this.collector = collector;
   }
 
   @Override

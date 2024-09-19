@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresClusterObservability;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
@@ -33,6 +34,9 @@ public class StackGresShardedClusterConfigurations {
 
   @Valid
   private StackGresClusterServiceBinding binding;
+
+  @Valid
+  private StackGresClusterObservability observability;
 
   public List<StackGresShardedClusterBackupConfiguration> getBackups() {
     return backups;
@@ -58,9 +62,17 @@ public class StackGresShardedClusterConfigurations {
     this.binding = binding;
   }
 
+  public StackGresClusterObservability getObservability() {
+    return observability;
+  }
+
+  public void setObservability(StackGresClusterObservability observability) {
+    this.observability = observability;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backups, binding, credentials);
+    return Objects.hash(backups, binding, credentials, observability);
   }
 
   @Override
@@ -72,9 +84,9 @@ public class StackGresShardedClusterConfigurations {
       return false;
     }
     StackGresShardedClusterConfigurations other = (StackGresShardedClusterConfigurations) obj;
-    return Objects.equals(backups, other.backups)
-        && Objects.equals(binding, other.binding)
-        && Objects.equals(credentials, other.credentials);
+    return Objects.equals(backups, other.backups) && Objects.equals(binding, other.binding)
+        && Objects.equals(credentials, other.credentials)
+        && Objects.equals(observability, other.observability);
   }
 
   @Override

@@ -21,7 +21,6 @@ cluster:
     persistentVolume:
       size: 128Mi
     managementPolicy: Parallel
-  prometheusAutobind: false
 shardedCluster:
   shards:
     pods:
