@@ -1,14 +1,51 @@
-{{- if eq "true" (include "missingSGConfigCrd" .) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-sgconfig-crd"
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-upgrade # Remove post-upgrade after version 1.13 get out of support
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "9"
+data:
+  SGConfig.yaml: |
+    {{ .Files.Get "crds/SGConfig.yaml" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-sgconfig"
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-upgrade # Remove post-upgrade after version 1.13 get out of support
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "9"
+data:
+  sgconfig.yaml: |
+    apiVersion: stackgres.io/v1
+    kind: SGConfig
+    metadata:
+      annotations:
+        meta.helm.sh/release-name: {{ .Release.Name }}
+        meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+      labels:
+        app.kubernetes.io/managed-by: Helm
+      name: {{ .Release.Name }}
+      namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
+    spec:
+      {{ regexReplaceAll "[^ ]+: null" (unset .Values "global" | toYaml | nindent 6) "" }}
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: "{{ .Release.Name }}-install-crd-and-sgconfig"
+  name: "{{ .Release.Name }}-install-sgconfig"
   labels:
     app: stackgres-operator-init
-    job: install-crd-and-sgconfig
+    job: install-sgconfig
   annotations:
-    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook": pre-install,pre-upgrade,post-upgrade # Remove post-upgrade after version 1.13 get out of support
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "10"
     {{- with .Values.jobs.annotations }}
@@ -20,7 +57,7 @@ spec:
     metadata:
       labels:
         app: stackgres-operator-init
-        job: install-crd-and-sgconfig
+        job: install-sgconfig
     spec:
       serviceAccountName: {{ .Release.Name }}-init
       restartPolicy: OnFailure
@@ -38,7 +75,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: "install-crd-and-sgconfig"
+      - name: "install-sgconfig"
         image: {{ template "kubectl-image" . }}
         imagePullPolicy: "IfNotPresent"
         {{- with .Values.jobs.resources }}
@@ -49,30 +86,73 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            cat << 'EOF' > /tmp/SGConfig.yaml
-            {{ .Files.Get "crds/SGConfig.yaml" | nindent 12 }}
-            EOF
-            kubectl create -f /tmp/SGConfig.yaml || kubectl get -f /tmp/SGConfig.yaml -o name > /dev/null
-            cat << 'EOF' | kubectl apply -f -
-            apiVersion: stackgres.io/v1
-            kind: SGConfig
-            metadata:
-              annotations:
-                meta.helm.sh/release-name: {{ .Release.Name }}
-                meta.helm.sh/release-namespace: {{ .Release.Namespace }}
-              labels:
-                app.kubernetes.io/managed-by: Helm
-              name: {{ .Release.Name }}
-              namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
-            spec:
-              {{ regexReplaceAll "[^ ]+: null" (toYaml .Values | nindent 14) "" }}
-            EOF
-{{- else }}
-apiVersion: stackgres.io/v1
-kind: SGConfig
+            kubectl replace -f /SGConfig.yaml
+            kubectl apply -f /sgconfig.yaml
+        volumeMounts:
+        - name: sgconfig-crd
+          mountPath: /SGConfig.yaml
+          subPath: SGConfig.yaml
+        - name: sgconfig
+          mountPath: /sgconfig.yaml
+          subPath: sgconfig.yaml
+      volumes:
+      - name: sgconfig-crd
+        configMap:
+          name: "{{ .Release.Name }}-sgconfig-crd"
+          optional: false
+      - name: sgconfig
+        configMap:
+          name: "{{ .Release.Name }}-sgconfig"
+          optional: false
+---
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ .Release.Name }}
-  namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-remove-sgconfig"
+  labels:
+    app: stackgres-operator-init
+    job: remove-sgconfig
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+    {{- with .Values.jobs.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  {{ regexReplaceAll "[^ ]+: null" (toYaml .Values | nindent 2) "" }}
-{{- end }}
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator-init
+        job: remove-sgconfig
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: "remove-sgconfig"
+        image: {{ template "kubectl-image" . }}
+        imagePullPolicy: "IfNotPresent"
+        {{- with .Values.jobs.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            kubectl delete sgconfig -n "{{ .Values.sgConfigNamespace | default .Release.Namespace }}" "{{ .Release.Name }}"
