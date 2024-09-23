@@ -24,9 +24,9 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigCollectorDaemonset {
+public class StackGresConfigCollectorScalingDeployment {
 
-  private Boolean enabled;
+  private List<StackGresConfigCollectorScalingDeploymentSgCluster> sgClusters;
 
   private Map<String, String> annotations;
 
@@ -38,12 +38,12 @@ public class StackGresConfigCollectorDaemonset {
 
   private Affinity affinity;
 
-  public Boolean getEnabled() {
-    return enabled;
+  public List<StackGresConfigCollectorScalingDeploymentSgCluster> getSgClusters() {
+    return sgClusters;
   }
 
-  public void setEnabled(Boolean enabled) {
-    this.enabled = enabled;
+  public void setSgClusters(List<StackGresConfigCollectorScalingDeploymentSgCluster> sgClusters) {
+    this.sgClusters = sgClusters;
   }
 
   public Map<String, String> getAnnotations() {
@@ -88,7 +88,7 @@ public class StackGresConfigCollectorDaemonset {
 
   @Override
   public int hashCode() {
-    return Objects.hash(affinity, annotations, enabled, nodeSelector, resources, tolerations);
+    return Objects.hash(affinity, annotations, nodeSelector, resources, sgClusters, tolerations);
   }
 
   @Override
@@ -96,14 +96,15 @@ public class StackGresConfigCollectorDaemonset {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresConfigCollectorDaemonset)) {
+    if (!(obj instanceof StackGresConfigCollectorScalingDeployment)) {
       return false;
     }
-    StackGresConfigCollectorDaemonset other = (StackGresConfigCollectorDaemonset) obj;
+    StackGresConfigCollectorScalingDeployment other = (StackGresConfigCollectorScalingDeployment) obj;
     return Objects.equals(affinity, other.affinity)
-        && Objects.equals(annotations, other.annotations) && Objects.equals(enabled, other.enabled)
+        && Objects.equals(annotations, other.annotations)
         && Objects.equals(nodeSelector, other.nodeSelector)
         && Objects.equals(resources, other.resources)
+        && Objects.equals(sgClusters, other.sgClusters)
         && Objects.equals(tolerations, other.tolerations);
   }
 

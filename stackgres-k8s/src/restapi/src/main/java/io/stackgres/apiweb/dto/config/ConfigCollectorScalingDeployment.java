@@ -17,9 +17,9 @@ import io.stackgres.common.crd.Toleration;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigCollectorDaemonset {
+public class ConfigCollectorScalingDeployment {
 
-  private Boolean enabled;
+  private List<ConfigCollectorScalingDeploymentSgCluster> sgClusters;
 
   private Map<String, String> annotations;
 
@@ -31,12 +31,12 @@ public class ConfigCollectorDaemonset {
 
   private Affinity affinity;
 
-  public Boolean getEnabled() {
-    return enabled;
+  public List<ConfigCollectorScalingDeploymentSgCluster> getSgClusters() {
+    return sgClusters;
   }
 
-  public void setEnabled(Boolean enabled) {
-    this.enabled = enabled;
+  public void setSgClusters(List<ConfigCollectorScalingDeploymentSgCluster> sgClusters) {
+    this.sgClusters = sgClusters;
   }
 
   public Map<String, String> getAnnotations() {

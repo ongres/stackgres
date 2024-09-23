@@ -26,7 +26,7 @@ public class ConfigCollector {
 
   private ConfigImage image;
 
-  private ConfigCollectorDaemonset daemonset;
+  private ConfigCollectorScaling scaling;
 
   private Map<String, String> annotations;
 
@@ -68,12 +68,12 @@ public class ConfigCollector {
     this.image = image;
   }
 
-  public ConfigCollectorDaemonset getDaemonset() {
-    return daemonset;
+  public ConfigCollectorScaling getScaling() {
+    return scaling;
   }
 
-  public void setDaemonset(ConfigCollectorDaemonset daemonset) {
-    this.daemonset = daemonset;
+  public void setScaling(ConfigCollectorScaling scaling) {
+    this.scaling = scaling;
   }
 
   public Map<String, String> getAnnotations() {

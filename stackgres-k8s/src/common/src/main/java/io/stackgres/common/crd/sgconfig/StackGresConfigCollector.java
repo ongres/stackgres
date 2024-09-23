@@ -29,7 +29,7 @@ public class StackGresConfigCollector {
 
   private StackGresConfigImage image;
 
-  private StackGresConfigCollectorDaemonset daemonset;
+  private StackGresConfigCollectorScaling scaling;
 
   private Map<String, String> annotations;
 
@@ -71,12 +71,12 @@ public class StackGresConfigCollector {
     this.image = image;
   }
 
-  public StackGresConfigCollectorDaemonset getDaemonset() {
-    return daemonset;
+  public StackGresConfigCollectorScaling getScaling() {
+    return scaling;
   }
 
-  public void setDaemonset(StackGresConfigCollectorDaemonset daemonset) {
-    this.daemonset = daemonset;
+  public void setScaling(StackGresConfigCollectorScaling scaling) {
+    this.scaling = scaling;
   }
 
   public Map<String, String> getAnnotations() {
@@ -177,7 +177,7 @@ public class StackGresConfigCollector {
 
   @Override
   public int hashCode() {
-    return Objects.hash(affinity, annotations, config, daemonset, image, name, nodeSelector, ports,
+    return Objects.hash(affinity, annotations, config, scaling, image, name, nodeSelector, ports,
         prometheusOperator, resources, service, serviceAccount, tolerations, volumeMounts, volumes);
   }
 
@@ -192,7 +192,7 @@ public class StackGresConfigCollector {
     StackGresConfigCollector other = (StackGresConfigCollector) obj;
     return Objects.equals(affinity, other.affinity)
         && Objects.equals(annotations, other.annotations) && Objects.equals(config, other.config)
-        && Objects.equals(daemonset, other.daemonset) && Objects.equals(image, other.image)
+        && Objects.equals(scaling, other.scaling) && Objects.equals(image, other.image)
         && Objects.equals(name, other.name) && Objects.equals(nodeSelector, other.nodeSelector)
         && Objects.equals(ports, other.ports)
         && Objects.equals(prometheusOperator, other.prometheusOperator)

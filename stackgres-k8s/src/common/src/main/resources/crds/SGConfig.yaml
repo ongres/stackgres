@@ -358,37 +358,79 @@ spec:
                         type: string
                         default: "IfNotPresent"
                         description: OpenTelemetry Collector image pull policy
-                  daemonset:
+                  scaling:
                     type: object
                     properties:
                       enabled:
                         type: boolean
                         description: |
-                          When set to `true` it enables the creation of a DaemonSet of OpenTelemetry Collectors
+                          When set to `true` it enables the creation of a set of OpenTelemetry Collectors
                            that will be scraping from the SGCluster Pods and allow to scale the observability architecture.
                         default: false
-                      annotations:
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                        description: OpenTelemetry Collector Pod annotations
-                      resources:
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                        description: OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
-                      nodeSelector:
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                        description: OpenTelemetry Collector Pod node selector
-                      tolerations:
+                      deployments:
                         type: array
-                        description: OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                        description: |
+                          A set of separate Deployments of 1 instance each that allow to scale the observability architecture to a specified number of instances.
+                          When not set the number of Deployment will match the number of instances of all the existing SGClusters that has the field
+                           `.spec.configurations.observability.enableMetrics` set to `true`. Also, when not set, each Deployment will include a pod affinity rule
+                           matching any of the SGClusters Pods set defined below. This will allow to create an OpenTelemetry Collector instance dedicated to each
+                           SGCluster Pod running in the same Node.
+                          
+                          Each Deployment will use a configuration for the OpenTelemetry Collector that will scrape from a set of SGClusters Pods that has the field
+                           `.spec.configurations.observability.enableMetrics` set to `true`. The set of Pods of each OpenTelemetry Collector configuration will be
+                           a partition of the list of SGClusters Pods that has the field `.spec.configurations.observability.enableMetrics` set to `true` ordered by
+                           the field `Pod.metadata.creationTimestamp` (from the oldest to the newest) and ordered crescently alphabetically by the fields
+                           `Pod.metadata.namespace` and `Pod.metadata.name`.
+                          
+                          If is possible to override (even partially) the list of SGCluster Pods
                         items:
                           type: object
-                          x-kubernetes-preserve-unknown-fields: true
-                      affinity:
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                        description: OpenTelemetry Collector Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                          properties:
+                            sgClusters:
+                              type: array
+                              description: |
+                                List of SGCluster Pods to scrape from this Deployment's Pod that will be included to the OpenTelemetry Collector
+                                 configuration alongside the SGCluster Pods assigned as described in `SGConfig.spec.collector.scaling.deployments`.
+                              items:
+                                type: object
+                                properties:
+                                  namespace:
+                                    type: string
+                                    description: The namespace of the SGCluster
+                                  name:
+                                    type: string
+                                    description: The name of the SGCluster
+                                  indexes:
+                                    type: array
+                                    description: |
+                                      The indexes of the SGCluster's Pods that will be included to the OpenTelemetry Collector configuration alongside
+                                       the SGCluster Pods assigned as described in `SGConfig.spec.collector.scaling.deployments`.
+                                      
+                                      If not specified all the SGCluster's Pods will be included.
+                                    items:
+                                      type: integer
+                            annotations:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod annotations
+                            resources:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                            nodeSelector:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod node selector
+                            tolerations:
+                              type: array
+                              description: OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                              items:
+                                type: object
+                                x-kubernetes-preserve-unknown-fields: true
+                            affinity:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
                   annotations:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
