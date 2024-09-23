@@ -128,20 +128,37 @@ collector:
     tag: "0.109.0"
     # -- OpenTelemetry Collector image pull policy
     pullPolicy: "IfNotPresent"
-  # Section to configure OpenTelemetry Collector Daemonset
-  daemonset:
-    # -- When true the OpenTelemetry Collector Daemonset will be enabled
+  # Section to configure OpenTelemetry Collector scaling
+  scaling:
+    # -- When true the OpenTelemetry Collector scaling will be enabled
     enabled: false
-    # -- OpenTelemetry Collector Daemonset Pod resources
-    resources: {}
-    # -- OpenTelemetry Collector Daemonset Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
-    affinity: {}
-    # -- OpenTelemetry Collector Daemonset Pod annotations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
-    annotations: {}
-    # -- OpenTelemetry Collector Daemonset Pod node slector
-    nodeSelector: {}
-    # -- OpenTelemetry Collector Daemonset Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
-    tolerations: []
+    # Section to configure OpenTelemetry scaling Deployments, if scaling is enabled and this section is not defined
+    #  a number of Deployments equals to the number of SGClusters Pods that has `SGCluster.spec.configurations.observability.disableMetrics` set to `false`,
+    #  each with a pod affinity that match a different SGCluster's Pod and a configuration that will scrape from the same SGCluster's Pod.
+    #
+    # When deployments is defined, each Deployment will have a configuration that will scrape from a partition of the list of all the SGClusters Pods ordered by
+    #  the `Pod.metadata.creationTimestamp` (from older to newer), the `Pod.metadata.namespace` (alphabetically and ascending) and the `Pod.metadata.name`
+    #  (alphabetically and ascending).
+    deployments:
+      #   -- OpenTelemetry Collector scaling Deployment list of a specific SGCluster Pods to be included together with the Pod list partition as described above.
+      # - sgClusters:
+      #     -- namespace of an SGCluster.
+      #   - namespace: my-cluster-namespace
+      #     -- name of an SGCluster.
+      #     name: my-cluster-name
+      #     -- Indexes of the Pods to include. If not set all the SGCluster Pods will be included.
+      #     indexes:
+      #     - 0
+      #   -- OpenTelemetry Collector scaling Deployment Pod resources
+      #   resources: {}
+      #   -- OpenTelemetry Collector scaling Deployment Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+      #   affinity: {}
+      #   -- OpenTelemetry Collector scaling Deployment Pod annotations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+      #   annotations: {}
+      #   -- OpenTelemetry Collector scaling Deployment Pod node slector
+      #   nodeSelector: {}
+      #   -- OpenTelemetry Collector scaling Deployment Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+      #   tolerations: []
   # -- OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
   resources: {}
   # -- OpenTelemetry Collector Pod affinity
