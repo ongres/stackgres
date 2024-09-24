@@ -483,7 +483,7 @@ EOF
         echo "VolumeSnapshot ready"
         break
       fi
-      if [ "x$(jq -r 'if .status.error != null then .status.error else "" end' /tmp/backup-volumesnapshot)" != x ]
+      if [ "x$(jq -r 'if .status.error != null then .status.error.message else "" end' /tmp/backup-volumesnapshot)" != x ]
       then
         cat /tmp/backup-volumesnapshot
         echo 'Backup failed due to error in VolumeSnapshot'

@@ -27,7 +27,7 @@ public class PodMonitorSpec {
 
   private List<String> podTargetLabels; 
   
-  private List<Endpoint> podMetricsEndpoints;
+  private List<PodMetricsEndpoint> podMetricsEndpoints;
 
   private LabelSelector selector;
 
@@ -69,11 +69,11 @@ public class PodMonitorSpec {
     this.podTargetLabels = podTargetLabels;
   }
 
-  public List<Endpoint> getPodMetricsEndpoints() {
+  public List<PodMetricsEndpoint> getPodMetricsEndpoints() {
     return podMetricsEndpoints;
   }
 
-  public void setPodMetricsEndpoints(List<Endpoint> podMetricsEndpoints) {
+  public void setPodMetricsEndpoints(List<PodMetricsEndpoint> podMetricsEndpoints) {
     this.podMetricsEndpoints = podMetricsEndpoints;
   }
 

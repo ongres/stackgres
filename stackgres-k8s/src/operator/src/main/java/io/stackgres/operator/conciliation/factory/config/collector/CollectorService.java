@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -58,7 +59,7 @@ public class CollectorService
     return Stream.of(new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(CollectorDeployment.name(config))
+        .withName(CollectorDeployments.name(config))
         .withLabels(labels)
         .withAnnotations(Optional.of(config.getSpec())
             .map(StackGresConfigSpec::getCollector)
@@ -73,6 +74,12 @@ public class CollectorService
             .orElseGet(ServiceSpec::new))
         .editSpec()
         .withSelector(labelFactory.collectorLabels(config))
+        .addNewPort()
+        .withName("oltp-port")
+        .withProtocol("TCP")
+        .withPort(4317)
+        .withTargetPort(new IntOrString("oltp-port"))
+        .endPort()
         .endSpec()
         .build());
   }

@@ -150,12 +150,14 @@ class CrdInstallerTest {
     var exception = Assertions.assertThrows(
         RuntimeException.class, () -> crdInstaller.checkUpgrade());
     Assertions.assertEquals(
-        "Can not upgrade due to some resources still at version older than"
-        + " \"" + StackGresVersion.OLDEST.getVersion() + "\"."
-        + " Please, downgrade to a previous version of the operator and run a SGStream of"
-        + " type securityUpgrade on all the SGClusters of the following list"
-        + " (if any is present):\n"
-        + "SGCluster test.test: version at 0.9",
+        "Can not upgrade due to some resources still at version"
+          + " older than \"" + StackGresVersion.OLDEST.getVersion() + "\"."
+          + " Please, downgrade to a previous version of the operator and run a SGDbOps of"
+          + " type securityUpgrade on all the SGClusters (that are not part of an SGShardedCluster),"
+          + " a SGShardedDbOps of type securityUpgrade on all the SGShardedClusters and perform the"
+          + " upgrade procedure as explained in https://stackgres.io/doc/latest/administration/distributed-logs/upgrade/"
+          + " of the following list:\n"
+          + "SGCluster test.test: version at 0.9",
         exception.getMessage());
   }
 

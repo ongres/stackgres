@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -175,6 +176,10 @@ public class JsonArray implements List<Object> {
   @Override
   public boolean equals(Object obj) {
     return list.equals(obj);
+  }
+
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

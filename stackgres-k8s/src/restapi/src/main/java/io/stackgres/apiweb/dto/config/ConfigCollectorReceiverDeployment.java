@@ -17,9 +17,9 @@ import io.stackgres.common.crd.Toleration;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigCollectorScalingDeployment {
+public class ConfigCollectorReceiverDeployment {
 
-  private List<ConfigCollectorScalingDeploymentSgCluster> sgClusters;
+  private List<ConfigCollectorReceiverDeploymentSgCluster> sgClusters;
 
   private Map<String, String> annotations;
 
@@ -31,11 +31,11 @@ public class ConfigCollectorScalingDeployment {
 
   private Affinity affinity;
 
-  public List<ConfigCollectorScalingDeploymentSgCluster> getSgClusters() {
+  public List<ConfigCollectorReceiverDeploymentSgCluster> getSgClusters() {
     return sgClusters;
   }
 
-  public void setSgClusters(List<ConfigCollectorScalingDeploymentSgCluster> sgClusters) {
+  public void setSgClusters(List<ConfigCollectorReceiverDeploymentSgCluster> sgClusters) {
     this.sgClusters = sgClusters;
   }
 

@@ -26,7 +26,7 @@ public class ConfigCollector {
 
   private ConfigImage image;
 
-  private ConfigCollectorScaling scaling;
+  private ConfigCollectorReceiver receivers;
 
   private Map<String, String> annotations;
 
@@ -68,12 +68,12 @@ public class ConfigCollector {
     this.image = image;
   }
 
-  public ConfigCollectorScaling getScaling() {
-    return scaling;
+  public ConfigCollectorReceiver getReceivers() {
+    return receivers;
   }
 
-  public void setScaling(ConfigCollectorScaling scaling) {
-    this.scaling = scaling;
+  public void setReceivers(ConfigCollectorReceiver receivers) {
+    this.receivers = receivers;
   }
 
   public Map<String, String> getAnnotations() {

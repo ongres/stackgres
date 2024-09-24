@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgconfig;
+package io.stackgres.common.crd.external.prometheus;
 
-import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -20,31 +20,31 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigCollectorScaling {
+public class BasicAuth {
 
-  private Boolean enabled;
+  private SecretKeySelector username;
 
-  private List<StackGresConfigCollectorScalingDeployment> deployments;
+  private SecretKeySelector password;
 
-  public Boolean getEnabled() {
-    return enabled;
+  public SecretKeySelector getUsername() {
+    return username;
   }
 
-  public void setEnabled(Boolean enabled) {
-    this.enabled = enabled;
+  public void setUsername(SecretKeySelector username) {
+    this.username = username;
   }
 
-  public List<StackGresConfigCollectorScalingDeployment> getDeployments() {
-    return deployments;
+  public SecretKeySelector getPassword() {
+    return password;
   }
 
-  public void setDeployments(List<StackGresConfigCollectorScalingDeployment> deployments) {
-    this.deployments = deployments;
+  public void setPassword(SecretKeySelector password) {
+    this.password = password;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(deployments, enabled);
+    return Objects.hash(password, username);
   }
 
   @Override
@@ -52,11 +52,11 @@ public class StackGresConfigCollectorScaling {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresConfigCollectorScaling)) {
+    if (!(obj instanceof BasicAuth)) {
       return false;
     }
-    StackGresConfigCollectorScaling other = (StackGresConfigCollectorScaling) obj;
-    return Objects.equals(deployments, other.deployments) && Objects.equals(enabled, other.enabled);
+    BasicAuth other = (BasicAuth) obj;
+    return Objects.equals(password, other.password) && Objects.equals(username, other.username);
   }
 
   @Override

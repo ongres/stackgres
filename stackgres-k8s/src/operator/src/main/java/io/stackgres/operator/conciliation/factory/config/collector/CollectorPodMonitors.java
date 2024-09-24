@@ -15,11 +15,16 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.stackgres.common.crd.external.prometheus.Endpoint;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.ConfigPath;
 import io.stackgres.common.crd.external.prometheus.NamespaceSelector;
+import io.stackgres.common.crd.external.prometheus.PodMetricsEndpoint;
 import io.stackgres.common.crd.external.prometheus.PodMonitor;
 import io.stackgres.common.crd.external.prometheus.PodMonitorSpec;
+import io.stackgres.common.crd.external.prometheus.SafeTlsConfigBuilder;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigCollector;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorPrometheusOperatorMonitor;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
@@ -31,6 +36,8 @@ import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @OperatorVersionBinder
@@ -42,7 +49,7 @@ public class CollectorPodMonitors
   private final LabelFactoryForConfig labelFactory;
 
   public static String name(StackGresConfig config) {
-    return CollectorDeployment.name(config);
+    return CollectorDeployments.name(config);
   }
 
   @Inject
@@ -64,12 +71,11 @@ public class CollectorPodMonitors
       return Stream.of();
     }
 
-    return context.getPrometheus()
-        .stream()
-        .map(prometheus -> createPodMonitor(prometheus, context));
+    return Seq.seq(context.getPrometheus())
+        .flatMap(prometheus -> createPodMonitor(prometheus, context));
   }
 
-  private PodMonitor createPodMonitor(
+  private Stream<HasMetadata> createPodMonitor(
       PrometheusContext prometheus,
       StackGresConfigContext context) {
     final StackGresConfig config = context.getSource();
@@ -77,15 +83,17 @@ public class CollectorPodMonitors
     final Map<String, String> crossNamespaceLabels = labelFactory
         .configCrossNamespaceLabels(config);
     PodMonitor podMonitor = new PodMonitor();
+    final String podMonitorName = monitor
+        .map(StackGresConfigCollectorPrometheusOperatorMonitor::getMetadata)
+        .map(ObjectMeta::getName)
+        .orElse(CollectorDeployments.name(config));
+    final String podMonitorNamespace = monitor
+        .map(StackGresConfigCollectorPrometheusOperatorMonitor::getMetadata)
+        .map(ObjectMeta::getNamespace)
+        .orElse(config.getMetadata().getNamespace());
     podMonitor.setMetadata(new ObjectMetaBuilder()
-        .withNamespace(monitor
-            .map(StackGresConfigCollectorPrometheusOperatorMonitor::getMetadata)
-            .map(ObjectMeta::getNamespace)
-            .orElse(config.getMetadata().getNamespace()))
-        .withName(monitor
-            .map(StackGresConfigCollectorPrometheusOperatorMonitor::getMetadata)
-            .map(ObjectMeta::getName)
-            .orElse(CollectorDeployment.name(config)))
+        .withNamespace(podMonitorNamespace)
+        .withName(podMonitorName)
         .withLabels(ImmutableMap.<String, String>builder()
             .putAll(prometheus.getMatchLabels())
             .putAll(crossNamespaceLabels)
@@ -114,12 +122,45 @@ public class CollectorPodMonitors
     podMonitor.getSpec().setSelector(new LabelSelector());
     podMonitor.getSpec().getSelector().setMatchLabels(collectorSelectorLabels);
     if (podMonitor.getSpec().getPodMetricsEndpoints() == null) {
-      Endpoint endpoint = new Endpoint();
-      endpoint.setPort(CollectorConfigMap.COLLECTOR_DEFAULT_PROMETHEUS_EXPORTER_PORT_NAME);
+      PodMetricsEndpoint endpoint = new PodMetricsEndpoint();
+      endpoint.setHonorLabels(true);
+      endpoint.setHonorTimestamps(true);
+      endpoint.setPort(CollectorConfigMaps.COLLECTOR_DEFAULT_PROMETHEUS_EXPORTER_PORT_NAME);
       endpoint.setPath("/metrics");
+      if (Optional.of(config.getSpec())
+          .map(StackGresConfigSpec::getCollector)
+          .map(StackGresConfigCollector::getConfig)
+          .map(c -> c.getObject("exporters"))
+          .map(c -> c.getObject("prometheus"))
+          .map(c -> c.getObject("tls"))
+          .isPresent()) {
+        endpoint.setScheme("https");
+        endpoint.setTlsConfig(
+            new SafeTlsConfigBuilder()
+            .withServerName(CollectorDeployments.name(config))
+            .withNewCa()
+            .withNewSecret()
+            .withName(podMonitorName)
+            .withKey(ConfigPath.CERTIFICATE_PATH.filename())
+            .endSecret()
+            .endCa()
+            .build());
+      }
       podMonitor.getSpec().setPodMetricsEndpoints(List.of(endpoint));
     }
-    return podMonitor;
+    Optional<Secret> podMonitorSecret = context.getCollectorSecret()
+        .filter(collectorSecret -> collectorSecret.getData() != null)
+        .map(collectorSecret -> new SecretBuilder()
+            .withNewMetadata()
+            .withNamespace(podMonitorNamespace)
+            .withName(podMonitorName)
+            .withLabels(crossNamespaceLabels)
+            .endMetadata()
+            .withData(Seq.seq(collectorSecret.getData())
+                .filter(entry -> entry.v1.equals(ConfigPath.CERTIFICATE_PATH.filename()))
+                .toMap(Tuple2::v1, Tuple2::v2))
+            .build());
+    return Seq.<HasMetadata>of(podMonitor).append(podMonitorSecret.stream());
   }
 
 }

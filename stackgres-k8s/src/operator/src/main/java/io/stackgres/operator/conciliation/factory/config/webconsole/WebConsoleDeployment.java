@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.stackgres.common.ConfigPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresUtil;
@@ -405,7 +406,7 @@ public class WebConsoleDeployment
             .withVolumeMounts(
                 new VolumeMountBuilder()
                 .withName(WEBCONSOLE_CERTS)
-                .withMountPath("/etc/operator/certs")
+                .withMountPath(ConfigPath.ETC_CERTIFICATES_PATH.path())
                 .withReadOnly(true)
                 .build())
             .addAllToVolumeMounts(Optional.of(context.getSource().getSpec())
@@ -511,7 +512,7 @@ public class WebConsoleDeployment
             .withVolumeMounts(
                 new VolumeMountBuilder()
                 .withName(WEBCONSOLE_CERTS)
-                .withMountPath("/etc/operator/certs")
+                .withMountPath(ConfigPath.ETC_CERTIFICATES_PATH.path())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()

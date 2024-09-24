@@ -10,6 +10,10 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 public enum ConfigPath implements EnvVarPathSource<StackGresConfig> {
 
   ETC_PATH("/etc"),
+  ETC_OPERATOR_PATH(ETC_PATH, "operator"),
+  ETC_CERTIFICATES_PATH(ETC_OPERATOR_PATH, "certs"),
+  CERTIFICATE_PATH(ETC_CERTIFICATES_PATH, "tls.crt"),
+  CERTIFICATE_KEY_PATH(ETC_CERTIFICATES_PATH, "tls.key"),
   ETC_COLLECTOR_PATH(ETC_PATH, "collector"),
   COLLECTOR_CONFIG_PATH(ETC_COLLECTOR_PATH, "config.yaml"),
   LOCAL_BIN_PATH("/usr/local/bin"),

@@ -13,11 +13,13 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigCollectorScaling {
+public class ConfigCollectorReceiver {
 
   private Boolean enabled;
 
-  private List<ConfigCollectorScalingDeployment> deployments;
+  private Integer exporters;
+
+  private List<ConfigCollectorReceiverDeployment> deployments;
 
   public Boolean getEnabled() {
     return enabled;
@@ -27,11 +29,19 @@ public class ConfigCollectorScaling {
     this.enabled = enabled;
   }
 
-  public List<ConfigCollectorScalingDeployment> getDeployments() {
+  public Integer getExporters() {
+    return exporters;
+  }
+
+  public void setExporters(Integer exporters) {
+    this.exporters = exporters;
+  }
+
+  public List<ConfigCollectorReceiverDeployment> getDeployments() {
     return deployments;
   }
 
-  public void setDeployments(List<ConfigCollectorScalingDeployment> deployments) {
+  public void setDeployments(List<ConfigCollectorReceiverDeployment> deployments) {
     this.deployments = deployments;
   }
 

@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -69,9 +70,11 @@ public class JsonObject implements Map<String, Object> {
         map.put(setToKey, objectValue);
       }
     } else if (value == null) {
-      objectValue = new JsonObject();
       if (setToKey != null) {
+        objectValue = new JsonObject();
         map.put(setToKey, objectValue);
+      } else {
+        objectValue = null;
       }
     } else {
       throw new ClassCastException("Can not cast " + value.getClass().getName() + " to Map");
@@ -182,6 +185,10 @@ public class JsonObject implements Map<String, Object> {
   @Override
   public boolean equals(Object obj) {
     return map.equals(obj);
+  }
+
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

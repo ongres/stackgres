@@ -8,9 +8,9 @@ do
     kill -SIGHUP "$(ls -1d /proc/[0-9]* \
       | while read FILE
         do
-          echo "${FILE##*/} $(cat "$FILE/cmdline" 2>/dev/null | tr '\0' ' ')"
+          echo "${FILE##*/} -- $(cat "$FILE/cmdline" 2>/dev/null | tr '\0' ' ')"
         done \
-      | grep -F ' /otelcol-contrib ' \
+      | grep ' -- [/]otelcol-contrib ' \
       | cut -d ' ' -f 1)"
     PREVIOUS_CONFIG_HASH="$CONFIG_HASH"
   fi 

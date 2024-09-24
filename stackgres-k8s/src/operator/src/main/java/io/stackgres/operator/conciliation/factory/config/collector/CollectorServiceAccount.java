@@ -59,7 +59,7 @@ public class CollectorServiceAccount
     return Stream.of(new ServiceAccountBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
-        .withName(CollectorDeployment.name(config))
+        .withName(CollectorDeployments.name(config))
         .withLabels(labels)
         .withAnnotations(Optional.of(config.getSpec())
             .map(StackGresConfigSpec::getServiceAccount)

@@ -128,11 +128,21 @@ collector:
     tag: "0.109.0"
     # -- OpenTelemetry Collector image pull policy
     pullPolicy: "IfNotPresent"
-  # Section to configure OpenTelemetry Collector scaling
-  scaling:
-    # -- When true the OpenTelemetry Collector scaling will be enabled
+  # Section to configure OpenTelemetry Collector receivers
+  # 
+  # By default a single instance of OpenTelemetry Collector will be created.
+  # This section allow to have a variable number of OpenTelemetry Collector
+  #  exporters (by default equals to the number of Pod with metrics enabled)
+  #  that will scrape the metrics separately and send them to a defined number
+  #  of OpenTelemetry Collector receivers (by default 1).
+  receivers:
+    # -- When true the OpenTelemetry Collector receivers will be enabled
     enabled: false
-    # Section to configure OpenTelemetry scaling Deployments, if scaling is enabled and this section is not defined
+    # -- Allow to increase the number of OpenTelemetry Collector exporters if receivers is enabled
+    exporters: 1
+    # Section to configure OpenTelemetry Colelctor receivers Deployments.
+    # 
+    # If receivers is enabled and this section is not defined
     #  a number of Deployments equals to the number of SGClusters Pods that has `SGCluster.spec.configurations.observability.disableMetrics` set to `false`,
     #  each with a pod affinity that match a different SGCluster's Pod and a configuration that will scrape from the same SGCluster's Pod.
     #
@@ -140,7 +150,7 @@ collector:
     #  the `Pod.metadata.creationTimestamp` (from older to newer), the `Pod.metadata.namespace` (alphabetically and ascending) and the `Pod.metadata.name`
     #  (alphabetically and ascending).
     deployments:
-      #   -- OpenTelemetry Collector scaling Deployment list of a specific SGCluster Pods to be included together with the Pod list partition as described above.
+      #   -- OpenTelemetry Collector receivers Deployment list of a specific SGCluster Pods to be included together with the Pod list partition as described above.
       # - sgClusters:
       #     -- namespace of an SGCluster.
       #   - namespace: my-cluster-namespace
@@ -149,15 +159,15 @@ collector:
       #     -- Indexes of the Pods to include. If not set all the SGCluster Pods will be included.
       #     indexes:
       #     - 0
-      #   -- OpenTelemetry Collector scaling Deployment Pod resources
+      #   -- OpenTelemetry Collector receivers Deployment Pod resources
       #   resources: {}
-      #   -- OpenTelemetry Collector scaling Deployment Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+      #   -- OpenTelemetry Collector receivers Deployment Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
       #   affinity: {}
-      #   -- OpenTelemetry Collector scaling Deployment Pod annotations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+      #   -- OpenTelemetry Collector receivers Deployment Pod annotations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
       #   annotations: {}
-      #   -- OpenTelemetry Collector scaling Deployment Pod node slector
+      #   -- OpenTelemetry Collector receivers Deployment Pod node slector
       #   nodeSelector: {}
-      #   -- OpenTelemetry Collector scaling Deployment Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+      #   -- OpenTelemetry Collector receivers Deployment Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
       #   tolerations: []
   # -- OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
   resources: {}
@@ -187,9 +197,9 @@ collector:
           targetPort: prom-http
   # Section to configure OpenTelemetry Collector Ports. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#containerport-v1-core
   ports:
-  - containerPort: 9464
-    name: prom-http
+  - name: prom-http
     protocol: TCP
+    containerPort: 9464    
   # Section to configure OpenTelemetry Collector Volume Mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
   volumeMounts: []
   # Section to configure OpenTelemetry Collector Volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
@@ -197,26 +207,39 @@ collector:
   # Section to configure OpenTelemetry Collector Configuration. See https://opentelemetry.io/docs/collector/configuration
   config:
     processors: {}
-    receivers: {}
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+            tls:
+              ca_file: "/etc/operator/certs/tls.crt"
+              cert_file: "/etc/operator/certs/tls.crt"
+              key_file: "/etc/operator/certs/tls.key"
     exporters:
-      debug:
-        verbosity: detailed
-        sampling_initial: 5
-        sampling_thereafter: 200
       prometheus:
         endpoint: "0.0.0.0:9464"
+        tls:
+          ca_file: "/etc/operator/certs/tls.crt"
+          cert_file: "/etc/operator/certs/tls.crt"
+          key_file: "/etc/operator/certs/tls.key"
+          reload_interval: 10m
         send_timestamps: true
         metric_expiration: 180m
         enable_open_metrics: false
         resource_to_telemetry_conversion:
           enabled: false
+      otlp:
+        endpoint: stackgres-collector:4317
+        tls:
+          ca_file: "/etc/operator/certs/tls.crt"
     service:
       extensions: []
       pipelines:
         metrics:
           receivers:
           - prometheus
-          processors:
+          processors: []
           exporters:
           - debug
           - prometheus

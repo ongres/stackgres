@@ -24,9 +24,9 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigCollectorScalingDeployment {
+public class StackGresConfigCollectorReceiverDeployment {
 
-  private List<StackGresConfigCollectorScalingDeploymentSgCluster> sgClusters;
+  private List<StackGresConfigCollectorReceiverDeploymentSgCluster> sgClusters;
 
   private Map<String, String> annotations;
 
@@ -38,11 +38,11 @@ public class StackGresConfigCollectorScalingDeployment {
 
   private Affinity affinity;
 
-  public List<StackGresConfigCollectorScalingDeploymentSgCluster> getSgClusters() {
+  public List<StackGresConfigCollectorReceiverDeploymentSgCluster> getSgClusters() {
     return sgClusters;
   }
 
-  public void setSgClusters(List<StackGresConfigCollectorScalingDeploymentSgCluster> sgClusters) {
+  public void setSgClusters(List<StackGresConfigCollectorReceiverDeploymentSgCluster> sgClusters) {
     this.sgClusters = sgClusters;
   }
 
@@ -96,10 +96,10 @@ public class StackGresConfigCollectorScalingDeployment {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresConfigCollectorScalingDeployment)) {
+    if (!(obj instanceof StackGresConfigCollectorReceiverDeployment)) {
       return false;
     }
-    StackGresConfigCollectorScalingDeployment other = (StackGresConfigCollectorScalingDeployment) obj;
+    StackGresConfigCollectorReceiverDeployment other = (StackGresConfigCollectorReceiverDeployment) obj;
     return Objects.equals(affinity, other.affinity)
         && Objects.equals(annotations, other.annotations)
         && Objects.equals(nodeSelector, other.nodeSelector)

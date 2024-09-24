@@ -13,7 +13,7 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigCollectorScalingDeploymentSgCluster {
+public class ConfigCollectorReceiverDeploymentSgCluster {
 
   private String namespace;
 

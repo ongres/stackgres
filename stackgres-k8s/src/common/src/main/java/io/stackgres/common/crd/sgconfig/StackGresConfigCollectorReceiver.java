@@ -20,41 +20,41 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigCollectorScalingDeploymentSgCluster {
+public class StackGresConfigCollectorReceiver {
 
-  private String namespace;
+  private Boolean enabled;
 
-  private String name;
+  private Integer exporters;
 
-  private List<Integer> indexes;
+  private List<StackGresConfigCollectorReceiverDeployment> deployments;
 
-  public String getNamespace() {
-    return namespace;
+  public Boolean getEnabled() {
+    return enabled;
   }
 
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
+  public void setEnabled(Boolean enabled) {
+    this.enabled = enabled;
   }
 
-  public String getName() {
-    return name;
+  public Integer getExporters() {
+    return exporters;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setExporters(Integer exporters) {
+    this.exporters = exporters;
   }
 
-  public List<Integer> getIndexes() {
-    return indexes;
+  public List<StackGresConfigCollectorReceiverDeployment> getDeployments() {
+    return deployments;
   }
 
-  public void setIndexes(List<Integer> indexes) {
-    this.indexes = indexes;
+  public void setDeployments(List<StackGresConfigCollectorReceiverDeployment> deployments) {
+    this.deployments = deployments;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(indexes, name, namespace);
+    return Objects.hash(deployments, enabled, exporters);
   }
 
   @Override
@@ -62,12 +62,12 @@ public class StackGresConfigCollectorScalingDeploymentSgCluster {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresConfigCollectorScalingDeploymentSgCluster)) {
+    if (!(obj instanceof StackGresConfigCollectorReceiver)) {
       return false;
     }
-    StackGresConfigCollectorScalingDeploymentSgCluster other = (StackGresConfigCollectorScalingDeploymentSgCluster) obj;
-    return Objects.equals(indexes, other.indexes) && Objects.equals(name, other.name)
-        && Objects.equals(namespace, other.namespace);
+    StackGresConfigCollectorReceiver other = (StackGresConfigCollectorReceiver) obj;
+    return Objects.equals(deployments, other.deployments) && Objects.equals(enabled, other.enabled)
+        && Objects.equals(exporters, other.exporters);
   }
 
   @Override

@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.ConfigPath;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCert;
@@ -95,16 +96,16 @@ public class WebConsoleSecret
 
     boolean certInvalid = true;
     boolean rsaKeyPairInvalid = true;
-    if (previousSecretData.containsKey("tls.crt")
-        && previousSecretData.containsKey("tls.key")) {
+    if (previousSecretData.containsKey(ConfigPath.CERTIFICATE_PATH.filename())
+        && previousSecretData.containsKey(ConfigPath.CERTIFICATE_KEY_PATH.filename())) {
       if (!Optional.ofNullable(context.getSource().getSpec())
           .map(StackGresConfigSpec::getCert)
           .map(StackGresConfigCert::getRegenerateWebCert)
           .orElse(true)) {
         certInvalid = false;
       } else if (CryptoUtil.isCertificateAndKeyValid(
-          previousSecretData.get("tls.crt"),
-          previousSecretData.get("tls.key"))) {
+          previousSecretData.get(ConfigPath.CERTIFICATE_PATH.filename()),
+          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()))) {
         certInvalid = false;
       }
     }
@@ -135,11 +136,13 @@ public class WebConsoleSecret
               .map(StackGresConfigCert::getWebCertDuration)
               .orElse(DEFAULT_DURATION),
               ChronoUnit.DAYS));
-      data.put("tls.crt", generated.v1);
-      data.put("tls.key", generated.v2);
+      data.put(ConfigPath.CERTIFICATE_PATH.filename(), generated.v1);
+      data.put(ConfigPath.CERTIFICATE_KEY_PATH.filename(), generated.v2);
     } else {
-      data.put("tls.crt", previousSecretData.get("tls.crt"));
-      data.put("tls.key", previousSecretData.get("tls.key"));
+      data.put(ConfigPath.CERTIFICATE_PATH.filename(),
+          previousSecretData.get(ConfigPath.CERTIFICATE_PATH.filename()));
+      data.put(ConfigPath.CERTIFICATE_KEY_PATH.filename(),
+          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()));
     }
 
     if (rsaKeyPairInvalid) {

@@ -53,11 +53,11 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomResource<?, ?>>
+public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T extends CustomResource<?, ?>>
     implements ReconciliationHandler<T> {
 
   protected static final Logger LOGGER =
-      LoggerFactory.getLogger(AbstractStatefulSetReconciliationHandler.class);
+      LoggerFactory.getLogger(AbstractStatefulSetWithPrimaryReconciliationHandler.class);
 
   public static final Map<String, String> PLACEHOLDER_NODE_SELECTOR =
       Map.of("schedule", "this-pod-is-a-placeholder");
@@ -78,7 +78,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private final ObjectMapper objectMapper;
 
-  protected AbstractStatefulSetReconciliationHandler(
+  protected AbstractStatefulSetWithPrimaryReconciliationHandler(
       ReconciliationHandler<T> handler,
       ReconciliationHandler<T> protectHandler,
       LabelFactoryForCluster<T> labelFactory,
@@ -97,7 +97,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     this.objectMapper = objectMapper;
   }
 
-  public AbstractStatefulSetReconciliationHandler() {
+  public AbstractStatefulSetWithPrimaryReconciliationHandler() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.handler = null;
     this.protectHandler = null;

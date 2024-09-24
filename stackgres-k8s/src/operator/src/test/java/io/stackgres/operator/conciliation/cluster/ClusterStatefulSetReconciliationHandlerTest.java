@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
+import static io.stackgres.operator.conciliation.AbstractStatefulSetWithPrimaryReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
