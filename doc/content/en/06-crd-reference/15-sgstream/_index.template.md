@@ -23,7 +23,7 @@ The `SGStream` custom resource represents a stream of Change Data Capture (CDC) 
 **Example:**
 
 ```yaml
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v1alpha1
 kind: SGStream
 metadata:
   name: cloudevent
