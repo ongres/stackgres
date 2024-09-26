@@ -7,18 +7,7 @@ shell unit tests:
     - stackgres-runner-v2
     - linux-amd64
   script:
-    - |
-      set +e
-      TMP_PATH="/tmp/stackgres-$JOB_ID"
-      cp -a . "$TMP_PATH"
-      (
-        cd "$TMP_PATH"
-        sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
-      )
-      EXIT_CODE="$?"
-      cp -a "$TMP_PATH"/stackgres-k8s/src/operator/target stackgres-k8s/src/operator/target
-      rm -rf "$TMP_PATH"
-      exit "$EXIT_CODE"
+    - sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
