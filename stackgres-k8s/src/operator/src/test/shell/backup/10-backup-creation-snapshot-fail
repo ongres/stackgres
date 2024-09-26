@@ -14,7 +14,7 @@ kubectl_mock_overwrite() {
   mokked
   case "$*" in
     ("get $VOLUME_SNAPSHOT_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json")
-    printf '%s\n' '{"status":{"error":"no space left on device"}}'
+    printf '%s\n' '{"status":{"error":{"message":"no space left on device"}}}'
     ;;
     *)
     not_mokked

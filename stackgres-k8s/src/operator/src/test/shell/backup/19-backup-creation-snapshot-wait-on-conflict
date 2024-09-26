@@ -1,0 +1,29 @@
+#!/bin/sh
+
+USE_VOLUME_SNAPSHOT=true
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  shell_unit_test_backup
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $VOLUME_SNAPSHOT_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json")
+    if ! [ -f "$TEST_TARGET_PATH/volume-snapshot-fixed" ]
+    then
+      printf '%s\n' '{"status":{"error":{"message":"Failed to create snapshot content with error snapshot controller failed to update test-data-test-0 on API server: Operation cannot be fulfilled on persistentvolumeclaims \"test-data-test-0\": the object has been modified; please apply your changes to the latest version and try again"}}}'
+      touch "$TEST_TARGET_PATH/volume-snapshot-fixed"
+    else
+      printf '%s\n' '{"status":{"readyToUse":"true","restoreSize":"1Gi"}}'
+    fi
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

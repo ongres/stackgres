@@ -483,12 +483,14 @@ EOF
         echo "VolumeSnapshot ready"
         break
       fi
-      if [ "x$(jq -r 'if .status.error != null then .status.error.message else "" end' /tmp/backup-volumesnapshot)" != x ]
+      if [ "x$(jq -r 'if .status.error != null then .status.error.message else "" end' /tmp/backup-volumesnapshot)" != x ] \
+        && ! jq -r '.status.error.message' /tmp/backup-volumesnapshot \
+          | grep -qF 'the object has been modified; please apply your changes to the latest version and try again'
       then
         cat /tmp/backup-volumesnapshot
         echo 'Backup failed due to error in VolumeSnapshot'
         retry_kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-          {"op":"replace","path":"/status/process/failure","value":'"$(jq '"Backup failed due to error in VolumeSnapshot: " + .status.error' /tmp/backup-volumesnapshot)"'}
+          {"op":"replace","path":"/status/process/failure","value":'"$(jq '"Backup failed due to error in VolumeSnapshot: " + .status.error.message' /tmp/backup-volumesnapshot)"'}
           ]'
         kill "$(cat /tmp/backup-tail-pid)" || true
         exit 1
