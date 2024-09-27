@@ -46,7 +46,6 @@ import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
-import io.stackgres.common.crd.sgconfig.StackGresConfigCollector;
 import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
 import io.stackgres.common.crd.sgconfig.StackGresConfigJobs;
 import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
@@ -669,12 +668,8 @@ public interface StackGresUtil {
   }
 
   static String getCollectorImageNameWithTag(ConfigContext context) {
-    return getImageNameWithTag(
-        context,
-        Optional.of(context.getConfig().getSpec())
-        .map(StackGresConfigSpec::getCollector)
-        .map(StackGresConfigCollector::getImage),
-        "stackgres/collector");
+    return StackGresComponent.OTEL_COLLECTOR.get(StackGresVersion.LATEST)
+        .get().getLatestImageName();
   }
 
   static String getJobsImageNameWithTag(ConfigContext context) {

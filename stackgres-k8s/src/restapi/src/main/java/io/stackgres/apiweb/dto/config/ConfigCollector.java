@@ -24,8 +24,6 @@ public class ConfigCollector {
 
   private String name;
 
-  private ConfigImage image;
-
   private ConfigCollectorReceiver receivers;
 
   private Map<String, String> annotations;
@@ -58,14 +56,6 @@ public class ConfigCollector {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public ConfigImage getImage() {
-    return image;
-  }
-
-  public void setImage(ConfigImage image) {
-    this.image = image;
   }
 
   public ConfigCollectorReceiver getReceivers() {

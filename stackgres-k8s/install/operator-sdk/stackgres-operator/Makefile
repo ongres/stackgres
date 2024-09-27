@@ -61,7 +61,7 @@ endif
 IMG ?= $(IMAGE_TAG_BASE):$(IMAGE_TAG)
 
 KUSTOMIZE = kustomize
-OPERATOR_SDK = operator-sdk
+OPERATOR_SDK = operator-sdk-1.32
 
 .PHONY: all
 all: bundle-build

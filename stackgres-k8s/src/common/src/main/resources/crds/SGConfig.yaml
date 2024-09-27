@@ -390,21 +390,6 @@ spec:
                     type: string
                     default: stackgres-collector
                     description: OpenTelemetry Collector Deploymnet/Deamonset base name
-                  image:
-                    type: object
-                    description: Section to configure OpenTelemetry Collector image
-                    properties:
-                      name:
-                        type: string
-                        default: "docker.io/otel/opentelemetry-collector-contrib"
-                        description: OpenTelemetry Collector image name
-                      tag:
-                        type: string
-                        description: OpenTelemetry Collector image tag
-                      pullPolicy:
-                        type: string
-                        default: "IfNotPresent"
-                        description: OpenTelemetry Collector image pull policy
                   receivers:
                     type: object
                     description: |

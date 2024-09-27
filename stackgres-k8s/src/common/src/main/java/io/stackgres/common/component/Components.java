@@ -95,7 +95,11 @@ public enum Components {
     BABELFISH_COMPASS(new Component(ComponentVersionReader.V_1_14.versionReader,
         "babelfish-compass",
         StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
-        "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s"));
+        "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s")),
+    OTEL_COLLECTOR(new Component(ComponentVersionReader.V_1_14.versionReader,
+        "otel-collector",
+        StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
+        "%1$s/ongres/otel-collector:v%2$s-build-%3$s"));
 
     final Component component;
 

@@ -1125,6 +1125,7 @@ traceable_get_component_images() {
   COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
   COMPONENT_KUBECTL_VERSIONS="$(get_component_versions "$VERSION" kubectl)"
   COMPONENT_BABELFISH_COMPASS_VERSIONS="$(get_component_versions "$VERSION" babelfish-compass)"
+  COMPONENT_OTEL_COLLECTOR_VERSIONS="$(get_component_versions "$VERSION" otel-collector)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -1175,6 +1176,10 @@ traceable_get_component_images() {
   for VERSION in $COMPONENT_BABELFISH_COMPASS_VERSIONS
   do
     echo "quay.io/ongres/babelfish-compass:v$VERSION"
+  done
+  for VERSION in $COMPONENT_OTEL_COLLECTOR_VERSIONS
+  do
+    echo "quay.io/ongres/otel-collector:v$VERSION"
   done
 }
 

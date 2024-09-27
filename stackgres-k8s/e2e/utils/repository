@@ -209,7 +209,9 @@ cache_pulled_images_to_local_repository() {
           -lt "$(($(date +%s)-30))" ]
         then
           echo "Pulling image $IMAGE_NAME to cache"
-          if docker pull -q "$IMAGE_NAME"
+          local EXIT_CODE RESULT
+          try_function docker_pull "$IMAGE_NAME"
+          if "$RESULT"
           then
             echo "$(date +%s):$IMAGE_NAME" >> "$E2E_PULLED_IMAGES_PATH"
           else
@@ -230,12 +232,16 @@ load_failed_images_pull_from_local_repository() {
       while read IMAGE_NAME
       do
         echo "Detected failed to pull image $IMAGE_NAME to k8s env $E2E_ENV"
-        if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1 \
-          || docker pull -q "$IMAGE_NAME"
+        if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
         then
           load_image_k8s "$IMAGE_NAME"
         else
-          echo "Image $IMAGE_NAME not found in cache and can not be pulled!"
+          local EXIT_CODE RESULT
+          try_function docker_pull "$IMAGE_NAME"
+          if ! "$RESULT"
+          then
+            echo "Image $IMAGE_NAME not found in cache and can not be pulled!"
+          fi
         fi
       done
       )

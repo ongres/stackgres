@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.config.collector;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,17 +24,14 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.stackgres.common.ConfigPath;
-import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCollector;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorReceiver;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorReceiverDeployment;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorReceiverDeploymentBuilder;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
-import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
 import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForConfig;
@@ -65,8 +64,6 @@ public class CollectorDeployments
 
   private final CollectorPodSecurityFactory collectorPodSecurityContext;
 
-  private final KubectlUtil kubectlUtil;
-
   public static String name(StackGresConfig config) {
     return ResourceUtil.resourceName(
         Optional.of(config.getSpec())
@@ -96,12 +93,10 @@ public class CollectorDeployments
   @Inject
   public CollectorDeployments(
       LabelFactoryForConfig labelFactory,
-      CollectorPodSecurityFactory webConsolePodSecurityContext,
-      KubectlUtil kubectlUtil) {
+      CollectorPodSecurityFactory webConsolePodSecurityContext) {
     super();
     this.labelFactory = labelFactory;
     this.collectorPodSecurityContext = webConsolePodSecurityContext;
-    this.kubectlUtil = kubectlUtil;
   }
 
   /**
@@ -299,20 +294,25 @@ public class CollectorDeployments
             new ContainerBuilder()
             .withName("stackgres-collector")
             .withImage(StackGresUtil.getCollectorImageNameWithTag(context))
-            .withImagePullPolicy(
-                collector
-                .map(StackGresConfigCollector::getImage)
-                .map(StackGresConfigImage::getPullPolicy)
-                .orElse("IfNotPresent"))
-            .withArgs(
-                "--config", ConfigPath.COLLECTOR_CONFIG_PATH.path(),
-                "--feature-gates", "-component.UseLocalHostAsDefaultHost")
+            .withImagePullPolicy(getDefaultPullPolicy())
+            .withCommand(
+                "/bin/bash",
+                "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
+                ConfigPath.LOCAL_BIN_START_OTEL_COLLECTOR_SH_PATH.path())
             .withSecurityContext(collectorPodSecurityContext.createCollectorSecurityContext(context))
             .withEnv(
+                new EnvVarBuilder()
+                .withName("HOME")
+                .withValue("/tmp")
+                .build(),
                 new EnvVarBuilder()
                 .withName(StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())
                 .withValue(Optional.ofNullable(System.getenv(
                     StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())).orElse(null))
+                .build(),
+                new EnvVarBuilder()
+                .withName(ConfigPath.COLLECTOR_CONFIG_PATH.name())
+                .withValue(ConfigPath.COLLECTOR_CONFIG_PATH.path())
                 .build())
             .withPorts(collector
                 .map(StackGresConfigCollector::getPorts)
@@ -350,49 +350,16 @@ public class CollectorDeployments
                 .withName(COLLECTOR_CONFIG)
                 .withMountPath(ConfigPath.ETC_COLLECTOR_PATH.path())
                 .withReadOnly(true)
+                .build(),
+                new VolumeMountBuilder()
+                .withName(COLLECTOR_SCRIPTS)
+                .withMountPath(ConfigPath.LOCAL_BIN_START_OTEL_COLLECTOR_SH_PATH.path())
+                .withSubPath(ConfigPath.LOCAL_BIN_START_OTEL_COLLECTOR_SH_PATH.filename())
+                .withReadOnly(true)
                 .build())
             .addAllToVolumeMounts(collector
                 .map(StackGresConfigCollector::getVolumeMounts)
                 .orElse(List.of()))
-            .build(),
-            new ContainerBuilder()
-            .withName("stackgres-collector-controller")
-            .withImage(kubectlUtil.getImageName(StackGresVersion.LATEST))
-            .withImagePullPolicy(
-                collector
-                .map(StackGresConfigCollector::getImage)
-                .map(StackGresConfigImage::getPullPolicy)
-                .orElse("IfNotPresent"))
-            .withCommand(
-                "/bin/bash",
-                "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                ConfigPath.LOCAL_BIN_START_OTEL_COLLECTOR_SH_PATH.path())
-            .withSecurityContext(collectorPodSecurityContext.createCollectorControllerSecurityContext(context))
-            .withEnv(
-                new EnvVarBuilder()
-                .withName("HOME")
-                .withValue("/tmp")
-                .build(),
-                new EnvVarBuilder()
-                .withName(StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())
-                .withValue(Optional.ofNullable(System.getenv(
-                    StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())).orElse(null))
-                .build(),
-                new EnvVarBuilder()
-                .withName(ConfigPath.COLLECTOR_CONFIG_PATH.name())
-                .withValue(ConfigPath.COLLECTOR_CONFIG_PATH.path())
-                .build())
-            .withVolumeMounts(
-                new VolumeMountBuilder()
-                .withName(COLLECTOR_CONFIG)
-                .withMountPath(ConfigPath.ETC_COLLECTOR_PATH.path())
-                .withReadOnly(true)
-                .build(),
-                new VolumeMountBuilder()
-                .withName(COLLECTOR_SCRIPTS)
-                .withMountPath(ConfigPath.LOCAL_BIN_PATH.path())
-                .withReadOnly(true)
-                .build())
             .build())
         .withVolumes(
             new VolumeBuilder()

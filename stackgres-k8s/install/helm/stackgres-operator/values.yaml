@@ -120,14 +120,6 @@ adminui:
 collector:
   # -- OpenTelemetry Collector Deployment/DeamonSet base name
   name: stackgres-collector
-  # Section to configure OpenTelemetry Collector image
-  image:
-    # -- OpenTelemetry Collector image name
-    name: "docker.io/otel/opentelemetry-collector-contrib"
-    # -- OpenTelemetry Collector image tag
-    tag: "0.109.0"
-    # -- OpenTelemetry Collector image pull policy
-    pullPolicy: "IfNotPresent"
   # Section to configure OpenTelemetry Collector receivers
   # 
   # By default a single instance of OpenTelemetry Collector will be created.
