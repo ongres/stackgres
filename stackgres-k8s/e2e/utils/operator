@@ -965,12 +965,17 @@ load_operator_images_from() {
 get_operator_images() {
   [ -n "$1" ]
   local VERSION="$1"
-  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1 VERSION_1_13_0_ALPHA1
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
   VERSION_1_12_0_ALPHA1="$(get_version_as_number 1.12.0-alpha1)"
-    if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_12_0_ALPHA1" ]
+  VERSION_1_13_0_ALPHA1="$(get_version_as_number 1.13.0-alpha1)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_13_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_13_0_alpha1 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_12_0_ALPHA1" ]
   then
     get_operator_images_pre_1_12_0_alpha1 "$VERSION"
     return
@@ -1002,6 +1007,18 @@ get_operator_images() {
   echo "${STREAM_IMAGE_NAME%:*}:${NATIVE_TAG}-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
   echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
+}
+
+get_operator_images_pre_1_13_0_alpha1() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
+  echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
+  echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${STREAM_IMAGE_NAME%:*}:$VERSION-jvm"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
 }
 
 get_operator_images_pre_1_12_0_alpha1() {
