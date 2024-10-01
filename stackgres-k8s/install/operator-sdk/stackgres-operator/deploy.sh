@@ -78,7 +78,7 @@ if [ "x$PREVIOUS_VERSION" != xnone ]
 then
   PREVIOUS_VERSION="${PREVIOUS_VERSION:-$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-rc.' | sort -t ' ' -k 1V,1 | tail -n 1)}"
+      | cut -d / -f 5 | grep -v '.-rc.' | sort -t ' ' -k 1Vr | head -n 1)}"
   if [ ! -d "$FORK_GIT_PATH/operators/$PROJECT_NAME/$PREVIOUS_VERSION" ] || [ "x$PREVIOUS_VERSION" = x ]
   then
     echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
@@ -141,7 +141,7 @@ then
       done
   echo
   )
-  git -C "$FORK_GIT_PATH" diff
+  git -C "$FORK_GIT_PATH" diff | cat
   echo "Pinning done!"
 fi
 
@@ -157,10 +157,16 @@ then
     echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
     exit 1
   fi
-  echo "Setting previous version to: $PREVIOUS_VERSION"
-  sed -i "s/^\( *\)\(version: .*\)$/\1\2\n\1replaces: stackgres.v$PREVIOUS_VERSION/" \
-    "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml
+  if command -v set_previous_version_override > /dev/null 2>&1
+  then
+    set_previous_version_override
+  else
+    echo "Setting replaces to stackgres.v$PREVIOUS_VERSION"
+    sed -i "s/^\( *\)\(version: $STACKGRES_VERSION\)$/\1\2\n\1replaces: stackgres.v$PREVIOUS_VERSION/" \
+      "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml
+  fi
 fi
+
 if [ "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
   != "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml" ]
 then
