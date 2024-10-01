@@ -116,7 +116,6 @@ cluster:
       # storageClass: "-"
     disableConnectionPooling: false
     disablePostgresUtil: false
-    disableMetricsExporter: false
     # scheduling:
     #   nodeSelector:
     #     key: value
@@ -158,6 +157,10 @@ cluster:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
+    observability:
+      disableMetrics: false
+      # receiver: ""
+      prometheusAutobind: false
     backups:
       retention: 5
       cronSchedule: "*/2 * * * *"
@@ -202,7 +205,6 @@ cluster:
   #      configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
   #        name: stackgres-sqls-scripts
   #        key: create-stackgres-schema.sql
-  prometheusAutobind: true
 
 shardedCluster:
   type: citus

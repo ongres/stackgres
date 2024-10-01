@@ -31,7 +31,7 @@ spec:
       jsonPath: .spec.coordinator.pods.persistentVolume.size + ", " + .spec.shards.pods.persistentVolume.size
     - name: prometheus-autobind
       type: string
-      jsonPath: .spec.prometheusAutobind
+      jsonPath: .spec.configurations.observability.prometheusAutobind
       priority: 1
     - name: pool-config
       type: string
@@ -558,6 +558,25 @@ spec:
                       - sgObjectStorage: 'backupconf'
                   ```
                 properties:
+                  observability:
+                    type: object
+                    description: Allow to specify Observability configuration (related to logs, metrics and traces)
+                    properties:
+                      disableMetrics:
+                        type: boolean
+                        description: |
+                          If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use internal monitoring.
+
+                          **Changing this field may require a restart.**
+                        default: false
+                      receiver:
+                        type: string
+                        description: Indicate the receiver in the configuration for the collector scraper (if not specified, will default to prometheus).
+                        default: prometheus
+                      prometheusAutobind:
+                        type: boolean
+                        description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
+                        default: false
                   backups:
                     type: array
                     description: |
@@ -1176,9 +1195,7 @@ spec:
                       disableMetricsExporter:
                         type: boolean
                         description: |
-                          If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use Prometheus for monitoring.
-                      
-                          If sharding type is `shardingsphere` then this field is ignored.
+                          **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                       disablePostgresUtil:
                         type: boolean
                         description: |
@@ -1878,9 +1895,7 @@ spec:
                       disableMetricsExporter:
                         type: boolean
                         description: |
-                          If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use Prometheus for monitoring.
-
-                          **Changing this field may require a restart.**
+                          **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                       disablePostgresUtil:
                         type: boolean
                         description: |
@@ -2172,7 +2187,8 @@ spec:
                                 **Changing this field may require a restart.**
                             disableMetricsExporter:
                               type: boolean
-                              description: If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use Prometheus for monitoring.
+                              description: |
+                                **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                             disablePostgresUtil:
                               type: boolean
                               description: |
@@ -2386,7 +2402,7 @@ spec:
               prometheusAutobind:
                 type: boolean
                 description: |
-                  If enabled, a ServiceMonitor is created for each Prometheus instance found in order to collect metrics.
+                  **Deprecated** use instead .spec.configurations.observability.prometheusAutobind.
               distributedLogs:
                 type: object
                 description: |

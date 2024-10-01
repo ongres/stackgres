@@ -17,6 +17,10 @@ public interface LabelFactoryForConfig
 
   Map<String, String> grafanaIntegrationLabels(@NotNull StackGresConfig resource);
 
+  Map<String, String> collectorLabels(@NotNull StackGresConfig resource);
+
+  Map<String, String> configCrossNamespaceLabels(@NotNull StackGresConfig resource);
+
   @Override
   LabelMapperForConfig labelMapper();
 

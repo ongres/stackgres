@@ -667,6 +667,11 @@ public interface StackGresUtil {
         "stackgres/admin-ui");
   }
 
+  static String getCollectorImageNameWithTag(ConfigContext context) {
+    return StackGresComponent.OTEL_COLLECTOR.get(StackGresVersion.LATEST)
+        .get().getLatestImageName();
+  }
+
   static String getJobsImageNameWithTag(ConfigContext context) {
     return getImageNameWithTag(
         context,

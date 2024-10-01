@@ -27,6 +27,8 @@ public class ClusterConfigurations {
 
   private ClusterServiceBinding binding;
 
+  private ClusterObservability observability;
+
   public String getSgPostgresConfig() {
     return sgPostgresConfig;
   }
@@ -73,6 +75,14 @@ public class ClusterConfigurations {
 
   public void setBinding(ClusterServiceBinding binding) {
     this.binding = binding;
+  }
+
+  public ClusterObservability getObservability() {
+    return observability;
+  }
+
+  public void setObservability(ClusterObservability observability) {
+    this.observability = observability;
   }
 
   @Override

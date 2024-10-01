@@ -25,7 +25,7 @@ public class ServiceMonitorSpec {
 
   private LabelSelector selector;
   private NamespaceSelector namespaceSelector;
-  private List<Endpoint> endpoints;
+  private List<PodMetricsEndpoint> endpoints;
 
   public LabelSelector getSelector() {
     return selector;
@@ -43,11 +43,11 @@ public class ServiceMonitorSpec {
     this.namespaceSelector = namespaceSelector;
   }
 
-  public List<Endpoint> getEndpoints() {
+  public List<PodMetricsEndpoint> getEndpoints() {
     return endpoints;
   }
 
-  public void setEndpoints(List<Endpoint> endpoints) {
+  public void setEndpoints(List<PodMetricsEndpoint> endpoints) {
     this.endpoints = endpoints;
   }
 

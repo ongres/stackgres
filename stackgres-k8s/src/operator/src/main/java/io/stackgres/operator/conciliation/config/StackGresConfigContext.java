@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.config;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
@@ -13,6 +14,8 @@ import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.ConfigContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.operator.common.ObservedClusterContext;
+import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
@@ -40,6 +43,8 @@ public interface StackGresConfigContext extends GenerationContext<StackGresConfi
 
   boolean isGrafanaIntegrationJobFailed();
 
+  Optional<Secret> getCollectorSecret();
+
   @Override
   @Value.Derived
   default StackGresVersion getVersion() {
@@ -49,5 +54,9 @@ public interface StackGresConfigContext extends GenerationContext<StackGresConfi
   Optional<String> getGrafanaUser();
 
   Optional<String> getGrafanaPassword();
+
+  List<ObservedClusterContext> getObservedClusters();
+
+  List<PrometheusContext> getPrometheus();
 
 }

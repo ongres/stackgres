@@ -43,6 +43,9 @@ public class StackGresClusterConfigurations {
   @Valid
   private StackGresClusterServiceBinding binding;
 
+  @Valid
+  private StackGresClusterObservability observability;
+
   @ReferencedField("sgPostgresConfig")
   interface SgPostgresConfig extends FieldReference {
   }
@@ -103,9 +106,18 @@ public class StackGresClusterConfigurations {
     this.binding = binding;
   }
 
+  public StackGresClusterObservability getObservability() {
+    return observability;
+  }
+
+  public void setObservability(StackGresClusterObservability observability) {
+    this.observability = observability;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backups, binding, credentials, patroni, sgPoolingConfig, sgPostgresConfig);
+    return Objects.hash(backups, binding, credentials, observability, patroni, sgPoolingConfig,
+        sgPostgresConfig);
   }
 
   @Override
@@ -117,9 +129,9 @@ public class StackGresClusterConfigurations {
       return false;
     }
     StackGresClusterConfigurations other = (StackGresClusterConfigurations) obj;
-    return Objects.equals(backups, other.backups)
-        && Objects.equals(binding, other.binding)
+    return Objects.equals(backups, other.backups) && Objects.equals(binding, other.binding)
         && Objects.equals(credentials, other.credentials)
+        && Objects.equals(observability, other.observability)
         && Objects.equals(patroni, other.patroni)
         && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);

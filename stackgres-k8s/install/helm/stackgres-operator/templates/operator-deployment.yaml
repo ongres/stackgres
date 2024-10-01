@@ -95,7 +95,7 @@ spec:
           - name: SGCONFIG_NAMESPACE
             value: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
           - name: PROMETHEUS_AUTOBIND
-            value: "{{ .Values.prometheus.allowAutobind }}"
+            value: "{{ or .Values.collector.prometheusOperator.allowDiscovery (gt (len .Values.collector.prometheusOperator.monitors) 0) }}"
           {{- if and (.Capabilities.APIVersions.Has "project.openshift.io/v1") (not .Values.developer.disableArbitraryUser) }}
           - name: USE_ARBITRARY_USER
             value: "true"

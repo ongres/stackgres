@@ -14,7 +14,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler;
+import io.stackgres.operator.conciliation.AbstractStatefulSetWithPrimaryReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,7 +23,7 @@ import jakarta.inject.Inject;
 @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "StatefulSet")
 @ApplicationScoped
 public class DistributedLogsStatefulSetReconciliationHandler
-    extends AbstractStatefulSetReconciliationHandler<StackGresDistributedLogs> {
+    extends AbstractStatefulSetWithPrimaryReconciliationHandler<StackGresDistributedLogs> {
 
   @Inject
   public DistributedLogsStatefulSetReconciliationHandler(

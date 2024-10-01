@@ -6,8 +6,8 @@ e2e_exclusive_lock() {
 
 e2e_test() {
   run_test "Check that exporter queries are wokring" check_exporter_queries
-  run_test "Check that exporter pod monitor was created" check_exporter_pod_monitor
-  run_test "Check that envoy pod monitor was created" check_envoy_pod_monitor
+  run_test "Check that collector was created" check_collector
+  run_test "Check that collector pod monitor was created" check_collector_pod_monitor
   run_test "Check that grafana is embedded" check_grafana_embedded
   run_test "Check that grafana secret is used" check_grafana_secret
 }
@@ -61,14 +61,26 @@ check_exporter_queries() {
   done
 }
 
-check_exporter_pod_monitor() {
-  local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-postgres-exporter"
+check_collector() {
+  local SERVICE_MONITOR="stackgres-collector"
 
-  if wait_until kubectl get podmonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
+  if wait_until kubectl get deployment -n "$OPERATOR_NAMESPACE" "$SERVICE_MONITOR"
   then
-    echo "Exporter pod monitor was created"
+    echo "Collector deployment was created"
   else
-    echo "Exporter pod monitor wasn't created"
+    echo "Collector deployment wasn't created"
+    return 1
+  fi
+}
+
+check_collector_pod_monitor() {
+  local SERVICE_MONITOR="stackgres-collector"
+
+  if wait_until kubectl get podmonitors.monitoring.coreos.com -n "$OPERATOR_NAMESPACE" "$SERVICE_MONITOR"
+  then
+    echo "Collector pod monitor was created"
+  else
+    echo "Collector pod monitor wasn't created"
     return 1
   fi
 
@@ -89,27 +101,6 @@ check_exporter_pod_monitor() {
     echo "Exporter metric pg_stat_activity_count was found on prometheus"
   else
     echo "Exporter metric pg_stat_activity_count wasn't found on prometheus"
-    return 1
-  fi
-}
-
-check_envoy_pod_monitor() {
-  local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-envoy"
-
-  if wait_until kubectl get podmonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
-  then
-    echo "Envoy pod monitor was created"
-  else
-    echo "Envoy pod monitor wasn't created"
-    return 1
-  fi
-
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- \
-    curl -f -s "http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
-  then
-    echo "Envoy metrics was found on prometheus"
-  else
-    echo "Envoy metrics wasn't found on prometheus"
     return 1
   fi
 }

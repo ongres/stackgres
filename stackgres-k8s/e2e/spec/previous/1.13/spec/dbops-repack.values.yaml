@@ -9,9 +9,6 @@ cluster:
     persistentVolume:
       size: 128Mi
     managementPolicy: Parallel
-  configurations:
-    sgBackupConfig: null
-  prometheusAutobind: false
   managedSql:
     scripts:
       - script: 'CREATE EXTENSION pg_repack'

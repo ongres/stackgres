@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import com.google.common.io.Resources;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ConfigPath;
 import io.stackgres.common.ShardedClusterPath;
 import org.jooq.lambda.Unchecked;
 
@@ -60,6 +61,9 @@ public abstract class AbstractTemplatesConfigMap {
       ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_SECURITY_UPGRADE_SH_PATH,
       ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_RESTART_SH_PATH);
 
+  public static final List<ConfigPath> CONFIG_TEMPLATE_PATHS = List.of(
+      ConfigPath.LOCAL_BIN_START_OTEL_COLLECTOR_SH_PATH);
+
   protected Map<String, String> getClusterTemplates() {
     Map<String, String> data = new HashMap<>();
 
@@ -83,6 +87,23 @@ public abstract class AbstractTemplatesConfigMap {
     for (String resource : SHARDED_CLUSTER_TEMPLATE_PATHS
         .stream()
         .map(ShardedClusterPath::filename)
+        .toList()) {
+      data.put(resource, Unchecked.supplier(() -> Resources
+          .asCharSource(Objects.requireNonNull(AbstractTemplatesConfigMap.class
+                  .getResource("/templates/" + resource)),
+              StandardCharsets.UTF_8)
+          .read()).get());
+    }
+
+    return data;
+  }
+
+  protected Map<String, String> getConfigTemplates() {
+    Map<String, String> data = new HashMap<>();
+
+    for (String resource : CONFIG_TEMPLATE_PATHS
+        .stream()
+        .map(ConfigPath::filename)
         .toList()) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(Objects.requireNonNull(AbstractTemplatesConfigMap.class

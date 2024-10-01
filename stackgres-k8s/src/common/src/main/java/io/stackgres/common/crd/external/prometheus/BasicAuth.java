@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -19,30 +20,31 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class Endpoint {
+public class BasicAuth {
 
-  private String port;
-  private String path;
+  private SecretKeySelector username;
 
-  public String getPort() {
-    return port;
+  private SecretKeySelector password;
+
+  public SecretKeySelector getUsername() {
+    return username;
   }
 
-  public void setPort(String port) {
-    this.port = port;
+  public void setUsername(SecretKeySelector username) {
+    this.username = username;
   }
 
-  public String getPath() {
-    return path;
+  public SecretKeySelector getPassword() {
+    return password;
   }
 
-  public void setPath(String path) {
-    this.path = path;
+  public void setPassword(SecretKeySelector password) {
+    this.password = password;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, port);
+    return Objects.hash(password, username);
   }
 
   @Override
@@ -50,11 +52,11 @@ public class Endpoint {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof Endpoint)) {
+    if (!(obj instanceof BasicAuth)) {
       return false;
     }
-    Endpoint other = (Endpoint) obj;
-    return Objects.equals(path, other.path) && Objects.equals(port, other.port);
+    BasicAuth other = (BasicAuth) obj;
+    return Objects.equals(password, other.password) && Objects.equals(username, other.username);
   }
 
   @Override

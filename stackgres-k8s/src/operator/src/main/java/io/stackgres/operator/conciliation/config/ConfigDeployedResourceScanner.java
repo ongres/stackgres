@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.config;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -26,12 +27,17 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.crd.external.prometheus.PodMonitor;
+import io.stackgres.common.crd.external.prometheus.PodMonitorList;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigCollector;
+import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorPrometheusOperator;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -44,15 +50,18 @@ public class ConfigDeployedResourceScanner
 
   private final KubernetesClient client;
   private final LabelFactoryForConfig labelFactory;
+  private final boolean prometheusAutobind;
 
   @Inject
   public ConfigDeployedResourceScanner(
       DeployedResourcesCache deployedResourcesCache,
       KubernetesClient client,
-      LabelFactoryForConfig labelFactory) {
+      LabelFactoryForConfig labelFactory,
+      OperatorPropertyContext operatorContext) {
     super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;
+    this.prometheusAutobind = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
   }
 
   public ConfigDeployedResourceScanner() {
@@ -60,6 +69,7 @@ public class ConfigDeployedResourceScanner
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.client = null;
     this.labelFactory = null;
+    this.prometheusAutobind = false;
   }
 
   @Override
@@ -87,6 +97,8 @@ public class ConfigDeployedResourceScanner
           ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>> getInAnyNamespaceResourceOperations(
                   StackGresConfig config) {
+    var inAnyNamespaceResourceOperations = new HashMap<>(
+        super.getInAnyNamespaceResourceOperations(config));
     if (!Optional.of(config)
         .map(StackGresConfig::getSpec)
         .map(StackGresConfigSpec::getDisableClusterRole).orElse(false)
@@ -94,9 +106,24 @@ public class ConfigDeployedResourceScanner
         .map(StackGresConfig::getSpec)
         .map(StackGresConfigSpec::getSgConfigNamespace)
         .equals(operatorNamespace)) {
-      return CLUSTER_ROLE_RESOURCE_OPERATIONS;
+      inAnyNamespaceResourceOperations.putAll(CLUSTER_ROLE_RESOURCE_OPERATIONS);
     }
-    return super.getInAnyNamespaceResourceOperations(config);
+    if (prometheusAutobind && Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getCollector)
+        .map(StackGresConfigCollector::getPrometheusOperator)
+        .map(StackGresConfigCollectorPrometheusOperator::getMonitors)
+        .filter(monitors -> monitors.size() > 0)
+        .map(ignored -> true)
+        .or(() -> Optional.of(config)
+            .map(StackGresConfig::getSpec)
+            .map(StackGresConfigSpec::getCollector)
+            .map(StackGresConfigCollector::getPrometheusOperator)
+            .map(StackGresConfigCollectorPrometheusOperator::getAllowDiscovery))
+        .orElse(false)) {
+      inAnyNamespaceResourceOperations.putAll(PROMETHEUS_RESOURCE_OPERATIONS);
+    }
+    return inAnyNamespaceResourceOperations;
   }
 
   static final Map<
@@ -136,6 +163,23 @@ public class ConfigDeployedResourceScanner
               ? extends Resource<? extends HasMetadata>>>>ofEntries(
           Map.entry(ClusterRole.class, client -> client
               .resources(ClusterRole.class, ClusterRoleList.class))
+          );
+
+  static final Map<
+      Class<? extends HasMetadata>,
+      Function<
+          KubernetesClient,
+          MixedOperation<
+              ? extends HasMetadata,
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>
+      PROMETHEUS_RESOURCE_OPERATIONS =
+      Map.<Class<? extends HasMetadata>, Function<KubernetesClient,
+          MixedOperation<? extends HasMetadata,
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>ofEntries(
+          Map.entry(PodMonitor.class, client -> client
+              .resources(PodMonitor.class, PodMonitorList.class))
           );
 
 }

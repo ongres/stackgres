@@ -814,18 +814,19 @@ upgrade_operator_from_private_repository() {
       --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}:$IMAGE_TAG" \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
-      --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
-      --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
-      --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
-      --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
-      --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
-      --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
-      --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
-      --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
+      --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.collector".level=TRACE' \ 
+      --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
+      --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
+      --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
+      --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
+      --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
+      --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
+      --set-string developer.extraOpts[9]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
+      --set-string developer.extraOpts[10]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
         # shellcheck disable=SC2015
         [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
-      --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
-      --set-string developer.extraOpts[11]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
+      --set-string developer.extraOpts[11]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
+      --set-string developer.extraOpts[12]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
       --set extensions.cache.enabled="$(
         # shellcheck disable=SC2015
         [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
@@ -853,6 +854,7 @@ before_operator_install_or_upgrade() {
 }
 
 after_operator_install_or_upgrade() {
+  kubectl label namespace "$OPERATOR_NAMESPACE" --overwrite monitoring=true
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator$'
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
   wait_until eval 'kubectl get job -n "$OPERATOR_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
@@ -963,12 +965,17 @@ load_operator_images_from() {
 get_operator_images() {
   [ -n "$1" ]
   local VERSION="$1"
-  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1 VERSION_1_13_0_ALPHA1
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
   VERSION_1_12_0_ALPHA1="$(get_version_as_number 1.12.0-alpha1)"
-    if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_12_0_ALPHA1" ]
+  VERSION_1_13_0_ALPHA1="$(get_version_as_number 1.13.0-alpha1)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_13_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_13_0_alpha1 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_12_0_ALPHA1" ]
   then
     get_operator_images_pre_1_12_0_alpha1 "$VERSION"
     return
@@ -1000,6 +1007,18 @@ get_operator_images() {
   echo "${STREAM_IMAGE_NAME%:*}:${NATIVE_TAG}-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
   echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
+}
+
+get_operator_images_pre_1_13_0_alpha1() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
+  echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
+  echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${STREAM_IMAGE_NAME%:*}:$VERSION-jvm"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
 }
 
 get_operator_images_pre_1_12_0_alpha1() {
@@ -1123,6 +1142,7 @@ traceable_get_component_images() {
   COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
   COMPONENT_KUBECTL_VERSIONS="$(get_component_versions "$VERSION" kubectl)"
   COMPONENT_BABELFISH_COMPASS_VERSIONS="$(get_component_versions "$VERSION" babelfish-compass)"
+  COMPONENT_OTEL_COLLECTOR_VERSIONS="$(get_component_versions "$VERSION" otel-collector)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -1173,6 +1193,10 @@ traceable_get_component_images() {
   for VERSION in $COMPONENT_BABELFISH_COMPASS_VERSIONS
   do
     echo "quay.io/ongres/babelfish-compass:v$VERSION"
+  done
+  for VERSION in $COMPONENT_OTEL_COLLECTOR_VERSIONS
+  do
+    echo "quay.io/ongres/otel-collector:v$VERSION"
   done
 }
 
@@ -1717,18 +1741,19 @@ set_helm_values_for_developer() {
     --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER=${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME} 
     --set-string developer.extraOpts[0]=-Dquarkus.log.category."io.stackgres".level=DEBUG 
     --set-string developer.extraOpts[1]=-Dquarkus.log.category."io.quarkus".level=INFO 
-    --set-string developer.extraOpts[2]=-Dquarkus.log.category."io.stackgres.dbops".level=TRACE 
-    --set-string developer.extraOpts[3]=-Dquarkus.log.category."io.stackgres.backup".level=TRACE 
-    --set-string developer.extraOpts[4]=-Dquarkus.log.category."io.stackgres.wal-g".level=INFO 
-    --set-string developer.extraOpts[5]=-Dquarkus.log.category."io.stackgres.patroni".level=TRACE 
-    --set-string developer.extraOpts[6]=-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE 
-    --set-string developer.extraOpts[7]=-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE 
-    --set-string developer.extraOpts[8]=-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE 
-    --set-string developer.extraOpts[9]=-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level=$(
+    --set-string developer.extraOpts[2]=-Dquarkus.log.category."io.stackgres.collector".level=TRACE 
+    --set-string developer.extraOpts[3]=-Dquarkus.log.category."io.stackgres.dbops".level=TRACE 
+    --set-string developer.extraOpts[4]=-Dquarkus.log.category."io.stackgres.backup".level=TRACE 
+    --set-string developer.extraOpts[5]=-Dquarkus.log.category."io.stackgres.wal-g".level=INFO 
+    --set-string developer.extraOpts[6]=-Dquarkus.log.category."io.stackgres.patroni".level=TRACE 
+    --set-string developer.extraOpts[7]=-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE 
+    --set-string developer.extraOpts[8]=-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE 
+    --set-string developer.extraOpts[9]=-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE 
+    --set-string developer.extraOpts[10]=-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level=$(
       # shellcheck disable=SC2015
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO) 
-    --set-string developer.extraOpts[10]=-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG 
-    --set-string developer.extraOpts[11]=-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE 
+    --set-string developer.extraOpts[11]=-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG 
+    --set-string developer.extraOpts[12]=-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE 
 EOF
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then

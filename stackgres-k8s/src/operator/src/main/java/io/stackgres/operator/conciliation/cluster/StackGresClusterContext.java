@@ -38,7 +38,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.storages.BackupStorage;
-import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
@@ -86,8 +85,6 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Map<String, Secret> getReplicationInitializationSecrets();
 
   Map<String, Secret> getReplicateSecrets();
-
-  Optional<PrometheusContext> getPrometheusContext();
 
   Optional<Secret> getDatabaseSecret();
 

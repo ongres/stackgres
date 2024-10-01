@@ -38,19 +38,6 @@
 {{- .Values.cert.webSecretName | default (printf "%s-%s" .Release.Name "web-certs") }}
 {{- end }}
 
-{{- define "missingSGConfigCrd" }}
-{{- if .Release.IsUpgrade }}
-{{- $missingSGConfigCrd := true }}
-{{- $configCrd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "" "sgconfigs.stackgres.io" }}
-{{- if $configCrd }}
-  {{- $missingSGConfigCrd = false }}
-{{- end }}
-{{- if $missingSGConfigCrd }}true{{- else }}false{{- end }}
-{{- else }}
-false
-{{- end }}
-{{- end }}
-
 {{- define "unmodificableWebapiAdminClusterRoleBinding" }}
 {{- if .Release.IsUpgrade }}
 {{- $unmodificableWebapiAdminClusterRoleBinding := false }}

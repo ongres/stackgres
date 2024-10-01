@@ -19,6 +19,8 @@ public class ConfigCert {
 
   private Boolean createForWebApi;
 
+  private Boolean createForCollector;
+
   private Boolean resetCerts;
 
   private String secretName;
@@ -36,6 +38,12 @@ public class ConfigCert {
   private Integer webCertDuration;
 
   private Integer webRsaDuration;
+
+  private String collectorSecretName;
+
+  private Boolean regenerateCollectorCert;
+
+  private Integer collectorCertDuration;
 
   private ConfigCertManager certManager;
 
@@ -61,6 +69,14 @@ public class ConfigCert {
 
   public void setCreateForWebApi(Boolean createForWebApi) {
     this.createForWebApi = createForWebApi;
+  }
+
+  public Boolean getCreateForCollector() {
+    return createForCollector;
+  }
+
+  public void setCreateForCollector(Boolean createForCollector) {
+    this.createForCollector = createForCollector;
   }
 
   public Boolean getResetCerts() {
@@ -121,6 +137,30 @@ public class ConfigCert {
 
   public Integer getWebCertDuration() {
     return webCertDuration;
+  }
+
+  public String getCollectorSecretName() {
+    return collectorSecretName;
+  }
+
+  public void setCollectorSecretName(String collectorSecretName) {
+    this.collectorSecretName = collectorSecretName;
+  }
+
+  public Boolean getRegenerateCollectorCert() {
+    return regenerateCollectorCert;
+  }
+
+  public void setRegenerateCollectorCert(Boolean regenerateCollectorCert) {
+    this.regenerateCollectorCert = regenerateCollectorCert;
+  }
+
+  public Integer getCollectorCertDuration() {
+    return collectorCertDuration;
+  }
+
+  public void setCollectorCertDuration(Integer collectorCertDuration) {
+    this.collectorCertDuration = collectorCertDuration;
   }
 
   public void setWebCertDuration(Integer webCertDuration) {

@@ -58,6 +58,7 @@ e2e_test_install() {
     fi
   fi
 
+  kubectl create namespace "$OPERATOR_NAMESPACE"
   PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
   VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
   VERSION_AS_NUMBER_1_3_3="$(get_version_as_number 1.3.3)"
@@ -102,7 +103,7 @@ e2e_test_install() {
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set prometheusAutobind=true \
+    --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
@@ -141,7 +142,7 @@ EOF
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set prometheusAutobind=true \
+    --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \

@@ -460,11 +460,13 @@ spec:
   instances: 1
   postgres:
     version: "$E2E_POSTGRES_VERSION"
+  configurations:
+    observability:
+      disableMetrics: true
   pods:
     persistentVolume:
       size: '5Gi'
     disableConnectionPooling: false
-    disableMetricsExporter: true
     disablePostgresUtil: true
     scheduling:
       nodeSelector:
@@ -495,11 +497,13 @@ spec:
   instances: 1
   postgres:
     version: "$E2E_POSTGRES_VERSION"
+  configurations:
+    observability:
+      disableMetrics: true
   pods:
     persistentVolume:
       size: '512Mi'
     disableConnectionPooling: true
-    disableMetricsExporter: true
     disablePostgresUtil: true
     scheduling:
       nodeSelector:
@@ -522,7 +526,7 @@ EOF
   assert_string_equal "true" "$DISABLED_CONN_POOL"
 
   local DISABLED_METRIC_EXPORTER
-  DISABLED_METRIC_EXPORTER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.pods.disableMetricsExporter')"
+  DISABLED_METRIC_EXPORTER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME" -o json | jq -r '.spec.configurations.observability.disableMetrics')"
 
   assert_string_equal "true" "$DISABLED_METRIC_EXPORTER"
 
@@ -719,11 +723,13 @@ spec:
   instances: 1
   postgres:
     version: "$E2E_POSTGRES_VERSION"
+  configurations:
+    observability:
+      disableMetrics: true
   pods:
     persistentVolume:
       size: '512Mi'
     disableConnectionPooling: true
-    disableMetricsExporter: true
     disablePostgresUtil: true
     scheduling:
       nodeSelector:
@@ -753,11 +759,13 @@ spec:
   instances: 1
   postgres:
     version: '13'
+  configurations:
+    observability:
+      disableMetrics: true
   pods:
     persistentVolume:
       size: '128Mi'
     disableConnectionPooling: true
-    disableMetricsExporter: true
     disablePostgresUtil: true
     scheduling:
       nodeSelector:

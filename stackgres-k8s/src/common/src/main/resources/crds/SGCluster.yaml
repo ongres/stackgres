@@ -31,7 +31,7 @@ spec:
       jsonPath: .spec.pods.persistentVolume.size
     - name: prometheus-autobind
       type: string
-      jsonPath: .spec.prometheusAutobind
+      jsonPath: .spec.configurations.observability.prometheusAutobind
       priority: 1
     - name: pool-config
       type: string
@@ -812,8 +812,8 @@ spec:
                     default: false
                   disableMetricsExporter:
                     type: boolean
-                    description: If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use Prometheus for monitoring.
-                    default: false
+                    description: |
+                      **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                   disablePostgresUtil:
                     type: boolean
                     description: |
@@ -1063,6 +1063,24 @@ spec:
                       If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
 
                       **Changing this field may require a restart.**
+                  observability:
+                    type: object
+                    description: Allow to specify Observability configuration (related to logs, metrics and traces)
+                    properties:
+                      disableMetrics:
+                        type: boolean
+                        description: |
+                          If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use internal monitoring.
+
+                          **Changing this field may require a restart.**
+                        default: false
+                      receiver:
+                        type: string
+                        description: Indicate the receiver name (for type prometheus) in the configuration for the collector scraper (if not specified the default empty name will be used).
+                      prometheusAutobind:
+                        type: boolean
+                        description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
+                        default: false
                   backups:
                     type: array
                     description: |
@@ -1898,8 +1916,7 @@ spec:
               prometheusAutobind:
                 type: boolean
                 description: |
-                  If enabled, a ServiceMonitor is created for each Prometheus instance found in order to collect metrics.
-                default: false
+                  **Deprecated** use instead .spec.configurations.observability.prometheusAutobind.
               nonProductionOptions:
                 type: object
                 properties:

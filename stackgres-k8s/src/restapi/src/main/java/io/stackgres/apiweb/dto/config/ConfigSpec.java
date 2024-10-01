@@ -43,6 +43,8 @@ public class ConfigSpec {
 
   private ConfigAdminui adminui;
 
+  private ConfigCollector collector;
+
   private ConfigJobs jobs;
 
   private ConfigDeploy deploy;
@@ -163,6 +165,14 @@ public class ConfigSpec {
 
   public void setAdminui(ConfigAdminui adminui) {
     this.adminui = adminui;
+  }
+
+  public ConfigCollector getCollector() {
+    return collector;
+  }
+
+  public void setCollector(ConfigCollector collector) {
+    this.collector = collector;
   }
 
   public ConfigJobs getJobs() {

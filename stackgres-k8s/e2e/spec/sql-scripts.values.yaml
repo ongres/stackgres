@@ -9,8 +9,6 @@ cluster:
     persistentVolume:
       size: 128Mi
     managementPolicy: Parallel
-  configurations:
-    sgBackupConfig: null
   managedSql:
     scripts:
     - name: create-sakila-user
@@ -53,6 +51,5 @@ cluster:
           $$;
         CREATE TABLE test_retry_on_error();
       retryOnError: true
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

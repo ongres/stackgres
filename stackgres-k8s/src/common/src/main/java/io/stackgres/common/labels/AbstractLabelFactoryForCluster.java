@@ -83,6 +83,7 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
         .build();
   }
 
+  @Override
   public Map<String, String> clusterCrossNamespaceLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceNamespaceKey(resource), labelValue(resourceNamespace(resource)))

@@ -23,6 +23,8 @@ public class StackGresConfigDeploy {
 
   private Boolean restapi;
 
+  private Boolean collector;
+
   public Boolean getRestapi() {
     return restapi;
   }
@@ -31,9 +33,17 @@ public class StackGresConfigDeploy {
     this.restapi = restapi;
   }
 
+  public Boolean getCollector() {
+    return collector;
+  }
+
+  public void setCollector(Boolean collector) {
+    this.collector = collector;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(restapi);
+    return Objects.hash(collector, restapi);
   }
 
   @Override
@@ -45,7 +55,7 @@ public class StackGresConfigDeploy {
       return false;
     }
     StackGresConfigDeploy other = (StackGresConfigDeploy) obj;
-    return Objects.equals(restapi, other.restapi);
+    return Objects.equals(collector, other.collector) && Objects.equals(restapi, other.restapi);
   }
 
   @Override

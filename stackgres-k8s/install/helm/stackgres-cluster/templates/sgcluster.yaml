@@ -26,6 +26,10 @@ spec:
   configurations: 
     sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
     sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+    {{- with .Values.cluster.configurations.observability }}
+    observability:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- if not .Values.cluster.disableBackups }}
     {{- with .Values.cluster.configurations.backups }}
     {{- if .sgObjectStorage }}
@@ -134,9 +138,6 @@ spec:
     {{- end }}
     {{- with .Values.cluster.pods.disablePostgresUtil }}
     disablePostgresUtil: {{ . }}
-    {{- end }}
-    {{- with .Values.cluster.pods.disableMetricsExporter }}
-    disableMetricsExporter: {{ . }}
     {{- end }}
     {{- with .Values.cluster.pods.scheduling }}
     scheduling:

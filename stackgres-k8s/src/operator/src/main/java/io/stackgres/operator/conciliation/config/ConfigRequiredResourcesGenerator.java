@@ -11,18 +11,32 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.VersionInfo;
+import io.stackgres.common.crd.external.prometheus.Prometheus;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterObservability;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigCollector;
+import io.stackgres.common.crd.sgconfig.StackGresConfigCollectorPrometheusOperator;
 import io.stackgres.common.crd.sgconfig.StackGresConfigGrafana;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
+import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.operator.common.ObservedClusterContext;
+import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.config.OperatorSecret;
+import io.stackgres.operator.conciliation.factory.config.collector.CollectorSecret;
 import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleAdminSecret;
 import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleDeployment;
 import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleGrafanaIntegrationJob;
@@ -52,6 +66,14 @@ public class ConfigRequiredResourcesGenerator
 
   private final ConfigGrafanaIntegrationChecker grafanaIntegrationChecker;
 
+  private final CustomResourceScanner<StackGresCluster> clusterScanner;
+
+  private final LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster;
+
+  private final ResourceScanner<Pod> podScanner;
+
+  private final CustomResourceScanner<Prometheus> prometheusScanner;
+
   @Inject
   public ConfigRequiredResourcesGenerator(
       Supplier<VersionInfo> kubernetesVersionSupplier,
@@ -59,13 +81,21 @@ public class ConfigRequiredResourcesGenerator
       ResourceFinder<ServiceAccount> serviceAccountFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<Job> jobFinder,
-      ConfigGrafanaIntegrationChecker grafanaIntegrationChecker) {
+      ConfigGrafanaIntegrationChecker grafanaIntegrationChecker,
+      CustomResourceScanner<StackGresCluster> clusterScanner,
+      LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
+      ResourceScanner<Pod> podScanner,
+      CustomResourceScanner<Prometheus> prometheusScanner) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.discoverer = discoverer;
     this.serviceAccountFinder = serviceAccountFinder;
     this.secretFinder = secretFinder;
     this.jobFinder = jobFinder;
     this.grafanaIntegrationChecker = grafanaIntegrationChecker;
+    this.clusterScanner = clusterScanner;
+    this.labelFactoryForCluster = labelFactoryForCluster;
+    this.podScanner = podScanner;
+    this.prometheusScanner = prometheusScanner;
   }
 
   @Override
@@ -116,6 +146,23 @@ public class ConfigRequiredResourcesGenerator
             .map(StackGresConfigSpec::getGrafana)
             .map(StackGresConfigGrafana::getPassword));
 
+    Optional<Secret> collectorConsoleSecret = secretFinder.findByNameAndNamespace(
+        CollectorSecret.name(config), namespace);
+    final List<ObservedClusterContext> observerdClusters = clusterScanner.getResources()
+        .stream()
+        .filter(cluster -> Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getConfigurations)
+            .map(StackGresClusterConfigurations::getObservability)
+            .map(StackGresClusterObservability::getPrometheusAutobind)
+            .orElse(false))
+        .map(cluster -> ObservedClusterContext.toObservedClusterContext(
+            cluster,
+            podScanner.getResourcesInNamespaceWithLabels(
+                cluster.getMetadata().getNamespace(),
+                labelFactoryForCluster.clusterLabels(cluster))))
+        .toList();
+
     StackGresConfigContext context = ImmutableStackGresConfigContext.builder()
         .kubernetesVersion(kubernetesVersion)
         .source(config)
@@ -128,9 +175,55 @@ public class ConfigRequiredResourcesGenerator
         .isGrafanaIntegrationJobFailed(isGrafanaIntegrationJobFailed)
         .grafanaUser(grafanaUser)
         .grafanaPassword(grafanaPassword)
+        .collectorSecret(collectorConsoleSecret)
+        .observedClusters(observerdClusters)
+        .prometheus(getPrometheus(config))
         .build();
 
     return discoverer.generateResources(context);
+  }
+
+  public List<PrometheusContext> getPrometheus(StackGresConfig config) {
+    boolean isAutobindAllowed = Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getCollector)
+        .map(StackGresConfigCollector::getPrometheusOperator)
+        .map(StackGresConfigCollectorPrometheusOperator::getAllowDiscovery)
+        .orElse(false);
+    var monitors = Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getCollector)
+        .map(StackGresConfigCollector::getPrometheusOperator)
+        .map(StackGresConfigCollectorPrometheusOperator::getMonitors)
+        .orElse(List.of());
+        
+    if (monitors.size() > 0) {
+      LOGGER.trace("Prometheus monitors detected, looking for Prometheus resources");
+      return prometheusScanner.findResources()
+          .stream()
+          .flatMap(List::stream)
+          .filter(prometheus -> monitors.stream()
+              .anyMatch(monitor -> monitor.getMetadata().getNamespace().equals(prometheus.getMetadata().getNamespace())
+                  && monitor.getMetadata().getName().equals(prometheus.getMetadata().getName())))
+          .map(prometheus -> PrometheusContext.toPrometheusContext(
+              prometheus,
+              monitors.stream()
+              .filter(monitor -> monitor.getMetadata().getNamespace().equals(prometheus.getMetadata().getNamespace())
+                  && monitor.getMetadata().getName().equals(prometheus.getMetadata().getName()))
+              .findFirst()
+              .orElseThrow()))
+          .toList();
+    } else if (isAutobindAllowed) {
+      LOGGER.trace("Prometheus auto bind enabled, looking for Prometheus resources");
+
+      return prometheusScanner.findResources()
+          .stream()
+          .flatMap(List::stream)
+          .map(PrometheusContext::toPrometheusContext)
+          .toList();
+    } else {
+      return List.of();
+    }
   }
 
 }

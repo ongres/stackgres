@@ -27,6 +27,8 @@ public class StackGresConfigCert {
 
   private Boolean createForWebApi;
 
+  private Boolean createForCollector;
+
   private Boolean resetCerts;
 
   private String secretName;
@@ -44,6 +46,12 @@ public class StackGresConfigCert {
   private Integer webCertDuration;
 
   private Integer webRsaDuration;
+
+  private String collectorSecretName;
+
+  private Boolean regenerateCollectorCert;
+
+  private Integer collectorCertDuration;
 
   private StackGresConfigCertManager certManager;
 
@@ -69,6 +77,14 @@ public class StackGresConfigCert {
 
   public void setCreateForWebApi(Boolean createForWebApi) {
     this.createForWebApi = createForWebApi;
+  }
+
+  public Boolean getCreateForCollector() {
+    return createForCollector;
+  }
+
+  public void setCreateForCollector(Boolean createForCollector) {
+    this.createForCollector = createForCollector;
   }
 
   public Boolean getResetCerts() {
@@ -143,6 +159,30 @@ public class StackGresConfigCert {
     this.webRsaDuration = webRsaDuration;
   }
 
+  public String getCollectorSecretName() {
+    return collectorSecretName;
+  }
+
+  public void setCollectorSecretName(String collectorSecretName) {
+    this.collectorSecretName = collectorSecretName;
+  }
+
+  public Boolean getRegenerateCollectorCert() {
+    return regenerateCollectorCert;
+  }
+
+  public void setRegenerateCollectorCert(Boolean regenerateCollectorCert) {
+    this.regenerateCollectorCert = regenerateCollectorCert;
+  }
+
+  public Integer getCollectorCertDuration() {
+    return collectorCertDuration;
+  }
+
+  public void setCollectorCertDuration(Integer collectorCertDuration) {
+    this.collectorCertDuration = collectorCertDuration;
+  }
+
   public StackGresConfigCertManager getCertManager() {
     return certManager;
   }
@@ -153,8 +193,9 @@ public class StackGresConfigCert {
 
   @Override
   public int hashCode() {
-    return Objects.hash(autoapprove, certDuration, certManager, createForOperator, createForWebApi,
-        regenerateCert, regenerateWebCert, regenerateWebRsa, resetCerts, secretName,
+    return Objects.hash(autoapprove, certDuration, certManager, collectorCertDuration,
+        collectorSecretName, createForCollector, createForOperator, createForWebApi, regenerateCert,
+        regenerateCollectorCert, regenerateWebCert, regenerateWebRsa, resetCerts, secretName,
         webCertDuration, webRsaDuration, webSecretName);
   }
 
@@ -170,9 +211,13 @@ public class StackGresConfigCert {
     return Objects.equals(autoapprove, other.autoapprove)
         && Objects.equals(certDuration, other.certDuration)
         && Objects.equals(certManager, other.certManager)
+        && Objects.equals(collectorCertDuration, other.collectorCertDuration)
+        && Objects.equals(collectorSecretName, other.collectorSecretName)
+        && Objects.equals(createForCollector, other.createForCollector)
         && Objects.equals(createForOperator, other.createForOperator)
         && Objects.equals(createForWebApi, other.createForWebApi)
         && Objects.equals(regenerateCert, other.regenerateCert)
+        && Objects.equals(regenerateCollectorCert, other.regenerateCollectorCert)
         && Objects.equals(regenerateWebCert, other.regenerateWebCert)
         && Objects.equals(regenerateWebRsa, other.regenerateWebRsa)
         && Objects.equals(resetCerts, other.resetCerts)

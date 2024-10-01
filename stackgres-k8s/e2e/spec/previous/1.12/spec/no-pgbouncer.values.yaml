@@ -10,8 +10,5 @@ cluster:
       size: 128Mi
     disableConnectionPooling: true
     managementPolicy: Parallel
-  configurations:
-    sgBackupConfig: null
-  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

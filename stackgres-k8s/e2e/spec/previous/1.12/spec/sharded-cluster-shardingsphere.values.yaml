@@ -21,8 +21,9 @@ cluster:
     persistentVolume:
       size: 128Mi
     managementPolicy: Parallel
-  prometheusAutobind: false
   configurations:
+    observability:
+      prometheusAutobind: false
     shardingSphere:
       mode:
         type: Cluster

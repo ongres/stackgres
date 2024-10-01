@@ -23,9 +23,59 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class PodMonitorSpec {
 
+  private String jobLabel;
+
+  private List<String> podTargetLabels; 
+  
+  private List<PodMetricsEndpoint> podMetricsEndpoints;
+
   private LabelSelector selector;
+
   private NamespaceSelector namespaceSelector;
-  private List<Endpoint> podMetricsEndpoints;
+
+  private Integer sampleLimit;
+
+  private Integer targetLimit;
+
+  private List<String> scrapeProtocols;
+
+  private Integer labelLimit;
+
+  private Integer labelNameLengthLimit;
+
+  private Integer labelValueLengthLimit;
+
+  private Integer keepDroppedTargets;
+
+  private AttachMetadata attachMetadata;
+
+  private String scrapeClass;
+
+  private String bodySizeLimit;
+
+  public String getJobLabel() {
+    return jobLabel;
+  }
+
+  public void setJobLabel(String jobLabel) {
+    this.jobLabel = jobLabel;
+  }
+
+  public List<String> getPodTargetLabels() {
+    return podTargetLabels;
+  }
+
+  public void setPodTargetLabels(List<String> podTargetLabels) {
+    this.podTargetLabels = podTargetLabels;
+  }
+
+  public List<PodMetricsEndpoint> getPodMetricsEndpoints() {
+    return podMetricsEndpoints;
+  }
+
+  public void setPodMetricsEndpoints(List<PodMetricsEndpoint> podMetricsEndpoints) {
+    this.podMetricsEndpoints = podMetricsEndpoints;
+  }
 
   public LabelSelector getSelector() {
     return selector;
@@ -43,17 +93,91 @@ public class PodMonitorSpec {
     this.namespaceSelector = namespaceSelector;
   }
 
-  public List<Endpoint> getPodMetricsEndpoints() {
-    return podMetricsEndpoints;
+  public Integer getSampleLimit() {
+    return sampleLimit;
   }
 
-  public void setPodMetricsEndpoints(List<Endpoint> podMetricsEndpoints) {
-    this.podMetricsEndpoints = podMetricsEndpoints;
+  public void setSampleLimit(Integer sampleLimit) {
+    this.sampleLimit = sampleLimit;
+  }
+
+  public Integer getTargetLimit() {
+    return targetLimit;
+  }
+
+  public void setTargetLimit(Integer targetLimit) {
+    this.targetLimit = targetLimit;
+  }
+
+  public List<String> getScrapeProtocols() {
+    return scrapeProtocols;
+  }
+
+  public void setScrapeProtocols(List<String> scrapeProtocols) {
+    this.scrapeProtocols = scrapeProtocols;
+  }
+
+  public Integer getLabelLimit() {
+    return labelLimit;
+  }
+
+  public void setLabelLimit(Integer labelLimit) {
+    this.labelLimit = labelLimit;
+  }
+
+  public Integer getLabelNameLengthLimit() {
+    return labelNameLengthLimit;
+  }
+
+  public void setLabelNameLengthLimit(Integer labelNameLengthLimit) {
+    this.labelNameLengthLimit = labelNameLengthLimit;
+  }
+
+  public Integer getLabelValueLengthLimit() {
+    return labelValueLengthLimit;
+  }
+
+  public void setLabelValueLengthLimit(Integer labelValueLengthLimit) {
+    this.labelValueLengthLimit = labelValueLengthLimit;
+  }
+
+  public Integer getKeepDroppedTargets() {
+    return keepDroppedTargets;
+  }
+
+  public void setKeepDroppedTargets(Integer keepDroppedTargets) {
+    this.keepDroppedTargets = keepDroppedTargets;
+  }
+
+  public AttachMetadata getAttachMetadata() {
+    return attachMetadata;
+  }
+
+  public void setAttachMetadata(AttachMetadata attachMetadata) {
+    this.attachMetadata = attachMetadata;
+  }
+
+  public String getScrapeClass() {
+    return scrapeClass;
+  }
+
+  public void setScrapeClass(String scrapeClass) {
+    this.scrapeClass = scrapeClass;
+  }
+
+  public String getBodySizeLimit() {
+    return bodySizeLimit;
+  }
+
+  public void setBodySizeLimit(String bodySizeLimit) {
+    this.bodySizeLimit = bodySizeLimit;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(namespaceSelector, podMetricsEndpoints, selector);
+    return Objects.hash(attachMetadata, bodySizeLimit, jobLabel, keepDroppedTargets, labelLimit,
+        labelNameLengthLimit, labelValueLengthLimit, namespaceSelector, podMetricsEndpoints,
+        podTargetLabels, sampleLimit, scrapeClass, scrapeProtocols, selector, targetLimit);
   }
 
   @Override
@@ -65,9 +189,21 @@ public class PodMonitorSpec {
       return false;
     }
     PodMonitorSpec other = (PodMonitorSpec) obj;
-    return Objects.equals(namespaceSelector, other.namespaceSelector)
+    return Objects.equals(attachMetadata, other.attachMetadata)
+        && Objects.equals(bodySizeLimit, other.bodySizeLimit)
+        && Objects.equals(jobLabel, other.jobLabel)
+        && Objects.equals(keepDroppedTargets, other.keepDroppedTargets)
+        && Objects.equals(labelLimit, other.labelLimit)
+        && Objects.equals(labelNameLengthLimit, other.labelNameLengthLimit)
+        && Objects.equals(labelValueLengthLimit, other.labelValueLengthLimit)
+        && Objects.equals(namespaceSelector, other.namespaceSelector)
         && Objects.equals(podMetricsEndpoints, other.podMetricsEndpoints)
-        && Objects.equals(selector, other.selector);
+        && Objects.equals(podTargetLabels, other.podTargetLabels)
+        && Objects.equals(sampleLimit, other.sampleLimit)
+        && Objects.equals(scrapeClass, other.scrapeClass)
+        && Objects.equals(scrapeProtocols, other.scrapeProtocols)
+        && Objects.equals(selector, other.selector)
+        && Objects.equals(targetLimit, other.targetLimit);
   }
 
   @Override

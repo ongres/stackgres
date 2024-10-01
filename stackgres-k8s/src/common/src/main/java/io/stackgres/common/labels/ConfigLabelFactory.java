@@ -44,6 +44,22 @@ public class ConfigLabelFactory extends AbstractLabelFactory<StackGresConfig>
   }
 
   @Override
+  public Map<String, String> collectorLabels(@NotNull StackGresConfig resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .put(labelMapper().collectorKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
+  }
+
+  @Override
+  public Map<String, String> configCrossNamespaceLabels(@NotNull StackGresConfig resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceNamespaceKey(resource), labelValue(resourceNamespace(resource)))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .build();
+  }
+
+  @Override
   public LabelMapperForConfig labelMapper() {
     return labelMapper;
   }

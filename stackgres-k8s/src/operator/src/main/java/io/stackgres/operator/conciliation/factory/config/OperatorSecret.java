@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.ConfigPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -98,16 +99,16 @@ public class OperatorSecret
         .orElse(Map.of());
 
     boolean certInvalid = true;
-    if (previousSecretData.containsKey("tls.crt")
-        && previousSecretData.containsKey("tls.key")) {
+    if (previousSecretData.containsKey(ConfigPath.CERTIFICATE_PATH.filename())
+        && previousSecretData.containsKey(ConfigPath.CERTIFICATE_KEY_PATH.filename())) {
       if (!Optional.of(context.getSource().getSpec())
           .map(StackGresConfigSpec::getCert)
           .map(StackGresConfigCert::getRegenerateCert)
           .orElse(true)) {
         certInvalid = false;
       } else if (CryptoUtil.isCertificateAndKeyValid(
-          previousSecretData.get("tls.crt"),
-          previousSecretData.get("tls.key"))) {
+          previousSecretData.get(ConfigPath.CERTIFICATE_PATH.filename()),
+          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()))) {
         certInvalid = false;
       }
     }
@@ -115,7 +116,7 @@ public class OperatorSecret
     if (certInvalid) {
       final String operatorNamespace = context.getSource().getMetadata().getNamespace();
       final String operatorName = context.getSource().getMetadata().getName();
-      var certificateTuple = CryptoUtil.generateCaCertificateAndPrivateKey(
+      var generated = CryptoUtil.generateCaCertificateAndPrivateKey(
           "CN=system:node:" + operatorName + "." + operatorNamespace + ", O=system:nodes",
           List.of(
               operatorName,
@@ -128,11 +129,13 @@ public class OperatorSecret
               .map(StackGresConfigCert::getCertDuration)
               .orElse(DEFAULT_DURATION),
               ChronoUnit.DAYS));
-      data.put("tls.crt", certificateTuple.v1);
-      data.put("tls.key", certificateTuple.v2);
+      data.put(ConfigPath.CERTIFICATE_PATH.filename(), generated.v1);
+      data.put(ConfigPath.CERTIFICATE_KEY_PATH.filename(), generated.v2);
     } else {
-      data.put("tls.crt", previousSecretData.get("tls.crt"));
-      data.put("tls.key", previousSecretData.get("tls.key"));
+      data.put(ConfigPath.CERTIFICATE_PATH.filename(),
+          previousSecretData.get(ConfigPath.CERTIFICATE_PATH.filename()));
+      data.put(ConfigPath.CERTIFICATE_KEY_PATH.filename(),
+          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()));
     }
   }
 
