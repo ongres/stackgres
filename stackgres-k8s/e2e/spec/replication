@@ -8,6 +8,7 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
+  OLD_BACKUP_NAME="$(get_sgbackup_name "${SPEC_NAME}-old")"
   BACKUP_NAME="$(get_sgbackup_name "${SPEC_NAME}")"
 
   install_minio
@@ -19,6 +20,18 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: $CLUSTER_NAMESPACE
+  name: $OLD_BACKUP_NAME
+spec:
+  sgCluster: $CLUSTER_NAME
+EOF
+  wait_until eval 'kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$OLD_BACKUP_NAME" -o json \
+    | jq ".status.process.status" -r | grep -qxF Completed'
 }
 
 e2e_test() {
@@ -142,7 +155,7 @@ EOF
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string cluster.replication.initialization.mode=FromExistingBackup
-  wait_pods_terminated "$CLUSTER_NAMESPACE" "5"
+  wait_pods_terminated "$CLUSTER_NAMESPACE" "2" "$CLUSTER_NAME-[0-9]"
   wait_until kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
     | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
     | grep -q .
@@ -170,6 +183,18 @@ EOF
     echo
     fail "replication has not bootstrapped from backup"
   fi
+
+  LATEST_BACKUP="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" --sort-by='{.metadata.creationTimestamp}' -o name \
+    | tail -n 1 | cut -d / -f 2)"
+  if [ "x$LATEST_BACKUP" != x ] \
+    && kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
+    | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
+    | grep -qxF "$LATEST_BACKUP"
+  then
+    success "replication has bootstrapped from latest backup"
+  else
+    fail "replication has not bootstrapped from latest backup"
+  fi
 }
 
 check_replication_is_working_from_newly_created_backup() {
@@ -177,6 +202,12 @@ check_replication_is_working_from_newly_created_backup() {
     | jq '.status.process.timing.end' -r \
     | date -d "$(cat)" +%s)"
   NOW="$(date +%s)"
+  if [ "$(( NOW - BACKUP_END_TIMESTAMP ))" -lt 120 ]
+  then
+    echo "Waiting $(( 120 - NOW + BACKUP_END_TIMESTAMP )) seconds for the existing backups to be enough old"
+    sleep "$(( 120 - NOW + BACKUP_END_TIMESTAMP ))"
+    NOW="$(date +%s)"
+  fi
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string cluster.replication.initialization.mode=FromNewlyCreatedBackup \
     --set-string cluster.replication.initialization.backupNewerThan="PT$(( NOW - BACKUP_END_TIMESTAMP ))S"
@@ -205,12 +236,15 @@ check_replication_is_working_from_newly_created_backup() {
     fail "replication has not bootstrapped from backup"
   fi
 
-  if kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
+  NEWLY_CREATED_BACKUP="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" -o name \
+    | cut -d '/' -f 2)"
+  if [ "x$NEWLY_CREATED_BACKUP" != x ] \
+    && kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
     | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
-    | grep -qxF "$CLUSTER_NAME"
+    | grep -qxF "$NEWLY_CREATED_BACKUP"
   then
-    fail "replication has not bootstrapped from newly created backup"
-  else
     success "replication has bootstrapped from newly created backup"
+  else
+    fail "replication has not bootstrapped from newly created backup"
   fi
 }

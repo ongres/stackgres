@@ -57,6 +57,18 @@ public class StackGresClusterPostgresService extends StackGresPostgresService {
         trafficDistribution, type, nodePorts);
   }
 
+  public StackGresClusterPostgresService(StackGresPostgresService service) {
+    super(service.getAllocateLoadBalancerNodePorts(), service.getClusterIP(),
+        service.getClusterIPs(), service.getExternalIPs(), service.getExternalName(),
+        service.getExternalTrafficPolicy(), service.getHealthCheckNodePort(),
+        service.getInternalTrafficPolicy(), service.getIpFamilies(), service.getIpFamilyPolicy(),
+        service.getLoadBalancerClass(), service.getLoadBalancerIP(),
+        service.getLoadBalancerSourceRanges(), service.getPorts(),
+        service.getPublishNotReadyAddresses(), service.getSelector(), service.getSessionAffinity(),
+        service.getSessionAffinityConfig(), service.getTrafficDistribution(), service.getType(),
+        service.getNodePorts());
+  }
+
   public List<CustomServicePort> getCustomPorts() {
     return customPorts;
   }

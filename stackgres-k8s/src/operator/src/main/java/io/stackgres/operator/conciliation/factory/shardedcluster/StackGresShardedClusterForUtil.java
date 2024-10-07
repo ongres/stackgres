@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServicesBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackupBuilder;
@@ -72,7 +73,11 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         StackGresShardedClusterUtil.getCoordinatorClusterName(cluster));
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresClusterPostgresServicesBuilder()
-        .withNewPrimary()
+        .withPrimary(new StackGresClusterPostgresService(Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getCoordinator)
+            .map(StackGresShardedClusterPostgresCoordinatorServices::getPrimary)
+            .orElseGet(StackGresPostgresService::new)))
+        .editPrimary()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
@@ -85,8 +90,22 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
             .orElse(null))
         .endPrimary()
-        .withNewReplicas()
-        .withEnabled(false)
+        .withReplicas(new StackGresClusterPostgresService(Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getCoordinator)
+            .map(StackGresShardedClusterPostgresCoordinatorServices::getAny)
+            .orElseGet(StackGresPostgresService::new)))
+        .editReplicas()
+        .withEnabled(
+            Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getCoordinator)
+            .map(StackGresShardedClusterPostgresCoordinatorServices::getAny)
+            .map(StackGresPostgresService::getEnabled)
+            .orElse(true))
+        .withCustomPorts(
+            Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getCoordinator)
+            .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
+            .orElse(null))
         .endReplicas()
         .build());
     coordinatorCluster.setSpec(spec);
@@ -126,7 +145,11 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         StackGresShardedClusterUtil.getShardClusterName(cluster, index));
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresClusterPostgresServicesBuilder()
-        .withNewPrimary()
+        .withPrimary(new StackGresClusterPostgresService(Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getShards)
+            .map(StackGresShardedClusterPostgresShardsServices::getPrimaries)
+            .orElseGet(StackGresPostgresService::new)))
+        .editPrimary()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getShards)
