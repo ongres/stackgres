@@ -105,6 +105,14 @@ public class PatroniConfigEndpoints
     final StackGresCluster cluster = context.getCluster();
     final StackGresPostgresConfig pgConfig = context.getPostgresConfig();
     final boolean isBackupConfigurationPresent = context.getBackupStorage().isPresent();
+    final boolean isReplicateFromPresent = Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .isPresent()
+        || Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getStorage)
+        .isPresent();
     final Optional<StackGresCluster> replicateClusterOptional = context.getReplicateCluster();
     final PatroniConfig patroniConf = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getConfigurations)
@@ -227,7 +235,7 @@ public class PatroniConfigEndpoints
     patroniConf.getPostgresql().setParameters(
         getPostgresConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
     patroniConf.getPostgresql().setRecoveryConf(
-        getPostgresRecoveryConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
+        getPostgresRecoveryConfigValues(cluster, pgConfig, isBackupConfigurationPresent, isReplicateFromPresent));
     return patroniConf;
   }
 
@@ -243,8 +251,10 @@ public class PatroniConfigEndpoints
   Map<String, String> getPostgresRecoveryConfigValues(
       StackGresCluster cluster,
       StackGresPostgresConfig pgConfig,
-      boolean isBackupConfigurationPresent) {
-    Map<String, String> params = getPostgresRecoveryParameters(cluster, isBackupConfigurationPresent);
+      boolean isBackupConfigurationPresent,
+      boolean isReplicateFromPresent) {
+    Map<String, String> params = getPostgresRecoveryParameters(
+        cluster, isBackupConfigurationPresent, isReplicateFromPresent);
 
     return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
   }
@@ -319,10 +329,11 @@ public class PatroniConfigEndpoints
 
   private Map<String, String> getPostgresRecoveryParameters(
       StackGresCluster cluster,
-      boolean isBackupConfigurationPresent) {
+      boolean isBackupConfigurationPresent,
+      boolean isReplicateFromPresent) {
     Map<String, String> params = new HashMap<>();
 
-    if (isBackupConfigurationPresent) {
+    if (isBackupConfigurationPresent && !isReplicateFromPresent) {
       params.put("restore_command",
           "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster) + "'"
               + " -- wal-g wal-fetch %f %p");

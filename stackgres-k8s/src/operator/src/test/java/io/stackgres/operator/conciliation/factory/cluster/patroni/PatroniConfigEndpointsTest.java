@@ -356,7 +356,7 @@ class PatroniConfigEndpointsTest {
   @Test
   void getPostgresRecoveryConfigValues_shouldConfigureBackupParametersIfArePresent() {
     Map<String, String> pgRecoveryParams = generator.getPostgresRecoveryConfigValues(
-        cluster, postgresConfig, true);
+        cluster, postgresConfig, true, false);
 
     assertTrue(pgRecoveryParams.containsKey("restore_command"));
     final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
