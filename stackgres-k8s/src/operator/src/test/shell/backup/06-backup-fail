@@ -14,7 +14,7 @@ kubectl_mock_overwrite() {
     ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
-      (*" wal-g backup-push "*)
+      (*" \"$WALG_BIN_PATH\" backup-push "*)
       return 1
       ;;
       ("pg_controldata "*)

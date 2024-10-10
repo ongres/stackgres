@@ -1,0 +1,58 @@
+{
+  "versions": [
+    {
+      "major": 16,
+      "minor": 4,
+      "version": "16.4",
+      "label": "16.latest",
+      "isLatest": false,
+      "isLatestMinor": true,
+      "platforms": [
+        {
+          "os": "linux",
+          "architecture": "amd64",
+          "revision": "12",
+          "base": "ubi",
+          "baseMajor": "9",
+          "baseMinor": "4"
+        }
+      ]
+    },
+    {
+      "major": 16,
+      "minor": 4,
+      "version": "16.4",
+      "label": "16.4",
+      "isLatest": false,
+      "isLatestMinor": false,
+      "platforms": [
+        {
+          "os": "linux",
+          "architecture": "amd64",
+          "revision": "12",
+          "base": "ubi",
+          "baseMajor": "9",
+          "baseMinor": "4"
+        }
+      ]
+    },
+    {
+      "major": 16,
+      "minor": 4,
+      "version": "16.4",
+      "label": "latest",
+      "isLatest": true,
+      "isLatestMinor": false,
+      "platforms": [
+        {
+          "os": "linux",
+          "architecture": "amd64",
+          "revision": "12",
+          "base": "ubi",
+          "baseMajor": "9",
+          "baseMinor": "4"
+        }
+      ]
+    }
+  ]
+}

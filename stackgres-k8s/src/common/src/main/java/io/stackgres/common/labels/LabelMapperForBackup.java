@@ -5,14 +5,14 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
 public interface LabelMapperForBackup
     extends LabelMapper<StackGresBackup> {
 
   default String backupKey(StackGresBackup resource) {
-    return getKeyPrefix(resource) + StackGresContext.BACKUP_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.BACKUP_KEY;
   }
 
 }

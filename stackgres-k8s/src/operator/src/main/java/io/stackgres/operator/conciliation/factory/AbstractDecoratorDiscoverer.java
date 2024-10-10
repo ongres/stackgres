@@ -35,7 +35,7 @@ public abstract class AbstractDecoratorDiscoverer<T extends GenerationContext<?>
   @Override
   public List<Decorator<T>> discoverDecorator(T context) {
     DecoratorFilter resourceGeneratorFilter = createDecoratorFilter(context);
-    return hub.get(context.getVersion())
+    return getFactories(context)
         .stream()
         .filter(resourceGeneratorFilter)
         .toList();

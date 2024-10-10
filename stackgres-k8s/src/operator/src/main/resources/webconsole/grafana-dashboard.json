@@ -5244,13 +5244,13 @@
           ],
           "targets": [
             {
-              "expr": "node_filesystem_avail_bytes{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"}",
+              "expr": "node_filesystem_avail_bytes{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"}",
               "interval": "",
               "legendFormat": "Available",
               "refId": "A"
             },
             {
-              "expr": "node_filesystem_size_bytes{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"}",
+              "expr": "node_filesystem_size_bytes{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"}",
               "interval": "",
               "legendFormat": "Total",
               "refId": "B"
@@ -5314,13 +5314,13 @@
           "pluginVersion": "8.1.2",
           "targets": [
             {
-              "expr": "(1.0 - node_filesystem_avail_bytes{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"} / node_filesystem_size_bytes{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"}) * 100",
+              "expr": "(1.0 - node_filesystem_avail_bytes{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"} / node_filesystem_size_bytes{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"}) * 100",
               "interval": "",
               "legendFormat": "Size",
               "refId": "A"
             },
             {
-              "expr": "(1.0 - node_filesystem_files_free{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"} / node_filesystem_files{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"}) * 100",
+              "expr": "(1.0 - node_filesystem_files_free{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"} / node_filesystem_files{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"}) * 100",
               "interval": "",
               "legendFormat": "inodes",
               "refId": "B"
@@ -5374,13 +5374,13 @@
           ],
           "targets": [
             {
-              "expr": "node_filesystem_files{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"}",
+              "expr": "node_filesystem_files{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"}",
               "interval": "",
               "legendFormat": "Total",
               "refId": "C"
             },
             {
-              "expr": "node_filesystem_files_free{instance=~\"${instance}:9187\",mountpoint=\"/var/lib/postgresql\",fstype!=\"\"}",
+              "expr": "node_filesystem_files_free{instance=~\"${instance}:9187\",mountpoint~=\"/var/lib/postgresql|/var/db/postgresql\",fstype!=\"\"}",
               "interval": "",
               "legendFormat": "Free",
               "refId": "D"

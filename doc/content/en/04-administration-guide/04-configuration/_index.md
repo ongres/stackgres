@@ -52,6 +52,36 @@ kubectl describe sgpgconfig
 kubectl describe sgpoolconfig
 ```
 
+## Images Registry
+
+By default the images of the Pods of a new SGCluster are retrieved from the StackGres images registry
+ (`sgcr.dev`) through the StackGres docir REST API, that combines the base image, the Postgres flavor,
+ the required addons (patroni, wal-g and hdrhistogram) and the extensions into a single image for the
+ patroni container, and the base image, the Postgres flavor and a single addon (pgbouncer,
+ postgres-exporter, kubectl, fluent-bit, fluentd or otel-collector) into the images of the sidecar containers.
+
+The feature is controlled by `SGCluster.spec.configurations.registry.enabled` that can only be set on
+ creation: it defaults to `true` for new SGClusters and to `false` for SGClusters created with a
+ previous version of the operator, that keep using the images bundled with the operator release.
+ The URL of the StackGres docir REST API is configured globally in `SGConfig.spec.repository.url`
+ (helm value `repository.url`) and can be overridden for a single SGCluster with
+ `SGCluster.spec.configurations.registry.url`.
+
+The catalog of the registry (base images, Postgres versions, addons and extensions) is requested for
+ the `<major>.<minor>` version of the operator (query parameter `operator-version`) so that only the
+ images supporting it are used, and restricted to the published images (query parameter
+ `published=true`). Set the environment variable `USE_PUBLISHED_IMAGES` to `false` in the operator
+ (it is propagated to the REST API and to the cluster controller) to also use the images not yet
+ published, for instance to test them before publication.
+
+The images used by a SGCluster are pinned in its status (`status.base`, `status.baseVersion`,
+ `status.baseRevision`, `status.revision`, `status.addons` and `status.repository`) and are only
+ resolved again when a rollout is allowed (see [Rollout]({{% relref "04-administration-guide/11-rollout" %}}))
+ or when the Postgres version changes. The addons of the sidecar containers are pinned only when
+ available in the registry for the same base image (an addon that becomes available later is pinned
+ without changing the other pins) and a sidecar container that requires an addon that is not available
+ fails only if enabled.
+
 ## Custom Configuration
 
 For creating your custom configuration, check out the following guides:

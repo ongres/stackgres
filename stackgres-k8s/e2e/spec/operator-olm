@@ -338,7 +338,7 @@ EOF
     --from-literal=script="CREATE DATABASE configmap_managed_sql;"
   wait_until create_or_replace_cluster_from_backup
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_1_NAME-[0-9]\+"
 
   wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
 

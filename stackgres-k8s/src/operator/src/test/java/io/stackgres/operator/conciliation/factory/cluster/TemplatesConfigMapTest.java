@@ -17,9 +17,10 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -37,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TemplatesConfigMapTest {
 
   private final LabelFactoryForCluster labelFactory =
-      new ClusterLabelFactory(new ClusterLabelMapper());
+      new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
   @Mock
   private StackGresClusterContext context;
@@ -83,7 +84,7 @@ class TemplatesConfigMapTest {
 
     ConfigMap configMap = (ConfigMap) source;
     Map<String, String> data = configMap.getData();
-    for (ClusterPath templatePath : AbstractTemplatesConfigMap.CLUSTER_TEMPLATE_PATHS) {
+    for (ClusterPathV1 templatePath : AbstractTemplatesConfigMap.CLUSTER_TEMPLATE_PATHS) {
       assertTrue(data.containsKey(templatePath.filename()),
           "Missing template key: " + templatePath.filename());
     }

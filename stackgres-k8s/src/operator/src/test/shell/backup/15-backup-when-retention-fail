@@ -17,7 +17,7 @@ kubectl_mock_overwrite() {
       (*" for each existing backup"*)
       exit 1
       ;;
-      (*" wal-g backup-list "*)
+      (*" \"$WALG_BIN_PATH\" backup-list "*)
       cat "$TEST_SHELL_PATH/backup/wal-g-backup-list"
       ;;
     esac

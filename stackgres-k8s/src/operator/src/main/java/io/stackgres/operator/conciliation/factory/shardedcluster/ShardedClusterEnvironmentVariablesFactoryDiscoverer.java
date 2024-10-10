@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.shardedcluster;
 import java.util.List;
 
 import io.stackgres.common.ShardedClusterContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.AbstractDiscoverer;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -29,7 +30,10 @@ public class ShardedClusterEnvironmentVariablesFactoryDiscoverer
       ShardedClusterContext context) {
     StackGresVersion clusterVersion = StackGresVersion.getStackGresVersion(
         context.getShardedCluster());
-    return hub.get(clusterVersion).stream().toList();
+    return getFactories(
+        clusterVersion,
+        StackGresUtil.isRegistryEnabled(context.getShardedCluster()))
+        .stream().toList();
   }
 
 }

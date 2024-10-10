@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.backup;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -24,14 +25,18 @@ public class BackupRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(BackupRequiredResourcesGenerator.class);
 
+  private final StackGresContext context;
+
   private final BackupContextPipeline contextPipeline;
 
   private final ResourceGenerationDiscoverer<StackGresBackupContext> discoverer;
 
   @Inject
   public BackupRequiredResourcesGenerator(
+      StackGresContext context,
       BackupContextPipeline contextPipeline,
       ResourceGenerationDiscoverer<StackGresBackupContext> discoverer) {
+    this.context = context;
     this.contextPipeline = contextPipeline;
     this.discoverer = discoverer;
   }
@@ -39,6 +44,7 @@ public class BackupRequiredResourcesGenerator
   @Override
   public List<HasMetadata> getRequiredResources(StackGresBackup backup) {
     var contextBuilder = StackGresBackupContext.builder()
+        .context(context)
         .source(backup);
 
     contextPipeline.appendContext(backup, contextBuilder);

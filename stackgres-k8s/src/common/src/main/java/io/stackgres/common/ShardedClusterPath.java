@@ -17,6 +17,7 @@ public enum ShardedClusterPath implements EnvVarPathSource<StackGresShardedClust
   TEMPLATES_PATH("/templates"),
   LOCAL_BIN_PATH("/usr/local/bin"),
   LOCAL_BIN_SHELL_UTILS_PATH(LOCAL_BIN_PATH, "shell-utils"),
+  KUBECTL_BIN_PATH(LOCAL_BIN_PATH, "kubectl"),
   LOCAL_BIN_SET_SHARDED_DBOPS_RUNNING_SH_PATH(LOCAL_BIN_PATH, "set-sharded-dbops-running.sh"),
   LOCAL_BIN_RUN_SHARDED_DBOPS_SH_PATH(LOCAL_BIN_PATH, "run-sharded-dbops.sh"),
   LOCAL_BIN_SET_SHARDED_DBOPS_RESULT_SH_PATH(LOCAL_BIN_PATH, "set-sharded-dbops-result.sh"),

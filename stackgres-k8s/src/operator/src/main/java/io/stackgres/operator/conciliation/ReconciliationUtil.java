@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 
 public class ReconciliationUtil {
 
@@ -19,7 +19,7 @@ public class ReconciliationUtil {
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
         .map(annotations -> annotations
-            .get(StackGresContext.RECONCILIATION_PAUSE_KEY))
+            .get(StackGresKeys.RECONCILIATION_PAUSE_KEY))
         .map(Boolean::parseBoolean)
         .filter(pause -> pause)
         .isEmpty();

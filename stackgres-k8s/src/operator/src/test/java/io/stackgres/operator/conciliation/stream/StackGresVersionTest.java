@@ -8,7 +8,7 @@ package io.stackgres.operator.conciliation.stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgstream.StackGresStream;
@@ -68,6 +68,6 @@ class StackGresVersionTest {
   }
 
   private void setStackGresVersion(String configVersion) {
-    stream.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
+    stream.getMetadata().getAnnotations().put(StackGresKeys.VERSION_KEY, configVersion);
   }
 }

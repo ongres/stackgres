@@ -18,12 +18,12 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
@@ -247,11 +247,11 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
             .build(),
             new EnvVarBuilder()
             .withName("POSTGRES_VERSION_KEY")
-            .withValue(StackGresContext.POSTGRES_VERSION_KEY)
+            .withValue(StackGresKeys.POSTGRES_VERSION_KEY)
             .build(),
             new EnvVarBuilder()
             .withName("ROLLOUT_DBOPS_KEY")
-            .withValue(StackGresContext.ROLLOUT_DBOPS_KEY)
+            .withValue(StackGresKeys.ROLLOUT_DBOPS_KEY)
             .build(),
             new EnvVarBuilder()
             .withName("LOCK_DURATION")
@@ -270,8 +270,8 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
   }
 
   @Override
-  protected ClusterPath getRunScript() {
-    return ClusterPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH;
+  protected ClusterPathV1 getRunScript() {
+    return ClusterPathV1.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH;
   }
 
   @Override

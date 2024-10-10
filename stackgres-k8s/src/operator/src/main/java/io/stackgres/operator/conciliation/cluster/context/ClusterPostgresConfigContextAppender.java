@@ -13,6 +13,7 @@ import java.util.Set;
 
 import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
@@ -24,12 +25,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class ClusterPostgresConfigContextAppender {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;
 
-  public ClusterPostgresConfigContextAppender(
+  public ClusterPostgresConfigContextAppender(StackGresContext context,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory) {
+    this.context = context;
     this.postgresConfigFinder = postgresConfigFinder;
     this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
@@ -49,7 +52,7 @@ public class ClusterPostgresConfigContextAppender {
           + " was not found");
     }
     String majorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(version);
+        .getMajorVersion(context, version);
     if (postgresConfig.isPresent()) {
       String postgresConfigVersion = postgresConfig.get().getSpec().getPostgresVersion();
       if (!postgresConfigVersion.equals(majorVersion)) {

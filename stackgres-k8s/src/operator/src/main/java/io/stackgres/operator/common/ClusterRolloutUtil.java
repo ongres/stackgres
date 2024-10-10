@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
@@ -63,26 +63,26 @@ public class ClusterRolloutUtil {
         .map(StackGresClusterUpdateStrategy::getType)
         .map(StackGresClusterUpdateStrategyType::fromString)
         .orElse(StackGresClusterUpdateStrategyType.ONLY_DB_OPS);
-    final boolean hasRolloutAnnotation = annotations.containsKey(StackGresContext.ROLLOUT_KEY);
+    final boolean hasRolloutAnnotation = annotations.containsKey(StackGresKeys.ROLLOUT_KEY);
     if (Objects.equals(
-        annotations.get(StackGresContext.ROLLOUT_KEY),
-        StackGresContext.ROLLOUT_NEVER_VALUE)
+        annotations.get(StackGresKeys.ROLLOUT_KEY),
+        StackGresKeys.ROLLOUT_NEVER_VALUE)
         || updateStrategyType == StackGresClusterUpdateStrategyType.NEVER) {
       return false;
     }
     if (Objects.equals(
-        annotations.get(StackGresContext.ROLLOUT_KEY),
-        StackGresContext.ROLLOUT_ALWAYS_VALUE)
+        annotations.get(StackGresKeys.ROLLOUT_KEY),
+        StackGresKeys.ROLLOUT_ALWAYS_VALUE)
         || (!hasRolloutAnnotation && updateStrategyType == StackGresClusterUpdateStrategyType.ALWAYS)) {
       return true;
     }
-    if (annotations.containsKey(StackGresContext.ROLLOUT_DBOPS_KEY)) {
+    if (annotations.containsKey(StackGresKeys.ROLLOUT_DBOPS_KEY)) {
       return true;
     }
     if ((Objects.equals(
-        annotations.get(StackGresContext.ROLLOUT_KEY),
-        StackGresContext.ROLLOUT_SCHEDULE_VALUE)
-        && annotations.containsKey(StackGresContext.ROLLOUT_SCHEDULE_KEY))
+        annotations.get(StackGresKeys.ROLLOUT_KEY),
+        StackGresKeys.ROLLOUT_SCHEDULE_VALUE)
+        && annotations.containsKey(StackGresKeys.ROLLOUT_SCHEDULE_KEY))
         || (!hasRolloutAnnotation && updateStrategyType == StackGresClusterUpdateStrategyType.SCHEDULE
         && Optional.of(cluster)
         .map(StackGresCluster::getSpec)
@@ -91,7 +91,7 @@ public class ClusterRolloutUtil {
         .map(StackGresClusterUpdateStrategy::getSchedule)
         .isPresent())) {
       ZonedDateTime now = ZonedDateTime.now();
-      return Optional.ofNullable(annotations.get(StackGresContext.ROLLOUT_SCHEDULE_KEY))
+      return Optional.ofNullable(annotations.get(StackGresKeys.ROLLOUT_SCHEDULE_KEY))
           .map(schedule -> schedule.split("\\|"))
           .map(schedule -> Arrays.stream(schedule)
               .map(s -> s.split("@"))
@@ -143,18 +143,18 @@ public class ClusterRolloutUtil {
     Map<String, String> annotations = Optional
         .ofNullable(cluster.getMetadata().getAnnotations())
         .orElse(Map.of());
-    if (annotations.containsKey(StackGresContext.ROLLOUT_DBOPS_METHOD_KEY)) {
+    if (annotations.containsKey(StackGresKeys.ROLLOUT_DBOPS_METHOD_KEY)) {
       if (Objects.equals(
-          annotations.get(StackGresContext.ROLLOUT_DBOPS_METHOD_KEY),
+          annotations.get(StackGresKeys.ROLLOUT_DBOPS_METHOD_KEY),
           DbOpsMethodType.REDUCED_IMPACT.annotationValue())) {
         return true;
       } else {
         return false;
       }
     }
-    if (annotations.containsKey(StackGresContext.ROLLOUT_METHOD_KEY)) {
+    if (annotations.containsKey(StackGresKeys.ROLLOUT_METHOD_KEY)) {
       if (Objects.equals(
-          annotations.get(StackGresContext.ROLLOUT_METHOD_KEY),
+          annotations.get(StackGresKeys.ROLLOUT_METHOD_KEY),
           DbOpsMethodType.REDUCED_IMPACT.annotationValue())) {
         return true;
       } else {

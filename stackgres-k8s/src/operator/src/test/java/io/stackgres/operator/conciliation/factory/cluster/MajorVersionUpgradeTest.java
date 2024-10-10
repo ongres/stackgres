@@ -24,9 +24,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.MajorVersionUpgradeMounts;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,12 +47,15 @@ class MajorVersionUpgradeTest {
 
   private StackGresCluster cluster;
 
-  private static final String SOURCE_VERSION = "15.2";
+  private static final String SOURCE_VERSION = StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT)
+      .filter(version -> version.startsWith("15."))
+      .findFirst().get();
   private static final String TARGET_VERSION;
 
   static {
-    TARGET_VERSION = StackGresComponent.POSTGRESQL.getLatest()
-        .streamOrderedVersions().get(0).get();
+    TARGET_VERSION = StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .streamOrderedVersions(StackGresContextMock.CONTEXT).get(0).get();
   }
 
   @BeforeEach
@@ -166,6 +169,7 @@ class MajorVersionUpgradeTest {
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
             .config(getDefaultConfig())
             .source(cluster)
             .postgresConfig(new StackGresPostgresConfig())

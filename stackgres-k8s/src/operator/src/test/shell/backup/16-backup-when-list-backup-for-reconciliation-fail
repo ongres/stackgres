@@ -17,7 +17,7 @@ kubectl_mock_overwrite() {
     case "$STDIN" in
       (*" for each existing backup"*)
       ;;
-      (*" wal-g backup-list "*)
+      (*" \"$WALG_BIN_PATH\" backup-list "*)
       COUNT="$(cat "$TEST_TARGET_PATH/backup_list_count")"
       if [ "$COUNT" -ge 1 ]
       then

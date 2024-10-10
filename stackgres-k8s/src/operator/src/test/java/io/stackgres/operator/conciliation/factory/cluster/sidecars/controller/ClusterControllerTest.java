@@ -15,9 +15,9 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolumeIoL
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -143,11 +144,11 @@ class ClusterControllerTest {
         "Should contain postgres ssl copy volume mount");
     Assertions.assertTrue(
         container.getVolumeMounts().stream()
-            .anyMatch(vm -> vm.getMountPath().equals(ClusterPath.PGBOUNCER_CONFIG_PATH.path())),
+            .anyMatch(vm -> vm.getMountPath().equals(ClusterPathV1.PGBOUNCER_CONFIG_PATH.path())),
         "Should contain pgbouncer config mount path");
     Assertions.assertTrue(
         container.getVolumeMounts().stream()
-            .anyMatch(vm -> vm.getMountPath().equals(ClusterPath.PATRONI_CONFIG_PATH.path())),
+            .anyMatch(vm -> vm.getMountPath().equals(ClusterPathV1.PATRONI_CONFIG_PATH.path())),
         "Should contain patroni config mount path");
   }
 
@@ -194,7 +195,7 @@ class ClusterControllerTest {
         .thenReturn(List.of(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.CGROUP.getName())
-                .withMountPath(ClusterPath.HOST_CGROUP_PATH.path())
+                .withMountPath(ClusterPathV1.HOST_CGROUP_PATH.path())
                 .build()));
     ClusterContainerContext context = getClusterContainerContext();
     context.getClusterContext().getCluster().getSpec().getPods()
@@ -232,15 +233,16 @@ class ClusterControllerTest {
     Map<String, String> versions = clusterController.getComponentVersions(context);
 
     Assertions.assertTrue(
-        versions.containsKey(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY));
+        versions.containsKey(StackGresKeys.CLUSTER_CONTROLLER_VERSION_KEY));
     Assertions.assertEquals(
         StackGresModules.CLUSTER_CONTROLLER.getVersion(),
-        versions.get(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY));
+        versions.get(StackGresKeys.CLUSTER_CONTROLLER_VERSION_KEY));
   }
 
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
             .config(getDefaultConfig())
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())

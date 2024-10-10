@@ -13,7 +13,7 @@ run_op() {
 }
 
 get_primary_pod() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
+  "$KUBECTL_BIN_PATH" get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
   if [ ! -s /tmp/current-primary ]
   then
     echo "FAILURE=$NORMALIZED_OP_NAME failed. Unable to find primary, resharding aborted" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
@@ -24,7 +24,7 @@ get_primary_pod() {
 }
 
 resharding() {
-  cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  cat << EOF | { set +e; "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/resharding-exit-code; } | tee /tmp/resharding
 psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
   -c "SELECT * FROM get_rebalance_table_shards_plan()" \

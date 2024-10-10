@@ -37,7 +37,7 @@ import io.quarkus.runtime.Quarkus;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.RetryUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceWriter;
@@ -63,7 +63,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       AbstractReconciliator.class.getPackage().getName());
 
-  private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
+  private static final String STACKGRES_IO_RECONCILIATION = StackGresKeys
       .RECONCILIATION_PAUSE_KEY;
 
   private final String operatorServiceAccountName;
@@ -341,7 +341,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
             mutatedAndValidatedConfig)
             && Optional.of(configUnmutated.getMetadata())
             .map(ObjectMeta::getAnnotations)
-            .map(annotations -> annotations.containsKey(StackGresContext.PREVIOUS_KEY))
+            .map(annotations -> annotations.containsKey(StackGresKeys.PREVIOUS_KEY))
             .orElse(false)) {
           config = mutatedAndValidatedConfig;
         } else {
@@ -361,7 +361,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
                   currentConfig.getMetadata().setAnnotations(new HashMap<>());
                 }
                 currentConfig.getMetadata().getAnnotations()
-                    .put(StackGresContext.PREVIOUS_KEY, previous);
+                    .put(StackGresKeys.PREVIOUS_KEY, previous);
               });
         }
       } else {
@@ -479,7 +479,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
     admissionRequest.setObject(configUnmutated);
     final T oldConfig = Optional.of(configUnmutated.getMetadata())
         .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get(StackGresContext.PREVIOUS_KEY))
+        .map(annotations -> annotations.get(StackGresKeys.PREVIOUS_KEY))
         .map(this::toResource)
         .orElse(null);
     admissionRequest.setOldObject(oldConfig);

@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import java.util.List;
 
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.AbstractDiscoverer;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,8 +28,10 @@ public class ClusterEnvironmentVariablesFactoryDiscoverer
 
   public List<ClusterEnvironmentVariablesFactory> discoverFactories(
       ClusterContext context) {
-    StackGresVersion clusterVersion = StackGresVersion.getStackGresVersion(context.getCluster());
-    return hub.get(clusterVersion).stream().toList();
+    return getFactories(
+        StackGresVersion.getStackGresVersion(context.getCluster()),
+        StackGresUtil.isRegistryEnabled(context.getCluster()))
+        .stream().toList();
   }
 
 }

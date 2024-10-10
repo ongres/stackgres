@@ -12,7 +12,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
@@ -34,7 +34,7 @@ public class DbOpsVolumeMounts
             .build())
         .append(new VolumeMountBuilder()
             .withName(StackGresVolume.SHARED.getName())
-            .withMountPath(ClusterPath.SHARED_PATH.path())
+            .withMountPath(ClusterPathV1.SHARED_PATH.path())
             .build())
         .toList();
   }
@@ -42,7 +42,7 @@ public class DbOpsVolumeMounts
   @Override
   public List<EnvVar> getDerivedEnvVars(StackGresDbOpsContext context) {
     return List.of(
-        ClusterPath.TEMPLATES_PATH.envVar()
+        ClusterPathV1.TEMPLATES_PATH.envVar()
     );
   }
 }

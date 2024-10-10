@@ -20,6 +20,7 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.resource.ResourceFinder;
@@ -54,6 +55,8 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
       PatroniUtil.NOSTREAM_TAG,
       PatroniUtil.NOSYNC_TAG);
 
+  private final StackGresContext context;
+
   private final String podName;
   private final PatroniCtl patroniCtl;
   private final ResourceFinder<Pod> podFinder;
@@ -61,6 +64,7 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
 
   @Dependent
   public static class Parameters {
+    @Inject StackGresContext context;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject PatroniCtl patroniCtl;
     @Inject ResourceFinder<Pod> podFinder;
@@ -69,6 +73,7 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
 
   @Inject
   public PatroniLabelsReconciliator(Parameters parameters) {
+    this.context = parameters.context;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.patroniCtl = parameters.patroniCtl;
@@ -84,7 +89,8 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
         .findByNameAndNamespace(podName, cluster.getMetadata().getNamespace())
         .orElseThrow(() -> new IllegalStateException("Pod " + podName + " not found"));
     final AtomicBoolean patroniLabelsUpdated = new AtomicBoolean(false);
-    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+    final String patroniVersion = StackGresUtil.getPatroniVersion(
+        this.context, cluster);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
 
     podWriter.update(pod, currentPod -> {

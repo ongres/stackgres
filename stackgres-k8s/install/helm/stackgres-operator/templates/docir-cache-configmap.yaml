@@ -1,0 +1,113 @@
+{{- if .Values.repository.cache.enabled }}
+{{- $repositoryUrl := regexReplaceAll "/+$" (index (splitList "?" .Values.repository.url) 0) "" }}
+{{- $repositoryHost := index (splitList "/" (regexReplaceAll "^[a-z]+://" $repositoryUrl "")) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-docir-cache
+  namespace: {{ .Release.Namespace }}
+{{- if .Values.qutePreprocess }}#comment.preprocess.start{{- end }}
+data:
+  nginx.conf: |
+    load_module /usr/lib64/nginx/modules/ngx_http_perl_module.so;
+    pid             /var/run/nginx.pid;
+    error_log /dev/stdout;
+    error_log /var/log/nginx/error.log;
+    events{
+    }
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/json;
+      
+      # The MD5 of the query of the request: the responses of the image-url endpoint are stored
+      # by the controller under the MD5 of the query that describes the layers of the image
+      perl_set $docir_image_file 'sub { use Digest::MD5 (); my $r = shift; return Digest::MD5::md5_hex($r->args); }';
+      
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$upstream_cache_status"';
+      
+      access_log  /dev/stdout  main;
+      access_log  /var/log/nginx/access.log  main;
+      
+      sendfile        on;
+      
+      keepalive_timeout  65;
+      
+      include /etc/nginx/conf.d/*.conf;
+    }
+  stackgres-operator-docir-cache.conf: |
+    {{- if not .Values.repository.cache.offline }}
+    proxy_cache_path /opt/app-root/src/cache levels=1:2 keys_zone=docir:10m inactive=3650d max_size=10g use_temp_path=off;
+    {{- end }}
+    server {
+      server_name  localhost;
+      
+      listen       8080;
+      {{- if not .Values.useIpv4Only }}
+      listen       [::]:8080;
+      {{- end }}
+      root   /opt/app-root/src;
+      client_max_body_size 0;
+      
+      location / {
+        return 404;
+      }
+      
+      # The catalog stored by the controller (the request URI, query included, is the file name)
+      location /api/ {
+        try_files /repository$request_uri @remote;
+      }
+      
+      # The resolved images stored by the controller: the operator sends the POST with the query
+      # that describes the layers of the image and the response stored under that name is served
+      # (a POST to a static file is not allowed by nginx so the 405 is turned into an internal GET)
+      location = /api/stackgres/v1/image-url {
+        error_page 405 =200 /_docir_image_url$is_args$args;
+        try_files /repository/api/stackgres/v1/image-url/$docir_image_file @remote;
+      }
+      location = /_docir_image_url {
+        internal;
+        try_files /repository/api/stackgres/v1/image-url/$docir_image_file =404;
+      }
+      
+      # The local image registry
+      location /v2/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 900;
+        proxy_request_buffering off;
+      }
+      
+      location @remote {
+        {{- if .Values.repository.cache.offline }}
+        return 404;
+        {{- else }}
+        # The requests not stored yet are proxied to the repository and the responses cached (the
+        # POST of the resolved images is keyed by its query)
+        proxy_pass {{ $repositoryUrl }};
+        proxy_ssl_server_name on;
+        proxy_http_version 1.1;
+        proxy_set_header Host {{ $repositoryHost }};
+        proxy_set_header Connection "";
+        proxy_cache docir;
+        proxy_cache_methods GET HEAD POST;
+        proxy_cache_key "$request_method|$request_uri";
+        proxy_cache_valid 200 3650d;
+        proxy_ignore_headers Cache-Control Expires Set-Cookie Vary;
+        proxy_cache_lock on;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        add_header X-Docir-Cache $upstream_cache_status;
+        {{- end }}
+      }
+    }
+  docir-cache-conciliator.sh: |
+{{ .Files.Get "docir-cache-conciliator.sh" | indent 4 }}
+  docir-cache-copy-image.py: |
+{{ .Files.Get "docir-cache-copy-image.py" | indent 4 }}
+{{- if .Values.qutePreprocess }}#comment.preprocess.end{{- end }}
+{{- end }}

@@ -17,7 +17,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
@@ -25,19 +24,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jooq.lambda.Seq;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,42 +47,31 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ShardedClusterPostgresVersionContextAppenderTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
-      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      ALL_SUPPORTED_POSTGRES_VERSIONS =
-      ImmutableMap.of(
-          StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_POSTGRES_VERSIONS)
-              .toList()),
-          StackGresComponent.BABELFISH, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.BABELFISH.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_BABELFISH_VERSIONS)
-              .toList()));
+      StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).toList();
   private static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
           .get(0).get();
   private static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
+      .findFirst().get();
 
   private ShardedClusterPostgresVersionContextAppender contextAppender;
 
@@ -123,14 +110,14 @@ class ShardedClusterPostgresVersionContextAppenderTest {
     cluster.getStatus().setPostgresVersion(null);
     coordinator = Fixtures.cluster().loadDefault().get();
     contextAppender = new ShardedClusterPostgresVersionContextAppender(
+        StackGresContextMock.CONTEXT,
         eventController,
         clusterCoordinatorPostgresConfigContextAppender,
         clusterRestoreBackupContextAppender,
         clusterReplicateFromContextAppender,
         clusterCoordinatorContextAppender,
         clusterWorkersContextAppender,
-        clusterExtensionsContextAppender,
-        ALL_SUPPORTED_POSTGRES_VERSIONS);
+        clusterExtensionsContextAppender);
     lenient().when(clusterCoordinatorContextAppender.appendContext(any(), any(), any()))
         .thenReturn(coordinator);
   }
@@ -168,7 +155,7 @@ class ShardedClusterPostgresVersionContextAppenderTest {
     contextAppender.appendContext(cluster, contextBuilder);
 
     assertEquals(
-        StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
+        StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).getLatestVersion(StackGresContextMock.CONTEXT),
         cluster.getStatus().getPostgresVersion());
     assertNotNull(
         cluster.getStatus().getBuildVersion());
@@ -194,7 +181,7 @@ class ShardedClusterPostgresVersionContextAppenderTest {
     contextAppender.appendContext(cluster, contextBuilder);
 
     assertEquals(
-        StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
+        StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).getLatestVersion(StackGresContextMock.CONTEXT),
         cluster.getStatus().getPostgresVersion());
     assertNotNull(
         cluster.getStatus().getBuildVersion());
@@ -216,13 +203,16 @@ class ShardedClusterPostgresVersionContextAppenderTest {
   @Test
   void clusteWithMajorPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
     cluster.getSpec().getPostgres().setVersion(
-        StackGresComponent.POSTGRESQL.getLatest().getLatestMajorVersion());
+        StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+            .getLatestMajorVersion(StackGresContextMock.CONTEXT));
 
     contextAppender.appendContext(cluster, contextBuilder);
 
     assertEquals(
-        StackGresComponent.POSTGRESQL.getLatest().getVersion(
-            StackGresComponent.POSTGRESQL.getLatest().getLatestVersion()),
+        StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).getVersion(
+            StackGresContextMock.CONTEXT,
+            StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+                .getLatestVersion(StackGresContextMock.CONTEXT)),
         cluster.getStatus().getPostgresVersion());
     assertNotNull(
         cluster.getStatus().getBuildVersion());
@@ -478,6 +468,9 @@ class ShardedClusterPostgresVersionContextAppenderTest {
 
   @Test
   void givenBuggyPostgresVersion_shouldFail() {
+    Assumptions.assumeFalse(ShardedClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.keySet()
+        .stream()
+        .noneMatch(ShardedClusterPostgresVersionContextAppenderTest::isPostgresVersionValid));
     String postgresVersion = getRandomBuggyPostgresVersion();
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
 

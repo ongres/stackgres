@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamSpec;
@@ -46,8 +46,8 @@ public class StreamMetadataDecorator
 
     return ImmutableMap.<String, String>builder()
         .putAll(allResourcesAnnotations)
-        .put(StackGresContext.VERSION_KEY,
-            Optional.ofNullable(clusterAnnotations.get(StackGresContext.VERSION_KEY))
+        .put(StackGresKeys.VERSION_KEY,
+            Optional.ofNullable(clusterAnnotations.get(StackGresKeys.VERSION_KEY))
             .orElse(StackGresProperty.OPERATOR_VERSION.getString()))
         .build();
   }

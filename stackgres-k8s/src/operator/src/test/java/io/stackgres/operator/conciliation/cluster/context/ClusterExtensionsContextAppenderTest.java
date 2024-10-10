@@ -23,11 +23,16 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresKeys;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtensionBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRegistry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.fixture.Fixtures;
@@ -47,13 +52,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ClusterExtensionsContextAppenderTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
+      .findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
+      .findFirst().get();
 
   private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedBuildVersions(StackGresContextMock.CONTEXT)
+      .findFirst().get();
 
   private ClusterExtensionsContextAppender contextAppender;
 
@@ -74,7 +84,11 @@ class ClusterExtensionsContextAppenderTest {
   @BeforeEach
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getMetadata().getAnnotations().put(
+        StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+    disableRegistry(cluster);
     contextAppender = new ClusterExtensionsContextAppender(
+        StackGresContextMock.CONTEXT,
         extensionMetadataManager);
 
     extensions = Seq.of(
@@ -909,6 +923,14 @@ class ClusterExtensionsContextAppenderTest {
 
   private StackGresExtensionMetadata getExtensionMetadata() {
     return new StackGresExtensionMetadata(getInstalledExtension());
+  }
+
+  private static void disableRegistry(StackGresCluster cluster) {
+    if (cluster.getSpec().getConfigurations() == null) {
+      cluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
+    }
+    cluster.getSpec().getConfigurations().setRegistry(new StackGresClusterRegistry());
+    cluster.getSpec().getConfigurations().getRegistry().setEnabled(false);
   }
 
 }

@@ -13,7 +13,7 @@ import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.apiweb.configuration.WebApiProperty;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.annotation.PostConstruct;
@@ -35,20 +35,20 @@ public class SecretVerification {
    * Get the K8s username if the api Username and password match.
    */
   public String verifyCredentials(String apiUsername, String password) {
-    Objects.requireNonNull(apiUsername, StackGresContext.REST_APIUSER_KEY);
-    Objects.requireNonNull(password, StackGresContext.REST_PASSWORD_KEY);
+    Objects.requireNonNull(apiUsername, StackGresKeys.REST_APIUSER_KEY);
+    Objects.requireNonNull(password, StackGresKeys.REST_PASSWORD_KEY);
     String passwordHash = TokenUtils.sha256(apiUsername + password);
     return secretScanner
         .getResourcesInNamespaceWithLabels(
             namespace,
-            Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+            Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .stream()
-        .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_K8SUSER_KEY)))
-        .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_PASSWORD_KEY)))
-        .filter(s -> Optional.ofNullable(s.getData().get(StackGresContext.REST_APIUSER_KEY))
+        .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresKeys.REST_K8SUSER_KEY)))
+        .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresKeys.REST_PASSWORD_KEY)))
+        .filter(s -> Optional.ofNullable(s.getData().get(StackGresKeys.REST_APIUSER_KEY))
             .map(ResourceUtil::decodeSecret)
             .map(apiUsername::equals)
-            .orElse(Optional.of(s.getData().get(StackGresContext.REST_K8SUSER_KEY))
+            .orElse(Optional.of(s.getData().get(StackGresKeys.REST_K8SUSER_KEY))
                 .map(ResourceUtil::decodeSecret)
                 .map(apiUsername::equals)
                 .orElse(Boolean.FALSE)))
@@ -59,11 +59,11 @@ public class SecretVerification {
   }
 
   private String getStoredPassword(Secret secret) {
-    return decodeKey(secret, StackGresContext.REST_PASSWORD_KEY);
+    return decodeKey(secret, StackGresKeys.REST_PASSWORD_KEY);
   }
 
   private String getK8sUsername(Secret secret) {
-    return decodeKey(secret, StackGresContext.REST_K8SUSER_KEY);
+    return decodeKey(secret, StackGresKeys.REST_K8SUSER_KEY);
   }
 
   private String decodeKey(Secret secret, String key) {

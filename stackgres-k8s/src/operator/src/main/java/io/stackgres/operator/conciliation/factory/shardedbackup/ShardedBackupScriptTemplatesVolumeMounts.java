@@ -10,7 +10,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
@@ -42,7 +42,7 @@ public class ShardedBackupScriptTemplatesVolumeMounts
   @Override
   public List<EnvVar> getDerivedEnvVars(StackGresShardedBackupContext context) {
     return List.of(
-        ClusterPath.TEMPLATES_PATH.envVar()
+        ClusterPathV1.TEMPLATES_PATH.envVar()
     );
   }
 }

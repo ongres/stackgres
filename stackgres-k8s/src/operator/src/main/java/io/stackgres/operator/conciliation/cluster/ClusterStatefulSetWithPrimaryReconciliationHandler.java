@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static io.stackgres.common.StackGresContext.ANNOTATIONS_TO_COMPONENT;
+import static io.stackgres.common.StackGresKeys.ANNOTATIONS_TO_COMPONENT;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -37,8 +37,9 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -77,6 +78,8 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   public static final Map<String, String> PLACEHOLDER_NODE_SELECTOR =
       Map.of("schedule", "this-pod-is-a-placeholder");
 
+  private final StackGresContext context;
+
   private final ReconciliationHandler<StackGresCluster> handler;
 
   private final ReconciliationHandler<StackGresCluster> protectHandler;
@@ -97,6 +100,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
 
   @Inject
   public ClusterStatefulSetWithPrimaryReconciliationHandler(
+      StackGresContext context,
       @ReconciliationScope(value = StackGresCluster.class, kind = "HasMetadata")
       ReconciliationHandler<StackGresCluster> handler,
       LabelFactoryForCluster labelFactory,
@@ -106,11 +110,12 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
-    this(handler, handler, labelFactory, statefulSetFinder, podScanner, pvcScanner, secretFinder,
+    this(context, handler, handler, labelFactory, statefulSetFinder, podScanner, pvcScanner, secretFinder,
         patroniCtl, objectMapper);
   }
 
   ClusterStatefulSetWithPrimaryReconciliationHandler(
+      StackGresContext context,
       ReconciliationHandler<StackGresCluster> handler,
       ReconciliationHandler<StackGresCluster> protectHandler,
       LabelFactoryForCluster labelFactory,
@@ -120,6 +125,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
+    this.context = context;
     this.handler = handler;
     this.protectHandler = protectHandler;
     this.labelFactory = labelFactory;
@@ -132,29 +138,29 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   @Override
-  public HasMetadata create(StackGresCluster context, HasMetadata resource) {
-    return concileSts(context, resource, (c, sts) -> createStatefulSet(c, sts));
+  public HasMetadata create(StackGresCluster cluster, HasMetadata resource) {
+    return concileSts(cluster, resource, (c, sts) -> createStatefulSet(c, sts));
   }
 
   @Override
-  public HasMetadata patch(StackGresCluster context, HasMetadata newResource,
+  public HasMetadata patch(StackGresCluster cluster, HasMetadata newResource,
       HasMetadata oldResource) {
-    return concileSts(context, newResource, (c, sts) -> updateStatefulSet(c, sts));
+    return concileSts(cluster, newResource, (c, sts) -> updateStatefulSet(c, sts));
   }
 
   @Override
-  public HasMetadata replace(StackGresCluster context, HasMetadata resource) {
-    return concileSts(context, resource, (c, sts) -> replaceStatefulSet(c, sts));
+  public HasMetadata replace(StackGresCluster cluster, HasMetadata resource) {
+    return concileSts(cluster, resource, (c, sts) -> replaceStatefulSet(c, sts));
   }
 
   @Override
-  public void delete(StackGresCluster context, HasMetadata resource) {
-    handler.delete(context, safeCast(resource));
+  public void delete(StackGresCluster cluster, HasMetadata resource) {
+    handler.delete(cluster, safeCast(resource));
   }
 
   @Override
-  public void deleteWithOrphans(StackGresCluster context, HasMetadata resource) {
-    handler.deleteWithOrphans(context, safeCast(resource));
+  public void deleteWithOrphans(StackGresCluster cluster, HasMetadata resource) {
+    handler.deleteWithOrphans(cluster, safeCast(resource));
   }
 
   private StatefulSet safeCast(HasMetadata resource) {
@@ -164,13 +170,13 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     return (StatefulSet) resource;
   }
 
-  private StatefulSet createStatefulSet(StackGresCluster context, StatefulSet requiredSts) {
-    return (StatefulSet) handler.create(context, requiredSts);
+  private StatefulSet createStatefulSet(StackGresCluster cluster, StatefulSet requiredSts) {
+    return (StatefulSet) handler.create(cluster, requiredSts);
   }
 
-  private StatefulSet updateStatefulSet(StackGresCluster context, StatefulSet requiredSts) {
+  private StatefulSet updateStatefulSet(StackGresCluster cluster, StatefulSet requiredSts) {
     try {
-      return (StatefulSet) handler.patch(context, requiredSts, null);
+      return (StatefulSet) handler.patch(cluster, requiredSts, null);
     } catch (KubernetesClientException ex) {
       if (ex.getCode() == 422) {
         final Map<String, String> appLabel = labelFactory.appLabel();
@@ -178,26 +184,26 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             requiredSts.getMetadata().getName(),
             requiredSts.getMetadata().getNamespace())
             .orElseThrow(() -> new RuntimeException(
-                HasMetadata.getKind(context.getClass()) + " "
+                HasMetadata.getKind(cluster.getClass()) + " "
                 + requiredSts.getMetadata().getNamespace()
                 + "." + requiredSts.getMetadata().getName()
                 + " not fount while replacing it"));
 
-        protectPodsFromStatefulSetRemoval(context, deployedStatefulSet, appLabel);
+        protectPodsFromStatefulSetRemoval(cluster, deployedStatefulSet, appLabel);
 
-        protectPvcsFromStatefulSetRemoval(context, deployedStatefulSet, appLabel);
+        protectPvcsFromStatefulSetRemoval(cluster, deployedStatefulSet, appLabel);
 
-        return replaceStatefulSet(context, requiredSts);
+        return replaceStatefulSet(cluster, requiredSts);
       } else {
         throw ex;
       }
     }
   }
 
-  private StatefulSet replaceStatefulSet(StackGresCluster context, StatefulSet statefulSet) {
-    handler.deleteWithOrphans(context, statefulSet);
+  private StatefulSet replaceStatefulSet(StackGresCluster cluster, StatefulSet statefulSet) {
+    handler.deleteWithOrphans(cluster, statefulSet);
     waitStatefulSetToBeDeleted(statefulSet);
-    return (StatefulSet) handler.create(context, statefulSet);
+    return (StatefulSet) handler.create(cluster, statefulSet);
   }
 
   private void waitStatefulSetToBeDeleted(StatefulSet statefulSet) {
@@ -210,7 +216,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   private StatefulSet concileSts(
-      StackGresCluster context,
+      StackGresCluster cluster,
       HasMetadata resource,
       BiFunction<StackGresCluster, StatefulSet, StatefulSet> writer) {
     final StatefulSet requiredSts;
@@ -225,12 +231,12 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         requiredSts.getMetadata().getNamespace());
     final Map<String, String> appLabel = labelFactory.appLabel();
     final List<Pod> currentPods = findStatefulSetPods(requiredSts, appLabel);
-    final var patroniCtl = this.patroniCtl.instanceFor(context);
+    final var patroniCtl = this.patroniCtl.instanceFor(cluster);
     final List<PatroniMember> patroniMembers = patroniCtl.list();
-    final boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(context);
-    final boolean isReducedImpact = ClusterRolloutUtil.isRolloutReducedImpact(context);
+    final boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(cluster);
+    final boolean isReducedImpact = ClusterRolloutUtil.isRolloutReducedImpact(cluster);
     final boolean requiresRestart = ClusterRolloutUtil
-        .getPodsRestartReasons(context, currentSts, currentPods)
+        .getPodsRestartReasons(cluster, currentSts, currentPods)
         .requiresRestart()
         || ClusterRolloutUtil
         .getPostgresRestartReasons(currentPods, patroniMembers)
@@ -252,7 +258,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final Optional<String> latestPrimaryFromPatroni =
         PatroniUtil.getLatestPrimaryFromPatroni(patroniCtl);
     if (desiredReplicas > 0) {
-      startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryFromPatroni, writer);
+      startPrimaryIfRemoved(cluster, requiredSts, appLabel, latestPrimaryFromPatroni, writer);
     }
 
     final List<Pod> pods = findStatefulSetPods(requiredSts, appLabel);
@@ -260,29 +266,29 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       pods.stream()
           .filter(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
           .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
-          .filter(pod -> !isNonDisruptable(context, pod))
-          .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
+          .filter(pod -> !isNonDisruptable(cluster, pod))
+          .forEach(pod -> makePrimaryPodNonDisruptable(cluster, pod));
       long nonDisruptablePodsRemaining =
-          countNonDisruptablePods(context, pods, lastReplicaIndex);
+          countNonDisruptablePods(cluster, pods, lastReplicaIndex);
       int replicas = Math.max(0, (int) (desiredReplicas - nonDisruptablePodsRemaining));
       requiredSts.getSpec().setReplicas(replicas);
     } else {
       pods.stream()
-          .filter(pod -> isNonDisruptable(context, pod))
-          .forEach(pod -> makePrimaryPodDisruptable(context, pod));
+          .filter(pod -> isNonDisruptable(cluster, pod))
+          .forEach(pod -> makePrimaryPodDisruptable(cluster, pod));
       requiredSts.getSpec().setReplicas(0);
     }
 
-    final var updatedSts = writer.apply(context, requiredSts);
+    final var updatedSts = writer.apply(cluster, requiredSts);
 
-    removeStatefulSetPlaceholderReplicas(context, requiredSts);
+    removeStatefulSetPlaceholderReplicas(cluster, requiredSts);
 
-    fixPods(context, requiredSts, updatedSts, appLabel, patroniCtl);
+    fixPods(cluster, requiredSts, updatedSts, appLabel, patroniCtl);
 
-    fixPvcs(context, requiredSts, updatedSts, appLabel);
+    fixPvcs(cluster, requiredSts, updatedSts, appLabel);
 
     if (isRolloutAllowed) {
-      performRollout(context, requiredSts, updatedSts, appLabel,
+      performRollout(cluster, requiredSts, updatedSts, appLabel,
           latestPrimaryFromPatroni, patroniCtl, writer);
     }
 
@@ -290,7 +296,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   private void performRollout(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet requiredSts,
       StatefulSet updatedSts,
       Map<String, String> appLabel,
@@ -303,7 +309,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         pods,
         patroniMembers);
     PodRestartReasons podRestartReasons = ClusterRolloutUtil.getPodsRestartReasons(
-        context,
+        cluster,
         Optional.of(updatedSts),
         pods);
     if (!postgresRestartReasons.requiresRestart()
@@ -316,7 +322,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .findFirst();
     final Optional<Pod> foundPrimaryPodAndPendingRestart = foundPrimaryPod
         .filter(pod -> ClusterRolloutUtil
-            .getPodRestartReasons(context, Optional.of(updatedSts), pod)
+            .getPodRestartReasons(cluster, Optional.of(updatedSts), pod)
             .requiresRestart());
     final Optional<Pod> foundPrimaryPodAndPendingRestartAndFailed = foundPrimaryPodAndPendingRestart
         .filter(ClusterRolloutUtil::isPodInFailedPhase);
@@ -325,7 +331,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Re-creating primary Pod {} since pending restart and failed",
             foundPrimaryPodAndPendingRestartAndFailed.get().getMetadata().getName());
       }
-      handler.delete(context, foundPrimaryPodAndPendingRestartAndFailed.get());
+      handler.delete(cluster, foundPrimaryPodAndPendingRestartAndFailed.get());
       return;
     }
     final Pod primaryPod = foundPrimaryPod.orElse(null);
@@ -335,7 +341,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final Optional<Pod> anyOtherPodAndPendingRestartAndFailed = otherPods
         .stream()
         .filter(pod -> ClusterRolloutUtil
-            .getPodRestartReasons(context, Optional.of(updatedSts), pod)
+            .getPodRestartReasons(cluster, Optional.of(updatedSts), pod)
             .requiresRestart())
         .filter(ClusterRolloutUtil::isPodInFailedPhase)
         .findAny();
@@ -345,13 +351,13 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Re-creating non primary Pod {} since pending restart and failed (primary not found)",
             anyOtherPodAndPendingRestartAndFailed.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestartAndFailed.get());
+      handler.delete(cluster, anyOtherPodAndPendingRestartAndFailed.get());
       return;
     }
     final Optional<Pod> anyOtherPodAndPendingRestart = otherPods
         .stream()
         .filter(pod -> ClusterRolloutUtil
-            .getPodRestartReasons(context, Optional.of(updatedSts), pod)
+            .getPodRestartReasons(cluster, Optional.of(updatedSts), pod)
             .getReasons().contains(PodRestartReason.STATEFULSET))
         .findAny();
     if (foundPrimaryPod.isEmpty()
@@ -360,7 +366,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Re-creating non primary Pod {} since pending restart due to spec changes (primary not found)",
             anyOtherPodAndPendingRestart.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestart.get());
+      handler.delete(cluster, anyOtherPodAndPendingRestart.get());
       return;
     }
     if (Seq.seq(foundPrimaryPod.stream())
@@ -374,7 +380,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final Optional<Pod> anyOtherPodAndPendingRestartAnyReason = otherPods
         .stream()
         .filter(pod -> ClusterRolloutUtil
-            .getPodRestartReasons(context, Optional.of(updatedSts), pod)
+            .getPodRestartReasons(cluster, Optional.of(updatedSts), pod)
             .requiresRestart())
         .findAny();
     if (foundPrimaryPod.isEmpty()
@@ -383,7 +389,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Re-creating non primary Pod {} since pending restart (primary not found)",
             anyOtherPodAndPendingRestartAnyReason.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
+      handler.delete(cluster, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
     if (foundPrimaryPod
@@ -394,7 +400,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart",
             foundPrimaryPod.get().getMetadata().getName());
       }
-      var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+      var credentials = getPatroniCredentials(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
       patroniCtl.restart(credentials.v1, credentials.v2,
           foundPrimaryPod.get().getMetadata().getName());
       return;
@@ -409,7 +415,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Restarting Postgres instance of non primary Pod {} since pending restart",
             anyOtherPodAndPendingRestartInstance.get().getMetadata().getName());
       }
-      var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+      var credentials = getPatroniCredentials(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
       patroniCtl.restart(credentials.v1, credentials.v2,
           anyOtherPodAndPendingRestartInstance.get().getMetadata().getName());
       return;
@@ -420,7 +426,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Re-creating non primary Pod {} since pending restart and failed",
             anyOtherPodAndPendingRestartAndFailed.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestartAndFailed.get());
+      handler.delete(cluster, anyOtherPodAndPendingRestartAndFailed.get());
       return;
     }
     if (foundPrimaryPod.isPresent()
@@ -429,7 +435,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         LOGGER.debug("Re-creating non primary Pod {} since pending restart",
             anyOtherPodAndPendingRestartAnyReason.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
+      handler.delete(cluster, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
     if (foundPrimaryPodAndPendingRestart.isPresent()) {
@@ -472,7 +478,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
               foundPrimaryPod.get().getMetadata().getName(),
               otherLeastLagPodAndReady.get().getMetadata().getName());
         }
-        var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+        var credentials = getPatroniCredentials(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
         patroniCtl.switchover(
             credentials.v1,
             credentials.v2,
@@ -484,7 +490,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
           LOGGER.debug("Re-creating primary Pod {} since pending restart",
               foundPrimaryPodAndPendingRestart.get().getMetadata().getName());
         }
-        handler.delete(context, foundPrimaryPodAndPendingRestart.get());
+        handler.delete(cluster, foundPrimaryPodAndPendingRestart.get());
         return;
       }
     }
@@ -512,7 +518,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             "Can not find Secret " + PatroniUtil.secretName(clusterName)));
   }
 
-  private void startPrimaryIfRemoved(StackGresCluster context, StatefulSet requiredSts,
+  private void startPrimaryIfRemoved(StackGresCluster cluster, StatefulSet requiredSts,
       Map<String, String> appLabel, Optional<String> latestPrimaryFromPatroni,
       BiFunction<StackGresCluster, StatefulSet, StatefulSet> writer) {
     final String namespace = requiredSts.getMetadata().getNamespace();
@@ -537,14 +543,14 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(PLACEHOLDER_NODE_SELECTOR);
       requiredSts.getSpec().setReplicas(
           latestPrimaryFromPatroni.map(ResourceUtil::getIndexFromNameWithIndex).orElse(0));
-      writer.apply(context, requiredSts);
+      writer.apply(cluster, requiredSts);
       waitStatefulSetReplicasToBeCreated(requiredSts);
       LOGGER.debug("Creating primary Pod that was {} for StatefulSet {}.{}",
           latestPrimaryFromPatroni, namespace, name);
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(nodeSelector);
       requiredSts.getSpec().setReplicas(
           latestPrimaryFromPatroni.map(ResourceUtil::getIndexFromNameWithIndex).orElse(0) + 1);
-      writer.apply(context, requiredSts);
+      writer.apply(cluster, requiredSts);
       waitStatefulSetReplicasToBeCreated(requiredSts);
       requiredSts.getSpec().setPodManagementPolicy(podManagementPolicy);
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(nodeSelector);
@@ -573,7 +579,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     }).run();
   }
 
-  private void removeStatefulSetPlaceholderReplicas(StackGresCluster context, StatefulSet statefulSet) {
+  private void removeStatefulSetPlaceholderReplicas(StackGresCluster cluster, StatefulSet statefulSet) {
     final String namespace = statefulSet.getMetadata().getNamespace();
     final Map<String, String> stsMatchLabels = statefulSet.getSpec().getSelector().getMatchLabels();
     podScanner.getResourcesInNamespaceWithLabels(namespace, stsMatchLabels).stream()
@@ -585,11 +591,11 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             LOGGER.debug("Removing placeholder Pod {}.{} for StatefulSet {}.{}", namespace, podName,
                 namespace, name);
           }
-          handler.delete(context, pod);
+          handler.delete(cluster, pod);
         });
   }
 
-  private void makePrimaryPodNonDisruptable(StackGresCluster context, Pod primaryPod) {
+  private void makePrimaryPodNonDisruptable(StackGresCluster cluster, Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
       final String podName = primaryPod.getMetadata().getName();
@@ -598,12 +604,12 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
           + " since in the last index", namespace, podName, namespace, name);
     }
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
-    primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(context),
-        StackGresContext.WRONG_VALUE);
-    handler.patch(context, primaryPod, null);
+    primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(cluster),
+        StackGresKeys.WRONG_VALUE);
+    handler.patch(cluster, primaryPod, null);
   }
 
-  private void makePrimaryPodDisruptable(StackGresCluster context, Pod primaryPod) {
+  private void makePrimaryPodDisruptable(StackGresCluster cluster, Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
       final String podName = primaryPod.getMetadata().getName();
@@ -612,24 +618,24 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
           + " since 0 desired replicas", namespace, podName, namespace, name);
     }
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
-    primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(context),
-        StackGresContext.RIGHT_VALUE);
-    handler.patch(context, primaryPod, null);
+    primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(cluster),
+        StackGresKeys.RIGHT_VALUE);
+    handler.patch(cluster, primaryPod, null);
   }
 
   private long countNonDisruptablePods(
-      StackGresCluster context,
+      StackGresCluster cluster,
       List<Pod> pods,
       int lastReplicaIndex) {
     return pods.stream()
-        .filter(pod -> isNonDisruptable(context, pod))
+        .filter(pod -> isNonDisruptable(cluster, pod))
         .map(this::getPodIndex)
         .filter(pod -> pod > lastReplicaIndex)
         .count();
   }
 
   private void protectPodsFromStatefulSetRemoval(
-      final StackGresCluster context,
+      final StackGresCluster cluster,
       final StatefulSet deployedStatefulSet,
       final Map<String, String> appLabel) {
     var podsToProtect = findStatefulSetPods(deployedStatefulSet, appLabel);
@@ -642,7 +648,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .withBlockOwnerDeletion(true)
         .withController(true)
         .build(),
-        ResourceUtil.getOwnerReference(context));
+        ResourceUtil.getOwnerReference(cluster));
 
     Seq.seq(podsToProtect)
         .filter(pod -> !Objects.equals(
@@ -654,21 +660,21 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .grouped(pod -> pod.getMetadata().getName())
         .map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pod -> protectHandler.patch(context, pod, null));
+        .forEach(pod -> protectHandler.patch(cluster, pod, null));
   }
 
   private void protectPvcsFromStatefulSetRemoval(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
     final String namespace = deployedStatefulSet.getMetadata().getNamespace();
     Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
-        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
+        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(cluster));
     var pvcsToProtect = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
         .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
         .toList();
     var requiredOwnerReferences = List.of(
-        ResourceUtil.getOwnerReference(context));
+        ResourceUtil.getOwnerReference(cluster));
 
     Seq.seq(pvcsToProtect)
         .filter(pvc -> !Objects.equals(
@@ -681,29 +687,29 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .map(Tuple2::v2)
         .map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pvc -> protectHandler.patch(context, pvc, null));
+        .forEach(pvc -> protectHandler.patch(cluster, pvc, null));
   }
 
   private void fixPods(
-      final StackGresCluster context,
+      final StackGresCluster cluster,
       final StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet,
       final Map<String, String> appLabel,
       PatroniCtlInstance patroniCtl) {
     var podsToFix = findStatefulSetPods(statefulSet, appLabel);
     List<Pod> disruptablePodsToPatch =
-        fixNonDisruptablePods(context, statefulSet, patroniCtl, podsToFix);
+        fixNonDisruptablePods(cluster, statefulSet, patroniCtl, podsToFix);
     final List<Pod> podPatroniLabelsToPatch;
-    if (!isPatroniOnKubernetes(context)) {
-      podPatroniLabelsToPatch = fixPodsPatroniLabels(context, statefulSet, patroniCtl, podsToFix);
+    if (!isPatroniOnKubernetes(cluster)) {
+      podPatroniLabelsToPatch = fixPodsPatroniLabels(cluster, statefulSet, patroniCtl, podsToFix);
     } else {
       podPatroniLabelsToPatch = List.of();
     }
     List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
     List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(
-        context, deployedStatefulSet, podsToFix);
+        cluster, deployedStatefulSet, podsToFix);
     List<Pod> podLabelsToPatch =
-        fixPodsLabels(context, statefulSet, podsToFix);
+        fixPodsLabels(cluster, statefulSet, podsToFix);
     Seq.seq(disruptablePodsToPatch)
         .append(podPatroniLabelsToPatch)
         .append(podAnnotationsToPatch)
@@ -713,11 +719,11 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .map(Tuple2::v2)
         .map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pod -> handler.patch(context, pod, null));
+        .forEach(pod -> handler.patch(cluster, pod, null));
   }
 
   private List<Pod> fixNonDisruptablePods(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet statefulSet,
       PatroniCtlInstance patroniCtl,
       List<Pod> pods) {
@@ -726,7 +732,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final var members = patroniCtl.list();
     final int replicas = statefulSet.getSpec().getReplicas();
     return pods.stream()
-        .filter(pod -> isNonDisruptable(context, pod))
+        .filter(pod -> isNonDisruptable(cluster, pod))
         .filter(pod -> members.stream()
             .filter(PatroniMember::isPrimary)
             .map(PatroniMember::getMember)
@@ -734,11 +740,11 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .filter(pod -> getPodIndex(pod) + 1 < replicas
             || latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
         .filter(pod -> getPodIndex(pod) < replicas)
-        .map(pod -> fixNonDisruptablePod(context, pod))
+        .map(pod -> fixNonDisruptablePod(cluster, pod))
         .toList();
   }
 
-  private Pod fixNonDisruptablePod(StackGresCluster context, Pod pod) {
+  private Pod fixNonDisruptablePod(StackGresCluster cluster, Pod pod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
@@ -747,17 +753,17 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
           + " since current or latest primary",
           namespace, podName, namespace, name);
     }
-    pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptableKey(context),
-        StackGresContext.RIGHT_VALUE);
+    pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptableKey(cluster),
+        StackGresKeys.RIGHT_VALUE);
     return pod;
   }
 
   private List<Pod> fixPodsPatroniLabels(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet statefulSet,
       PatroniCtlInstance patroniCtl,
       List<Pod> pods) {
-    final String patroniVersion = StackGresUtil.getPatroniVersion(context);
+    final String patroniVersion = StackGresUtil.getPatroniVersion(context, cluster);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     var roles = patroniCtl.list()
         .stream()
@@ -856,7 +862,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   private List<Pod> fixPodsOwnerReferences(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet statefulSet,
       List<Pod> pods) {
     var requiredOwnerReferences = List.of(
@@ -868,7 +874,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .withBlockOwnerDeletion(true)
         .withController(true)
         .build(),
-        ResourceUtil.getOwnerReference(context));
+        ResourceUtil.getOwnerReference(cluster));
 
     return pods.stream()
         .filter(pod -> !Objects.equals(
@@ -895,13 +901,13 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   private List<Pod> fixPodsLabels(
-      final StackGresCluster context,
+      final StackGresCluster cluster,
       final StatefulSet statefulSet,
       final List<Pod> pods) {
     final var requiredPodLabels =
         Optional.ofNullable(statefulSet.getSpec().getTemplate().getMetadata().getLabels())
         .map(labels -> labels.entrySet().stream()
-            .filter(label -> !labelFactory.labelMapper().disruptableKey(context)
+            .filter(label -> !labelFactory.labelMapper().disruptableKey(cluster)
                 .equals(label.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
         .orElse(Map.of());
@@ -935,13 +941,13 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   private void fixPvcs(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
     final String namespace = statefulSet.getMetadata().getNamespace();
     Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
-        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
+        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(cluster));
     var pvcsToFix = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
         .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
         .toList();
@@ -950,7 +956,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     List<PersistentVolumeClaim> pvcLabelsToPatch = fixPvcsLabels(
         statefulSet, pvcsToFix);
     List<PersistentVolumeClaim> pvcOwnerReferencesToPatch = fixPvcOwnerReferences(
-        context, deployedStatefulSet, pvcsToFix);
+        cluster, deployedStatefulSet, pvcsToFix);
     Seq.seq(pvcAnnotationsToPatch)
         .append(pvcLabelsToPatch)
         .append(pvcOwnerReferencesToPatch)
@@ -958,7 +964,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .map(Tuple2::v2)
         .map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pvc -> handler.patch(context, pvc, null));
+        .forEach(pvc -> handler.patch(cluster, pvc, null));
   }
 
   private List<PersistentVolumeClaim> fixPvcsAnnotations(
@@ -1070,7 +1076,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
   }
 
   private List<PersistentVolumeClaim> fixPvcOwnerReferences(
-      StackGresCluster context,
+      StackGresCluster cluster,
       StatefulSet statefulSet,
       List<PersistentVolumeClaim> pvcs) {
     var requiredOwnerReferences = List.of(
@@ -1082,7 +1088,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .withBlockOwnerDeletion(true)
         .withController(true)
         .build(),
-        ResourceUtil.getOwnerReference(context));
+        ResourceUtil.getOwnerReference(cluster));
 
     return pvcs.stream()
         .filter(pvc -> !Objects.equals(
@@ -1126,10 +1132,10 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .toList();
   }
 
-  private boolean isNonDisruptable(StackGresCluster context, Pod pod) {
+  private boolean isNonDisruptable(StackGresCluster cluster, Pod pod) {
     return !Objects.equals(
-        pod.getMetadata().getLabels().get(labelFactory.labelMapper().disruptableKey(context)),
-        StackGresContext.RIGHT_VALUE);
+        pod.getMetadata().getLabels().get(labelFactory.labelMapper().disruptableKey(cluster)),
+        StackGresKeys.RIGHT_VALUE);
   }
 
   private int getPodIndex(Pod pod) {
@@ -1142,8 +1148,8 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .orElseThrow();
   }
 
-  private boolean isPatroniOnKubernetes(StackGresCluster context) {
-    return Optional.ofNullable(context.getSpec().getConfigurations())
+  private boolean isPatroniOnKubernetes(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster.getSpec().getConfigurations())
         .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getInitialConfig)
         .map(StackGresClusterPatroniConfig::isPatroniOnKubernetes)

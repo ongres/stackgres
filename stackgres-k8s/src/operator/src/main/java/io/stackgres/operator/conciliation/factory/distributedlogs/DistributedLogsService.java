@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -30,6 +31,7 @@ public class DistributedLogsService
 
   private static final String SUFFIX = "-fluentd";
 
+  private final StackGresContext context;
   private final LabelFactoryForDistributedLogs labelFactory;
 
   public static String serviceName(StackGresDistributedLogs distributedLogs) {
@@ -41,7 +43,10 @@ public class DistributedLogsService
   }
 
   @Inject
-  public DistributedLogsService(LabelFactoryForDistributedLogs labelFactory) {
+  public DistributedLogsService(
+      StackGresContext context,
+      LabelFactoryForDistributedLogs labelFactory) {
+    this.context = context;
     this.labelFactory = labelFactory;
   }
 
@@ -62,7 +67,7 @@ public class DistributedLogsService
         .withType("ExternalName")
         .withExternalName(
             PatroniUtil.readWriteName(DistributedLogsCluster.getCluster(
-                labelFactory, distributedLogs, context.getCluster()))
+                this.context, labelFactory, distributedLogs, context.getCluster()))
             + "." + distributedLogs.getMetadata().getNamespace()
             + StackGresUtil.domainSearchPath())
         .endSpec()

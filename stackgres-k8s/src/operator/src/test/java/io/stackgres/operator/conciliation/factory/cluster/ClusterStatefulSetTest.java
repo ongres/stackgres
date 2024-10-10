@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -46,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ClusterStatefulSetTest {
 
   private final LabelFactoryForCluster labelFactory =
-      new ClusterLabelFactory(new ClusterLabelMapper());
+      new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
   @Mock
   private PodTemplateFactoryDiscoverer<ClusterContainerContext> podTemplateSpecFactoryDiscoverer;

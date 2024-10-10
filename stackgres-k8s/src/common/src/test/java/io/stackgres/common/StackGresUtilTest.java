@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -180,14 +181,14 @@ class StackGresUtilTest {
   void getShardedClusterExtensions_shouldReturnCitusExtensionsForPostgresMajorVersion(
       String postgresMajorVersion, String citusVersion) {
     StackGresShardedCluster cluster = Fixtures.shardedCluster().loadDefault().get();
-    String postgresVersion = StackGresComponent.POSTGRESQL.getLatest()
-        .streamOrderedVersions()
+    String postgresVersion = StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .streamOrderedVersions(StackGresContextMock.CONTEXT)
         .filter(version -> version.startsWith(postgresMajorVersion + "."))
         .findFirst()
         .get();
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
 
-    List<ExtensionTuple> extensions = StackGresUtil.getShardedClusterExtensions(cluster);
+    List<ExtensionTuple> extensions = StackGresUtil.getShardedClusterExtensions(StackGresContextMock.CONTEXT, cluster);
 
     assertEquals(
         List.of(
@@ -200,14 +201,14 @@ class StackGresUtilTest {
   @Test
   void getPatroniVersionForCluster_shouldPreferStatusPostgresVersion() {
     StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
-    String latestPostgresVersion = StackGresComponent.POSTGRESQL.getLatest()
-        .streamOrderedVersions().findFirst().get();
+    String latestPostgresVersion = StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
     cluster.getSpec().getPostgres().setVersion(latestPostgresVersion);
     final String statusPostgresVersion = cluster.getStatus().getPostgresVersion();
 
     assertEquals(
-        StackGresUtil.getPatroniVersion(cluster, statusPostgresVersion),
-        StackGresUtil.getPatroniVersion(cluster));
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster, statusPostgresVersion),
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster));
   }
 
   @Test
@@ -216,8 +217,9 @@ class StackGresUtilTest {
     cluster.setStatus(null);
 
     assertEquals(
-        StackGresUtil.getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion()),
-        StackGresUtil.getPatroniVersion(cluster));
+        StackGresUtil.getPatroniVersion(
+            StackGresContextMock.CONTEXT, cluster, cluster.getSpec().getPostgres().getVersion()),
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster));
   }
 
   @Test
@@ -226,21 +228,22 @@ class StackGresUtilTest {
     cluster.getStatus().setPostgresVersion(null);
 
     assertEquals(
-        StackGresUtil.getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion()),
-        StackGresUtil.getPatroniVersion(cluster));
+        StackGresUtil.getPatroniVersion(
+            StackGresContextMock.CONTEXT, cluster, cluster.getSpec().getPostgres().getVersion()),
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster));
   }
 
   @Test
   void getPatroniVersionForShardedCluster_shouldPreferStatusPostgresVersion() {
     StackGresShardedCluster cluster = Fixtures.shardedCluster().loadDefault().get();
-    String latestPostgresVersion = StackGresComponent.POSTGRESQL.getLatest()
-        .streamOrderedVersions().findFirst().get();
+    String latestPostgresVersion = StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
     cluster.getSpec().getPostgres().setVersion(latestPostgresVersion);
     final String statusPostgresVersion = cluster.getStatus().getPostgresVersion();
 
     assertEquals(
-        StackGresUtil.getPatroniVersion(cluster, statusPostgresVersion),
-        StackGresUtil.getPatroniVersion(cluster));
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster, statusPostgresVersion),
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster));
   }
 
   @Test
@@ -249,8 +252,9 @@ class StackGresUtilTest {
     cluster.setStatus(null);
 
     assertEquals(
-        StackGresUtil.getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion()),
-        StackGresUtil.getPatroniVersion(cluster));
+        StackGresUtil.getPatroniVersion(
+            StackGresContextMock.CONTEXT, cluster, cluster.getSpec().getPostgres().getVersion()),
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster));
   }
 
   @Test
@@ -259,8 +263,9 @@ class StackGresUtilTest {
     cluster.getStatus().setPostgresVersion(null);
 
     assertEquals(
-        StackGresUtil.getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion()),
-        StackGresUtil.getPatroniVersion(cluster));
+        StackGresUtil.getPatroniVersion(
+            StackGresContextMock.CONTEXT, cluster, cluster.getSpec().getPostgres().getVersion()),
+        StackGresUtil.getPatroniVersion(StackGresContextMock.CONTEXT, cluster));
   }
 
   @Test

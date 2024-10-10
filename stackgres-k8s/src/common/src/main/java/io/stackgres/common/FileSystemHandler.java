@@ -50,6 +50,10 @@ public class FileSystemHandler {
     Files.createDirectories(path);
   }
 
+  public boolean isDirectory(Path path) throws IOException {
+    return Files.isDirectory(path);
+  }
+
   public void copyOrReplace(Path path, Path target) throws IOException {
     Path temporaryPath = getTemporaryPath(path);
     Files.copy(path, temporaryPath,

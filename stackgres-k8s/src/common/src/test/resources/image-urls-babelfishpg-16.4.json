@@ -1,0 +1,86 @@
+{
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=patroni@3.3.3@12&addons=wal-g@3.0.3@12&addons=hdrhistogram@0.10.7@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/patroni--3.3.3--12/wal-g--3.0.3--12/hdrhistogram--0.10.7--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:9c0a7c1e5cc0f2f2f7f4d3b2a1908c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=pgbouncer@1.24.1@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/pgbouncer--1.24.1--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000005c2f95e8242007ea",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=postgres-exporter@0.17.1@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/postgres-exporter--0.17.1--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000004d32cb4d01e56183",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=kubectl@1.33.4@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/kubectl--1.33.4--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000000d4c7836a205d11a",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=fluent-bit@4.0.5@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/fluent-bit--4.0.5--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000002943719530c5f94b",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=fluentd@1.16.5@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/fluentd--1.16.5--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000000c4a6d859e729e74",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=babelfishpg@16.4@12&addons=otel-collector@0.120.0@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/babelfishpg--16.4--12/b/ubi--9.4--10/a/otel-collector--0.120.0--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:00000000000000000000000000000000000000000000000031781ecc66412b65",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  }
+}

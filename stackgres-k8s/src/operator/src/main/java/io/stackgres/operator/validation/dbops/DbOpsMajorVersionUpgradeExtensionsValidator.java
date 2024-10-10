@@ -13,6 +13,7 @@ import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -35,13 +36,16 @@ public class DbOpsMajorVersionUpgradeExtensionsValidator
     extends AbstractExtensionsValidator<StackGresDbOps, StackGresDbOpsReview>
     implements DbOpsValidator {
 
+  private final StackGresContext context;
   private final ExtensionMetadataManager extensionMetadataManager;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   public DbOpsMajorVersionUpgradeExtensionsValidator(
+      StackGresContext context,
       ExtensionMetadataManager extensionMetadataManager,
       CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.context = context;
     this.extensionMetadataManager = extensionMetadataManager;
     this.clusterFinder = clusterFinder;
   }
@@ -63,6 +67,11 @@ public class DbOpsMajorVersionUpgradeExtensionsValidator
   }
 
   @Override
+  protected StackGresContext getContext() {
+    return context;
+  }
+
+  @Override
   protected ExtensionMetadataManager getExtensionMetadataManager() {
     return extensionMetadataManager;
   }
@@ -73,7 +82,8 @@ public class DbOpsMajorVersionUpgradeExtensionsValidator
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
     StackGresComponent flavor = StackGresUtil.getPostgresFlavorComponent(cluster);
     StackGresVersion stackGresVersion = StackGresVersion.getStackGresVersion(cluster);
-    return StackGresUtil.getDefaultClusterExtensions(pgVersion, flavor, stackGresVersion);
+    return StackGresUtil.getDefaultClusterExtensions(context, pgVersion, flavor, stackGresVersion,
+        StackGresUtil.isRegistryEnabled(cluster));
   }
 
   @Override

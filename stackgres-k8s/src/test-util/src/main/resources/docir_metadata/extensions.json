@@ -1,0 +1,132 @@
+[
+  {
+    "name": "pgsodium",
+    "licenses": "postgres",
+    "repository": "https://myrepo.mysite.com/stackgres-extensions",
+    "description": "Postgres extension for libsodium functions",
+    "longDescription": "pgsodium is a PostgreSQL extension that exposes modern libsodium based cryptographic functions to SQL.",
+    "extensionVersions": [
+      {
+        "version": "1.1.0",
+        "flavor": "postgres",
+        "flavorVersion": "11.9",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      },
+      {
+        "version": "1.1.0",
+        "flavor": "postgres",
+        "flavorVersion": "12.4",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      }
+    ],
+    "url": "https://github.com/michelp/pgsodium/",
+    "source": "https://pgxn.org/dist/pgsodium/"
+  },
+  {
+    "name": "mysqlcompat",
+    "licenses": "unrestricted",
+    "description": "MySQL compatibility functions",
+    "longDescription": "A reimplemenation of as many MySQL functions as possible in PostgreSQL, as an aid to porting",
+    "extensionVersions": [
+      {
+        "version": "0.0.10",
+        "flavor": "postgres",
+        "flavorVersion": "11.9",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      },
+      {
+        "version": "0.0.10",
+        "flavor": "postgres",
+        "flavorVersion": "11.9",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      },
+      {
+        "version": "0.0.6",
+        "flavor": "postgres",
+        "flavorVersion": "11.9",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      },
+      {
+        "version": "0.0.10",
+        "flavor": "postgres",
+        "flavorVersion": "12.4",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      },
+      {
+        "version": "0.0.10",
+        "flavor": "postgres",
+        "flavorVersion": "12.4",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      }
+    ],
+    "url": "https://github.com/2ndQuadrant/mysqlcompat/",
+    "source": "https://pgxn.org/dist/mysqlcompat/"
+  },
+  {
+    "name": "plpgsql",
+    "licenses": "PostgreSQL",
+    "longDescription": "PL/pgSQL procedural language",
+    "extensionVersions": [
+      {
+        "version": "1.0",
+        "flavor": "postgres",
+        "flavorVersion": "11.9",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      },
+      {
+        "version": "1.0",
+        "flavor": "postgres",
+        "flavorVersion": "12.4",
+        "os": "linux",
+        "arch": "amd64",
+        "revision": "51",
+        "baseName": "ubi",
+        "baseMajor": 9,
+        "baseMinor": 4
+      }
+    ],
+    "url": "https://www.postgresql.org/docs/13/xplang.html",
+    "source": "https://github.com/postgres/postgres.git",
+    "description": "PL/pgSQL procedural language"
+  }
+]

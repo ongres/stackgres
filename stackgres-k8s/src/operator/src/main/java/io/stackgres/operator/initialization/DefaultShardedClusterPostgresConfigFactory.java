@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -23,6 +24,12 @@ import jakarta.enterprise.context.Dependent;
 @Dependent
 public class DefaultShardedClusterPostgresConfigFactory
     extends DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresShardedCluster> {
+
+  private final StackGresContext context;
+
+  public DefaultShardedClusterPostgresConfigFactory(StackGresContext context) {
+    this.context = context;
+  }
 
   @Override
   protected String getDefaultPropertyResourceName(StackGresShardedCluster source) {
@@ -65,7 +72,8 @@ public class DefaultShardedClusterPostgresConfigFactory
 
   private String getPostgresMajorVersion(StackGresShardedCluster resource) {
     String version = getPostgresFlavorComponent(resource).get(resource)
-        .getVersion(resource.getSpec().getPostgres().getVersion());
+        .findVersion(context, resource.getSpec().getPostgres().getVersion())
+        .orElse(resource.getSpec().getPostgres().getVersion());
     return version.split("\\.")[0];
   }
 

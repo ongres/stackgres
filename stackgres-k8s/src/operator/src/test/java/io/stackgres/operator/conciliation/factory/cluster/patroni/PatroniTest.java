@@ -23,16 +23,18 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
@@ -55,7 +57,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   @Mock
   PatroniEnvironmentVariables patroniEnvironmentVariables;
@@ -64,11 +67,13 @@ class PatroniTest {
   @Mock
   PostgresSocketMounts postgresSocket;
   @Mock
+  UserOverrideMounts userOverrideMounts;
+  @Mock
+  PostgresDataMounts postgresDataMounts;
+  @Mock
   PostgresExtensionMounts postgresExtensions;
   @Mock
   TemplatesMounts templateMounts;
-  @Mock
-  UserOverrideMounts userOverrideMounts;
   @Mock
   LocalBinMounts localBinMounts;
   @Mock
@@ -102,7 +107,7 @@ class PatroniTest {
   @BeforeEach
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables, postgresEnvironmentVariables,
-        postgresSocket, postgresExtensions, templateMounts, userOverrideMounts, localBinMounts,
+        postgresSocket, postgresDataMounts, postgresExtensions, templateMounts, userOverrideMounts, localBinMounts,
         restoreMounts, backupMounts, replicationInitializationMounts,
         replicateMounts, patroniMounts, hugePagesMounts, patroniConfigMap);
     cluster = Fixtures.cluster().loadDefault().get();
@@ -114,6 +119,7 @@ class PatroniTest {
         .thenReturn(new ConfigMapBuilder()
                 .withData(Map.of(StackGresUtil.MD5SUM_KEY, "test"))
                 .build());
+    when(clusterContext.getContext()).thenReturn(StackGresContextMock.CONTEXT);
     when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getCluster()).thenReturn(cluster);
   }
@@ -123,11 +129,11 @@ class PatroniTest {
     Container patroniContainer = patroni.getContainer(clusterContainerContext);
     var dshmVolumeMount = new VolumeMountBuilder()
         .withName(StackGresVolume.DSHM.getName())
-        .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
+        .withMountPath(ClusterPathV1.SHARED_MEMORY_PATH.path())
         .build();
     var pgLogVolumeMount = new VolumeMountBuilder()
         .withName(StackGresVolume.LOG.getName())
-        .withMountPath(ClusterPath.PG_LOG_PATH.path())
+        .withMountPath(ClusterPathV1.PG_LOG_PATH.path())
         .build();
     assertTrue(patroniContainer.getVolumeMounts().contains(dshmVolumeMount));
     assertTrue(patroniContainer.getVolumeMounts().contains(pgLogVolumeMount));
@@ -137,6 +143,8 @@ class PatroniTest {
     verify(patroniMounts, times(1)).getVolumeMounts(any());
     verify(backupMounts, times(1)).getVolumeMounts(any());
     verify(replicateMounts, times(1)).getVolumeMounts(any());
+    verify(userOverrideMounts, times(1)).getVolumeMounts(any());
+    verify(postgresDataMounts, times(1)).getVolumeMounts(any());
     verify(postgresExtensions, times(1)).getVolumeMounts(any());
     verify(hugePagesMounts, times(1)).getVolumeMounts(any());
   }
@@ -149,7 +157,9 @@ class PatroniTest {
     verify(patroniMounts, times(1)).getDerivedEnvVars(any());
     verify(backupMounts, times(1)).getDerivedEnvVars(any());
     verify(replicateMounts, times(1)).getDerivedEnvVars(any());
-    verify(postgresExtensions, times(1)).getDerivedEnvVars(any());
+    verify(userOverrideMounts, times(1)).getVolumeMounts(any());
+    verify(postgresDataMounts, times(1)).getVolumeMounts(any());
+    verify(postgresExtensions, times(1)).getVolumeMounts(any());
     verify(hugePagesMounts, times(1)).getDerivedEnvVars(any());
     verify(patroniEnvironmentVariables, times(1)).getEnvVars(any());
     verify(postgresEnvironmentVariables, times(1)).getEnvVars(any());
@@ -246,7 +256,8 @@ class PatroniTest {
   void getContainer_whenBabelfishFlavor_shouldHaveBabelfishPorts() {
     cluster.getSpec().getPods().setDisableEnvoy(true);
     cluster.getSpec().getPostgres().setVersion(
-        StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
+        StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+            .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get());
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
     lenient().when(patroniEnvironmentVariables.getEnvVars(clusterContext)).thenReturn(List.of());
     lenient().when(postgresEnvironmentVariables.getEnvVars(clusterContext)).thenReturn(List.of());

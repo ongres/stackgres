@@ -16,6 +16,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -52,6 +53,7 @@ class ShardedClusterRequiredResourceDecoratorTest
   @Override
   protected StackGresShardedClusterContext getResourceContext() {
     return StackGresShardedClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(resource)
         .coordinatorPostgresConfig(pgConfig)

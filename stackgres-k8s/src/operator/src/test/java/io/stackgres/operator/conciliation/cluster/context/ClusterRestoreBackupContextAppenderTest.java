@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatusBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
@@ -59,6 +60,7 @@ class ClusterRestoreBackupContextAppenderTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterRestoreBackupContextAppender(
+        StackGresContextMock.CONTEXT,
         secretFinder, backupFinder, backupEnvVarFactory);
   }
 

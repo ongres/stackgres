@@ -23,11 +23,13 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.Volume;
@@ -117,12 +119,14 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         PatroniSecret.getMonitorCredentials(context.getClusterContext()).v1;
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
-        .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
-            .getLatestImageName())
+        .withImage(StackGresUtil.getSidecarImageName(
+            context.getClusterContext().getContext(),
+            cluster,
+            StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER))
         .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.TEMPLATES_PATH.path()
-                + "/" + ClusterPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH.filename())
+            ClusterPathV1.TEMPLATES_PATH.path()
+                + "/" + ClusterPathV1.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH.filename())
         .withEnv(
             new EnvVarBuilder()
                 .withName("PGAPPNAME")
@@ -132,7 +136,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
                 .withName("DATA_SOURCE_NAME")
                 .withValue("postgresql://" + monitorUsername + "@:" + EnvoyUtil.PG_PORT
                     + "/postgres"
-                    + "?host=" + ClusterPath.PG_RUN_PATH.path()
+                    + "?host=" + ClusterPathV1.PG_RUN_PATH.path()
                     + "&sslmode=disable")
                 .build(),
             new EnvVarBuilder()
@@ -151,7 +155,10 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
             new EnvVarBuilder()
                 .withName("PG_PORT")
                 .withValue(String.valueOf(EnvoyUtil.PG_PORT))
-                .build())
+                .build(),
+            StackGresUtil.isRegistryEnabled(cluster)
+                ? ClusterPathV2.POSTGRES_EXPORTER_BIN_PATH.envVar()
+                : ClusterPathV1.POSTGRES_EXPORTER_BIN_PATH.envVar())
         .withPorts(new ContainerPortBuilder()
             .withProtocol("TCP")
             .withName(POSTGRES_EXPORTER_PORT_NAME)
@@ -177,9 +184,11 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
-        StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
-        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER
-        .get(context.getClusterContext().getCluster()).getLatestVersion());
+        StackGresKeys.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
+        StackGresUtil.getSidecarVersion(
+            context.getClusterContext().getContext(),
+            context.getClusterContext().getCluster(),
+            StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER));
   }
 
   @Override

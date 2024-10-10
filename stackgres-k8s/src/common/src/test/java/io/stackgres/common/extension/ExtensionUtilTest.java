@@ -30,20 +30,20 @@ public class ExtensionUtilTest {
   static final URI REPOSITORY =
       URI.create("https://extensions.stackgres.io/postgres/repository");
   static final String PG_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(null)
       .findAny().get();
   static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedMajorVersions(null)
       .get(0).get();
   static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedMajorVersions(null)
       .get(1).get();
   static final String SECOND_PG_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getVersion(SECOND_PG_MAJOR_VERSION);
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).getVersion(null, SECOND_PG_MAJOR_VERSION);
   static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getBuildVersion(PG_VERSION);
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).getBuildVersion(null, PG_VERSION);
   static final String BUILD_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getBuildMajorVersion(PG_VERSION);
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).getBuildMajorVersion(null, PG_VERSION);
 
   StackGresExtensions extensionsMetadata;
 

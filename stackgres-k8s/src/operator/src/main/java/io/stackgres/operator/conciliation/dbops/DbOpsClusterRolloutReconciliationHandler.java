@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -92,8 +92,8 @@ public class DbOpsClusterRolloutReconciliationHandler
           .map(Map::entrySet)
           .stream()
           .flatMap(Set::stream)
-          .anyMatch(annotation -> StackGresContext.ROLLOUT_DBOPS_KEY.equals(annotation.getKey())
-              && StackGresContext.ROLLOUT_DBOPS_KEY.equals(context.getMetadata().getName()))) {
+          .anyMatch(annotation -> StackGresKeys.ROLLOUT_DBOPS_KEY.equals(annotation.getKey())
+              && StackGresKeys.ROLLOUT_DBOPS_KEY.equals(context.getMetadata().getName()))) {
         currentCluster.getStatus().setDbOps(null);
       }
       if (cluster.getMetadata().getAnnotations() != null
@@ -101,7 +101,7 @@ public class DbOpsClusterRolloutReconciliationHandler
           .map(Map::entrySet)
           .stream()
           .flatMap(Set::stream)
-          .noneMatch(annotation -> StackGresContext.ROLLOUT_DBOPS_KEY.equals(annotation.getKey())
+          .noneMatch(annotation -> StackGresKeys.ROLLOUT_DBOPS_KEY.equals(annotation.getKey())
               && !context.getMetadata().getName().equals(annotation.getValue()))) {
         currentCluster.getMetadata().setAnnotations(
             Seq.seq(

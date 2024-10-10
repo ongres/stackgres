@@ -1,0 +1,1672 @@
+{
+  "extensions": [
+    {
+      "name": "adminpack",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "adminpack 13.15",
+            "longDescription": "adminpack v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "amcheck",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "amcheck 13.15",
+            "longDescription": "amcheck v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "auth_delay",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "auth_delay 13.15",
+            "longDescription": "auth_delay v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "auto_explain",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "auto_explain 13.15",
+            "longDescription": "auto_explain v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "auto_explain 13.15",
+            "longDescription": "auto_explain v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "bloom",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "bloom 13.15",
+            "longDescription": "bloom v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "bool_plperl",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "bool_plperl 13.15",
+            "longDescription": "bool_plperl v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "btree_gin",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "btree_gin 13.15",
+            "longDescription": "btree_gin v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "btree_gist",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "btree_gist 13.15",
+            "longDescription": "btree_gist v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "citext",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "citext 13.15",
+            "longDescription": "citext v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "cube",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "cube 13.15",
+            "longDescription": "cube v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dblink",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dblink 13.15",
+            "longDescription": "dblink v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dblink 13.15",
+            "longDescription": "dblink v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dict_int",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dict_int 13.15",
+            "longDescription": "dict_int v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dict_xsyn",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dict_xsyn 13.15",
+            "longDescription": "dict_xsyn v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "earthdistance",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "earthdistance 13.15",
+            "longDescription": "earthdistance v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "file_fdw",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "file_fdw 13.15",
+            "longDescription": "file_fdw v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "fuzzystrmatch",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "fuzzystrmatch 13.15",
+            "longDescription": "fuzzystrmatch v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "hstore",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "hstore 13.15",
+            "longDescription": "hstore v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "hstore_plperl",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "hstore_plperl 13.15",
+            "longDescription": "hstore_plperl v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "hstore_plpython",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "hstore_plpython 13.15",
+            "longDescription": "hstore_plpython v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "intagg",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "intagg 13.15",
+            "longDescription": "intagg v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "intarray",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "intarray 13.15",
+            "longDescription": "intarray v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "isn",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "isn 13.15",
+            "longDescription": "isn v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "jsonb_plperl",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "jsonb_plperl 13.15",
+            "longDescription": "jsonb_plperl v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "jsonb_plpython",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "jsonb_plpython 13.15",
+            "longDescription": "jsonb_plpython v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "lo",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "lo 13.15",
+            "longDescription": "lo v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ltree",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "ltree 13.15",
+            "longDescription": "ltree v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ltree_plpython",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "ltree_plpython 13.15",
+            "longDescription": "ltree_plpython v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "oid2name",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "oid2name 13.15",
+            "longDescription": "oid2name v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pageinspect",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pageinspect 13.15",
+            "longDescription": "pageinspect v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "passwordcheck",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "passwordcheck 13.15",
+            "longDescription": "passwordcheck v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_buffercache",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_buffercache 13.15",
+            "longDescription": "pg_buffercache v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_freespacemap",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_freespacemap 13.15",
+            "longDescription": "pg_freespacemap v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_prewarm",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_prewarm 13.15",
+            "longDescription": "pg_prewarm v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_standby",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_standby 13.15",
+            "longDescription": "pg_standby v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_stat_statements",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_stat_statements 13.15",
+            "longDescription": "pg_stat_statements v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_stat_statements 13.15",
+            "longDescription": "pg_stat_statements v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_trgm",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_trgm 13.15",
+            "longDescription": "pg_trgm v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_visibility",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_visibility 13.15",
+            "longDescription": "pg_visibility v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pgcrypto",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pgcrypto 13.15",
+            "longDescription": "pgcrypto v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pgrowlocks",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pgrowlocks 13.15",
+            "longDescription": "pgrowlocks v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pgstattuple",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pgstattuple 13.15",
+            "longDescription": "pgstattuple v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "postgres_fdw",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "postgres_fdw 13.15",
+            "longDescription": "postgres_fdw v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "seg",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "seg 13.15",
+            "longDescription": "seg v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sepgsql",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "sepgsql 13.15",
+            "longDescription": "sepgsql v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "spi",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "spi 13.15",
+            "longDescription": "spi v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sslinfo",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "sslinfo 13.15",
+            "longDescription": "sslinfo v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tablefunc",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tablefunc 13.15",
+            "longDescription": "tablefunc v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tcn",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tcn 13.15",
+            "longDescription": "tcn v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "test_decoding",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "test_decoding 13.15",
+            "longDescription": "test_decoding v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tsm_system_rows",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tsm_system_rows 13.15",
+            "longDescription": "tsm_system_rows v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tsm_system_time",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tsm_system_time 13.15",
+            "longDescription": "tsm_system_time v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "unaccent",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "unaccent 13.15",
+            "longDescription": "unaccent v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "uuid-ossp",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "uuid-ossp 13.15",
+            "longDescription": "uuid-ossp v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "vacuumlo",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "vacuumlo 13.15",
+            "longDescription": "vacuumlo v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "xml2",
+      "extensionVersions": [
+        {
+          "version": "13.15",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "xml2 13.15",
+            "longDescription": "xml2 v13.15 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_13_15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "plpgsql",
+      "extensionVersions": [
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "plpgsql 1.0.0",
+            "longDescription": "plpgsql v1.0.0 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "plpython3u",
+      "extensionVersions": [
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "plpython3u 1.0.0",
+            "longDescription": "plpython3u v1.0.0 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "timescaledb",
+      "extensionVersions": [
+        {
+          "version": "1.7.1",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "timescaledb 1.7.1",
+            "longDescription": "timescaledb v1.7.1 for PostgreSQL 13.15",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "citus",
+      "extensionVersions": [
+        {
+          "version": "11.3-1",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "citus 11.3-1",
+            "longDescription": "citus v11.3-1",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "citus_columnar",
+      "extensionVersions": [
+        {
+          "version": "11.3-1",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "citus_columnar 11.3-1",
+            "longDescription": "citus_columnar v11.3-1",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_cron",
+      "extensionVersions": [
+        {
+          "version": "1.6.4",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_cron 1.6.4",
+            "longDescription": "pg_cron v1.6.4",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    }
+  ]
+}

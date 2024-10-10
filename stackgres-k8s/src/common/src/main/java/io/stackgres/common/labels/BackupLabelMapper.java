@@ -5,7 +5,7 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -14,22 +14,22 @@ public class BackupLabelMapper implements LabelMapperForBackup {
 
   @Override
   public String appName() {
-    return StackGresContext.BACKUP_APP_NAME;
+    return StackGresKeys.BACKUP_APP_NAME;
   }
 
   @Override
   public String resourceNameKey(StackGresBackup resource) {
-    return getKeyPrefix(resource) + StackGresContext.BACKUP_NAME_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.BACKUP_NAME_KEY;
   }
 
   @Override
   public String resourceNamespaceKey(StackGresBackup resource) {
-    return getKeyPrefix(resource) + StackGresContext.BACKUP_NAMESPACE_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.BACKUP_NAMESPACE_KEY;
   }
 
   @Override
   public String resourceUidKey(StackGresBackup resource) {
-    return getKeyPrefix(resource) + StackGresContext.BACKUP_UID_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.BACKUP_UID_KEY;
   }
 
 }

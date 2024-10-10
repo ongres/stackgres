@@ -16,6 +16,7 @@ import java.util.Optional;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsUtil;
@@ -36,7 +37,7 @@ class DistributedLogsPostgresConfigContextAppenderTest {
   private StackGresDistributedLogs distributedLogs;
 
   private DefaultDistributedLogsPostgresConfigFactory defaultPostgresConfigFactory =
-      new DefaultDistributedLogsPostgresConfigFactory();
+      new DefaultDistributedLogsPostgresConfigFactory(StackGresContextMock.CONTEXT);
 
   @Spy
   private StackGresDistributedLogsContext.Builder contextBuilder;
@@ -49,7 +50,7 @@ class DistributedLogsPostgresConfigContextAppenderTest {
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
     contextAppender = new DistributedLogsPostgresConfigContextAppender(
         postgresConfigFinder,
-        new DefaultDistributedLogsPostgresConfigFactory());
+        new DefaultDistributedLogsPostgresConfigFactory(StackGresContextMock.CONTEXT));
   }
 
   @Test
@@ -57,7 +58,8 @@ class DistributedLogsPostgresConfigContextAppenderTest {
     final var postgresConfig = Optional.of(
         new StackGresPostgresConfigBuilder()
         .withNewSpec()
-        .withPostgresVersion(StackGresDistributedLogsUtil.getPostgresVersion(distributedLogs).replaceAll("\\..*$", ""))
+        .withPostgresVersion(StackGresDistributedLogsUtil
+            .getPostgresVersion(StackGresContextMock.CONTEXT, distributedLogs).replaceAll("\\..*$", ""))
         .endSpec()
         .build());
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))

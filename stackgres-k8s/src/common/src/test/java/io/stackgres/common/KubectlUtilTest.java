@@ -5,6 +5,7 @@
 
 package io.stackgres.common;
 
+import static io.stackgres.common.docir.StackGresContextMock.CONTEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -25,9 +26,9 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.19"))
+        .map(c -> c.getImageName(CONTEXT, "1.19"))
         .orElseThrow();
-    String imageName = new KubectlUtil(mockClient)
+    String imageName = new KubectlUtil(CONTEXT, mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
@@ -43,9 +44,9 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.22"))
+        .map(c -> c.getImageName(CONTEXT, "1.22"))
         .orElseThrow();
-    String imageName = new KubectlUtil(mockClient)
+    String imageName = new KubectlUtil(CONTEXT, mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
@@ -61,9 +62,9 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.25"))
+        .map(c -> c.getImageName(CONTEXT, "1.25"))
         .orElseThrow();
-    String imageName = new KubectlUtil(mockClient)
+    String imageName = new KubectlUtil(CONTEXT, mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
@@ -81,9 +82,9 @@ class KubectlUtilTest {
     // Always return the latest image name since older versions
     // are unsupported anyway. So expect "newer" versions of K8s instead.
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getLatestImageName())
+        .map(c -> c.getLatestImageName(CONTEXT))
         .orElseThrow();
-    String imageName = new KubectlUtil(mockClient)
+    String imageName = new KubectlUtil(CONTEXT, mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);

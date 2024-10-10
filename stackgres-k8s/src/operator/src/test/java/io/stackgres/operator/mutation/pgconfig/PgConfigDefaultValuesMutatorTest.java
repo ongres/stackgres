@@ -10,6 +10,7 @@ import java.util.HashMap;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -32,7 +33,7 @@ class PgConfigDefaultValuesMutatorTest
 
   @Override
   protected DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> createFactory() {
-    return new DefaultClusterPostgresConfigFactory();
+    return new DefaultClusterPostgresConfigFactory(StackGresContextMock.CONTEXT);
   }
 
   @Override

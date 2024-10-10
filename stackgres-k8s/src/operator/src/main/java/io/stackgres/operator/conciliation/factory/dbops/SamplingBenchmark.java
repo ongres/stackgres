@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgdbops.DbOpsSamplingMode;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -201,12 +201,12 @@ public class SamplingBenchmark extends AbstractDbOpsJob {
   }
 
   @Override
-  protected ClusterPath getRunScript() {
-    return ClusterPath.LOCAL_BIN_RUN_SAMPLING_SH_PATH;
+  protected ClusterPathV1 getRunScript() {
+    return ClusterPathV1.LOCAL_BIN_RUN_SAMPLING_SH_PATH;
   }
 
   @Override
-  protected ClusterPath getSetResultScript() {
-    return ClusterPath.LOCAL_BIN_SET_SAMPLING_RESULT_SH_PATH;
+  protected ClusterPathV1 getSetResultScript() {
+    return ClusterPathV1.LOCAL_BIN_SET_SAMPLING_RESULT_SH_PATH;
   }
 }

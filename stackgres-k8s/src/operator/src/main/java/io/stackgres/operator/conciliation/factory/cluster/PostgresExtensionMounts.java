@@ -15,51 +15,47 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
-import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterContainerContext> {
-
-  @Inject
-  PostgresDataMounts postgresData;
-
-  @Inject
-  UserOverrideMounts containerUserOverride;
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
 
     return ImmutableList.<VolumeMount>builder()
-        .addAll(postgresData.getVolumeMounts(context))
         .add(
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_LIB64_PATH,
-                ClusterPath.PG_RELOCATED_LIB64_PATH),
+                ClusterPathV2.USR_BIN_PATH,
+                ClusterPathV2.PG_RELOCATED_USR_BIN_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_BIN_PATH,
-                ClusterPath.PG_RELOCATED_BIN_PATH),
+                ClusterPathV2.PG_LIB64_PATH,
+                ClusterPathV2.PG_RELOCATED_LIB64_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_LIB_PATH,
-                ClusterPath.PG_RELOCATED_LIB_PATH),
+                ClusterPathV2.PG_SYSTEM_LIB_PATH,
+                ClusterPathV2.PG_RELOCATED_SYSTEM_LIB_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_SHARE_PATH,
-                ClusterPath.PG_RELOCATED_SHARE_PATH),
+                ClusterPathV2.PG_BIN_PATH,
+                ClusterPathV2.PG_RELOCATED_BIN_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_EXTENSION_PATH,
-                ClusterPath.PG_EXTENSIONS_EXTENSION_PATH),
+                ClusterPathV2.PG_LIB_PATH,
+                ClusterPathV2.PG_RELOCATED_LIB_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_EXTRA_BIN_PATH,
-                ClusterPath.PG_EXTENSIONS_BIN_PATH),
+                ClusterPathV2.PG_SHARE_PATH,
+                ClusterPathV2.PG_RELOCATED_SHARE_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
-                ClusterPath.PG_EXTRA_LIB_PATH,
-                ClusterPath.PG_EXTENSIONS_LIB64_PATH))
+                ClusterPathV2.PG_EXTENSION_PATH,
+                ClusterPathV2.PG_EXTENSIONS_EXTENSION_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterPathV2.PG_EXTRA_BIN_PATH,
+                ClusterPathV2.PG_EXTENSIONS_BIN_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterPathV2.PG_EXTRA_LIB_PATH,
+                ClusterPathV2.PG_EXTENSIONS_SYSTEM_LIB_PATH))
         .addAll(context.getInstalledExtensions()
             .stream()
             .map(StackGresClusterInstalledExtension::getExtraMounts)
@@ -69,8 +65,8 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
             .map(extraMount -> new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
                 .withMountPath(extraMount)
-                .withSubPath(ClusterPath.PG_EXTENSIONS_PATH
-                    .subPath(clusterContext, ClusterPath.PG_BASE_PATH) + extraMount)
+                .withSubPath(ClusterPathV2.PG_EXTENSIONS_PATH
+                    .subPath(clusterContext, ClusterPathV2.PG_BASE_PATH) + extraMount)
                 .build())
             .toList())
         .build();
@@ -79,13 +75,13 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
   private VolumeMount volumeMountForSubPathFromPostgresData(
       ClusterContainerContext context,
       final ClusterContext clusterContext,
-      final ClusterPath mountPath,
-      final ClusterPath subPath) {
+      final ClusterPathV2 mountPath,
+      final ClusterPathV2 subPath) {
     return new VolumeMountBuilder()
         .withName(context.getDataVolumeName())
         .withMountPath(mountPath.path(clusterContext))
         .withSubPath(subPath
-            .subPath(clusterContext, ClusterPath.PG_BASE_PATH))
+            .subPath(clusterContext, ClusterPathV2.PG_BASE_PATH))
         .build();
   }
 
@@ -94,40 +90,55 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
     final ClusterContext clusterContext = context.getClusterContext();
 
     return ImmutableList.<EnvVar>builder()
-        .addAll(postgresData.getDerivedEnvVars(context))
         .add(
-            ClusterPath.PG_EXTENSIONS_BASE_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_BINARIES_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_BIN_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_LIB_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_SHARE_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_EXTENSION_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSIONS_LIB64_PATH.envVar(clusterContext),
-            ClusterPath.PG_LIB64_PATH.envVar(clusterContext),
-            ClusterPath.PG_BINARIES_PATH.envVar(clusterContext),
-            ClusterPath.PG_BIN_PATH.envVar(clusterContext),
-            ClusterPath.PG_LIB_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTRA_BIN_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTRA_LIB_PATH.envVar(clusterContext),
-            ClusterPath.PG_SHARE_PATH.envVar(clusterContext),
-            ClusterPath.PG_EXTENSION_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_BASE_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_LIB64_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_BINARIES_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_BIN_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_LIB_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_SHARE_PATH.envVar(clusterContext),
-            ClusterPath.PG_RELOCATED_EXTENSION_PATH.envVar(clusterContext),
-            ClusterPath.PG_UPGRADE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_BASE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_BINARIES_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_SHARE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_EXTENSION_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_LIB64_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSIONS_SYSTEM_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.USR_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_LIB64_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_SYSTEM_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_INSTALL_BASE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_BINARIES_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTRA_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTRA_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_SHARE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_EXTENSION_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_BASE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_USR_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_LIB64_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_SYSTEM_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_PG_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_LIB_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_SHARE_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_RELOCATED_EXTENSION_PATH.envVar(clusterContext),
+            ClusterPathV2.PG_UPGRADE_PATH.envVar(clusterContext),
+            ClusterPathV2.PATRONI_PATH.envVar(clusterContext),
+            ClusterPathV2.WALG_PATH.envVar(clusterContext),
+            ClusterPathV2.HDRHISTOGRAM_PATH.envVar(clusterContext),
+            ClusterPathV2.PATRONI_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.PATRONICTL_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.WALG_BIN_PATH.envVar(clusterContext),
+            ClusterPathV2.HDRHISTOGRAM_BIN_PATH.envVar(clusterContext),
             new EnvVarBuilder()
             .withName("PATH")
             .withValue(String.join(":",
                 "/usr/local/sbin",
                 "/usr/local/bin",
-                ClusterPath.PG_BIN_PATH.path(clusterContext),
-                ClusterPath.PG_EXTRA_BIN_PATH.path(clusterContext),
+                ClusterPathV2.PG_BIN_PATH.path(clusterContext),
+                ClusterPathV2.PG_EXTRA_BIN_PATH.path(clusterContext),
+                ClusterPathV2.PATRONI_PATH.path(clusterContext),
+                ClusterPathV2.WALG_PATH.path(clusterContext),
+                ClusterPathV2.HDRHISTOGRAM_PATH.path(clusterContext),
                 "/usr/sbin",
                 "/usr/bin",
                 "/sbin",
@@ -135,7 +146,7 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
             .build(),
             new EnvVarBuilder()
             .withName("LD_LIBRARY_PATH")
-            .withValue(ClusterPath.PG_EXTRA_LIB_PATH.path(clusterContext))
+            .withValue(ClusterPathV2.PG_EXTRA_LIB_PATH.path(clusterContext))
             .build(),
             new EnvVarBuilder()
             .withName("EXTRA_MOUNTS")

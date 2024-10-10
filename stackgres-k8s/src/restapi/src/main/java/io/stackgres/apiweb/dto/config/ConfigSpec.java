@@ -65,6 +65,8 @@ public class ConfigSpec {
 
   private ConfigExtensions extensions;
 
+  private ConfigRepository repository;
+
   private ConfigDeveloper developer;
 
   private ConfigShardingSphere shardingSphere;
@@ -259,6 +261,14 @@ public class ConfigSpec {
 
   public void setExtensions(ConfigExtensions extensions) {
     this.extensions = extensions;
+  }
+
+  public ConfigRepository getRepository() {
+    return repository;
+  }
+
+  public void setRepository(ConfigRepository repository) {
+    this.repository = repository;
   }
 
   public ConfigDeveloper getDeveloper() {

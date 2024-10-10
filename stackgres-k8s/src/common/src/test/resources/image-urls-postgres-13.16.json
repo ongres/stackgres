@@ -1,0 +1,98 @@
+{
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&extensions=auto_explain@13.16@10&extensions=dblink@13.16@10&extensions=pg_stat_statements@13.16@10&addons=patroni@3.3.3@12&addons=wal-g@3.0.3@12&addons=hdrhistogram@0.10.7@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/patroni--3.3.3--12/wal-g--3.0.3--12/hdrhistogram--0.10.7--12/e/auto_explain--13.16--10/dblink--13.16--10/pg_stat_statements--13.16--10",
+      "urlDigest": "localhost:5001/stackgres@sha256:52fbc9f10642e0b3225eb26bb571e92d09799dbf1dbee9bcc09b7ab1c2245c69",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=pgbouncer@1.24.1@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/pgbouncer--1.24.1--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000005d62251502929614",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=postgres-exporter@0.17.1@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/postgres-exporter--0.17.1--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000003484de25a41df634",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=kubectl@1.33.4@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/kubectl--1.33.4--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:00000000000000000000000000000000000000000000000033ae492ad5d85f59",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=fluent-bit@4.0.5@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/fluent-bit--4.0.5--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:00000000000000000000000000000000000000000000000016d7327b4d632809",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=patroni@3.3.3@12&addons=wal-g@3.0.3@12&addons=hdrhistogram@0.10.7@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/patroni--3.3.3--12/wal-g--3.0.3--12/hdrhistogram--0.10.7--12/e/auto_explain--13.16--10/dblink--13.16--10/pg_stat_statements--13.16--10",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000001f8fc9159b8bccdf",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=fluentd@1.16.5@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/fluentd--1.16.5--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000005286e070da78d6d2",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@13.16@12&addons=otel-collector@0.120.0@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--13.16--12/b/ubi--9.4--10/a/otel-collector--0.120.0--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:0000000000000000000000000000000000000000000000004c56d5eb917947d8",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  }
+}

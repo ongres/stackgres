@@ -12,8 +12,9 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -26,10 +27,14 @@ public class ClusterLabelFactory
     extends AbstractLabelFactory<StackGresCluster>
     implements LabelFactoryForCluster {
 
+  private final StackGresContext context;
   private final ClusterLabelMapper labelMapper;
 
   @Inject
-  public ClusterLabelFactory(ClusterLabelMapper labelMapper) {
+  public ClusterLabelFactory(
+      StackGresContext context,
+      ClusterLabelMapper labelMapper) {
+    this.context = context;
     this.labelMapper = labelMapper;
   }
 
@@ -41,7 +46,7 @@ public class ClusterLabelFactory
   @Override
   public Map<String, String> defaultConfigLabels(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
-        .put(labelMapper().defaultConfigKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().defaultConfigKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -56,7 +61,7 @@ public class ClusterLabelFactory
   public Map<String, String> clusterLabelsWithoutUid(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)))
-        .put(labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().clusterKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -64,7 +69,7 @@ public class ClusterLabelFactory
   public Map<String, String> patroniClusterLabels(StackGresCluster resource) {
     return Map.of(labelMapper().appKey(), labelMapper().appName(),
         labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
+        labelMapper().clusterKey(resource), StackGresKeys.RIGHT_VALUE);
   }
 
   @Override
@@ -77,7 +82,7 @@ public class ClusterLabelFactory
   @Override
   public Map<String, String> clusterLabelsWithoutUidAndScope(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
-        .put(labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().clusterKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -99,7 +104,7 @@ public class ClusterLabelFactory
   @Override
   public Map<String, String> statefulSetPodLabels(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(clusterLabels(resource))
-        .put(labelMapper().disruptableKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().disruptableKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -107,7 +112,7 @@ public class ClusterLabelFactory
   public Map<String, String> scheduledBackupPodLabels(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().scheduledBackupKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().scheduledBackupKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -124,7 +129,7 @@ public class ClusterLabelFactory
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().replicationInitializationBackupKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().replicationInitializationBackupKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -140,7 +145,7 @@ public class ClusterLabelFactory
   }
 
   private String getPrimaryRole(StackGresCluster resource) {
-    final String patroniVersion = StackGresUtil.getPatroniVersion(resource);
+    final String patroniVersion = StackGresUtil.getPatroniVersion(context, resource);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     if (patroniMajorVersion < PatroniUtil.PATRONI_VERSION_4) {
       return PatroniUtil.OLD_PRIMARY_ROLE;

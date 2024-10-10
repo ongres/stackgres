@@ -12,9 +12,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -38,13 +40,14 @@ class DbOpsSecurityUpgradeValidatorTest {
 
   @BeforeEach
   void setUp() {
-    validator = new DbOpsSecurityUpgradeValidator(clusterFinder);
+    validator = new DbOpsSecurityUpgradeValidator(StackGresContextMock.CONTEXT, clusterFinder);
 
     cluster = Fixtures.cluster().loadDefault().get();
-    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
         .getVersion(
-            StackGresComponent.POSTGRESQL.getLatest()
-            .streamOrderedMajorVersions().findLast().get()));
+            StackGresContextMock.CONTEXT,
+            StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+            .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findLast().get()));
   }
 
   @Test
@@ -77,9 +80,13 @@ class DbOpsSecurityUpgradeValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Major version upgrade must be performed on SGCluster before performing"
-        + " the upgrade since Postgres version 11.11 will not be"
-        + " supported after the upgrade is completed", resultMessage);
+    assertEquals("Minor or major version upgrade must be performed on SGCluster before performing"
+        + " the security upgrade since Postgres version 11.11 will not be"
+        + " supported after the upgrade is completed."
+        + " Available versions are: " + StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+            .streamOrderedVersions(StackGresContextMock.CONTEXT)
+            .collect(Collectors.joining(", ")),
+        resultMessage);
   }
 
   private StackGresDbOpsReview getCreationReview() {

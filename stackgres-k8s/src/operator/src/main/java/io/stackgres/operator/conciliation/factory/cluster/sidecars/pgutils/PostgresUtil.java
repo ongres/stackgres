@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+import static io.stackgres.common.StackGresUtil.getPostgresUtilImageName;
 
 import java.util.Map;
 import java.util.Optional;
@@ -14,14 +15,15 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -33,7 +35,7 @@ import jakarta.inject.Singleton;
 
 @Sidecar(StackGresContainer.POSTGRES_UTIL)
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 @RunningContainer(StackGresContainer.POSTGRES_UTIL)
 public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
 
@@ -62,10 +64,11 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
-        StackGresContext.POSTGRES_VERSION_KEY,
+        StackGresKeys.POSTGRES_VERSION_KEY,
         getPostgresFlavorComponent(context.getClusterContext().getCluster())
         .get(context.getClusterContext().getCluster())
         .getVersion(
+            context.getClusterContext().getContext(),
             context.getClusterContext().getCluster().getStatus().getPostgresVersion()));
   }
 
@@ -73,9 +76,9 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
   public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.POSTGRES_UTIL.getName())
-        .withImage(StackGresComponent.POSTGRES_UTIL.get(context.getClusterContext().getCluster())
-            .getImageName(
-                context.getClusterContext().getSource().getStatus().getPostgresVersion()))
+        .withImage(getPostgresUtilImageName(
+            context.getClusterContext().getContext(),
+            context.getClusterContext().getCluster()))
         .withImagePullPolicy(getDefaultPullPolicy())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
@@ -85,7 +88,7 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.EMPTY_BASE.getName())
-                .withMountPath("/var/lib/postgresql")
+                .withMountPath(ClusterPathV2.PG_BASE_PATH.path())
                 .build()
         )
         .addAllToVolumeMounts(userOverrideMounts.getVolumeMounts(context))

@@ -10,7 +10,7 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,7 +30,7 @@ public class StreamLabelFactory
   public Map<String, String> streamPodLabels(StackGresStream resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().streamKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().streamKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 

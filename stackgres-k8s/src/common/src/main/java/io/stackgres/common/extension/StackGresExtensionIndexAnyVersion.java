@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.stackgres.common.OsDetector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 
@@ -27,19 +28,19 @@ public class StackGresExtensionIndexAnyVersion {
   private StackGresExtensionIndexAnyVersion(
       StackGresCluster cluster,
       StackGresClusterExtension extension,
-      Optional<ExtensionUtil.OsDetector> osDetector) {
+      Optional<OsDetector> osDetector) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
     this.postgresVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getMajorVersion(null, cluster.getSpec().getPostgres().getVersion());
     this.postgresExactVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getVersion(cluster.getSpec().getPostgres().getVersion());
+        .getVersion(null, cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
     this.build = getPostgresFlavorComponent(cluster).get(cluster)
-        .getBuildMajorVersion(cluster.getSpec().getPostgres().getVersion());
-    this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
-    this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
+        .getBuildMajorVersion(null, cluster.getSpec().getPostgres().getVersion());
+    this.arch = OsDetector.getClusterArch(cluster, osDetector);
+    this.os = OsDetector.getClusterOs(cluster, osDetector);
   }
 
   public StackGresExtensionIndexAnyVersion(
@@ -60,7 +61,7 @@ public class StackGresExtensionIndexAnyVersion {
       StackGresCluster cluster,
       StackGresClusterExtension extension, boolean detectOs) {
     return new StackGresExtensionIndexAnyVersion(cluster, extension,
-        Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
+        Optional.of(OsDetector.OS_DETECTOR).filter(od -> detectOs));
   }
 
   @Override

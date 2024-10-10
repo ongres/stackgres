@@ -26,7 +26,7 @@ has_config_workers_changed() {
 
 run_fluentd() {
   set -x
-  exec /usr/local/bin/fluentd \
+  exec "$FLUENTD_BIN_PATH" \
     -c /etc/fluentd/fluentd.conf
 }
 

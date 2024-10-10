@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,13 @@ public class WebClientFactory {
   static final String RETRY_PARAMETER = "retry";
   static final String PROXY_URL_PARAMETER = "proxyUrl";
   static final String SET_HTTP_SCHEME_PARAMETER = "setHttpScheme";
+
+  public WebClient create(@NotNull URI uri) throws Exception {
+    return create(uri, Map.of(HttpHeaders.USER_AGENT,
+        String.format(Locale.ROOT, "StackGres/%s (Java %s; %s %s)",
+            StackGresProperty.OPERATOR_VERSION.getString(), Runtime.version().feature(),
+            System.getProperty("os.name"), System.getProperty("os.arch"))));
+  }
 
   public WebClient create(@NotNull URI uri, Map<String, String> headers) throws Exception {
     ClientBuilder clientBuilder = ClientBuilder.newBuilder();
@@ -159,6 +167,16 @@ public class WebClientFactory {
         Seq.seq(extraHeaders).forEach(
             extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
         return request.post(Entity.json(json));
+      });
+    }
+
+    public <T> T postJson(URI uri, Object payload, Class<T> clazz) {
+      return doWithRetry(() -> {
+        final Builder request = client.target(targetUri(uri))
+            .request(MediaType.APPLICATION_JSON);
+        Seq.seq(extraHeaders).forEach(
+            extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
+        return request.post(Entity.json(payload), clazz);
       });
     }
 

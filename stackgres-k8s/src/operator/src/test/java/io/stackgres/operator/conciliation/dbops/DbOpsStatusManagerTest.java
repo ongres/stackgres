@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
@@ -113,7 +114,7 @@ class DbOpsStatusManagerTest {
 
   @BeforeEach
   void setUp() {
-    statusManager = new DbOpsStatusManager(jobFinder, clusterFinder,
+    statusManager = new DbOpsStatusManager(StackGresContextMock.CONTEXT, jobFinder, clusterFinder,
         labelFactory, statefulSetFinder, podScanner, endpointsFinder, patroniCtl);
     expectedDbOps = Fixtures.dbOps().loadPgbench().get();
     dbOps = Fixtures.dbOps().loadPgbench().get();

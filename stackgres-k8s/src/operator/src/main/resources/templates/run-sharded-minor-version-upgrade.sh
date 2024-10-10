@@ -8,7 +8,7 @@ run_op() {
   echo "Starting sharded dbops $NORMALIZED_OP_NAME"
 
   echo "Setting postgres version $TARGET_POSTGRES_VERSION for $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME"
-  if ! kubectl patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
+  if ! "$KUBECTL_BIN_PATH" patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
     -p "{\"spec\":{\"postgres\":{\"version\":$(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string)}}}" \
     > /tmp/dbops-update-sharded-cluster 2>&1
   then
@@ -44,7 +44,7 @@ spec:
     postgresVersion: $(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string)
 EOF
 )"
-    if ! printf %s "$DBOPS_YAML" | kubectl replace --force -f - > /tmp/dbops-create-dbops 2>&1
+    if ! printf %s "$DBOPS_YAML" | "$KUBECTL_BIN_PATH" replace --force -f - > /tmp/dbops-create-dbops 2>&1
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not create SGDbOps: $(cat /tmp/dbops-create-dbops)" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       exit 1
@@ -61,7 +61,7 @@ EOF
     do
       if ! grep -qxF "$DBOPS_NAME" /tmp/completed-dbops
       then
-        DBOPS_STATUS="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+        DBOPS_STATUS="$("$KUBECTL_BIN_PATH" get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
           --template '{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}')"
         if ! printf %s "$DBOPS_STATUS" | grep -q " \($DBOPS_COMPLETED\|$DBOPS_FAILED\) "
         then
@@ -95,7 +95,7 @@ update_status() {
     PENDING_TO_RESTART_CLUSTERS="$CLUSTER_NAMES"
     RESTARTED_CLUSTERS=""
   else
-    DBOPS_STATUSES="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" -l "$DBOPS_LABELS" \
+    DBOPS_STATUSES="$("$KUBECTL_BIN_PATH" get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" -l "$DBOPS_LABELS" \
       --template '{{ range .items }}{{ .spec.sgCluster }}/{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}{{ "\n" }}{{ end }}')"
     PENDING_TO_RESTART_CLUSTERS="$(echo "$CLUSTER_NAMES" | tr ' ' '\n' | grep -vxF '' \
       | while read CLUSTER
@@ -125,9 +125,9 @@ update_status() {
   fi
   echo
 
-  OPERATION="$(kubectl get "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+  OPERATION="$("$KUBECTL_BIN_PATH" get "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
     --template='{{ if .status.minorVersionUpgrade }}replace{{ else }}add{{ end }}')"
-  kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=json \
+  "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"$OPERATION","path":"/status/minorVersionUpgrade","value":{

@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedDbOpsReview;
@@ -59,7 +60,8 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
         review.getRequest().getObject().getMetadata().getNamespace());
 
     defaultTimestamp = Instant.now();
-    mutator = new ShardedDbOpsMajorVersionUpgradeMutator(clusterFinder, defaultTimestamp);
+    mutator = new ShardedDbOpsMajorVersionUpgradeMutator(
+        StackGresContextMock.CONTEXT, clusterFinder, defaultTimestamp);
   }
 
   @Test
@@ -104,7 +106,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(StackGresContextMock.CONTEXT, postgresVersion);
     assertEquals(
         Seq.range(0, cluster.getSpec().getWorkers().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
@@ -141,7 +143,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(StackGresContextMock.CONTEXT, postgresVersion);
     assertEquals(
         Seq.of("test", "test0")
         .append(Seq.range(2, cluster.getSpec().getWorkers().getClusters() + 1)

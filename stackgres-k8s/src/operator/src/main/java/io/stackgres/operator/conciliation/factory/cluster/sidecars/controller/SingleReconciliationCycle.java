@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresModules;
@@ -204,17 +204,17 @@ public class SingleReconciliationCycle implements ContainerFactory<ClusterContai
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
-            .withMountPath(ClusterPath.PG_BASE_PATH.path())
+            .withMountPath(ClusterPathV1.PG_BASE_PATH.path())
             .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath(ClusterPath.SSL_PATH.path())
+                .withMountPath(ClusterPathV1.SSL_PATH.path())
                 .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-                .withMountPath(ClusterPath.SSL_COPY_PATH.path())
+                .withMountPath(ClusterPathV1.SSL_COPY_PATH.path())
                 .build())
         .addAllToVolumeMounts(Optional.of(context.getClusterContext().getConfig().getSpec())
             .map(StackGresConfigSpec::getDeveloper)

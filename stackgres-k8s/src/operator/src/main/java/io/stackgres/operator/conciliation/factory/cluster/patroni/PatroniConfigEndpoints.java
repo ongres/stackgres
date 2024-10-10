@@ -24,7 +24,7 @@ import com.ongres.pgconfig.validator.PgParameter;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterEnvVar;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
@@ -69,6 +69,12 @@ import org.jooq.lambda.Unchecked;
 @OperatorVersionBinder
 public class PatroniConfigEndpoints
     implements ResourceGenerator<StackGresClusterContext> {
+
+  /**
+   * The wal-g binary is referenced through the environment variable exported to the patroni
+   * container (see {@code PostgresExtensionMounts}) since its path depends on the image in use.
+   */
+  private static final String WALG_COMMAND = "\"$" + ClusterPathV1.WALG_BIN_PATH.name() + "\"";
 
   private final LabelFactoryForCluster labelFactory;
   private final ObjectMapper objectMapper;
@@ -179,8 +185,8 @@ public class PatroniConfigEndpoints
           patroniConf.getStandbyCluster().setPort(
               String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
-              + ClusterEnvVar.REPLICATE_ENV.value(cluster) + "'"
-              + " -- wal-g wal-fetch %f %p");
+              + ClusterEnvVar.REPLICATE_ENV.value() + "'"
+              + " -- " + WALG_COMMAND + " wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
               .append(Seq.of("custom_replication_method")
@@ -232,8 +238,8 @@ public class PatroniConfigEndpoints
                 String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           }
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
-              + ClusterEnvVar.REPLICATE_ENV.value(cluster) + "'"
-              + " -- wal-g wal-fetch %f %p");
+              + ClusterEnvVar.REPLICATE_ENV.value() + "'"
+              + " -- " + WALG_COMMAND + " wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
               .append(Seq.of("replicate")
@@ -343,8 +349,8 @@ public class PatroniConfigEndpoints
 
     if (isBackupConfigurationPresent) {
       params.put("archive_command",
-          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster) + "'"
-              + " -- wal-g wal-push %p");
+          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value() + "'"
+              + " -- " + WALG_COMMAND + " wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }
@@ -355,7 +361,7 @@ public class PatroniConfigEndpoints
         .map(StackGresClusterDistributedLogs::getSgDistributedLogs).isPresent()) {
       params.put("logging_collector", "on");
       params.put("log_destination", "csvlog");
-      params.put("log_directory", ClusterPath.PG_LOG_PATH.path());
+      params.put("log_directory", ClusterPathV1.PG_LOG_PATH.path());
       params.put("log_filename", "postgres-%M.log");
       params.put("log_rotation_age", "30min");
       params.put("log_rotation_size", "0kB");
@@ -377,9 +383,9 @@ public class PatroniConfigEndpoints
         .orElse(false)) {
       params.put("ssl", "on");
       params.put("ssl_cert_file",
-          ClusterPath.SSL_PATH.path() + "/" + PatroniUtil.CERTIFICATE_KEY);
+          ClusterPathV1.SSL_PATH.path() + "/" + PatroniUtil.CERTIFICATE_KEY);
       params.put("ssl_key_file",
-          ClusterPath.SSL_PATH.path() + "/" + PatroniUtil.PRIVATE_KEY_KEY);
+          ClusterPathV1.SSL_PATH.path() + "/" + PatroniUtil.PRIVATE_KEY_KEY);
     }
 
     return params;
@@ -393,8 +399,8 @@ public class PatroniConfigEndpoints
 
     if (isBackupConfigurationPresent && !isReplicateFromPresent) {
       params.put("restore_command",
-          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster) + "'"
-              + " -- wal-g wal-fetch %f %p");
+          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value() + "'"
+              + " -- " + WALG_COMMAND + " wal-fetch %f %p");
     }
 
     return params;

@@ -16,6 +16,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.DistributedLogsLabelFactory;
 import io.stackgres.common.labels.DistributedLogsLabelMapper;
@@ -43,7 +44,7 @@ class DistributedLogsClusterTest {
   @BeforeEach
   void setUp() {
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
-    distributedLogsCluster = new DistributedLogsCluster(labelFactory);
+    distributedLogsCluster = new DistributedLogsCluster(StackGresContextMock.CONTEXT, labelFactory);
 
     when(context.getSource()).thenReturn(distributedLogs);
     when(context.getCluster()).thenReturn(Optional.empty());

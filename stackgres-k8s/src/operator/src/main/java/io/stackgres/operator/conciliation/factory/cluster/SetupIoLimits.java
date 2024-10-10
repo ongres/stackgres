@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -69,14 +69,15 @@ public class SetupIoLimits implements ContainerFactory<ClusterContainerContext> 
   @Override
   public Container getContainer(ClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
-    final String patroniImageName = StackGresUtil.getPatroniImageName(clusterContext.getCluster());
+    final String patroniImageName = StackGresUtil.getPatroniImageName(
+        clusterContext.getContext(), clusterContext.getCluster());
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_IO_LIMITS.getName())
         .withImage(patroniImageName)
         .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.TEMPLATES_PATH.path()
-                + "/" + ClusterPath.LOCAL_BIN_SETUP_IO_LIMITS_SH_PATH.filename())
+            ClusterPathV1.TEMPLATES_PATH.path()
+                + "/" + ClusterPathV1.LOCAL_BIN_SETUP_IO_LIMITS_SH_PATH.filename())
         .withNewSecurityContext()
         .withRunAsUser(0L)
         .withNewCapabilities()

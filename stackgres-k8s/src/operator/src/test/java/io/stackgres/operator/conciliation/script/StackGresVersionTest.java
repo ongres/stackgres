@@ -8,7 +8,7 @@ package io.stackgres.operator.conciliation.script;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -68,6 +68,6 @@ class StackGresVersionTest {
   }
 
   private void setStackGresVersion(String configVersion) {
-    script.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
+    script.getMetadata().getAnnotations().put(StackGresKeys.VERSION_KEY, configVersion);
   }
 }

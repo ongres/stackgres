@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
@@ -55,6 +56,7 @@ abstract class DbOpsRolloutJobTestCase {
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateACluster() {
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -74,6 +76,7 @@ abstract class DbOpsRolloutJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateACluster() {
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -93,6 +96,7 @@ abstract class DbOpsRolloutJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateACluster() {
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .build();

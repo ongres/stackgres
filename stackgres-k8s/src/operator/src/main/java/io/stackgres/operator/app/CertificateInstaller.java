@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCert;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCertManager;
@@ -49,6 +50,7 @@ public class CertificateInstaller {
   private final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
   private final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresConfig> configFinder;
   private final ResourceFinder<Secret> secretFinder;
   private final ResourceWriter<Secret> secretWriter;
@@ -59,11 +61,13 @@ public class CertificateInstaller {
 
   @Inject
   public CertificateInstaller(
+      StackGresContext context,
       CustomResourceFinder<StackGresConfig> configFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceWriter<Secret> secretWriter,
       ResourceFinder<Pod> podFinder,
       @Any OperatorSecret operatorSecret) {
+    this.context = context;
     this.configFinder = configFinder;
     this.secretFinder = secretFinder;
     this.secretWriter = secretWriter;
@@ -95,6 +99,7 @@ public class CertificateInstaller {
     String certSecretName = OperatorSecret.name(config);
     var certSecretFound = secretFinder.findByNameAndNamespace(certSecretName, operatorNamespace);
     StackGresConfigContext context = StackGresConfigContext.builder()
+        .context(this.context)
         .source(config)
         .operatorSecret(certSecretFound)
         .isGrafanaEmbedded(false)

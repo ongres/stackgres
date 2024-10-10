@@ -18,6 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
@@ -134,6 +135,7 @@ class PostgresUtilTest {
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
             .config(getDefaultConfig())
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())

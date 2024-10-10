@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultShardedClusterPostgresConfigFactory;
@@ -24,7 +26,8 @@ class DefaultCoordinatorPostgresConfigMutatorTest
         StackGresShardedClusterReview, DefaultCoordinatorPostgresConfigMutator> {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   @Override
   protected StackGresShardedClusterReview getAdmissionReview() {
@@ -33,7 +36,8 @@ class DefaultCoordinatorPostgresConfigMutatorTest
 
   @Override
   protected DefaultCoordinatorPostgresConfigMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultShardedClusterPostgresConfigFactory();
+    var resourceFactory = new DefaultShardedClusterPostgresConfigFactory(
+        StackGresContextMock.CONTEXT);
     var mutator = new DefaultCoordinatorPostgresConfigMutator(
         resourceFactory);
     return mutator;

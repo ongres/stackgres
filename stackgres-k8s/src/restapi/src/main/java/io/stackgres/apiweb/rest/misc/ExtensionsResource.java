@@ -10,9 +10,11 @@ import io.stackgres.apiweb.dto.extension.ExtensionsDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRegistry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.extension.ExtensionMetadataManager;
+import io.stackgres.common.docir.DocirMetadataManager;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -47,20 +49,21 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
             schema = @Schema(implementation = ErrorResponse.class))})
 public class ExtensionsResource {
 
-  private final ExtensionMetadataManager extensionMetadataManager;
+  private final DocirMetadataManager docirMetadataManager;
   private final ExtensionsTransformer extensionsTransformer;
 
   @Inject
   public ExtensionsResource(
-      ExtensionMetadataManager extensionMetadataManager,
+      DocirMetadataManager docirMetadataManager,
       ExtensionsTransformer extensionsTransformer) {
-    this.extensionMetadataManager = extensionMetadataManager;
+    this.docirMetadataManager = docirMetadataManager;
     this.extensionsTransformer = extensionsTransformer;
   }
 
   /**
-   * Looks for all extensions that are published in configured repositories with only versions
-   * available for the sgcluster retrieved using the namespace and name provided.
+   * Looks for all extensions that are published in the docir repository with only versions
+   * available for a new SGCluster (that retrieves its images from the StackGres images registry)
+   * with the given Postgres version and flavor.
    *
    * @return the extensions
    */
@@ -77,14 +80,18 @@ public class ExtensionsResource {
       """)
   @GET
   @Path("{postgresVersion}")
-  public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion,
+  public ExtensionsDto get(
+      @PathParam("postgresVersion") String postgresVersion,
       @QueryParam("flavor") String flavor) {
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
     cluster.getSpec().getPostgres().setFlavor(flavor);
-    var extensionMetadataList = extensionMetadataManager.getExtensions();
+    cluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
+    cluster.getSpec().getConfigurations().setRegistry(new StackGresClusterRegistry());
+    cluster.getSpec().getConfigurations().getRegistry().setEnabled(true);
+    var extensionMetadataList = docirMetadataManager.getExtensions();
     return extensionsTransformer.toDto(extensionMetadataList, cluster);
   }
 

@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +68,7 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
   }
 
   private String getFieldManager(T context, HasMetadata resource) {
-    if (resource.getApiVersion().startsWith(StackGresContext.STACKGRES_KEY_PREFIX)) {
+    if (resource.getApiVersion().startsWith(StackGresKeys.STACKGRES_KEY_PREFIX)) {
       return context.getKind();
     }
     return STACKGRES_FIELD_MANAGER;

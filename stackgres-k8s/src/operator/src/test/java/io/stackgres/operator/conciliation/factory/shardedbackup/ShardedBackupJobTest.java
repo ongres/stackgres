@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedBackup;
@@ -76,6 +77,7 @@ class ShardedBackupJobTest {
   @BeforeEach
   void setUp() {
     shardedBackupJob = new ShardedBackupJob(
+        StackGresContextMock.CONTEXT,
         labelFactory,
         clusterLabelFactory,
         podSecurityFactory,

@@ -17,7 +17,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,11 +42,11 @@ public class SecretVerificationTest {
         .withNewMetadata()
         .withNamespace("stackgres")
         .withName("test")
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withData(Map.of(
-            StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
-            StackGresContext.REST_PASSWORD_KEY,
+            StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
+            StackGresKeys.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
         .build();
     secretVerification = new SecretVerification();
@@ -82,7 +82,7 @@ public class SecretVerificationTest {
     when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
-                StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test")))
+                StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test")))
             .build()));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "test"));
@@ -93,7 +93,7 @@ public class SecretVerificationTest {
     when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
-                StackGresContext.REST_PASSWORD_KEY,
+                StackGresKeys.REST_PASSWORD_KEY,
                 ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
     assertThrows(AuthenticationFailedException.class,
@@ -105,8 +105,8 @@ public class SecretVerificationTest {
     when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
-                StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
-                StackGresContext.REST_PASSWORD_KEY, ResourceUtil.encodeSecret("")))
+                StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
+                StackGresKeys.REST_PASSWORD_KEY, ResourceUtil.encodeSecret("")))
             .build()));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "test"));
@@ -117,8 +117,8 @@ public class SecretVerificationTest {
     when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
-                StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret(""),
-                StackGresContext.REST_PASSWORD_KEY,
+                StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret(""),
+                StackGresKeys.REST_PASSWORD_KEY,
                 ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
     assertThrows(AuthenticationFailedException.class,
@@ -130,9 +130,9 @@ public class SecretVerificationTest {
     when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
-                StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test2"),
-                StackGresContext.REST_APIUSER_KEY, ResourceUtil.encodeSecret("test"),
-                StackGresContext.REST_PASSWORD_KEY,
+                StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test2"),
+                StackGresKeys.REST_APIUSER_KEY, ResourceUtil.encodeSecret("test"),
+                StackGresKeys.REST_PASSWORD_KEY,
                 ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
     assertEquals("test2", secretVerification.verifyCredentials("test", "test"));

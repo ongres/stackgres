@@ -16,6 +16,7 @@ import java.util.Optional;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -34,7 +35,8 @@ class ClusterPostgresConfigContextAppenderTest {
 
   private StackGresCluster cluster;
 
-  private DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+  private DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory(
+      StackGresContextMock.CONTEXT);
 
   @Spy
   private StackGresClusterContext.Builder contextBuilder;
@@ -46,6 +48,7 @@ class ClusterPostgresConfigContextAppenderTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterPostgresConfigContextAppender(
+        StackGresContextMock.CONTEXT,
         postgresConfigFinder,
         defaultPostgresConfigFactory);
   }

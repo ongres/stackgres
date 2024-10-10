@@ -25,7 +25,7 @@ public class BenchmarkJobDiscoverer
   }
 
   public Map<String, DbOpsJobFactory> discoverFactories(StackGresDbOpsContext context) {
-    return hub.get(context.getVersion()).stream()
+    return getFactories(context).stream()
         .collect(Collectors.toMap(
             dbop -> getAnnotation(dbop, BenchmarkJob.class).value(),
             Function.identity()));

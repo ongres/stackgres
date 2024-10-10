@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgshardedcluster.ShardedClusterStatusCondition;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialDataBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatusBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
@@ -60,7 +61,9 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .endFromBackup()
         .endRestore()
         .build());
-    contextAppender = new ShardedClusterRestoreBackupContextAppender(backupFinder);
+    contextAppender = new ShardedClusterRestoreBackupContextAppender(
+        StackGresContextMock.CONTEXT,
+        backupFinder);
   }
 
   @Test

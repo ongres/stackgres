@@ -10,7 +10,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.lambda.Seq;
@@ -23,16 +23,16 @@ public class TemplatesMounts implements VolumeMountsProvider<ContainerContext> {
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-            .withMountPath(ClusterPath.TEMPLATES_PATH.path())
+            .withMountPath(ClusterPathV1.TEMPLATES_PATH.path())
             .build()
     );
   }
 
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
-    return Seq.of(ClusterPath.TEMPLATES_PATH.envVar())
+    return Seq.of(ClusterPathV1.TEMPLATES_PATH.envVar())
         .append(AbstractTemplatesConfigMap.CLUSTER_TEMPLATE_PATHS.stream()
-            .map(ClusterPath::envVar))
+            .map(ClusterPathV1::envVar))
         .toList();
   }
 }

@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterEnvVar;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -26,17 +26,17 @@ public class PatroniMounts implements VolumeMountsProvider<ClusterContainerConte
     return List.of(
         new VolumeMountBuilder()
         .withName(StackGresVolume.PATRONI_ENV.getName())
-        .withMountPath(ClusterPath.PATRONI_ENV_PATH
+        .withMountPath(ClusterPathV1.PATRONI_ENV_PATH
             .path(context.getClusterContext()))
         .build(),
         new VolumeMountBuilder()
         .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
-        .withMountPath(ClusterPath.PATRONI_SECRET_ENV_PATH
+        .withMountPath(ClusterPathV1.PATRONI_SECRET_ENV_PATH
             .path(context.getClusterContext()))
         .build(),
         new VolumeMountBuilder()
         .withName(StackGresVolume.PATRONI_CONFIG.getName())
-        .withMountPath(ClusterPath.PATRONI_CONFIG_PATH.path())
+        .withMountPath(ClusterPathV1.PATRONI_CONFIG_PATH.path())
         .build()
     );
   }
@@ -49,10 +49,10 @@ public class PatroniMounts implements VolumeMountsProvider<ClusterContainerConte
   private List<EnvVar> getDerivedEnvVars(ClusterContext context) {
     return List.of(
         ClusterEnvVar.PATRONI_ENV.envVar(context),
-        ClusterPath.PATRONI_ENV_PATH.envVar(context),
-        ClusterPath.PATRONI_SECRET_ENV_PATH.envVar(context),
-        ClusterPath.PATRONI_CONFIG_PATH.envVar(context),
-        ClusterPath.PATRONI_CONFIG_FILE_PATH.envVar(context)
+        ClusterPathV1.PATRONI_ENV_PATH.envVar(context),
+        ClusterPathV1.PATRONI_SECRET_ENV_PATH.envVar(context),
+        ClusterPathV1.PATRONI_CONFIG_PATH.envVar(context),
+        ClusterPathV1.PATRONI_CONFIG_FILE_PATH.envVar(context)
     );
   }
 }

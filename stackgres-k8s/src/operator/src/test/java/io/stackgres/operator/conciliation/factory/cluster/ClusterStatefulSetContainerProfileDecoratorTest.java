@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresGroupKind;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -75,7 +75,7 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
     profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = cluster.getMetadata();
-    metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
+    metadata.getAnnotations().put(StackGresKeys.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());

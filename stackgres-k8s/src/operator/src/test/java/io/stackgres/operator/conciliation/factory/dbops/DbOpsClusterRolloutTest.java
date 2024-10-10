@@ -15,7 +15,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -23,6 +23,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
@@ -69,6 +70,7 @@ class DbOpsClusterRolloutTest {
     lenient().when(patroniMember.isPrimary()).thenReturn(true);
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -98,6 +100,7 @@ class DbOpsClusterRolloutTest {
     lenient().when(patroniMember.isPrimary()).thenReturn(true);
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -118,6 +121,7 @@ class DbOpsClusterRolloutTest {
     dbOps.getSpec().setRunAt(null);
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -136,6 +140,7 @@ class DbOpsClusterRolloutTest {
         java.time.Instant.now().plusSeconds(3600).toString());
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -160,6 +165,7 @@ class DbOpsClusterRolloutTest {
     dbOps.setStatus(status);
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -186,6 +192,7 @@ class DbOpsClusterRolloutTest {
     lenient().when(patroniMember.isPrimary()).thenReturn(true);
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -199,9 +206,9 @@ class DbOpsClusterRolloutTest {
     assertEquals(1, resources.size());
     StackGresCluster generatedCluster = (StackGresCluster) resources.get(0);
     Map<String, String> annotations = generatedCluster.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(StackGresContext.ROLLOUT_DBOPS_KEY));
+    assertTrue(annotations.containsKey(StackGresKeys.ROLLOUT_DBOPS_KEY));
     assertEquals(dbOps.getMetadata().getName(),
-        annotations.get(StackGresContext.ROLLOUT_DBOPS_KEY));
+        annotations.get(StackGresKeys.ROLLOUT_DBOPS_KEY));
   }
 
 }

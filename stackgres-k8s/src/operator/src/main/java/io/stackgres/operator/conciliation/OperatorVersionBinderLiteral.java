@@ -14,13 +14,18 @@ public class OperatorVersionBinderLiteral extends AnnotationLiteral<OperatorVers
   private static final long serialVersionUID = 1L;
 
   @Override
-  public StackGresVersion startAt() {
+  public StackGresVersion from() {
     return StackGresVersion.OLDEST;
   }
 
   @Override
-  public StackGresVersion stopAt() {
+  public StackGresVersion to() {
     return StackGresVersion.LATEST;
+  }
+
+  @Override
+  public RegistryBinding registry() {
+    return RegistryBinding.ANY;
   }
 
 }

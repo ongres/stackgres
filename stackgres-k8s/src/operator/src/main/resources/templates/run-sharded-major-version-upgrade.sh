@@ -8,12 +8,12 @@ run_op() {
   echo "Starting sharded dbops $NORMALIZED_OP_NAME"
 
   local DBOPS_STATUS_SET
-  DBOPS_STATUS_SET="$(kubectl get "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" \
+  DBOPS_STATUS_SET="$("$KUBECTL_BIN_PATH" get "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" \
     --template='{{ if .status.dbOps }}{{ if .status.dbOps.majorVersionUpgrade }}true{{ end }}{{ end }}')"
   if [ "$DBOPS_STATUS_SET" != true ]
   then
     echo "Setting $NORMALIZED_OP_NAME status for $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME"
-    if ! kubectl patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
+    if ! "$KUBECTL_BIN_PATH" patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
       -p "{\"status\":{\"dbOps\":{\"majorVersionUpgrade\":{\"sourcePostgresVersion\":$(printf %s "$SOURCE_POSTGRES_VERSION" | to_json_string),\"targetPostgresVersion\":$(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string),\"sourceSgPostgresConfig\":$(printf %s "$SOURCE_SG_POSTGRES_CONFIG" | to_json_string)}}}}" \
       > /tmp/dbops-update-sharded-cluster 2>&1
     then
@@ -21,12 +21,12 @@ run_op() {
       exit 1
     fi
   else
-    SOURCE_POSTGRES_VERSION="$(kubectl get "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" \
+    SOURCE_POSTGRES_VERSION="$("$KUBECTL_BIN_PATH" get "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" \
       --template='{{ .status.dbOps.majorVersionUpgrade.sourcePostgresVersion }}')"
   fi
 
   echo "Setting postgres version $TARGET_POSTGRES_VERSION and SGPostgresConfig $SG_POSTGRES_CONFIG for $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME"
-  if ! kubectl patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
+  if ! "$KUBECTL_BIN_PATH" patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
     -p "{\"spec\":{\"postgres\":{\"version\":$(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string)},\"coordinator\":{\"configurations\":{\"sgPostgresConfig\":$(printf %s "$SG_POSTGRES_CONFIG" | to_json_string)}},\"workers\":{\"configurations\":{\"sgPostgresConfig\":$(printf %s "$SG_POSTGRES_CONFIG" | to_json_string)}}}}" \
     > /tmp/dbops-update-sharded-cluster 2>&1
   then
@@ -103,7 +103,7 @@ INNER_EOF
 )
 EOF
 )"
-    if ! printf %s "$DBOPS_YAML" | kubectl replace --force -f - > /tmp/dbops-create-dbops 2>&1
+    if ! printf %s "$DBOPS_YAML" | "$KUBECTL_BIN_PATH" replace --force -f - > /tmp/dbops-create-dbops 2>&1
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not create SGDbOps: $(cat /tmp/dbops-create-dbops)" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       exit 1
@@ -113,7 +113,7 @@ EOF
   done
 
   echo "Setting the list of created $DBOPS_CRD_KIND on $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME status"
-  if ! kubectl patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
+  if ! "$KUBECTL_BIN_PATH" patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
     -p "{\"status\":{\"dbOps\":{\"majorVersionUpgrade\":{\"sgDbOps\":[$(
       cat /tmp/current-dbops | sed 's/^\(.*\)$/"\1"/' | tr '\n' ',' | sed 's/,$//'
     )]}}}}" \
@@ -138,7 +138,7 @@ EOF
     for DBOPS_NAME in $(cat /tmp/current-dbops)
     do
       CHILD_PHASE="$(child_dbops_phase "$DBOPS_NAME")"
-      DBOPS_STATUS="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+      DBOPS_STATUS="$("$KUBECTL_BIN_PATH" get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
         --template '{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}')"
       case "$CHILD_PHASE" in
         (wait-post-failed-upgrade-decision)
@@ -182,10 +182,10 @@ EOF
     fi
     echo "All $DBOPS_CRD_KIND reached the decision point (status: $AGGREGATE_STATUS)." \
       "Waiting for the rollback decision to be set on $SHARDED_DBOPS_CRD_KIND $SHARDED_DBOPS_NAME .status.majorVersionUpgrade.rollback..."
-    kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type merge \
+    "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type merge \
       -p "{\"status\":{\"majorVersionUpgrade\":{\"status\":\"$AGGREGATE_STATUS\"}}}" >/dev/null 2>&1 || true
     DECISION="$(wait_for_sharded_rollback_decision)"
-    kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type merge \
+    "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type merge \
       -p '{"status":{"majorVersionUpgrade":{"status":null,"rollback":null}}}' >/dev/null 2>&1 || true
   elif "$ANY_FAILED"
   then
@@ -200,7 +200,7 @@ EOF
     case "$(child_dbops_phase "$DBOPS_NAME")" in
       (wait-post-failed-upgrade-decision|wait-post-upgrade-decision)
       echo "Setting rollback decision $DECISION on $DBOPS_CRD_KIND $DBOPS_NAME"
-      kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type merge \
+      "$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type merge \
         -p "{\"status\":{\"majorVersionUpgrade\":{\"rollback\":$DECISION}}}" >/dev/null 2>&1 || true
       ;;
     esac
@@ -217,7 +217,7 @@ EOF
     do
       if ! grep -qxF "$DBOPS_NAME" /tmp/completed-dbops
       then
-        DBOPS_STATUS="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+        DBOPS_STATUS="$("$KUBECTL_BIN_PATH" get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
           --template '{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}')"
         if ! printf %s "$DBOPS_STATUS" | grep -q " \($DBOPS_COMPLETED\|$DBOPS_FAILED\) "
         then
@@ -249,7 +249,7 @@ EOF
   fi
 
   echo "Removing $NORMALIZED_OP_NAME status from $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME"
-  if ! kubectl patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type json \
+  if ! "$KUBECTL_BIN_PATH" patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/status/dbOps"}]' \
     > /tmp/dbops-update-sharded-cluster 2>&1
   then
@@ -265,7 +265,7 @@ EOF
 # wait-post-upgrade-decision on success (before its cleanup), in both cases waiting for its
 # .status.majorVersionUpgrade.rollback to be set.
 child_dbops_phase() {
-  kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$1" -o json 2>/dev/null \
+  "$KUBECTL_BIN_PATH" get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$1" -o json 2>/dev/null \
     | jq -r 'if .status.majorVersionUpgrade.phase == null then "" else .status.majorVersionUpgrade.phase end' \
     2>/dev/null || printf ''
 }
@@ -274,7 +274,7 @@ wait_for_sharded_rollback_decision() {
   local DECISION
   while true
   do
-    DECISION="$(kubectl get "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" -o json 2>/dev/null \
+    DECISION="$("$KUBECTL_BIN_PATH" get "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" -o json 2>/dev/null \
       | jq -r 'if .status.majorVersionUpgrade.rollback == null then "" else (.status.majorVersionUpgrade.rollback | tostring) end' \
       2>/dev/null || printf '')"
     if [ "$DECISION" = true ] || [ "$DECISION" = false ]
@@ -292,7 +292,7 @@ update_status() {
     PENDING_TO_RESTART_CLUSTERS="$CLUSTER_NAMES"
     RESTARTED_CLUSTERS=""
   else
-    DBOPS_STATUSES="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" -l "$DBOPS_LABELS" \
+    DBOPS_STATUSES="$("$KUBECTL_BIN_PATH" get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" -l "$DBOPS_LABELS" \
       --template '{{ range .items }}{{ .spec.sgCluster }}/{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}{{ "\n" }}{{ end }}')"
     PENDING_TO_RESTART_CLUSTERS="$(echo "$CLUSTER_NAMES" | tr ' ' '\n' | grep -vxF '' \
       | while read CLUSTER
@@ -322,9 +322,9 @@ update_status() {
   fi
   echo
 
-  OPERATION="$(kubectl get "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+  OPERATION="$("$KUBECTL_BIN_PATH" get "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
     --template='{{ if .status.majorVersionUpgrade }}replace{{ else }}add{{ end }}')"
-  kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=json \
+  "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"$OPERATION","path":"/status/majorVersionUpgrade","value":{

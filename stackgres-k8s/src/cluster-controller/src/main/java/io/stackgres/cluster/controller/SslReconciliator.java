@@ -34,7 +34,7 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -168,12 +168,12 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
 
   private <T> T transformSslFiles(Function<Stream<Tuple2<Path, Path>>, T> transformer)
       throws IOException {
-    try (var list = Files.list(Path.of(ClusterPath.SSL_PATH.path()))) {
+    try (var list = Files.list(Path.of(ClusterPathV1.SSL_PATH.pathFromEnv()))) {
       return transformer.apply(list
           .filter(Predicate.not(Files::isDirectory))
           .map(file -> Tuple.tuple(
               file,
-              Path.of(ClusterPath.SSL_COPY_PATH.path())
+              Path.of(ClusterPathV1.SSL_COPY_PATH.pathFromEnv())
               .resolve(Optional.ofNullable(file.getFileName())
                   .map(Object::toString)
                   .orElseThrow()))));

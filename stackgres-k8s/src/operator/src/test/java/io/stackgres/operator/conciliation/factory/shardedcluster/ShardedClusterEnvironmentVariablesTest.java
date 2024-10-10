@@ -7,7 +7,7 @@ package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 
@@ -35,7 +35,8 @@ class ShardedClusterEnvironmentVariablesTest {
   void setUp() {
     environmentVariables = new ShardedClusterEnvironmentVariables();
     cluster = Fixtures.shardedCluster().loadDefault().get();
-    when(context.getShardedCluster()).thenReturn(cluster);
+    lenient().when(context.getShardedCluster()).thenReturn(cluster);
+    lenient().when(context.getResource()).thenReturn(cluster);
   }
 
   @Test

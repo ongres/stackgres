@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -31,6 +31,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitializati
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
@@ -42,7 +43,7 @@ import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
     implements VolumeFactory<StackGresClusterContext> {
 
@@ -76,11 +77,11 @@ public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
     final StackGresCluster cluster = context.getSource();
 
     data.put(
-        ClusterPath.PG_REPLICATION_BASE_PATH.name(),
-        ClusterPath.PG_REPLICATION_BASE_PATH.path());
+        ClusterPathV2.PG_REPLICATION_BASE_PATH.name(),
+        ClusterPathV2.PG_REPLICATION_BASE_PATH.path());
     data.put(
-        ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.name(),
-        ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path());
+        ClusterPathV2.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.name(),
+        ClusterPathV2.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path());
     context.getReplicationInitializationBackup()
         .ifPresent(backup -> {
           data.put(PatroniUtil.REPLICATION_INITIALIZATION_BACKUP,
@@ -142,13 +143,13 @@ public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
 
   @Override
   protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
-    return ClusterPath.REPLICATION_INITIALIZATION_SECRET_PATH.path(context)
+    return ClusterPathV2.REPLICATION_INITIALIZATION_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
   }
 
   @Override
   protected String getGcsCredentialsFilePath(ClusterContext context) {
-    return ClusterPath.REPLICATION_INITIALIZATION_SECRET_PATH.path(context)
+    return ClusterPathV2.REPLICATION_INITIALIZATION_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 

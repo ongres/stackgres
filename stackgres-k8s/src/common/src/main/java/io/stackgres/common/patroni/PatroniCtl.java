@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -23,6 +24,7 @@ import jakarta.inject.Inject;
 public class PatroniCtl {
 
   final KubernetesClient client;
+  final StackGresContext context;
   final ObjectMapper objectMapper;
   final YAMLMapper yamlMapper;
   final LabelFactoryForCluster clusterLabelFactory;
@@ -30,10 +32,12 @@ public class PatroniCtl {
   @Inject
   public PatroniCtl(
       KubernetesClient client,
+      StackGresContext context,
       ObjectMapper objectMapper,
       YamlMapperProvider yamlMapperProvider,
       LabelFactoryForCluster clusterLabelFactory) {
     this.client = client;
+    this.context = context;
     this.objectMapper = objectMapper;
     this.yamlMapper = yamlMapperProvider.get();
     this.clusterLabelFactory = clusterLabelFactory;
@@ -41,6 +45,7 @@ public class PatroniCtl {
 
   public PatroniCtlInstance instanceFor(StackGresCluster cluster) {
     var instance = new PatroniCtlBinaryInstance(
+        context,
         objectMapper,
         yamlMapper,
         clusterLabelFactory,
@@ -64,6 +69,7 @@ public class PatroniCtl {
 
   public PatroniCtlInstance binaryInstanceFor(StackGresCluster cluster) {
     var instance = new PatroniCtlBinaryInstance(
+        context,
         objectMapper,
         yamlMapper,
         clusterLabelFactory,

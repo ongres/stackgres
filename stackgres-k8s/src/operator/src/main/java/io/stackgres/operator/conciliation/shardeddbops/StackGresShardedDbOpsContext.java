@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import io.stackgres.common.ShardedClusterContext;
 import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -74,6 +75,12 @@ public interface StackGresShardedDbOpsContext
   @Value.Derived
   default StackGresVersion getVersion() {
     return StackGresVersion.getStackGresVersion(getSource());
+  }
+
+  @Override
+  @Value.Derived
+  default boolean isRegistryEnabled() {
+    return getFoundShardedCluster().map(StackGresUtil::isRegistryEnabled).orElse(false);
   }
 
   public static class Builder extends ImmutableStackGresShardedDbOpsContext.Builder {

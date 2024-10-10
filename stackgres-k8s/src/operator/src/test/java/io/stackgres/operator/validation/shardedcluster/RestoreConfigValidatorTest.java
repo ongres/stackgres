@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.shardedcluster;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -21,7 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RestoreConfigValidatorTest {
 
   private static final String firstPgMajorVersion =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
           .get(0).get();
 
   private RestoreConfigValidator validator;

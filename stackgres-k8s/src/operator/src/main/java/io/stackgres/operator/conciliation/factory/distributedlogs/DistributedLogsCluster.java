@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
-import static io.stackgres.operator.common.StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME;
 import static io.stackgres.operator.common.StackGresDistributedLogsUtil.getDefaultDistributedLogsExtensions;
 import static io.stackgres.operator.common.StackGresDistributedLogsUtil.getPostgresVersion;
 
@@ -25,12 +24,13 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.CustomContainerBuilder;
 import io.stackgres.common.crd.CustomVolumeBuilder;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
@@ -78,11 +78,14 @@ public class DistributedLogsCluster
   public static final String BUFFER = "fluentd-buffer";
   public static final String LOG = "fluentd-log";
 
+  private final StackGresContext context;
   private final LabelFactoryForDistributedLogs labelFactory;
 
   @Inject
   public DistributedLogsCluster(
+      StackGresContext context,
       LabelFactoryForDistributedLogs labelFactory) {
+    this.context = context;
     this.labelFactory = labelFactory;
   }
 
@@ -90,6 +93,7 @@ public class DistributedLogsCluster
   public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs distributedLogs = context.getSource();
     final StackGresCluster cluster = getCluster(
+        this.context,
         labelFactory,
         distributedLogs,
         context.getCluster());
@@ -97,6 +101,7 @@ public class DistributedLogsCluster
   }
 
   public static StackGresCluster getCluster(
+      final StackGresContext context,
       final LabelFactoryForDistributedLogs labelFactory,
       final StackGresDistributedLogs distributedLogs,
       final Optional<StackGresCluster> previousCluster) {
@@ -125,7 +130,7 @@ public class DistributedLogsCluster
                 .map(Map::entrySet)
                 .stream()
                 .flatMap(Set::stream)
-                .filter(annotation -> annotation.getKey().equals(StackGresContext.VERSION_KEY))
+                .filter(annotation -> annotation.getKey().equals(StackGresKeys.VERSION_KEY))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
         .withLabels(labelFactory.genericLabels(distributedLogs))
         .withNamespace(namespace)
@@ -142,7 +147,7 @@ public class DistributedLogsCluster
             previousCluster
             .map(StackGresCluster::getStatus)
             .map(StackGresClusterStatus::getPostgresVersion)
-            .orElse(getPostgresVersion(distributedLogs)))
+            .orElse(getPostgresVersion(context, distributedLogs)))
         .withExtensions(
             Seq.of(previousCluster
                 .map(StackGresCluster::getSpec)
@@ -153,7 +158,7 @@ public class DistributedLogsCluster
                 .filter(StackGresDistributedLogsUtil::isNotDeprecatedDistributedLogsExtension)
                 .toList())
             .flatMap(extensions -> Seq.seq(extensions)
-                .append(getDefaultDistributedLogsExtensions(distributedLogs)
+                .append(getDefaultDistributedLogsExtensions(context, distributedLogs)
                     .stream()
                     .filter(extension -> extensions
                         .stream()
@@ -165,7 +170,8 @@ public class DistributedLogsCluster
                             Optional.of(distributedLogs)
                             .map(StackGresDistributedLogs::getStatus)
                             .map(StackGresDistributedLogsStatus::getTimescaledbVersion)
-                            .filter(ignored -> extension.extensionName().equals(TIMESCALEDB_EXTENSION_NAME))
+                            .filter(ignored -> extension.extensionName().equals(
+                                StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME))
                             .or(() -> extension.extensionVersion())
                             .orElse(null))
                         .build())))
@@ -218,11 +224,11 @@ public class DistributedLogsCluster
             new CustomContainerBuilder()
             .withName(StackGresContainer.FLUENTD.getName())
             .withImage(StackGresComponent.FLUENTD.get(distributedLogs)
-                .getLatestImageName())
+                .getLatestImageName(context))
             .withImagePullPolicy(getDefaultPullPolicy())
             .withCommand("/bin/sh", "-ex",
-                ClusterPath.TEMPLATES_PATH.path()
-                    + "/" + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename())
+                ClusterPathV1.TEMPLATES_PATH.path()
+                    + "/" + ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename())
             .withPorts(
                 new ContainerPortBuilder()
                     .withProtocol("TCP")
@@ -231,13 +237,14 @@ public class DistributedLogsCluster
                     .build())
             .withEnv(
                 new EnvVarBuilder()
-                .withName(ClusterPath.TEMPLATES_PATH.name())
-                .withValue(ClusterPath.TEMPLATES_PATH.path())
+                .withName(ClusterPathV1.TEMPLATES_PATH.name())
+                .withValue(ClusterPathV1.TEMPLATES_PATH.path())
                 .build(),
                 new EnvVarBuilder()
-                .withName(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.name())
-                .withValue(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                .withName(ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH.name())
+                .withValue(ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH.path())
                 .build(),
+                ClusterPathV1.FLUENTD_BIN_PATH.envVar(),
                 new EnvVarBuilder()
                 .withName("FLUENTD_LAST_CONFIG_PATH")
                 .withValue("/tmp/fluentd/last-fluentd-config")
@@ -249,35 +256,35 @@ public class DistributedLogsCluster
             .withVolumeMounts(
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.USER.getName())
-                .withMountPath(ClusterPath.ETC_PASSWD_PATH.path())
-                .withSubPath(ClusterPath.ETC_PASSWD_PATH.subPath())
+                .withMountPath(ClusterPathV1.ETC_PASSWD_PATH.path())
+                .withSubPath(ClusterPathV1.ETC_PASSWD_PATH.subPath())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.USER.getName())
-                .withMountPath(ClusterPath.ETC_GROUP_PATH.path())
-                .withSubPath(ClusterPath.ETC_GROUP_PATH.subPath())
+                .withMountPath(ClusterPathV1.ETC_GROUP_PATH.path())
+                .withSubPath(ClusterPathV1.ETC_GROUP_PATH.subPath())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.USER.getName())
-                .withMountPath(ClusterPath.ETC_SHADOW_PATH.path())
-                .withSubPath(ClusterPath.ETC_SHADOW_PATH.subPath())
+                .withMountPath(ClusterPathV1.ETC_SHADOW_PATH.path())
+                .withSubPath(ClusterPathV1.ETC_SHADOW_PATH.subPath())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.USER.getName())
-                .withMountPath(ClusterPath.ETC_GSHADOW_PATH.path())
-                .withSubPath(ClusterPath.ETC_GSHADOW_PATH.subPath())
+                .withMountPath(ClusterPathV1.ETC_GSHADOW_PATH.path())
+                .withSubPath(ClusterPathV1.ETC_GSHADOW_PATH.subPath())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SOCKET.getName())
-                .withMountPath(ClusterPath.PG_RUN_PATH.path())
+                .withMountPath(ClusterPathV1.PG_RUN_PATH.path())
                 .build(),
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.CUSTOM.getName("templates"))
-                .withMountPath(ClusterPath.TEMPLATES_PATH.path())
+                .withMountPath(ClusterPathV1.TEMPLATES_PATH.path())
                 .withReadOnly(Boolean.FALSE)
                 .build(),
                 new VolumeMountBuilder()
@@ -365,11 +372,11 @@ public class DistributedLogsCluster
                 .map(StackGresClusterSpecMetadata::getAnnotations)
                 .map(StackGresClusterSpecAnnotations::getClusterPods)
                 .orElse(Map.of()))
-            .filter(entry -> !StackGresContext.FLUENTD_VERSION_KEY.equals(entry.v1))
+            .filter(entry -> !StackGresKeys.FLUENTD_VERSION_KEY.equals(entry.v1))
             .append(Seq.seq(
                 Map.of(
-                    StackGresContext.FLUENTD_VERSION_KEY,
-                    StackGresComponent.FLUENTD.get(distributedLogs).getLatestVersion())))
+                    StackGresKeys.FLUENTD_VERSION_KEY,
+                    StackGresComponent.FLUENTD.get(distributedLogs).getLatestVersion(context))))
             .toMap(Tuple2::v1, Tuple2::v2))
         .endAnnotations()
         .endMetadata()

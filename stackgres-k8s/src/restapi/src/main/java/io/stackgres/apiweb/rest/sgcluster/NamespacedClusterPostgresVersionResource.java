@@ -10,6 +10,7 @@ import java.util.List;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.enterprise.context.RequestScoped;
@@ -47,11 +48,14 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
             schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedClusterPostgresVersionResource {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   public NamespacedClusterPostgresVersionResource(
+      StackGresContext context,
       CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
   }
 
@@ -75,7 +79,7 @@ public class NamespacedClusterPostgresVersionResource {
         .orElseThrow(NotFoundException::new);
     return StackGresUtil.getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .streamOrderedVersions()
+        .streamOrderedVersions(context)
         .toList();
   }
 

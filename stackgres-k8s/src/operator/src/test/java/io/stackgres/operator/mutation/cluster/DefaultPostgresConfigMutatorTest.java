@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
@@ -23,7 +25,8 @@ class DefaultPostgresConfigMutatorTest
         StackGresClusterReview, DefaultPostgresConfigMutator> {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   @Override
   protected StackGresClusterReview getAdmissionReview() {
@@ -32,7 +35,8 @@ class DefaultPostgresConfigMutatorTest
 
   @Override
   protected DefaultPostgresConfigMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultClusterPostgresConfigFactory();
+    var resourceFactory = new DefaultClusterPostgresConfigFactory(
+        StackGresContextMock.CONTEXT);
     var mutator = new DefaultPostgresConfigMutator(
         resourceFactory);
     return mutator;

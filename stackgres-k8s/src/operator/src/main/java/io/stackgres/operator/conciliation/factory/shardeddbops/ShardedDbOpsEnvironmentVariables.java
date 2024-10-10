@@ -24,7 +24,7 @@ public class ShardedDbOpsEnvironmentVariables
         .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context))
         .append(Seq.of(ShardedClusterEnvVar.values())
             .map(clusterStatefulEnvVar -> clusterStatefulEnvVar.envVar(
-                context.getShardedCluster())));
+                context)));
   }
 
 }

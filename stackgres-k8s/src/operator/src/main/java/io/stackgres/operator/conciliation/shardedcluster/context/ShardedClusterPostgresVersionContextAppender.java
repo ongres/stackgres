@@ -7,23 +7,22 @@ package io.stackgres.operator.conciliation.shardedcluster.context;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgshardedcluster.ShardedClusterEventReason;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.operator.common.StackGresVersionUtil;
 import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext.Builder;
-import io.stackgres.operator.validation.ValidationUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
@@ -36,9 +35,7 @@ public class ShardedClusterPostgresVersionContextAppender
   public static final Map<String, String> BUGGY_PG_VERSIONS =
       ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS;
 
-  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      supportedPostgresVersions;
-
+  private final StackGresContext context;
   private final EventEmitter<StackGresShardedCluster> eventController;
   private final ShardedClusterCoordinatorPostgresConfigContextAppender clusterCoordinatorPostgresConfigContextAppender;
   private final ShardedClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender;
@@ -49,6 +46,7 @@ public class ShardedClusterPostgresVersionContextAppender
 
   @Inject
   public ShardedClusterPostgresVersionContextAppender(
+      StackGresContext context,
       EventEmitter<StackGresShardedCluster> eventController,
       ShardedClusterCoordinatorPostgresConfigContextAppender clusterCoordinatorPostgresConfigContextAppender,
       ShardedClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender,
@@ -56,26 +54,7 @@ public class ShardedClusterPostgresVersionContextAppender
       ShardedClusterCoordinatorClusterContextAppender clusterCoordinatorContextAppender,
       ShardedClusterWorkersClustersContextAppender clusterWorkersContextAppender,
       ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender) {
-    this(
-        eventController,
-        clusterCoordinatorPostgresConfigContextAppender,
-        clusterRestoreBackupContextAppender,
-        shardedClusterReplicateFromContextAppender,
-        clusterCoordinatorContextAppender,
-        clusterWorkersContextAppender,
-        clusterExtensionsContextAppender,
-        ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
-  }
-
-  public ShardedClusterPostgresVersionContextAppender(
-      EventEmitter<StackGresShardedCluster> eventController,
-      ShardedClusterCoordinatorPostgresConfigContextAppender clusterCoordinatorPostgresConfigContextAppender,
-      ShardedClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender,
-      ShardedClusterReplicateFromContextAppender shardedClusterReplicateFromContextAppender,
-      ShardedClusterCoordinatorClusterContextAppender clusterCoordinatorContextAppender,
-      ShardedClusterWorkersClustersContextAppender clusterWorkersContextAppender,
-      ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender,
-      Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
+    this.context = context;
     this.eventController = eventController;
     this.clusterCoordinatorPostgresConfigContextAppender = clusterCoordinatorPostgresConfigContextAppender;
     this.clusterRestoreBackupContextAppender = clusterRestoreBackupContextAppender;
@@ -83,7 +62,6 @@ public class ShardedClusterPostgresVersionContextAppender
     this.clusterCoordinatorContextAppender = clusterCoordinatorContextAppender;
     this.clusterWorkersContextAppender = clusterWorkersContextAppender;
     this.clusterExtensionsContextAppender = clusterExtensionsContextAppender;
-    this.supportedPostgresVersions = supportedPostgresVersions;
   }
 
   @Override
@@ -104,17 +82,16 @@ public class ShardedClusterPostgresVersionContextAppender
       throw new IllegalArgumentException(
           "Unsupported postgres version " + givenVersion
           + ".  Supported postgres versions are: "
-          + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-              .get(StackGresVersion.getStackGresVersion(cluster)))
+          + Seq.seq(StackGresVersionUtil.getSupportedPostgresVersions(context, cluster))
           .toString(", "));
     }
 
     String version = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getVersion(givenVersion);
+        .getVersion(context, givenVersion);
     String buildVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getBuildVersion(givenVersion);
+        .getBuildVersion(context, givenVersion);
 
     if (BUGGY_PG_VERSIONS.keySet().contains(version)) {
       throw new IllegalArgumentException(
@@ -126,9 +103,9 @@ public class ShardedClusterPostgresVersionContextAppender
         .filter(Predicate.not(version::equals))
         .isPresent()) {
       String majorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-          .getMajorVersion(version);
+          .getMajorVersion(context, version);
       long majorVersionIndex = getPostgresFlavorComponent(cluster)
-          .get(cluster).streamOrderedMajorVersions()
+          .get(cluster).streamOrderedMajorVersions(context)
           .zipWithIndex()
           .filter(t -> t.v1.equals(majorVersion))
           .map(Tuple2::v2)
@@ -136,10 +113,10 @@ public class ShardedClusterPostgresVersionContextAppender
           .get();
       String previousMajorVersion = getPostgresFlavorComponent(cluster)
           .get(cluster)
-          .getMajorVersion(previousVersion.get());
+          .getMajorVersion(context, previousVersion.get());
       long previousMajorVersionIndex = getPostgresFlavorComponent(cluster)
           .get(cluster)
-          .streamOrderedMajorVersions()
+          .streamOrderedMajorVersions(context)
           .zipWithIndex()
           .filter(t -> t.v1.equals(previousMajorVersion))
           .map(Tuple2::v2)
@@ -181,8 +158,7 @@ public class ShardedClusterPostgresVersionContextAppender
   }
 
   private boolean isPostgresVersionSupported(StackGresShardedCluster cluster, String version) {
-    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster))
+    return StackGresVersionUtil.getSupportedPostgresVersions(context, cluster)
         .contains(version);
   }
 

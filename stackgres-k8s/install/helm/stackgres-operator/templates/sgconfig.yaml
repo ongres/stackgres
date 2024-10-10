@@ -54,6 +54,11 @@ data:
     {{- $_ := set $extensions "repositoryUrls" $repositoryUrls }}
     {{- $_ := set $spec "extensions" $extensions }}
     {{- end }}
+    {{- if .Values.repository.cache.enabled }}
+    {{- $repository := deepCopy (index $spec "repository") }}
+    {{- $_ := set $repository "url" (printf "http://%s-docir-cache.%s" $.Release.Name $.Release.Namespace) }}
+    {{- $_ := set $spec "repository" $repository }}
+    {{- end }}
     spec: {{ toJson $spec }}
 ---
 apiVersion: batch/v1
@@ -157,7 +162,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: "{{ .Release.Name }}-remove-sgconfig"
   labels:
-    app: stackgres-operator-init
+    app: stackgres-operator-cleanup
     job: remove-sgconfig
   annotations:
     "helm.sh/hook": post-delete
@@ -171,7 +176,7 @@ spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator-init
+        app: stackgres-operator-cleanup
         job: remove-sgconfig
     spec:
       serviceAccountName: {{ .Release.Name }}-init

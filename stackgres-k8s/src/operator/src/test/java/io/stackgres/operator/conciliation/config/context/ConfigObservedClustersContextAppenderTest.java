@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -52,7 +53,7 @@ class ConfigObservedClustersContextAppenderTest {
   @BeforeEach
   void setUp() {
     config = Fixtures.config().loadDefault().get();
-    labelFactoryForCluster = new ClusterLabelFactory(new ClusterLabelMapper());
+    labelFactoryForCluster = new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
     contextAppender = new ConfigObservedClustersContextAppender(
         clusterScanner, labelFactoryForCluster, podScanner);
   }

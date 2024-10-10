@@ -31,8 +31,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
@@ -163,7 +163,7 @@ public class ClusterPodTemplateSpecFactory
                 .map(StackGresClusterSpecAnnotations::getClusterPods)
                 .orElse(Map.of()))
             .addToLabels(podLabels)
-            .addToAnnotations(StackGresContext.VERSION_KEY,
+            .addToAnnotations(StackGresKeys.VERSION_KEY,
                 StackGresProperty.OPERATOR_VERSION.getString())
             .addToAnnotations(componentVersions)
             .build())
@@ -222,7 +222,7 @@ public class ClusterPodTemplateSpecFactory
                                 new LabelSelectorRequirementBuilder()
                                     .withKey(labelFactory.labelMapper().clusterKey(cluster))
                                     .withOperator("In")
-                                    .withValues(StackGresContext.RIGHT_VALUE)
+                                    .withValues(StackGresKeys.RIGHT_VALUE)
                                     .build())
                             .build())
                         .withTopologyKey("kubernetes.io/hostname")

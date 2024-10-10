@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -185,7 +185,7 @@ public class DistributedLogsReconciliator
         .stream()
         .map(Map::entrySet)
         .flatMap(Set::stream)
-        .filter(entry -> entry.getKey().equals(StackGresContext.VERSION_KEY))
+        .filter(entry -> entry.getKey().equals(StackGresKeys.VERSION_KEY))
         .map(Map.Entry::getValue)
         .findFirst()
         .orElse(null);
@@ -194,19 +194,19 @@ public class DistributedLogsReconciliator
             Optional.ofNullable(cluster.getMetadata().getAnnotations())
             .orElse(Map.of()))
         .flatMap(annotations -> Seq.seq(annotations)
-            .filter(annotation -> annotation.v1.equals(StackGresContext.VERSION_KEY))
+            .filter(annotation -> annotation.v1.equals(StackGresKeys.VERSION_KEY))
             .append(Stream.of(
                 Optional.ofNullable(config.getMetadata().getAnnotations())
                 .orElse(Map.of()))
                 .flatMap(existingAnnotations -> Seq.seq(existingAnnotations)
-                    .filter(annotation -> !annotations.containsKey(StackGresContext.VERSION_KEY)
-                        || !annotation.v1.equals(StackGresContext.VERSION_KEY)))))
+                    .filter(annotation -> !annotations.containsKey(StackGresKeys.VERSION_KEY)
+                        || !annotation.v1.equals(StackGresKeys.VERSION_KEY)))))
         .toMap(Tuple2::v1, Tuple2::v2));
     String updatedVersion = Optional.ofNullable(config.getMetadata().getAnnotations())
         .stream()
         .map(Map::entrySet)
         .flatMap(Set::stream)
-        .filter(entry -> entry.getKey().equals(StackGresContext.VERSION_KEY))
+        .filter(entry -> entry.getKey().equals(StackGresKeys.VERSION_KEY))
         .map(Map.Entry::getValue)
         .findFirst()
         .orElse(null);
@@ -214,7 +214,7 @@ public class DistributedLogsReconciliator
       LOGGER.debug("{} {} {} annotation was updated from {} to {}",
           StackGresDistributedLogs.KIND,
           config.getMetadata().getName(),
-          StackGresContext.VERSION_KEY,
+          StackGresKeys.VERSION_KEY,
           currentVersion,
           updatedVersion);
     }

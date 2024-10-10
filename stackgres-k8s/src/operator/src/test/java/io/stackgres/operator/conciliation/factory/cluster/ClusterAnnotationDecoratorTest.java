@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -55,7 +55,7 @@ class ClusterAnnotationDecoratorTest {
     when(context.getSource()).thenReturn(defaultCluster);
 
     final ObjectMeta metadata = defaultCluster.getMetadata();
-    metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
+    metadata.getAnnotations().put(StackGresKeys.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());
@@ -262,8 +262,8 @@ class ClusterAnnotationDecoratorTest {
   void clusterOperatorVersion_shouldBePresentInStatefulSetPodTemplates() {
     resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
-    Map<String, String> expected = Map.of(StackGresContext.VERSION_KEY, defaultCluster
-        .getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
+    Map<String, String> expected = Map.of(StackGresKeys.VERSION_KEY, defaultCluster
+        .getMetadata().getAnnotations().get(StackGresKeys.VERSION_KEY));
 
     resources.stream()
         .filter(StatefulSet.class::isInstance)
@@ -328,7 +328,7 @@ class ClusterAnnotationDecoratorTest {
       Map<String, String> annotations) {
     ImmutableMap<String, String> expectedAnnotations = ImmutableMap.<String, String>builder()
         .putAll(annotations)
-        .put(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
+        .put(StackGresKeys.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString())
         .build();
 
     Map<String, String> resourceAnnotation = Optional.ofNullable(resource.getMetadata())

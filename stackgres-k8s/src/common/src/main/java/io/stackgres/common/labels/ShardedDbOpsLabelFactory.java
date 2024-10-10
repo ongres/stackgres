@@ -10,7 +10,7 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,7 +30,7 @@ public class ShardedDbOpsLabelFactory
   public Map<String, String> shardedDbOpsPodLabels(StackGresShardedDbOps resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().dbOpsKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().dbOpsKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -38,7 +38,7 @@ public class ShardedDbOpsLabelFactory
   public Map<String, String> shardedDbOpsLabels(StackGresShardedDbOps resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().dbOpsKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().dbOpsKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 

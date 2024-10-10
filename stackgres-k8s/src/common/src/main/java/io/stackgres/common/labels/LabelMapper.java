@@ -6,12 +6,12 @@
 package io.stackgres.common.labels;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 
 public interface LabelMapper<T extends CustomResource<?, ?>> {
 
   default String appKey() {
-    return StackGresContext.APP_KEY;
+    return StackGresKeys.APP_KEY;
   }
 
   String appName();
@@ -23,7 +23,7 @@ public interface LabelMapper<T extends CustomResource<?, ?>> {
   String resourceUidKey(T resource);
 
   default String getKeyPrefix(T resource) {
-    return StackGresContext.STACKGRES_KEY_PREFIX;
+    return StackGresKeys.STACKGRES_KEY_PREFIX;
   }
 
 }

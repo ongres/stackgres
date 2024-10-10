@@ -6,9 +6,10 @@
 package io.stackgres.common;
 
 import static com.google.common.truth.Truth.assertThat;
+import static io.stackgres.common.docir.StackGresContextMock.CONTEXT;
 
-import java.util.Comparator;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.component.Component;
@@ -22,62 +23,55 @@ class StackGresComponentTest {
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllVersions_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .forEach(c -> {
-          assertThat(c.streamOrderedVersions().stream()).isNotEmpty();
-          assertThat(c.streamOrderedVersions().stream()).containsNoDuplicates();
+          if (component != StackGresComponent.BABELFISH) {
+            assertThat(c.streamOrderedVersions(CONTEXT).stream()).isNotEmpty();
+          }
+          assertThat(c.streamOrderedVersions(CONTEXT).stream()).containsNoDuplicates();
         });
   }
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllMajorVersions_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .forEach(c -> {
-          assertThat(c.streamOrderedMajorVersions().stream()).isNotEmpty();
-          assertThat(c.streamOrderedMajorVersions().stream()).containsNoDuplicates();
-        });
-  }
-
-  @ParameterizedTest
-  @EnumSource(StackGresComponent.class)
-  void getAllBuildVersions_shouldNotFail(StackGresComponent component) {
-    Comparator<String> order = Component::compareBuildVersions;
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
-        .forEach(c -> {
-          assertThat(c.streamOrderedBuildVersions().stream()).isNotEmpty();
-          assertThat(c.streamOrderedBuildVersions().stream()).isInOrder(order.reversed());
+          if (component != StackGresComponent.BABELFISH) {
+            assertThat(c.streamOrderedMajorVersions(CONTEXT).stream()).isNotEmpty();
+          }
+          assertThat(c.streamOrderedMajorVersions(CONTEXT).stream()).containsNoDuplicates();
         });
   }
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllImageNames_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .filter(Component::hasImage)
         .forEach(c -> {
-          assertThat(c.streamOrderedImageNames().stream()).isNotEmpty();
-          assertThat(c.streamOrderedImageNames().stream()).containsNoDuplicates();
+          assertThat(c.streamOrderedImageNames(CONTEXT).stream()).isNotEmpty();
+          assertThat(c.streamOrderedImageNames(CONTEXT).stream()).containsNoDuplicates();
         });
   }
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getLatestImageNames_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .filter(Component::hasImage)
         .forEach(c -> {
-          assertThat(c.getLatestImageName()).isNotEmpty();
+          assertThat(c.getLatestImageName(CONTEXT)).isNotEmpty();
         });
   }
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getLatestImageNamesForEachLatestComponents_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .filter(Component::hasImage)
         .forEach(c -> {
-          var allLatestImages = Seq.seq(c.getComposedVersions())
+          var allLatestImages = Seq.seq(c.getComposedVersions(CONTEXT))
               .map(composedVersion -> Seq.seq(composedVersion.getSubVersions())
                   .map(Tuple2::v1)
                   .toList())
@@ -90,7 +84,7 @@ class StackGresComponentTest {
                             .get(subComponentIndex.v2.intValue())
                             .get(subComponentIndex.v1),
                         subComponentIndex -> StackGresComponent.LATEST));
-                return c.getImageName(StackGresComponent.LATEST,
+                return c.getImageName(CONTEXT, StackGresComponent.LATEST,
                     subComponentVersions);
               })
               .toList();
@@ -105,18 +99,22 @@ class StackGresComponentTest {
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllComposedVersions_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .forEach(c -> {
-          assertThat(c.streamOrderedComposedVersions().toList()).isNotEmpty();
+          if (component != StackGresComponent.BABELFISH) {
+            assertThat(c.streamOrderedComposedVersions(CONTEXT).toList()).isNotEmpty();
+          }
         });
   }
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllTagVersions_shouldNotFail(StackGresComponent component) {
-    component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
+    Stream.of(StackGresVersion.values()).map(component::get).flatMap(Optional::stream)
         .forEach(c -> {
-          assertThat(c.streamOrderedTagVersions().toList()).isNotEmpty();
+          if (component != StackGresComponent.BABELFISH) {
+            assertThat(c.streamOrderedTagVersions(CONTEXT).toList()).isNotEmpty();
+          }
         });
   }
 

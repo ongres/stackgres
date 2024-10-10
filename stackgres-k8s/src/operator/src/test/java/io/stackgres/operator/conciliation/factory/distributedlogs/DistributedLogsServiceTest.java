@@ -16,6 +16,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.DistributedLogsLabelFactory;
 import io.stackgres.common.labels.DistributedLogsLabelMapper;
@@ -42,7 +43,7 @@ class DistributedLogsServiceTest {
 
   @BeforeEach
   void setUp() {
-    distributedLogsService = new DistributedLogsService(labelFactory);
+    distributedLogsService = new DistributedLogsService(StackGresContextMock.CONTEXT, labelFactory);
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
     when(context.getSource()).thenReturn(distributedLogs);
     when(context.getCluster()).thenReturn(Optional.empty());

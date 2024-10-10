@@ -17,7 +17,7 @@ import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -267,7 +267,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         "cron.database_name",
         "postgres",
         "cron.host",
-        ClusterPath.PG_RUN_PATH.path(),
+        ClusterPathV1.PG_RUN_PATH.path(),
         "shared_preload_libraries",
         Seq.of("citus", "pg_cron")
         .append(Seq.of(spaceSeparatedSharedPreloadLibraries.split(" +"))

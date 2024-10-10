@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -61,7 +61,7 @@ public abstract class AbstractAnnotationMutator
       throw new IllegalArgumentException("stackgres.operatorVersion must not be empty");
     }
 
-    String operatorVersionKey = StackGresContext.VERSION_KEY;
+    String operatorVersionKey = StackGresKeys.VERSION_KEY;
 
     return Map.of(operatorVersionKey, operatorVersion);
   }

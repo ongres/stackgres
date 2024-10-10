@@ -30,11 +30,11 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -125,9 +125,9 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
-        StackGresContext.ENVOY_VERSION_KEY,
+        StackGresKeys.ENVOY_VERSION_KEY,
         StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
-        .getLatestVersion());
+        .getLatestVersion(context.getClusterContext().getContext()));
   }
 
   @Override
@@ -155,7 +155,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresVolume.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
-            .getLatestImageName())
+            .getLatestImageName(context.getClusterContext().getContext()))
         .withImagePullPolicy(getDefaultPullPolicy())
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(StackGresVolume.ENVOY.getName())
@@ -417,7 +417,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .append(Seq.of(
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath(ClusterPath.SSL_PATH.path())
+                .withMountPath(ClusterPathV1.SSL_PATH.path())
                 .withReadOnly(true)
                 .build()))
         .toList();

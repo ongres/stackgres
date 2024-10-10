@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -33,11 +34,20 @@ public class ClusterExtensionsContextAppender extends AbstractExtensionsContextA
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ClusterExtensionsContextAppender.class);
 
+  private final StackGresContext context;
   private final ExtensionMetadataManager extensionMetadataManager;
 
   @Inject
-  public ClusterExtensionsContextAppender(ExtensionMetadataManager extensionMetadataManager) {
+  public ClusterExtensionsContextAppender(
+      StackGresContext context,
+      ExtensionMetadataManager extensionMetadataManager) {
+    this.context = context;
     this.extensionMetadataManager = extensionMetadataManager;
+  }
+
+  @Override
+  protected StackGresContext getContext() {
+    return context;
   }
 
   @Override
@@ -58,7 +68,7 @@ public class ClusterExtensionsContextAppender extends AbstractExtensionsContextA
   @Override
   protected List<ExtensionTuple> getDefaultExtensions(
       StackGresCluster inputContext, String version, String buildVersion) {
-    return StackGresUtil.getDefaultClusterExtensions(inputContext);
+    return StackGresUtil.getDefaultClusterExtensions(context, inputContext);
   }
 
   @Override

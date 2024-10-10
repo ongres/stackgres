@@ -14,7 +14,7 @@ public interface EnvVarSource<R extends HasMetadata, C extends EnvVarContext<R>>
 
   String substVar();
 
-  Function<R, EnvVar> getEnvVar();
+  Function<C, EnvVar> getEnvVar();
 
   String name();
 
@@ -23,10 +23,6 @@ public interface EnvVarSource<R extends HasMetadata, C extends EnvVarContext<R>>
   }
 
   default String value(C context) {
-    return value(context.getResource());
-  }
-
-  default String value(R context) {
     return getEnvVar().apply(context).getValue();
   }
 
@@ -35,10 +31,6 @@ public interface EnvVarSource<R extends HasMetadata, C extends EnvVarContext<R>>
   }
 
   default EnvVar envVar(C context) {
-    return envVar(context.getResource());
-  }
-
-  default EnvVar envVar(R context) {
     return getEnvVar().apply(context);
   }
 

@@ -32,6 +32,7 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -52,13 +53,16 @@ class ShardedClusterValidationQuarkusTest {
       URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String BUILD_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedTagVersions(StackGresContextMock.CONTEXT).findFirst().get().getBuild();
 
   @Inject
   KubernetesClient client;

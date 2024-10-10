@@ -37,8 +37,9 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -78,6 +79,7 @@ public class ShardedBackupJob
 
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
+  private final StackGresContext context;
   private final LabelFactoryForShardedBackup labelFactory;
   private final LabelFactoryForCluster clusterLabelFactory;
   private final ResourceFactory<StackGresShardedBackupContext, PodSecurityContext>
@@ -89,6 +91,7 @@ public class ShardedBackupJob
 
   @Inject
   public ShardedBackupJob(
+      StackGresContext context,
       LabelFactoryForShardedBackup labelFactory,
       LabelFactoryForCluster clusterLabelFactory,
       ResourceFactory<StackGresShardedBackupContext, PodSecurityContext> podSecurityFactory,
@@ -96,7 +99,7 @@ public class ShardedBackupJob
       ShardedClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,
       ShardedBackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts,
       ShardedBackupTemplatesVolumeFactory backupTemplatesVolumeFactory) {
-    super();
+    this.context = context;
     this.labelFactory = labelFactory;
     this.clusterLabelFactory = clusterLabelFactory;
     this.podSecurityFactory = podSecurityFactory;
@@ -142,14 +145,14 @@ public class ShardedBackupJob
         .stream()
         .flatMap(Seq::seq)
         .anyMatch(Tuple.tuple(
-            StackGresContext.SCHEDULED_SHARDED_BACKUP_KEY,
-            StackGresContext.RIGHT_VALUE)::equals)
+            StackGresKeys.SCHEDULED_SHARDED_BACKUP_KEY,
+            StackGresKeys.RIGHT_VALUE)::equals)
         || Optional.ofNullable(context.getSource().getMetadata().getAnnotations())
         .stream()
         .flatMap(Seq::seq)
         .anyMatch(Tuple.tuple(
-            StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SCHEDULED_SHARDED_BACKUP_KEY,
-            StackGresContext.RIGHT_VALUE)::equals);
+            StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.SCHEDULED_SHARDED_BACKUP_KEY,
+            StackGresKeys.RIGHT_VALUE)::equals);
   }
 
   private Job createBackupJob(StackGresShardedBackupContext context) {
@@ -371,7 +374,7 @@ public class ShardedBackupJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_PRIMARY_ROLE")
-                    .withValue(PatroniUtil.getPrimaryRole(cluster))
+                    .withValue(PatroniUtil.getPrimaryRole(this.context, cluster))
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_REPLICA_ROLE")
@@ -383,7 +386,7 @@ public class ShardedBackupJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("RIGHT_VALUE")
-                    .withValue(StackGresContext.RIGHT_VALUE)
+                    .withValue(StackGresKeys.RIGHT_VALUE)
                     .build(),
                     new EnvVarBuilder()
                     .withName("SHARDED_CLUSTER_DATABASE")

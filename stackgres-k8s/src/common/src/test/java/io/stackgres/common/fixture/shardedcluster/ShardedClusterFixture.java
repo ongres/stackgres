@@ -5,18 +5,21 @@
 
 package io.stackgres.common.fixture.shardedcluster;
 
+import static io.stackgres.common.docir.StackGresContextMock.CONTEXT;
+
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.fixture.VersionedFixture;
 
 public class ShardedClusterFixture extends VersionedFixture<StackGresShardedCluster> {
 
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(CONTEXT).get(0).get();
 
   public ShardedClusterFixture loadDefault() {
     fixture = readFromJson(STACKGRES_SHARDED_CLUSTER_DEFAULT_JSON);

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
@@ -36,14 +37,14 @@ import org.jooq.lambda.tuple.Tuple2;
 @ApplicationScoped
 public class ClusterRestoreBackupContextAppender {
 
+  private final StackGresContext context;
   private final ResourceFinder<Secret> secretFinder;
   private final CustomResourceFinder<StackGresBackup> backupFinder;
   private final BackupEnvVarFactory backupEnvVarFactory;
 
-  public ClusterRestoreBackupContextAppender(
-      ResourceFinder<Secret> secretFinder,
-      CustomResourceFinder<StackGresBackup> backupFinder,
-      BackupEnvVarFactory backupEnvVarFactory) {
+  public ClusterRestoreBackupContextAppender(StackGresContext context, ResourceFinder<Secret> secretFinder,
+      CustomResourceFinder<StackGresBackup> backupFinder, BackupEnvVarFactory backupEnvVarFactory) {
+    this.context = context;
     this.secretFinder = secretFinder;
     this.backupFinder = backupFinder;
     this.backupEnvVarFactory = backupEnvVarFactory;
@@ -129,7 +130,7 @@ public class ClusterRestoreBackupContextAppender {
 
       String givenMajorVersion = getPostgresFlavorComponent(cluster)
           .get(cluster)
-          .getMajorVersion(version);
+          .getMajorVersion(context, version);
 
       if (!backupMajorVersion.equals(givenMajorVersion)) {
         throw new IllegalArgumentException("Cannot restore from " + StackGresBackup.KIND + " "

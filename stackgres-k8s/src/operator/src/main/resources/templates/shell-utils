@@ -73,7 +73,7 @@ maintain_lock() {
 # explicitly. Returns non-zero only when the Lease can not be read after retries.
 get_lease() {
   local ATTEMPT=0
-  until kubectl get lease -n "$LOCK_LEASE_NAMESPACE" "$LOCK_LEASE_NAME" \
+  until "$KUBECTL_BIN_PATH" get lease -n "$LOCK_LEASE_NAMESPACE" "$LOCK_LEASE_NAME" \
     --template="$1" > /tmp/lock-lease 2>/tmp/lock-lease.err
   do
     cat /tmp/lock-lease.err
@@ -162,7 +162,7 @@ try_lock() {
     PATCH="$PATCH"',"acquireTime":"'"$NOW_RFC3339"'","leaseTransitions":'"$NEW_TRANSITIONS"
   fi
   PATCH="$PATCH"'}}'
-  if ! kubectl patch lease -n "$LOCK_LEASE_NAMESPACE" "$LOCK_LEASE_NAME" \
+  if ! "$KUBECTL_BIN_PATH" patch lease -n "$LOCK_LEASE_NAMESPACE" "$LOCK_LEASE_NAME" \
     --type merge -p "$PATCH"
   then
     # Refetch the lease; if we still hold it the patch failure was a transient
@@ -211,7 +211,7 @@ release_lock() {
     return 0
   fi
   local PATCH='{"metadata":{"resourceVersion":"'"$RESOURCE_VERSION"'"},"spec":{"holderIdentity":null,"renewTime":null,"leaseDurationSeconds":null}}'
-  if ! kubectl patch lease -n "$LOCK_LEASE_NAMESPACE" "$LOCK_LEASE_NAME" \
+  if ! "$KUBECTL_BIN_PATH" patch lease -n "$LOCK_LEASE_NAMESPACE" "$LOCK_LEASE_NAME" \
     --type merge -p "$PATCH"
   then
     release_lock
@@ -242,7 +242,7 @@ create_event_try() {
   local RESULT
 
   echo "Creating event with reason '$REASON' of type '$TYPE' with message '$MESSAGE'"
-  RESULT="$({ kubectl get "$RESOURCE_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$RESOURCE_NAME" -o json || printf .; } | jq -c .)"
+  RESULT="$({ "$KUBECTL_BIN_PATH" get "$RESOURCE_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$RESOURCE_NAME" -o json || printf .; } | jq -c .)"
   MESSAGE="$(printf '%s' "$MESSAGE" | jq -s -R .)"
   RESULT="$(printf '%s' "$RESULT" | jq -c '{
       apiVersion: "v1",
@@ -269,7 +269,7 @@ create_event_try() {
         uid: .metadata.uid
       }
     }')"
-  printf '%s' "$RESULT" | kubectl create --raw "/api/v1/namespaces/$CLUSTER_NAMESPACE/events" -f -
+  printf '%s' "$RESULT" | "$KUBECTL_BIN_PATH" create --raw "/api/v1/namespaces/$CLUSTER_NAMESPACE/events" -f -
 }
 
 get_event_id() {

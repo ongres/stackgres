@@ -39,8 +39,9 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -77,6 +78,7 @@ public class ShardedBackupCronJob
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
+  private final StackGresContext context;
   private final LabelFactoryForShardedCluster labelFactory;
   private final LabelFactoryForCluster clusterLabelFactory;
   private final ResourceFactory<StackGresShardedClusterContext, PodSecurityContext>
@@ -88,6 +90,7 @@ public class ShardedBackupCronJob
 
   @Inject
   public ShardedBackupCronJob(
+      StackGresContext context,
       LabelFactoryForShardedCluster labelFactory,
       LabelFactoryForCluster clusterLabelFactory,
       ResourceFactory<StackGresShardedClusterContext, PodSecurityContext> podSecurityFactory,
@@ -95,7 +98,7 @@ public class ShardedBackupCronJob
       ShardedClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,
       ShardedBackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts,
       ShardedBackupTemplatesVolumeFactory backupTemplatesVolumeFactory) {
-    super();
+    this.context = context;
     this.labelFactory = labelFactory;
     this.clusterLabelFactory = clusterLabelFactory;
     this.podSecurityFactory = podSecurityFactory;
@@ -351,7 +354,7 @@ public class ShardedBackupCronJob
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_PRIMARY_ROLE")
-                        .withValue(PatroniUtil.getPrimaryRole(cluster))
+                        .withValue(PatroniUtil.getPrimaryRole(this.context, cluster))
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_REPLICA_ROLE")
@@ -367,7 +370,7 @@ public class ShardedBackupCronJob
                         .build(),
                         new EnvVarBuilder()
                         .withName("RIGHT_VALUE")
-                        .withValue(StackGresContext.RIGHT_VALUE)
+                        .withValue(StackGresKeys.RIGHT_VALUE)
                         .build(),
                         new EnvVarBuilder()
                         .withName("SHARDED_CLUSTER_DATABASE")

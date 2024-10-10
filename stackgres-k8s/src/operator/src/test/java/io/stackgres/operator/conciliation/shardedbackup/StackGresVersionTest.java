@@ -8,7 +8,7 @@ package io.stackgres.operator.conciliation.shardedbackup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
@@ -68,6 +68,6 @@ class StackGresVersionTest {
   }
 
   private void setStackGresVersion(String configVersion) {
-    backup.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
+    backup.getMetadata().getAnnotations().put(StackGresKeys.VERSION_KEY, configVersion);
   }
 }

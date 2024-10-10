@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import static io.stackgres.operator.common.StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME;
 import static io.stackgres.operator.common.StackGresDistributedLogsUtil.getDefaultDistributedLogsExtensions;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +24,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.FluentdUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -34,6 +34,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.distributedlogs.Tables;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
+import io.stackgres.operator.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -49,6 +50,7 @@ public class DistributedLogsScript
 
   private static final String TOMORROW_PATTERN_FORMAT = "yyyy-MM-dd";
 
+  private final StackGresContext context;
   private final LabelFactoryForDistributedLogs labelFactory;
 
   public static String scriptName(StackGresDistributedLogs distributedLogs) {
@@ -56,7 +58,10 @@ public class DistributedLogsScript
   }
 
   @Inject
-  public DistributedLogsScript(LabelFactoryForDistributedLogs labelFactory) {
+  public DistributedLogsScript(
+      StackGresContext context,
+      LabelFactoryForDistributedLogs labelFactory) {
+    this.context = context;
     this.labelFactory = labelFactory;
   }
 
@@ -69,9 +74,10 @@ public class DistributedLogsScript
     StackGresDistributedLogs distributedLogs = context.getSource();
     final String timescaledbVersion = Optional.ofNullable(distributedLogs.getStatus())
         .map(StackGresDistributedLogsStatus::getTimescaledbVersion)
-        .or(() -> getDefaultDistributedLogsExtensions(distributedLogs)
+        .or(() -> getDefaultDistributedLogsExtensions(this.context, distributedLogs)
             .stream()
-            .filter(extension -> extension.extensionName().equals(TIMESCALEDB_EXTENSION_NAME))
+            .filter(extension -> extension.extensionName().equals(
+                StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME))
             .map(ExtensionTuple::extensionVersion)
             .filter(Optional::isPresent)
             .map(Optional::get)

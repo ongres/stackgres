@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.rbac.Subject;
 import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.dto.user.UserRoleRef;
 import io.stackgres.apiweb.security.TokenUtils;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -49,20 +49,20 @@ public class UserTransformer
           transformation.getMetadata().getLabels()));
     }
     transformation.getMetadata().getLabels().putAll(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     Map<String, String> data = new HashMap<>(
         Optional.ofNullable(original)
         .map(Secret::getData)
         .map(ResourceUtil::decodeSecret)
         .orElse(Map.of()));
     Optional.ofNullable(source.getK8sUsername())
-        .ifPresent(k8sUsername -> data.put(StackGresContext.REST_K8SUSER_KEY, k8sUsername));
+        .ifPresent(k8sUsername -> data.put(StackGresKeys.REST_K8SUSER_KEY, k8sUsername));
     Optional.ofNullable(source.getApiUsername())
-        .ifPresent(apiUsername -> data.put(StackGresContext.REST_APIUSER_KEY, apiUsername));
+        .ifPresent(apiUsername -> data.put(StackGresKeys.REST_APIUSER_KEY, apiUsername));
     Optional.ofNullable(source.getPassword())
         .filter(password -> Objects.nonNull(source.getK8sUsername()))
         .ifPresent(
-            password -> data.put(StackGresContext.REST_PASSWORD_KEY,
+            password -> data.put(StackGresKeys.REST_PASSWORD_KEY,
                 TokenUtils.sha256(
                     Optional.ofNullable(source.getApiUsername())
                     .orElse(source.getK8sUsername())
@@ -84,10 +84,10 @@ public class UserTransformer
     transformation.setMetadata(getDtoMetadata(source));
     Map<String, String> data = ResourceUtil.decodeSecret(source.getData());
     transformation.setK8sUsername(
-        Optional.ofNullable(data.get(StackGresContext.REST_K8SUSER_KEY))
+        Optional.ofNullable(data.get(StackGresKeys.REST_K8SUSER_KEY))
         .orElse(null));
     transformation.setApiUsername(
-        Optional.ofNullable(data.get(StackGresContext.REST_APIUSER_KEY))
+        Optional.ofNullable(data.get(StackGresKeys.REST_APIUSER_KEY))
         .orElse(null));
     addRoles(transformation, roleBindings);
     addClusterRoles(transformation, clusterRoleBindings);

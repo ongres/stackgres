@@ -31,6 +31,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileList;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -48,16 +49,19 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 class ClusterValidationQuarkusTest {
 
   private static final URI REPOSITORY =
-      URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
+      URI.create("https://sgcr.dev");
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String BUILD_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedTagVersions(StackGresContextMock.CONTEXT).findFirst().get().getBuild();
 
   @Inject
   KubernetesClient client;
@@ -74,7 +78,7 @@ class ClusterValidationQuarkusTest {
         getInstalledExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
     spec.setDistributedLogs(null);
     spec.setInitialData(null);
-    spec.getPostgres().setVersion("12.16");
+    spec.getPostgres().setVersion("12.20");
 
     return review;
   }
@@ -94,7 +98,6 @@ class ClusterValidationQuarkusTest {
     for (String name : names) {
       var installedExtension = new StackGresClusterInstalledExtension();
       installedExtension.setName(name);
-      installedExtension.setPublisher("com.ongres");
       installedExtension.setRepository(REPOSITORY.toString());
       installedExtension.setVersion(POSTGRES_VERSION);
       installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);

@@ -35,6 +35,8 @@ public class ClusterConfigurations {
 
   private ClusterPostgresExporter postgresExporter;
 
+  private ClusterRegistry registry;
+
   public String getSgPostgresConfig() {
     return sgPostgresConfig;
   }
@@ -113,6 +115,14 @@ public class ClusterConfigurations {
 
   public void setPostgresExporter(ClusterPostgresExporter postgresExporter) {
     this.postgresExporter = postgresExporter;
+  }
+
+  public ClusterRegistry getRegistry() {
+    return registry;
+  }
+
+  public void setRegistry(ClusterRegistry registry) {
+    this.registry = registry;
   }
 
   @Override

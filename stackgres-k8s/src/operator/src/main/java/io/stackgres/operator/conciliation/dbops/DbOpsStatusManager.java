@@ -26,9 +26,10 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.stackgres.common.JobUtil;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -70,6 +71,8 @@ public class DbOpsStatusManager
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsStatusManager.class);
 
+  private final StackGresContext context;
+
   private final ResourceFinder<Job> jobFinder;
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
@@ -90,6 +93,7 @@ public class DbOpsStatusManager
 
   @Inject
   public DbOpsStatusManager(
+      StackGresContext context,
       ResourceFinder<Job> jobFinder,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       LabelFactoryForCluster labelFactory,
@@ -97,6 +101,7 @@ public class DbOpsStatusManager
       ResourceScanner<Pod> podScanner,
       ResourceFinder<Endpoints> endpointsFinder,
       PatroniCtl patroniCtl) {
+    this.context = context;
     this.jobFinder = jobFinder;
     this.clusterFinder = clusterFinder;
     this.labelFactory = labelFactory;
@@ -187,7 +192,7 @@ public class DbOpsStatusManager
               .stream()
               .flatMap(Set::stream)
               .anyMatch(Map.entry(
-                  StackGresContext.VERSION_KEY,
+                  StackGresKeys.VERSION_KEY,
                   StackGresProperty.OPERATOR_VERSION.getString())::equals));
     } else {
       securityUpgradeWasApplied = true;
@@ -197,6 +202,7 @@ public class DbOpsStatusManager
         DbOpsOperation.MINOR_VERSION_UPGRADE.toString(),
         source.getSpec().getOp())) {
       final String targetPatroniImage = StackGresUtil.getPatroniImageName(
+          context,
           cluster,
           source.getSpec().getMinorVersionUpgrade().getPostgresVersion());
       minorVersionUpgradeWasApplied = podsReadyAndUpdated
@@ -224,7 +230,7 @@ public class DbOpsStatusManager
           .stream()
           .flatMap(Set::stream)
           .noneMatch(Map.entry(
-            StackGresContext.ROLLOUT_DBOPS_KEY,
+              StackGresKeys.ROLLOUT_DBOPS_KEY,
             source.getMetadata().getName())::equals)) {
         updateCondition(getFalseRunning(), source);
         updateCondition(getCompleted(), source);

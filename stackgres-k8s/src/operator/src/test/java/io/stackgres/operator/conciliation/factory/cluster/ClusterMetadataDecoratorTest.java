@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
@@ -79,7 +79,7 @@ class ClusterMetadataDecoratorTest {
     decorator.decorate(context, resource);
 
     assertTrue(resource.getMetadata().getAnnotations()
-        .containsKey(StackGresContext.VERSION_KEY));
+        .containsKey(StackGresKeys.VERSION_KEY));
   }
 
   @Test
@@ -111,7 +111,7 @@ class ClusterMetadataDecoratorTest {
 
     assertNotNull(resource.getMetadata().getAnnotations());
     assertTrue(resource.getMetadata().getAnnotations()
-        .containsKey(StackGresContext.VERSION_KEY));
+        .containsKey(StackGresKeys.VERSION_KEY));
   }
 
   @Test
@@ -127,7 +127,7 @@ class ClusterMetadataDecoratorTest {
 
     assertNotNull(resource.getMetadata().getAnnotations());
     assertTrue(resource.getMetadata().getAnnotations()
-        .containsKey(StackGresContext.VERSION_KEY));
+        .containsKey(StackGresKeys.VERSION_KEY));
   }
 
   @Test
@@ -187,7 +187,7 @@ class ClusterMetadataDecoratorTest {
   @Test
   void decorate_whenVersionKeyInClusterAnnotations_shouldUseClusterVersion() {
     String clusterVersion = cluster.getMetadata().getAnnotations()
-        .get(StackGresContext.VERSION_KEY);
+        .get(StackGresKeys.VERSION_KEY);
 
     HasMetadata resource = new ConfigMapBuilder()
         .withNewMetadata().withName("test").withNamespace("test-ns").endMetadata()
@@ -196,12 +196,12 @@ class ClusterMetadataDecoratorTest {
     decorator.decorate(context, resource);
 
     assertEquals(clusterVersion,
-        resource.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
+        resource.getMetadata().getAnnotations().get(StackGresKeys.VERSION_KEY));
   }
 
   @Test
   void decorate_whenNoVersionKeyInClusterAnnotations_shouldUseFallbackVersion() {
-    cluster.getMetadata().getAnnotations().remove(StackGresContext.VERSION_KEY);
+    cluster.getMetadata().getAnnotations().remove(StackGresKeys.VERSION_KEY);
 
     HasMetadata resource = new ConfigMapBuilder()
         .withNewMetadata().withName("test").withNamespace("test-ns").endMetadata()
@@ -210,7 +210,7 @@ class ClusterMetadataDecoratorTest {
     decorator.decorate(context, resource);
 
     assertEquals(StackGresProperty.OPERATOR_VERSION.getString(),
-        resource.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
+        resource.getMetadata().getAnnotations().get(StackGresKeys.VERSION_KEY));
   }
 
 }

@@ -5,6 +5,8 @@
 
 package io.stackgres.common.fixture;
 
+import static io.stackgres.common.docir.StackGresContextMock.CONTEXT;
+
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -14,7 +16,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 
 public class StackGresClusterFixture {
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(CONTEXT).get(0).get();
   private NodeAffinity nodeAffinity;
 
   public StackGresClusterFixture withNodeAffinity(NodeAffinity nodeAffinity) {

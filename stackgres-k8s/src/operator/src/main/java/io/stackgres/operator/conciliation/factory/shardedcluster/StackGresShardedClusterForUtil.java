@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ManagedSqlUtil;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.CustomServicePortBuilder;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -129,6 +130,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     coordinatorCluster.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
     coordinatorCluster.getMetadata().setName(
         StackGresShardedClusterUtil.getCoordinatorClusterName(cluster));
+    setVersion(cluster, coordinatorCluster);
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresPostgresServicesBuilder()
         .withNewPrimary()
@@ -212,6 +214,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     workersCluster.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
     workersCluster.getMetadata().setName(
         StackGresShardedClusterUtil.getWorkerClusterName(cluster, index));
+    setVersion(cluster, workersCluster);
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresPostgresServicesBuilder()
         .withNewPrimary()
@@ -296,6 +299,16 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     return queryRouterCluster;
   }
 
+  void setVersion(StackGresShardedCluster shardedCluster, StackGresCluster cluster) {
+    if (Optional.ofNullable(shardedCluster.getMetadata().getAnnotations()).orElse(Map.of())
+        .containsKey(StackGresKeys.VERSION_KEY)) {
+      cluster.getMetadata().setAnnotations(
+          Map.of(
+              StackGresKeys.VERSION_KEY,
+              shardedCluster.getMetadata().getAnnotations().get(StackGresKeys.VERSION_KEY)));
+    }
+  }
+
   void updateWorkerClusterSpec(
       StackGresShardedCluster cluster,
       StackGresClusterSpec spec,
@@ -341,6 +354,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     setPostgresExtensions(cluster, spec);
     setConfigurationsObservability(cluster, spec);
     setConfigurationsPostgresExporter(cluster, spec);
+    setConfigurationsRegistry(cluster, spec);
     setConfigurationsBackups(cluster, spec, globalIndex);
     setConfigurationsCredentials(cluster, spec);
     setMetadata(cluster, spec, globalIndex);
@@ -445,6 +459,19 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             spec.setConfigurations(new StackGresClusterConfigurations());
           }
           spec.getConfigurations().setObservability(observability);
+        });
+  }
+
+  void setConfigurationsRegistry(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    Optional.ofNullable(cluster.getSpec())
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getRegistry)
+        .ifPresent(registry -> {
+          if (spec.getConfigurations() == null) {
+            spec.setConfigurations(new StackGresClusterConfigurations());
+          }
+          spec.getConfigurations().setRegistry(registry);
         });
   }
 

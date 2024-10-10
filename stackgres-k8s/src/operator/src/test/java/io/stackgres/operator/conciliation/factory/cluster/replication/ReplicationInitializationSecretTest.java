@@ -24,6 +24,7 @@ import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -42,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ReplicationInitializationSecretTest {
 
   private final LabelFactoryForCluster labelFactory =
-      new ClusterLabelFactory(new ClusterLabelMapper());
+      new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
   @Mock
   private BackupEnvVarFactory backupEnvVarFactory;

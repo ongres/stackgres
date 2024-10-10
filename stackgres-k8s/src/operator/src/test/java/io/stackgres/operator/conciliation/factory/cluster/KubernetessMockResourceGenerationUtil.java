@@ -29,6 +29,8 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -36,7 +38,8 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 public class KubernetessMockResourceGenerationUtil {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   public static List<HasMetadata> buildResources(String name, String namespace) {
     StackGresCluster cluster = new StackGresClusterBuilder()
@@ -60,7 +63,8 @@ public class KubernetessMockResourceGenerationUtil {
   public static List<HasMetadata> buildResources(StackGresCluster cluster) {
     final String namespace = cluster.getMetadata().getNamespace();
     final String name = cluster.getMetadata().getName();
-    ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    ClusterLabelFactory labelFactory = new ClusterLabelFactory(
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper());
     return Stream.of(
         new SecretBuilder()
             .withData(ResourceUtil.encodeSecret(Map.of(generateRandom(), generateRandom())))

@@ -17,6 +17,7 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -76,6 +77,7 @@ class DbOpsResourceGenerationDiscovererTest
     resource.setStatus(status);
     resource.getSpec().setMaxRetries(10);
     return StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(resource)
         .foundCluster(cluster)

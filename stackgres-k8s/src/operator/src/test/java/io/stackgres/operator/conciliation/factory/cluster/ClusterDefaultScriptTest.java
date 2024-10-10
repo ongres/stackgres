@@ -16,6 +16,7 @@ import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -33,7 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ClusterDefaultScriptTest {
 
   private final LabelFactoryForCluster labelFactory =
-      new ClusterLabelFactory(new ClusterLabelMapper());
+      new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
   @Mock
   private StackGresClusterContext context;

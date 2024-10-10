@@ -22,6 +22,7 @@ import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -56,7 +57,8 @@ class DbOpsMajorVersionUpgradeMutatorTest {
         review.getRequest().getObject().getMetadata().getNamespace());
 
     defaultTimestamp = Instant.now();
-    mutator = new DbOpsMajorVersionUpgradeMutator(clusterFinder, defaultTimestamp);
+    mutator = new DbOpsMajorVersionUpgradeMutator(
+        StackGresContextMock.CONTEXT, clusterFinder, defaultTimestamp);
   }
 
   @Test
@@ -101,7 +103,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(StackGresContextMock.CONTEXT, postgresVersion);
     assertEquals(
         BackupStorageUtil.getPath(
             dbOps.getMetadata().getNamespace(),

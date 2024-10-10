@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsSchedulingBackup;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelMapperForCluster;
@@ -69,7 +70,8 @@ public class BackupCronJobTest {
   public void setup() {
     MockitoAnnotations.openMocks(this);
     backupCronJob =
-        new BackupCronJob(labelFactory, clusterPodSecurityFactory,
+        new BackupCronJob(StackGresContextMock.CONTEXT,
+            labelFactory, clusterPodSecurityFactory,
             kubectl, envFactoryDiscoverer,
             backupScriptTemplatesVolumeMounts, backupTemplatesConfigMap);
     sgBackup = Fixtures.backup().loadDefault().get();

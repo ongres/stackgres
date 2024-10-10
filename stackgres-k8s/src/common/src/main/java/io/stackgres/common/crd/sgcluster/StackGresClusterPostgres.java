@@ -35,6 +35,8 @@ public class StackGresClusterPostgres {
   @Valid
   private StackGresClusterSsl ssl;
 
+  private Boolean enableExtensionInstallAtRuntime;
+
   private List<@Valid StackGresClusterExtension> extensions;
 
   public String getVersion() {
@@ -51,6 +53,14 @@ public class StackGresClusterPostgres {
 
   public void setFlavor(String flavor) {
     this.flavor = flavor;
+  }
+
+  public Boolean getEnableExtensionInstallAtRuntime() {
+    return enableExtensionInstallAtRuntime;
+  }
+
+  public void setEnableExtensionInstallAtRuntime(Boolean enableExtensionInstallAtRuntime) {
+    this.enableExtensionInstallAtRuntime = enableExtensionInstallAtRuntime;
   }
 
   public StackGresClusterSsl getSsl() {
@@ -71,7 +81,7 @@ public class StackGresClusterPostgres {
 
   @Override
   public int hashCode() {
-    return Objects.hash(extensions, flavor, ssl, version);
+    return Objects.hash(enableExtensionInstallAtRuntime, extensions, flavor, ssl, version);
   }
 
   @Override
@@ -83,7 +93,8 @@ public class StackGresClusterPostgres {
       return false;
     }
     StackGresClusterPostgres other = (StackGresClusterPostgres) obj;
-    return Objects.equals(extensions, other.extensions) && Objects.equals(flavor, other.flavor)
+    return Objects.equals(enableExtensionInstallAtRuntime, other.enableExtensionInstallAtRuntime)
+        && Objects.equals(extensions, other.extensions) && Objects.equals(flavor, other.flavor)
         && Objects.equals(ssl, other.ssl) && Objects.equals(version, other.version);
   }
 

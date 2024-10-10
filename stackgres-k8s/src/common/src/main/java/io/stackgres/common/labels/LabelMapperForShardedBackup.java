@@ -5,14 +5,14 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 
 public interface LabelMapperForShardedBackup
     extends LabelMapper<StackGresShardedBackup> {
 
   default String shardedBackupKey(StackGresShardedBackup resource) {
-    return getKeyPrefix(resource) + StackGresContext.SHARDED_BACKUP_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SHARDED_BACKUP_KEY;
   }
 
 }

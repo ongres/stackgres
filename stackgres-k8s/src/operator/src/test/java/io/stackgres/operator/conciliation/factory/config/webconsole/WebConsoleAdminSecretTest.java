@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ConfigLabelFactory;
@@ -103,8 +103,8 @@ class WebConsoleAdminSecretTest {
 
     Secret secret = (Secret) resources.get(0);
     Map<String, String> labels = secret.getMetadata().getLabels();
-    assertTrue(labels.containsKey(StackGresContext.AUTH_KEY));
-    assertEquals(StackGresContext.AUTH_USER_VALUE, labels.get(StackGresContext.AUTH_KEY));
+    assertTrue(labels.containsKey(StackGresKeys.AUTH_KEY));
+    assertEquals(StackGresKeys.AUTH_USER_VALUE, labels.get(StackGresKeys.AUTH_KEY));
   }
 
 }

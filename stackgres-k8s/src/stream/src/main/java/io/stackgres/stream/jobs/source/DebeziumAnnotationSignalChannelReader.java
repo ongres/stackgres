@@ -22,7 +22,7 @@ import io.debezium.pipeline.signal.SignalRecord;
 import io.debezium.pipeline.signal.channels.SignalChannelReader;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StreamPath;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -35,7 +35,7 @@ public class DebeziumAnnotationSignalChannelReader implements SignalChannelReade
   private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumAnnotationSignalChannelReader.class);
 
   private static final String STACKGRES_IO_DEBEZIUM_SIGNAL_KEY_PREFIX =
-      "debezium-signal." + StackGresContext.STACKGRES_KEY_PREFIX;
+      "debezium-signal." + StackGresKeys.STACKGRES_KEY_PREFIX;
 
   static CustomResourceFinder<StackGresStream> streamFinder;
 

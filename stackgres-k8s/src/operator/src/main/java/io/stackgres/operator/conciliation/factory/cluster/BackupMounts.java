@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterEnvVar;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,11 +26,11 @@ public class BackupMounts implements VolumeMountsProvider<ClusterContainerContex
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.BACKUP_ENV.getName())
-            .withMountPath(ClusterPath.BACKUP_ENV_PATH.path(clusterContext))
+            .withMountPath(ClusterPathV1.BACKUP_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.BACKUP_CREDENTIALS.getName())
-            .withMountPath(ClusterPath.BACKUP_SECRET_PATH.path(clusterContext))
+            .withMountPath(ClusterPathV1.BACKUP_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -40,8 +40,8 @@ public class BackupMounts implements VolumeMountsProvider<ClusterContainerContex
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         ClusterEnvVar.BACKUP_ENV.envVar(clusterContext),
-        ClusterPath.BACKUP_ENV_PATH.envVar(clusterContext),
-        ClusterPath.BACKUP_SECRET_PATH.envVar(clusterContext)
+        ClusterPathV1.BACKUP_ENV_PATH.envVar(clusterContext),
+        ClusterPathV1.BACKUP_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

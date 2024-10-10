@@ -16,11 +16,15 @@ import java.util.stream.Stream;
 import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ExtensionTuple;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.docir.DocirUtil;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
@@ -32,6 +36,8 @@ import org.jooq.lambda.Seq;
 public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
     T extends AdmissionReview<R>> implements Mutator<R, T> {
 
+  protected abstract StackGresContext getContext();
+
   protected abstract ExtensionMetadataManager getExtensionMetadataManager();
 
   @Override
@@ -40,7 +46,8 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
       case CREATE, UPDATE:
         final StackGresCluster cluster = getCluster(review);
         final StackGresCluster oldCluster = getOldCluster(review);
-        if (extensionsChanged(review, cluster, oldCluster)) {
+        if (operatorVersionChanged(review)
+            || extensionsChanged(review, cluster, oldCluster)) {
           mutateExtensions(resource, cluster);
         }
         break;
@@ -48,6 +55,13 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
         break;
     }
     return resource;
+  }
+
+  private boolean operatorVersionChanged(T review) {
+    return review.getRequest().getOldObject() == null
+        || !Objects.equals(
+            StackGresVersion.getStackGresRawVersionFromResource(review.getRequest().getOldObject()),
+            StackGresVersion.getStackGresRawVersionFromResource(review.getRequest().getObject()));
   }
 
   protected boolean extensionsChanged(
@@ -102,21 +116,33 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
         .orElse(null);
     String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(getContext(), postgresVersion);
     String oldPostgresMajorVersion = getPostgresFlavorComponent(oldCluster)
         .get(oldCluster)
-        .getMajorVersion(oldPostgresVersion);
+        .getMajorVersion(getContext(), oldPostgresVersion);
     if (!Objects.equals(postgresMajorVersion, oldPostgresMajorVersion)) {
       return true;
     }
-    String buildMajorVersion = getPostgresFlavorComponent(cluster)
-        .get(cluster)
-        .getBuildMajorVersion(postgresVersion);
-    String oldBuildMajorVersion = getPostgresFlavorComponent(oldCluster)
-        .get(oldCluster)
-        .getBuildMajorVersion(oldPostgresVersion);
-    if (!Objects.equals(buildMajorVersion, oldBuildMajorVersion)) {
-      return true;
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      String buildMajorVersion = getPostgresFlavorComponent(cluster)
+          .get(cluster)
+          .getBuildMajorVersion(getContext(), postgresVersion);
+      String oldBuildMajorVersion = getPostgresFlavorComponent(oldCluster)
+          .get(oldCluster)
+          .getBuildMajorVersion(getContext(), oldPostgresVersion);
+      if (!Objects.equals(buildMajorVersion, oldBuildMajorVersion)) {
+        return true;
+      }
+    } else {
+      String buildVersion = getPostgresFlavorComponent(cluster)
+          .get(cluster)
+          .getBuildVersion(getContext(), postgresVersion);
+      String oldBuildVersion = getPostgresFlavorComponent(oldCluster)
+          .get(oldCluster)
+          .getBuildVersion(getContext(), oldPostgresVersion);
+      if (!Objects.equals(buildVersion, oldBuildVersion)) {
+        return true;
+      }
     }
     return false;
   }
@@ -140,8 +166,8 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
         .map(Optional::get)
         .append(missingDefaultExtensions)
         .toList();
-
     setToInstallExtensions(resource, toInstallExtensions);
+
     Seq.seq(extensions)
         .forEach(extension -> toInstallExtensions.stream()
             .filter(toInstallExtension -> toInstallExtension.getName()
@@ -180,9 +206,15 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
       String extensionName) {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
-    return getExtensionMetadataManager()
-        .findExtensionCandidateAnyVersion(cluster, extension, false)
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return getExtensionMetadataManager()
+          .findExtensionCandidateAnyVersion(cluster, extension, false)
+          .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+              cluster, extension, extensionMetadata, false));
+    }
+    return getContext().getMetadataManager()
+        .findExtensionCandidateAnyVersion(getContext(), cluster, extension, false)
+        .map(extensionMetadata -> DocirUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
   }
 
@@ -191,37 +223,57 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
     extension.setVersion(extensionVersion);
-    return getExtensionMetadataManager()
-        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return getExtensionMetadataManager()
+          .findExtensionCandidateSameMajorBuild(cluster, extension, false)
+          .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+              cluster, extension, extensionMetadata, false));
+    }
+    return getContext().getMetadataManager()
+        .findExtensionCandidateSameMajorBuild(getContext(), cluster, extension, false)
+        .map(extensionMetadata -> DocirUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
   }
 
   private Optional<StackGresClusterInstalledExtension> findToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
-    return getExtensionMetadataManager()
-        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
-        .or(() -> Optional.of(getExtensionMetadataManager()
-            .getExtensionsAnyVersion(cluster, extension, false))
-            .stream()
-            .filter(list -> list.size() >= 1)
-            .flatMap(List::stream)
-            .filter(foundExtension -> foundExtension
-                .getTarget().getPostgresVersion().contains("."))
-            .findFirst())
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return getExtensionMetadataManager()
+          .findExtensionCandidateSameMajorBuild(cluster, extension, false)
+          .or(() -> Optional.of(getExtensionMetadataManager()
+              .getExtensionsAnyVersion(cluster, extension, false))
+              .stream()
+              .filter(list -> list.size() >= 1)
+              .flatMap(List::stream)
+              .filter(foundExtension -> foundExtension
+                  .getTarget().getPostgresVersion().contains("."))
+              .findFirst())
+          .or(() -> Optional.of(extension.getVersion() == null)
+              .filter(hasNoVersion -> hasNoVersion)
+              .map(hasNoVersion -> getExtensionMetadataManager()
+                  .getExtensionsAnyVersion(cluster, extension, false))
+              .filter(Predicates.not(List::isEmpty))
+              .filter(allExtensionVersions -> Seq.seq(allExtensionVersions)
+                  .groupBy(Function.<StackGresExtensionMetadata>identity()
+                      .andThen(StackGresExtensionMetadata::getVersion)
+                      .andThen(StackGresExtensionVersion::getVersion))
+                  .size() >= 1)
+              .map(List::stream)
+              .flatMap(Stream::findFirst))
+          .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+              cluster, extension, extensionMetadata, false));
+    }
+    return getContext().getMetadataManager()
+        .findExtensionCandidateSameMajorBuild(getContext(), cluster, extension, false)
         .or(() -> Optional.of(extension.getVersion() == null)
             .filter(hasNoVersion -> hasNoVersion)
-            .map(hasNoVersion -> getExtensionMetadataManager()
-                .getExtensionsAnyVersion(cluster, extension, false))
+            .map(hasNoVersion -> getContext().getMetadataManager()
+                .getExtensionsAnyVersion(getContext(), cluster, extension, false))
             .filter(Predicates.not(List::isEmpty))
-            .filter(allExtensionVersions -> Seq.seq(allExtensionVersions)
-                .groupBy(Function.<StackGresExtensionMetadata>identity()
-                    .andThen(StackGresExtensionMetadata::getVersion)
-                    .andThen(StackGresExtensionVersion::getVersion))
-                .size() >= 1)
-            .map(List::stream)
-            .flatMap(Stream::findFirst))
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+            .stream()
+            .flatMap(List::stream)
+            .findFirst())
+        .map(extensionMetadata -> DocirUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
   }
 

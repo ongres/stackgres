@@ -29,7 +29,7 @@ public abstract class AbstractVolumeDiscoverer<T extends GenerationContext<?>>
 
   @Override
   public Map<String, VolumePair> discoverVolumes(T context) {
-    return hub.get(context.getVersion())
+    return getFactories(context)
         .stream()
         .filter(vf -> vf.kind() == StackGresGroupKind.CLUSTER)
         .flatMap(vf -> vf.buildVolumes(context))

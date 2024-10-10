@@ -8,21 +8,19 @@ package io.stackgres.operator.validation.shardeddbops;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedDbOpsReview;
+import io.stackgres.operator.common.StackGresVersionUtil;
 import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
 import io.stackgres.operator.validation.ValidationType;
-import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -33,24 +31,17 @@ import org.jooq.lambda.tuple.Tuple2;
 @ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)
 public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsValidator {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresShardedCluster> clusterFinder;
-  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      supportedPostgresVersions;
   private final String errorPostgresMismatchUri;
   private final String errorForbiddenUpdateUri;
 
   @Inject
   public ShardedDbOpsMinorVersionUpgradeValidator(
+      StackGresContext context,
       CustomResourceFinder<StackGresShardedCluster> clusterFinder) {
-    this(clusterFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
-  }
-
-  public ShardedDbOpsMinorVersionUpgradeValidator(
-      CustomResourceFinder<StackGresShardedCluster> clusterFinder,
-      Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-          orderedSupportedPostgresVersions) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
-    this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
@@ -87,8 +78,7 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
                 && !isPostgresVersionSupported(cluster, givenPgVersion)) {
               final String message = "Unsupported postgres version " + givenPgVersion
                   + ".  Supported postgres versions are: "
-                  + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-                      .get(StackGresVersion.getStackGresVersion(cluster))).toString(", ");
+                  + Seq.seq(StackGresVersionUtil.getSupportedPostgresVersions(context, cluster)).toString(", ");
               fail(errorPostgresMismatchUri, message);
             }
 
@@ -98,10 +88,10 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
             }
 
             String givenMajorVersion = getPostgresFlavorComponent(cluster)
-                .get(cluster).getMajorVersion(givenPgVersion);
+                .get(cluster).getMajorVersion(context, givenPgVersion);
             long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
                 .get(cluster)
-                .streamOrderedMajorVersions()
+                .streamOrderedMajorVersions(context)
                 .zipWithIndex()
                 .filter(t -> t.v1.equals(givenMajorVersion))
                 .map(Tuple2::v2)
@@ -110,10 +100,10 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
             String oldPgVersion = cluster.getSpec().getPostgres().getVersion();
             String oldMajorVersion = getPostgresFlavorComponent(cluster)
                 .get(cluster)
-                .getMajorVersion(oldPgVersion);
+                .getMajorVersion(context, oldPgVersion);
             long oldMajorVersionIndex = getPostgresFlavorComponent(cluster)
                 .get(cluster)
-                .streamOrderedMajorVersions()
+                .streamOrderedMajorVersions(context)
                 .zipWithIndex()
                 .filter(t -> t.v1.equals(oldMajorVersion))
                 .map(Tuple2::v2)
@@ -133,8 +123,7 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
   }
 
   private boolean isPostgresVersionSupported(StackGresShardedCluster cluster, String version) {
-    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster))
+    return StackGresVersionUtil.getSupportedPostgresVersions(context, cluster)
         .contains(version);
   }
 

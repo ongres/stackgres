@@ -19,8 +19,9 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -45,11 +46,13 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
 
+  private final StackGresContext context;
   private final LabelFactoryForCluster labelFactory;
   private final PatroniCtl patroniCtl;
 
   @Inject
   public ClusterConciliator(
+      StackGresContext context,
       KubernetesClient client,
       CustomResourceFinder<StackGresCluster> finder,
       RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator,
@@ -58,6 +61,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       LabelFactoryForCluster labelFactory,
       PatroniCtl patroniCtl) {
     super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    this.context = context;
     this.labelFactory = labelFactory;
     this.patroniCtl = patroniCtl;
   }
@@ -73,9 +77,9 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         && Optional.of(foundDeployedResourceBackup.getMetadata())
         .map(ObjectMeta::getLabels)
         .map(labels -> labels.get(
-            StackGresContext.STACKGRES_KEY_PREFIX
-            + StackGresContext.RECONCILIATION_INITIALIZATION_BACKUP_KEY))
-        .filter(StackGresContext.RIGHT_VALUE::equals)
+            StackGresKeys.STACKGRES_KEY_PREFIX
+            + StackGresKeys.RECONCILIATION_INITIALIZATION_BACKUP_KEY))
+        .filter(StackGresKeys.RIGHT_VALUE::equals)
         .isEmpty()) {
       return true;
     }
@@ -223,7 +227,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       StackGresCluster config,
       HasMetadata foundDeployedResource,
       List<PatroniMember> members) {
-    final String patroniVersion = StackGresUtil.getPatroniVersion(config);
+    final String patroniVersion = StackGresUtil.getPatroniVersion(context, config);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     return foundDeployedResource instanceof Pod foundDeployedPod
         && !Optional.of(foundDeployedPod.getMetadata())

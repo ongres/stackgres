@@ -8,25 +8,18 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.stackgres.common.PodSecurityFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.PodSecurityFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ClusterPodSecurityFactory extends PodSecurityFactory
     implements ResourceFactory<StackGresClusterContext, PodSecurityContext> {
-
-  @Inject
-  public ClusterPodSecurityFactory(OperatorPropertyContext operatorContext) {
-    super(operatorContext);
-  }
 
   @Override
   public PodSecurityContext createResource(StackGresClusterContext source) {

@@ -5,14 +5,14 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 
 public interface LabelMapperForScript
     extends LabelMapper<StackGresScript> {
 
   default String streamKey(StackGresScript resource) {
-    return getKeyPrefix(resource) + StackGresContext.SCRIPT_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SCRIPT_KEY;
   }
 
 }

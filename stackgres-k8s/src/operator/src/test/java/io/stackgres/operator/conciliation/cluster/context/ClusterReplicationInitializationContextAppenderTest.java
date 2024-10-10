@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationInitializationMode;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -68,6 +69,7 @@ class ClusterReplicationInitializationContextAppenderTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterReplicationInitializationContextAppender(
+        StackGresContextMock.CONTEXT,
         secretFinder, backupEnvVarFactory, backupScanner, labelFactory);
     objectStorage = new StackGresObjectStorageBuilder()
         .withNewMetadata()

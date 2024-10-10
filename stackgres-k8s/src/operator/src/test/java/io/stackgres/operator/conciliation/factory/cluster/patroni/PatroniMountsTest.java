@@ -15,7 +15,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
@@ -90,7 +90,7 @@ class PatroniMountsTest {
         .findFirst()
         .orElseThrow();
 
-    assertEquals(ClusterPath.PATRONI_CONFIG_PATH.path(), configMount.getMountPath());
+    assertEquals(ClusterPathV1.PATRONI_CONFIG_PATH.path(), configMount.getMountPath());
   }
 
   @Test

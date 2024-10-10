@@ -61,6 +61,8 @@ public interface JsonFixtureWithPaths {
 
   String PATRONI_PATRONI_REPLICA_JSON = "patroni/patroni-replica.json";
 
+  String DOCIR_METADATA_EXTENSIONS_JSON = "docir_metadata/extensions.json";
+
   String PROMETHEUS_PROMETHEUS_LIST_JSON = "prometheus/prometheus_list.json";
 
   String SECRET_AUTHENTICATION_JSON = "secret/authentication.json";

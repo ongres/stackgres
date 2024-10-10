@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -53,7 +53,7 @@ public class DistributedLogsMetadataDecorator
     decorateResourceMetadata(
         cluster.getMetadata(),
         Seq.seq(getAllResourcesAnnotations(context))
-        .filter(annotation -> !annotation.v1.equals(StackGresContext.VERSION_KEY))
+        .filter(annotation -> !annotation.v1.equals(StackGresKeys.VERSION_KEY))
         .toMap(Tuple2::v1, Tuple2::v2),
         getAllResourcesLabels(context));
   }

@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.List;
 import java.util.Optional;
 
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
@@ -26,10 +27,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class ShardedClusterRestoreBackupContextAppender {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresShardedBackup> backupFinder;
 
   public ShardedClusterRestoreBackupContextAppender(
+      StackGresContext context,
       CustomResourceFinder<StackGresShardedBackup> backupFinder) {
+    this.context = context;
     this.backupFinder = backupFinder;
   }
 
@@ -75,7 +79,7 @@ public class ShardedClusterRestoreBackupContextAppender {
 
       String postgresMajorVersion = getPostgresFlavorComponent(cluster)
           .get(cluster)
-          .getMajorVersion(postgresVersion);
+          .getMajorVersion(context, postgresVersion);
 
       if (!backupMajorVersion.equals(postgresMajorVersion)) {
         throw new IllegalArgumentException("Cannot restore from " + StackGresShardedBackup.KIND + " "

@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -61,7 +62,7 @@ class ShardedDbOpsRequiredResourcesGeneratorTest {
     dbOps = Fixtures.shardedDbOps().loadRestart().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
-        .getLatest().getLatestVersion());
+        .get(Fixtures.registryCluster()).getLatestVersion(StackGresContextMock.CONTEXT));
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgShardedCluster());
     coordinator = Fixtures.cluster().loadDefault().get();

@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -86,6 +87,7 @@ public class ShardedBackupResourceGenerationDiscovererTest
   @Override
   protected StackGresShardedBackupContext getResourceContext() {
     return StackGresShardedBackupContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .source(backup)
         .foundShardedCluster(cluster)
         .foundProfile(profile)

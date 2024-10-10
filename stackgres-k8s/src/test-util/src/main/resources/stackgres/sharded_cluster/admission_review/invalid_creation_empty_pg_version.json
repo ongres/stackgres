@@ -81,7 +81,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -96,14 +96,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },

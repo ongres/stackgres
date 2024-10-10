@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedDbOpsReview;
@@ -38,13 +39,15 @@ class ShardedDbOpsSecurityUpgradeValidatorTest {
 
   @BeforeEach
   void setUp() {
-    validator = new ShardedDbOpsSecurityUpgradeValidator(clusterFinder);
+    validator = new ShardedDbOpsSecurityUpgradeValidator(
+        StackGresContextMock.CONTEXT, clusterFinder);
 
     cluster = Fixtures.shardedCluster().loadDefault().get();
-    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
         .getVersion(
-            StackGresComponent.POSTGRESQL.getLatest()
-            .streamOrderedMajorVersions().findLast().get()));
+            StackGresContextMock.CONTEXT,
+            StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+            .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findLast().get()));
   }
 
   @Test

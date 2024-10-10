@@ -20,6 +20,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import org.hamcrest.Matchers;
@@ -50,7 +51,7 @@ class ClusterPostgresVersionResourceTest implements AuthenticatedResourceTest {
   void ifClusterUsesLatestVersion_itShouldReturnTheArrayOfLatestVersions() {
     List<String> versions = StackGresUtil.getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .streamOrderedVersions()
+        .streamOrderedVersions(StackGresContextMock.CONTEXT)
         .toList();
     given()
         .when()

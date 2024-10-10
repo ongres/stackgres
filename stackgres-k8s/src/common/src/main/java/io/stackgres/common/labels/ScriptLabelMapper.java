@@ -5,7 +5,7 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -14,22 +14,22 @@ public class ScriptLabelMapper implements LabelMapperForScript {
 
   @Override
   public String appName() {
-    return StackGresContext.SCRIPT_APP_NAME;
+    return StackGresKeys.SCRIPT_APP_NAME;
   }
 
   @Override
   public String resourceNameKey(StackGresScript resource) {
-    return getKeyPrefix(resource) + StackGresContext.SCRIPT_NAME_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SCRIPT_NAME_KEY;
   }
 
   @Override
   public String resourceNamespaceKey(StackGresScript resource) {
-    return getKeyPrefix(resource) + StackGresContext.SCRIPT_NAMESPACE_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SCRIPT_NAMESPACE_KEY;
   }
 
   @Override
   public String resourceUidKey(StackGresScript resource) {
-    return getKeyPrefix(resource) + StackGresContext.SCRIPT_UID_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SCRIPT_UID_KEY;
   }
 
 }

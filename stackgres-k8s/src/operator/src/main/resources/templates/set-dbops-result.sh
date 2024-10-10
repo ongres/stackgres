@@ -14,7 +14,7 @@ EVAL_IN_PLACE_EOF
 
 set_completed() {
   create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
-  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
@@ -31,7 +31,7 @@ EOF
 
 set_timed_out() {
   create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME timed out"
-  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
@@ -48,7 +48,7 @@ EOF
 
 set_lock_lost() {
   create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME lost the lock"
-  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
@@ -65,7 +65,7 @@ EOF
 
 set_failed() {
   create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
-  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {

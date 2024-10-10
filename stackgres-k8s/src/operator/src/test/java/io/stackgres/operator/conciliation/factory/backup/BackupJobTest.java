@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsSchedulingBackup;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -72,7 +73,7 @@ public class BackupJobTest {
   public void setup() {
     MockitoAnnotations.openMocks(this);
     backupJob =
-        new BackupJob(backupLabelFactory, labelFactory,
+        new BackupJob(StackGresContextMock.CONTEXT, backupLabelFactory, labelFactory,
             backupPodSecurityFactory, kubectl, envFactoryDiscoverer,
             backupScriptTemplatesVolumeMounts, backupTemplatesVolumeFactory);
     sgBackup = Fixtures.backup().loadDefault().get();

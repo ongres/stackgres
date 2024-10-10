@@ -52,6 +52,11 @@ public class RestoreConfigValidator
         if (restoreConfig.getFromBackup() == null) {
           break;
         }
+
+        if (restoreConfig.getFromBackup().getUid() != null) {
+          final String message = "uid is deprecated, use name instead!";
+          fail(errorConstraintViolationUri, message);
+        }
         break;
       case UPDATE:
         StackGresClusterRestore oldRestoreConfig =

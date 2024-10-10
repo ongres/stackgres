@@ -5,6 +5,7 @@
 
 package io.stackgres.common.fixture;
 
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.backup.BackupFixture;
 import io.stackgres.common.fixture.backup.BackupListFixture;
 import io.stackgres.common.fixture.cluster.ClusterFixture;
@@ -48,6 +49,14 @@ public interface Fixtures {
 
   static ClusterFixture cluster() {
     return new ClusterFixture();
+  }
+
+  /**
+   * The default SGCluster (that has the images registry enabled) to look up the components served
+   * by the default docir repository with {@code StackGresComponent.get(cluster)}.
+   */
+  static StackGresCluster registryCluster() {
+    return cluster().loadDefault().get();
   }
 
   static ClusterListFixture clusterList() {
@@ -148,6 +157,10 @@ public interface Fixtures {
 
   static ExtensionListFixture extensionList() {
     return new ExtensionListFixture();
+  }
+
+  static ExtensionsMetadataFixture docirExtensionsMetadata() {
+    return new ExtensionsMetadataFixture();
   }
 
   static SecretFixture secret() {

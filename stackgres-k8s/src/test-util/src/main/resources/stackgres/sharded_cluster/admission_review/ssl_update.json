@@ -1,4 +1,4 @@
-  {
+{
   "kind": "AdmissionReview",
   "request": {
     "uid": "e1bf674a-f85f-4305-ba25-271aba55e9b3",
@@ -50,7 +50,7 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla",
           "ssl": {
             "enabled": true,
@@ -92,7 +92,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -107,14 +107,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },
@@ -132,7 +137,7 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla",
           "ssl": {
             "enabled": true,
@@ -174,7 +179,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -189,14 +194,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },

@@ -5,7 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
-import static io.stackgres.common.StackGresContext.ANNOTATIONS_TO_COMPONENT;
+import static io.stackgres.common.StackGresKeys.ANNOTATIONS_TO_COMPONENT;
 
 import java.util.HashMap;
 import java.util.List;

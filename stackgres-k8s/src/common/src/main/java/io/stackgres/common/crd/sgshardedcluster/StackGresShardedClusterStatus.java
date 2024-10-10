@@ -28,6 +28,10 @@ import jakarta.validation.Valid;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterStatus {
 
+  private String revision;
+
+  private String repository;
+
   @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<@Valid Condition> conditions = new ArrayList<>();
@@ -50,6 +54,30 @@ public class StackGresShardedClusterStatus {
   private StackGresShardedClusterDbOpsStatus dbOps;
 
   private List<String> sgBackups;
+
+  public String getRevision() {
+    return revision;
+  }
+
+  public void setRevision(String revision) {
+    this.revision = revision;
+  }
+
+  public String getRepository() {
+    return repository;
+  }
+
+  public void setRepository(String repository) {
+    this.repository = repository;
+  }
+
+  public List<String> getSgBackups() {
+    return sgBackups;
+  }
+
+  public void setSgBackups(List<String> sgBackups) {
+    this.sgBackups = sgBackups;
+  }
 
   public List<Condition> getConditions() {
     return conditions;
@@ -118,18 +146,10 @@ public class StackGresShardedClusterStatus {
     this.dbOps = dbOps;
   }
 
-  public List<String> getSgBackups() {
-    return sgBackups;
-  }
-
-  public void setSgBackups(List<String> sgBackups) {
-    this.sgBackups = sgBackups;
-  }
-
   @Override
   public int hashCode() {
     return Objects.hash(binding, buildVersion, clusterStatuses, conditions, dbOps, extensions,
-        postgresVersion, sgBackups, toInstallPostgresExtensions);
+        postgresVersion, repository, revision, sgBackups, toInstallPostgresExtensions);
   }
 
   @Override
@@ -147,6 +167,7 @@ public class StackGresShardedClusterStatus {
         && Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
         && Objects.equals(extensions, other.extensions)
         && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(repository, other.repository) && Objects.equals(revision, other.revision)
         && Objects.equals(sgBackups, other.sgBackups)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

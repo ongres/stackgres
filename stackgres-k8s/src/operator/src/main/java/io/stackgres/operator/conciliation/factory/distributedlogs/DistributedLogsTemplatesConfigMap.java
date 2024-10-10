@@ -14,7 +14,7 @@ import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
@@ -60,8 +60,8 @@ public class DistributedLogsTemplatesConfigMap
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(
             List.of(
-                ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH,
-                ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH)
+                ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH,
+                ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH)
             .stream()
             .collect(Collectors.toMap(
                 c -> c.filename(),

@@ -6,6 +6,7 @@
 package io.stackgres.operator.mutation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
@@ -14,11 +15,15 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatchException;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,7 +32,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultPostgresFlavorMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
@@ -45,10 +51,35 @@ class DefaultPostgresFlavorMutatorTest {
   }
 
   void clusterWithFinalFlavor_shouldNotDoAnything() {
+    mutator = new DefaultPostgresFlavorMutator();
+  }
+
+  @Test
+  @Disabled("The mutator does not populate the Docir status fields yet:"
+      + " they are currently set by ClusterPostgresVersionContextAppender during reconciliation")
+  void clusterWithFinalPostgresVersion_shouldAddStatus() {
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(review.getRequest().getObject(), result);
+    assertNotNull(result.getStatus().getRevision());
+    assertNotNull(result.getStatus().getBase());
+    assertNotNull(result.getStatus().getBaseVersion());
+    assertNotNull(result.getStatus().getBaseRevision());
+    assertNotNull(result.getStatus().getAddons());
+    assertNotNull(result.getStatus().getRepository());
+
+    var expected = JsonUtil.copy(review.getRequest().getObject());
+    expected.setStatus(new StackGresClusterStatus());
+    expected.getStatus().setRevision(result.getStatus().getRevision());
+    expected.getStatus().setBase(result.getStatus().getBase());
+    expected.getStatus().setBaseVersion(result.getStatus().getBaseVersion());
+    expected.getStatus().setBaseRevision(result.getStatus().getBaseRevision());
+    expected.getStatus().setAddons(result.getStatus().getAddons());
+    expected.getStatus().setRepository(result.getStatus().getRepository());
+
+    assertEquals(expected, result);
   }
 
   @Test

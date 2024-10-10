@@ -10,7 +10,7 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,7 +30,7 @@ public class BackupLabelFactory extends AbstractLabelFactory<StackGresBackup>
   public Map<String, String> backupPodLabels(StackGresBackup resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().backupKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().backupKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 

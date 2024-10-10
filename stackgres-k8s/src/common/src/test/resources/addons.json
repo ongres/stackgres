@@ -1,0 +1,202 @@
+{
+  "addons": [
+    {
+      "name": "fluent-bit",
+      "versions": [
+        {
+          "version": "4.0.5",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "fluent-bit",
+          "longDescription": "fluent-bit",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "fluentd",
+      "versions": [
+        {
+          "version": "1.16.5",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "fluentd",
+          "longDescription": "fluentd",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "hdrhistogram",
+      "versions": [
+        {
+          "version": "0.10.7",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "hdrhistogram",
+          "longDescription": "hdrhistogram",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "kubectl",
+      "versions": [
+        {
+          "version": "1.33.4",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "kubectl",
+          "longDescription": "kubectl",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "otel-collector",
+      "versions": [
+        {
+          "version": "0.120.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "otel-collector",
+          "longDescription": "otel-collector",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "patroni",
+      "versions": [
+        {
+          "version": "3.3.3",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "patroni",
+          "longDescription": "patroni",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "pgbouncer",
+      "versions": [
+        {
+          "version": "1.24.1",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "pgbouncer",
+          "longDescription": "pgbouncer",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "postgres-exporter",
+      "versions": [
+        {
+          "version": "0.17.1",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "postgres-exporter",
+          "longDescription": "postgres-exporter",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    },
+    {
+      "name": "wal-g",
+      "versions": [
+        {
+          "version": "3.0.3",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "12",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "description": "wal-g",
+          "longDescription": "wal-g",
+          "licenses": "",
+          "repository": {}
+        }
+      ]
+    }
+  ]
+}

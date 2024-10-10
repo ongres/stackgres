@@ -18,6 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -71,6 +72,7 @@ class DistributedLogsResourceGenerationDiscovererTest
   @Override
   protected StackGresDistributedLogsContext getResourceContext() throws IOException {
     return StackGresDistributedLogsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(resource)
         .postgresConfig(postgresConfig)

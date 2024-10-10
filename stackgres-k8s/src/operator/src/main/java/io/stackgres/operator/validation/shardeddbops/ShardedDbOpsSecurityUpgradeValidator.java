@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.Optional;
 
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -23,11 +24,14 @@ import jakarta.inject.Singleton;
 @ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)
 public class ShardedDbOpsSecurityUpgradeValidator implements ShardedDbOpsValidator {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresShardedCluster> clusterFinder;
 
   @Inject
   public ShardedDbOpsSecurityUpgradeValidator(
+      StackGresContext context,
       CustomResourceFinder<StackGresShardedCluster> clusterFinder) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
   }
 
@@ -39,7 +43,7 @@ public class ShardedDbOpsSecurityUpgradeValidator implements ShardedDbOpsValidat
         if (dbOps.getSpec().isOpSecurityUpgrade()) {
           Optional<StackGresShardedCluster> cluster = clusterFinder.findByNameAndNamespace(
               dbOps.getSpec().getSgShardedCluster(), dbOps.getMetadata().getNamespace());
-          if (cluster.map(c -> getPostgresFlavorComponent(c).get(c).streamOrderedVersions()
+          if (cluster.map(c -> getPostgresFlavorComponent(c).get(c).streamOrderedVersions(context)
               .noneMatch(c.getSpec().getPostgres().getVersion()::equals))
               .orElse(false)) {
             fail("Major version upgrade must be performed on SGShardedCluster before performing"

@@ -25,7 +25,7 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import jakarta.enterprise.event.Event;
@@ -43,7 +43,7 @@ public class StackGresClusterControllerMain {
       StackGresClusterControllerMain.class);
 
   private static final Path PATRONI_START_FILE_PATH =
-      Paths.get(ClusterPath.PATRONI_START_FILE_PATH.path());
+      Paths.get(ClusterPathV1.PATRONI_START_FILE_PATH.path());
 
   public static void main(String... args) {
     AtomicReference<Tuple2<Integer, Throwable>> exitCodeReference =

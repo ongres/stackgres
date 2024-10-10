@@ -24,6 +24,10 @@ mkdir -p "$TARGET_PATH"
 
 . "$PROJECT_PATH/src/main/resources/templates/shell-utils"
 
+# The templates call the binaries through the *_BIN_PATH environment variables exported by the
+# operator; the tests mock the binaries by name.
+export KUBECTL_BIN_PATH=kubectl
+
 run_test() {
   TEST_PATH="$1"
   if [ ! -f "$TEST_PATH" ]

@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class CgroupMountsTest {
 
     assertTrue(volumeMounts.stream()
         .filter(vm -> StackGresVolume.CGROUP.getName().equals(vm.getName()))
-        .anyMatch(vm -> ClusterPath.HOST_CGROUP_PATH.path().equals(vm.getMountPath())));
+        .anyMatch(vm -> ClusterPathV1.HOST_CGROUP_PATH.path().equals(vm.getMountPath())));
   }
 
   @Test
@@ -63,9 +63,9 @@ class CgroupMountsTest {
 
     assertEquals(2, envVars.size());
     assertTrue(envVars.stream()
-        .anyMatch(env -> env.equals(ClusterPath.CGROUP_PATH.envVar())));
+        .anyMatch(env -> env.equals(ClusterPathV1.CGROUP_PATH.envVar())));
     assertTrue(envVars.stream()
-        .anyMatch(env -> env.equals(ClusterPath.HOST_CGROUP_PATH.envVar())));
+        .anyMatch(env -> env.equals(ClusterPathV1.HOST_CGROUP_PATH.envVar())));
   }
 
   @Test

@@ -20,7 +20,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.common.KubernetesTestServerSetup;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
@@ -42,13 +42,13 @@ class LocalTokenTest {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName("demo-user")
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withType("Opaque")
         .withData(Map.of(
-            StackGresContext.REST_APIUSER_KEY, ResourceUtil.encodeSecret("apiuser"),
-            StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("stackgres"),
-            StackGresContext.REST_PASSWORD_KEY,
+            StackGresKeys.REST_APIUSER_KEY, ResourceUtil.encodeSecret("apiuser"),
+            StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("stackgres"),
+            StackGresKeys.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("apiuserdemo123"))))
         .build();
     Secret demoUserNoLabels = new SecretBuilder()
@@ -58,21 +58,21 @@ class LocalTokenTest {
         .endMetadata()
         .withType("Opaque")
         .withData(Map.of(
-            StackGresContext.REST_APIUSER_KEY, ResourceUtil.encodeSecret("apiuser-nolabel"),
-            StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("apiuser-nolabel"),
-            StackGresContext.REST_PASSWORD_KEY,
+            StackGresKeys.REST_APIUSER_KEY, ResourceUtil.encodeSecret("apiuser-nolabel"),
+            StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("apiuser-nolabel"),
+            StackGresKeys.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("apiuser-nolabeldemo123"))))
         .build();
     Secret demoUserNoApiUser = new SecretBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName("demo-user-no-apiuser")
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withType("Opaque")
         .withData(Map.of(
-            StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("k8suser"),
-            StackGresContext.REST_PASSWORD_KEY,
+            StackGresKeys.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("k8suser"),
+            StackGresKeys.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("k8suserdemo123"))))
         .build();
 

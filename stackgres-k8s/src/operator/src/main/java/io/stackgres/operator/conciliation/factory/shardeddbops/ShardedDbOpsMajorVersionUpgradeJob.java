@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.ShardedClusterPath;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -305,7 +305,7 @@ public class ShardedDbOpsMajorVersionUpgradeJob extends AbstractShardedDbOpsJob 
             .build(),
             new EnvVarBuilder()
             .withName("POSTGRES_VERSION_KEY")
-            .withValue(StackGresContext.POSTGRES_VERSION_KEY)
+            .withValue(StackGresKeys.POSTGRES_VERSION_KEY)
             .build(),
             new EnvVarBuilder()
             .withName("LOCK_DURATION")

@@ -14,7 +14,7 @@
   "spec": {
     "instances": 1,
     "postgres": {
-      "version": "13.5"
+      "version": "13.16"
     },
     "replication": {
       "mode": "async",

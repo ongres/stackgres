@@ -11,6 +11,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -34,6 +35,8 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
     extends PersistentVolumeSizeExpansionValidator<StackGresDistributedLogsReview, StackGresDistributedLogs>
     implements DistributedLogsValidator {
 
+  private final StackGresContext context;
+
   private final ResourceFinder<StorageClass> finder;
 
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
@@ -44,10 +47,12 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
 
   @Inject
   public DistributedLogsPersistentVolumeSizeExpansionValidator(
+      StackGresContext context,
       ResourceFinder<StorageClass> finder,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
       LabelFactoryForDistributedLogs labelFactory,
       LabelFactoryForCluster labelFactoryForCluster) {
+    this.context = context;
     this.finder = finder;
     this.pvcScanner = pvcScanner;
     this.labelFactory = labelFactory;
@@ -84,7 +89,7 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
 
   @Override
   protected List<StackGresCluster> getClusters(StackGresDistributedLogs resource) {
-    return List.of(DistributedLogsCluster.getCluster(labelFactory, resource, Optional.empty()));
+    return List.of(DistributedLogsCluster.getCluster(context, labelFactory, resource, Optional.empty()));
   }
 
   @Override

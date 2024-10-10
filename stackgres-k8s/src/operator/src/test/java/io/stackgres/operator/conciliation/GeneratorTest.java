@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.ClusterResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -53,7 +54,7 @@ public abstract class GeneratorTest {
         version.getVersion());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     String defaultPostgreVersion = StackGresComponent.POSTGRESQL
-        .getOrThrow(version).getLatestVersion();
+        .getOrThrow(version).getLatestVersion(StackGresContextMock.CONTEXT);
     cluster.getSpec().getPostgres().setVersion(defaultPostgreVersion);
     cluster.getSpec().setReplication(new StackGresClusterReplication());
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.ASYNC.toString());
@@ -78,6 +79,7 @@ public abstract class GeneratorTest {
 
   private StackGresClusterContext buildContext() {
     return StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .source(cluster)
         .profile(stackGresInstanceProfile)
         .postgresConfig(stackGresPostgresConfig)

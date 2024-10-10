@@ -19,11 +19,11 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
@@ -34,6 +34,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -55,7 +56,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniConfigMapTest {
 
   private final LabelFactoryForCluster labelFactory = new ClusterLabelFactory(
-      new ClusterLabelMapper());
+      StackGresContextMock.CONTEXT, new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
   private PatroniConfigMap generator;
@@ -64,7 +65,8 @@ class PatroniConfigMapTest {
 
   @BeforeEach
   void setUp() {
-    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory =
+        new DefaultClusterPostgresConfigFactory(StackGresContextMock.CONTEXT);
     var patroniConfigEndpoints = new PatroniConfigEndpoints(
         labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider(), defaultPostgresConfigFactory);
     generator = new PatroniConfigMap(
@@ -75,7 +77,7 @@ class PatroniConfigMapTest {
     when(context.getSource()).thenReturn(cluster);
     lenient().when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     cluster.getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+        .put(StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getConfigurations().setPatroni(new StackGresClusterPatroni());
     cluster.getSpec().getConfigurations().getPatroni()
         .setInitialConfig(new StackGresClusterPatroniConfig());
@@ -177,7 +179,8 @@ class PatroniConfigMapTest {
     cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put("validKey3", "stringValue");
     cluster.getSpec().getPostgres().setVersion(
-        StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
+        StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+        .streamOrderedVersions(null).findFirst().get());
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
     PatroniUtil.PATRONI_BLOCKLIST_CONFIG_KEYS.forEach(
         key ->  cluster.getSpec().getConfigurations().getPatroni()
@@ -216,7 +219,8 @@ class PatroniConfigMapTest {
   void getConfigMapWithBabelfishFlavor_shouldReturnBabelfishInformationPort() throws Exception {
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().getPostgres().setVersion(
-        StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
+        StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+        .streamOrderedVersions(null).findFirst().get());
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
 
     ConfigMap configMap = generator.buildSource(context);
@@ -258,7 +262,7 @@ class PatroniConfigMapTest {
   void getConfigMapWhenDistributedLogsSpecIsPresent_shouldContainLogInformationEnvVars() {
     when(context.getCluster()).thenReturn(cluster);
     ConfigMap configMap = generator.buildSource(context);
-    assertEquals(ClusterPath.PG_LOG_PATH.path(),
+    assertEquals(ClusterPathV1.PG_LOG_PATH.path(),
         configMap.getData().get("PATRONI_LOG_DIR"));
     assertEquals("2", configMap.getData().get("PATRONI_LOG_FILE_NUM"));
     assertEquals(String.valueOf(PatroniConfigMap.PATRONI_LOG_FILE_SIZE),
@@ -326,7 +330,8 @@ class PatroniConfigMapTest {
   void generateResource_whenBabelfishFlavor_shouldIncludeBabelfishPort() throws Exception {
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().getPostgres().setVersion(
-        StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
+        StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+            .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get());
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
 
     ConfigMap configMap = generator.buildSource(context);

@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -28,11 +29,20 @@ import org.jooq.lambda.Seq;
 public class ShardedClusterExtensionsContextAppender
     extends AbstractExtensionsContextAppender<StackGresShardedCluster, Builder> {
 
+  private final StackGresContext context;
   private final ExtensionMetadataManager extensionMetadataManager;
 
   @Inject
-  public ShardedClusterExtensionsContextAppender(ExtensionMetadataManager extensionMetadataManager) {
+  public ShardedClusterExtensionsContextAppender(
+      StackGresContext context,
+      ExtensionMetadataManager extensionMetadataManager) {
+    this.context = context;
     this.extensionMetadataManager = extensionMetadataManager;
+  }
+
+  @Override
+  protected StackGresContext getContext() {
+    return context;
   }
 
   @Override
@@ -52,7 +62,7 @@ public class ShardedClusterExtensionsContextAppender
             .toList();
     return Seq.seq(extensions)
         .append(
-            StackGresUtil.getShardedClusterExtensions(inputContext)
+            StackGresUtil.getShardedClusterExtensions(context, inputContext)
             .stream()
             .filter(extension -> extensions.stream()
                 .map(StackGresClusterExtension::getName)

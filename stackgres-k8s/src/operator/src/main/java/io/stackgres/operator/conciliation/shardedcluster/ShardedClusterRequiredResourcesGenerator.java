@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardedcluster;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -24,14 +25,18 @@ public class ShardedClusterRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ShardedClusterRequiredResourcesGenerator.class);
 
+  private final StackGresContext context;
+
   private final ShardedClusterContextPipeline contextPipeline;
 
   private final ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer;
 
   @Inject
   public ShardedClusterRequiredResourcesGenerator(
+      StackGresContext context,
       ShardedClusterContextPipeline contextPipeline,
       ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer) {
+    this.context = context;
     this.contextPipeline = contextPipeline;
     this.discoverer = discoverer;
   }
@@ -39,6 +44,7 @@ public class ShardedClusterRequiredResourcesGenerator
   @Override
   public List<HasMetadata> getRequiredResources(StackGresShardedCluster cluster) {
     StackGresShardedClusterContext.Builder contextBuilder = StackGresShardedClusterContext.builder()
+        .context(context)
         .source(cluster);
 
     contextPipeline.appendContext(cluster, contextBuilder);

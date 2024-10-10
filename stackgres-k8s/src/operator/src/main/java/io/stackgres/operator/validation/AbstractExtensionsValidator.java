@@ -13,20 +13,25 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.docir.DocirExtensionMetadata;
+import io.stackgres.common.docir.DocirExtensionVersion;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
+import io.stackgres.common.extension.StackGresExtensionVersion;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
@@ -37,6 +42,8 @@ import org.jooq.lambda.tuple.Tuple2;
 public abstract class AbstractExtensionsValidator<
       R extends HasMetadata, T extends AdmissionReview<R>>
     implements Validator<T> {
+
+  protected abstract StackGresContext getContext();
 
   @Override
   public void validate(T review) throws ValidationFailed {
@@ -106,21 +113,33 @@ public abstract class AbstractExtensionsValidator<
         .orElse(null);
     String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(getContext(), postgresVersion);
     String oldPostgresMajorVersion = getPostgresFlavorComponent(oldCluster)
         .get(oldCluster)
-        .getMajorVersion(oldPostgresVersion);
+        .getMajorVersion(getContext(), oldPostgresVersion);
     if (!Objects.equals(postgresMajorVersion, oldPostgresMajorVersion)) {
       return true;
     }
-    String buildMajorVersion = getPostgresFlavorComponent(cluster)
-        .get(cluster)
-        .getBuildMajorVersion(postgresVersion);
-    String oldBuildMajorVersion = getPostgresFlavorComponent(oldCluster)
-        .get(oldCluster)
-        .getBuildMajorVersion(oldPostgresVersion);
-    if (!Objects.equals(buildMajorVersion, oldBuildMajorVersion)) {
-      return true;
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      String buildMajorVersion = getPostgresFlavorComponent(cluster)
+          .get(cluster)
+          .getBuildMajorVersion(getContext(), postgresVersion);
+      String oldBuildMajorVersion = getPostgresFlavorComponent(oldCluster)
+          .get(oldCluster)
+          .getBuildMajorVersion(getContext(), oldPostgresVersion);
+      if (!Objects.equals(buildMajorVersion, oldBuildMajorVersion)) {
+        return true;
+      }
+    } else {
+      String buildVersion = getPostgresFlavorComponent(cluster)
+          .get(cluster)
+          .getBuildVersion(getContext(), postgresVersion);
+      String oldBuildVersion = getPostgresFlavorComponent(oldCluster)
+          .get(oldCluster)
+          .getBuildVersion(getContext(), oldPostgresVersion);
+      if (!Objects.equals(buildVersion, oldBuildVersion)) {
+        return true;
+      }
     }
     return false;
   }
@@ -188,6 +207,40 @@ public abstract class AbstractExtensionsValidator<
       StackGresCluster cluster,
       List<ExtensionTuple> missingExtensions) {
     final List<StackGresClusterExtension> requiredExtensions = getExtensions(resource, cluster);
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return missingExtensions
+          .stream()
+          .map(missingExtension -> {
+            final StackGresClusterExtension extension = requiredExtensions.stream()
+                .filter(requiredExtension -> requiredExtension.getName()
+                    .equals(missingExtension.extensionName()))
+                .findAny()
+                .orElseGet(() -> {
+                  return new StackGresClusterExtensionBuilder()
+                      .withName(missingExtension.extensionName())
+                      .withVersion(missingExtension.extensionVersion().orElse(null))
+                      .build();
+                });
+  
+            final List<StackGresExtensionMetadata> extensionsAnyVersion = getExtensionMetadataManager()
+                .getExtensionsAnyVersion(cluster, extension, false);
+  
+            final List<String> candidateExtensions = Seq.seq(extensionsAnyVersion)
+                .grouped(Function.<StackGresExtensionMetadata>identity()
+                    .andThen(StackGresExtensionMetadata::getVersion)
+                    .andThen(StackGresExtensionVersion::getVersion))
+                .map(Tuple2::v1)
+                .sorted(Comparator.comparing(
+                    Function.<String>identity()
+                    .andThen(StackGresUtil::sortableVersion)).reversed())
+                .toList();
+            return Tuple.tuple(
+                missingExtension.extensionName(),
+                candidateExtensions
+            );
+          })
+          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
+    }
     return missingExtensions
         .stream()
         .map(missingExtension -> {
@@ -202,12 +255,23 @@ public abstract class AbstractExtensionsValidator<
                     .build();
               });
 
-          var extensionMetadataManager = getExtensionMetadataManager();
-          final List<StackGresExtensionMetadata> extensionsAnyVersion = extensionMetadataManager
-              .getExtensionsAnyVersion(cluster, extension, false);
+          final List<DocirExtensionMetadata> extensionsAnyVersion = getContext()
+              .getMetadataManager()
+              .getExtensionsAnyVersion(getContext(), cluster, extension, false);
 
-          var candidateExtensions = extensionsAnyVersion.stream()
-              .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
+          final List<String> candidateExtensions = Seq.seq(extensionsAnyVersion)
+              .grouped(Function.<DocirExtensionMetadata>identity()
+                  .andThen(DocirExtensionMetadata::getVersion)
+                  .andThen(DocirExtensionVersion::getVersion))
+              .map(Tuple2::v2)
+              .map(Seq::findFirst)
+              .flatMap(Optional::stream)
+              .sorted(Comparator.comparing(
+                  Function.<DocirExtensionMetadata>identity()
+                  .andThen(DocirExtensionMetadata::getSortableVersion)).reversed())
+              .map(Function.<DocirExtensionMetadata>identity()
+                  .andThen(DocirExtensionMetadata::getVersion)
+                  .andThen(DocirExtensionVersion::getVersion))
               .toList();
           return Tuple.tuple(
               missingExtension.extensionName(),

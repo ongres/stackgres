@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorker;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
@@ -48,7 +49,7 @@ class ShardedClusterWorkersPostgresConfigContextAppenderTest {
   private StackGresShardedClusterContext.Builder contextBuilder;
 
   private DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory =
-      new DefaultShardedClusterPostgresConfigFactory();
+      new DefaultShardedClusterPostgresConfigFactory(StackGresContextMock.CONTEXT);
 
   @Mock
   private CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
@@ -65,6 +66,7 @@ class ShardedClusterWorkersPostgresConfigContextAppenderTest {
         Tuple.tuple(1024, Optional.empty(), StackGresShardedClusterForCitusUtil
             .getQueryRouterCluster(cluster, 1024, Optional.empty())));
     contextAppender = new ShardedClusterWorkersPostgresConfigContextAppender(
+        StackGresContextMock.CONTEXT,
         postgresConfigFinder,
         defaultPostgresConfigFactory);
   }

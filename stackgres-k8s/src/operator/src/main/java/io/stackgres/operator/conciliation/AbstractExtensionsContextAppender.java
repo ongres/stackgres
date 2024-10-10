@@ -11,16 +11,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.docir.DocirExtensionMetadata;
+import io.stackgres.common.docir.DocirExtensionVersion;
+import io.stackgres.common.docir.DocirUtil;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
@@ -30,6 +34,8 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 public abstract class AbstractExtensionsContextAppender<C, T> {
+
+  protected abstract StackGresContext getContext();
 
   protected abstract ExtensionMetadataManager getExtensionMetadataManager();
 
@@ -117,6 +123,35 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
       List<ExtensionTuple> missingExtensions) {
     final List<StackGresClusterExtension> requiredExtensions =
         getExtensions(inputContext, postgresVersion, buildVersion);
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return missingExtensions
+          .stream()
+          .map(missingExtension -> {
+            final StackGresClusterExtension extension = requiredExtensions.stream()
+                .filter(requiredExtension -> requiredExtension.getName()
+                    .equals(missingExtension.extensionName()))
+                .findAny()
+                .orElseGet(() -> {
+                  return new StackGresClusterExtensionBuilder()
+                      .withName(missingExtension.extensionName())
+                      .withVersion(missingExtension.extensionVersion().orElse(null))
+                      .build();
+                });
+  
+            var extensionMetadataManager = getExtensionMetadataManager();
+            final List<StackGresExtensionMetadata> extensionsAnyVersion = extensionMetadataManager
+                .getExtensionsAnyVersion(cluster, extension, false);
+  
+            var candidateExtensions = extensionsAnyVersion.stream()
+                .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
+                .toList();
+            return Tuple.tuple(
+                missingExtension.extensionName(),
+                candidateExtensions
+            );
+          })
+          .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
+    }
     return missingExtensions
         .stream()
         .map(missingExtension -> {
@@ -131,19 +166,30 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
                     .build();
               });
 
-          var extensionMetadataManager = getExtensionMetadataManager();
-          final List<StackGresExtensionMetadata> extensionsAnyVersion = extensionMetadataManager
-              .getExtensionsAnyVersion(cluster, extension, false);
+          final List<DocirExtensionMetadata> extensionsAnyVersion = getContext()
+              .getMetadataManager()
+              .getExtensionsAnyVersion(getContext(), cluster, extension, false);
 
-          var candidateExtensions = extensionsAnyVersion.stream()
-              .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
+          final List<String> candidateExtensions = Seq.seq(extensionsAnyVersion)
+              .grouped(Function.<DocirExtensionMetadata>identity()
+                  .andThen(DocirExtensionMetadata::getVersion)
+                  .andThen(DocirExtensionVersion::getVersion))
+              .map(Tuple2::v2)
+              .map(Seq::findFirst)
+              .flatMap(Optional::stream)
+              .sorted(Comparator.comparing(
+                  Function.<DocirExtensionMetadata>identity()
+                  .andThen(DocirExtensionMetadata::getSortableVersion)).reversed())
+              .map(Function.<DocirExtensionMetadata>identity()
+                  .andThen(DocirExtensionMetadata::getVersion)
+                  .andThen(DocirExtensionVersion::getVersion))
               .toList();
           return Tuple.tuple(
               missingExtension.extensionName(),
               candidateExtensions
           );
         })
-        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
   }
 
   private List<ExtensionTuple> getMissingExtensions(
@@ -183,9 +229,15 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
       String extensionName) {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
-    return getExtensionMetadataManager()
-        .findExtensionCandidateAnyVersion(cluster, extension, false)
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return getExtensionMetadataManager()
+          .findExtensionCandidateAnyVersion(cluster, extension, false)
+          .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+              cluster, extension, extensionMetadata, false));
+    }
+    return getContext().getMetadataManager()
+        .findExtensionCandidateAnyVersion(getContext(), cluster, extension, false)
+        .map(extensionMetadata -> DocirUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
   }
 
@@ -196,38 +248,58 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
     extension.setVersion(extensionVersion);
-    return getExtensionMetadataManager()
-        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return getExtensionMetadataManager()
+          .findExtensionCandidateSameMajorBuild(cluster, extension, false)
+          .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+              cluster, extension, extensionMetadata, false));
+    }
+    return getContext().getMetadataManager()
+        .findExtensionCandidateSameMajorBuild(getContext(), cluster, extension, false)
+        .map(extensionMetadata -> DocirUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
   }
 
   private Optional<StackGresClusterInstalledExtension> findToInstallExtension(
       StackGresCluster cluster,
       StackGresClusterExtension extension) {
-    return getExtensionMetadataManager()
-        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
-        .or(() -> Optional.of(getExtensionMetadataManager()
-            .getExtensionsAnyVersion(cluster, extension, false))
-            .stream()
-            .filter(list -> list.size() >= 1)
-            .flatMap(List::stream)
-            .filter(foundExtension -> foundExtension
-                .getTarget().getPostgresVersion().contains("."))
-            .findFirst())
+    if (!StackGresUtil.isRegistryEnabled(cluster)) {
+      return getExtensionMetadataManager()
+          .findExtensionCandidateSameMajorBuild(cluster, extension, false)
+          .or(() -> Optional.of(getExtensionMetadataManager()
+              .getExtensionsAnyVersion(cluster, extension, false))
+              .stream()
+              .filter(list -> list.size() >= 1)
+              .flatMap(List::stream)
+              .filter(foundExtension -> foundExtension
+                  .getTarget().getPostgresVersion().contains("."))
+              .findFirst())
+          .or(() -> Optional.of(extension.getVersion() == null)
+              .filter(hasNoVersion -> hasNoVersion)
+              .map(hasNoVersion -> getExtensionMetadataManager()
+                  .getExtensionsAnyVersion(cluster, extension, false))
+              .filter(Predicates.not(List::isEmpty))
+              .filter(allExtensionVersions -> Seq.seq(allExtensionVersions)
+                  .groupBy(Function.<StackGresExtensionMetadata>identity()
+                      .andThen(StackGresExtensionMetadata::getVersion)
+                      .andThen(StackGresExtensionVersion::getVersion))
+                  .size() >= 1)
+              .map(List::stream)
+              .flatMap(Stream::findFirst))
+          .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+              cluster, extension, extensionMetadata, false));
+    }
+    return getContext().getMetadataManager()
+        .findExtensionCandidateSameMajorBuild(getContext(), cluster, extension, false)
         .or(() -> Optional.of(extension.getVersion() == null)
             .filter(hasNoVersion -> hasNoVersion)
-            .map(hasNoVersion -> getExtensionMetadataManager()
-                .getExtensionsAnyVersion(cluster, extension, false))
+            .map(hasNoVersion -> getContext().getMetadataManager()
+                .getExtensionsAnyVersion(getContext(), cluster, extension, false))
             .filter(Predicates.not(List::isEmpty))
-            .filter(allExtensionVersions -> Seq.seq(allExtensionVersions)
-                .groupBy(Function.<StackGresExtensionMetadata>identity()
-                    .andThen(StackGresExtensionMetadata::getVersion)
-                    .andThen(StackGresExtensionVersion::getVersion))
-                .size() >= 1)
-            .map(List::stream)
-            .flatMap(Stream::findFirst))
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
+            .stream()
+            .flatMap(List::stream)
+            .findFirst())
+        .map(extensionMetadata -> DocirUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
   }
 

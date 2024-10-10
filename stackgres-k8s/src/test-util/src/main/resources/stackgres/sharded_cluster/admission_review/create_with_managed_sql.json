@@ -1,4 +1,4 @@
-  {
+{
   "kind": "AdmissionReview",
   "request": {
     "uid": "e1bf674a-f85f-4305-ba25-271aba55e9b3",
@@ -50,7 +50,7 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla"
         },
         "postgresServices": {
@@ -76,16 +76,20 @@
         },
         "coordinator": {
           "managedSql": {
-            "scripts": [{
-              "id": 10,
-              "sgScript": "test1"
-            },{
-              "id": 11,
-              "sgScript": "test2"
-            },{
-              "id": 12,
-              "sgScript": "test3"
-            }]
+            "scripts": [
+              {
+                "id": 10,
+                "sgScript": "test1"
+              },
+              {
+                "id": 11,
+                "sgScript": "test2"
+              },
+              {
+                "id": 12,
+                "sgScript": "test3"
+              }
+            ]
           },
           "instances": 1,
           "sgInstanceProfile": "size-s",
@@ -93,7 +97,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -102,16 +106,20 @@
         },
         "workers": {
           "managedSql": {
-            "scripts": [{
-              "id": 10,
-              "sgScript": "test1"
-            },{
-              "id": 11,
-              "sgScript": "test2"
-            },{
-              "id": 12,
-              "sgScript": "test3"
-            }]
+            "scripts": [
+              {
+                "id": 10,
+                "sgScript": "test1"
+              },
+              {
+                "id": 11,
+                "sgScript": "test2"
+              },
+              {
+                "id": 12,
+                "sgScript": "test3"
+              }
+            ]
           },
           "clusters": 2,
           "instancesPerCluster": 1,
@@ -120,29 +128,40 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           },
-          "overrides":[{
-            "index": 1,
-            "managedSql": {
-              "scripts": [{
-                "id": 10,
-                "sgScript": "test1"
-              },{
-                "id": 11,
-                "sgScript": "test2"
-              },{
-                "id": 12,
-                "sgScript": "test3"
-              }]
+          "overrides": [
+            {
+              "index": 1,
+              "managedSql": {
+                "scripts": [
+                  {
+                    "id": 10,
+                    "sgScript": "test1"
+                  },
+                  {
+                    "id": 11,
+                    "sgScript": "test2"
+                  },
+                  {
+                    "id": 12,
+                    "sgScript": "test3"
+                  }
+                ]
+              }
             }
-          }]
+          ]
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },

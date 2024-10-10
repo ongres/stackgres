@@ -15,7 +15,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.InjectMock;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -71,15 +72,15 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
     config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
-        .getLatest().streamOrderedVersions()
+        .get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
         .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
     cluster.getMetadata().getAnnotations().put(
-        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+        StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     final String namespace = cluster.getMetadata().getNamespace();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec()
         .setPostgresVersion(StackGresComponent.POSTGRESQL
-            .getLatest().streamOrderedMajorVersions()
+            .get(Fixtures.registryCluster()).streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
             .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
     setNamespace(postgresConfig);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());

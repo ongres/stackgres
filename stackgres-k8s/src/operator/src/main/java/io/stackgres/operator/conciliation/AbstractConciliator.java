@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.ws.rs.core.Response;
@@ -99,7 +99,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
 
     final var updateUnownedResources = requiredResources.stream()
         .filter(requiredResource -> Optional.ofNullable(requiredResource.getMetadata().getAnnotations())
-            .map(annotations -> annotations.containsKey(StackGresContext.UPDATE_UNOWNED_RESOURCE_KEY))
+            .map(annotations -> annotations.containsKey(StackGresKeys.UPDATE_UNOWNED_RESOURCE_KEY))
             .orElse(false))
         .toList();
     var deployedOtherOwnerRequiredResources = deployedResourcesSnapshot.deployedResources().stream()
@@ -134,7 +134,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     }
     updateUnownedResources
         .forEach(requiredResource -> requiredResource.getMetadata().getAnnotations()
-            .remove(StackGresContext.UPDATE_UNOWNED_RESOURCE_KEY));
+            .remove(StackGresKeys.UPDATE_UNOWNED_RESOURCE_KEY));
 
     var foundConfig = finder.findByNameAndNamespace(
         config.getMetadata().getName(),

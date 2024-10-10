@@ -270,6 +270,9 @@ $(
     cat << INNER_EOF
 containerdConfigPatches:
 - |-
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
+- |-
 $(
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then

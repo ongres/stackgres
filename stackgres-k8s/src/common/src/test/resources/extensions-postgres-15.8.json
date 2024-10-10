@@ -1,0 +1,1783 @@
+{
+  "extensions": [
+    {
+      "name": "adminpack",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "adminpack 15.8",
+            "longDescription": "adminpack v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "amcheck",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "amcheck 15.8",
+            "longDescription": "amcheck v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "auth_delay",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "auth_delay 15.8",
+            "longDescription": "auth_delay v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "auto_explain",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "auto_explain 15.8",
+            "longDescription": "auto_explain v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "auto_explain 15.8",
+            "longDescription": "auto_explain v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "basebackup_to_shell",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "basebackup_to_shell 15.8",
+            "longDescription": "basebackup_to_shell v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "basic_archive",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "basic_archive 15.8",
+            "longDescription": "basic_archive v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "bloom",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "bloom 15.8",
+            "longDescription": "bloom v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "bool_plperl",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "bool_plperl 15.8",
+            "longDescription": "bool_plperl v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "btree_gin",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "btree_gin 15.8",
+            "longDescription": "btree_gin v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "btree_gist",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "btree_gist 15.8",
+            "longDescription": "btree_gist v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "citext",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "citext 15.8",
+            "longDescription": "citext v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "citus",
+      "extensionVersions": [
+        {
+          "version": "13.2.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "citus 15.8",
+            "longDescription": "citus v12.1.4 for PostgreSQL 15.8",
+            "licenses": "AGPL-3.0",
+            "repository": {
+              "url": "https://github.com/citusdata/citus",
+              "tag": "v12.1.4"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "cube",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "cube 15.8",
+            "longDescription": "cube v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dblink",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dblink 15.8",
+            "longDescription": "dblink v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dblink 15.8",
+            "longDescription": "dblink v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dict_int",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dict_int 15.8",
+            "longDescription": "dict_int v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dict_xsyn",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "dict_xsyn 15.8",
+            "longDescription": "dict_xsyn v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "earthdistance",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "earthdistance 15.8",
+            "longDescription": "earthdistance v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "file_fdw",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "file_fdw 15.8",
+            "longDescription": "file_fdw v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "fuzzystrmatch",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "fuzzystrmatch 15.8",
+            "longDescription": "fuzzystrmatch v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "hstore",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "hstore 15.8",
+            "longDescription": "hstore v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "hstore_plperl",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "hstore_plperl 15.8",
+            "longDescription": "hstore_plperl v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "hstore_plpython",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "hstore_plpython 15.8",
+            "longDescription": "hstore_plpython v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "intagg",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "intagg 15.8",
+            "longDescription": "intagg v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "intarray",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "intarray 15.8",
+            "longDescription": "intarray v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "isn",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "isn 15.8",
+            "longDescription": "isn v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "jsonb_plperl",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "jsonb_plperl 15.8",
+            "longDescription": "jsonb_plperl v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "jsonb_plpython",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "jsonb_plpython 15.8",
+            "longDescription": "jsonb_plpython v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "lo",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "lo 15.8",
+            "longDescription": "lo v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ltree",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "ltree 15.8",
+            "longDescription": "ltree v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ltree_plpython",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "ltree_plpython 15.8",
+            "longDescription": "ltree_plpython v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "oid2name",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "oid2name 15.8",
+            "longDescription": "oid2name v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "old_snapshot",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "old_snapshot 15.8",
+            "longDescription": "old_snapshot v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pageinspect",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pageinspect 15.8",
+            "longDescription": "pageinspect v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "passwordcheck",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "passwordcheck 15.8",
+            "longDescription": "passwordcheck v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_buffercache",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_buffercache 15.8",
+            "longDescription": "pg_buffercache v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_freespacemap",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_freespacemap 15.8",
+            "longDescription": "pg_freespacemap v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_prewarm",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_prewarm 15.8",
+            "longDescription": "pg_prewarm v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_stat_statements",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_stat_statements 15.8",
+            "longDescription": "pg_stat_statements v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        },
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_stat_statements 15.8",
+            "longDescription": "pg_stat_statements v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_surgery",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_surgery 15.8",
+            "longDescription": "pg_surgery v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_trgm",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_trgm 15.8",
+            "longDescription": "pg_trgm v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_visibility",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_visibility 15.8",
+            "longDescription": "pg_visibility v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_walinspect",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_walinspect 15.8",
+            "longDescription": "pg_walinspect v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pgcrypto",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pgcrypto 15.8",
+            "longDescription": "pgcrypto v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pgrowlocks",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pgrowlocks 15.8",
+            "longDescription": "pgrowlocks v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pgstattuple",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pgstattuple 15.8",
+            "longDescription": "pgstattuple v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "postgres_fdw",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "postgres_fdw 15.8",
+            "longDescription": "postgres_fdw v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "seg",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "seg 15.8",
+            "longDescription": "seg v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sepgsql",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "sepgsql 15.8",
+            "longDescription": "sepgsql v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "spi",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "spi 15.8",
+            "longDescription": "spi v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sslinfo",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "sslinfo 15.8",
+            "longDescription": "sslinfo v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tablefunc",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tablefunc 15.8",
+            "longDescription": "tablefunc v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tcn",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tcn 15.8",
+            "longDescription": "tcn v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "test_decoding",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "test_decoding 15.8",
+            "longDescription": "test_decoding v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tsm_system_rows",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tsm_system_rows 15.8",
+            "longDescription": "tsm_system_rows v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tsm_system_time",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "tsm_system_time 15.8",
+            "longDescription": "tsm_system_time v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "unaccent",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "unaccent 15.8",
+            "longDescription": "unaccent v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "uuid-ossp",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "uuid-ossp 15.8",
+            "longDescription": "uuid-ossp v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "vacuumlo",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "vacuumlo 15.8",
+            "longDescription": "vacuumlo v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "xml2",
+      "extensionVersions": [
+        {
+          "version": "15.8",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "xml2 15.8",
+            "longDescription": "xml2 v15.8 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": {
+              "url": "https://git.postgresql.org/git/postgresql.git",
+              "tag": "REL_15_8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "plpgsql",
+      "extensionVersions": [
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "plpgsql 1.0.0",
+            "longDescription": "plpgsql v1.0.0 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "plpython3u",
+      "extensionVersions": [
+        {
+          "version": "1.0.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "plpython3u 1.0.0",
+            "longDescription": "plpython3u v1.0.0 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "timescaledb",
+      "extensionVersions": [
+        {
+          "version": "1.7.1",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "timescaledb 1.7.1",
+            "longDescription": "timescaledb v1.7.1 for PostgreSQL 15.8",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "citus_columnar",
+      "extensionVersions": [
+        {
+          "version": "13.2.0",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "citus_columnar 13.2.0",
+            "longDescription": "citus_columnar v13.2.0",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "pg_cron",
+      "extensionVersions": [
+        {
+          "version": "1.6.4",
+          "platforms": [
+            {
+              "os": "linux",
+              "architecture": "amd64",
+              "revision": "10",
+              "base": "ubi",
+              "baseMajor": "9",
+              "baseMinor": "4"
+            }
+          ],
+          "metadata": {
+            "description": "pg_cron 1.6.4",
+            "longDescription": "pg_cron v1.6.4",
+            "licenses": "",
+            "repository": null
+          }
+        }
+      ]
+    }
+  ]
+}

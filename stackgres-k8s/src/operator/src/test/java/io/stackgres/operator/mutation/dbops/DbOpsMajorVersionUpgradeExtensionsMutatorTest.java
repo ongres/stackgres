@@ -11,26 +11,28 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtensionBuilder;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.docir.DocirExtensionMetadata;
+import io.stackgres.common.docir.DocirMetadataManager;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.extension.ExtensionMetadataManager;
-import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -48,36 +50,36 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findFirst().get();
+
+  private static final String BUILD_REVISION =
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedTagVersions(StackGresContextMock.CONTEXT)
+      .findFirst().get().getRevision().toString();
 
   private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedTagVersions(StackGresContextMock.CONTEXT).findFirst().get().getBuild();
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT)
           .toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
-      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      ALL_SUPPORTED_POSTGRES_VERSIONS =
-      ImmutableMap.of(
-          StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_POSTGRES_VERSIONS)
-              .toList()),
-          StackGresComponent.BABELFISH, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.BABELFISH.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_BABELFISH_VERSIONS)
-              .toList()));
-
+      StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).toList();
   private StackGresDbOpsReview review;
+
+  @Mock
+  private StackGresContext context;
+
+  @Mock
+  private DocirMetadataManager docirMetadataManager;
 
   @Mock
   private ExtensionMetadataManager extensionMetadataManager;
@@ -102,9 +104,10 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .setPostgresVersion(POSTGRES_VERSION);
     cluster = Fixtures.cluster().loadDefault().get();
 
-    mutator = new DbOpsMajorVersionUpgradeExtensionsMutator(extensionMetadataManager,
-        clusterFinder,
-        ALL_SUPPORTED_POSTGRES_VERSIONS);
+    mutator = new DbOpsMajorVersionUpgradeExtensionsMutator(
+        context,
+        extensionMetadataManager,
+        clusterFinder);
 
     extensions = Seq.of(
         "plpgsql",
@@ -125,24 +128,30 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         "pg_stat_statements",
         "dblink",
         "plpython3u")
-        .map(this::getInstalledExtensionWithoutBuild)
+        .map(this::getInstalledExtension)
         .toList();
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), argThat(extensions::contains), anyBoolean()))
+    lenient().when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), argThat(extensions::contains), anyBoolean()))
         .then(this::getDefaultExtensionMetadata);
     lenient().when(clusterFinder.findByNameAndNamespace(
         any(), any()))
         .thenReturn(Optional.of(cluster));
+    lenient().when(docirMetadataManager.getFlavors())
+        .thenReturn(StackGresContextMock.CONTEXT.getMetadataManager().getFlavors());
+    lenient().when(docirMetadataManager.getFlavors(nullable(URI.class)))
+        .thenReturn(StackGresContextMock.CONTEXT.getMetadataManager().getFlavors());
+    lenient().when(context.getMetadataManager())
+        .thenReturn(docirMetadataManager);
   }
 
-  private Optional<StackGresExtensionMetadata> getDefaultExtensionMetadata(
+  private Optional<DocirExtensionMetadata> getDefaultExtensionMetadata(
       InvocationOnMock invocation) {
-    if (invocation.getArgument(1) == null) {
+    if (invocation.getArgument(2) == null) {
       return Optional.empty();
     }
-    return Optional.of(new StackGresExtensionMetadata(existingExtensions.stream()
+    return Optional.of(new DocirExtensionMetadata(existingExtensions.stream()
         .filter(defaultExtension -> defaultExtension.getName()
-            .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
+            .equals(((StackGresClusterExtension) invocation.getArgument(2)).getName()))
         .findAny().get()));
   }
 
@@ -196,8 +205,8 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(),
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
@@ -208,14 +217,14 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
     result.getSpec().getMajorVersionUpgrade().getPostgresExtensions()
         .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
     assertEquals(
-        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        Seq.seq(toInstallExtensions).append(getInstalledExtension()).toList(),
         result.getSpec().getMajorVersionUpgrade().getToInstallPostgresExtensions());
   }
 
   @Test
   void clusterWithAnExtensionAlreadyInstalled_shouldNotDoAnything() throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
@@ -230,8 +239,8 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .add(installedExtension);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(),
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
@@ -246,13 +255,13 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   void clusterWithExtensionInstalledAddADifferntExtension_shouldAddToInstallPostgresExtensions()
       throws Exception {
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
     testExtension.setVersion(installedTestExtension.getVersion());
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
@@ -267,14 +276,14 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
+    final DocirExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(testExtension), anyBoolean()))
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.of(extensionTestMetadata));
-    final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(extension), anyBoolean()))
+    final DocirExtensionMetadata extensionMetadata = getExtensionMetadata();
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     StackGresDbOps result = mutator.mutate(
@@ -282,8 +291,8 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
 
     assertEquals(
         Seq.seq(toInstallExtensions)
-        .append(getInstalledExtensionWithoutBuild())
-        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtensionWithoutBuild())
+        .append(getInstalledExtension())
+        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtension())
             .withName("test")
             .build())
         .toList(),
@@ -295,7 +304,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   void clusterWithExtensionInstalledButRemoved_shouldReplaceToInstallPostgresExtensions()
       throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
@@ -322,7 +331,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   void clusterWithExtensionInstalledAddDifferntExtension_shouldReplaceToInstallPostgresExtensions()
       throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
@@ -334,14 +343,14 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(),
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
@@ -350,7 +359,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
-        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        Seq.seq(toInstallExtensions).append(getInstalledExtension()).toList(),
         result.getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions());
   }
@@ -359,7 +368,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   void clusterWithTwoExtensionInstalledAddDifferntExtension_shouldReplaceToInstallExtensions()
       throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
@@ -371,20 +380,20 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions()
         .add(installedTestExtension);
     final StackGresClusterInstalledExtension installedTestExtension2 =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension2.setName("test2");
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions()
         .add(installedTestExtension2);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(),
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
@@ -393,48 +402,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
-        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions());
-  }
-
-  @Test
-  void clusterWithExtensionInstalledAddExtensionWithExtraMounts_shouldReplaceToInstallExtensions()
-      throws Exception {
-    final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
-    final StackGresClusterExtension extension = getExtension();
-    extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
-        ImmutableList.<StackGresClusterExtension>builder()
-        .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions()
-        .addAll(toInstallExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
-    installedTestExtension.setName("test");
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions()
-        .add(installedTestExtension);
-
-    final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    extensionMetadata.getVersion().setExtraMounts(List.of("test"));
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(extension), anyBoolean()))
-        .thenReturn(Optional.of(extensionMetadata));
-
-    StackGresDbOps result = mutator.mutate(
-        review, JsonUtil.copy(review.getRequest().getObject()));
-
-    assertEquals(
-        Seq.seq(toInstallExtensions)
-        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtensionWithoutBuild())
-            .withExtraMounts(List.of("test"))
-            .build())
-        .toList(),
+        Seq.seq(toInstallExtensions).append(getInstalledExtension()).toList(),
         result.getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions());
   }
@@ -443,7 +411,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   void clusterWithExtensionInstalledWithExtraMountsAndExtension_shouldReplaceToInstallExtensions()
       throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
@@ -455,65 +423,23 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(List.of("test"));
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(extension), anyBoolean()))
+    final DocirExtensionMetadata extensionMetadata = getExtensionMetadata();
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
-        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions());
-  }
-
-  @Test
-  void clusterWithExtensionInstalledWithExtraMountsAddSimilarExtension_shouldReplaceToInstall()
-      throws Exception {
-    final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
-    final StackGresClusterExtension extension = getExtension();
-    extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
-        ImmutableList.<StackGresClusterExtension>builder()
-        .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions()
-        .addAll(toInstallExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
-    installedTestExtension.setName("test");
-    installedTestExtension.setExtraMounts(List.of("test"));
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions()
-        .add(installedTestExtension);
-
-    final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    extensionMetadata.getVersion().setExtraMounts(List.of("test"));
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(extension), anyBoolean()))
-        .thenReturn(Optional.of(extensionMetadata));
-
-    StackGresDbOps result = mutator.mutate(
-        review, JsonUtil.copy(review.getRequest().getObject()));
-
-    assertEquals(
-        Seq.seq(toInstallExtensions)
-        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtensionWithoutBuild())
-            .withExtraMounts(List.of("test"))
-            .build())
-        .toList(),
+        Seq.seq(toInstallExtensions).append(getInstalledExtension()).toList(),
         result.getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions());
   }
@@ -522,7 +448,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   void clusterWithExtensionInstalledWithNoBuildAddDifferntExtension_shouldReplaceToInstall()
       throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
@@ -534,60 +460,23 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     installedTestExtension.setBuild(null);
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(extension), anyBoolean()))
+    final DocirExtensionMetadata extensionMetadata = getExtensionMetadata();
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
-        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions());
-  }
-
-  @Test
-  void clusterWithExtensionInstalledAddDifferntExtensionWithoutBuild_shouldReplaceToInstall()
-      throws Exception {
-    final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
-    final StackGresClusterExtension extension = getExtension();
-    extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
-        ImmutableList.<StackGresClusterExtension>builder()
-        .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions()
-        .addAll(toInstallExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
-    installedTestExtension.setName("test");
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
-        .getToInstallPostgresExtensions()
-        .add(installedTestExtension);
-
-    final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    extensionMetadata.getTarget().setBuild(null);
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(extension), anyBoolean()))
-        .thenReturn(Optional.of(extensionMetadata));
-
-    StackGresDbOps result = mutator.mutate(
-        review, JsonUtil.copy(review.getRequest().getObject()));
-
-    assertEquals(
-        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        Seq.seq(toInstallExtensions).append(getInstalledExtension()).toList(),
         result.getSpec().getMajorVersionUpgrade()
         .getToInstallPostgresExtensions());
   }
@@ -595,7 +484,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   @Test
   void clusterWithMissingExtension_shouldNotDoNothing() throws Exception {
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
@@ -609,10 +498,10 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
+    final DocirExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(testExtension), anyBoolean()))
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
 
     StackGresDbOps result = mutator.mutate(
@@ -624,7 +513,7 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
   @Test
   void clusterWithAnAlreadyInstalledMissingExtension_shouldReplaceToInstall() throws Exception {
     final StackGresClusterInstalledExtension installedTestExtension =
-        getInstalledExtensionWithoutBuild();
+        getInstalledExtension();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
@@ -641,10 +530,10 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
         .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
+    final DocirExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), eq(testExtension), anyBoolean()))
+    when(docirMetadataManager.findExtensionCandidateSameMajorBuild(
+        any(), any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
 
     StackGresDbOps result = mutator.mutate(
@@ -672,42 +561,28 @@ class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
 
   private StackGresClusterInstalledExtension getInstalledExtension(String name) {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild(name);
-    installedExtension.setBuild(BUILD_VERSION);
+        new StackGresClusterInstalledExtension();
+    installedExtension.setName(name);
+    installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
+    installedExtension.setVersion("1.0.0");
+    installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
+    installedExtension.setBuild(BUILD_REVISION);
     return installedExtension;
   }
 
   private StackGresClusterInstalledExtension getInstalledExtension() {
     final StackGresClusterInstalledExtension installedExtension =
-        getInstalledExtensionWithoutBuild();
-    installedExtension.setBuild(BUILD_VERSION);
-    return installedExtension;
-  }
-
-  private StackGresClusterInstalledExtension getInstalledExtensionWithoutBuild(String name) {
-    final StackGresClusterInstalledExtension installedExtension =
-        new StackGresClusterInstalledExtension();
-    installedExtension.setName(name);
-    installedExtension.setPublisher("com.ongres");
-    installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
-    installedExtension.setVersion("1.0.0");
-    installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
-    return installedExtension;
-  }
-
-  private StackGresClusterInstalledExtension getInstalledExtensionWithoutBuild() {
-    final StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
     installedExtension.setName("timescaledb");
-    installedExtension.setPublisher("com.ongres");
     installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
     installedExtension.setVersion("1.7.1");
     installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
+    installedExtension.setBuild(BUILD_REVISION);
     return installedExtension;
   }
 
-  private StackGresExtensionMetadata getExtensionMetadata() {
-    return new StackGresExtensionMetadata(getInstalledExtension());
+  private DocirExtensionMetadata getExtensionMetadata() {
+    return new DocirExtensionMetadata(getInstalledExtension());
   }
 
 }

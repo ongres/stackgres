@@ -162,6 +162,11 @@ cluster:
       disableMetrics: false
       # receiver: ""
       prometheusAutobind: false
+    # registry:
+    #   # Retrieve the images of the Pods from the StackGres images registry (default for new SGClusters)
+    #   enabled: true
+    #   # Override the StackGres docir REST API URL configured in SGConfig.spec.repository.url
+    #   url: https://sgcr.dev
     backups:
       retention: 5
       cronSchedule: "*/2 * * * *"

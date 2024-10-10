@@ -8,12 +8,15 @@ package io.stackgres.common.fixture.dbops;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.fixture.VersionedFixture;
 
 public class DbOpsFixture extends VersionedFixture<StackGresDbOps> {
 
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).get(0).get();
 
   public DbOpsFixture loadRestart() {
     fixture = readFromJson(STACKGRES_DB_OPS_RESTART_JSON);

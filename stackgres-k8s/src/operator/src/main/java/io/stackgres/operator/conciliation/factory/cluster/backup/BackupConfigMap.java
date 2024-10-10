@@ -19,6 +19,7 @@ import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
@@ -28,7 +29,7 @@ import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 public class BackupConfigMap extends AbstractBackupConfigMap
     implements VolumeFactory<StackGresClusterContext> {
 

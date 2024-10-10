@@ -70,6 +70,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -726,7 +727,7 @@ class ShardedClusterResourceMockedTest extends
     final ShardedClusterLabelFactory shardedClusterLabelFactory = new ShardedClusterLabelFactory(
         new ShardedClusterLabelMapper());
     final ClusterLabelFactory clusterLabelFactory = new ClusterLabelFactory(
-        new ClusterLabelMapper());
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper());
     final ShardedClusterStatsTransformer shardedClusterStatsTransformer =
         new ShardedClusterStatsTransformer(new ClusterPodTransformer());
     final ShardedClusterStatsDtoFinder statsDtoFinder = new ShardedClusterStatsDtoFinder(

@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.impl.BaseClient;
 import io.stackgres.common.CrdLoader;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
@@ -209,7 +209,7 @@ public class CrdInstaller {
       crd.getMetadata().setAnnotations(new HashMap<>());
     }
     crd.getMetadata().getAnnotations().put(
-        StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
+        StackGresKeys.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
   }
 
   private void disableStorageVersions(CustomResourceDefinition installedCrd) {

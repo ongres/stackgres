@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtlInstance;
@@ -68,7 +69,7 @@ class DbOpsRequiredResourcesGeneratorTest {
     dbOps = Fixtures.dbOps().loadRestart().get();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
-        .getLatest().getLatestVersion());
+        .get(Fixtures.registryCluster()).getLatestVersion(StackGresContextMock.CONTEXT));
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgCluster());
     profile = Fixtures.instanceProfile().loadSizeS().get();

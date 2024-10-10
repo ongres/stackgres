@@ -26,7 +26,7 @@ public class PodTemplateFactoryDiscovererImpl
   @Override
   public PodTemplateFactory<ClusterContainerContext> discoverPodSpecFactory(
       ClusterContainerContext context) {
-    var podTemplateFactories = hub.get(context.getClusterContext().getVersion());
+    var podTemplateFactories = getFactories(context.getClusterContext());
 
     if (podTemplateFactories.size() != 1) {
       throw new IllegalArgumentException(

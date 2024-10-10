@@ -5,9 +5,12 @@
 
 package io.stackgres.common;
 
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 
 public interface ConfigContext {
+  
+  StackGresContext getContext();
 
   StackGresConfig getConfig();
 

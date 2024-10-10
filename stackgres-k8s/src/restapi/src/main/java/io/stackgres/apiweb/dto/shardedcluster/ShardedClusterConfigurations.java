@@ -12,6 +12,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterCredentials;
 import io.stackgres.apiweb.dto.cluster.ClusterObservability;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresExporter;
+import io.stackgres.apiweb.dto.cluster.ClusterRegistry;
 import io.stackgres.apiweb.dto.cluster.ClusterServiceBinding;
 import io.stackgres.common.StackGresUtil;
 
@@ -28,6 +29,8 @@ public class ShardedClusterConfigurations {
   private ClusterObservability observability;
 
   private ClusterPostgresExporter postgresExporter;
+
+  private ClusterRegistry registry;
 
   public List<ShardedClusterBackupConfiguration> getBackups() {
     return backups;
@@ -67,6 +70,14 @@ public class ShardedClusterConfigurations {
 
   public void setPostgresExporter(ClusterPostgresExporter postgresExporter) {
     this.postgresExporter = postgresExporter;
+  }
+
+  public ClusterRegistry getRegistry() {
+    return registry;
+  }
+
+  public void setRegistry(ClusterRegistry registry) {
+    this.registry = registry;
   }
 
   @Override

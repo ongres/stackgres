@@ -34,7 +34,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -73,7 +73,6 @@ import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamList;
 import io.stackgres.operator.common.DbOpsUtil;
 import io.stackgres.operator.common.Metrics;
-import io.stackgres.operator.common.ResourceWatcherFactory;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.backup.BackupReconciliator;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
@@ -110,7 +109,6 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private final ShardedBackupReconciliator shardedBackupReconciliatorCycle;
   private final ShardedDbOpsReconciliator shardedDbOpsReconciliatorCycle;
   private final StreamReconciliator streamReconciliatorCycle;
-  private final ResourceWatcherFactory watcherFactory;
   private final Map<String, StackGresConfig> configs =
       Collections.synchronizedMap(new HashMap<>());
   private final Map<String, StackGresCluster> clusters =
@@ -147,7 +145,6 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
       ShardedBackupReconciliator shardedBackupReconciliatorCycle,
       ShardedDbOpsReconciliator shardedDbOpsReconciliatorCycle,
       StreamReconciliator streamReconciliatorCycle,
-      ResourceWatcherFactory watcherFactory,
       DeployedResourcesCache deployedResourcesCache,
       Metrics metrics) {
     this.client = client;
@@ -161,7 +158,6 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     this.shardedBackupReconciliatorCycle = shardedBackupReconciliatorCycle;
     this.shardedDbOpsReconciliatorCycle = shardedDbOpsReconciliatorCycle;
     this.streamReconciliatorCycle = streamReconciliatorCycle;
-    this.watcherFactory = watcherFactory;
     this.deployedResourcesCache = deployedResourcesCache;
     this.metrics = metrics;
   }
@@ -335,18 +331,20 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     if (!allowedNamespaces.isEmpty()) {
       return allowedNamespaces.stream()
           .<WatcherMonitor<T>>map(allowedNamespace -> new WatcherMonitor<>(crClass.getSimpleName(),
-              watcherListener -> client
+              watcher -> client
               .resources(crClass, listClass)
               .inNamespace(allowedNamespace)
-              .watch(watcherFactory.createWatcher(consumer, watcherListener))))
+              .watch(watcher),
+              consumer))
           .toList();
     }
 
     return List.of(new WatcherMonitor<>(crClass.getSimpleName(),
-        watcherListener -> client
+        watcher -> client
         .resources(crClass, listClass)
         .inAnyNamespace()
-        .watch(watcherFactory.createWatcher(consumer, watcherListener))));
+        .watch(watcher),
+        consumer));
   }
 
   private <T extends HasMetadata,
@@ -357,18 +355,20 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     if (!allowedNamespaces.isEmpty()) {
       return allowedNamespaces.stream()
           .<WatcherMonitor<T>>map(allowedNamespace -> new WatcherMonitor<>(crClass.getSimpleName(),
-              watcherListener -> client
+              watcher -> client
               .resources(crClass, listClass)
               .inNamespace(allowedNamespace)
-              .watch(watcherFactory.createWatcher(consumer, watcherListener))))
+              .watch(watcher),
+              consumer))
           .toList();
     }
 
     return List.of(new WatcherMonitor<>(crClass.getSimpleName(),
-        watcherListener -> client
+        watcher -> client
         .resources(crClass, listClass)
         .inAnyNamespace()
-        .watch(watcherFactory.createWatcher(consumer, watcherListener))));
+        .watch(watcher),
+        consumer));
   }
 
   private <T> BiConsumer<Action, T> onUpdate(BiConsumer<Action, T> consumer) {
@@ -865,7 +865,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Endpoints> reconcileEndpointsShardedClusters() {
     String clusterScopeKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_SCOPE_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.CLUSTER_SCOPE_KEY;
     return (action, endpoints) -> synchronizedCopyOfValues(shardedClusters)
         .stream()
         .filter(cluster -> Objects.equals(
@@ -907,7 +907,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodClusters() {
     String clusterNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.CLUSTER_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(
@@ -922,7 +922,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodDistributedLogs() {
     String distributedLogsNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(distributedLogs)
         .stream()
         .filter(cluster -> Objects.equals(
@@ -937,9 +937,9 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodBackups() {
     String clusterNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.CLUSTER_NAME_KEY;
     String backupNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.BACKUP_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.BACKUP_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(backups)
         .stream()
         .filter(backup -> Objects.equals(
@@ -965,9 +965,9 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodDbOps() {
     String clusterNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.CLUSTER_NAME_KEY;
     String dbOpsNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.DBOPS_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.DBOPS_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(dbOps)
         .stream()
         .filter(dbOps -> Objects.equals(
@@ -993,9 +993,9 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodShardedBackups() {
     String clusterNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.SHARDED_CLUSTER_NAME_KEY;
     String backupNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_BACKUP_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.SHARDED_BACKUP_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(shardedBackups)
         .stream()
         .filter(backup -> Objects.equals(
@@ -1021,9 +1021,9 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodShardedDbOps() {
     String clusterNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.SHARDED_CLUSTER_NAME_KEY;
     String dbOpsNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_DBOPS_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.SHARDED_DBOPS_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(shardedDbOps)
         .stream()
         .filter(cluster -> Objects.equals(
@@ -1049,7 +1049,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, Pod> reconcilePodStreams() {
     String streamNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.STREAM_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.STREAM_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(streams)
         .stream()
         .filter(cluster -> Objects.equals(
@@ -1064,7 +1064,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, PersistentVolumeClaim> reconcilePvcClusters() {
     String clusterNameKey =
-        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+        StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.CLUSTER_NAME_KEY;
     return (action, pvc) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(

@@ -39,6 +39,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -85,6 +86,7 @@ public class PatroniCtlBinaryInstance implements PatroniCtlInstance {
       .orElse(60L));
 
   PatroniCtlBinaryInstance(
+      StackGresContext context,
       ObjectMapper objectMapper,
       YAMLMapper yamlMapper,
       LabelFactoryForCluster clusterLabelFactory,
@@ -100,7 +102,7 @@ public class PatroniCtlBinaryInstance implements PatroniCtlInstance {
         .map(StackGresClusterPatroni::getInitialConfig)
         .flatMap(StackGresClusterPatroniConfig::getCitusGroup)
         .orElse(null);
-    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+    final String patroniVersion = StackGresUtil.getPatroniVersion(context, cluster);
     int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     this.patroniMajorVersion = patroniMajorVersion;
     this.patroniCtlCommands = patroniCtlCommands(patroniVersion, patroniMajorVersion);

@@ -31,6 +31,18 @@ public class ClusterStatus {
 
   private List<String> backupPaths;
 
+  private String revision;
+
+  private String base;
+
+  private String baseVersion;
+
+  private String baseRevision;
+
+  private String repository;
+
+  private List<ClusterStatusAddon> addons;
+
   private Integer instances;
 
   private String labelSelector;
@@ -188,6 +200,54 @@ public class ClusterStatus {
 
   public void setBinding(ClusterServiceBindingStatus binding) {
     this.binding = binding;
+  }
+
+  public String getRevision() {
+    return revision;
+  }
+
+  public void setRevision(String revision) {
+    this.revision = revision;
+  }
+
+  public String getBase() {
+    return base;
+  }
+
+  public void setBase(String base) {
+    this.base = base;
+  }
+
+  public String getBaseVersion() {
+    return baseVersion;
+  }
+
+  public void setBaseVersion(String baseVersion) {
+    this.baseVersion = baseVersion;
+  }
+
+  public String getBaseRevision() {
+    return baseRevision;
+  }
+
+  public void setBaseRevision(String baseRevision) {
+    this.baseRevision = baseRevision;
+  }
+
+  public String getRepository() {
+    return repository;
+  }
+
+  public void setRepository(String repository) {
+    this.repository = repository;
+  }
+
+  public List<ClusterStatusAddon> getAddons() {
+    return addons;
+  }
+
+  public void setAddons(List<ClusterStatusAddon> addons) {
+    this.addons = addons;
   }
 
   public String getReplicationInitializationFailedSgBackup() {

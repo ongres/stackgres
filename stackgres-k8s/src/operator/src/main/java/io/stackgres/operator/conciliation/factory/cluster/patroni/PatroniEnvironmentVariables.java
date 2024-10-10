@@ -19,11 +19,11 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
@@ -58,7 +58,7 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
 
     List<EnvVar> additionalEnvVars = new ArrayList<>();
 
-    additionalEnvVars.add(ClusterPath.PATRONI_START_FILE_PATH.envVar());
+    additionalEnvVars.add(ClusterPathV1.PATRONI_START_FILE_PATH.envVar());
     additionalEnvVars.add(
         new EnvVarBuilder()
         .withName(PatroniUtil.PATRONI_READ_ONLY_SERVICE_NAME)
@@ -207,7 +207,7 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
             .withNewValueFrom()
             .withNewFieldRef()
             .withFieldPath("metadata.labels['"
-                + StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_UID_KEY + "']")
+                + StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.CLUSTER_UID_KEY + "']")
             .endFieldRef()
             .endValueFrom()
             .build(),

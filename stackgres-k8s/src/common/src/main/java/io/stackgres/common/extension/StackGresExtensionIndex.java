@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.OsDetector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import org.jooq.lambda.Seq;
@@ -33,13 +34,13 @@ public class StackGresExtensionIndex {
       StackGresClusterInstalledExtension installedExtension,
       boolean detectOs) {
     return new StackGresExtensionIndex(cluster, installedExtension,
-        Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
+        Optional.of(OsDetector.OS_DETECTOR).filter(od -> detectOs));
   }
 
   private StackGresExtensionIndex(
       StackGresCluster cluster,
       StackGresClusterInstalledExtension installedExtension,
-      Optional<ExtensionUtil.OsDetector> osDetector) {
+      Optional<OsDetector> osDetector) {
     this.name = installedExtension.getName();
     this.publisher = installedExtension.getPublisher();
     this.version = installedExtension.getVersion();
@@ -48,8 +49,8 @@ public class StackGresExtensionIndex {
     this.fromIndex = false;
     this.channels = ImmutableList.of();
     this.build = installedExtension.getBuild();
-    this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
-    this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
+    this.arch = OsDetector.getClusterArch(cluster, osDetector);
+    this.os = OsDetector.getClusterOs(cluster, osDetector);
   }
 
   public StackGresExtensionIndex(

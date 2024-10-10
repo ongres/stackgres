@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -67,6 +68,12 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   @Value.Derived
   default StackGresVersion getVersion() {
     return StackGresVersion.getStackGresVersion(getSource());
+  }
+
+  @Override
+  @Value.Derived
+  default boolean isRegistryEnabled() {
+    return StackGresUtil.isRegistryEnabled(getSource());
   }
 
   Optional<StackGresObjectStorage> getObjectStorage();

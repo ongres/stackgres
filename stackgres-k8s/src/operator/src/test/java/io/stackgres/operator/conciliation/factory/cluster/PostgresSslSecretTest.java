@@ -26,6 +26,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -51,7 +52,8 @@ class PostgresSslSecretTest {
 
   @BeforeEach
   void setUp() {
-    postgresSslSecret = new PostgresSslSecret(new ClusterLabelFactory(new ClusterLabelMapper()));
+    postgresSslSecret = new PostgresSslSecret(new ClusterLabelFactory(
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper()));
     cluster = Fixtures.cluster().loadDefault().get();
   }
 

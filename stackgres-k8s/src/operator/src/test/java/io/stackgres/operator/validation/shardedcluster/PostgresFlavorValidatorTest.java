@@ -15,6 +15,8 @@ import java.util.function.Predicate;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.conciliation.shardedcluster.context.ShardedClusterPostgresVersionContextAppender;
@@ -28,10 +30,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PostgresFlavorValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .toList();
   private static final String FIRST_BF_MINOR_VERSION =
-      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions()
+      StackGresComponent.BABELFISH.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .get(0).get();
 
   private static String getRandomPostgresVersion() {

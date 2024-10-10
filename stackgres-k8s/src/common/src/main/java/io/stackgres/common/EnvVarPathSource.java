@@ -7,8 +7,10 @@ package io.stackgres.common;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -18,6 +20,32 @@ public interface EnvVarPathSource<R extends HasMetadata> extends VolumePath<EnvV
   String name();
 
   String rawPath();
+
+  default String pathFromEnv() {
+    return Optional.ofNullable(System.getenv(name()))
+        .orElseGet(this::path);
+  }
+
+  default String pathFromEnv(EnvVarContext<R> context) {
+    return Optional.ofNullable(System.getenv(name()))
+        .orElseGet(() -> path(context));
+  }
+
+  default String filenameFromEnv() {
+    return filename(pathFromEnv());
+  }
+
+  default String filenameFromEnv(EnvVarContext<R> context) {
+    return filename(pathFromEnv(context));
+  }
+
+  default String subPathFromEnv() {
+    return subPath(pathFromEnv());
+  }
+
+  default String subPathFromEnv(EnvVarContext<R> context) {
+    return subPath(pathFromEnv(context));
+  }
 
   @Override
   default String path() {
@@ -83,9 +111,15 @@ public interface EnvVarPathSource<R extends HasMetadata> extends VolumePath<EnvV
 
   @Override
   default String filename(Map<String, String> envVars) {
-    String pathFile = path(envVars);
-    int indexOfLastSlash = pathFile.lastIndexOf('/');
-    return indexOfLastSlash != -1 ? pathFile.substring(indexOfLastSlash + 1) : pathFile;
+    String path = path(envVars);
+    return filename(path);
+  }
+
+  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
+      justification = "False positive")
+  private String filename(String path) {
+    int indexOfLastSlash = path.lastIndexOf('/');
+    return indexOfLastSlash != -1 ? path.substring(indexOfLastSlash + 1) : path;
   }
 
   @Override
@@ -105,7 +139,13 @@ public interface EnvVarPathSource<R extends HasMetadata> extends VolumePath<EnvV
 
   @Override
   default String subPath(Map<String, String> envVars) {
-    return path(envVars).substring(1);
+    return subPath(path(envVars));
+  }
+
+  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
+      justification = "False positive")
+  private String subPath(String path) {
+    return path.substring(1);
   }
 
   @Override

@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.ManagedSqlUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -159,28 +160,30 @@ public class ClusterStatusManager
         updateCondition(getClusterInitialScriptApplied(), source);
       }
     }
-    if (source.getStatus() != null
-        && source.getStatus().getArch() != null
-        && source.getStatus().getOs() != null
-        && source.getStatus().getPodStatuses() != null
-        && source.getStatus().getExtensions() != null) {
-      source.getStatus().getPodStatuses()
-          .stream()
-          .filter(StackGresClusterPodStatus::getPrimary)
-          .flatMap(podStatus -> source.getStatus().getExtensions().stream()
-              .filter(toInstallExtension -> podStatus
-                  .getInstalledPostgresExtensions().stream()
-                  .noneMatch(toInstallExtension::equals))
-              .map(toInstallExtension -> Tuple.tuple(
-                  toInstallExtension,
-                  podStatus.getInstalledPostgresExtensions().stream()
-                  .filter(installedExtension -> Objects.equals(
-                      installedExtension.getName(),
-                      toInstallExtension.getName()))
-                  .findFirst())))
-          .filter(t -> t.v2.isPresent())
-          .map(t -> t.map2(Optional::get))
-          .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
+    if (!StackGresUtil.isRegistryEnabled(source)) {
+      if (source.getStatus() != null
+          && source.getStatus().getArch() != null
+          && source.getStatus().getOs() != null
+          && source.getStatus().getPodStatuses() != null
+          && source.getStatus().getExtensions() != null) {
+        source.getStatus().getPodStatuses()
+            .stream()
+            .filter(StackGresClusterPodStatus::getPrimary)
+            .flatMap(podStatus -> source.getStatus().getExtensions().stream()
+                .filter(toInstallExtension -> podStatus
+                    .getInstalledPostgresExtensions().stream()
+                    .noneMatch(toInstallExtension::equals))
+                .map(toInstallExtension -> Tuple.tuple(
+                    toInstallExtension,
+                    podStatus.getInstalledPostgresExtensions().stream()
+                    .filter(installedExtension -> Objects.equals(
+                        installedExtension.getName(),
+                        toInstallExtension.getName()))
+                    .findFirst())))
+            .filter(t -> t.v2.isPresent())
+            .map(t -> t.map2(Optional::get))
+            .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
+      }
     }
     refreshComponentsUpdated(source);
     source.getStatus().setInstances(context.pods().size());

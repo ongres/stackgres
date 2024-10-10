@@ -12,21 +12,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedDbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,26 +35,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ShardedDbOpsMinorVersionUpgradeValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      ALL_SUPPORTED_POSTGRES_VERSIONS =
-      ImmutableMap.of(
-          StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_POSTGRES_VERSIONS)
-              .toList()));
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).toList();
   private static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
 
@@ -69,12 +60,13 @@ class ShardedDbOpsMinorVersionUpgradeValidatorTest {
 
   @BeforeEach
   void setUp() {
-    validator = new ShardedDbOpsMinorVersionUpgradeValidator(clusterFinder,
-        ALL_SUPPORTED_POSTGRES_VERSIONS);
+    validator = new ShardedDbOpsMinorVersionUpgradeValidator(
+        StackGresContextMock.CONTEXT,
+        clusterFinder);
 
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getMetadata().getAnnotations().put(
-        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+        StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MINOR_VERSION);
   }
 

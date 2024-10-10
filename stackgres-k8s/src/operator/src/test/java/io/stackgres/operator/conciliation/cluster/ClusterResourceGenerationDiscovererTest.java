@@ -6,21 +6,27 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import static java.util.Optional.ofNullable;
+import static org.mockito.Mockito.spy;
 
 import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.MockitoConfig;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.KubernetesTestServerSetup;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.DocirMetadataManager;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -31,6 +37,14 @@ import org.junit.jupiter.api.BeforeEach;
 @QuarkusTest
 class ClusterResourceGenerationDiscovererTest
     extends AbstractRequiredResourceGeneratorTest<StackGresClusterContext> {
+
+  @InjectMock
+  @MockitoConfig(convertScopes = true)
+  StackGresContext context;
+
+  @InjectMock
+  @MockitoConfig(convertScopes = true)
+  DocirMetadataManager metadataManager;
 
   @Inject
   ClusterResourceGenerationDiscoverer resourceGenerationDiscoverer;
@@ -45,6 +59,8 @@ class ClusterResourceGenerationDiscovererTest
 
   @BeforeEach
   public void setup() {
+    this.context = spy(StackGresContextMock.CONTEXT);
+    this.metadataManager = spy(StackGresContextMock.CONTEXT.getMetadataManager());
     this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
@@ -63,6 +79,7 @@ class ClusterResourceGenerationDiscovererTest
   @Override
   protected StackGresClusterContext getResourceContext() {
     return StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(resource)
         .postgresConfig(pgConfig)

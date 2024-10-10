@@ -9,15 +9,25 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavor;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DefaultPostgresVersionMutator implements ShardedClusterMutator {
+
+  private final StackGresContext context;
+
+  @Inject
+  public DefaultPostgresVersionMutator(StackGresContext context) {
+    this.context = context;
+  }
 
   @Override
   public StackGresShardedCluster mutate(
@@ -29,18 +39,10 @@ public class DefaultPostgresVersionMutator implements ShardedClusterMutator {
     final String postgresVersion = resource.getSpec().getPostgres().getVersion();
     final String postgresFlavor = resource.getSpec().getPostgres().getFlavor();
 
-    if (postgresVersion != null) {
-      final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
-          .get(resource).getVersion(postgresVersion);
+    final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
+        .get(resource).getVersion(context, Optional.ofNullable(postgresVersion).orElse(StackGresComponent.LATEST));
 
-      if (!calculatedPostgresVersion.equals(postgresVersion)) {
-        resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
-      }
-    } else {
-      final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
-          .get(resource).getVersion(StackGresComponent.LATEST);
-      resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
-    }
+    resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
 
     if (!Objects.equals(postgresFlavor, getPostgresFlavor(resource).toString())) {
       final String calculatedPostgresFlavor = getPostgresFlavor(resource).toString();

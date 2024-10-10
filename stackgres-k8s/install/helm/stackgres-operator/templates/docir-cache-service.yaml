@@ -1,0 +1,16 @@
+{{- if .Values.repository.cache.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-docir-cache
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}-docir-cache
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+{{- end }}

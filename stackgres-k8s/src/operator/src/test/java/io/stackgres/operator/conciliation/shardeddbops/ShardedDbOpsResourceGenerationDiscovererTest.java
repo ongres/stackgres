@@ -16,6 +16,7 @@ import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -75,6 +76,7 @@ class ShardedDbOpsResourceGenerationDiscovererTest
     resource.setStatus(status);
     resource.getSpec().setMaxRetries(10);
     return StackGresShardedDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(resource)
         .foundShardedCluster(cluster)

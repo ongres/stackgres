@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -197,7 +197,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
               .map(ObjectMeta::getAnnotations)
               .map(HashMap::new)
               .orElseGet(HashMap::new);
-          var patroniOperation = Optional.ofNullable(annotations.get(StackGresContext.PATRONI_OPERATION_KEY))
+          var patroniOperation = Optional.ofNullable(annotations.get(StackGresKeys.PATRONI_OPERATION_KEY))
               .map(value -> {
                 try {
                   return objectMapper.readTree(value);
@@ -215,7 +215,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
               "restart")) {
             patroniOperation.put("type", "restart");
             patroniOperation.put("issued", now.toString());
-            annotations.put(StackGresContext.PATRONI_OPERATION_KEY, patroniOperation.toString());
+            annotations.put(StackGresKeys.PATRONI_OPERATION_KEY, patroniOperation.toString());
           }
           return pod
             .edit()
@@ -225,7 +225,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
             .build();
         }));
     if (Optional.ofNullable(memberPod.getMetadata().getAnnotations())
-        .map(annotations -> annotations.get(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY))
+        .map(annotations -> annotations.get(StackGresKeys.CLUSTER_CONTROLLER_VERSION_KEY))
         .map(StackGresVersion::getVersionAsNumberOrNull)
         .orElse(StackGresVersion.V_1_18.getVersionAsNumber())
         <= StackGresVersion.V_1_18.getVersionAsNumber()) {
@@ -239,7 +239,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
           .get())
           .map(Pod::getMetadata)
           .map(ObjectMeta::getAnnotations)
-          .map(annotations -> annotations.get(StackGresContext.PATRONI_OPERATION_KEY))
+          .map(annotations -> annotations.get(StackGresKeys.PATRONI_OPERATION_KEY))
           .map(Unchecked.function(objectMapper::readTree))
           .map(patroniOperation -> patroniOperation.get("type"))
           .map(JsonNode::asText)

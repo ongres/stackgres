@@ -20,7 +20,7 @@ import io.stackgres.cluster.common.PatroniCommandUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.resource.SecretFinder;
@@ -104,7 +104,7 @@ public class PatroniOperationReconciliator extends SafeReconciliator<StackGresCl
         .get())
         .map(Pod::getMetadata)
         .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get(StackGresContext.PATRONI_OPERATION_KEY));
+        .map(annotations -> annotations.get(StackGresKeys.PATRONI_OPERATION_KEY));
     if (patroniOperationFound.isEmpty()) {
       return;
     }
@@ -129,7 +129,7 @@ public class PatroniOperationReconciliator extends SafeReconciliator<StackGresCl
                 .map(ObjectMeta::getAnnotations)
                 .map(HashMap::new)
                 .orElseGet(HashMap::new);
-            annotations.remove(StackGresContext.PATRONI_OPERATION_KEY);
+            annotations.remove(StackGresKeys.PATRONI_OPERATION_KEY);
             return pod
               .edit()
               .editMetadata()

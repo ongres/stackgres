@@ -14,7 +14,7 @@
   "spec": {
     "instances": 1,
     "postgres": {
-      "version": "13.5"
+      "version": "13.16"
     },
     "replication": {
       "mode": "async",
@@ -31,52 +31,52 @@
     "configurations": {
       "sgPostgresConfig": "postgresconf",
       "sgPoolingConfig": "pgbouncerconf",
-      "backups": [{
-        "path": "sgbackups.stackgres.io/stackgres/stackgres/11",
-        "sgObjectStorage": "objstorage"
-      }]
+      "backups": [
+        {
+          "path": "sgbackups.stackgres.io/stackgres/stackgres/11",
+          "sgObjectStorage": "objstorage"
+        }
+      ]
     },
-    "pods":{
-      "scheduling" : {
-        "backup" : {
-       "nodeAffinity": {
-              "requiredDuringSchedulingIgnoredDuringExecution": {
-                  "nodeSelectorTerms": 
-                  [
-                      {
-                          "matchExpressions": [
-                              {
-                                  "key": "kubernetes.io/e2e-az-name-required",
-                                  "operator": "In",
-                                  "values": [
-                                      "e2e-az1",
-                                      "e2e-az2"
-                                  ]
-                              }
-                          ]
-                      }
-                  ]
-              },
-              "preferredDuringSchedulingIgnoredDuringExecution": 
-              [
+    "pods": {
+      "scheduling": {
+        "backup": {
+          "nodeAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": {
+              "nodeSelectorTerms": [
                 {
-                  "weight": 1,
-                  "preference": {
-                        "matchExpressions": [
-                            {
-                                "key": "kubernetes.io/e2e-az-name-preferred",
-                                "operator": "In",
-                                "values": [
-                                    "e2e-az1",
-                                    "e2e-az2"
-                                ]
-                            }
-                        ]
-                  }
+                  "matchExpressions": [
+                    {
+                      "key": "kubernetes.io/e2e-az-name-required",
+                      "operator": "In",
+                      "values": [
+                        "e2e-az1",
+                        "e2e-az2"
+                      ]
+                    }
+                  ]
                 }
               ]
-       },
-      "nodeSelector": {
+            },
+            "preferredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "weight": 1,
+                "preference": {
+                  "matchExpressions": [
+                    {
+                      "key": "kubernetes.io/e2e-az-name-preferred",
+                      "operator": "In",
+                      "values": [
+                        "e2e-az1",
+                        "e2e-az2"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeSelector": {
             "name": "node-1",
             "tenant": "tenant-2"
           }
@@ -115,7 +115,7 @@
         "allResources": {
           "allResourcesCustomAnnotation": "allResourcesCustomValue"
         },
-        "clusterPods" : {
+        "clusterPods": {
           "podsCustomAnnotations": "podsCustomValue"
         },
         "primaryService": {
@@ -127,16 +127,18 @@
       },
       "labels": {
         "clusterPods": {
-          "customLabel" : "podsCustomValue"
+          "customLabel": "podsCustomValue"
         },
         "services": {
-          "customLabel" : "servicesCustomValue"
+          "customLabel": "servicesCustomValue"
         }
       }
     }
   },
-  "status":   {
-      "postgresVersion": "13.5",
-      "backupPaths": ["sgbackups.stackgres.io/stackgres/stackgres/11"]
-    }
+  "status": {
+    "postgresVersion": "13.16",
+    "backupPaths": [
+      "sgbackups.stackgres.io/stackgres/stackgres/11"
+    ]
+  }
 }

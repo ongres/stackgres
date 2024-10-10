@@ -11,6 +11,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +22,8 @@ class VersionsResourceTest implements AuthenticatedResourceTest {
 
   @Test
   void get_listOf_postgresql_versions() {
-    String[] pgvers = StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+    String[] pgvers = StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .streamOrderedVersions(StackGresContextMock.CONTEXT)
         .toArray(String[]::new);
 
     given()
@@ -34,7 +37,8 @@ class VersionsResourceTest implements AuthenticatedResourceTest {
 
   @Test
   void get_listOf_babelfish_versions() {
-    String[] pgvers = StackGresComponent.BABELFISH.getLatest().streamOrderedVersions()
+    String[] pgvers = StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+        .streamOrderedVersions(StackGresContextMock.CONTEXT)
         .toArray(String[]::new);
 
     given()

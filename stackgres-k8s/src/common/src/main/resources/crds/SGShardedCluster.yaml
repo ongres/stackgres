@@ -599,6 +599,31 @@ spec:
                       - sgObjectStorage: 'backupconf'
                   ```
                 properties:
+                  registry:
+                    type: object
+                    description: |
+                      Section to configure the StackGres images registry (served by the StackGres docir REST API) from where
+                       the images of the Pods of the coordinator and the shards are pulled: the Postgres image combining the base image, the Postgres flavor, the
+                       required addons (patroni, wal-g and hdrhistogram) and the extensions, and the sidecar images combining
+                       the base image, the Postgres flavor and a single addon (pgbouncer, postgres-exporter, kubectl, fluent-bit, fluentd or otel-collector).
+                    properties:
+                      enabled:
+                        type: boolean
+                        description: |
+                          When `true` the images of the Pods of the coordinator and the shards are retrieved from the StackGres images registry. When `false`
+                           the images bundled with the operator release are used.
+
+                          Defaults to `true` for newly created SGShardedClusters and to `false` for SGShardedClusters created before this
+                           field existed.
+
+                          **This field can only be set on creation.**
+                      url:
+                        type: string
+                        description: |
+                          The URL of the StackGres docir REST API to use for this SGCluster. When not set the URL configured
+                           in `SGConfig.spec.repository.url` is used.
+
+                          The URL accepts the same parameters as `SGConfig.spec.repository.url`.
                   postgresExporter:
                     type: object
                     description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
@@ -2258,6 +2283,31 @@ spec:
                                       The `pgbouncer.ini` (Section [users]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
 
                                       Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#section-users) for more information about supported parameters.
+                      registry: &registry
+                        type: object
+                        description: |
+                          Section to configure the StackGres images registry (served by the StackGres docir REST API) from where
+                           the images of the Pods are pulled: the Postgres image combining the base image, the Postgres flavor, the
+                           required addons (patroni, wal-g and hdrhistogram) and the extensions, and the sidecar images combining
+                           the base image, the Postgres flavor and a single addon (pgbouncer, postgres-exporter, kubectl, fluent-bit, fluentd or otel-collector).
+                        properties:
+                          enabled:
+                            type: boolean
+                            description: |
+                              When `true` the images of the Pods are retrieved from the StackGres images registry. When `false`
+                               the images bundled with the operator release are used.
+
+                              Defaults to `true` for newly created SGClusters and to `false` for SGClusters created before this
+                               field existed.
+
+                              **This field can only be set on creation.**
+                          url:
+                            type: string
+                            description: |
+                              The URL of the StackGres docir REST API to use for this SGCluster. When not set the URL configured
+                               in `SGConfig.spec.repository.url` is used.
+
+                              The URL accepts the same parameters as `SGConfig.spec.repository.url`.
                       postgresExporter: &postgres-exporter
                         type: object
                         description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
@@ -3066,6 +3116,7 @@ spec:
                           **Changing this field may require a restart.**
                       postgres: *postgres
                       pooling: *pooling
+                      registry: *registry
                       postgresExporter: *postgres-exporter
                       patroni: *patroni
                   replication: *replication
@@ -3532,6 +3583,7 @@ spec:
                                 If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
                             postgres: *postgres
                             pooling: *pooling
+                            registry: *registry
                             postgresExporter: *postgres-exporter
                             patroni: *patroni
                         replication: *replication
@@ -3801,6 +3853,14 @@ spec:
             type: object
             description: Current status of a StackGres sharded cluster.
             properties:
+              revision:
+                type: string
+                description: |
+                  The revision version of the images used that is filled by the operator.
+              repository:
+                type: string
+                description: |
+                  The repository of the images used that is filled by the operator.
               conditions:
                 type: array
                 items:
@@ -3839,7 +3899,7 @@ spec:
                   **This section is filled by the operator.**
                 items:
                   type: object
-                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  required: ["name", "version", "repository", "postgresVersion"]
                   properties:
                     name:
                       type: string
@@ -3886,7 +3946,7 @@ spec:
                   The list of Postgres extensions to install
                 items:
                   type: object
-                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  required: ["name", "version", "repository", "postgresVersion"]
                   properties:
                     name:
                       type: string

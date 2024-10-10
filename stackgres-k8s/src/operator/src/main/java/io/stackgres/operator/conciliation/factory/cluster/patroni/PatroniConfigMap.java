@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -39,6 +39,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
@@ -51,7 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> {
 
   public static final String PATRONI_DCS_CONFIG_ENV_NAME = "PATRONI_DCS_CONFIG";
@@ -112,7 +113,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
     Map<String, String> data = new HashMap<>();
     data.putAll(context.getEnvironmentVariables());
-    data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
+    data.put("PATRONI_CONFIG_FILE", ClusterPathV2.PATRONI_CONFIG_FILE_PATH.path());
     data.put("PATRONI_INITIAL_CONFIG", PatroniUtil.getInitialConfig(
         cluster, labelFactory, yamlMapper, objectMapper));
     data.put(PATRONI_DCS_CONFIG_ENV_NAME, patroniConfigEndpoints.getPatroniConfigAsYamlString(context));
@@ -128,12 +129,12 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         + ":" + (isEnvoyDisabled ? EnvoyUtil.PG_PORT : EnvoyUtil.PG_REPL_ENTRY_PORT));
 
     data.put("PATRONI_RESTAPI_LISTEN", "*:" + EnvoyUtil.PATRONI_PORT);
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterPath.PG_RUN_PATH.path());
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPathV2.PG_DATA_PATH.path());
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterPathV2.PG_RUN_PATH.path());
 
     if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())
         .map(StackGresClusterDistributedLogs::getSgDistributedLogs).isPresent()) {
-      data.put("PATRONI_LOG_DIR", ClusterPath.PG_LOG_PATH.path());
+      data.put("PATRONI_LOG_DIR", ClusterPathV2.PG_LOG_PATH.path());
       data.put("PATRONI_LOG_FILE_NUM", "2");
       data.put("PATRONI_LOG_FILE_SIZE", String.valueOf(PATRONI_LOG_FILE_SIZE));
     }

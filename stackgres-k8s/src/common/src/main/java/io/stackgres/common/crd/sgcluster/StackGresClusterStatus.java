@@ -8,7 +8,9 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,6 +41,18 @@ public class StackGresClusterStatus {
   private String sgPostgresConfig;
 
   private List<String> backupPaths;
+
+  private String revision;
+
+  private String base;
+
+  private String baseVersion;
+
+  private String baseRevision;
+
+  private String repository;
+
+  private List<@Valid StackGresClusterStatusAddon> addons;
 
   private Integer instances;
 
@@ -121,6 +135,63 @@ public class StackGresClusterStatus {
 
   public void setBackupPaths(List<String> backupPaths) {
     this.backupPaths = backupPaths;
+  }
+
+  public String getRevision() {
+    return revision;
+  }
+
+  public void setRevision(String revision) {
+    this.revision = revision;
+  }
+
+  public String getBase() {
+    return base;
+  }
+
+  public void setBase(String base) {
+    this.base = base;
+  }
+
+  public String getBaseVersion() {
+    return baseVersion;
+  }
+
+  public void setBaseVersion(String baseVersion) {
+    this.baseVersion = baseVersion;
+  }
+
+  public String getBaseRevision() {
+    return baseRevision;
+  }
+
+  public void setBaseRevision(String baseRevision) {
+    this.baseRevision = baseRevision;
+  }
+
+  public String getRepository() {
+    return repository;
+  }
+
+  public void setRepository(String repository) {
+    this.repository = repository;
+  }
+
+  public List<StackGresClusterStatusAddon> getAddons() {
+    return addons;
+  }
+
+  public void setAddons(List<StackGresClusterStatusAddon> addons) {
+    this.addons = addons;
+  }
+
+  @JsonIgnore
+  public Optional<StackGresClusterStatusAddon> findAddon(String name) {
+    return Optional.ofNullable(addons)
+        .stream()
+        .flatMap(List::stream)
+        .filter(addon -> Objects.equals(addon.getName(), name))
+        .findFirst();
   }
 
   public Integer getInstances() {
@@ -213,10 +284,10 @@ public class StackGresClusterStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(arch, backupPaths, binding, buildVersion, conditions, dbOps, extensions,
-        instances, labelPrefix, labelSelector, latestPostgresMajor, latestPostgresMinor, managedSql,
-        os, podStatuses, postgresVersion,
-        replicationInitializationFailedSgBackup, sgPostgresConfig);
+    return Objects.hash(addons, arch, backupPaths, base, baseRevision, baseVersion, binding,
+        buildVersion, conditions, dbOps, extensions, instances, labelPrefix, labelSelector,
+        latestPostgresMajor, latestPostgresMinor, managedSql, os, podStatuses, postgresVersion,
+        replicationInitializationFailedSgBackup, repository, revision, sgPostgresConfig);
   }
 
   @Override
@@ -228,8 +299,10 @@ public class StackGresClusterStatus {
       return false;
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
-    return Objects.equals(arch, other.arch) && Objects.equals(backupPaths, other.backupPaths)
-        && Objects.equals(binding, other.binding)
+    return Objects.equals(addons, other.addons) && Objects.equals(arch, other.arch)
+        && Objects.equals(backupPaths, other.backupPaths)
+        && Objects.equals(base, other.base) && Objects.equals(baseRevision, other.baseRevision)
+        && Objects.equals(baseVersion, other.baseVersion) && Objects.equals(binding, other.binding)
         && Objects.equals(buildVersion, other.buildVersion)
         && Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
         && Objects.equals(extensions, other.extensions)
@@ -243,6 +316,7 @@ public class StackGresClusterStatus {
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(replicationInitializationFailedSgBackup,
             other.replicationInitializationFailedSgBackup)
+        && Objects.equals(repository, other.repository) && Objects.equals(revision, other.revision)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }
 

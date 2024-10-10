@@ -14,7 +14,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
@@ -49,11 +49,11 @@ public abstract class AbstractBackupConfigMap {
 
     context.getPodDataPersistentVolumeNames().forEach((podName, pvDataName) -> backupEnvVars
         .put("POD_" + podName.replace("-", "_") + "_DATA_PV_NAME", pvDataName));
-    backupEnvVars.put("PGDATA", ClusterPath.PG_DATA_PATH.path());
+    backupEnvVars.put("PGDATA", ClusterPathV2.PG_DATA_PATH.path());
     backupEnvVars.put("PGPORT", String.valueOf(EnvoyUtil.PG_PORT));
     backupEnvVars.put("PGUSER", "postgres");
     backupEnvVars.put("PGDATABASE", "postgres");
-    backupEnvVars.put("PGHOST", ClusterPath.PG_RUN_PATH.path());
+    backupEnvVars.put("PGHOST", ClusterPathV2.PG_RUN_PATH.path());
 
     Optional.ofNullable(backupConfiguration)
         .map(BackupConfiguration::compression)
@@ -242,7 +242,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
-    return ClusterPath.BACKUP_SECRET_PATH.path(context)
+    return ClusterPathV2.BACKUP_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
   }
 
@@ -264,7 +264,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   protected String getGcsCredentialsFilePath(ClusterContext context) {
-    return ClusterPath.BACKUP_SECRET_PATH.path(context)
+    return ClusterPathV2.BACKUP_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 

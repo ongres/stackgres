@@ -15,17 +15,17 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 
 public enum ShardedClusterEnvVar
     implements EnvVarSource<StackGresShardedCluster, ShardedClusterContext> {
-  POSTGRES_VERSION(context -> context.getSpec().getPostgres().getVersion()),
-  POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getMajorVersion(context.getSpec().getPostgres().getVersion())),
-  POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context).get(context).getName()),
-  BUILD_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getBuildVersion(context.getSpec().getPostgres().getVersion())),
-  BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getBuildMajorVersion(context.getSpec().getPostgres().getVersion()));
+  POSTGRES_VERSION(context -> context.getResource().getSpec().getPostgres().getVersion()),
+  POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource())
+      .getMajorVersion(context.getContext(), context.getResource().getSpec().getPostgres().getVersion())),
+  POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource()).getName()),
+  BUILD_VERSION(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource())
+      .getBuildVersion(context.getContext(), context.getResource().getSpec().getPostgres().getVersion())),
+  BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource())
+      .getBuildMajorVersion(context.getContext(), context.getResource().getSpec().getPostgres().getVersion()));
 
   private final String substVar;
-  private final Function<StackGresShardedCluster, EnvVar> getEnvVar;
+  private final Function<ShardedClusterContext, EnvVar> getEnvVar;
 
   ShardedClusterEnvVar(String value) {
     this.substVar = getSubstVar();
@@ -36,7 +36,7 @@ public enum ShardedClusterEnvVar
     this.getEnvVar = context -> envVar;
   }
 
-  ShardedClusterEnvVar(Function<StackGresShardedCluster, String> getValue) {
+  ShardedClusterEnvVar(Function<ShardedClusterContext, String> getValue) {
     this.substVar = getSubstVar();
     this.getEnvVar = context -> new EnvVarBuilder()
         .withName(name())
@@ -50,7 +50,7 @@ public enum ShardedClusterEnvVar
   }
 
   @Override
-  public Function<StackGresShardedCluster, EnvVar> getEnvVar() {
+  public Function<ShardedClusterContext, EnvVar> getEnvVar() {
     return getEnvVar;
   }
 

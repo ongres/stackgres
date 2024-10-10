@@ -61,7 +61,7 @@ then
   POD_DATA_PV_NAME_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_NAME"
   touch "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")"
 else
-  wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_NAME"
+  "$WALG_BIN_PATH" backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_NAME"
 fi
 RECOVERY_FROM_BACKUP_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/recovery-from-backup.sh"
@@ -109,7 +109,7 @@ else
     rm -rf "$PG_DATA_PATH"
   fi
 
-  wal-g backup-fetch "$PG_DATA_PATH" "$REPLICATION_INITIALIZATION_BACKUP_NAME"
+  "$WALG_BIN_PATH" backup-fetch "$PG_DATA_PATH" "$REPLICATION_INITIALIZATION_BACKUP_NAME"
 fi
 REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
@@ -214,7 +214,7 @@ then
     keep_existing_recovery_conf: False
     keep_data: true
     recovery_conf:
-      restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
+      restore_command: 'exec-with-env "${RESTORE_ENV}" -- "$WALG_BIN_PATH" wal-fetch %f %p'
 $(
   [ -z "$RECOVERY_TARGET" ] || cat << RECOVERY_TARGET_EOF
       recovery_target: '$RECOVERY_TARGET'
@@ -323,12 +323,12 @@ $(
     command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-from-backup.sh'
     keep_data: true
     recovery_conf:
-      restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- wal-g wal-fetch %f %p'
+      restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- "$WALG_BIN_PATH" wal-fetch %f %p'
       recovery_target_action: 'promote'
   backup_failover:
     command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-from-backup-failover.sh'
     recovery_conf:
-      restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- wal-g wal-fetch %f %p'
+      restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- "$WALG_BIN_PATH" wal-fetch %f %p'
       recovery_target_action: 'promote'
 REPLICATION_INITIALIZATION_EOF
 )
@@ -365,7 +365,7 @@ then
     keep_data: true
     keep_existing_recovery_conf: False
     recovery_conf:
-      restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
+      restore_command: 'exec-with-env "${RESTORE_ENV}" -- "$WALG_BIN_PATH" wal-fetch %f %p'
 $(
   [ -z "$RECOVERY_TARGET" ] || cat << RECOVERY_TARGET_EOF
       recovery_target: '$RECOVERY_TARGET'
@@ -563,4 +563,4 @@ PREPARE_REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
   exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-replication-initialization-from-backup.sh"
 fi
 
-PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/local/bin/patroni "$PATRONI_CONFIG_FILE_PATH"
+PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- "$LOCAL_BIN_PATH/patroni" "$PATRONI_CONFIG_FILE_PATH"

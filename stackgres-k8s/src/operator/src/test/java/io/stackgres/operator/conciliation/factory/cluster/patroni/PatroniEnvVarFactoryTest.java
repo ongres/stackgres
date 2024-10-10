@@ -20,6 +20,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -44,7 +45,8 @@ class PatroniEnvVarFactoryTest {
 
   @BeforeEach
   void setUp() {
-    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory(
+        StackGresContextMock.CONTEXT);
     factory = new PatroniEnvironmentVariables(defaultPostgresConfigFactory);
     cluster = Fixtures.cluster().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();

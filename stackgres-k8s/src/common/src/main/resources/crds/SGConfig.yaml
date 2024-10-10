@@ -1296,6 +1296,128 @@ spec:
                           requests:
                             cpu: 50m
                             memory: 64Mi
+              repository:
+                type: object
+                description: Section to configure the StackGres images repository (the StackGres docir REST API)
+                default: {}
+                properties:
+                  url:
+                    type: string
+                    default: https://sgcr.dev
+                    description: |
+                      The URL of the StackGres docir REST API used to retrieve the images of the SGClusters with
+                       `spec.configurations.registry.enabled` set to `true`. It can be overridden for a single SGCluster
+                       with `spec.configurations.registry.url`.
+
+                      > This value is overridden by the environment variable `DOCIR_REPOSITORY_URL`
+                      >   when it is set (for example through the OLM bundle Subscription).
+
+                      The catalog of the repository (base images, Postgres versions, addons and extensions) is
+                       requested for the `<major>.<minor>` version of the operator and restricted to the published
+                       images unless the environment variable `USE_PUBLISHED_IMAGES` is set to `false` in the
+                       operator (it is propagated to the REST API and the cluster controller).
+
+                      To set a proxy for the repository add parameter proxyUrl to the URL:
+                          `https://sgcr.dev?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
+
+                      Other URL parameters are:
+
+                      * `skipHostnameVerification`: set it to `true` in order to use a server or a proxy with a self signed certificate
+                      * `retry`: set it to `<max retries>[:<sleep before next retry>]` in order to retry a request on failure
+                      * `setHttpScheme`: set it to `true` in order to force using HTTP scheme
+                      * `cacheTimeout`: the ISO-8601 duration (e.g. `PT1H`) the metadata retrieved from the repository is cached (defaults to 1 hour)
+                  cache:
+                    type: object
+                    description: |
+                      Section to configure the cache of the StackGres images repository (experimental).
+
+                      The cache is a StatefulSet that serves the catalog of the repository (base images, platforms,
+                       tshirt sizes, flavors, versions, extensions and addons) and the resolved images from local
+                       files, proxies the requests not cached yet to the repository storing the responses, and
+                       copies the images into a local image registry so that they can be pulled from it.
+
+                      This feature can only be set in the StackGres Helm chart
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` enable the cache of the StackGres images repository.
+                      refreshInterval:
+                        type: string
+                        default: PT1H
+                        description: |
+                          The interval, as an ISO-8601 duration (e.g. `PT1H`, `P1D`) or a number of seconds, between
+                           the refreshes of the catalog and of the preloaded images.
+                      preloadedImages:
+                        type: array
+                        default: []
+                        description: |
+                          An array of image requests to preload (resolve and copy into the local image registry) using
+                           the syntax of the cache key of the operator:
+                           `tshirt-size=full&base=<base>[@<version>[@<revision>]]&flavors=<flavor>@<version>[@<revision>]
+                           [&extensions=<name>[@<version>[@<revision>]]]...[&addons=<name>[@<version>[@<revision>]]]...`.
+                           When the version or the revision of a layer is omitted the latest of the catalog is used.
+                           The images requested by the SGClusters and the ones requested by the operator are always
+                           preloaded.
+                        items:
+                          type: string
+                          description: An image request to preload
+                      pullImages:
+                        type: boolean
+                        default: true
+                        description: |
+                          When set to `true` the preloaded images are copied into the local image registry hosted by the cache.
+                      imageRegistry:
+                        type: string
+                        description: |
+                          The address (`<host>[:<port>]`) through which the Pods reach the local image registry hosted by
+                           the cache. When set the URLs of the resolved images are rewritten to it so that the images are
+                           pulled from the cache instead of the repository.
+                      registryImage:
+                        type: string
+                        default: docker.io/library/registry:2
+                        description: The image of the local image registry hosted by the cache
+                      offline:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` the cache never reaches the repository and only serves the stored catalog and
+                           images (for air-gapped systems, see the `build-offline-docir.sh` script of the Helm chart).
+                      persistentVolume:
+                        type: object
+                        description: Section to configure the cache PersistentVolume
+                        properties:
+                          size:
+                            type: string
+                            default: 10Gi
+                            description: |
+                              The PersistentVolume size for the cache
+
+                              Only use whole numbers (e.g. not 1e6) and K/Ki/M/Mi/G/Gi as units
+                          storageClass:
+                            type: string
+                            description: |
+                              If defined set storage class
+                              If set to "-" (equivalent to storageClass: "" in a PV spec) disables
+                               dynamic provisioning
+                              If undefined (the default) or set to null, no storageClass spec is
+                               set, choosing the default provisioner.  (gp2 on AWS, standard on
+                               GKE, AWS & OpenStack)
+                      hostPath:
+                        type: string
+                        description: |
+                          If set, will use a host path volume with the specified path for the cache
+                           instead of a PersistentVolume
+                      resources:
+                        type: object
+                        description: |
+                          The resources of the cache containers. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#resourcerequirements-v1-core
+                        x-kubernetes-preserve-unknown-fields: true
+                        default:
+                          requests:
+                            cpu: 50m
+                            memory: 64Mi
               shardingSphere:
                 type: object
                 description: Section to configure integration with ShardingSphere operator

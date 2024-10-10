@@ -7,7 +7,7 @@ package io.stackgres.operator.mutation.stream;
 
 import java.util.Map;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.operator.common.StackGresStreamReview;
@@ -25,7 +25,7 @@ public class StreamAnnotationMutator
   public Map<String, String> getAnnotationsToOverwrite(StackGresStream resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
     if (LATEST > version) {
-      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+      return Map.of(StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     }
     return Map.of();
   }

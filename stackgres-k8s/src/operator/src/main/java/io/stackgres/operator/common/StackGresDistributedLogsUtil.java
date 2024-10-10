@@ -13,6 +13,7 @@ import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -27,12 +28,14 @@ public interface StackGresDistributedLogsUtil {
   String TIMESCALEDB_EXTENSION_NAME = "timescaledb_tsl";
   String TIMESCALEDB_EXTENSION_VERSION = "2.23.1";
 
-  static String getPostgresVersion(StackGresDistributedLogs distributedLogs) {
+  static String getPostgresVersion(
+      StackGresContext context,
+      StackGresDistributedLogs distributedLogs) {
     return Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getStatus)
         .map(StackGresDistributedLogsStatus::getPostgresVersion)
         .orElseGet(() -> StackGresComponent.POSTGRESQL.get(distributedLogs)
-            .getVersion(POSTGRESQL_VERSION));
+            .getVersion(context, POSTGRESQL_VERSION));
   }
 
   static @NotNull StackGresComponent getPostgresFlavorComponent(
@@ -41,18 +44,24 @@ public interface StackGresDistributedLogsUtil {
   }
 
   static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
+      StackGresContext context,
       StackGresDistributedLogs distributedLogs) {
     return getDefaultDistributedLogsExtensions(
-        getPostgresVersion(distributedLogs),
+        context,
+        getPostgresVersion(context, distributedLogs),
         StackGresVersion.getStackGresVersion(distributedLogs));
   }
 
   static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      String pgVersion, StackGresVersion sgVersion) {
+      StackGresContext context,
+      String pgVersion,
+      StackGresVersion sgVersion) {
     return Seq.seq(StackGresUtil.getDefaultClusterExtensions(
+        context,
         sgVersion,
         pgVersion,
-        StackGresPostgresFlavor.VANILLA.toString())).append(
+        StackGresPostgresFlavor.VANILLA.toString(),
+        false)).append(
             new ExtensionTuple(TIMESCALEDB_EXTENSION_NAME, TIMESCALEDB_EXTENSION_VERSION))
         .toList();
   }

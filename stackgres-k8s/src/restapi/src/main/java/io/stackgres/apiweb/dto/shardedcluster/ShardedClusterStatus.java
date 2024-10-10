@@ -19,6 +19,10 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterStatus {
 
+  private String revision;
+
+  private String repository;
+
   private List<ClusterCondition> conditions = new ArrayList<>();
 
   private String postgresVersion;
@@ -36,6 +40,22 @@ public class ShardedClusterStatus {
   private ClusterServiceBindingStatus binding;
 
   private List<String> sgBackups;
+
+  public String getRevision() {
+    return revision;
+  }
+
+  public void setRevision(String revision) {
+    this.revision = revision;
+  }
+
+  public String getRepository() {
+    return repository;
+  }
+
+  public void setRepository(String repository) {
+    this.repository = repository;
+  }
 
   public List<ClusterCondition> getConditions() {
     return conditions;

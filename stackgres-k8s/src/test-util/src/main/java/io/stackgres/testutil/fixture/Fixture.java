@@ -53,6 +53,8 @@ public abstract class Fixture<T> implements JsonFixture {
       fixture = (T) JSON_MAPPER.createObjectNode();
     } else if (clazz.isAssignableFrom(ArrayNode.class)) {
       fixture = (T) JSON_MAPPER.createArrayNode();
+    } else if (clazz.getRecordComponents() != null) {
+      fixture = null;
     } else {
       try {
         fixture = clazz.getConstructor().newInstance();

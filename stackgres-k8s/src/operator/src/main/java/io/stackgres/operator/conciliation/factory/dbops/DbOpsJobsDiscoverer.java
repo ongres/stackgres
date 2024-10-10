@@ -26,7 +26,7 @@ public class DbOpsJobsDiscoverer
   }
 
   public Map<String, DbOpsJobFactory> discoverFactories(StackGresDbOpsContext context) {
-    return hub.get(context.getVersion()).stream()
+    return getFactories(context).stream()
         .collect(Collectors.toMap(
             dbop -> getAnnotation(dbop, DbOpsJob.class).value(),
             Function.identity()));

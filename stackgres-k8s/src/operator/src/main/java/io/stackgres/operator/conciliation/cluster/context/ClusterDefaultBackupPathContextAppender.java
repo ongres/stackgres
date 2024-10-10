@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import io.stackgres.common.BackupStorageUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -25,14 +26,18 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class ClusterDefaultBackupPathContextAppender {
 
+  private final StackGresContext context;
   private final Instant defaultTimestamp;
 
   @Inject
-  public ClusterDefaultBackupPathContextAppender() {
+  public ClusterDefaultBackupPathContextAppender(StackGresContext context) {
+    this.context = context;
     this.defaultTimestamp = null;
   }
 
-  ClusterDefaultBackupPathContextAppender(Instant defaultTimestamp) {
+  ClusterDefaultBackupPathContextAppender(
+      StackGresContext context, Instant defaultTimestamp) {
+    this.context = context;
     this.defaultTimestamp = defaultTimestamp;
   }
 
@@ -80,7 +85,7 @@ public class ClusterDefaultBackupPathContextAppender {
 
   private String getDefaultBackupPath(StackGresCluster cluster, String version) {
     final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
-        .get(cluster).getMajorVersion(version);
+        .get(cluster).getMajorVersion(context, version);
     Instant timestamp = Optional.ofNullable(defaultTimestamp).orElse(Instant.now());
     return BackupStorageUtil.getPath(
         cluster.getMetadata().getNamespace(),

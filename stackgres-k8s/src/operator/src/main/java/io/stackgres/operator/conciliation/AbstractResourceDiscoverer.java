@@ -42,7 +42,7 @@ public abstract class AbstractResourceDiscoverer<T extends GenerationContext<?>>
   public List<HasMetadata> generateResources(T context) {
     ResourceGeneratorFilter resourceGeneratorFilter = createResourceGeneratorFilter(context);
     List<Decorator<T>> decorators = decoratorDiscoverer.discoverDecorator(context);
-    return hub.get(context.getVersion())
+    return getFactories(context)
         .stream()
         .filter(resourceGeneratorFilter)
         .flatMap(resourceGenerator -> resourceGenerator.generateResource(context))

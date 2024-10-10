@@ -164,12 +164,12 @@ run_pgbench() {
     return 1
   fi
 
-  if python -c 'from hdrh.histogram import HdrHistogram'
+  if hdrh_python -c 'from hdrh.histogram import HdrHistogram'
   then
     echo "HDRHISTOGRAM: $(
       cat pgbench_log.* \
         | cut -d ' ' -f 3 \
-        | try_function_with_output python -c "$(cat << EOF
+        | try_function_with_output hdrh_python -c "$(cat << EOF
 import sys
 from hdrh.histogram import HdrHistogram
 histogram = HdrHistogram(1, 60 * 60 * 1000, 2)
@@ -186,6 +186,25 @@ EOF
       return 1
     fi
   fi
+}
+
+# Run python with the hdrh module (HdrHistogram) available: the python bundled with the
+# hdrhistogram addon of the images of the StackGres registry (the runfiles of dump_hdrh found
+# next to HDRHISTOGRAM_BIN_PATH, that also provide the hdrh module) or the system python of the
+# images bundled with the operator otherwise.
+hdrh_python() {
+  if [ -n "${HDRHISTOGRAM_BIN_PATH:-}" ] && [ -d "$HDRHISTOGRAM_BIN_PATH.runfiles" ]
+  then
+    HDRH_RUNFILES="$HDRHISTOGRAM_BIN_PATH.runfiles"
+    HDRH_PYTHON="$(find "$HDRH_RUNFILES" -path '*/_main/*/bin/python3' | head -n 1)"
+    HDRH_SITE_PACKAGES="$(find "$HDRH_RUNFILES" -type d -path '*/site-packages/hdrh' | head -n 1)"
+    if [ -n "$HDRH_PYTHON" ] && [ -n "$HDRH_SITE_PACKAGES" ]
+    then
+      PYTHONPATH="${HDRH_SITE_PACKAGES%/hdrh}" "$HDRH_PYTHON" "$@"
+      return
+    fi
+  fi
+  python "$@"
 }
 
 try_drop_pgbench_database() {

@@ -65,6 +65,7 @@
     <stackgres.containerRegistry>quay.io</stackgres.containerRegistry>
     <stackgres.imagePullPolicy>IfNotPresent</stackgres.imagePullPolicy>
     <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/postgres/repository</stackgres.extensionsRepositoryUrls>
+    <stackgres.docirRepositoryUrl>https://sgcr.dev</stackgres.docirRepositoryUrl>
     <stackgres.databaseOperationJob>false</stackgres.databaseOperationJob>
     <stackgres.databaseOperationCrName>stackgres</stackgres.databaseOperationCrName>
     <stackgres.dbops.serviceAccount>stackgres</stackgres.dbops.serviceAccount>
@@ -110,6 +111,7 @@
     <javapoet.version>1.13.0</javapoet.version>
     <jamm.version>0.4.0</jamm.version>
     <compile-testing.version>0.23.0</compile-testing.version>
+    <system-rules.version>1.19.0</system-rules.version>
     <bouncycastle.version>1.84</bouncycastle.version>
     <debezium.version>3.5.2.Final</debezium.version>
     <kafka-clients.version>4.3.0</kafka-clients.version>
@@ -303,6 +305,12 @@
         <groupId>com.google.testing.compile</groupId>
         <artifactId>compile-testing</artifactId>
         <version>${compile-testing.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.github.stefanbirkner</groupId>
+        <artifactId>system-rules</artifactId>
+        <version>${system-rules.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

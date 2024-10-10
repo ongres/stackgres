@@ -5,11 +5,13 @@
 
 package io.stackgres.common.extension;
 
+import static io.stackgres.common.OsDetector.OS_DETECTOR;
+import static io.stackgres.common.OsDetector.getClusterArch;
+import static io.stackgres.common.OsDetector.getClusterOs;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,13 +21,13 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.OsDetector;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import jakarta.ws.rs.core.UriBuilder;
-import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple4;
@@ -35,13 +37,8 @@ public interface ExtensionUtil {
   String DEFAULT_CHANNEL = "stable";
   String DEFAULT_PUBLISHER = "com.ongres";
   String DEFAULT_FLAVOR = "pg";
-  String ARCH_X86_64 = "x86_64";
-  String ARCH_AARCH64 = "aarch64";
-  String DEFAULT_ARCH = ARCH_X86_64;
-  String OS_LINUX = "linux";
-  String DEFAULT_OS = OS_LINUX;
-
-  OsDetector OS_DETECTOR = new OsDetector();
+  String DEFAULT_ARCH = OsDetector.ARCH_X86_64;
+  String DEFAULT_OS = OsDetector.OS_LINUX;
 
   static Map<StackGresExtensionIndex, StackGresExtensionMetadata> toExtensionsMetadataIndex(
       URI repositoryBaseUri, StackGresExtensions currentExtensionsMetadata) {
@@ -174,7 +171,8 @@ public interface ExtensionUtil {
             + ExtensionUtil.getDescription(extensionMetadata)))
         .toString());
     installedExtension.setPostgresVersion(extensionMetadata.getTarget().getPostgresVersion());
-    if (getClusterArch(cluster, Optional.of(OS_DETECTOR).filter(od -> detectOs)).isPresent()) {
+    if (StackGresUtil.isRegistryEnabled(cluster)
+        || getClusterArch(cluster, Optional.of(OS_DETECTOR).filter(od -> detectOs)).isPresent()) {
       installedExtension.setBuild(extensionMetadata.getTarget().getBuild());
     }
 
@@ -195,7 +193,7 @@ public interface ExtensionUtil {
   static String getDescription(StackGresCluster cluster,
       StackGresClusterExtension extension, boolean detectOs) {
     final String pgMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getMajorVersion(null, cluster.getSpec().getPostgres().getVersion());
     final Optional<OsDetector> osDetector = Optional.of(OS_DETECTOR).filter(od -> detectOs);
     return extension.getPublisherOrDefault() + "/" + extension.getName()
         + " for version " + extension.getVersionOrDefaultChannel()
@@ -247,58 +245,6 @@ public interface ExtensionUtil {
       return null;
     }
     return build.split(Pattern.quote("."))[0];
-  }
-
-  static String getClusterArch(@Nullable StackGresCluster cluster) {
-    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getArch)
-        .orElseGet(OS_DETECTOR::getArch);
-  }
-
-  static Optional<String> getClusterArch(@Nullable StackGresCluster cluster,
-      Optional<OsDetector> osDetector) {
-    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getArch)
-        .or(() -> osDetector.map(OsDetector::getArch));
-  }
-
-  static String getClusterOs(@Nullable StackGresCluster cluster) {
-    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getOs)
-        .orElseGet(OS_DETECTOR::getOs);
-  }
-
-  static Optional<String> getClusterOs(@Nullable StackGresCluster cluster,
-      Optional<OsDetector> osDetector) {
-    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getOs)
-        .or(() -> osDetector.map(OsDetector::getOs));
-  }
-
-  final class OsDetector {
-    public String getArch() {
-      final String arch = System.getProperty("os.arch");
-      if (arch == null) {
-        throw new RuntimeException("Can not detect architecture!");
-      }
-      final String archLowerCase = arch.toLowerCase(Locale.US);
-      switch (archLowerCase) {
-        case "amd64":
-          return ARCH_X86_64;
-        case "arm64":
-          return ARCH_AARCH64;
-        default:
-          return archLowerCase;
-      }
-    }
-
-    public String getOs() {
-      final String os = System.getProperty("os.name");
-      if (os == null) {
-        throw new RuntimeException("Can not detect operative system!");
-      }
-      return os.toLowerCase(Locale.US);
-    }
   }
 
 }

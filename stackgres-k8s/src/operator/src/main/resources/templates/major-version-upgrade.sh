@@ -87,6 +87,10 @@ then
   if [ ! -f "$PG_UPGRADE_PATH/$TARGET_VERSION/.copy-missing-lib64.done" ]
   then
     cp -aunv "$SOURCE_PG_LIB64_PATH" "${TARGET_PG_LIB64_PATH%/*}" > "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64"
+    if [ -n "${SOURCE_PG_SYSTEM_LIB_PATH:-}" ]
+    then
+      cp -aunv "$SOURCE_PG_SYSTEM_LIB_PATH" "${TARGET_PG_SYSTEM_LIB_PATH%/*}" >> "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64"
+    fi
     if [ -s "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" ]
     then
       echo "Following files where copied from $SOURCE_PG_LIB64_PATH to $TARGET_PG_LIB64_PATH"
@@ -101,8 +105,8 @@ then
   then
     echo "Checking major version upgrade"
     if ! pg_upgrade -c -r \
-      -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
-      -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
+      -b "$SOURCE_PG_BIN_PATH" \
+      -B "$TARGET_PG_BIN_PATH" \
       -d "$PG_DATA_PATH" \
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
       -s "$PG_UPGRADE_PATH/$TARGET_VERSION" \
@@ -130,8 +134,8 @@ then
   fi
   echo "Performing major version upgrade"
   if ! pg_upgrade -r \
-    -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
-    -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
+    -b "$SOURCE_PG_BIN_PATH" \
+    -B "$TARGET_PG_BIN_PATH" \
     -d "$PG_DATA_PATH" \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
     -s "$PG_UPGRADE_PATH/$TARGET_VERSION" \

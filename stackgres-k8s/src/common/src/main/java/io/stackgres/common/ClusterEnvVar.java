@@ -15,14 +15,14 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterContext> {
-  POSTGRES_VERSION(context -> context.getStatus().getPostgresVersion()),
-  POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getMajorVersion(context.getStatus().getPostgresVersion())),
-  POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context).get(context).getName()),
-  BUILD_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getBuildVersion(context.getStatus().getPostgresVersion())),
-  BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getBuildMajorVersion(context.getStatus().getPostgresVersion())),
+  POSTGRES_VERSION(context -> context.getResource().getStatus().getPostgresVersion()),
+  POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource())
+      .getMajorVersion(context.getContext(), context.getResource().getStatus().getPostgresVersion())),
+  POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource()).getName()),
+  BUILD_VERSION(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource())
+      .getBuildVersion(context.getContext(), context.getResource().getStatus().getPostgresVersion())),
+  BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context.getResource()).get(context.getResource())
+      .getBuildMajorVersion(context.getContext(), context.getResource().getStatus().getPostgresVersion())),
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),
@@ -35,7 +35,7 @@ public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterConte
 
   private final Supplier<String> value;
   private final String substVar;
-  private final Function<StackGresCluster, EnvVar> getEnvVar;
+  private final Function<ClusterContext, EnvVar> getEnvVar;
 
   ClusterEnvVar(String value) {
     this.value = () -> value;
@@ -47,7 +47,7 @@ public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterConte
     this.getEnvVar = context -> envVar;
   }
 
-  ClusterEnvVar(Function<StackGresCluster, String> getValue) {
+  ClusterEnvVar(Function<ClusterContext, String> getValue) {
     this.value = () -> {
       throw new IllegalArgumentException("EnvVarSource " + name() + " has no static value");
     };
@@ -69,7 +69,7 @@ public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterConte
   }
 
   @Override
-  public Function<StackGresCluster, EnvVar> getEnvVar() {
+  public Function<ClusterContext, EnvVar> getEnvVar() {
     return getEnvVar;
   }
 

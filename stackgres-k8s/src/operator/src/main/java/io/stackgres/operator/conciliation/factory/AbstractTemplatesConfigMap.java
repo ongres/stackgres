@@ -12,43 +12,43 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.io.Resources;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.ConfigPath;
 import io.stackgres.common.ShardedClusterPath;
 import org.jooq.lambda.Unchecked;
 
 public abstract class AbstractTemplatesConfigMap {
 
-  public static final List<ClusterPath> CLUSTER_TEMPLATE_PATHS = List.of(
-      ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH,
-      ClusterPath.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH,
-      ClusterPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH,
-      ClusterPath.LOCAL_BIN_SETUP_IO_LIMITS_SH_PATH,
-      ClusterPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH,
-      ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH,
-      ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH,
-      ClusterPath.LOCAL_BIN_START_PGBOUNCER_SH_PATH,
-      ClusterPath.LOCAL_BIN_PATRONICTL_PATH,
-      ClusterPath.LOCAL_BIN_POST_INIT_SH_PATH,
-      ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH,
-      ClusterPath.LOCAL_BIN_EXEC_WITH_ENV_PATH,
-      ClusterPath.ETC_PASSWD_PATH,
-      ClusterPath.ETC_GROUP_PATH,
-      ClusterPath.ETC_SHADOW_PATH,
-      ClusterPath.ETC_GSHADOW_PATH,
-      ClusterPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH,
-      ClusterPath.LOCAL_BIN_RUN_DBOPS_SH_PATH,
-      ClusterPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH,
-      ClusterPath.LOCAL_BIN_RUN_PGBENCH_SH_PATH,
-      ClusterPath.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH,
-      ClusterPath.LOCAL_BIN_RUN_SAMPLING_SH_PATH,
-      ClusterPath.LOCAL_BIN_SET_SAMPLING_RESULT_SH_PATH,
-      ClusterPath.LOCAL_BIN_RUN_VACUUM_SH_PATH,
-      ClusterPath.LOCAL_BIN_RUN_REPACK_SH_PATH,
-      ClusterPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH,
-      ClusterPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH,
-      ClusterPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH,
-      ClusterPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH);
+  public static final List<ClusterPathV1> CLUSTER_TEMPLATE_PATHS = List.of(
+      ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH,
+      ClusterPathV1.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_SETUP_IO_LIMITS_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_START_PATRONI_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_START_PGBOUNCER_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_PATRONICTL_PATH,
+      ClusterPathV1.LOCAL_BIN_POST_INIT_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_CREATE_BACKUP_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_EXEC_WITH_ENV_PATH,
+      ClusterPathV1.ETC_PASSWD_PATH,
+      ClusterPathV1.ETC_GROUP_PATH,
+      ClusterPathV1.ETC_SHADOW_PATH,
+      ClusterPathV1.ETC_GSHADOW_PATH,
+      ClusterPathV1.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RUN_DBOPS_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RUN_PGBENCH_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_SET_PGBENCH_RESULT_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RUN_SAMPLING_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_SET_SAMPLING_RESULT_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RUN_VACUUM_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RUN_REPACK_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_START_FLUENTBIT_SH_PATH,
+      ClusterPathV1.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH);
 
   public static final List<ShardedClusterPath> SHARDED_CLUSTER_TEMPLATE_PATHS = List.of(
       ShardedClusterPath.LOCAL_BIN_SHELL_UTILS_PATH,
@@ -70,7 +70,7 @@ public abstract class AbstractTemplatesConfigMap {
 
     for (String resource : CLUSTER_TEMPLATE_PATHS
         .stream()
-        .map(ClusterPath::filename)
+        .map(ClusterPathV1::filename)
         .toList()) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(Objects.requireNonNull(AbstractTemplatesConfigMap.class

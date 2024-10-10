@@ -16,18 +16,20 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRegistry;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.fixture.Fixtures;
@@ -47,35 +49,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ShardedDbOpsMajorVersionUpgradeExtensionsMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedBuildVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
           .toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
-      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      ALL_SUPPORTED_POSTGRES_VERSIONS =
-      ImmutableMap.of(
-          StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_POSTGRES_VERSIONS)
-              .toList()),
-          StackGresComponent.BABELFISH, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.BABELFISH.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_BABELFISH_VERSIONS)
-              .toList()));
-
+      StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).toList();
   private StackGresShardedDbOpsReview review;
 
   @Mock
@@ -100,10 +90,13 @@ class ShardedDbOpsMajorVersionUpgradeExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .setPostgresVersion(POSTGRES_VERSION);
     cluster = Fixtures.shardedCluster().loadDefault().get();
+    cluster.getMetadata().getAnnotations().put(
+        StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+    disableRegistry(cluster);
 
-    mutator = new ShardedDbOpsMajorVersionUpgradeExtensionsMutator(extensionMetadataManager,
-        clusterFinder,
-        ALL_SUPPORTED_POSTGRES_VERSIONS);
+    mutator = new ShardedDbOpsMajorVersionUpgradeExtensionsMutator(StackGresContextMock.CONTEXT,
+        extensionMetadataManager,
+        clusterFinder);
 
     extensions = Seq.of(
         "plpgsql",
@@ -315,6 +308,14 @@ class ShardedDbOpsMajorVersionUpgradeExtensionsMutatorTest {
 
   private StackGresExtensionMetadata getExtensionMetadata() {
     return new StackGresExtensionMetadata(getInstalledExtension());
+  }
+
+  private static void disableRegistry(StackGresShardedCluster cluster) {
+    if (cluster.getSpec().getConfigurations() == null) {
+      cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    }
+    cluster.getSpec().getConfigurations().setRegistry(new StackGresClusterRegistry());
+    cluster.getSpec().getConfigurations().getRegistry().setEnabled(false);
   }
 
 }

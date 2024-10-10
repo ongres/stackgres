@@ -6,12 +6,16 @@
 package io.stackgres.common.component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 public enum Components {
 
@@ -40,6 +44,16 @@ public enum Components {
         .findAny();
   }
 
+  public static Map<StackGresVersion, Component> getComponentVersionMap(StackGresComponent component) {
+    return Seq.of(values())
+        .flatMap(cs -> Stream.of(cs)
+            .map(c -> c.getComponent(component))
+            .flatMap(Optional::stream)
+            .map(c -> Tuple.tuple(cs.getVersion(), c))
+            .flatMap(t -> StackGresVersion.sameVersions(t.v1).stream().map(v -> Tuple.tuple(v, t.v2))))
+        .toMap(Tuple2::v1, Tuple2::v2);
+  }
+
   public interface ComponentWrapper {
 
     String name();
@@ -49,57 +63,104 @@ public enum Components {
   }
 
   public enum ComponentVersionReader {
-    V_1_18(new VersionReader("/versions-1.18.properties")),
-    V_1_19(new VersionReader("/versions-1.19.properties")),
-    V_1_20(new VersionReader("/versions-1.20.properties"));
+    V_1_18(new PropertiesVersionReader.ForFile("/versions-1.18.properties")),
+    V_1_19(new PropertiesVersionReader.ForFile("/versions-1.19.properties")),
+    V_1_20(new PropertiesVersionReader.ForFile("/versions-1.20.properties"));
 
-    final VersionReader versionReader;
+    final PropertiesVersionReader.ForFile versionReaderForFile;
 
-    ComponentVersionReader(VersionReader versionReader) {
-      this.versionReader = versionReader;
+    ComponentVersionReader(PropertiesVersionReader.ForFile versionReaderForFile) {
+      this.versionReaderForFile = versionReaderForFile;
+    }
+
+    PropertiesVersionReader create(String prefix) {
+      return new PropertiesVersionReader(
+          versionReaderForFile.componentVersions,
+          prefix,
+          null,
+          null,
+          null);
+    }
+
+    PropertiesVersionReader create(
+        StackGresProperty imageTemplateProperty,
+        String defaultImageTemplate) {
+      return new PropertiesVersionReader(
+          versionReaderForFile.componentVersions,
+          null,
+          imageTemplateProperty,
+          defaultImageTemplate,
+          null);
+    }
+
+    PropertiesVersionReader create(
+        StackGresProperty imageTemplateProperty,
+        String defaultImageTemplate,
+        StackGresProperty componentVersionProperty) {
+      return new PropertiesVersionReader(
+          versionReaderForFile.componentVersions,
+          null,
+          imageTemplateProperty,
+          defaultImageTemplate,
+          componentVersionProperty);
     }
   }
 
   public enum ComponentsV120 implements ComponentWrapper {
-    POSTGRESQL(new Component(ComponentVersionReader.V_1_20.versionReader, "postgresql", "pg")),
-    BABELFISH(new Component(ComponentVersionReader.V_1_20.versionReader, "babelfish", "bf")),
-    PATRONI(new Component(ComponentVersionReader.V_1_20.versionReader, "patroni",
+    POSTGRESQL(new Component(StackGresComponent.POSTGRESQL, ComponentVersionReader.V_1_20.create("pg"))),
+    BABELFISH(new Component(StackGresComponent.BABELFISH, ComponentVersionReader.V_1_20.create("bf"))),
+    PATRONI(new Component(StackGresComponent.PATRONI, ComponentVersionReader.V_1_20.create(
         StackGresProperty.SG_IMAGE_PATRONI,
-        "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s",
+        "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s"),
         new Component[] {
             Components.ComponentsV120.POSTGRESQL.getComponent(),
             Components.ComponentsV120.BABELFISH.getComponent(),
         })),
-    POSTGRES_UTIL(new Component(ComponentVersionReader.V_1_20.versionReader, "postgresql",
-        StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
-        "%1$s/ongres/postgres-util:v%2$s-build-%3$s")),
-    PGBOUNCER(new Component(ComponentVersionReader.V_1_20.versionReader, "pgbouncer",
-        StackGresProperty.SG_IMAGE_PGBOUNCER,
-        "%1$s/ongres/pgbouncer:v%2$s-build-%3$s")),
-    PROMETHEUS_POSTGRES_EXPORTER(new Component(ComponentVersionReader.V_1_20.versionReader,
-        "prometheus-postgres-exporter",
-        StackGresProperty.SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER,
-        "%1$s/ongres/prometheus-postgres-exporter:v%2$s-build-%3$s")),
-    ENVOY(new Component(ComponentVersionReader.V_1_20.versionReader, "envoy",
-        StackGresProperty.SG_IMAGE_ENVOY,
-        "%1$s/ongres/envoy:v%2$s-build-%3$s")),
-    FLUENT_BIT(new Component(ComponentVersionReader.V_1_20.versionReader, "fluentbit",
-        StackGresProperty.SG_IMAGE_FLUENT_BIT,
-        "%1$s/ongres/fluentbit:v%2$s-build-%3$s")),
-    FLUENTD(new Component(ComponentVersionReader.V_1_20.versionReader, "fluentd",
-        StackGresProperty.SG_IMAGE_FLUENTD,
-        "%1$s/ongres/fluentd:v%2$s-build-%3$s")),
-    KUBECTL(new Component(ComponentVersionReader.V_1_20.versionReader, "kubectl",
-        StackGresProperty.SG_IMAGE_KUBECTL,
-        "%1$s/ongres/kubectl:v%2$s-build-%3$s")),
-    BABELFISH_COMPASS(new Component(ComponentVersionReader.V_1_20.versionReader,
-        "babelfish-compass",
-        StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
-        "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s")),
-    OTEL_COLLECTOR(new Component(ComponentVersionReader.V_1_20.versionReader,
-        "otel-collector",
-        StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
-        "%1$s/ongres/otel-collector:v%2$s-build-%3$s"));
+    POSTGRES_UTIL(new Component(
+        StackGresComponent.POSTGRES_UTIL,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
+            "%1$s/ongres/postgres-util:v%2$s-build-%3$s"))),
+    PGBOUNCER(new Component(
+        StackGresComponent.PGBOUNCER,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_PGBOUNCER,
+            "%1$s/ongres/pgbouncer:v%2$s-build-%3$s"))),
+    PROMETHEUS_POSTGRES_EXPORTER(new Component(
+        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER,
+            "%1$s/ongres/prometheus-postgres-exporter:v%2$s-build-%3$s"))),
+    ENVOY(new Component(
+        StackGresComponent.ENVOY,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_ENVOY,
+            "%1$s/ongres/envoy:v%2$s-build-%3$s"))),
+    FLUENT_BIT(new Component(
+        StackGresComponent.FLUENT_BIT,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_FLUENT_BIT,
+            "%1$s/ongres/fluentbit:v%2$s-build-%3$s"))),
+    FLUENTD(new Component(
+        StackGresComponent.FLUENTD,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_FLUENTD,
+            "%1$s/ongres/fluentd:v%2$s-build-%3$s"))),
+    KUBECTL(new Component(
+        StackGresComponent.KUBECTL,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_KUBECTL,
+            "%1$s/ongres/kubectl:v%2$s-build-%3$s"))),
+    BABELFISH_COMPASS(new Component(
+        StackGresComponent.BABELFISH_COMPASS,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
+            "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s"))),
+    OTEL_COLLECTOR(new Component(
+        StackGresComponent.OTEL_COLLECTOR,
+        ComponentVersionReader.V_1_20.create(
+            StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
+            "%1$s/ongres/otel-collector:v%2$s-build-%3$s")));
 
     final Component component;
 
@@ -114,45 +175,60 @@ public enum Components {
   }
 
   public enum ComponentsV119 implements ComponentWrapper {
-    POSTGRESQL(new Component(ComponentVersionReader.V_1_19.versionReader, "postgresql", "pg")),
-    BABELFISH(new Component(ComponentVersionReader.V_1_19.versionReader, "babelfish", "bf")),
-    PATRONI(new Component(ComponentVersionReader.V_1_19.versionReader, "patroni",
+    POSTGRESQL(new Component(StackGresComponent.POSTGRESQL, ComponentVersionReader.V_1_19.create("pg"))),
+    BABELFISH(new Component(StackGresComponent.BABELFISH, ComponentVersionReader.V_1_19.create("bf"))),
+    PATRONI(new Component(StackGresComponent.PATRONI, ComponentVersionReader.V_1_19.create(
         StackGresProperty.SG_IMAGE_PATRONI,
-        "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s",
+        "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s"),
         new Component[] {
             Components.ComponentsV119.POSTGRESQL.getComponent(),
             Components.ComponentsV119.BABELFISH.getComponent(),
         })),
-    POSTGRES_UTIL(new Component(ComponentVersionReader.V_1_19.versionReader, "postgresql",
-        StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
-        "%1$s/ongres/postgres-util:v%2$s-build-%3$s")),
-    PGBOUNCER(new Component(ComponentVersionReader.V_1_19.versionReader, "pgbouncer",
-        StackGresProperty.SG_IMAGE_PGBOUNCER,
-        "%1$s/ongres/pgbouncer:v%2$s-build-%3$s")),
-    PROMETHEUS_POSTGRES_EXPORTER(new Component(ComponentVersionReader.V_1_19.versionReader,
-        "prometheus-postgres-exporter",
-        StackGresProperty.SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER,
-        "%1$s/ongres/prometheus-postgres-exporter:v%2$s-build-%3$s")),
-    ENVOY(new Component(ComponentVersionReader.V_1_19.versionReader, "envoy",
-        StackGresProperty.SG_IMAGE_ENVOY,
-        "%1$s/ongres/envoy:v%2$s-build-%3$s")),
-    FLUENT_BIT(new Component(ComponentVersionReader.V_1_19.versionReader, "fluentbit",
-        StackGresProperty.SG_IMAGE_FLUENT_BIT,
-        "%1$s/ongres/fluentbit:v%2$s-build-%3$s")),
-    FLUENTD(new Component(ComponentVersionReader.V_1_19.versionReader, "fluentd",
-        StackGresProperty.SG_IMAGE_FLUENTD,
-        "%1$s/ongres/fluentd:v%2$s-build-%3$s")),
-    KUBECTL(new Component(ComponentVersionReader.V_1_19.versionReader, "kubectl",
-        StackGresProperty.SG_IMAGE_KUBECTL,
-        "%1$s/ongres/kubectl:v%2$s-build-%3$s")),
-    BABELFISH_COMPASS(new Component(ComponentVersionReader.V_1_19.versionReader,
-        "babelfish-compass",
-        StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
-        "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s")),
-    OTEL_COLLECTOR(new Component(ComponentVersionReader.V_1_19.versionReader,
-        "otel-collector",
-        StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
-        "%1$s/ongres/otel-collector:v%2$s-build-%3$s"));
+    POSTGRES_UTIL(new Component(
+        StackGresComponent.POSTGRES_UTIL,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
+            "%1$s/ongres/postgres-util:v%2$s-build-%3$s"))),
+    PGBOUNCER(new Component(
+        StackGresComponent.PGBOUNCER,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_PGBOUNCER,
+            "%1$s/ongres/pgbouncer:v%2$s-build-%3$s"))),
+    PROMETHEUS_POSTGRES_EXPORTER(new Component(
+        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER,
+            "%1$s/ongres/prometheus-postgres-exporter:v%2$s-build-%3$s"))),
+    ENVOY(new Component(
+        StackGresComponent.ENVOY,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_ENVOY,
+            "%1$s/ongres/envoy:v%2$s-build-%3$s"))),
+    FLUENT_BIT(new Component(
+        StackGresComponent.FLUENT_BIT,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_FLUENT_BIT,
+            "%1$s/ongres/fluentbit:v%2$s-build-%3$s"))),
+    FLUENTD(new Component(
+        StackGresComponent.FLUENTD,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_FLUENTD,
+            "%1$s/ongres/fluentd:v%2$s-build-%3$s"))),
+    KUBECTL(new Component(
+        StackGresComponent.KUBECTL,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_KUBECTL,
+            "%1$s/ongres/kubectl:v%2$s-build-%3$s"))),
+    BABELFISH_COMPASS(new Component(
+        StackGresComponent.BABELFISH_COMPASS,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
+            "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s"))),
+    OTEL_COLLECTOR(new Component(
+        StackGresComponent.OTEL_COLLECTOR,
+        ComponentVersionReader.V_1_19.create(
+            StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
+            "%1$s/ongres/otel-collector:v%2$s-build-%3$s")));
 
     final Component component;
 
@@ -167,45 +243,60 @@ public enum Components {
   }
 
   public enum ComponentsV118 implements ComponentWrapper {
-    POSTGRESQL(new Component(ComponentVersionReader.V_1_18.versionReader, "postgresql", "pg")),
-    BABELFISH(new Component(ComponentVersionReader.V_1_18.versionReader, "babelfish", "bf")),
-    PATRONI(new Component(ComponentVersionReader.V_1_18.versionReader, "patroni",
+    POSTGRESQL(new Component(StackGresComponent.POSTGRESQL, ComponentVersionReader.V_1_18.create("pg"))),
+    BABELFISH(new Component(StackGresComponent.BABELFISH, ComponentVersionReader.V_1_18.create("bf"))),
+    PATRONI(new Component(StackGresComponent.PATRONI, ComponentVersionReader.V_1_18.create(
         StackGresProperty.SG_IMAGE_PATRONI,
-        "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s",
+        "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s"),
         new Component[] {
             Components.ComponentsV118.POSTGRESQL.getComponent(),
             Components.ComponentsV118.BABELFISH.getComponent(),
         })),
-    POSTGRES_UTIL(new Component(ComponentVersionReader.V_1_18.versionReader, "postgresql",
-        StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
-        "%1$s/ongres/postgres-util:v%2$s-build-%3$s")),
-    PGBOUNCER(new Component(ComponentVersionReader.V_1_18.versionReader, "pgbouncer",
-        StackGresProperty.SG_IMAGE_PGBOUNCER,
-        "%1$s/ongres/pgbouncer:v%2$s-build-%3$s")),
-    PROMETHEUS_POSTGRES_EXPORTER(new Component(ComponentVersionReader.V_1_18.versionReader,
-        "prometheus-postgres-exporter",
-        StackGresProperty.SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER,
-        "%1$s/ongres/prometheus-postgres-exporter:v%2$s-build-%3$s")),
-    ENVOY(new Component(ComponentVersionReader.V_1_18.versionReader, "envoy",
-        StackGresProperty.SG_IMAGE_ENVOY,
-        "%1$s/ongres/envoy:v%2$s-build-%3$s")),
-    FLUENT_BIT(new Component(ComponentVersionReader.V_1_18.versionReader, "fluentbit",
-        StackGresProperty.SG_IMAGE_FLUENT_BIT,
-        "%1$s/ongres/fluentbit:v%2$s-build-%3$s")),
-    FLUENTD(new Component(ComponentVersionReader.V_1_18.versionReader, "fluentd",
-        StackGresProperty.SG_IMAGE_FLUENTD,
-        "%1$s/ongres/fluentd:v%2$s-build-%3$s")),
-    KUBECTL(new Component(ComponentVersionReader.V_1_18.versionReader, "kubectl",
-        StackGresProperty.SG_IMAGE_KUBECTL,
-        "%1$s/ongres/kubectl:v%2$s-build-%3$s")),
-    BABELFISH_COMPASS(new Component(ComponentVersionReader.V_1_18.versionReader,
-        "babelfish-compass",
-        StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
-        "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s")),
-    OTEL_COLLECTOR(new Component(ComponentVersionReader.V_1_18.versionReader,
-        "otel-collector",
-        StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
-        "%1$s/ongres/otel-collector:v%2$s-build-%3$s"));
+    POSTGRES_UTIL(new Component(
+        StackGresComponent.POSTGRES_UTIL,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
+            "%1$s/ongres/postgres-util:v%2$s-build-%3$s"))),
+    PGBOUNCER(new Component(
+        StackGresComponent.PGBOUNCER,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_PGBOUNCER,
+            "%1$s/ongres/pgbouncer:v%2$s-build-%3$s"))),
+    PROMETHEUS_POSTGRES_EXPORTER(new Component(
+        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_PROMETHEUS_POSTGRES_EXPORTER,
+            "%1$s/ongres/prometheus-postgres-exporter:v%2$s-build-%3$s"))),
+    ENVOY(new Component(
+        StackGresComponent.ENVOY,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_ENVOY,
+            "%1$s/ongres/envoy:v%2$s-build-%3$s"))),
+    FLUENT_BIT(new Component(
+        StackGresComponent.FLUENT_BIT,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_FLUENT_BIT,
+            "%1$s/ongres/fluentbit:v%2$s-build-%3$s"))),
+    FLUENTD(new Component(
+        StackGresComponent.FLUENTD,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_FLUENTD,
+            "%1$s/ongres/fluentd:v%2$s-build-%3$s"))),
+    KUBECTL(new Component(
+        StackGresComponent.KUBECTL,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_KUBECTL,
+            "%1$s/ongres/kubectl:v%2$s-build-%3$s"))),
+    BABELFISH_COMPASS(new Component(
+        StackGresComponent.BABELFISH_COMPASS,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
+            "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s"))),
+    OTEL_COLLECTOR(new Component(
+        StackGresComponent.OTEL_COLLECTOR,
+        ComponentVersionReader.V_1_18.create(
+            StackGresProperty.SG_IMAGE_OTEL_COLLECTOR,
+            "%1$s/ongres/otel-collector:v%2$s-build-%3$s")));
 
     final Component component;
 

@@ -21,10 +21,11 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -103,27 +104,34 @@ public class FluentBit implements
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
-        StackGresContext.FLUENTBIT_VERSION_KEY,
-        StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
-        .getLatestVersion());
+        StackGresKeys.FLUENTBIT_VERSION_KEY,
+        StackGresUtil.getSidecarVersion(
+            context.getClusterContext().getContext(),
+            context.getClusterContext().getCluster(),
+            StackGresComponent.FLUENT_BIT));
   }
 
   public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.FLUENT_BIT.getName())
-        .withImage(StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
-            .getLatestImageName())
+        .withImage(StackGresUtil.getSidecarImageName(
+            context.getClusterContext().getContext(),
+            context.getClusterContext().getCluster(),
+            StackGresComponent.FLUENT_BIT))
         .withImagePullPolicy(getDefaultPullPolicy())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.TEMPLATES_PATH.path()
-                + "/" + ClusterPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH.filename())
+            ClusterPathV1.TEMPLATES_PATH.path()
+                + "/" + ClusterPathV1.LOCAL_BIN_START_FLUENTBIT_SH_PATH.filename())
         .addToEnv(
             new EnvVarBuilder()
-            .withName(ClusterPath.FLUENT_BIT_LAST_CONFIG_PATH.name())
-            .withValue(ClusterPath.FLUENT_BIT_LAST_CONFIG_PATH.path())
-            .build())
+            .withName(ClusterPathV1.FLUENT_BIT_LAST_CONFIG_PATH.name())
+            .withValue(ClusterPathV1.FLUENT_BIT_LAST_CONFIG_PATH.path())
+            .build(),
+            StackGresUtil.isRegistryEnabled(context.getClusterContext().getCluster())
+                ? ClusterPathV2.FLUENT_BIT_BIN_PATH.envVar()
+                : ClusterPathV1.FLUENT_BIT_BIN_PATH.envVar())
         .addAllToEnv(logMounts.getDerivedEnvVars(context))
         .addAllToEnv(postgresSocket.getDerivedEnvVars(context))
         .addAllToEnv(templatesMounts.getDerivedEnvVars(context))
@@ -213,9 +221,9 @@ public class FluentBit implements
         + "\n"
         + "[INPUT]\n"
         + "    Name              tail\n"
-        + "    Path              " + ClusterPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
+        + "    Path              " + ClusterPathV1.PG_LOG_PATH.path() + "/postgres*.csv\n"
         + "    Tag               " + DistributedLogsFlunetdConfigMap.POSTGRES_LOG_TYPE + "\n"
-        + "    DB                " + ClusterPath.PG_LOG_PATH.path() + "/postgreslog.db\n"
+        + "    DB                " + ClusterPathV1.PG_LOG_PATH.path() + "/postgreslog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  postgreslog_firstline\n"
         + "    Parser_1          postgreslog_1\n"
@@ -225,9 +233,9 @@ public class FluentBit implements
         + "[INPUT]\n"
         + "    Name              tail\n"
         + "    Key               message\n"
-        + "    Path              " + ClusterPath.PG_LOG_PATH.path() + "/patroni*.log\n"
+        + "    Path              " + ClusterPathV1.PG_LOG_PATH.path() + "/patroni*.log\n"
         + "    Tag               " + DistributedLogsFlunetdConfigMap.PATRONI_LOG_TYPE + "\n"
-        + "    DB                " + ClusterPath.PG_LOG_PATH.path() + "/patronilog.db\n"
+        + "    DB                " + ClusterPathV1.PG_LOG_PATH.path() + "/patronilog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  patronilog_firstline\n"
         + "    Parser_1          patronilog_1\n"

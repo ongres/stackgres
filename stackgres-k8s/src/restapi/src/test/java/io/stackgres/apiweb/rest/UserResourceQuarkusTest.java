@@ -37,7 +37,7 @@ import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.rest.user.UserResource;
 import io.stackgres.apiweb.security.TokenUtils;
 import io.stackgres.common.KubernetesTestServerSetup;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -74,7 +74,7 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
     user.getMetadata().setNamespace(namespace);
     user.getMetadata().setName(userDto.getMetadata().getName());
     user.getData().put(
-        StackGresContext.REST_PASSWORD_KEY,
+        StackGresKeys.REST_PASSWORD_KEY,
         ResourceUtil.encodeSecret(TokenUtils.sha256(
             Optional.ofNullable(userDto.getApiUsername())
                 .orElse(userDto.getK8sUsername())
@@ -83,7 +83,7 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .withNewMetadata()
         .withNamespace("test")
         .withName(UserResource.getRoleName(userDto, "test"))
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withNewRoleRef()
         .withApiGroup(HasMetadata.getGroup(Role.class))
@@ -99,7 +99,7 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterRoleBinding = new ClusterRoleBindingBuilder()
         .withNewMetadata()
         .withName(UserResource.getRoleName(userDto, "test"))
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withNewRoleRef()
         .withApiGroup(HasMetadata.getGroup(ClusterRole.class))
@@ -397,20 +397,20 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .withName(userDto.getMetadata().getName())
         .get();
     assertEquals(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE),
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE),
         user.getMetadata().getLabels());
     assertEquals(
         Optional.ofNullable(userDto.getApiUsername()).map(ResourceUtil::encodeSecret).orElse(null),
-        user.getData().get(StackGresContext.REST_APIUSER_KEY));
+        user.getData().get(StackGresKeys.REST_APIUSER_KEY));
     assertEquals(
         ResourceUtil.encodeSecret(userDto.getK8sUsername()),
-        user.getData().get(StackGresContext.REST_K8SUSER_KEY));
+        user.getData().get(StackGresKeys.REST_K8SUSER_KEY));
     assertEquals(
         ResourceUtil.encodeSecret(TokenUtils.sha256(
             Optional.ofNullable(userDto.getApiUsername())
                 .orElse(userDto.getK8sUsername())
                 + userDto.getPassword())),
-        user.getData().get(StackGresContext.REST_PASSWORD_KEY));
+        user.getData().get(StackGresKeys.REST_PASSWORD_KEY));
   }
 
   private void checkRoleBindings() {

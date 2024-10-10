@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -25,6 +26,12 @@ import jakarta.enterprise.context.Dependent;
 @Dependent
 public class DefaultClusterPostgresConfigFactory
     extends DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> {
+
+  private final StackGresContext context;
+
+  public DefaultClusterPostgresConfigFactory(StackGresContext context) {
+    this.context = context;
+  }
 
   @Override
   protected String getDefaultPropertyResourceName(StackGresCluster source) {
@@ -78,7 +85,10 @@ public class DefaultClusterPostgresConfigFactory
 
   private String getPostgresMajorVersion(StackGresCluster resource) {
     String version = getPostgresFlavorComponent(resource).get(resource)
-        .getVersion(Optional.ofNullable(resource.getStatus())
+        .findVersion(context, Optional.ofNullable(resource.getStatus())
+            .map(StackGresClusterStatus::getPostgresVersion)
+            .orElse(resource.getSpec().getPostgres().getVersion()))
+        .orElse(Optional.ofNullable(resource.getStatus())
             .map(StackGresClusterStatus::getPostgresVersion)
             .orElse(resource.getSpec().getPostgres().getVersion()));
     return version.split("\\.")[0];

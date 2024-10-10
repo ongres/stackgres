@@ -20,11 +20,13 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresModules;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -38,10 +40,12 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
+import io.stackgres.common.docir.DocirConfigUtil;
 import io.stackgres.common.extension.ExtensionsConfigUtil;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.factory.CgroupMounts;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
@@ -54,7 +58,7 @@ import jakarta.inject.Singleton;
 
 @Singleton
 @Sidecar(StackGresContainer.CLUSTER_CONTROLLER)
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 @RunningContainer(StackGresContainer.CLUSTER_CONTROLLER)
 public class ClusterController implements ContainerFactory<ClusterContainerContext> {
 
@@ -157,6 +161,21 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                     .orElse(null))))
             .build(),
             new EnvVarBuilder()
+            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_DOCIR_REPOSITORY_URL
+                .getEnvironmentVariableName())
+            .withValue(StackGresUtil.getRegistryUri(context.getClusterContext().getCluster())
+                .orElseGet(() -> DocirConfigUtil.getRepositoryUri(
+                    Optional.of(context.getClusterContext().getConfig())
+                    .map(StackGresConfig::getSpec)
+                    .map(StackGresConfigSpec::getRepository)
+                    .orElse(null)))
+                .toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(OperatorProperty.USE_PUBLISHED_IMAGES.getEnvironmentVariableName())
+            .withValue(String.valueOf(DocirConfigUtil.isUsePublishedImages()))
+            .build(),
+            new EnvVarBuilder()
             .withName(ClusterControllerProperty
                 .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
                 .getEnvironmentVariableName())
@@ -255,34 +274,51 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .endResourceFieldRef()
             .endValueFrom()
             .build())
+        .addToEnv(
+            ClusterPathV2.PG_EXTENSIONS_PATH.envVar(context.getClusterContext()),
+            ClusterPathV2.PG_RELOCATED_LIB_PATH.envVar(context.getClusterContext()),
+            ClusterPathV2.PG_EXTENSIONS_LIB_PATH.envVar(context.getClusterContext()))
+        .addToEnv(
+            ClusterPathV2.PG_RUN_PATH.envVar(),
+            ClusterPathV2.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.envVar(),
+            ClusterPathV2.PATRONI_CONFIG_PATH.envVar(),
+            ClusterPathV2.PATRONI_CONFIG_FILE_PATH.envVar(),
+            ClusterPathV2.PGBOUNCER_AUTH_PATH.envVar(),
+            ClusterPathV2.PGBOUNCER_AUTH_FILE_PATH.envVar(),
+            ClusterPathV2.PGBOUNCER_CONFIG_PATH.envVar(),
+            ClusterPathV2.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
+            ClusterPathV2.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar(),
+            ClusterPathV2.PGBOUNCER_BIN_PATH.envVar(),
+            ClusterPathV2.SSL_PATH.envVar(),
+            ClusterPathV2.SSL_COPY_PATH.envVar())
         .withVolumeMounts(userOverrideMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresSocketMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
+                .withMountPath(ClusterPathV2.PGBOUNCER_CONFIG_PATH.path())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path())
+                .withMountPath(ClusterPathV2.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
-                .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.filename())
+                .withMountPath(ClusterPathV2.PGBOUNCER_AUTH_PATH.path())
+                .withSubPath(ClusterPathV2.PGBOUNCER_AUTH_PATH.filename())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PATRONI_CONFIG.getName())
-                .withMountPath(ClusterPath.PATRONI_CONFIG_PATH.path())
+                .withMountPath(ClusterPathV2.PATRONI_CONFIG_PATH.path())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath(ClusterPath.SSL_PATH.path())
+                .withMountPath(ClusterPathV2.SSL_PATH.path())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-                .withMountPath(ClusterPath.SSL_COPY_PATH.path())
+                .withMountPath(ClusterPathV2.SSL_COPY_PATH.path())
                 .build())
         .addAllToVolumeMounts(Optional.of(context.getClusterContext().getConfig().getSpec())
             .map(StackGresConfigSpec::getDeveloper)
@@ -300,7 +336,7 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
-        StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
+        StackGresKeys.CLUSTER_CONTROLLER_VERSION_KEY,
         StackGresModules.CLUSTER_CONTROLLER.getVersion());
   }
 

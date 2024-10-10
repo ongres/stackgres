@@ -19,7 +19,9 @@ import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
@@ -38,10 +40,8 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoLimitsReconciliator.class);
 
-  private static final Path PG_BASE_PATH =
-      Paths.get(ClusterPath.PG_BASE_PATH.path());
   private static final Path PROC_PATH = Path.of("/proc");
-  private static final Path HOST_CGROUP_PATH = Path.of(ClusterPath.HOST_CGROUP_PATH.path());
+  private static final Path HOST_CGROUP_PATH = Path.of(ClusterPathV1.HOST_CGROUP_PATH.path());
 
   private static final long MEBI_BYTES = 1024L * 1024L;
 
@@ -111,8 +111,12 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
         .map(StackGresClusterPodsPersistentVolumeIoLimits::getWriteIops)
         .orElse(null);
     if (deviceMajMin == null) {
-      deviceMajMin = resolveDeviceMajMin(PG_BASE_PATH);
-      LOGGER.info("Device mounted at " + PG_BASE_PATH + " has maj:min " + deviceMajMin);
+      final Path pgBasePath = Paths.get(
+          StackGresUtil.isRegistryEnabled(context.getCluster())
+              ? ClusterPathV2.PG_BASE_PATH.path()
+              : ClusterPathV1.PG_BASE_PATH.path());
+      deviceMajMin = resolveDeviceMajMin(pgBasePath);
+      LOGGER.info("Device mounted at " + pgBasePath + " has maj:min " + deviceMajMin);
     }
     if (ioMaxPath == null) {
       ioMaxPath = resolveCgroupIoMaxPath(podUid);

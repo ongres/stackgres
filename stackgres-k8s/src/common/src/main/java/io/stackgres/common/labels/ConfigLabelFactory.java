@@ -10,7 +10,7 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,7 +31,7 @@ public class ConfigLabelFactory extends AbstractLabelFactory<StackGresConfig>
   public Map<String, String> restapiLabels(@NotNull StackGresConfig resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().restapiKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().restapiKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -39,7 +39,7 @@ public class ConfigLabelFactory extends AbstractLabelFactory<StackGresConfig>
   public Map<String, String> grafanaIntegrationLabels(@NotNull StackGresConfig resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().grafanaIntegrationKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().grafanaIntegrationKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -47,7 +47,7 @@ public class ConfigLabelFactory extends AbstractLabelFactory<StackGresConfig>
   public Map<String, String> collectorLabels(@NotNull StackGresConfig resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().collectorKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().collectorKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 

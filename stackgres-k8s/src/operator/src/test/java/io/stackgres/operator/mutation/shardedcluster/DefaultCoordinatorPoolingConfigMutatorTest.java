@@ -11,6 +11,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
@@ -24,7 +26,8 @@ class DefaultCoordinatorPoolingConfigMutatorTest
         StackGresShardedClusterReview, DefaultCoordinatorPoolingMutator> {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   @Override
   protected StackGresShardedClusterReview getAdmissionReview() {

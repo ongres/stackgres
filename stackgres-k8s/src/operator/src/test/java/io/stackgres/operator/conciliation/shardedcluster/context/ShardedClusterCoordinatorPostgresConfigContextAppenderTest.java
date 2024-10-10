@@ -16,6 +16,7 @@ import java.util.Optional;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
@@ -38,7 +39,7 @@ class ShardedClusterCoordinatorPostgresConfigContextAppenderTest {
   private StackGresShardedClusterContext.Builder contextBuilder;
 
   private DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory =
-      new DefaultShardedClusterPostgresConfigFactory();
+      new DefaultShardedClusterPostgresConfigFactory(StackGresContextMock.CONTEXT);
 
   @Mock
   private CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
@@ -47,6 +48,7 @@ class ShardedClusterCoordinatorPostgresConfigContextAppenderTest {
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
     contextAppender = new ShardedClusterCoordinatorPostgresConfigContextAppender(
+        StackGresContextMock.CONTEXT,
         postgresConfigFinder,
         defaultPostgresConfigFactory);
   }

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
@@ -160,7 +160,7 @@ public class ClusterReconciliator
                   .map(Map::entrySet)
                   .stream()
                   .flatMap(Set::stream)
-                  .filter(annotation -> !Objects.equals(annotation.getKey(), StackGresContext.VERSION_KEY))
+                  .filter(annotation -> !Objects.equals(annotation.getKey(), StackGresKeys.VERSION_KEY))
                   .filter(annotation -> !DbOpsClusterRollout.ROLLOUT_DBOPS_KEYS.contains(annotation.getKey())
                       || Optional.ofNullable(config.getStatus())
                       .map(StackGresClusterStatus::getDbOps)
@@ -171,7 +171,7 @@ public class ClusterReconciliator
                   .map(Map::entrySet)
                   .stream()
                   .flatMap(Set::stream)
-                  .filter(annotation -> Objects.equals(annotation.getKey(), StackGresContext.VERSION_KEY)))
+                  .filter(annotation -> Objects.equals(annotation.getKey(), StackGresKeys.VERSION_KEY)))
               .toMap(Map.Entry::getKey, Map.Entry::getValue));
           var targetOs = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getOs)

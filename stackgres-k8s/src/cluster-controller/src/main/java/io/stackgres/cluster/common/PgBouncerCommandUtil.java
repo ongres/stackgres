@@ -8,11 +8,16 @@ package io.stackgres.cluster.common;
 import java.util.regex.Pattern;
 
 import com.ongres.process.FluentProcess;
+import io.stackgres.common.ClusterPathV1;
 
 public interface PgBouncerCommandUtil {
 
-  Pattern PGBOUNCER_COMMAND_PATTERN =
-      Pattern.compile("^/usr/local/bin/pgbouncer .*$");
+  /**
+   * The pgbouncer binary path depends on the image in use (see {@code ClusterPathV1} and
+   * {@code ClusterPathV2}) and is read from the environment variable exported by the operator.
+   */
+  Pattern PGBOUNCER_COMMAND_PATTERN = Pattern.compile(
+      "^" + Pattern.quote(ClusterPathV1.PGBOUNCER_BIN_PATH.pathFromEnv()) + " .*$");
 
   static void reloadPgBouncerConfig() {
     final String pgBouncerPid = findPgBouncerPid();

@@ -8,13 +8,11 @@ package io.stackgres.operator.mutation.dbops;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import io.stackgres.common.ExtensionTuple;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -26,8 +24,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.StackGresVersionUtil;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
-import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -38,26 +36,18 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
     extends AbstractExtensionsMutator<StackGresDbOps, StackGresDbOpsReview>
     implements DbOpsMutator {
 
+  private final StackGresContext context;
   private final ExtensionMetadataManager extensionMetadataManager;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      supportedPostgresVersions;
-
   @Inject
   public DbOpsMajorVersionUpgradeExtensionsMutator(
+      StackGresContext context,
       ExtensionMetadataManager extensionMetadataManager,
       CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this(extensionMetadataManager, clusterFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
-  }
-
-  public DbOpsMajorVersionUpgradeExtensionsMutator(
-      ExtensionMetadataManager extensionMetadataManager,
-      CustomResourceFinder<StackGresCluster> clusterFinder,
-      Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
+    this.context = context;
     this.extensionMetadataManager = extensionMetadataManager;
     this.clusterFinder = clusterFinder;
-    this.supportedPostgresVersions = supportedPostgresVersions;
   }
 
   @Override
@@ -72,7 +62,22 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
         .isEmpty()) {
       return resource;
     }
-    return super.mutate(review, resource);
+    Optional<StackGresCluster> foundCluster = clusterFinder.findByNameAndNamespace(
+        review.getRequest().getObject().getSpec().getSgCluster(),
+        review.getRequest().getObject().getMetadata().getNamespace());
+    String postgresVersion = foundCluster
+        .flatMap(cluster -> Optional.of(review.getRequest().getObject())
+            .map(StackGresDbOps::getSpec)
+            .map(StackGresDbOpsSpec::getMajorVersionUpgrade)
+            .map(StackGresDbOpsMajorVersionUpgrade::getPostgresVersion)
+            .flatMap(version -> getPostgresFlavorComponent(cluster).get(cluster).findVersion(context, version)))
+        .orElse(null);
+    if (postgresVersion != null
+        && StackGresVersionUtil.getSupportedPostgresVersions(context, foundCluster.get())
+        .contains(postgresVersion)) {
+      return super.mutate(review, resource);
+    }
+    return resource;
   }
 
   @Override
@@ -83,16 +88,19 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
     String postgresVersion = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getVersion)
-        .flatMap(getPostgresFlavorComponent(cluster).get(cluster)::findVersion)
+        .flatMap(version -> getPostgresFlavorComponent(cluster).get(cluster).findVersion(context, version))
         .orElse(null);
     if (postgresVersion == null
-        || !supportedPostgresVersions
-        .get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster))
+        || !StackGresVersionUtil.getSupportedPostgresVersions(context, cluster)
         .contains(postgresVersion)) {
       return false;
     }
     return super.extensionsChanged(review, cluster, oldCluster);
+  }
+
+  @Override
+  protected StackGresContext getContext() {
+    return context;
   }
 
   @Override
@@ -153,7 +161,7 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
   @Override
   protected List<ExtensionTuple> getDefaultExtensions(
       StackGresDbOps resource, StackGresCluster cluster) {
-    return StackGresUtil.getDefaultClusterExtensions(cluster);
+    return StackGresUtil.getDefaultClusterExtensions(context, cluster);
   }
 
   @Override

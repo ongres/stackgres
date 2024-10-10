@@ -49,10 +49,8 @@
       "spec": {
         "type": "citus",
         "database": "citus",
-        "type": "citus",
-        "database": "citus",
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla"
         },
         "postgresServices": {
@@ -83,7 +81,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -98,14 +96,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },
@@ -123,7 +126,7 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla"
         },
         "postgresServices": {
@@ -151,7 +154,7 @@
             "sgPostgresConfig": "oldpostgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -166,14 +169,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },

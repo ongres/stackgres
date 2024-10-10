@@ -14,7 +14,7 @@ EVAL_IN_PLACE_EOF
 
 set_completed() {
   create_event "ShardedDbOpCompleted" "Normal" "Sharded Database operation $OP_NAME completed"
-  kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
@@ -31,7 +31,7 @@ EOF
 
 set_timed_out() {
   create_event "ShardedDbOpTimeOut" "Warning" "Sharded Database operation $OP_NAME timed out"
-  kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
@@ -48,7 +48,7 @@ EOF
 
 set_lock_lost() {
   create_event "ShardedDbOpTimeOut" "Warning" "Sharded Database operation $OP_NAME lost the lock"
-  kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
+  "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
@@ -67,7 +67,7 @@ set_failed() {
   if [ -z "$FAILURE" ]
   then
     create_event "ShardedDbOpFailed" "Warning" "Sharded Database operation $OP_NAME failed"
-    kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
+    "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
       -p "$(cat << EOF
 {
   "status": {
@@ -82,7 +82,7 @@ EOF
       )"
   else
     create_event "ShardedDbOpFailed" "Warning" "Sharded Database operation $OP_NAME failed: $FAILURE"
-    kubectl patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
+    "$KUBECTL_BIN_PATH" patch "$SHARDED_DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" --type=merge \
       -p "$(cat << EOF
 {
   "status": {

@@ -30,7 +30,7 @@ public interface ShardedClusterContext extends EnvVarContext<StackGresShardedClu
   @Override
   default Map<String, String> getEnvironmentVariables() {
     return Seq.of(ShardedClusterEnvVar.values())
-        .map(clusterEnvVars -> clusterEnvVars.envVar(getShardedCluster()))
+        .map(clusterEnvVars -> clusterEnvVars.envVar(this))
         .toMap(EnvVar::getName, EnvVar::getValue);
   }
 

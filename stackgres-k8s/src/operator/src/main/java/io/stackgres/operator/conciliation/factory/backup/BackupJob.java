@@ -27,15 +27,16 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LeaseLockUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.VolumeSnapshotUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
@@ -72,6 +73,7 @@ public class BackupJob
 
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
+  private final StackGresContext context;
   private final LabelFactoryForBackup labelFactory;
   private final LabelFactoryForCluster labelFactoryForCluster;
   private final ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory;
@@ -82,6 +84,7 @@ public class BackupJob
 
   @Inject
   public BackupJob(
+      StackGresContext context,
       LabelFactoryForBackup labelFactory,
       LabelFactoryForCluster labelFactoryForCluster,
       ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory,
@@ -89,7 +92,7 @@ public class BackupJob
       ClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,
       BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts,
       BackupTemplatesVolumeFactory backupTemplatesVolumeFactory) {
-    super();
+    this.context = context;
     this.labelFactory = labelFactory;
     this.labelFactoryForCluster = labelFactoryForCluster;
     this.podSecurityFactory = podSecurityFactory;
@@ -135,14 +138,14 @@ public class BackupJob
         .stream()
         .flatMap(Seq::seq)
         .anyMatch(Tuple.tuple(
-            StackGresContext.SCHEDULED_BACKUP_KEY,
-            StackGresContext.RIGHT_VALUE)::equals)
+            StackGresKeys.SCHEDULED_BACKUP_KEY,
+            StackGresKeys.RIGHT_VALUE)::equals)
         || Optional.ofNullable(context.getSource().getMetadata().getAnnotations())
         .stream()
         .flatMap(Seq::seq)
         .anyMatch(Tuple.tuple(
-            StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SCHEDULED_BACKUP_KEY,
-            StackGresContext.RIGHT_VALUE)::equals);
+            StackGresKeys.STACKGRES_KEY_PREFIX + StackGresKeys.SCHEDULED_BACKUP_KEY,
+            StackGresKeys.RIGHT_VALUE)::equals);
   }
 
   private HasMetadata createBackupJob(StackGresBackupContext context) {
@@ -376,7 +379,7 @@ public class BackupJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_PRIMARY_ROLE")
-                    .withValue(PatroniUtil.getPrimaryRole(cluster))
+                    .withValue(PatroniUtil.getPrimaryRole(this.context, cluster))
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_REPLICA_ROLE")
@@ -470,7 +473,7 @@ public class BackupJob
                     .build())
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                ClusterPathV1.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
             .withVolumeMounts(backupScriptTemplatesVolumeMounts.getVolumeMounts(context))
             .build())
         .withVolumes(backupTemplatesVolumeFactory.buildVolumes(context)

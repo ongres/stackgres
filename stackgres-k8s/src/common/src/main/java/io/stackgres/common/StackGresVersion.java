@@ -9,6 +9,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -53,6 +54,12 @@ public enum StackGresVersion {
   public static final StackGresVersion LATEST =
       Seq.of(values()).findLast().get();
 
+  public static List<StackGresVersion> sameVersions(StackGresVersion version) {
+    return Stream.of(values())
+        .filter(v -> version.getVersion().equals(v.getVersion()))
+        .toList();
+  }
+
   final String version;
   final long versionAsNumber;
 
@@ -64,6 +71,11 @@ public enum StackGresVersion {
   StackGresVersion(String version) {
     this.version = version;
     this.versionAsNumber = getVersionAsNumber(version);
+  }
+
+  StackGresVersion(StackGresVersion version) {
+    this.version = version.version;
+    this.versionAsNumber = version.versionAsNumber;
   }
 
   public String getVersion() {
@@ -116,12 +128,16 @@ public enum StackGresVersion {
   }
 
   private static StackGresVersion ofVersion(String version) {
-    return Stream.of(values())
-        .filter(minorVersion -> version.startsWith(minorVersion.version + ".")
-            || version.equals(minorVersion.version))
-        .findAny()
+    return findVersion(version)
         .orElseThrow(() -> new IllegalArgumentException(
             "Invalid version " + version));
+  }
+
+  private static Optional<StackGresVersion> findVersion(String version) {
+    return Stream.of(values())
+        .filter(foundVersion -> version.startsWith(foundVersion.version + ".")
+            || version.equals(foundVersion.version))
+        .findAny();
   }
 
   public static StackGresVersion getStackGresVersion(StackGresConfig config) {
@@ -168,8 +184,10 @@ public enum StackGresVersion {
     return Optional.of(resource)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
+        .map(annotations -> annotations.get(StackGresKeys.VERSION_KEY))
         .map(StackGresVersion::ofVersion)
+        .or(() -> StackGresProperty.OPERATOR_VERSION.get()
+            .flatMap(StackGresVersion::findVersion))
         .orElse(StackGresVersion.LATEST);
   }
 
@@ -234,6 +252,9 @@ public enum StackGresVersion {
     return Optional.of(resource)
         .map(StackGresVersion::getStackGresRawVersionFromResource)
         .map(StackGresVersion::getVersionAsNumber)
+        .or(() -> StackGresProperty.OPERATOR_VERSION.get()
+            .flatMap(StackGresVersion::findVersion)
+            .map(StackGresVersion::getVersionAsNumber))
         .orElseGet(StackGresVersion.LATEST::getVersionAsNumber);
   }
 
@@ -241,7 +262,10 @@ public enum StackGresVersion {
     return Optional.of(resource)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
+        .map(annotations -> annotations.get(StackGresKeys.VERSION_KEY))
+        .or(() -> StackGresProperty.OPERATOR_VERSION.get()
+            .flatMap(StackGresVersion::findVersion)
+            .map(StackGresVersion::getVersion))
         .orElseGet(StackGresVersion.LATEST::getVersion);
   }
 

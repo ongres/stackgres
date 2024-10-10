@@ -46,6 +46,7 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatusGrafana;
+import io.stackgres.common.docir.DocirConfigUtil;
 import io.stackgres.common.extension.ExtensionsConfigUtil;
 import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
@@ -262,6 +263,17 @@ public class WebConsoleDeployment
                         Optional.of(context.getSource().getSpec())
                         .map(StackGresConfigSpec::getExtensions)
                         .orElse(null))))
+                .build(),
+                new EnvVarBuilder()
+                .withName(OperatorProperty.DOCIR_REPOSITORY_URL.getEnvironmentVariableName())
+                .withValue(DocirConfigUtil.getRepositoryUrl(
+                    Optional.of(context.getSource().getSpec())
+                    .map(StackGresConfigSpec::getRepository)
+                    .orElse(null)))
+                .build(),
+                new EnvVarBuilder()
+                .withName(OperatorProperty.USE_PUBLISHED_IMAGES.getEnvironmentVariableName())
+                .withValue(String.valueOf(DocirConfigUtil.isUsePublishedImages()))
                 .build(),
                 new EnvVarBuilder()
                 .withName("STACKGRES_AUTH_TYPE")

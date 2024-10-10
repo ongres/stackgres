@@ -25,6 +25,7 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBindingBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -53,7 +54,8 @@ public class ServiceBindingSecretTest {
   private StackGresCluster cluster;
 
   private ServiceBindingSecret serviceBindingSecret = new ServiceBindingSecret(
-      new ClusterLabelFactory(new ClusterLabelMapper()));
+      new ClusterLabelFactory(
+          StackGresContextMock.CONTEXT, new ClusterLabelMapper()));
 
   @BeforeEach
   void setUp() {

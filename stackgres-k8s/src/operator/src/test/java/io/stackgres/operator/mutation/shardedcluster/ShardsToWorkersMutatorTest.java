@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorkers;
@@ -43,7 +43,7 @@ class ShardsToWorkersMutatorTest {
       annotations = new HashMap<>();
       metadata.setAnnotations(annotations);
     }
-    annotations.put(StackGresContext.VERSION_KEY, StackGresVersion.V_1_18.getVersion());
+    annotations.put(StackGresKeys.VERSION_KEY, StackGresVersion.V_1_18.getVersion());
 
     var spec = review.getRequest().getObject().getSpec();
     StackGresShardedClusterWorkers deprecatedShards = spec.getWorkers();

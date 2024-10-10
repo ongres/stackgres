@@ -14,7 +14,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.DistributedLogsLabelFactory;
@@ -58,22 +58,22 @@ class DistributedLogsTemplatesConfigMapTest {
     assertNotNull(configMap.getData());
 
     assertTrue(configMap.getData().containsKey(
-            ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
+            ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
         "Expected ConfigMap to contain key "
-        + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename());
+        + ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename());
     assertTrue(configMap.getData().containsKey(
-            ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename()),
+            ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH.filename()),
         "Expected ConfigMap to contain key "
-        + ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename());
+        + ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH.filename());
 
     assertNotNull(configMap.getData().get(
-            ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
+            ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
         "Expected non-null content for "
-        + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename());
+        + ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename());
     assertNotNull(configMap.getData().get(
-            ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename()),
+            ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH.filename()),
         "Expected non-null content for "
-        + ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename());
+        + ClusterPathV1.LOCAL_BIN_SHELL_UTILS_PATH.filename());
   }
 
   @Test

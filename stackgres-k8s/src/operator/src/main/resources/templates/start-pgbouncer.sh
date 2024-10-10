@@ -20,4 +20,4 @@ do
   sleep 1
 done  
 
-exec /usr/local/bin/pgbouncer "$PGBOUNCER_CONFIG_FILE_PATH"
+exec "$PGBOUNCER_BIN_PATH" "$PGBOUNCER_CONFIG_FILE_PATH"

@@ -96,6 +96,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -175,7 +176,8 @@ class ClusterResourceMockedTest extends
   @Override
   @BeforeEach
   void setUp() {
-    labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    labelFactory = new ClusterLabelFactory(
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper());
     cluster = Fixtures.cluster().loadDefault().get();
     scriptTransformer = new ScriptTransformer(JsonUtil.jsonMapper());
     super.setUp();
@@ -743,7 +745,8 @@ class ClusterResourceMockedTest extends
   @Override
   protected ClusterResource getService() {
     ClusterTransformer clusterTransformer = getTransformer();
-    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
     final ClusterDtoScanner dtoScanner = new ClusterDtoScanner();
     dtoScanner.setClusterScanner(scanner);
@@ -759,7 +762,8 @@ class ClusterResourceMockedTest extends
   @Override
   protected NamespacedClusterResource getNamespacedService() {
     ClusterTransformer clusterTransformer = getTransformer();
-    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper());
     final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
     dtoFinder.setClusterFinder(finder);
     dtoFinder.setPodFinder(podFinder);
@@ -780,7 +784,8 @@ class ClusterResourceMockedTest extends
 
   private NamespacedClusterLogsResource getClusterLogsResource() {
     ClusterTransformer clusterTransformer = getTransformer();
-    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(
+        StackGresContextMock.CONTEXT, new ClusterLabelMapper());
     final ClusterDtoFinder dtoFinder = new ClusterDtoFinder();
     dtoFinder.setClusterFinder(finder);
     dtoFinder.setPodFinder(podFinder);

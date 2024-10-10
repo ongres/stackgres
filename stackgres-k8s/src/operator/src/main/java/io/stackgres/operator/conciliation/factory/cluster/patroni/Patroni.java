@@ -28,11 +28,12 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -42,9 +43,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
@@ -62,7 +65,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
@@ -71,6 +74,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
   private final PostgresSocketMounts postgresSocket;
+  private final PostgresDataMounts postgresDataMounts;
   private final PostgresExtensionMounts postgresExtensions;
   private final TemplatesMounts templateMounts;
   private final UserOverrideMounts userOverrideMounts;
@@ -94,6 +98,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       PatroniEnvironmentVariables patroniEnvironmentVariables,
       PostgresEnvironmentVariables postgresEnvironmentVariables,
       PostgresSocketMounts postgresSocket,
+      PostgresDataMounts postgresDataMounts,
       PostgresExtensionMounts postgresExtensions,
       TemplatesMounts templateMounts,
       UserOverrideMounts userOverrideMounts,
@@ -106,10 +111,10 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       HugePagesMounts hugePagesMounts,
       @OperatorVersionBinder
       PatroniConfigMap patroniConfigMap) {
-    super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.postgresEnvironmentVariables = postgresEnvironmentVariables;
     this.postgresSocket = postgresSocket;
+    this.postgresDataMounts = postgresDataMounts;
     this.postgresExtensions = postgresExtensions;
     this.templateMounts = templateMounts;
     this.userOverrideMounts = userOverrideMounts;
@@ -125,35 +130,61 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
+    if (!StackGresUtil.isRegistryEnabled(context.getClusterContext().getCluster())) {
+      return Map.of(
+          StackGresKeys.POSTGRES_VERSION_KEY,
+          StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
+          .get(context.getClusterContext().getCluster())
+          .getVersion(
+              context.getClusterContext().getContext(),
+              context.getClusterContext().getCluster().getStatus().getPostgresVersion()),
+          StackGresKeys.PATRONI_VERSION_KEY,
+          StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
+          .getLatestVersion(
+              context.getClusterContext().getContext(),
+              Map.of(
+                  StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
+                  .get(context.getClusterContext().getCluster()),
+                  context.getClusterContext().getCluster().getStatus().getPostgresVersion())));
+    }
     return Map.of(
-        StackGresContext.POSTGRES_VERSION_KEY,
+        StackGresKeys.POSTGRES_VERSION_KEY,
         StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
         .get(context.getClusterContext().getCluster())
         .getVersion(
+            context.getClusterContext().getContext(),
             context.getClusterContext().getCluster().getStatus().getPostgresVersion()),
-        StackGresContext.PATRONI_VERSION_KEY,
+        StackGresKeys.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
-        .getLatestVersion(Map.of(
-            StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
-            .get(context.getClusterContext().getCluster()),
-            context.getClusterContext().getCluster().getStatus().getPostgresVersion())));
+        .getLatestVersion(
+            context.getClusterContext().getContext(),
+            Map.of(
+                StackGresComponent.WALG.get(context.getClusterContext().getCluster()),
+                StackGresComponent.LATEST,
+                StackGresComponent.HDRHISTOGRAM.get(context.getClusterContext().getCluster()),
+                StackGresComponent.LATEST,
+                StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
+                .get(context.getClusterContext().getCluster()),
+                context.getClusterContext().getCluster().getStatus().getPostgresVersion())));
   }
 
   @Override
   public Container getContainer(ClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getSource();
-    final String patroniImageName = StackGresUtil.getPatroniImageName(cluster);
+    final String patroniImageName = context.getClusterContext().getContext()
+        .getMetadataManager()
+        .getImage(clusterContext.getContext(), cluster);
 
     ImmutableList.Builder<VolumeMount> volumeMounts = ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.DSHM.getName())
-            .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
+            .withMountPath(ClusterPathV1.SHARED_MEMORY_PATH.path())
             .build())
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.LOG.getName())
-            .withMountPath(ClusterPath.PG_LOG_PATH.path())
+            .withMountPath(ClusterPathV1.PG_LOG_PATH.path())
             .build())
         .addAll(templateMounts.getVolumeMounts(context))
         .addAll(userOverrideMounts.getVolumeMounts(context))
@@ -162,11 +193,12 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(backupMounts.getVolumeMounts(context))
         .addAll(replicationInitMounts.getVolumeMounts(context))
         .addAll(replicateMounts.getVolumeMounts(context))
+        .addAll(postgresDataMounts.getVolumeMounts(context))
         .addAll(postgresExtensions.getVolumeMounts(context))
         .addAll(hugePagesMounts.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-            .withMountPath(ClusterPath.SSL_PATH.path())
+            .withMountPath(ClusterPathV1.SSL_PATH.path())
             .withReadOnly(true)
             .build());
 
@@ -188,8 +220,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.TEMPLATES_PATH.path() + "/"
-                + ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename())
+            ClusterPathV2.TEMPLATES_PATH.path() + "/"
+                + ClusterPathV2.LOCAL_BIN_START_PATRONI_SH_PATH.filename())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withVolumeMounts(volumeMounts.build())
         .withEnv(getEnvVars(context))
@@ -368,10 +400,11 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(patroniEnvironmentVariables.getEnvVars(clusterContext))
         .addAll(postgresEnvironmentVariables.getEnvVars(clusterContext))
         .add(new EnvVarBuilder()
-            .withName(ClusterPath.TEMPLATES_PATH.name())
-            .withValue(ClusterPath.TEMPLATES_PATH.path())
+            .withName(ClusterPathV2.TEMPLATES_PATH.name())
+            .withValue(ClusterPathV2.TEMPLATES_PATH.path())
             .build())
         .addAll(localBinMounts.getDerivedEnvVars(context))
+        .addAll(postgresDataMounts.getDerivedEnvVars(context))
         .addAll(postgresExtensions.getDerivedEnvVars(context))
         .addAll(patroniMounts.getDerivedEnvVars(context))
         .addAll(backupMounts.getDerivedEnvVars(context))

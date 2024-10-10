@@ -118,7 +118,7 @@ set_completed() {
       ')"
   HDRHISTOGRAM="$(grep '^HDRHISTOGRAM: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d ' ' -f 2 \
     | printf '"%s"' "$(cat)" | grep -v '^""$' || echo null)"
-  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=json \
+  "$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"replace","path":"/status/conditions","value":[

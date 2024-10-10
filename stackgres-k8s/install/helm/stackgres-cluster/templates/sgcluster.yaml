@@ -30,6 +30,10 @@ spec:
     observability:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.cluster.configurations.registry }}
+    registry:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- if not .Values.cluster.disableBackups }}
     {{- with .Values.cluster.configurations.backups }}
     {{- if .sgObjectStorage }}

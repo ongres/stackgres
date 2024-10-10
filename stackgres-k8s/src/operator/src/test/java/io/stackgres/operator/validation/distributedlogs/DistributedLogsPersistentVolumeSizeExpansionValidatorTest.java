@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -36,6 +37,7 @@ class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
   protected PersistentVolumeSizeExpansionValidator<StackGresDistributedLogsReview,
       StackGresDistributedLogs> getValidator() {
     return new DistributedLogsPersistentVolumeSizeExpansionValidator(
+        StackGresContextMock.CONTEXT,
         finder,
         pvcScanner,
         labelFactoryForDistributedLogs,
@@ -45,7 +47,8 @@ class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected StackGresCluster getCluster(StackGresDistributedLogs resource) {
-    return DistributedLogsCluster.getCluster(labelFactoryForDistributedLogs, resource, Optional.empty());
+    return DistributedLogsCluster.getCluster(
+        StackGresContextMock.CONTEXT, labelFactoryForDistributedLogs, resource, Optional.empty());
   }
 
   @Override

@@ -11,6 +11,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ConfigContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -86,6 +87,12 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
   @Value.Derived
   default StackGresVersion getVersion() {
     return StackGresVersion.getStackGresVersion(getSource());
+  }
+
+  @Override
+  @Value.Derived
+  default boolean isRegistryEnabled() {
+    return getFoundCluster().map(StackGresUtil::isRegistryEnabled).orElse(false);
   }
 
   public static class Builder extends ImmutableStackGresDbOpsContext.Builder {

@@ -12,7 +12,7 @@ import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
@@ -100,7 +100,7 @@ public class ShardedClusterStatusManager
         .stream()
         .map(Map::entrySet)
         .flatMap(Set::stream)
-        .anyMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
+        .anyMatch(e -> e.getKey().equals(StackGresKeys.VERSION_KEY)
             && !e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))) {
       LOGGER.debug("Sharded Cluster {} requires upgrade since it is using an old operator version",
           getClusterId(shardedCluster));

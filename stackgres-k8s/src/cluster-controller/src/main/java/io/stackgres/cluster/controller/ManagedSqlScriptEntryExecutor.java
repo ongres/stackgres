@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Optional;
 
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel;
 import io.stackgres.common.postgres.PostgresConnectionManager;
@@ -245,7 +245,8 @@ public class ManagedSqlScriptEntryExecutor {
   protected Connection getConnection(String database, String user)
       throws SQLException {
     return postgresConnectionManager.getUnixConnection(
-        ClusterPath.PG_RUN_PATH.path(), EnvoyUtil.PG_PORT,
+        ClusterPathV1.PG_RUN_PATH.pathFromEnv(),
+        EnvoyUtil.PG_PORT,
         database,
         user,
         "");

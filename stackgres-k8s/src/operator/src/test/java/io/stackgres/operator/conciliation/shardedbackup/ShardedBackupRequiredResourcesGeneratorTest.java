@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfigurationBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -71,8 +72,8 @@ class ShardedBackupRequiredResourcesGeneratorTest {
     backup = Fixtures.shardedBackup().loadDefault().get();
     objectStorage = Fixtures.objectStorage().loadDefault().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
-    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
-        .getLatestVersion());
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .getLatestVersion(StackGresContextMock.CONTEXT));
     cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
     cluster.getSpec().getConfigurations().setBackups(List.of(
         new StackGresShardedClusterBackupConfigurationBuilder()

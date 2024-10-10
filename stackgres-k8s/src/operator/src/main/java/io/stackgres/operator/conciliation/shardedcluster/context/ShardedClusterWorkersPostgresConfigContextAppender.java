@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.List;
 import java.util.Optional;
 
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -26,12 +27,15 @@ import org.jooq.lambda.tuple.Tuple3;
 @ApplicationScoped
 public class ShardedClusterWorkersPostgresConfigContextAppender {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory;
 
   public ShardedClusterWorkersPostgresConfigContextAppender(
+      StackGresContext context,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory) {
+    this.context = context;
     this.postgresConfigFinder = postgresConfigFinder;
     this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
@@ -75,7 +79,7 @@ public class ShardedClusterWorkersPostgresConfigContextAppender {
           + " was not found");
     }
     String postgresMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(context, postgresVersion);
     if (workersPostgresConfig.isPresent()) {
       String postgresConfigVersion = workersPostgresConfig.get().getSpec().getPostgresVersion();
       if (!postgresConfigVersion.equals(postgresMajorVersion)) {

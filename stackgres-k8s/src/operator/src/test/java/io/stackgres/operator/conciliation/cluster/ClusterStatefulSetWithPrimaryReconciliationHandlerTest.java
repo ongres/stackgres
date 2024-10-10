@@ -41,10 +41,11 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -82,7 +83,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   private final Random random = new Random(0);
 
   private final LabelFactoryForCluster labelFactory =
-      new ClusterLabelFactory(new ClusterLabelMapper());
+      new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
   @Mock
   private ResourceScanner<Pod> podScanner;
@@ -125,6 +126,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   @BeforeEach
   void setUp() {
     handler = new ClusterStatefulSetWithPrimaryReconciliationHandler(
+        StackGresContextMock.CONTEXT,
         defaultHandler, protectHandler, labelFactory, statefulSetFinder,
         podScanner, pvcScanner, secretFinder, patroniCtl, objectMapper);
     requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
@@ -234,7 +236,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
         "exactly the non-disruptable primary Pod should be patched back to disruptable");
     String disruptableValue = updatedPods.get(0).getMetadata().getLabels()
         .get(labelFactory.labelMapper().disruptableKey(cluster));
-    assertEquals(StackGresContext.RIGHT_VALUE, disruptableValue);
+    assertEquals(StackGresKeys.RIGHT_VALUE, disruptableValue);
 
     verify(podScanner, times(5)).getResourcesInNamespaceWithLabels(anyString(), anyMap());
     verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
@@ -269,7 +271,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     String podRole = updatedPod.getMetadata().getLabels()
         .get(PatroniUtil.ROLE_KEY);
 
-    assertEquals(StackGresContext.WRONG_VALUE, disruptableValue);
+    assertEquals(StackGresKeys.WRONG_VALUE, disruptableValue);
     assertEquals(PatroniUtil.PRIMARY_ROLE, podRole);
 
     verify(podScanner, times(5)).getResourcesInNamespaceWithLabels(anyString(), anyMap());
@@ -674,11 +676,11 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
 
     Map<String, String> disruptablePodLabels = new HashMap<>(commonPodLabels);
     disruptablePodLabels.put(
-        labelFactory.labelMapper().disruptableKey(cluster), StackGresContext.RIGHT_VALUE);
+        labelFactory.labelMapper().disruptableKey(cluster), StackGresKeys.RIGHT_VALUE);
 
     Map<String, String> nonDisruptablePodLabels = new HashMap<>(commonPodLabels);
     nonDisruptablePodLabels.put(
-        labelFactory.labelMapper().disruptableKey(cluster), StackGresContext.WRONG_VALUE);
+        labelFactory.labelMapper().disruptableKey(cluster), StackGresKeys.WRONG_VALUE);
 
     podList.clear();
     final int placeholderStart = currentReplicas
@@ -788,7 +790,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     final Map<String, String> podLabels = new HashMap<>(
         requiredStatefulSet.getSpec().getSelector().getMatchLabels());
     podLabels.put(labelFactory.labelMapper().disruptableKey(cluster),
-        nonDisruptable ? StackGresContext.WRONG_VALUE : StackGresContext.RIGHT_VALUE);
+        nonDisruptable ? StackGresKeys.WRONG_VALUE : StackGresKeys.RIGHT_VALUE);
     if (!placeholder && setRole) {
       podLabels.put(PatroniUtil.ROLE_KEY,
           primary ? PatroniUtil.PRIMARY_ROLE : PatroniUtil.REPLICA_ROLE);

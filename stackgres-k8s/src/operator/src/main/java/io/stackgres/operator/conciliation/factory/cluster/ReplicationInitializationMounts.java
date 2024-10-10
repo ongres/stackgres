@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterEnvVar;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,11 +26,11 @@ public class ReplicationInitializationMounts implements VolumeMountsProvider<Clu
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.REPLICATION_INITIALIZATION_ENV.getName())
-            .withMountPath(ClusterPath.REPLICATION_INITIALIZATION_ENV_PATH.path(clusterContext))
+            .withMountPath(ClusterPathV1.REPLICATION_INITIALIZATION_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.REPLICATION_INITIALIZATION_CREDENTIALS.getName())
-            .withMountPath(ClusterPath.REPLICATION_INITIALIZATION_SECRET_PATH.path(clusterContext))
+            .withMountPath(ClusterPathV1.REPLICATION_INITIALIZATION_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -40,8 +40,8 @@ public class ReplicationInitializationMounts implements VolumeMountsProvider<Clu
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         ClusterEnvVar.REPLICATION_INITIALIZATION_ENV.envVar(clusterContext),
-        ClusterPath.REPLICATION_INITIALIZATION_ENV_PATH.envVar(clusterContext),
-        ClusterPath.REPLICATION_INITIALIZATION_SECRET_PATH.envVar(clusterContext)
+        ClusterPathV1.REPLICATION_INITIALIZATION_ENV_PATH.envVar(clusterContext),
+        ClusterPathV1.REPLICATION_INITIALIZATION_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

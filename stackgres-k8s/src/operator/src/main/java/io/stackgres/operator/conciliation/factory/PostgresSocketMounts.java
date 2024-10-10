@@ -10,7 +10,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -22,7 +22,7 @@ public class PostgresSocketMounts implements VolumeMountsProvider<ContainerConte
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.POSTGRES_SOCKET.getName())
-            .withMountPath(ClusterPath.PG_RUN_PATH.path())
+            .withMountPath(ClusterPathV1.PG_RUN_PATH.path())
             .build()
     );
   }
@@ -30,7 +30,7 @@ public class PostgresSocketMounts implements VolumeMountsProvider<ContainerConte
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
     return List.of(
-        ClusterPath.PG_RUN_PATH.envVar()
+        ClusterPathV1.PG_RUN_PATH.envVar()
     );
   }
 

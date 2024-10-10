@@ -24,6 +24,8 @@ public enum OperatorProperty implements StackGresPropertyReader {
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
   USE_ARBITRARY_USER("stackgres.useArbitraryUser"),
   EXTENSIONS_REPOSITORY_URLS("stackgres.extensionsRepositoryUrls"),
+  DOCIR_REPOSITORY_URL("stackgres.docirRepositoryUrl"),
+  USE_PUBLISHED_IMAGES("stackgres.usePublishedImages"),
   CONFLICT_SLEEP_MILLISECONDS("stackgres.conflictSleepMilliseconds"),
   CONFLICT_INITIAL_SLEEP_MILLISECONDS("stackgres.conflictInitialSleepMilliseconds"),
   CONFLICT_MAX_SLEEP_MILLISECONDS("stackgres.conflictMaxSleepMilliseconds"),

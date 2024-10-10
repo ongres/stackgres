@@ -5,14 +5,14 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 
 public interface LabelMapperForShardedDbOps
     extends LabelMapper<StackGresShardedDbOps> {
 
   default String dbOpsKey(StackGresShardedDbOps resource) {
-    return getKeyPrefix(resource) + StackGresContext.SHARDED_DBOPS_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SHARDED_DBOPS_KEY;
   }
 
 }

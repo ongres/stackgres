@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.EnvVarProvider;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
@@ -34,6 +35,10 @@ public class PostgresEnvironmentVariables
         new EnvVarBuilder()
         .withName("PGDATABASE")
         .withValue("postgres")
+        .build(),
+        new EnvVarBuilder()
+        .withName("PGHOST")
+        .withValue(ClusterPathV1.PG_RUN_PATH.path())
         .build());
 
   }

@@ -17,6 +17,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatusBuilder;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -73,7 +74,7 @@ class DbOpsClusterContextAppenderTest {
     contextAppender = new DbOpsClusterContextAppender(
         clusterFinder,
         podScanner,
-        new ClusterLabelFactory(new ClusterLabelMapper()),
+        new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper()),
         patroniCtl,
         dbOpsClusterInstanceProfileContextAppender,
         dbOpsClusterMajorVersionUpgradeContextAppender,

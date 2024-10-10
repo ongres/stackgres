@@ -5,7 +5,7 @@
 
 package io.stackgres.common.labels;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -14,22 +14,22 @@ public class ShardedDbOpsLabelMapper implements LabelMapperForShardedDbOps {
 
   @Override
   public String appName() {
-    return StackGresContext.SHARDED_DBOPS_APP_NAME;
+    return StackGresKeys.SHARDED_DBOPS_APP_NAME;
   }
 
   @Override
   public String resourceNameKey(StackGresShardedDbOps resource) {
-    return getKeyPrefix(resource) + StackGresContext.SHARDED_DBOPS_NAME_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SHARDED_DBOPS_NAME_KEY;
   }
 
   @Override
   public String resourceNamespaceKey(StackGresShardedDbOps resource) {
-    return getKeyPrefix(resource) + StackGresContext.SHARDED_DBOPS_NAMESPACE_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SHARDED_DBOPS_NAMESPACE_KEY;
   }
 
   @Override
   public String resourceUidKey(StackGresShardedDbOps resource) {
-    return getKeyPrefix(resource) + StackGresContext.SHARDED_DBOPS_UID_KEY;
+    return getKeyPrefix(resource) + StackGresKeys.SHARDED_DBOPS_UID_KEY;
   }
 
 }

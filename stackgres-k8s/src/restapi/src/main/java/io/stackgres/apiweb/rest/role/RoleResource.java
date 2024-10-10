@@ -13,7 +13,7 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.role.RoleDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractResourceService;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
@@ -63,7 +63,7 @@ public class RoleResource
   public List<RoleDto> list() {
     return scanner
         .getResourcesWithLabels(
-            Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+            Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .stream()
         .map(transformer::toDto)
         .toList();

@@ -37,6 +37,7 @@ import io.stackgres.apiweb.application.ApplicationsConfig;
 import io.stackgres.apiweb.application.SgApplication;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -53,6 +54,9 @@ public class BabelfishCompass extends SgApplication {
 
   private static final String REPORT = "report";
   private static final String LOGS = "logs";
+
+  @Inject
+  StackGresContext context;
 
   @Inject
   ApplicationsConfig config;
@@ -100,7 +104,7 @@ public class BabelfishCompass extends SgApplication {
                 .withRequests(Map.of("memory", new Quantity("128Mi"),
                     "cpu", new Quantity("500m")))
                 .build())
-            .withImage(StackGresComponent.BABELFISH_COMPASS.getLatest().getLatestImageName())
+            .withImage(StackGresComponent.BABELFISH_COMPASS.getLatest().getLatestImageName(context))
             .withCommand("/bin/sleep")
             .withArgs("600")
             .withVolumeMounts(new VolumeMountBuilder()

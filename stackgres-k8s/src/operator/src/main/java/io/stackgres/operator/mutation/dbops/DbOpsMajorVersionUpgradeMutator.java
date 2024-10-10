@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.google.common.base.Predicates;
 import io.stackgres.common.BackupStorageUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -26,19 +27,24 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final Instant defaultTimestamp;
 
   @Inject
   public DbOpsMajorVersionUpgradeMutator(
+      StackGresContext context,
       CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
     this.defaultTimestamp = null;
   }
 
   DbOpsMajorVersionUpgradeMutator(
+      StackGresContext context,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       Instant defaultTimestamp) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
     this.defaultTimestamp = defaultTimestamp;
   }
@@ -83,7 +89,7 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(context, postgresVersion);
     Instant timestamp = Optional.ofNullable(defaultTimestamp).orElse(Instant.now());
     return BackupStorageUtil.getPath(
         cluster.getMetadata().getNamespace(),

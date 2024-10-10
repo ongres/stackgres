@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -44,7 +45,7 @@ class SingleReconciliationCycleTest {
   @Test
   void isActivated_whenMajorVersionUpgradeWithDifferentVersion_shouldBeActivated() {
     StackGresCluster cluster = getDefaultCluster();
-    // The cluster's status postgresVersion is "13.9" from the fixture.
+    // The cluster's status postgresVersion is "13.16" from the fixture.
     // Set the majorVersionUpgrade sourcePostgresVersion to a different value
     // so that sourcePostgresVersion != cluster.status.postgresVersion => activated.
     StackGresClusterDbOpsStatus dbOpsStatus = new StackGresClusterDbOpsStatus();
@@ -74,12 +75,12 @@ class SingleReconciliationCycleTest {
   @Test
   void isActivated_whenMajorVersionUpgradeWithSameVersionButRollback_shouldBeActivated() {
     final StackGresCluster cluster = getDefaultCluster();
-    // sourcePostgresVersion equals cluster.status.postgresVersion ("13.9"),
+    // sourcePostgresVersion equals cluster.status.postgresVersion ("13.16"),
     // but rollback is true => activated.
     final StackGresClusterDbOpsStatus dbOpsStatus = new StackGresClusterDbOpsStatus();
     final StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgrade =
         new StackGresClusterDbOpsMajorVersionUpgradeStatus();
-    majorVersionUpgrade.setSourcePostgresVersion("13.9");
+    majorVersionUpgrade.setSourcePostgresVersion("13.16");
     majorVersionUpgrade.setRollback(true);
     majorVersionUpgrade.setInitialInstances(List.of("stackgres-0"));
     majorVersionUpgrade.setPrimaryInstance("stackgres-0");
@@ -94,12 +95,12 @@ class SingleReconciliationCycleTest {
   @Test
   void isActivated_whenMajorVersionUpgradeWithSameVersionAndNoRollback_shouldNotBeActivated() {
     StackGresCluster cluster = getDefaultCluster();
-    // sourcePostgresVersion equals cluster.status.postgresVersion ("13.9"),
+    // sourcePostgresVersion equals cluster.status.postgresVersion ("13.16"),
     // and rollback is not set (null / defaults to false) => not activated.
     StackGresClusterDbOpsStatus dbOpsStatus = new StackGresClusterDbOpsStatus();
     StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgrade =
         new StackGresClusterDbOpsMajorVersionUpgradeStatus();
-    majorVersionUpgrade.setSourcePostgresVersion("13.9");
+    majorVersionUpgrade.setSourcePostgresVersion("13.16");
     majorVersionUpgrade.setInitialInstances(List.of("stackgres-0"));
     majorVersionUpgrade.setPrimaryInstance("stackgres-0");
     dbOpsStatus.setMajorVersionUpgrade(majorVersionUpgrade);
@@ -133,6 +134,7 @@ class SingleReconciliationCycleTest {
   private ClusterContainerContext buildContext(StackGresCluster cluster) {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
             .config(getDefaultConfig())
             .source(cluster)
             .postgresConfig(new StackGresPostgresConfig())

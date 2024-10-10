@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -147,6 +148,13 @@ public class PatroniRole implements
             .withResources(HasMetadata.getPlural(Pod.class) + "/exec")
             .withVerbs("create")
             .build())
+        .addAllToRules(StackGresUtil.isRegistryEnabled(cluster)
+            ? List.of(new PolicyRuleBuilder()
+                .withApiGroups(HasMetadata.getGroup(Pod.class))
+                .withResources(HasMetadata.getPlural(Pod.class) + "/ephemeralcontainers")
+                .withVerbs("patch")
+                .build())
+            : List.of())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(HasMetadata.getGroup(Pod.class))
             .withResources(HasMetadata.getPlural(Pod.class))

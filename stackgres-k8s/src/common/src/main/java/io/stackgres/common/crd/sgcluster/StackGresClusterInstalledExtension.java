@@ -26,7 +26,6 @@ public class StackGresClusterInstalledExtension {
   @NotNull(message = "name cannot be null")
   private String name;
 
-  @NotNull(message = "publisher cannot be null")
   private String publisher;
 
   @NotNull(message = "version cannot be null")

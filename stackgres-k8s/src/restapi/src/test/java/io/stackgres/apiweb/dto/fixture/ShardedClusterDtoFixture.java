@@ -7,12 +7,15 @@ package io.stackgres.apiweb.dto.fixture;
 
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ShardedClusterDtoFixture extends Fixture<ShardedClusterDto> {
 
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).get(0).get();
 
   public ShardedClusterDtoFixture loadDefault() {
     fixture = readFromJson(STACKGRES_SHARDED_CLUSTER_DTO_JSON);

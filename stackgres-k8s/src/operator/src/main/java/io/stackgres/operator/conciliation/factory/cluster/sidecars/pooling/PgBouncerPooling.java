@@ -27,12 +27,14 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -101,9 +103,11 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
-        StackGresContext.PGBOUNCER_VERSION_KEY,
-        StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
-        .getLatestVersion());
+        StackGresKeys.PGBOUNCER_VERSION_KEY,
+        StackGresUtil.getSidecarVersion(
+            context.getClusterContext().getContext(),
+            context.getClusterContext().getCluster(),
+            StackGresComponent.PGBOUNCER));
   }
 
   @Override
@@ -121,18 +125,23 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.PGBOUNCER.getName())
-        .withImage(StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
-            .getLatestImageName())
+        .withImage(StackGresUtil.getSidecarImageName(
+            context.getClusterContext().getContext(),
+            context.getClusterContext().getCluster(),
+            StackGresComponent.PGBOUNCER))
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.TEMPLATES_PATH.path()
-                + "/" + ClusterPath.LOCAL_BIN_START_PGBOUNCER_SH_PATH.filename())
+            ClusterPathV1.TEMPLATES_PATH.path()
+                + "/" + ClusterPathV1.LOCAL_BIN_START_PGBOUNCER_SH_PATH.filename())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(
-            ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
-            ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar(),
-            ClusterPath.PGBOUNCER_AUTH_PATH.envVar(),
-            ClusterPath.PGBOUNCER_AUTH_FILE_PATH.envVar(),
-            ClusterPath.PGBOUNCER_AUTH_TEMPLATE_FILE_PATH.envVar())
+            ClusterPathV1.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
+            ClusterPathV1.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar(),
+            ClusterPathV1.PGBOUNCER_AUTH_PATH.envVar(),
+            ClusterPathV1.PGBOUNCER_AUTH_FILE_PATH.envVar(),
+            ClusterPathV1.PGBOUNCER_AUTH_TEMPLATE_FILE_PATH.envVar(),
+            StackGresUtil.isRegistryEnabled(context.getClusterContext().getCluster())
+                ? ClusterPathV2.PGBOUNCER_BIN_PATH.envVar()
+                : ClusterPathV1.PGBOUNCER_BIN_PATH.envVar())
         .withPorts(getContainerPorts(context.getClusterContext().getCluster()))
         .addAllToVolumeMounts(postgresSocketMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(userOverrideMounts.getVolumeMounts(context))
@@ -140,24 +149,24 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-            .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
+            .withMountPath(ClusterPathV1.PGBOUNCER_CONFIG_PATH.path())
             .withReadOnly(true)
             .build(),
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
-            .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
-            .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.filename())
+            .withMountPath(ClusterPathV1.PGBOUNCER_AUTH_PATH.path())
+            .withSubPath(ClusterPathV1.PGBOUNCER_AUTH_PATH.filename())
             .withReadOnly(false)
             .build(),
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
-            .withMountPath(ClusterPath.PGBOUNCER_AUTH_TEMPLATE_FILE_PATH.path())
+            .withMountPath(ClusterPathV1.PGBOUNCER_AUTH_TEMPLATE_FILE_PATH.path())
             .withSubPath(StackGresPasswordKeys.PGBOUNCER_USERS_KEY)
             .withReadOnly(true)
             .build(),
             new VolumeMountBuilder()
             .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-            .withMountPath(ClusterPath.SSL_PATH.path())
+            .withMountPath(ClusterPathV1.SSL_PATH.path())
             .withReadOnly(true)
             .build())
      .build();
@@ -210,7 +219,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
 
     String configFile = getConfigFile(context);
     Map<String, String> data = Map.of(
-        ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename(), configFile);
+        ClusterPathV1.PGBOUNCER_CONFIG_FILE_PATH.filename(), configFile);
 
     String namespace = sgCluster.getMetadata().getNamespace();
     String configMapName = configName(context);
@@ -284,10 +293,10 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .orElse(false);
     parameters.put("listen_addr", isEnvoyDisabled ? "0.0.0.0,::" : "127.0.0.1,::1");
     parameters.put("listen_port", String.valueOf(EnvoyUtil.PG_POOL_PORT));
-    parameters.put("unix_socket_dir", ClusterPath.PG_RUN_PATH.path());
+    parameters.put("unix_socket_dir", ClusterPathV1.PG_RUN_PATH.path());
     var credentials = PatroniSecret.getAuthenticatorCredentials(context);
     parameters.put("auth_user", credentials.v1);
-    parameters.put("auth_file", ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
+    parameters.put("auth_file", ClusterPathV1.PGBOUNCER_AUTH_FILE_PATH.path());
     if (Optional.of(context.getSource())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgres)
@@ -296,9 +305,9 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .orElse(false)) {
       parameters.put("client_tls_sslmode", "prefer");
       parameters.put("client_tls_cert_file",
-          ClusterPath.SSL_PATH.path() + "/" + PatroniUtil.CERTIFICATE_KEY);
+          ClusterPathV1.SSL_PATH.path() + "/" + PatroniUtil.CERTIFICATE_KEY);
       parameters.put("client_tls_key_file",
-          ClusterPath.SSL_PATH.path() + "/" + PatroniUtil.PRIVATE_KEY_KEY);
+          ClusterPathV1.SSL_PATH.path() + "/" + PatroniUtil.PRIVATE_KEY_KEY);
     }
     parameters.putAll(newParams);
 

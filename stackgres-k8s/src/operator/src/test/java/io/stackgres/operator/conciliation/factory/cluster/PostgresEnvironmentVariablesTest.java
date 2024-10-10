@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
@@ -45,14 +46,14 @@ class PostgresEnvironmentVariablesTest {
   }
 
   @Test
-  void getEnvVars_shouldReturnTwoEnvVars() {
+  void getEnvVars_shouldReturnThreeEnvVars() {
     List<EnvVar> envVars = factory.getEnvVars(context);
 
-    assertEquals(2, envVars.size());
+    assertEquals(3, envVars.size());
   }
 
   @Test
-  void getEnvVars_shouldContainPgUserAndPgDatabase() {
+  void getEnvVars_shouldContainPgUserPgDatabaseAndPgHost() {
     List<EnvVar> envVars = factory.getEnvVars(context);
     List<String> envVarNames = envVars.stream()
         .map(EnvVar::getName)
@@ -60,6 +61,18 @@ class PostgresEnvironmentVariablesTest {
 
     assertTrue(envVarNames.contains("PGUSER"));
     assertTrue(envVarNames.contains("PGDATABASE"));
+    assertTrue(envVarNames.contains("PGHOST"));
+  }
+
+  @Test
+  void getEnvVars_pgHostShouldBeTheSocketDirectory() {
+    List<EnvVar> envVars = factory.getEnvVars(context);
+
+    Optional<EnvVar> pgHost = envVars.stream()
+        .filter(e -> e.getName().equals("PGHOST"))
+        .findFirst();
+    assertTrue(pgHost.isPresent());
+    assertEquals(ClusterPathV1.PG_RUN_PATH.path(), pgHost.get().getValue());
   }
 
   @Test

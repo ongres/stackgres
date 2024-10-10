@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
@@ -408,8 +409,8 @@ public interface PatroniUtil {
         .map(ContainerPort::getContainerPort);
   }
 
-  static String getPrimaryRole(StackGresCluster cluster) {
-    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+  static String getPrimaryRole(StackGresContext context, StackGresCluster cluster) {
+    final String patroniVersion = StackGresUtil.getPatroniVersion(context, cluster);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     if (patroniMajorVersion < PATRONI_VERSION_4) {
       return OLD_PRIMARY_ROLE;
@@ -417,8 +418,8 @@ public interface PatroniUtil {
     return PRIMARY_ROLE;
   }
 
-  static String getPrimaryRole(StackGresShardedCluster cluster) {
-    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+  static String getPrimaryRole(StackGresContext context, StackGresShardedCluster cluster) {
+    final String patroniVersion = StackGresUtil.getPatroniVersion(context, cluster);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     if (patroniMajorVersion < PATRONI_VERSION_4) {
       return OLD_PRIMARY_ROLE;

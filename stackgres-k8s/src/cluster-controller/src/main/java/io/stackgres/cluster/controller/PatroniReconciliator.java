@@ -34,7 +34,7 @@ import io.stackgres.cluster.common.PatroniCommandUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -65,12 +65,12 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
 
   private static final Path PATRONI_START_FILE_PATH =
-      Paths.get(ClusterPath.PATRONI_START_FILE_PATH.path());
+      Paths.get(ClusterPathV1.PATRONI_START_FILE_PATH.path());
   private static final Path PATRONI_CONFIG_PATH =
-      Paths.get(ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
+      Paths.get(ClusterPathV1.PATRONI_CONFIG_FILE_PATH.pathFromEnv());
   private static final Path LAST_PATRONI_CONFIG_PATH =
-      Paths.get(ClusterPath.PATRONI_CONFIG_PATH.path()
-          + "/last-" + ClusterPath.PATRONI_CONFIG_FILE_PATH.filename());
+      Paths.get(ClusterPathV1.PATRONI_CONFIG_PATH.pathFromEnv()
+          + "/last-" + ClusterPathV1.PATRONI_CONFIG_FILE_PATH.filenameFromEnv());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
   private static final Pattern PG_CTL_TIMEOUT_LINE_PATTERN = Pattern.compile("^ *pg_ctl_timeout:.*$");

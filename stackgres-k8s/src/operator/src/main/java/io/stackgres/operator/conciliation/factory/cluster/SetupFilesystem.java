@@ -11,11 +11,11 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.StackGresInitContainer;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -24,7 +24,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 @InitContainer(StackGresInitContainer.SETUP_FILESYSTEM)
 public class SetupFilesystem implements ContainerFactory<ClusterContainerContext> {
 
@@ -43,16 +43,19 @@ public class SetupFilesystem implements ContainerFactory<ClusterContainerContext
   @Override
   public Container getContainer(ClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
-    final String patroniImageName = StackGresUtil.getPatroniImageName(clusterContext.getCluster());
+    final String patroniImageName = clusterContext.getContext()
+        .getMetadataManager()
+        .getImage(clusterContext.getContext(), clusterContext.getCluster());
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_FILESYSTEM.getName())
         .withImage(patroniImageName)
         .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.TEMPLATES_PATH.path()
-                + "/" + ClusterPath.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH.filename())
+            ClusterPathV2.TEMPLATES_PATH.path()
+                + "/" + ClusterPathV2.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH.filename())
         .addAllToEnv(postgresExtensionsMounts.getDerivedEnvVars(context))
         .addAllToEnv(templateMounts.getDerivedEnvVars(context))
+        .addToEnv(ClusterPathV2.PG_BASE_PATH.envVar())
         .addToEnv(new EnvVarBuilder()
             .withName("HOME")
             .withValue("/tmp")
@@ -66,7 +69,7 @@ public class SetupFilesystem implements ContainerFactory<ClusterContainerContext
             .build(),
             new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
-            .withMountPath(ClusterPath.PG_BASE_PATH.path())
+            .withMountPath(ClusterPathV2.PG_BASE_PATH.path())
             .build())
         .build();
   }

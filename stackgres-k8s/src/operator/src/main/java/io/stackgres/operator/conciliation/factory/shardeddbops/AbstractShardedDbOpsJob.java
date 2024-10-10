@@ -120,7 +120,14 @@ public abstract class AbstractShardedDbOpsJob implements ShardedDbOpsJobFactory 
   }
 
   protected String getRunImage(StackGresShardedDbOpsContext context) {
-    return StackGresUtil.getPatroniImageName(context.getShardedCluster());
+    if (StackGresUtil.isRegistryEnabled(context.getShardedCluster())) {
+      return StackGresUtil.getPatroniImageName(
+          context.getContext(),
+          context.getCoordinatorCluster());
+    }
+    return StackGresUtil.getPatroniImageName(
+        context.getContext(),
+        context.getShardedCluster());
   }
 
   protected abstract ShardedClusterPath getRunScript();

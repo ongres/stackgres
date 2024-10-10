@@ -11,10 +11,10 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.extension.DocirExtensionManager;
 import io.stackgres.common.extension.ExtensionEventEmitter;
-import io.stackgres.common.extension.ExtensionManager;
 import io.stackgres.common.extension.ExtensionReconciliator;
-import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.common.extension.LegacyExtensionManager;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -34,7 +34,8 @@ public class ClusterExtensionReconciliator
   public static class Parameters {
     @Inject EventController eventController;
     @Inject ClusterControllerPropertyContext propertyContext;
-    @Inject ExtensionManager extensionManager;
+    @Inject LegacyExtensionManager legacyExtensionManager;
+    @Inject DocirExtensionManager docirExtensionManager;
     @Inject ExtensionEventEmitter extensionEventEmitter;
   }
 
@@ -42,8 +43,9 @@ public class ClusterExtensionReconciliator
   public ClusterExtensionReconciliator(Parameters parameters) {
     super(parameters.propertyContext.getString(
         ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME),
-        parameters.extensionManager,
-        () -> parameters.propertyContext.getBoolean(ClusterControllerProperty
+        parameters.legacyExtensionManager,
+        parameters.docirExtensionManager,
+        parameters.propertyContext.getBoolean(ClusterControllerProperty
             .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES),
         parameters.extensionEventEmitter);
     this.eventController = parameters.eventController;
@@ -87,12 +89,6 @@ public class ClusterExtensionReconciliator
     } catch (Exception rex) {
       LOGGER.error("Failed sending event while reconciling extension {}", extension, rex);
     }
-  }
-
-  @Override
-  public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client, StackGresClusterContext context)
-      throws Exception {
-    return super.safeReconcile(client, context);
   }
 
 }

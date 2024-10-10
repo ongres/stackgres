@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
@@ -17,26 +18,27 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.StackGresInitContainer;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RegistryBinding;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.MajorVersionUpgradeMounts;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(registry = RegistryBinding.ENABLED)
 @InitContainer(StackGresInitContainer.MAJOR_VERSION_UPGRADE)
 public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerContext> {
 
@@ -88,6 +90,7 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
+    List<StackGresClusterExtension> sourceExtensions = majorVersionUpgradeStatus.getSourcePostgresExtensions();
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
     String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
@@ -101,8 +104,17 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
         .map(Object::toString)
         .orElse(Boolean.FALSE.toString());
 
-    final String targetPatroniImageName = StackGresUtil.getPatroniImageName(
-        clusterContext.getCluster(), targetVersion);
+    final StackGresCluster oldCluster = new StackGresClusterBuilder(clusterContext.getSource())
+        .editSpec()
+        .editPostgres()
+        .withVersion(sourceVersion)
+        .withExtensions(sourceExtensions)
+        .endPostgres()
+        .endSpec()
+        .build();
+    final String targetPatroniImageName = clusterContext.getContext()
+        .getMetadataManager()
+        .getMajorUpgradeImage(clusterContext.getContext(), clusterContext.getSource(), oldCluster);
 
     final ClusterContainerContext majorVersoinUpgradeContainerContext =
         ImmutableClusterContainerContext.builder()
@@ -115,9 +127,9 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
             .withImage(targetPatroniImageName)
             .withImagePullPolicy(getDefaultPullPolicy())
             .withCommand("/bin/sh", "-ex",
-                ClusterPath.TEMPLATES_PATH.path()
+                ClusterPathV2.TEMPLATES_PATH.path()
                     + "/"
-                    + ClusterPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
+                    + ClusterPathV2.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.name(clusterContext)).build())
@@ -177,7 +189,7 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
                         .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                         .build())
                     .build(),
-                ClusterPath.ETC_POSTGRES_PATH.envVar())
+                ClusterPathV2.ETC_POSTGRES_PATH.envVar())
             .addAllToEnv(majorVersionUpgradeMounts
                 .getDerivedEnvVars(majorVersoinUpgradeContainerContext))
             .withVolumeMounts(templateMounts.getVolumeMounts(context))
@@ -186,20 +198,20 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
             )
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(StackGresVolume.DSHM.getName())
-                .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
+                .withMountPath(ClusterPathV2.SHARED_MEMORY_PATH.path())
                 .build())
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(StackGresVolume.LOG.getName())
-                .withMountPath(ClusterPath.PG_LOG_PATH.path())
+                .withMountPath(ClusterPathV2.PG_LOG_PATH.path())
                 .build())
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_CONFIG.getName())
-                .withMountPath(ClusterPath.ETC_POSTGRES_PATH.path())
+                .withMountPath(ClusterPathV2.ETC_POSTGRES_PATH.path())
                 .build())
             .addToVolumeMounts(
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath(ClusterPath.SSL_PATH.path())
+                .withMountPath(ClusterPathV2.SSL_PATH.path())
                 .build())
             .build();
   }

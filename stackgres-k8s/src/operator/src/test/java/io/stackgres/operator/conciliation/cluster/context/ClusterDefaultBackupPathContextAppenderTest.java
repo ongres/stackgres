@@ -15,6 +15,7 @@ import java.util.List;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,7 @@ class ClusterDefaultBackupPathContextAppenderTest {
     cluster.getStatus().setBackupPaths(null);
     defaultTimestamp = Instant.now();
     contextAppender = new ClusterDefaultBackupPathContextAppender(
+        StackGresContextMock.CONTEXT,
         defaultTimestamp);
   }
 
@@ -73,7 +75,7 @@ class ClusterDefaultBackupPathContextAppenderTest {
     final String postgresFlavor = cluster.getSpec().getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(StackGresContextMock.CONTEXT, postgresVersion);
 
     assertEquals(
         List.of(BackupStorageUtil.getPath(

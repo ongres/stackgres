@@ -19,8 +19,10 @@ import jakarta.inject.Qualifier;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OperatorVersionBinder {
 
-  @Nonbinding StackGresVersion startAt() default StackGresVersion.UNDEFINED;
+  @Nonbinding StackGresVersion from() default StackGresVersion.UNDEFINED;
 
-  @Nonbinding StackGresVersion stopAt() default StackGresVersion.UNDEFINED;
+  @Nonbinding StackGresVersion to() default StackGresVersion.UNDEFINED;
+
+  @Nonbinding RegistryBinding registry() default RegistryBinding.ANY;
 
 }

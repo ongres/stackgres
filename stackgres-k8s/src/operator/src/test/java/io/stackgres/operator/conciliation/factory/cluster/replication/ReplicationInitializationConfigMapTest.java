@@ -17,13 +17,14 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -40,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ReplicationInitializationConfigMapTest {
 
   private final LabelFactoryForCluster labelFactory =
-      new ClusterLabelFactory(new ClusterLabelMapper());
+      new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper());
 
   @Mock
   private StackGresClusterContext context;
@@ -73,9 +74,9 @@ class ReplicationInitializationConfigMapTest {
     ConfigMap configMap = (ConfigMap) pair.getSource().get();
     assertNotNull(configMap.getData());
     assertTrue(configMap.getData().containsKey(
-        ClusterPath.PG_REPLICATION_BASE_PATH.name()));
+        ClusterPathV1.PG_REPLICATION_BASE_PATH.name()));
     assertTrue(configMap.getData().containsKey(
-        ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.name()));
+        ClusterPathV1.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.name()));
     assertTrue(configMap.getData().containsKey(StackGresUtil.MD5SUM_KEY));
     assertFalse(configMap.getData().containsKey(
         PatroniUtil.REPLICATION_INITIALIZATION_BACKUP));
@@ -118,7 +119,7 @@ class ReplicationInitializationConfigMapTest {
         configMap.getData().get("REPLICATION_INITIALIZATION_BACKUP_NAME"));
     assertTrue(configMap.getData().containsKey("REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT"));
     assertTrue(configMap.getData().containsKey(
-        ClusterPath.PG_REPLICATION_BASE_PATH.name()));
+        ClusterPathV1.PG_REPLICATION_BASE_PATH.name()));
     assertTrue(configMap.getData().containsKey(StackGresUtil.MD5SUM_KEY));
   }
 }

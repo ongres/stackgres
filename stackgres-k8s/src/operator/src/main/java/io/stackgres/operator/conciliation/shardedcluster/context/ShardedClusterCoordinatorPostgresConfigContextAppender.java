@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Optional;
 
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -19,12 +20,15 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class ShardedClusterCoordinatorPostgresConfigContextAppender {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory;
 
   public ShardedClusterCoordinatorPostgresConfigContextAppender(
+      StackGresContext context,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory) {
+    this.context = context;
     this.postgresConfigFinder = postgresConfigFinder;
     this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
@@ -43,7 +47,7 @@ public class ShardedClusterCoordinatorPostgresConfigContextAppender {
           + " was not found");
     }
     String clusterMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(context, postgresVersion);
     if (coordinatorPostgresConfig.isPresent()) {
       String postgresConfigVersion = coordinatorPostgresConfig.get().getSpec().getPostgresVersion();
       if (!postgresConfigVersion.equals(clusterMajorVersion)) {

@@ -14,7 +14,7 @@ import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresUtil;
@@ -78,9 +78,9 @@ public class DistributedLogsFlunetdConfigMap
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(Map.of(
             "fluentd.conf", getFluentdConfig(context),
-            ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename(), Unchecked.supplier(() -> Resources
+            ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename(), Unchecked.supplier(() -> Resources
                 .asCharSource(DistributedLogsFlunetdConfigMap.class.getResource(
-                    "/templates/" + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
+                    "/templates/" + ClusterPathV1.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
                     StandardCharsets.UTF_8)
                 .read()).get())))
         .build());

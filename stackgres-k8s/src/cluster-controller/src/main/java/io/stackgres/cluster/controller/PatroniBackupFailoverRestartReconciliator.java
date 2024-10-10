@@ -26,7 +26,7 @@ import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -98,13 +98,13 @@ public class PatroniBackupFailoverRestartReconciliator {
 
   private void reconcilePatroniForBackupFailover(ClusterContext context) throws Exception {
     if (replicationInitializationFailed.get() != null
-        || Files.exists(Paths.get(ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path()))) {
+        || Files.exists(Paths.get(ClusterPathV1.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.pathFromEnv()))) {
       final String replicaInitializationBackupName;
       if (replicationInitializationFailed.get() != null) {
         replicaInitializationBackupName = replicationInitializationFailed.get();
       } else {
         replicaInitializationBackupName =
-            Files.readString(Paths.get(ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path()));
+            Files.readString(Paths.get(ClusterPathV1.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.pathFromEnv()));
         replicationInitializationFailed.set(replicaInitializationBackupName);
       }
       LOGGER.info("Replica initialization backup failover detected while trying to restore using SGBackup {}"
@@ -120,8 +120,8 @@ public class PatroniBackupFailoverRestartReconciliator {
           waitChangeForReconciliationInitializationBackupName(
               context, replicaInitializationBackupName);
       if (changeForReconciliationInitializationBackupName.isChanged) {
-        if (Files.exists(Paths.get(ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path()))) {
-          Files.delete(Paths.get(ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path()));
+        if (Files.exists(Paths.get(ClusterPathV1.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.pathFromEnv()))) {
+          Files.delete(Paths.get(ClusterPathV1.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.pathFromEnv()));
         }
         if (!changeForReconciliationInitializationBackupName.changedBackupName.isPresent()) {
           LOGGER.info("Deleting PVC in order to allow restore from volume snapshot");

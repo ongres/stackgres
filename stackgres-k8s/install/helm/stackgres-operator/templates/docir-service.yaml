@@ -1,0 +1,22 @@
+{{ if and .Values.developer.externalDocirIp .Values.developer.externalDocirPort }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-docir
+spec:
+  ports:
+   - port: {{ .Values.developer.externalDocirPort }}
+     targetPort: {{ .Values.developer.externalDocirPort }}
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-docir
+subsets:
+ - addresses:
+    - ip: "{{ .Values.developer.externalDocirIp }}"
+   ports:
+    - port: {{ .Values.developer.externalDocirPort }}
+{{ end }}

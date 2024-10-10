@@ -29,7 +29,7 @@ import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.dto.user.UserRoleRef;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.transformer.UserTransformer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
@@ -134,13 +134,13 @@ public class UserResource {
   @GET
   public List<UserDto> list() {
     var roleBindings = roleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     return scanner
         .getResourcesInNamespaceWithLabels(
             namespace,
-            Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+            Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .stream()
         .map(user -> transformer.toDto(user, roleBindings, clusterRoleBindings))
         .toList();
@@ -170,9 +170,9 @@ public class UserResource {
       resource.getMetadata().setNamespace(namespace);
     }
     var roleBindings = roleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     Optional.ofNullable(resource.getRoles()).stream()
         .flatMap(List::stream)
         .forEach(userRoleRef -> setRoleBinding(
@@ -210,9 +210,9 @@ public class UserResource {
       resource.getMetadata().setNamespace(namespace);
     }
     var roleBindings = roleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     var foundResource = finder.findByNameAndNamespace(
         resource.getMetadata().getName(),
         resource.getMetadata().getNamespace())
@@ -260,9 +260,9 @@ public class UserResource {
       resource.getMetadata().setNamespace(namespace);
     }
     var roleBindings = roleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     Secret transformedResource = transformer.toCustomResource(
         resource,
         finder.findByNameAndNamespace(
@@ -335,7 +335,7 @@ public class UserResource {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withRoleRef(getRoleRef(userRoleRef))
         .withSubjects(List.of(userSubject))
@@ -419,7 +419,7 @@ public class UserResource {
     var userClusterRoleBinding = new ClusterRoleBindingBuilder()
         .withNewMetadata()
         .withName(name)
-        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .endMetadata()
         .withRoleRef(getClusterRoleRef(roleRef))
         .withSubjects(List.of(userSubject))

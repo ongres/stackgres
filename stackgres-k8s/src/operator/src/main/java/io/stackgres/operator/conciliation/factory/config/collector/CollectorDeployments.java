@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.ConfigPath;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresUtil;
@@ -352,7 +353,8 @@ public class CollectorDeployments
                 new EnvVarBuilder()
                 .withName(ConfigPath.COLLECTOR_CONFIG_PATH.name())
                 .withValue(ConfigPath.COLLECTOR_CONFIG_PATH.path())
-                .build())
+                .build(),
+                ClusterPathV1.OTEL_COLLECTOR_BIN_PATH.envVar())
             .withPorts(collector
                 .map(StackGresConfigCollector::getPorts)
                 .orElse(null))

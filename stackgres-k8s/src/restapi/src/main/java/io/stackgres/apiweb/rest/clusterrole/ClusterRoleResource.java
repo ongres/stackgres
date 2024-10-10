@@ -14,7 +14,7 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.clusterrole.ClusterRoleDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractResourceService;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.resource.ResourceScanner;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
@@ -73,7 +73,7 @@ public class ClusterRoleResource
   public List<ClusterRoleDto> list() {
     return clusterRoleScanner
         .getResourcesWithLabels(
-            Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+            Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE))
         .stream()
         .map(transformer::toDto)
         .toList();

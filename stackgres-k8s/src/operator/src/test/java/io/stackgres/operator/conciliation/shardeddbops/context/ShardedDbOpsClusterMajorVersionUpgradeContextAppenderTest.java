@@ -5,17 +5,16 @@
 
 package io.stackgres.operator.conciliation.shardeddbops.context;
 
+import static io.stackgres.common.docir.StackGresContextMock.CONTEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -23,11 +22,11 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsMajo
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,30 +38,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ShardedDbOpsClusterMajorVersionUpgradeContextAppenderTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      ALL_SUPPORTED_POSTGRES_VERSIONS =
-      ImmutableMap.of(
-          StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresVersion.LATEST,
-              Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
-              .append(SUPPORTED_POSTGRES_VERSIONS)
-              .toList()));
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(CONTEXT).toList();
   private static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedMajorVersions(CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedMajorVersions(CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(CONTEXT)
           .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
 
@@ -85,13 +75,13 @@ class ShardedDbOpsClusterMajorVersionUpgradeContextAppenderTest {
     dbOps = Fixtures.shardedDbOps().loadMajorVersionUpgrade().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getMetadata().getAnnotations().put(
-        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+        StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec().setPostgresVersion(FIRST_PG_MAJOR_VERSION);
     contextAppender = new ShardedDbOpsClusterMajorVersionUpgradeContextAppender(
-        postgresConfigFinder,
-        ALL_SUPPORTED_POSTGRES_VERSIONS);
+        StackGresContextMock.CONTEXT,
+        postgresConfigFinder);
   }
 
   @Test

@@ -10,7 +10,7 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,7 +31,7 @@ public class ShardedClusterLabelFactory
   @Override
   public Map<String, String> defaultConfigLabels(StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
-        .put(labelMapper().defaultConfigKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().defaultConfigKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -45,7 +45,7 @@ public class ShardedClusterLabelFactory
   @Override
   public Map<String, String> coordinatorLabelsWithoutUid(@NotNull StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
-        .put(labelMapper().coordinatorKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().coordinatorKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -53,7 +53,7 @@ public class ShardedClusterLabelFactory
   public Map<String, String> workersLabels(@NotNull StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().workersKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().workersKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -61,7 +61,7 @@ public class ShardedClusterLabelFactory
   public Map<String, String> queryRoutersLabels(@NotNull StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().queryRoutersKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().queryRoutersKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 
@@ -69,7 +69,7 @@ public class ShardedClusterLabelFactory
   public Map<String, String> scheduledBackupPodLabels(StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
-        .put(labelMapper().scheduledShardedBackupKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().scheduledShardedBackupKey(resource), StackGresKeys.RIGHT_VALUE)
         .build();
   }
 

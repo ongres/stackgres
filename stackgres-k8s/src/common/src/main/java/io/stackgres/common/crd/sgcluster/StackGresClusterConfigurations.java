@@ -54,6 +54,9 @@ public class StackGresClusterConfigurations {
   @Valid
   private StackGresClusterPostgresExporter postgresExporter;
 
+  @Valid
+  private StackGresClusterRegistry registry;
+
   @ReferencedField("sgPostgresConfig")
   interface SgPostgresConfig extends FieldReference {
   }
@@ -146,10 +149,18 @@ public class StackGresClusterConfigurations {
     this.postgresExporter = postgresExporter;
   }
 
+  public StackGresClusterRegistry getRegistry() {
+    return registry;
+  }
+
+  public void setRegistry(StackGresClusterRegistry registry) {
+    this.registry = registry;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(backups, binding, credentials, observability, patroni, pooling, postgres,
-        postgresExporter, sgPoolingConfig, sgPostgresConfig);
+        postgresExporter, registry, sgPoolingConfig, sgPostgresConfig);
   }
 
   @Override
@@ -167,6 +178,7 @@ public class StackGresClusterConfigurations {
         && Objects.equals(patroni, other.patroni) && Objects.equals(pooling, other.pooling)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresExporter, other.postgresExporter)
+        && Objects.equals(registry, other.registry)
         && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }

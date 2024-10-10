@@ -15,7 +15,7 @@ EVAL_IN_PLACE_EOF
 LAST_TRANSITION_TIME="$(date_iso8601)"
 STARTED="$LAST_TRANSITION_TIME"
 
-kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
+"$KUBECTL_BIN_PATH" patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
   -p "$(cat << EOF
 {
   "status": {

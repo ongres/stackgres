@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -21,6 +22,8 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface StackGresDistributedLogsContext
     extends GenerationContext<StackGresDistributedLogs> {
+
+  StackGresContext getContext();
 
   StackGresConfig getConfig();
 

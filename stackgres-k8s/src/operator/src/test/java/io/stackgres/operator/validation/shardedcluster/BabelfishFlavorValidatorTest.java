@@ -11,6 +11,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresFeatureGates;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -24,7 +25,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BabelfishFlavorValidatorTest {
 
   private static final String BABELFISH_VERSION =
-      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.BABELFISH.get(Fixtures.registryCluster())
+      .streamOrderedVersions(null).findFirst().get();
 
   private BabelfishFlavorValidator validator;
 

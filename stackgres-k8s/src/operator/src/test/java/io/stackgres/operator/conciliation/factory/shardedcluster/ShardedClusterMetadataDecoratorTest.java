@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecAnnotations;
@@ -50,7 +50,7 @@ class ShardedClusterMetadataDecoratorTest {
     lenient().when(context.getSource()).thenReturn(shardedCluster);
 
     shardedCluster.getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
+        .put(StackGresKeys.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString());
   }
 
   @Test
@@ -129,7 +129,7 @@ class ShardedClusterMetadataDecoratorTest {
 
     assertNotNull(configMap.getMetadata().getAnnotations());
     assertTrue(configMap.getMetadata().getAnnotations()
-        .containsKey(StackGresContext.VERSION_KEY));
+        .containsKey(StackGresKeys.VERSION_KEY));
   }
 
   @Test
@@ -146,7 +146,7 @@ class ShardedClusterMetadataDecoratorTest {
 
     assertNotNull(configMap.getMetadata().getAnnotations());
     assertTrue(configMap.getMetadata().getAnnotations()
-        .containsKey(StackGresContext.VERSION_KEY));
+        .containsKey(StackGresKeys.VERSION_KEY));
   }
 
   @Test
@@ -295,7 +295,7 @@ class ShardedClusterMetadataDecoratorTest {
 
     assertNotNull(configMap.getMetadata().getAnnotations());
     assertTrue(configMap.getMetadata().getAnnotations()
-        .containsKey(StackGresContext.VERSION_KEY));
+        .containsKey(StackGresKeys.VERSION_KEY));
   }
 
   private void setupMetadataWithAnnotations(Map<String, String> allResourceAnnotations) {

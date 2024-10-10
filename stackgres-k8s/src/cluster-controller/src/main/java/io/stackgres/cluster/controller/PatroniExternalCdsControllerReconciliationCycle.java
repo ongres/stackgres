@@ -25,6 +25,7 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -47,6 +48,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniExternalCdsControllerReconciliationCycle.class);
 
+  private final StackGresContext context;
   private final ClusterControllerPropertyContext propertyContext;
   private final EventController eventController;
   private final LabelFactoryForCluster labelFactory;
@@ -57,6 +59,8 @@ public class PatroniExternalCdsControllerReconciliationCycle
 
   @Dependent
   public static class Parameters {
+    @Inject
+    StackGresContext context;
     @Inject
     KubernetesClient client;
     @Inject
@@ -82,6 +86,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
     super("Patroni", parameters.client,
         parameters.reconciliator,
         parameters.handlerSelector);
+    this.context = parameters.context;
     this.propertyContext = parameters.propertyContext;
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
@@ -93,6 +98,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
   public PatroniExternalCdsControllerReconciliationCycle() {
     super(null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.context = null;
     this.propertyContext = null;
     this.eventController = null;
     this.labelFactory = null;
@@ -206,6 +212,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
   protected StackGresClusterContext getContextFromResource(
       StackGresCluster cluster) {
     return ImmutableStackGresClusterContext.builder()
+        .context(context)
         .cluster(cluster)
         .extensions(Optional.ofNullable(cluster.getStatus())
             .map(StackGresClusterStatus::getExtensions)

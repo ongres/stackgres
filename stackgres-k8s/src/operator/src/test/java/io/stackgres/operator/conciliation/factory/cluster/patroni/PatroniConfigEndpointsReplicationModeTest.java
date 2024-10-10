@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -18,6 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -38,7 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniConfigEndpointsReplicationModeTest {
 
   private final LabelFactoryForCluster labelFactory = new ClusterLabelFactory(
-      new ClusterLabelMapper());
+      StackGresContextMock.CONTEXT, new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
   private PatroniConfigEndpoints generator;
@@ -48,13 +49,14 @@ class PatroniConfigEndpointsReplicationModeTest {
 
   @BeforeEach
   void setUp() {
-    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory(
+        StackGresContextMock.CONTEXT);
     generator = new PatroniConfigEndpoints(
         labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider(), defaultPostgresConfigFactory);
 
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+        .put(StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().setDistributedLogs(null);
     cluster.getSpec().getMetadata().getLabels().setServices(null);
     objectStorage = Fixtures.objectStorage().loadDefault().get();

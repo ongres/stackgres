@@ -1,4 +1,4 @@
-  {
+{
   "kind": "AdmissionReview",
   "request": {
     "uid": "e1bf674a-f85f-4305-ba25-271aba55e9b3",
@@ -50,10 +50,10 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla"
         },
-        "initialData":{
+        "initialData": {
           "restore": {
             "fromBackup": {
               "name": "backup-with-default-storage-0-296"
@@ -88,7 +88,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -103,14 +103,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },
@@ -127,7 +132,7 @@
       "spec": {
         "type": "citus",
         "database": "citus",
-        "initialData":{
+        "initialData": {
           "restore": {
             "fromBackup": {
               "name": "backup-with-default-storage-0-297"
@@ -135,7 +140,7 @@
           }
         },
         "postgres": {
-          "version": "13.5",
+          "version": "13.16",
           "flavor": "vanilla"
         },
         "postgresServices": {
@@ -166,7 +171,7 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
@@ -181,14 +186,19 @@
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
           },
-          "pods":{
+          "pods": {
             "persistentVolume": {
               "size": "5Gi",
               "storageClass": "standard"
             }
           }
         },
-        "prometheusAutobind": "true"
+        "prometheusAutobind": "true",
+        "configurations": {
+          "registry": {
+            "enabled": true
+          }
+        }
       },
       "status": null
     },

@@ -21,7 +21,7 @@ has_config_changed() {
 
 run_fluentbit() {
   set -x
-  exec /usr/local/bin/fluent-bit \
+  exec "$FLUENT_BIT_BIN_PATH" \
     -c /etc/fluent-bit/fluentbit.conf
 }
 

@@ -8,18 +8,19 @@ package io.stackgres.common.extension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.docir.DocirUtil;
 import io.stackgres.common.extension.ExtensionManager.ExtensionInstaller;
 import io.stackgres.common.extension.ExtensionManager.ExtensionUninstaller;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
@@ -33,17 +34,20 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
   private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionReconciliator.class);
 
   private final String podName;
-  private final ExtensionManager extensionManager;
-  private final Supplier<Boolean> skipSharedLibrariesOverwrites;
+  private final LegacyExtensionManager legacyExtensionManager;
+  private final DocirExtensionManager docirExtensionManager;
+  private final boolean skipSharedLibrariesOverwrites;
   private final ExtensionEventEmitter extensionEventEmitter;
 
   protected ExtensionReconciliator(
       String podName,
-      ExtensionManager extensionManager,
-      Supplier<Boolean> skipSharedLibrariesOverwrites,
+      LegacyExtensionManager legacyExtensionManager,
+      DocirExtensionManager docirExtensionManager,
+      boolean skipSharedLibrariesOverwrites,
       ExtensionEventEmitter extensionEventEmitter) {
     this.podName = podName;
-    this.extensionManager = extensionManager;
+    this.legacyExtensionManager = legacyExtensionManager;
+    this.docirExtensionManager = docirExtensionManager;
     this.skipSharedLibrariesOverwrites = skipSharedLibrariesOverwrites;
     this.extensionEventEmitter = extensionEventEmitter;
   }
@@ -51,8 +55,9 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
   public ExtensionReconciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.podName = null;
-    this.extensionManager = null;
-    this.skipSharedLibrariesOverwrites = null;
+    this.legacyExtensionManager = null;
+    this.docirExtensionManager = null;
+    this.skipSharedLibrariesOverwrites = false;
     this.extensionEventEmitter = null;
   }
 
@@ -60,7 +65,15 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
       justification = "False positives")
   public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client, T context)
       throws Exception {
-    final boolean skipSharedLibrariesOverwrites = this.skipSharedLibrariesOverwrites.get();
+    final ExtensionManager extensionManager;
+    final ExtensionInfo extensionInfo;
+    if (!StackGresUtil.isRegistryEnabled(context.getCluster())) {
+      extensionManager = legacyExtensionManager;
+      extensionInfo = (cluster, extension, detectOs) -> ExtensionUtil.getDescription(cluster, extension, detectOs);
+    } else {
+      extensionManager = docirExtensionManager;
+      extensionInfo = (cluster, extension, detectOs) -> DocirUtil.getDescription(cluster, extension, detectOs);
+    }
     final ImmutableList.Builder<Exception> exceptions = ImmutableList.builder();
     final StackGresCluster cluster = context.getCluster();
     final ImmutableList<StackGresClusterInstalledExtension> toInstallExtensions =
@@ -101,7 +114,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         if (!skipSharedLibrariesOverwrites) {
           if (extensionUninstaller.isExtensionInstalled()) {
             LOGGER.info("Removing extension {}",
-                ExtensionUtil.getDescription(cluster, installedExtension, true));
+                extensionInfo.getDescription(cluster, installedExtension, true));
             extensionEventEmitter.emitExtensionRemoved(installedExtension);
             extensionUninstaller.uninstallExtension();
           }
@@ -109,7 +122,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           clusterUpdated = true;
         } else {
           LOGGER.info("Skip uninstallation of extension {}",
-              ExtensionUtil.getDescription(cluster, installedExtension, true));
+              extensionInfo.getDescription(cluster, installedExtension, true));
           if (!Optional.ofNullable(podStatus.getPendingRestart()).orElse(false)) {
             podStatus.setPendingRestart(true);
             clusterUpdated = true;
@@ -118,7 +131,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
       } catch (Exception ex) {
         exceptions.add(ex);
         onUninstallException(client, cluster,
-            ExtensionUtil.getDescription(cluster, installedExtension, true),
+            extensionInfo.getDescription(cluster, installedExtension, true),
             podName, ex);
       }
     }
@@ -136,19 +149,16 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           clusterExtension.setPublisher(toInstallExtension.getPublisher());
           clusterExtension.setRepository(toInstallExtension.getRepository());
           clusterExtension.setVersion(toInstallExtension.getVersion());
-          StackGresExtensionMetadata candidateExtension =
-              extensionManager.getMetadataManager()
-              .getExtensionCandidateSameMajorBuild(cluster, clusterExtension, true);
-          extension = ExtensionUtil.getInstalledExtension(
-              cluster, clusterExtension, candidateExtension, true);
+          extension = extensionManager.getInstalledExtension(
+              cluster, clusterExtension);
           LOGGER.info("Detected extension {}",
-              ExtensionUtil.getDescription(cluster, extension, true));
+              extensionInfo.getDescription(cluster, extension, true));
         }
       } catch (Exception ex) {
         LOGGER.warn("Can not detected extension {}",
-            ExtensionUtil.getDescription(cluster, toInstallExtension, true));
+            extensionInfo.getDescription(cluster, toInstallExtension, true));
         exceptions.add(ex);
-        onInstallException(client, cluster, ExtensionUtil.getDescription(
+        onInstallException(client, cluster, extensionInfo.getDescription(
             cluster, toInstallExtension, true),
             podName, ex);
         continue;
@@ -158,21 +168,21 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
             extensionManager.getExtensionInstaller(context, extension))
             .orElseThrow(() -> new IllegalStateException(
                 "Can not find extension "
-                    + ExtensionUtil.getDescription(cluster, extension, true)));
+                    + extensionInfo.getDescription(cluster, extension, true)));
         if (!extensionInstaller.isExtensionInstalled()
             && (!skipSharedLibrariesOverwrites
                 || !extensionInstaller.isExtensionPendingOverwrite())) {
           LOGGER.info("Download extension {}",
-              ExtensionUtil.getDescription(cluster, extension, true));
+              extensionInfo.getDescription(cluster, extension, true));
           extensionEventEmitter.emitExtensionDownloading(extension);
           extensionInstaller.getPuller().downloadAndExtract();
           LOGGER.info("Verify extension {}",
-              ExtensionUtil.getDescription(cluster, extension, true));
+              extensionInfo.getDescription(cluster, extension, true));
           extensionInstaller.getPuller().verify();
           if (skipSharedLibrariesOverwrites
               && extensionInstaller.doesInstallOverwriteAnySharedFile()) {
             LOGGER.info("Skip installation of extension {}",
-                ExtensionUtil.getDescription(cluster, extension, true));
+                extensionInfo.getDescription(cluster, extension, true));
             if (!extensionInstaller.isExtensionPendingOverwrite()) {
               extensionInstaller.setExtensionAsPending();
             }
@@ -183,7 +193,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
             }
           } else {
             LOGGER.info("Install extension {}",
-                ExtensionUtil.getDescription(cluster, extension, true));
+                extensionInfo.getDescription(cluster, extension, true));
             extensionInstaller.installExtension();
             extensionEventEmitter.emitExtensionDeployed(extension);
           }
@@ -191,7 +201,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         if (extensionInstaller.isExtensionInstalled()) {
           if (!extensionInstaller.areLinksCreated()) {
             LOGGER.info("Create links for extension {}",
-                ExtensionUtil.getDescription(cluster, extension, true));
+                extensionInfo.getDescription(cluster, extension, true));
             extensionInstaller.createExtensionLinks();
           }
           if (installedExtensions
@@ -201,8 +211,8 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
                 .filter(anInstalledExtension -> anInstalledExtension.same(extension))
                 .map(previousInstalledExtension -> {
                   LOGGER.info("Extension upgraded from {} to {}",
-                      ExtensionUtil.getDescription(cluster, previousInstalledExtension, true),
-                      ExtensionUtil.getDescription(cluster, extension, true));
+                      extensionInfo.getDescription(cluster, previousInstalledExtension, true),
+                      extensionInfo.getDescription(cluster, extension, true));
                   extensionEventEmitter.emitExtensionChanged(
                       previousInstalledExtension, extension);
                   return previousInstalledExtension;
@@ -215,7 +225,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         }
       } catch (Exception ex) {
         exceptions.add(ex);
-        onInstallException(client, cluster, ExtensionUtil.getDescription(cluster, extension, true),
+        onInstallException(client, cluster, extensionInfo.getDescription(cluster, extension, true),
             podName, ex);
       }
     }
@@ -233,5 +243,14 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
 
   protected abstract void onInstallException(KubernetesClient client, StackGresCluster cluster,
       String extension, String podName, Exception ex);
+
+  interface ExtensionInfo {
+  
+    String getDescription(
+        StackGresCluster cluster,
+        StackGresClusterInstalledExtension extension,
+        boolean detectOs);
+
+  }
 
 }

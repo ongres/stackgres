@@ -34,9 +34,10 @@ import io.fabric8.kubernetes.api.model.ServiceStatusBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatusBuilder;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -614,7 +615,7 @@ class ClusterConciliatorTest {
 
     foundDeployedResources.stream().forEach(resource -> resource
         .getMetadata().setAnnotations(Map.of(
-            StackGresContext.RECONCILIATION_PAUSE_KEY, Boolean.TRUE.toString())));
+            StackGresKeys.RECONCILIATION_PAUSE_KEY, Boolean.TRUE.toString())));
 
     ClusterConciliator conciliator = buildConciliator(
         requiredResources,
@@ -655,7 +656,7 @@ class ClusterConciliatorTest {
         .get();
     requiredResources.remove(removedResource.v2.intValue());
     removedResource.v1.getMetadata().setAnnotations(Map.of(
-        StackGresContext.RECONCILIATION_PAUSE_KEY,
+        StackGresKeys.RECONCILIATION_PAUSE_KEY,
         Boolean.TRUE.toString()));
 
     var changedResource = Seq.seq(foundDeployedResources)
@@ -666,7 +667,7 @@ class ClusterConciliatorTest {
         .findFirst()
         .get();
     changedResource.v1.getMetadata().setAnnotations(Map.of(
-        StackGresContext.RECONCILIATION_PAUSE_KEY,
+        StackGresKeys.RECONCILIATION_PAUSE_KEY,
         Boolean.FALSE.toString()));
 
     ClusterConciliator conciliator = buildConciliator(
@@ -757,9 +758,10 @@ class ClusterConciliatorTest {
         .thenReturn(deplyedResourcesSnapshot);
 
     final ClusterConciliator clusterConciliator = new ClusterConciliator(
+        StackGresContextMock.CONTEXT,
         null,
         finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache,
-        new ClusterLabelFactory(new ClusterLabelMapper()),
+        new ClusterLabelFactory(StackGresContextMock.CONTEXT, new ClusterLabelMapper()),
         patroniCtl);
     return clusterConciliator;
   }

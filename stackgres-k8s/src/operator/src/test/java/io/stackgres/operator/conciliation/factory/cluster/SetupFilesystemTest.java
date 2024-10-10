@@ -17,13 +17,15 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
@@ -80,7 +82,7 @@ class SetupFilesystemTest {
     assertEquals("/bin/sh", container.getCommand().get(0));
     assertEquals("-ex", container.getCommand().get(1));
     assertTrue(container.getCommand().get(2).contains(
-        ClusterPath.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH.filename()));
+        ClusterPathV1.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH.filename()));
   }
 
   @Test
@@ -92,7 +94,7 @@ class SetupFilesystemTest {
     List<VolumeMount> volumeMounts = container.getVolumeMounts();
     assertTrue(volumeMounts.stream()
         .anyMatch(vm -> "test".equals(vm.getName())
-            && ClusterPath.PG_BASE_PATH.path().equals(vm.getMountPath())));
+            && ClusterPathV2.PG_BASE_PATH.path().equals(vm.getMountPath())));
   }
 
   @Test
@@ -131,6 +133,7 @@ class SetupFilesystemTest {
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
             .config(getDefaultConfig())
             .source(cluster)
             .postgresConfig(new StackGresPostgresConfig())

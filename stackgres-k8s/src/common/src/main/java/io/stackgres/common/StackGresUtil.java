@@ -38,7 +38,12 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.stackgres.common.component.Component;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRegistry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatusAddon;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
 import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
@@ -46,8 +51,11 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
+import io.stackgres.common.docir.DocirUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -313,53 +321,79 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultClusterExtensions(
+      StackGresContext context,
       StackGresCluster cluster) {
 
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
     StackGresComponent flavor = getPostgresFlavorComponent(cluster);
     StackGresVersion version = StackGresVersion.getStackGresVersion(cluster);
-    return getDefaultClusterExtensions(pgVersion, flavor, version);
+    return getDefaultClusterExtensions(context, pgVersion, flavor, version,
+        isRegistryEnabled(cluster));
   }
 
   static List<ExtensionTuple> getDefaultClusterExtensions(
-      StackGresVersion sgVersion, String pgVersion, String flavor) {
-    if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.getOrThrow(sgVersion)
-            .getBuildVersion(StackGresComponent.LATEST, Map.of(
-                getPostgresFlavorComponent(flavor).getOrThrow(sgVersion),
-                pgVersion))) <= 0) {
-      return List.of();
+      StackGresContext context,
+      StackGresVersion sgVersion,
+      String pgVersion,
+      String flavor,
+      boolean registryEnabled) {
+    if (context == null || !registryEnabled) {
+      if (Component.compareBuildVersions("6.6",
+          StackGresComponent.PATRONI.getOrThrow(sgVersion)
+              .getBuildVersion(
+                  context,
+                  StackGresComponent.LATEST,
+                  Map.of(
+                      getPostgresFlavorComponent(flavor).getOrThrow(sgVersion), pgVersion))) <= 0) {
+        return List.of();
+      }
+
+      return List.of(
+          new ExtensionTuple("plpgsql"),
+          new ExtensionTuple("pg_stat_statements"),
+          new ExtensionTuple("dblink"),
+          new ExtensionTuple("plpython3u"));
     }
 
-    return List.of(new ExtensionTuple("plpgsql"),
+    return List.of(
         new ExtensionTuple("pg_stat_statements"),
         new ExtensionTuple("dblink"),
-        new ExtensionTuple("plpython3u"));
+        new ExtensionTuple("auto_explain"));
   }
 
   static List<ExtensionTuple> getDefaultClusterExtensions(
-      String pgVersion, StackGresComponent flavor, StackGresVersion sgVersion) {
+      StackGresContext context,
+      String pgVersion,
+      StackGresComponent flavor,
+      StackGresVersion sgVersion,
+      boolean registryEnabled) {
     if (flavor == StackGresComponent.BABELFISH) {
       return List.of();
     }
-    if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.getOrThrow(sgVersion)
-            .getBuildVersion(StackGresComponent.LATEST, Map.of(
-                flavor.getOrThrow(sgVersion),
-                pgVersion))) <= 0) {
-      return List.of();
+    if (!registryEnabled) {
+      if (Component.compareBuildVersions("6.6",
+          StackGresComponent.PATRONI.getOrThrow(sgVersion)
+              .getBuildVersion(
+                  context,
+                  StackGresComponent.LATEST,
+                  Map.of(
+                      flavor.getOrThrow(sgVersion), pgVersion))) <= 0) {
+        return List.of();
+      }
     }
-    return List.of(new ExtensionTuple("plpgsql"),
+
+    return List.of(
         new ExtensionTuple("pg_stat_statements"),
         new ExtensionTuple("dblink"),
-        new ExtensionTuple("plpython3u"));
+        new ExtensionTuple("auto_explain"));
   }
 
   static List<ExtensionTuple> getShardedClusterExtensions(
+      StackGresContext context,
       StackGresShardedCluster cluster) {
     if (StackGresShardingType.CITUS.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getCitusShardedClusterExtensions(cluster);
+      return getDefaultCitusShardedClusterExtensions(context, cluster);
     }
     if (StackGresShardingType.DDP.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
@@ -372,42 +406,44 @@ public interface StackGresUtil {
     return List.of();
   }
 
-  static List<ExtensionTuple> getCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getDefaultCitusShardedClusterExtensions(
+      StackGresContext context,
+      StackGresShardedCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
     StackGresVersion sgVersion = StackGresVersion.getStackGresVersion(cluster);
     Component pgComponent = StackGresComponent.POSTGRESQL.getOrThrow(sgVersion);
     String pgMajorVersion = pgComponent
-        .getMajorVersion(pgVersion);
+        .getMajorVersion(context, pgVersion);
     long pgMajorVersionIndex = pgComponent
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals(pgMajorVersion))
         .map(Tuple2::v2)
         .findAny()
         .get();
     long pg13Index = pgComponent
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals("13"))
         .map(Tuple2::v2)
         .findAny()
         .get();
     long pg14Index = pgComponent
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals("14"))
         .map(Tuple2::v2)
         .findAny()
         .get();
     long pg15Index = pgComponent
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals("15"))
         .map(Tuple2::v2)
         .findAny()
         .get();
     long pg16Index = pgComponent
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals("16"))
         .map(Tuple2::v2)
@@ -447,44 +483,72 @@ public interface StackGresUtil {
         new ExtensionTuple("postgres_fdw"));
   }
 
-  static String getPatroniVersion(StackGresCluster cluster) {
+  static String getPatroniVersion(
+      StackGresContext context,
+      StackGresCluster cluster) {
     return getPatroniVersion(
+        context,
         cluster,
         Optional.ofNullable(cluster.getStatus())
         .map(status -> status.getPostgresVersion())
         .orElseGet(() -> cluster.getSpec().getPostgres().getVersion()));
   }
 
-  static String getPatroniVersion(StackGresCluster cluster, String postgresVersion) {
+  static String getPatroniVersion(
+      StackGresContext context,
+      StackGresCluster cluster,
+      String postgresVersion) {
     Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
-    return StackGresComponent.PATRONI.get(cluster).getVersion(
-        StackGresComponent.LATEST,
-        Map.of(postgresComponentFlavor,
-            postgresVersion));
+    if (context == null || !isRegistryEnabled(cluster)) {
+      return StackGresComponent.PATRONI.get(cluster).getVersion(
+          context,
+          StackGresComponent.LATEST,
+          Map.of(
+              postgresComponentFlavor, postgresVersion));
+    }
+    return Optional.of(cluster)
+        .map(StackGresCluster::getStatus)
+        .flatMap(status -> status.findAddon(DocirUtil.PATRONI_ADDON))
+        .map(StackGresClusterStatusAddon::getVersion)
+        .orElseGet(() -> StackGresComponent.PATRONI.get(cluster).getVersion(
+            context,
+            StackGresComponent.LATEST,
+            Map.of(
+                StackGresComponent.WALG.get(cluster), StackGresComponent.LATEST,
+                StackGresComponent.HDRHISTOGRAM.get(cluster), StackGresComponent.LATEST,
+                postgresComponentFlavor, postgresVersion)));
   }
 
-  static String getPatroniVersion(StackGresShardedCluster cluster) {
+  static String getPatroniVersion(
+      StackGresContext context,
+      StackGresShardedCluster cluster) {
     return getPatroniVersion(
+        context,
         cluster,
         Optional.ofNullable(cluster.getStatus())
         .map(StackGresShardedClusterStatus::getPostgresVersion)
         .orElseGet(() -> cluster.getSpec().getPostgres().getVersion()));
   }
 
-  static String getPatroniVersion(StackGresShardedCluster cluster, String postgresVersion) {
+  static String getPatroniVersion(
+      StackGresContext context,
+      StackGresShardedCluster cluster,
+      String postgresVersion) {
     Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    if (context == null || !isRegistryEnabled(cluster)) {
+      return StackGresComponent.PATRONI.get(cluster).getVersion(
+          context,
+          StackGresComponent.LATEST,
+          Map.of(
+              postgresComponentFlavor, postgresVersion));
+    }
     return StackGresComponent.PATRONI.get(cluster).getVersion(
+        context,
         StackGresComponent.LATEST,
-        Map.of(postgresComponentFlavor,
-            postgresVersion));
-  }
-
-  static String getPatroniVersion(StackGresDistributedLogs distributedLogs) {
-    Component postgresComponentFlavor = StackGresComponent.POSTGRESQL.get(distributedLogs);
-    return StackGresComponent.PATRONI.get(distributedLogs).getVersion(
-        StackGresComponent.LATEST,
-        Map.of(postgresComponentFlavor,
-            DISTRIBUTEDLOGS_POSTGRES_VERSION));
+        Map.of(
+            StackGresComponent.WALG.get(cluster), StackGresComponent.LATEST,
+            StackGresComponent.HDRHISTOGRAM.get(cluster), StackGresComponent.LATEST,
+            postgresComponentFlavor, postgresVersion));
   }
 
   static int getPatroniMajorVersion(String patroniVersion) {
@@ -495,35 +559,154 @@ public interface StackGresUtil {
             + patroniVersion));
   }
 
-  static String getPatroniImageName(StackGresCluster cluster) {
-    return getPatroniImageName(cluster, cluster.getStatus().getPostgresVersion());
+  /**
+   * The image of the postgres-util container: the bundled postgres-util image or, when the images
+   * registry is enabled, the image of the patroni container under the postgres-util name.
+   */
+  static String getPostgresUtilImageName(
+      StackGresContext context,
+      StackGresCluster cluster) {
+    if (context == null || !isRegistryEnabled(cluster)) {
+      return StackGresComponent.POSTGRES_UTIL.get(cluster).getImageName(
+          context, cluster.getStatus().getPostgresVersion());
+    }
+    return context.getMetadataManager().getPostgresUtilImage(context, cluster);
   }
 
-  static String getPatroniImageName(StackGresCluster cluster, String postgresVersion) {
+  static String getPatroniImageName(
+      StackGresContext context,
+      StackGresCluster cluster) {
+    return getPatroniImageName(context, cluster, cluster.getStatus().getPostgresVersion());
+  }
+
+  static String getPatroniImageName(
+      StackGresContext context,
+      StackGresCluster cluster,
+      String postgresVersion) {
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    if (context == null || !isRegistryEnabled(cluster)) {
+      return StackGresComponent.PATRONI.get(cluster).getImageName(
+          context,
+          StackGresComponent.LATEST,
+          Map.of(
+              postgresComponentFlavor, postgresVersion));
+    }
+    return context.getMetadataManager().getImage(context, cluster);
+  }
+
+  static String getPatroniImageName(
+      StackGresContext context,
+      StackGresDistributedLogs distributedLogs) {
+    return StackGresComponent.PATRONI.getOrThrow(StackGresVersion.LATEST).getImageName(
+        null,
+        StackGresComponent.LATEST,
+        Map.of(
+            StackGresComponent.POSTGRESQL.getOrThrow(StackGresVersion.LATEST), DISTRIBUTEDLOGS_POSTGRES_VERSION));
+  }
+
+  static String getPatroniImageName(
+      StackGresContext context,
+      StackGresShardedCluster cluster) {
+    return getPatroniImageName(context, cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniImageName(
+      StackGresContext context,
+      StackGresShardedCluster cluster,
+      String postgresVersion) {
+    if (isRegistryEnabled(cluster)) {
+      throw new IllegalArgumentException("The image of SGShardedCluster "
+          + cluster.getMetadata().getNamespace() + "." + cluster.getMetadata().getName()
+          + " with registry enabled must be retrieved from one of its SGClusters");
+    }
     Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
     return StackGresComponent.PATRONI.get(cluster).getImageName(
+        context,
         StackGresComponent.LATEST,
-        Map.of(postgresComponentFlavor,
-            postgresVersion));
+        Map.of(
+            postgresComponentFlavor, postgresVersion));
   }
 
-  static String getPatroniImageName(StackGresDistributedLogs distributedLogs) {
-    return StackGresComponent.PATRONI.get(distributedLogs).getImageName(
-        StackGresComponent.LATEST,
-        Map.of(StackGresComponent.POSTGRESQL.get(distributedLogs),
-            DISTRIBUTEDLOGS_POSTGRES_VERSION));
+  /**
+   * Whether the images of the cluster's Pods are retrieved from the StackGres images registry
+   * (see {@code SGCluster.spec.configurations.registry.enabled}). A missing value is considered
+   * {@code false} since the field is set by the mutating webhook only for SGClusters created
+   * after it was introduced.
+   */
+  static boolean isRegistryEnabled(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getRegistry)
+        .map(StackGresClusterRegistry::getEnabled)
+        .orElse(false);
   }
 
-  static String getPatroniImageName(StackGresShardedCluster cluster) {
-    return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
+  static boolean isRegistryEnabled(StackGresShardedCluster cluster) {
+    return Optional.ofNullable(cluster)
+        .map(StackGresShardedCluster::getSpec)
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getRegistry)
+        .map(StackGresClusterRegistry::getEnabled)
+        .orElse(false);
   }
 
-  static String getPatroniImageName(StackGresShardedCluster cluster, String postgresVersion) {
-    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
-    return StackGresComponent.PATRONI.get(cluster).getImageName(
-        StackGresComponent.LATEST,
-        Map.of(postgresComponentFlavor,
-            postgresVersion));
+  /**
+   * The StackGres docir REST API URL configured for the cluster
+   * ({@code SGCluster.spec.configurations.registry.url}) or empty when the global one
+   * ({@code SGConfig.spec.repository.url}) has to be used.
+   */
+  static Optional<URI> getRegistryUri(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getRegistry)
+        .map(StackGresClusterRegistry::getUrl)
+        .map(URI::create);
+  }
+
+  static Optional<URI> getRegistryUri(StackGresShardedCluster cluster) {
+    return Optional.ofNullable(cluster)
+        .map(StackGresShardedCluster::getSpec)
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getRegistry)
+        .map(StackGresClusterRegistry::getUrl)
+        .map(URI::create);
+  }
+
+  /**
+   * The image of a sidecar (or Job) container of the cluster: the image of the component bundled
+   * with the operator or, when {@code spec.configurations.registry.enabled} is {@code true}, the
+   * image combining the base image and the Postgres flavor of the cluster with the docir addon of
+   * the component (see {@link DocirUtil#SIDECAR_ADDONS}).
+   */
+  static String getSidecarImageName(
+      StackGresContext context,
+      StackGresCluster cluster,
+      StackGresComponent component) {
+    if (context == null || !isRegistryEnabled(cluster)) {
+      return component.get(cluster).getLatestImageName(context);
+    }
+    return context.getMetadataManager().getAddonImage(
+        context, cluster, DocirUtil.getAddonName(component));
+  }
+
+  /**
+   * The version of a sidecar (or Job) container component of the cluster, see
+   * {@link #getSidecarImageName(StackGresContext, StackGresCluster, StackGresComponent)}.
+   */
+  static String getSidecarVersion(
+      StackGresContext context,
+      StackGresCluster cluster,
+      StackGresComponent component) {
+    if (context == null || !isRegistryEnabled(cluster)) {
+      return component.get(cluster).getLatestVersion(context);
+    }
+    return cluster.getStatus().findAddon(DocirUtil.getAddonName(component))
+        .map(StackGresClusterStatusAddon::getVersion)
+        .orElseThrow(() -> new IllegalStateException(
+            "Addon " + DocirUtil.getAddonName(component) + " is not set in the status of SGCluster "
+            + cluster.getMetadata().getNamespace() + "." + cluster.getMetadata().getName()));
   }
 
   static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
@@ -625,9 +808,10 @@ public interface StackGresUtil {
         "stackgres/admin-ui");
   }
 
-  static String getCollectorImageNameWithTag(ConfigContext context) {
+  static String getCollectorImageNameWithTag(
+      ConfigContext context) {
     return StackGresComponent.OTEL_COLLECTOR.get(StackGresVersion.LATEST)
-        .get().getLatestImageName();
+        .get().getLatestImageName(context.getContext());
   }
 
   static String getImageNameWithTag(

@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
-import io.stackgres.cluster.controller.ResourceWatcherFactory;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -38,7 +37,6 @@ public class ClusterControllerWatchersHandler {
 
   private final KubernetesClient client;
   private final ClusterControllerReconciliationCycle clusterReconciliationCycle;
-  private final ResourceWatcherFactory watcherFactory;
   private final AtomicReference<Optional<StackGresCluster>> clusterReference =
       new AtomicReference<>(Optional.empty());
   private final AtomicBoolean wasLeaderReference = new AtomicBoolean(false);
@@ -48,11 +46,9 @@ public class ClusterControllerWatchersHandler {
   public ClusterControllerWatchersHandler(
       ClusterControllerPropertyContext propertyContext,
       KubernetesClient client,
-      ClusterControllerReconciliationCycle clusterReconciliationCycle,
-      ResourceWatcherFactory watcherFactory) {
+      ClusterControllerReconciliationCycle clusterReconciliationCycle) {
     this.client = client;
     this.clusterReconciliationCycle = clusterReconciliationCycle;
-    this.watcherFactory = watcherFactory;
     this.podName = propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
@@ -74,23 +70,27 @@ public class ClusterControllerWatchersHandler {
   private <T extends HasMetadata,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createClusterWatcher(
       Class<T> crClass, Class<L> listClass, BiConsumer<Action, T> consumer) {
-    return new WatcherMonitor<>(crClass.getSimpleName(),
-        watcherListener -> client
+    return new WatcherMonitor<>(
+        crClass.getSimpleName(),
+        watcher -> client
         .resources(crClass, listClass)
         .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
         .withName(ClusterControllerProperty.CLUSTER_NAME.getString())
-        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
+        .watch(watcher),
+        consumer);
   }
 
   private <T extends HasMetadata,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createEndpointsWatcher(
       Class<T> crClass, Class<L> listClass, BiConsumer<Action, T> consumer) {
-    return new WatcherMonitor<>(crClass.getSimpleName(),
-        watcherListener -> client
+    return new WatcherMonitor<>(
+        crClass.getSimpleName(),
+        watcher -> client
         .resources(crClass, listClass)
         .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
         .withName(ClusterControllerProperty.CLUSTER_ENDPOINTS_NAME.getString())
-        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
+        .watch(watcher),
+        consumer);
   }
 
   private <T> BiConsumer<Action, T> onCreateOrUpdate(BiConsumer<Action, T> consumer) {

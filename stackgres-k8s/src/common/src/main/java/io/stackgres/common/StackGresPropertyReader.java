@@ -88,7 +88,7 @@ public interface StackGresPropertyReader {
    * the value is empty it returns the an empty array. Otherwise throw a {@code RuntimeException}.
    */
   default String[] getStringArray() {
-    if (getString().isEmpty()) {
+    if (get().filter(Predicate.not(String::isEmpty)).isEmpty()) {
       return new String[0];
     }
     return getString().split(",");

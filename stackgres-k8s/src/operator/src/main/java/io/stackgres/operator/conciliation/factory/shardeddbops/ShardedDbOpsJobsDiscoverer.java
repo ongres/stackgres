@@ -27,7 +27,7 @@ public class ShardedDbOpsJobsDiscoverer
 
   public Map<String, ShardedDbOpsJobFactory> discoverFactories(
       StackGresShardedDbOpsContext context) {
-    return hub.get(context.getVersion()).stream()
+    return getFactories(context).stream()
         .collect(Collectors.toMap(
             dbop -> getAnnotation(dbop, ShardedDbOpsJob.class).value(),
             Function.identity()));

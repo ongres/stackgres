@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ClusterEnvVar;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.YamlMapperProvider;
@@ -39,6 +39,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -59,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniConfigEndpointsTest {
 
   private final LabelFactoryForCluster labelFactory = new ClusterLabelFactory(
-      new ClusterLabelMapper());
+      StackGresContextMock.CONTEXT, new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
   private PatroniConfigEndpoints generator;
@@ -69,13 +70,14 @@ class PatroniConfigEndpointsTest {
 
   @BeforeEach
   void setUp() {
-    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory(
+        StackGresContextMock.CONTEXT);
     generator = new PatroniConfigEndpoints(
         labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider(), defaultPostgresConfigFactory);
 
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+        .put(StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().setDistributedLogs(null);
     cluster.getSpec().getMetadata().getLabels().setServices(null);
     objectStorage = Fixtures.objectStorage().loadDefault().get();
@@ -83,6 +85,7 @@ class PatroniConfigEndpointsTest {
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     setDefaultParameters(postgresConfig);
 
+    lenient().when(context.getContext()).thenReturn(StackGresContextMock.CONTEXT);
     lenient().when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     lenient().when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
   }
@@ -197,7 +200,7 @@ class PatroniConfigEndpointsTest {
     assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
     assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
     assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
-    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+    assertEquals("exec-with-env 'replicate' -- \"$WALG_BIN_PATH\" wal-fetch %f %p",
         patroniConfig.getStandbyCluster().getRestoreCommand());
   }
 
@@ -236,7 +239,7 @@ class PatroniConfigEndpointsTest {
     assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
     assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
     assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
-    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+    assertEquals("exec-with-env 'replicate' -- \"$WALG_BIN_PATH\" wal-fetch %f %p",
         patroniConfig.getStandbyCluster().getRestoreCommand());
   }
 
@@ -276,7 +279,7 @@ class PatroniConfigEndpointsTest {
     assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
     assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
     assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
-    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+    assertEquals("exec-with-env 'replicate' -- \"$WALG_BIN_PATH\" wal-fetch %f %p",
         patroniConfig.getStandbyCluster().getRestoreCommand());
   }
 
@@ -321,7 +324,7 @@ class PatroniConfigEndpointsTest {
     assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
     assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
     assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
-    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+    assertEquals("exec-with-env 'replicate' -- \"$WALG_BIN_PATH\" wal-fetch %f %p",
         patroniConfig.getStandbyCluster().getRestoreCommand());
   }
 
@@ -350,8 +353,8 @@ class PatroniConfigEndpointsTest {
         cluster, postgresConfig, true);
 
     assertTrue(pgParams.containsKey("archive_command"));
-    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
-        + "' -- wal-g wal-push %p";
+    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(context)
+        + "' -- \"$WALG_BIN_PATH\" wal-push %p";
     assertEquals(expected, pgParams.get("archive_command"));
   }
 
@@ -361,8 +364,8 @@ class PatroniConfigEndpointsTest {
         cluster, postgresConfig, true, false);
 
     assertTrue(pgRecoveryParams.containsKey("restore_command"));
-    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
-        + "' -- wal-g wal-fetch %f %p";
+    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(context)
+        + "' -- \"$WALG_BIN_PATH\" wal-fetch %f %p";
     assertEquals(expected, pgRecoveryParams.get("restore_command"));
   }
 

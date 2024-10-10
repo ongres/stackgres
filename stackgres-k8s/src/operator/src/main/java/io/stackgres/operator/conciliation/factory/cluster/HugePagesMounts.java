@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileSpec;
@@ -43,7 +43,7 @@ public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerCon
             .map(StackGresInstanceProfileHugePages::getHugepages2Mi)
             .map(quantity -> new VolumeMountBuilder()
                 .withName(StackGresVolume.HUGEPAGES_2M.getName())
-                .withMountPath(ClusterPath.HUGEPAGES_2M_PATH.path())
+                .withMountPath(ClusterPathV1.HUGEPAGES_2M_PATH.path())
                 .build())
             .stream(),
         Optional.of(profile.getSpec())
@@ -51,7 +51,7 @@ public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerCon
             .map(StackGresInstanceProfileHugePages::getHugepages1Gi)
             .map(quantity -> new VolumeMountBuilder()
                 .withName(StackGresVolume.HUGEPAGES_1G.getName())
-                .withMountPath(ClusterPath.HUGEPAGES_1G_PATH.path())
+                .withMountPath(ClusterPathV1.HUGEPAGES_1G_PATH.path())
                 .build())
             .stream())
         .toList();
@@ -60,8 +60,8 @@ public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerCon
   @Override
   public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     return List.of(
-        ClusterPath.HUGEPAGES_2M_PATH.envVar(),
-        ClusterPath.HUGEPAGES_1G_PATH.envVar()
+        ClusterPathV1.HUGEPAGES_2M_PATH.envVar(),
+        ClusterPathV1.HUGEPAGES_1G_PATH.envVar()
     );
   }
 }

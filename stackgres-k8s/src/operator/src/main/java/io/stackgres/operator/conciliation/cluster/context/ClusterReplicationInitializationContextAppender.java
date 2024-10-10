@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
@@ -44,16 +45,16 @@ import org.jooq.lambda.tuple.Tuple2;
 @ApplicationScoped
 public class ClusterReplicationInitializationContextAppender {
 
+  private final StackGresContext context;
   private final ResourceFinder<Secret> secretFinder;
   private final BackupEnvVarFactory backupEnvVarFactory;
   private final CustomResourceScanner<StackGresBackup> backupScanner;
   private final LabelFactoryForCluster labelFactory;
 
-  public ClusterReplicationInitializationContextAppender(
-      ResourceFinder<Secret> secretFinder,
-      BackupEnvVarFactory backupEnvVarFactory,
-      CustomResourceScanner<StackGresBackup> backupScanner,
+  public ClusterReplicationInitializationContextAppender(StackGresContext context, ResourceFinder<Secret> secretFinder,
+      BackupEnvVarFactory backupEnvVarFactory, CustomResourceScanner<StackGresBackup> backupScanner,
       LabelFactoryForCluster labelFactory) {
+    this.context = context;
     this.secretFinder = secretFinder;
     this.backupEnvVarFactory = backupEnvVarFactory;
     this.backupScanner = backupScanner;
@@ -94,7 +95,7 @@ public class ClusterReplicationInitializationContextAppender {
         .map(Instant.now()::minus);
     final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(version);
+        .getMajorVersion(context, version);
     return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
@@ -178,7 +179,7 @@ public class ClusterReplicationInitializationContextAppender {
         .map(now::minus);
     final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(version);
+        .getMajorVersion(context, version);
     return Seq.seq(backupScanner
         .getResourcesWithLabels(
             cluster.getMetadata().getNamespace(),

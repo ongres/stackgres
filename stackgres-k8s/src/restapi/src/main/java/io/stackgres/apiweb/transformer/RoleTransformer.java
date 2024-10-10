@@ -12,7 +12,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.stackgres.apiweb.dto.role.RoleDto;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -40,7 +40,7 @@ public class RoleTransformer
           transformation.getMetadata().getLabels()));
     }
     transformation.getMetadata().getLabels().putAll(
-        Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
+        Map.of(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE));
     transformation.setRules(source.getRules());
     return transformation;
   }

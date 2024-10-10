@@ -18,6 +18,7 @@ import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsResharding;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsReshardingCitus;
@@ -34,10 +35,12 @@ import jakarta.inject.Singleton;
 @ShardedDbOpsJob("resharding")
 public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
 
+  private final StackGresContext context;
   private final LabelFactoryForCluster clusterLabelFactory;
 
   @Inject
   public ShardedDbOpsReshardingJob(
+      StackGresContext context,
       ResourceFactory<StackGresShardedDbOpsContext, PodSecurityContext> podSecurityFactory,
       ShardedDbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactoryForShardedDbOps dbOpsLabelFactory,
@@ -48,6 +51,7 @@ public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
       LabelFactoryForCluster clusterLabelFactory) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables,
         dbOpsLabelFactory, jsonMapper, kubectl, dbOpsVolumeMounts, dbOpsTemplatesVolumeFactory);
+    this.context = context;
     this.clusterLabelFactory = clusterLabelFactory;
   }
 
@@ -84,7 +88,7 @@ public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
             .build(),
             new EnvVarBuilder()
             .withName("PATRONI_PRIMARY_ROLE")
-            .withValue(PatroniUtil.getPrimaryRole(context.getShardedCluster()))
+            .withValue(PatroniUtil.getPrimaryRole(this.context, context.getShardedCluster()))
             .build(),
             new EnvVarBuilder()
             .withName("PATRONI_REPLICA_ROLE")

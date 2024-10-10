@@ -12,7 +12,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterEnvVar;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,11 +26,11 @@ public class ReplicateMounts implements VolumeMountsProvider<ClusterContainerCon
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.REPLICATE_ENV.getName())
-            .withMountPath(ClusterPath.REPLICATE_ENV_PATH.path(clusterContext))
+            .withMountPath(ClusterPathV1.REPLICATE_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.REPLICATE_CREDENTIALS.getName())
-            .withMountPath(ClusterPath.REPLICATE_SECRET_PATH.path(clusterContext))
+            .withMountPath(ClusterPathV1.REPLICATE_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -40,8 +40,8 @@ public class ReplicateMounts implements VolumeMountsProvider<ClusterContainerCon
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         ClusterEnvVar.REPLICATE_ENV.envVar(clusterContext),
-        ClusterPath.REPLICATE_ENV_PATH.envVar(clusterContext),
-        ClusterPath.REPLICATE_SECRET_PATH.envVar(clusterContext)
+        ClusterPathV1.REPLICATE_ENV_PATH.envVar(clusterContext),
+        ClusterPathV1.REPLICATE_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

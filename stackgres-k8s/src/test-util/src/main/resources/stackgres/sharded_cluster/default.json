@@ -13,9 +13,14 @@
   },
   "spec": {
     "type": "citus",
+    "configurations": {
+      "registry": {
+        "enabled": true
+      }
+    },
     "database": "citus",
     "postgres": {
-      "version": "13.5",
+      "version": "13.16",
       "flavor": "vanilla"
     },
     "postgresServices": {
@@ -50,7 +55,7 @@
         "sgPostgresConfig": "postgresconf",
         "sgPoolingConfig": "pgbouncerconf"
       },
-      "pods":{
+      "pods": {
         "persistentVolume": {
           "size": "5Gi",
           "storageClass": "standard"
@@ -65,7 +70,7 @@
         "sgPostgresConfig": "postgresconf",
         "sgPoolingConfig": "pgbouncerconf"
       },
-      "pods":{
+      "pods": {
         "persistentVolume": {
           "size": "5Gi",
           "storageClass": "standard"
@@ -75,6 +80,6 @@
     "prometheusAutobind": "true"
   },
   "status": {
-    "postgresVersion": "13.5"
+    "postgresVersion": "13.15"
   }
 }

@@ -25,7 +25,7 @@ public class ShardedClusterEnvironmentVariables
     return Seq.of(ShardedClusterPath.values())
         .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context))
         .append(Seq.of(ShardedClusterEnvVar.values())
-            .map(cssev -> cssev.envVar(context.getShardedCluster())))
+            .map(cssev -> cssev.envVar(context)))
         .toList();
   }
 

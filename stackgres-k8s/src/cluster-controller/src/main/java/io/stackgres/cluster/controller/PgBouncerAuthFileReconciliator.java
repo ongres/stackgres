@@ -31,7 +31,7 @@ import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -46,9 +46,9 @@ import org.jooq.lambda.Seq;
 public class PgBouncerAuthFileReconciliator {
 
   private static final Path ORIGINAL_AUTH_FILE_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path() + ".original");
+      Paths.get(ClusterPathV1.PGBOUNCER_AUTH_FILE_PATH.pathFromEnv() + ".original");
   private static final Path AUTH_FILE_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
+      Paths.get(ClusterPathV1.PGBOUNCER_AUTH_FILE_PATH.pathFromEnv());
   private static final String SELECT_PGBOUNCER_USERS_FROM_PG_SHADOW =
       "SELECT '\"' || replace(usename, '\"', '\"\"') || '\" \"'"
           + " || replace(passwd, '\"', '\"\"') || '\"'"
@@ -133,7 +133,7 @@ public class PgBouncerAuthFileReconciliator {
       throws SQLException {
     List<String> authFileUsersLines = new ArrayList<>();
     try (Connection connection = postgresConnectionManager.getUnixConnection(
-        ClusterPath.PG_RUN_PATH.path(), EnvoyUtil.PG_PORT,
+        ClusterPathV1.PG_RUN_PATH.path(), EnvoyUtil.PG_PORT,
         SUPERUSER_DATABASE,
         postgresUser,
         "");

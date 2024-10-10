@@ -1,0 +1,76 @@
+FROM quay.io/ongres/kubectl AS offline-docir
+  COPY stackgres-operator/docir-cache-conciliator.sh /docir-cache-conciliator.sh
+  COPY stackgres-operator/docir-cache-copy-image.py /docir-cache-copy-image.py
+  USER root
+  RUN mkdir -p /opt/app-root/src
+  RUN chmod a+xw /opt/app-root/src
+  USER stackgres
+  ARG DOCIR_REPOSITORY_URL=https://sgcr.dev
+  ARG DOCIR_OPERATOR_VERSION
+  ARG DOCIR_USE_PUBLISHED_IMAGES=true
+  ARG DOCIR_CACHE_PRELOADED_IMAGES='[]'
+  ARG DOCIR_CACHE_LOG_LEVEL=INFO
+  # The images themselves are not copied into the offline image: mirror them in the registry of
+  # the air-gapped system and set `repository.cache.imageRegistry` to rewrite their URLs
+  ENV DOCIR_CACHE_PULL_IMAGES=false
+  WORKDIR /opt/app-root/src
+  RUN sh /docir-cache-conciliator.sh preload
+
+FROM registry.access.redhat.com/ubi8/nginx-120
+  COPY --from=offline-docir /opt/app-root/src/repository /opt/app-root/src/repository
+  USER root
+  RUN rm /etc/nginx/nginx.conf
+  RUN cat <<'EOF' > /etc/nginx/nginx.conf
+    load_module /usr/lib64/nginx/modules/ngx_http_perl_module.so;
+    daemon off;
+    pid             /var/run/nginx.pid;
+    error_log stderr info;
+    events{
+    }
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/json;
+
+      perl_set $docir_image_file 'sub { use Digest::MD5 (); my $r = shift; return Digest::MD5::md5_hex($r->args); }';
+
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "-"';
+
+      access_log  /dev/stdout  main;
+
+      sendfile        on;
+
+      keepalive_timeout  65;
+
+      include /etc/nginx/conf.d/*.conf;
+    }
+EOF
+  RUN cat <<'EOF' > /etc/nginx/conf.d/stackgres-operator-docir-cache.conf
+    server {
+      server_name  localhost;
+
+      listen       8080;
+      root   /opt/app-root/src;
+
+      location / {
+        return 404;
+      }
+
+      location /api/ {
+        try_files /repository$request_uri =404;
+      }
+
+      location = /api/stackgres/v1/image-url {
+        error_page 405 =200 /_docir_image_url$is_args$args;
+        try_files /repository/api/stackgres/v1/image-url/$docir_image_file =404;
+      }
+      location = /_docir_image_url {
+        internal;
+        try_files /repository/api/stackgres/v1/image-url/$docir_image_file =404;
+      }
+    }
+EOF
+  USER default
+  EXPOSE 8080/tcp
+  CMD [ "nginx" ]

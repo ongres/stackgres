@@ -22,13 +22,11 @@ public abstract class ContainerFactoryResourceDiscoverer<
       justification = "safe overridable method")
   protected ContainerFactoryResourceDiscoverer(Instance<ContainerFactory<T>> instance) {
     super(instance);
-    hub.forEach((key, value) -> {
-      value.sort((f1, f2) -> {
-        int f1Order = getOrdinalFromAnnotation(getAnnotation(f1, getAnnotationClass()));
-        int f2Order = getOrdinalFromAnnotation(getAnnotation(f2, getAnnotationClass()));
-        return Integer.compare(f1Order, f2Order);
-      });
-    });
+    forEachFactories(factories -> factories.sort((f1, f2) -> {
+      int f1Order = getOrdinalFromAnnotation(getAnnotation(f1, getAnnotationClass()));
+      int f2Order = getOrdinalFromAnnotation(getAnnotation(f2, getAnnotationClass()));
+      return Integer.compare(f1Order, f2Order);
+    }));
   }
 
   public ContainerFactoryResourceDiscoverer() {
@@ -43,7 +41,7 @@ public abstract class ContainerFactoryResourceDiscoverer<
   }
 
   public List<ContainerFactory<T>> discoverContainers(T context) {
-    return hub.get(context.getGenerationContext().getVersion()).stream()
+    return getFactories(context.getGenerationContext()).stream()
         .filter(f -> f.isActivated(context))
         .toList();
   }

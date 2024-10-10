@@ -14,7 +14,7 @@
   "spec": {
     "instances": 1,
     "postgres": {
-      "version": "13.9"
+      "version": "13.16"
     },
     "replication": {
       "mode": "async",
@@ -31,12 +31,17 @@
     "configurations": {
       "sgPostgresConfig": "postgresconf",
       "sgPoolingConfig": "pgbouncerconf",
-      "backups": [{
-        "path": "sgbackups.stackgres.io/stackgres/stackgres/11",
-        "sgObjectStorage": "objstorage"
-      }]
+      "registry": {
+        "enabled": true
+      },
+      "backups": [
+        {
+          "path": "sgbackups.stackgres.io/stackgres/stackgres/11",
+          "sgObjectStorage": "objstorage"
+        }
+      ]
     },
-    "pods":{
+    "pods": {
       "persistentVolume": {
         "size": "5Gi",
         "storageClass": "standard"
@@ -54,14 +59,14 @@
         "enabled": true,
         "type": "ClusterIP",
         "externalIPs": [
-        	"13.33.108.129"
+          "13.33.108.129"
         ]
       },
       "replicas": {
         "enabled": true,
         "type": "ClusterIP",
         "externalIPs": [
-        	"13.33.108.129"
+          "13.33.108.129"
         ]
       }
     },
@@ -70,7 +75,7 @@
         "allResources": {
           "allResourcesCustomAnnotation": "allResourcesCustomValue"
         },
-        "clusterPods" : {
+        "clusterPods": {
           "podsCustomAnnotations": "podsCustomValue"
         },
         "primaryService": {
@@ -82,16 +87,34 @@
       },
       "labels": {
         "clusterPods": {
-          "customLabel" : "podsCustomValue"
+          "customLabel": "podsCustomValue"
         },
         "services": {
-          "customLabel" : "servicesCustomValue"
+          "customLabel": "servicesCustomValue"
         }
       }
     }
   },
   "status": {
-    "postgresVersion": "13.9",
-    "backupPaths": ["sgbackups.stackgres.io/stackgres/stackgres/11"]
+    "postgresVersion": "13.16",
+    "revision": "12",
+    "base": "ubi",
+    "baseVersion": "9.4",
+    "baseRevision": "10",
+    "repository": "https://sgcr.dev",
+    "addons": [
+      { "name": "patroni", "version": "3.3.3", "revision": "12" },
+      { "name": "wal-g", "version": "3.0.3", "revision": "12" },
+      { "name": "hdrhistogram", "version": "0.10.7", "revision": "12" },
+      { "name": "pgbouncer", "version": "1.24.1", "revision": "12" },
+      { "name": "postgres-exporter", "version": "0.17.1", "revision": "12" },
+      { "name": "kubectl", "version": "1.33.4", "revision": "12" },
+      { "name": "fluent-bit", "version": "4.0.5", "revision": "12" },
+      { "name": "fluentd", "version": "1.16.5", "revision": "12" },
+      { "name": "otel-collector", "version": "0.120.0", "revision": "12" }
+    ],
+    "backupPaths": [
+      "sgbackups.stackgres.io/stackgres/stackgres/11"
+    ]
   }
 }

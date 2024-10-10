@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ObjectStorageFinder;
@@ -52,8 +53,8 @@ class BackupRequiredResourcesGeneratorTest {
   void setUp() {
     backup = Fixtures.backup().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
-    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
-        .getLatestVersion());
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .getLatestVersion(StackGresContextMock.CONTEXT));
     cluster.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     cluster.getMetadata().setName(backup.getSpec().getSgCluster());
     profile = Fixtures.instanceProfile().loadSizeS().get();

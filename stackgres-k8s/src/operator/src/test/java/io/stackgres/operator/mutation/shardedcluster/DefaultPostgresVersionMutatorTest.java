@@ -15,6 +15,8 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -27,7 +29,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultPostgresVersionMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
@@ -41,7 +44,7 @@ class DefaultPostgresVersionMutatorTest {
   void setUp() throws NoSuchFieldException, IOException {
     review = AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
-    mutator = new DefaultPostgresVersionMutator();
+    mutator = new DefaultPostgresVersionMutator(StackGresContextMock.CONTEXT);
   }
 
   @Test
@@ -61,7 +64,8 @@ class DefaultPostgresVersionMutatorTest {
     StackGresShardedCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
+    assertEquals(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .getLatestVersion(StackGresContextMock.CONTEXT),
         result.getSpec().getPostgres().getVersion());
   }
 
@@ -92,12 +96,14 @@ class DefaultPostgresVersionMutatorTest {
   @Test
   void clusteWithMajorPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(
-        StackGresComponent.POSTGRESQL.getLatest().getLatestMajorVersion());
+        StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+            .getLatestMajorVersion(StackGresContextMock.CONTEXT));
 
     StackGresShardedCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
+    assertEquals(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+        .getLatestVersion(StackGresContextMock.CONTEXT),
         result.getSpec().getPostgres().getVersion());
   }
 }

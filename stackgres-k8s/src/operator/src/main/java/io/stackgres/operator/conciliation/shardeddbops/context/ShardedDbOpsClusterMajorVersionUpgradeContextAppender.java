@@ -7,15 +7,9 @@ package io.stackgres.operator.conciliation.shardeddbops.context;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsMajorVersionUpgradeStatus;
@@ -23,6 +17,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsStat
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.common.StackGresVersionUtil;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext.Builder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -32,28 +27,15 @@ import org.jooq.lambda.tuple.Tuple2;
 @ApplicationScoped
 public class ShardedDbOpsClusterMajorVersionUpgradeContextAppender {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
-  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions;
 
   @Inject
   public ShardedDbOpsClusterMajorVersionUpgradeContextAppender(
+      StackGresContext context,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder) {
-    this(
-        postgresConfigFinder,
-        Stream.of(StackGresComponent.POSTGRESQL, StackGresComponent.BABELFISH)
-        .collect(ImmutableMap.toImmutableMap(Function.identity(),
-            component -> component.getComponentVersions()
-                .entrySet()
-                .stream()
-                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey,
-                    entry -> entry.getValue().streamOrderedVersions().toList())))));
-  }
-
-  public ShardedDbOpsClusterMajorVersionUpgradeContextAppender(
-      CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
-      Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
+    this.context = context;
     this.postgresConfigFinder = postgresConfigFinder;
-    this.supportedPostgresVersions = supportedPostgresVersions;
   }
 
   public void appendContext(StackGresShardedDbOps dbOps, StackGresShardedCluster cluster, Builder contextBuilder) {
@@ -62,16 +44,15 @@ public class ShardedDbOpsClusterMajorVersionUpgradeContextAppender {
         && !isPostgresVersionSupported(cluster, givenPgVersion)) {
       final String message = "Unsupported postgres version " + givenPgVersion
           + ".  Supported postgres versions are: "
-          + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-              .get(StackGresVersion.getStackGresVersion(cluster))).toString(", ");
+          + Seq.seq(StackGresVersionUtil.getSupportedPostgresVersions(context, cluster)).toString(", ");
       throw new IllegalArgumentException(message);
     }
 
     String givenMajorVersion = getPostgresFlavorComponent(cluster)
-        .get(cluster).getMajorVersion(givenPgVersion);
+        .get(cluster).getMajorVersion(context, givenPgVersion);
     long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals(givenMajorVersion))
         .map(Tuple2::v2)
@@ -84,10 +65,10 @@ public class ShardedDbOpsClusterMajorVersionUpgradeContextAppender {
         .orElse(cluster.getSpec().getPostgres().getVersion());
     String oldMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(oldPgVersion);
+        .getMajorVersion(context, oldPgVersion);
     long oldMajorVersionIndex = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .streamOrderedMajorVersions()
+        .streamOrderedMajorVersions(context)
         .zipWithIndex()
         .filter(t -> t.v1.equals(oldMajorVersion))
         .map(Tuple2::v2)
@@ -119,8 +100,7 @@ public class ShardedDbOpsClusterMajorVersionUpgradeContextAppender {
   }
 
   private boolean isPostgresVersionSupported(StackGresShardedCluster cluster, String version) {
-    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster))
+    return StackGresVersionUtil.getSupportedPostgresVersions(context, cluster)
         .contains(version);
   }
 

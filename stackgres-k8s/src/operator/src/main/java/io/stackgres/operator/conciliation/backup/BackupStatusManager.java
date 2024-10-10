@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.JobUtil;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
@@ -101,7 +101,7 @@ public class BackupStatusManager {
         .filter(labels -> labels.containsKey(scheduledBackupKey))
         .filter(labels -> Objects.equals(
             labels.get(scheduledBackupKey),
-            StackGresContext.RIGHT_VALUE))
+            StackGresKeys.RIGHT_VALUE))
         .filter(labels -> labels.containsKey(scheduledBackupJobNameKey))
         .flatMap(labels -> jobFinder.findByNameAndNamespace(
             labels.get(scheduledBackupJobNameKey),

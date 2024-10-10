@@ -17,8 +17,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresGroupKind;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -67,7 +67,7 @@ class BackupJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTes
     profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = backup.getMetadata();
-    metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
+    metadata.getAnnotations().put(StackGresKeys.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());

@@ -12,9 +12,9 @@ import io.stackgres.cluster.common.ClusterBootstrapEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.OsDetector;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
@@ -58,16 +58,16 @@ public class ClusterControllerPostgresBootstrapReconciliator
         && (
             !Objects.equals(
                 context.getCluster().getStatus().getArch(),
-                ExtensionUtil.OS_DETECTOR.getArch())
+                OsDetector.OS_DETECTOR.getArch())
             || !Objects.equals(
                 context.getCluster().getStatus().getOs(),
-                ExtensionUtil.OS_DETECTOR.getOs())
+                OsDetector.OS_DETECTOR.getOs())
             )) {
       throw new IllegalStateException("The cluster was initialized with "
           + context.getCluster().getStatus().getArch()
           + "/" + context.getCluster().getStatus().getOs()
-          + " but this instance is " + ExtensionUtil.OS_DETECTOR.getArch()
-          + "/" + ExtensionUtil.OS_DETECTOR.getOs());
+          + " but this instance is " + OsDetector.OS_DETECTOR.getArch()
+          + "/" + OsDetector.OS_DETECTOR.getOs());
     }
     var patroniCtl = this.patroniCtl.instanceFor(context.getCluster());
     final boolean isBootstrapped = PatroniUtil.isBootstrapped(patroniCtl);
@@ -97,8 +97,8 @@ public class ClusterControllerPostgresBootstrapReconciliator
       }
       eventController.sendEvent(ClusterBootstrapEventReason.CLUSTER_BOOTSTRAP_COMPLETED,
           "Cluster bootstrap completed", client);
-      context.getCluster().getStatus().setArch(ExtensionUtil.OS_DETECTOR.getArch());
-      context.getCluster().getStatus().setOs(ExtensionUtil.OS_DETECTOR.getOs());
+      context.getCluster().getStatus().setArch(OsDetector.OS_DETECTOR.getArch());
+      context.getCluster().getStatus().setOs(OsDetector.OS_DETECTOR.getOs());
       LOGGER.info("Setting cluster arch {} and os {}",
           context.getCluster().getStatus().getArch(),
           context.getCluster().getStatus().getOs());

@@ -14,6 +14,7 @@ import java.util.Optional;
 import com.google.common.base.Predicates;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
@@ -28,18 +29,24 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutator {
 
+  private final StackGresContext context;
   private final CustomResourceFinder<StackGresShardedCluster> clusterFinder;
   private final Instant defaultTimestamp;
 
   @Inject
   public ShardedDbOpsMajorVersionUpgradeMutator(
+      StackGresContext context,
       CustomResourceFinder<StackGresShardedCluster> clusterFinder) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
     this.defaultTimestamp = null;
   }
 
-  ShardedDbOpsMajorVersionUpgradeMutator(CustomResourceFinder<StackGresShardedCluster> clusterFinder,
+  ShardedDbOpsMajorVersionUpgradeMutator(
+      StackGresContext context,
+      CustomResourceFinder<StackGresShardedCluster> clusterFinder,
       Instant defaultTimestamp) {
+    this.context = context;
     this.clusterFinder = clusterFinder;
     this.defaultTimestamp = defaultTimestamp;
   }
@@ -95,7 +102,7 @@ public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutat
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .getMajorVersion(postgresVersion);
+        .getMajorVersion(context, postgresVersion);
     Instant timestamp = Optional.ofNullable(defaultTimestamp).orElse(Instant.now());
     return Seq.range(0, getNumberOfClusters(cluster))
         .map(index -> BackupStorageUtil.getPath(

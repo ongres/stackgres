@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION append_system_parameter_line(line text)
 RETURNS void
 AS
 $$
-  file_object = open('/var/lib/postgresql/data/postgresql.auto.conf', 'a')
+  file_object = open('%1$s/postgresql.auto.conf', 'a')
   file_object.write(line + '\n')
   file_object.close()
 $$

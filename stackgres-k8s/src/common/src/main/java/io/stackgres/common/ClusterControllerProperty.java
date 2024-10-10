@@ -18,6 +18,8 @@ public enum ClusterControllerProperty implements StackGresPropertyReader {
   CLUSTER_CONTROLLER_NODE_NAME("stackgres.clusterControllerNodeName"),
   CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS(
       "stackgres.clusterControllerExtensionsRepositoryUrls"),
+  CLUSTER_CONTROLLER_DOCIR_REPOSITORY_URL(
+      "stackgres.clusterControllerDocirRepositoryUrl"),
   CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES(
       "stackgres.clusterControllerSkipOverwriteSharedLibraries"),
   CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER(

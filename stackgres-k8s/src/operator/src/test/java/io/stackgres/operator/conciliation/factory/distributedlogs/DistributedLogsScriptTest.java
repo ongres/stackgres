@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.DistributedLogsLabelFactory;
 import io.stackgres.common.labels.DistributedLogsLabelMapper;
@@ -48,7 +49,7 @@ class DistributedLogsScriptTest {
 
   @BeforeEach
   void setUp() {
-    distributedLogsScript = new DistributedLogsScript(labelFactory);
+    distributedLogsScript = new DistributedLogsScript(StackGresContextMock.CONTEXT, labelFactory);
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
     when(context.getSource()).thenReturn(distributedLogs);
     lenient().when(context.getCluster()).thenReturn(Optional.empty());

@@ -1,0 +1,299 @@
+{{- if .Values.repository.cache.enabled }}
+{{- $useHostPath := .Values.repository.cache.hostPath }}
+{{- $nonRoot := and (or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser) (not $useHostPath) }}
+apiVersion: "apps/v1"
+kind: "StatefulSet"
+metadata:
+  labels:
+    app: {{ .Release.Name }}-docir-cache
+    version: "{{ .Chart.Version }}"
+    group:  stackgres.io
+  name: {{ .Release.Name }}-docir-cache
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-docir-cache
+      group:  stackgres.io
+  serviceName: {{ .Release.Name }}-docir-cache
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-docir-cache
+        group:  stackgres.io
+    spec:
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        fsGroup: 1000
+        {{- end }}
+      serviceAccountName: {{ .Release.Name }}-docir-cache
+      terminationGracePeriodSeconds: 0
+      restartPolicy: Always
+      {{- with .Values.repository.cache.schedulerName }}
+      schedulerName: {{ . }}
+      {{- end }}
+      {{- with .Values.repository.cache.runtimeClassName }}
+      runtimeClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.repository.cache.preemptionPolicy }}
+      preemptionPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.repository.cache.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.repository.cache.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.repository.cache.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.repository.cache.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: http
+        image: "registry.access.redhat.com/ubi8/nginx-120:1-92.1679484498"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        securityContext:
+          {{- if $nonRoot }}
+          runAsNonRoot: true
+          runAsUser: 998
+          runAsGroup: 1000
+          {{- end }}
+          {{- if $useHostPath }}
+          runAsUser: 0
+          {{- else }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+          {{- end }}
+        {{- with .Values.repository.cache.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        args:
+          - '/bin/sh'
+          - '-ec'
+          {{- if .Values.developer.showDebug }}
+          - '-x'
+          {{- end }}
+          - |
+            mkdir -p /var/lib/nginx/tmp /opt/app-root/src/repository /opt/app-root/src/cache
+            exec nginx -g 'daemon off;'
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+        volumeMounts:
+          - name: docir-cache-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
+          - name: docir-cache-config
+            mountPath: /etc/nginx/conf.d/stackgres-operator-docir-cache.conf
+            subPath: stackgres-operator-docir-cache.conf
+            readOnly: true
+          - name: docir-cache-nginx-var
+            subPath: var/cache/nginx
+            mountPath: /var/cache/nginx
+            readOnly: false
+          - name: docir-cache-nginx-var
+            subPath: var/run
+            mountPath: /var/run
+            readOnly: false
+          - name: docir-cache-nginx-var
+            subPath: var/lib/nginx
+            mountPath: /var/lib/nginx
+            readOnly: false
+          - name: docir-cache-nginx-var
+            subPath: var/log/nginx
+            mountPath: /var/log/nginx
+            readOnly: false
+          - name: {{ .Release.Name }}-docir-cache
+            mountPath: /opt/app-root/src
+            readOnly: false
+      {{- if .Values.repository.cache.pullImages }}
+      - name: registry
+        image: "{{ .Values.repository.cache.registryImage }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        securityContext:
+          {{- if $nonRoot }}
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          {{- end }}
+          {{- if $useHostPath }}
+          runAsUser: 0
+          {{- else }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+          {{- end }}
+        {{- with .Values.repository.cache.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        env:
+          - name: REGISTRY_HTTP_ADDR
+            value: "0.0.0.0:5000"
+          - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+            value: /var/lib/registry
+          - name: REGISTRY_STORAGE_DELETE_ENABLED
+            value: "true"
+        ports:
+        - containerPort: 5000
+          name: "registry"
+          protocol: "TCP"
+        readinessProbe:
+          tcpSocket:
+            port: 5000
+        volumeMounts:
+          - name: {{ .Release.Name }}-docir-cache
+            subPath: registry
+            mountPath: /var/lib/registry
+            readOnly: false
+      {{- end }}
+      - name: "controller"
+        image: {{ template "kubectl-image" . }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        securityContext:
+          {{- if $nonRoot }}
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          {{- end }}
+          {{- if $useHostPath }}
+          runAsUser: 0
+          {{- else }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+          {{- end }}
+        {{- with .Values.repository.cache.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        env:
+          - name: HOME
+            value: /tmp
+          - name: DOCIR_REPOSITORY_URL
+            value: "{{ .Values.repository.url }}"
+          - name: DOCIR_OPERATOR_VERSION
+            value: "{{ regexFind "^[0-9]+\\.[0-9]+" (.Values.developer.version | default .Chart.Version) }}"
+          - name: DOCIR_USE_PUBLISHED_IMAGES
+            value: "{{ index (.Values.developer.extraEnv | default dict) "USE_PUBLISHED_IMAGES" | default "true" }}"
+          - name: DOCIR_CACHE_REFRESH_INTERVAL
+            value: "{{ .Values.repository.cache.refreshInterval }}"
+          - name: DOCIR_CACHE_PRELOADED_IMAGES
+            value: {{ .Values.repository.cache.preloadedImages | toJson | squote }}
+          - name: DOCIR_CACHE_PULL_IMAGES
+            value: "{{ .Values.repository.cache.pullImages }}"
+          - name: DOCIR_CACHE_IMAGE_REGISTRY
+            value: "{{ .Values.repository.cache.imageRegistry }}"
+          - name: DOCIR_CACHE_LOCAL_REGISTRY
+            value: "127.0.0.1:5000"
+          {{- if .Values.repository.cache.offline }}
+          - name: OFFLINE
+            value: "true"
+          {{- end }}
+          {{- if .Values.developer.logLevel }}
+          - name: DOCIR_CACHE_LOG_LEVEL
+            value: "{{ .Values.developer.logLevel }}"
+          {{- end }}
+          {{- range .Values.developer.extraOpts }}
+            {{- if . | hasPrefix "-Dquarkus.log.category.\"stackgres-docir-cache\".level=" }}
+          - name: DOCIR_CACHE_LOG_LEVEL
+            value: "{{ . | trimPrefix "-Dquarkus.log.category.\"stackgres-docir-cache\".level=" }}"
+            {{- end }}
+          {{- end }}
+        command:
+          - "/bin/bash"
+          - "-ec"
+          - |
+            echo "$DOCIR_CACHE_LOG_LEVEL" | grep -v -q '^\(DEBUG\|TRACE\)$' || set -x
+            cd /opt/app-root/src
+            sh /usr/local/bin/docir-cache-conciliator.sh run
+        {{- if not .Values.disableDocirCacheProbe }}
+        readinessProbe:
+          exec:
+            command:
+            - test
+            - -f
+            - /tmp/docir-cache-ready
+        {{- end }}
+        volumeMounts:
+          - name: docir-cache-config
+            mountPath: /usr/local/bin/docir-cache-conciliator.sh
+            subPath: docir-cache-conciliator.sh
+            readOnly: true
+          - name: docir-cache-config
+            mountPath: /usr/local/bin/docir-cache-copy-image.py
+            subPath: docir-cache-copy-image.py
+            readOnly: true
+          - name: {{ .Release.Name }}-docir-cache
+            mountPath: /opt/app-root/src
+            readOnly: false
+          - name: docir-cache-nginx-var
+            subPath: var/log/nginx
+            mountPath: /var/log/nginx
+            readOnly: true
+      volumes:
+        {{- if $useHostPath }}
+        - name: {{ .Release.Name }}-docir-cache
+          hostPath:
+            path: "{{ .Values.repository.cache.hostPath }}"
+            type: DirectoryOrCreate
+        {{- end }}
+        - name: docir-cache-config
+          configMap:
+            name: {{ .Release.Name }}-docir-cache
+            optional: false
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: stackgres-operator-docir-cache.conf
+                path: stackgres-operator-docir-cache.conf
+              - key: docir-cache-conciliator.sh
+                path: docir-cache-conciliator.sh
+              - key: docir-cache-copy-image.py
+                path: docir-cache-copy-image.py
+        - name: docir-cache-nginx-var
+          emptyDir: {}
+  {{- if not $useHostPath }}
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app: {{ .Release.Name }}-docir-cache
+        version: "{{ .Chart.Version }}"
+        group:  stackgres.io
+      name: {{ .Release.Name }}-docir-cache
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.repository.cache.persistentVolume.storageClass }}
+      {{- if eq "-" .Values.repository.cache.persistentVolume.storageClass }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.repository.cache.persistentVolume.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.repository.cache.persistentVolume.size }}"
+  {{- end }}
+{{- end }}

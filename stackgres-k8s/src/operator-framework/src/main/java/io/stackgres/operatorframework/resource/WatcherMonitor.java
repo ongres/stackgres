@@ -11,15 +11,17 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WatcherMonitor<T> implements AutoCloseable {
+public class WatcherMonitor<T extends HasMetadata> implements AutoCloseable {
 
   private static final int MAX_BACKOFF_SLEEP_SECONDS = 300;
 
@@ -28,26 +30,30 @@ public class WatcherMonitor<T> implements AutoCloseable {
   private final MonitorListener listener = new MonitorListener();
   private final Random random = new Random();
   private final String name;
-  private final Function<WatcherListener<T>, Watch> watcherCreator;
+  private final Function<Watcher<T>, Watch> watchCreator;
+  private final BiConsumer<Watcher.Action, T> consumer;
   private final Function<Integer, Duration> backoffSleepDuration;
   private final ExecutorService executorService;
-  private boolean closeCalled = false;
+  private boolean closed = false;
 
   private Watch watcher = null;
 
   public WatcherMonitor(
       String name,
-      Function<WatcherListener<T>, Watch> watcherCreator) {
-    this(name, watcherCreator, null);
+      Function<Watcher<T>, Watch> watchCreator,
+      BiConsumer<Watcher.Action, T> consumer) {
+    this(name, watchCreator, consumer, null);
   }
 
   @SuppressWarnings("null")
   public WatcherMonitor(
       String name,
-      Function<WatcherListener<T>, Watch> watcherCreator,
+      Function<Watcher<T>, Watch> watcherCreator,
+      BiConsumer<Watcher.Action, T> consumer,
       Function<Integer, Duration> backoffSleepDuration) {
     this.name = name;
-    this.watcherCreator = watcherCreator;
+    this.watchCreator = watcherCreator;
+    this.consumer = consumer;
     this.backoffSleepDuration = Optional.ofNullable(backoffSleepDuration)
         .orElse(this::exponentialBackoffSleepDuration);
     this.executorService = Executors.newFixedThreadPool(
@@ -82,8 +88,8 @@ public class WatcherMonitor<T> implements AutoCloseable {
   }
 
   private synchronized void createWatcher() {
-    if (!closeCalled) {
-      watcher = watcherCreator.apply(listener);
+    if (!closed) {
+      watcher = watchCreator.apply(listener);
     }
   }
 
@@ -98,7 +104,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
   }
 
   private synchronized void closeWatcher() {
-    closeCalled = true;
+    closed = true;
     try {
       if (watcher != null) {
         watcher.close();
@@ -114,23 +120,34 @@ public class WatcherMonitor<T> implements AutoCloseable {
     return Duration.ofSeconds((long) Math.min(pow + rand, MAX_BACKOFF_SLEEP_SECONDS));
   }
 
-  private class MonitorListener implements WatcherListener<T> {
+  private class MonitorListener implements Watcher<T> {
+
     @Override
     public void eventReceived(Watcher.Action action, T resource) {
+      try {
+        LOGGER.trace("Action <{}> on resource: {} {}.{}", action, resource.getKind(),
+            resource.getMetadata().getNamespace(), resource.getMetadata().getName());
+        consumer.accept(action, resource);
+      } catch (Exception ex) {
+        LOGGER.error("Error while performing action <{}> on resource: {} {}.{}", action, resource.getKind(),
+            resource.getMetadata().getNamespace(), resource.getMetadata().getName(), ex);
+      }
     }
 
     @Override
-    public void watcherError(WatcherException ex) {
-      if (ex.isHttpGone()) {
-        LOGGER.warn("An error occurred in watcher {}: {}", name, ex.getMessage());
+    public void onClose() {
+      LOGGER.debug("Watcher closed");
+    }
+
+    @Override
+    public void onClose(WatcherException cause) {
+      if (cause.isHttpGone()) {
+        LOGGER.warn("An error occurred in watcher {}: {}", name, cause.getMessage());
       } else {
-        LOGGER.warn("An error occurred in watcher {}", name, ex);
+        LOGGER.warn("An error occurred in watcher {}", name, cause);
       }
       onWatcherClosed();
     }
 
-    @Override
-    public void watcherClosed() {
-    }
   }
 }

@@ -139,6 +139,16 @@ spec:
                       If not specified then the vanilla Postgres will be used for the cluster.
 
                       **This field can only be set on creation.**
+                  enableExtensionInstallAtRuntime:
+                    type: boolean
+                    default: false
+                    description: |
+                      When set to `true` allow to install extensions at runtime without requiring (in most cases) to restart the cluster's Pods.
+                      
+                      **WARNING**: Enabling this feature bring some security concerns, in particular it requires some folders of the image
+                       filesystem to be copied on PersistentVolume also used for the Postgres data and mounted in the container converting a
+                       read-only filesystem to a filesystem that the user can modify at will. As a consequence of this the Persistent Volume
+                       used to store data will be shared to store the copied filesystem folders and the extensions.
                   extensions:
                     type: array
                     description: |
@@ -146,7 +156,7 @@ spec:
                       requires the creation in a database using the [`CREATE EXTENSION`](https://www.postgresql.org/docs/current/sql-createextension.html)
                       statement. After an extension is deployed correctly it will be present until removed and the cluster restarted.
                       
-                      A cluster restart is required for:
+                      A cluster restart is required if `enableExtensionInstallAtRuntime` is set to `false` or, if `true`, for the following reasons:
 
                       * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
                       * Upgrading extensions that overwrite any file that is not the extension's control file or extension's script file.
@@ -178,7 +188,7 @@ spec:
                           description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                         version:
                           type: string
-                          description: The version of the extension to deploy. If not specified latest version will be used by default. If latest version can not be determined (if extension uses non standard versioning) a version will be picked up randomly.
+                          description: The version of the extension to deploy. If not specified latest version will be used by default.
                         repository:
                           type: string
                           description: |
@@ -1380,6 +1390,31 @@ spec:
                           
                           **WARNING**: Changing this may break some of the functionality that depend on the query overwritten.
                         "x-kubernetes-preserve-unknown-fields": true
+                  registry:
+                    type: object
+                    description: |
+                      Section to configure the StackGres images registry (served by the StackGres docir REST API) from where
+                       the images of the Pods are pulled: the Postgres image combining the base image, the Postgres flavor, the
+                       required addons (patroni, wal-g and hdrhistogram) and the extensions, and the sidecar images combining
+                       the base image, the Postgres flavor and a single addon (pgbouncer, postgres-exporter, kubectl, fluent-bit, fluentd or otel-collector).
+                    properties:
+                      enabled:
+                        type: boolean
+                        description: |
+                          When `true` the images of the Pods are retrieved from the StackGres images registry. When `false`
+                           the images bundled with the operator release are used.
+
+                          Defaults to `true` for newly created SGClusters and to `false` for SGClusters created before this
+                           field existed.
+
+                          **This field can only be set on creation.**
+                      url:
+                        type: string
+                        description: |
+                          The URL of the StackGres docir REST API to use for this SGCluster. When not set the URL configured
+                           in `SGConfig.spec.repository.url` is used.
+
+                          The URL accepts the same parameters as `SGConfig.spec.repository.url`.
                   observability:
                     type: object
                     description: Allow to specify Observability configuration (related to logs, metrics and traces)
@@ -2489,7 +2524,7 @@ spec:
                   **This section is filled by the operator.**
                 items:
                   type: object
-                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  required: ["name", "version", "repository", "postgresVersion"]
                   properties:
                     name:
                       type: string
@@ -2519,6 +2554,44 @@ spec:
             type: object
             description: Current status of a StackGres cluster.
             properties:
+              revision:
+                type: string
+                description: |
+                  The revision version of the images used.
+              base:
+                type: string
+                description: |
+                  The base image used.
+              baseVersion:
+                type: string
+                description: |
+                  The base image version used.
+              baseRevision:
+                type: string
+                description: |
+                  The base image revision used.
+              repository:
+                type: string
+                description: |
+                  The repository of the images used.
+              addons:
+                type: array
+                description: |
+                  The addons combined with the base image and the Postgres flavor in the images used: patroni, wal-g and
+                   hdrhistogram (always present) and, when available in the repository for the same base image, pgbouncer,
+                   postgres-exporter, kubectl, fluent-bit, fluentd and otel-collector.
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: The addon name.
+                    version:
+                      type: string
+                      description: The addon version.
+                    revision:
+                      type: string
+                      description: The addon revision (the monotonically increasing id of the addon build).
               conditions:
                 type: array
                 items:
@@ -2567,7 +2640,7 @@ spec:
                   **This section is filled by the operator.**
                 items:
                   type: object
-                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  required: ["name", "version", "repository", "postgresVersion"]
                   properties:
                     name:
                       type: string
@@ -2643,7 +2716,7 @@ spec:
                       description: The list of Postgres extensions currently installed.
                       items:
                         type: object
-                        required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                        required: ["name", "version", "repository", "postgresVersion"]
                         properties:
                           name:
                             type: string

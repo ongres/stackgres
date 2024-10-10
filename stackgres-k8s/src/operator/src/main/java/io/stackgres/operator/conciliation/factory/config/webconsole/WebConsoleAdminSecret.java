@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAuthentication;
@@ -85,7 +85,7 @@ public class WebConsoleAdminSecret
         .withNamespace(namespace)
         .withName(name(config))
         .withLabels(labels)
-        .addToLabels(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE)
+        .addToLabels(StackGresKeys.AUTH_KEY, StackGresKeys.AUTH_USER_VALUE)
         .endMetadata()
         .withType("Opaque")
         .withData(ResourceUtil.encodeSecret(StackGresUtil.addMd5Sum(data)))

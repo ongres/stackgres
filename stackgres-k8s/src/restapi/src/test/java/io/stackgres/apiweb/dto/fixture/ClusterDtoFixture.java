@@ -11,12 +11,15 @@ import io.stackgres.apiweb.dto.cluster.ClusterPodsScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.docir.StackGresContextMock;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ClusterDtoFixture extends Fixture<ClusterDto> {
 
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+      .streamOrderedVersions(StackGresContextMock.CONTEXT).get(0).get();
 
   public ClusterDtoFixture loadDefault() {
     fixture = readFromJson(STACKGRES_CLUSTER_DTO_JSON);

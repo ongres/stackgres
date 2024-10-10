@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMinorVersionUpgradeStatusBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsRestartStatusBuilder;
@@ -37,8 +37,8 @@ import org.jooq.lambda.Seq;
 public class DbOpsClusterRollout implements ResourceGenerator<StackGresDbOpsContext> {
 
   public static final Set<String> ROLLOUT_DBOPS_KEYS = Set.of(
-      StackGresContext.ROLLOUT_DBOPS_KEY,
-      StackGresContext.ROLLOUT_DBOPS_METHOD_KEY);
+      StackGresKeys.ROLLOUT_DBOPS_KEY,
+      StackGresKeys.ROLLOUT_DBOPS_METHOD_KEY);
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresDbOpsContext config) {
@@ -52,12 +52,12 @@ public class DbOpsClusterRollout implements ResourceGenerator<StackGresDbOpsCont
               DbOpsUtil.isAlreadyRollout(dbOp)
               || DbOpsUtil.isTimeoutExpired(dbOp, now);
           final Map<String, Optional<String>> annotations = Map.of(
-              StackGresContext.UPDATE_UNOWNED_RESOURCE_KEY,
+              StackGresKeys.UPDATE_UNOWNED_RESOURCE_KEY,
               Optional.of("true"),
-              StackGresContext.ROLLOUT_DBOPS_KEY,
+              StackGresKeys.ROLLOUT_DBOPS_KEY,
               Optional.of(dbOp.getMetadata().getName())
               .filter(name -> !isAlreadyRolloutOrTimeoutExpired),
-              StackGresContext.ROLLOUT_DBOPS_METHOD_KEY,
+              StackGresKeys.ROLLOUT_DBOPS_METHOD_KEY,
               Optional.ofNullable(dbOp.getSpec().getRestart())
               .map(StackGresDbOpsRestart::getMethod)
               .or(() -> Optional.ofNullable(dbOp.getSpec().getSecurityUpgrade())

@@ -29,16 +29,17 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.JobUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LeaseLockUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.VolumeSnapshotUtil;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -70,6 +71,7 @@ public class BackupCronJob
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
+  private final StackGresContext context;
   private final LabelFactoryForCluster labelFactory;
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
   private final KubectlUtil kubectl;
@@ -79,13 +81,14 @@ public class BackupCronJob
 
   @Inject
   public BackupCronJob(
+      StackGresContext context,
       LabelFactoryForCluster labelFactory,
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,
       KubectlUtil kubectl,
       ClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,
       BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts,
       BackupTemplatesVolumeFactory backupTemplatesVolumeFactory) {
-    super();
+    this.context = context;
     this.labelFactory = labelFactory;
     this.podSecurityFactory = podSecurityFactory;
     this.kubectl = kubectl;
@@ -328,7 +331,7 @@ public class BackupCronJob
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_PRIMARY_ROLE")
-                        .withValue(PatroniUtil.getPrimaryRole(cluster))
+                        .withValue(PatroniUtil.getPrimaryRole(this.context, cluster))
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_REPLICA_ROLE")
@@ -340,7 +343,7 @@ public class BackupCronJob
                         .build(),
                         new EnvVarBuilder()
                         .withName("RIGHT_VALUE")
-                        .withValue(StackGresContext.RIGHT_VALUE)
+                        .withValue(StackGresKeys.RIGHT_VALUE)
                         .build(),
                         new EnvVarBuilder()
                         .withName("CLUSTER_LABELS")
@@ -445,7 +448,7 @@ public class BackupCronJob
                         .build())
                     .build())
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),
-                    ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                    ClusterPathV1.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
                 .withVolumeMounts(backupScriptTemplatesVolumeMounts.getVolumeMounts(context))
                 .build())
             .withVolumes(backupTemplatesVolumeFactory.buildVolumes(context)

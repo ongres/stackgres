@@ -1,0 +1,24 @@
+{
+  "baseImages": [
+    {
+      "platform": {
+        "os": "linux",
+        "architecture": "amd64"
+      },
+      "name": "ubi",
+      "major": 9,
+      "minor": 4,
+      "description": "Universal Base Image",
+      "platforms": [
+        {
+          "os": "linux",
+          "architecture": "amd64",
+          "revision": "10",
+          "base": "ubi",
+          "baseMajor": "9",
+          "baseMinor": "4"
+        }
+      ]
+    }
+  ]
+}

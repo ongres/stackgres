@@ -17,7 +17,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolumeIoL
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.CgroupMounts;
@@ -134,7 +135,7 @@ class SetupIoLimitsTest {
     assertEquals("/bin/sh", container.getCommand().get(0));
     assertEquals("-ex", container.getCommand().get(1));
     assertTrue(container.getCommand().get(2).contains(
-        ClusterPath.LOCAL_BIN_SETUP_IO_LIMITS_SH_PATH.filename()));
+        ClusterPathV1.LOCAL_BIN_SETUP_IO_LIMITS_SH_PATH.filename()));
   }
 
   @Test
@@ -143,7 +144,7 @@ class SetupIoLimitsTest {
         .thenReturn(List.of(
             new io.fabric8.kubernetes.api.model.VolumeMountBuilder()
                 .withName(StackGresVolume.CGROUP.getName())
-                .withMountPath(ClusterPath.HOST_CGROUP_PATH.path())
+                .withMountPath(ClusterPathV1.HOST_CGROUP_PATH.path())
                 .build()));
     ClusterContainerContext context = getClusterContainerContext();
 
@@ -152,7 +153,7 @@ class SetupIoLimitsTest {
     List<VolumeMount> volumeMounts = container.getVolumeMounts();
     assertTrue(volumeMounts.stream()
         .anyMatch(vm -> StackGresVolume.CGROUP.getName().equals(vm.getName())
-            && ClusterPath.HOST_CGROUP_PATH.path().equals(vm.getMountPath())));
+            && ClusterPathV1.HOST_CGROUP_PATH.path().equals(vm.getMountPath())));
   }
 
   @Test
@@ -220,6 +221,7 @@ class SetupIoLimitsTest {
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
+        .context(StackGresContextMock.CONTEXT)
             .config(getDefaultConfig())
             .source(cluster)
             .postgresConfig(new StackGresPostgresConfig())

@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
@@ -22,6 +23,12 @@ import jakarta.enterprise.context.Dependent;
 @Dependent
 public class DefaultDistributedLogsPostgresConfigFactory
     extends DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresDistributedLogs> {
+
+  private final StackGresContext context;
+
+  public DefaultDistributedLogsPostgresConfigFactory(StackGresContext context) {
+    this.context = context;
+  }
 
   @Override
   protected String getDefaultPropertyResourceName(StackGresDistributedLogs source) {
@@ -63,7 +70,7 @@ public class DefaultDistributedLogsPostgresConfigFactory
   }
 
   private String getPostgresMajorVersion(StackGresDistributedLogs resource) {
-    String version = StackGresDistributedLogsUtil.getPostgresVersion(resource);
+    String version = StackGresDistributedLogsUtil.getPostgresVersion(context, resource);
     return version.split("\\.")[0];
   }
 

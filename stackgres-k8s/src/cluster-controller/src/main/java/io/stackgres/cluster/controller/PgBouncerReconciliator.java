@@ -23,7 +23,7 @@ import io.stackgres.cluster.common.PgBouncerCommandUtil;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV1;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.postgres.PostgresConnectionManager;
@@ -42,15 +42,15 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerReconciliator.class);
   private static final Path PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path());
+      Paths.get(ClusterPathV1.PGBOUNCER_CONFIG_FILE_PATH.pathFromEnv());
   private static final Path LAST_PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path()
-          + "/" + ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename());
+      Paths.get(ClusterPathV1.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.pathFromEnv()
+          + "/" + ClusterPathV1.PGBOUNCER_CONFIG_FILE_PATH.filenameFromEnv());
   private static final Path PGBOUNCER_AUTH_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
+      Paths.get(ClusterPathV1.PGBOUNCER_AUTH_FILE_PATH.pathFromEnv());
   private static final Path LAST_PGBOUNCER_AUTH_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_AUTH_PATH.path()
-          + "/last-" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.filename());
+      Paths.get(ClusterPathV1.PGBOUNCER_AUTH_PATH.pathFromEnv()
+          + "/last-" + ClusterPathV1.PGBOUNCER_AUTH_FILE_PATH.filenameFromEnv());
 
   private final EventController eventController;
   private final Supplier<Boolean> pgbouncerReconciliationEnabled;

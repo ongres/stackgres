@@ -4,7 +4,7 @@
 
 run_postgres_exporter() {
   set -x
-  exec /usr/local/bin/postgres_exporter --log.level="$PG_EXPORTER_LOG_LEVEL"
+  exec "$POSTGRES_EXPORTER_BIN_PATH" --log.level="$PG_EXPORTER_LOG_LEVEL"
 }
 
 set +x

@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.CrdLoader;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -110,8 +110,8 @@ class CrdInstallerTest {
         .withNewMetadata()
         .withNamespace("test")
         .withName("test")
-        .withAnnotations(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion()))
-        .withAnnotations(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.OLDEST.getVersion()))
+        .withAnnotations(Map.of(StackGresKeys.VERSION_KEY, StackGresVersion.LATEST.getVersion()))
+        .withAnnotations(Map.of(StackGresKeys.VERSION_KEY, StackGresVersion.OLDEST.getVersion()))
         .endMetadata()
         .build()));
 
@@ -142,7 +142,7 @@ class CrdInstallerTest {
         .withNewMetadata()
         .withNamespace("test")
         .withName("test")
-        .withAnnotations(Map.of(StackGresContext.VERSION_KEY, "0.9"))
+        .withAnnotations(Map.of(StackGresKeys.VERSION_KEY, "0.9"))
         .endMetadata()
         .build()));
 

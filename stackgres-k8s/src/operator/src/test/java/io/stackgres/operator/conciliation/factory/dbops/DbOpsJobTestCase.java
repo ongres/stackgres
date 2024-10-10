@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
@@ -54,6 +55,7 @@ abstract class DbOpsJobTestCase {
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -71,6 +73,7 @@ abstract class DbOpsJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -88,6 +91,7 @@ abstract class DbOpsJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -108,6 +112,7 @@ abstract class DbOpsJobTestCase {
     setSgDbOpsScheduling();
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -127,6 +132,7 @@ abstract class DbOpsJobTestCase {
     setSgDbOpsScheduling();
 
     StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .context(StackGresContextMock.CONTEXT)
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)

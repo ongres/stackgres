@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ClusterEnvVar;
-import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -46,7 +46,7 @@ class ClusterEnvironmentVariablesTest {
     lenient().when(context.getResource()).thenReturn(cluster);
 
     Map<String, String> envVarsMap = Seq.of(ClusterEnvVar.values())
-        .map(cssev -> cssev.envVar(cluster))
+        .map(cssev -> cssev.envVar(context))
         .collect(Collectors.toMap(EnvVar::getName, EnvVar::getValue));
     lenient().when(context.getEnvironmentVariables()).thenReturn(envVarsMap);
   }
@@ -65,7 +65,7 @@ class ClusterEnvironmentVariablesTest {
         .map(EnvVar::getName)
         .toList();
 
-    for (ClusterPath clusterPath : ClusterPath.values()) {
+    for (ClusterPathV2 clusterPath : ClusterPathV2.values()) {
       assertTrue(envVarNames.contains(clusterPath.name()),
           "Expected env var " + clusterPath.name() + " to be present");
     }
@@ -89,13 +89,13 @@ class ClusterEnvironmentVariablesTest {
     List<EnvVar> envVars = factory.buildEnvironmentVariables(context);
 
     Optional<EnvVar> etcPasswdPath = envVars.stream()
-        .filter(e -> e.getName().equals(ClusterPath.ETC_PASSWD_PATH.name()))
+        .filter(e -> e.getName().equals(ClusterPathV2.ETC_PASSWD_PATH.name()))
         .findFirst();
     assertTrue(etcPasswdPath.isPresent());
     assertEquals("/etc/passwd", etcPasswdPath.get().getValue());
 
     Optional<EnvVar> pgRunPath = envVars.stream()
-        .filter(e -> e.getName().equals(ClusterPath.PG_RUN_PATH.name()))
+        .filter(e -> e.getName().equals(ClusterPathV2.PG_RUN_PATH.name()))
         .findFirst();
     assertTrue(pgRunPath.isPresent());
     assertEquals("/var/run/postgresql", pgRunPath.get().getValue());
@@ -105,7 +105,7 @@ class ClusterEnvironmentVariablesTest {
   void buildEnvironmentVariables_shouldHaveCorrectTotalCount() {
     List<EnvVar> envVars = factory.buildEnvironmentVariables(context);
 
-    int expectedCount = ClusterPath.values().length + ClusterEnvVar.values().length;
+    int expectedCount = ClusterPathV2.values().length + ClusterEnvVar.values().length;
     assertEquals(expectedCount, envVars.size());
   }
 }

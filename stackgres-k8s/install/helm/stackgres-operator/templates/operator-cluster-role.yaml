@@ -131,6 +131,7 @@ rules:
   - pods
   - pods/exec
   - pods/log
+  - pods/ephemeralcontainers
   - services
   - endpoints
   - endpoints/restricted

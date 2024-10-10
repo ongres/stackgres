@@ -20,7 +20,7 @@ has_config_changed() {
 
 run_otel_collector() {
   set -x
-  exec otelcol-contrib --config "$COLLECTOR_CONFIG_PATH"
+  exec "$OTEL_COLLECTOR_BIN_PATH" --config "$COLLECTOR_CONFIG_PATH"
 }
 
 is_child() {

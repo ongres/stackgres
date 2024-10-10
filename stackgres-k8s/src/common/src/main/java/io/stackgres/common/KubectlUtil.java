@@ -11,6 +11,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.component.Component;
+import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -26,11 +27,13 @@ public class KubectlUtil {
 
   private static final Logger LOG = LoggerFactory.getLogger(KubectlUtil.class);
 
+  private final StackGresContext context;
   private final int k8sMinorVersion;
   private final Map<StackGresVersion, String> cache;
 
   @Inject
-  public KubectlUtil(KubernetesClient client) {
+  public KubectlUtil(StackGresContext context, KubernetesClient client) {
+    this.context = context;
     int minor;
     try {
       VersionInfo kubernetesVersion = client.getKubernetesVersion();
@@ -47,20 +50,23 @@ public class KubectlUtil {
   public String getImageName(@NotNull StackGresVersion sgversion) {
     return cache.computeIfAbsent(sgversion, value -> {
       Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
-      final String imageName = kubectl.streamOrderedVersions()
+      final String imageName = kubectl.streamOrderedVersions(context)
           .filter(ver -> k8sMinorVersion != -1)
           .findFirst(ver -> {
             int minor = Integer.parseInt(ver.split("\\.")[1]);
             return (k8sMinorVersion >= minor - 1 && k8sMinorVersion <= minor + 1);
           })
-          .map(kubectl::getImageName)
-          .orElseGet(kubectl::getLatestImageName);
+          .map(ver -> kubectl.getImageName(context, ver))
+          .orElseGet(() -> kubectl.getLatestImageName(context));
       LOG.debug("Using kubectl image: {}", imageName);
       return imageName;
     });
   }
 
   public String getImageName(@NotNull StackGresCluster cluster) {
+    if (StackGresUtil.isRegistryEnabled(cluster)) {
+      return StackGresUtil.getSidecarImageName(context, cluster, StackGresComponent.KUBECTL);
+    }
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 

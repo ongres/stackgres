@@ -5,22 +5,25 @@
 
 package io.stackgres.common.fixture.cluster;
 
+import static io.stackgres.common.docir.StackGresContextMock.CONTEXT;
+
 import java.util.HashMap;
 
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.fixture.VersionedFixture;
 
 public class ClusterFixture extends VersionedFixture<StackGresCluster> {
 
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(CONTEXT).get(0).get();
 
   public ClusterSchedulingFixture scheduling() {
     return new ClusterSchedulingFixture();
@@ -98,7 +101,7 @@ public class ClusterFixture extends VersionedFixture<StackGresCluster> {
     if (fixture.getMetadata().getAnnotations() == null) {
       fixture.getMetadata().setAnnotations(new HashMap<>());
     }
-    fixture.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, version);
+    fixture.getMetadata().getAnnotations().put(StackGresKeys.VERSION_KEY, version);
     return this;
   }
 

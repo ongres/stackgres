@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.docir.StackGresContextMock;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -22,11 +23,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RestoreConfigValidatorTest {
 
   private static final String firstPgMajorVersion =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .streamOrderedMajorVersions(StackGresContextMock.CONTEXT)
           .get(0).get();
 
   private static final String firstPgMajorVersionNumber =
-      Seq.of(StackGresComponent.POSTGRESQL.getLatest().getVersion(firstPgMajorVersion)
+      Seq.of(StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster())
+          .getVersion(StackGresContextMock.CONTEXT, firstPgMajorVersion)
           .split("\\.")).map(Integer::valueOf).append(1)
           .map(number -> String.format("%02d", number)).toString();
 

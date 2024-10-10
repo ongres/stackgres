@@ -30,7 +30,7 @@ public interface ClusterContext extends EnvVarContext<StackGresCluster> {
   @Override
   default Map<String, String> getEnvironmentVariables() {
     return Seq.of(ClusterEnvVar.values())
-        .map(clusterStatefulSetEnvVars -> clusterStatefulSetEnvVars.envVar(getCluster()))
+        .map(clusterStatefulSetEnvVars -> clusterStatefulSetEnvVars.envVar(this))
         .toMap(EnvVar::getName, EnvVar::getValue);
   }
 

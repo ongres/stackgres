@@ -33,7 +33,7 @@ run() {
     tail -n 100 /tmp/try-lock
     echo "Lock lost"
     kill_with_childs "$PID"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Lock lost:\n'; cat /tmp/try-lock; } | to_json_string)"'}
       ]'
     return 1
@@ -59,13 +59,13 @@ reconcile_backups() {
     BACKUP_NAME="${CLUSTER_NAME}-$(date +%Y-%m-%d-%H-%M-%S --utc)"
   fi
 
-  BACKUP_CONFIG_RESOURCE_VERSION="$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')"
-  CLUSTER_BACKUP_PATH="$(retry kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+  BACKUP_CONFIG_RESOURCE_VERSION="$(retry "$KUBECTL_BIN_PATH" get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')"
+  CLUSTER_BACKUP_PATH="$(retry "$KUBECTL_BIN_PATH" get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template="{{ with .status }}{{ with .backupPaths }}{{ with (index . 0) }}{{ . }}{{ end }}{{ end }}{{ end }}")"
   if [ -z "$CLUSTER_BACKUP_PATH" ]
   then
     echo "Backup path not configured yet"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup path not configured yet' | to_json_string)"'}
       ]'
     return 1
@@ -78,7 +78,7 @@ reconcile_backups() {
     return
   fi
 
-  CURRENT_BACKUP_CONFIG="$(retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+  CURRENT_BACKUP_CONFIG="$(retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template="{{ .status.sgBackupConfig.storage }}")"
 
   set +e
@@ -103,25 +103,25 @@ reconcile_backups() {
   then
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":"Backups can not be listed after creation"}
       ]'
     return 1
   fi
-  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')" ]
+  if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(retry "$KUBECTL_BIN_PATH" get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')" ]
   then
     cat /tmp/backup-list
     echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup configuration %s changed during backup' "$BACKUP_CONFIG" | to_json_string)"'}
       ]'
     return 1
-  elif [ "$CLUSTER_BACKUP_PATH" != "$(retry kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+  elif [ "$CLUSTER_BACKUP_PATH" != "$(retry "$KUBECTL_BIN_PATH" get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template="{{ with .status }}{{ with .backupPaths }}{{ with (index . 0) }}{{ . }}{{ end }}{{ end }}{{ end }}")" ]
   then
     cat /tmp/backup-list
     echo "Backup path '$CLUSTER_BACKUP_PATH' changed during backup"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup path %s changed during backup' "$CLUSTER_BACKUP_PATH" | to_json_string)"'}
       ]'
     return 1
@@ -135,7 +135,7 @@ reconcile_backups() {
   then
     cat /tmp/backup-list
     echo "Backup '$CURRENT_BACKUP_NAME' was not found after creation can not reconcile backups CRs"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$(printf "Backup '%s' was not found after creation can not reconcile backups CRs" "$CURRENT_BACKUP_NAME" | to_json_string)"'}
       ]'
     return 1
@@ -202,14 +202,14 @@ get_backup_crs() {
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ if .spec.managedLifecycle }}true{{ else }}false{{ end }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}{{ printf "'"\n"'" }}{{ end }}"
-  retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
+  retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
     --template="$BACKUP_CR_TEMPLATE" > /tmp/all-backups-in-namespace
   grep "^$CLUSTER_NAME:" /tmp/all-backups-in-namespace > /tmp/backups-in-namespace
   true > /tmp/all-backups
   local CLUSTER_BACKUP_NAMESPACE
   for CLUSTER_BACKUP_NAMESPACE in $CLUSTER_BACKUP_NAMESPACES
   do
-    retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_BACKUP_NAMESPACE" \
+    retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$CLUSTER_BACKUP_NAMESPACE" \
       --template="$BACKUP_CR_TEMPLATE" >> /tmp/all-backups
   done
   grep "^$CLUSTER_NAMESPACE.$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups-out-of-namespace
@@ -217,7 +217,7 @@ get_backup_crs() {
 }
 
 create_or_update_backup_cr() {
-  BACKUP_CONFIG_JSON="$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json)"
+  BACKUP_CONFIG_JSON="$(retry "$KUBECTL_BIN_PATH" get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json)"
 BACKUP_STATUS_YAML="$(cat << BACKUP_STATUS_YAML_EOF
 status:
   backupPath: "$CLUSTER_BACKUP_PATH"
@@ -230,7 +230,7 @@ status:
 BACKUP_STATUS_YAML_EOF
   )"
 
-  if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
+  if ! "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
   then
     echo "Creating backup CR"
     cat << EOF > /tmp/backup-to-create
@@ -249,7 +249,7 @@ spec:
   managedLifecycle: true
 $BACKUP_STATUS_YAML
 EOF
-    if ! retry kubectl create -f /tmp/backup-to-create -o json > /tmp/backup-create
+    if ! retry "$KUBECTL_BIN_PATH" create -f /tmp/backup-to-create -o json > /tmp/backup-create
     then
       cat /tmp/backup-create
       echo
@@ -259,19 +259,19 @@ EOF
     echo
     BACKUP_UID="$(jq -r .metadata.uid /tmp/backup-create)"
   else
-    if ! retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template="{{ .status.process.status }}" \
+    if ! retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template="{{ .status.process.status }}" \
       | grep -q "^$BACKUP_PHASE_COMPLETED$"
     then
-      DRY_RUN_CLIENT=$(kubectl version --client=true -o json | jq -r 'if (.clientVersion.minor | sub("[^0-9].*$";"") | tonumber) < 18 then "true" else "client" end')
+      DRY_RUN_CLIENT=$("$KUBECTL_BIN_PATH" version --client=true -o json | jq -r 'if (.clientVersion.minor | sub("[^0-9].*$";"") | tonumber) < 18 then "true" else "client" end')
       echo "Updating backup CR"
       while true
       do
-        retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml > /tmp/backup-found
+        retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml > /tmp/backup-found
         {
           cat /tmp/backup-found
           echo "$BACKUP_STATUS_YAML"
-        } | kubectl create --dry-run="$DRY_RUN_CLIENT" -f - -o json > /tmp/backup-to-patch
-        if ! kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
+        } | "$KUBECTL_BIN_PATH" create --dry-run="$DRY_RUN_CLIENT" -f - -o json > /tmp/backup-to-patch
+        if ! "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
           --type merge --patch-file /tmp/backup-to-patch > /tmp/backup-update 2>&1
         then
           if in_not_conflict "$(cat /tmp/backup-update)"
@@ -291,21 +291,21 @@ EOF
 }
 
 get_primary_and_replica_pods() {
-  retry kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" \
+  retry "$KUBECTL_BIN_PATH" get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" \
     --template '{{ range .items }}{{ printf "%s\n" .metadata.name }}{{ end }}' > /tmp/current-primary
-  retry kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" \
+  retry "$KUBECTL_BIN_PATH" get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" \
     --template '{{ range .items }}{{ printf "%s\n" .metadata.name }}{{ end }}' \
     | head -n 1 > /tmp/current-replica-or-primary
   if [ ! -s /tmp/current-primary ]
   then
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":"Unable to find primary, backup aborted"}
       ]'
-    kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS}" >&2 || true
+    "$KUBECTL_BIN_PATH" get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS}" >&2 || true
     echo "Unable to find primary, backup aborted"
     exit 1
   fi
-  retry kubectl get pod -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" \
+  retry "$KUBECTL_BIN_PATH" get pod -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" \
     --template "{{ range .spec.volumes }}{{ if eq .name \"${CLUSTER_NAME}-data\" }}{{ .persistentVolumeClaim.claimName }}{{ end }}{{ end }}" > /tmp/current-primary-pvc
 
   if [ ! -s /tmp/current-replica-or-primary ]
@@ -334,7 +334,7 @@ do_backup() {
     rm -f /tmp/backup-psql
     mkfifo /tmp/backup-psql
     sh -c 'echo $$ > /tmp/backup-tail-pid; exec tail -f /tmp/backup-psql' \
-      | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+      | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
         -- psql -v ON_ERROR_STOP=1 -t -A > /tmp/backup-psql-out 2>&1 &
     echo $! > /tmp/backup-psql-pid
 
@@ -351,7 +351,7 @@ EOF
     if ! kill -0 "$(cat /tmp/backup-psql-pid)"
     then
       echo 'Backup failed while connecting to primary'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while connecting to primary:\n'; cat /tmp/backup-psql-out; } | to_json_string)"'}
         ]'
       kill "$(cat /tmp/backup-tail-pid)" || true
@@ -412,7 +412,7 @@ EOF
     if ! kill -0 "$(cat /tmp/backup-psql-pid)"
     then
       echo 'Backup failed while running pg_backup_start'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while running pg_backup_start:\n'; cat /tmp/backup-psql-out; } | to_json_string)"'}
         ]'
       kill "$(cat /tmp/backup-tail-pid)" || true
@@ -438,11 +438,11 @@ spec:
     persistentVolumeClaimName: $(cat /tmp/current-primary-pvc)
 EOF
     echo "Creating VolumeSnapshot"
-    if ! retry kubectl create -f /tmp/snapshot-to-create > /tmp/backup-snapshot 2>&1
+    if ! retry "$KUBECTL_BIN_PATH" create -f /tmp/snapshot-to-create > /tmp/backup-snapshot 2>&1
     then
       cat /tmp/backup-snapshot
       echo 'Backup failed while creating VolumeSnapshot'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while creating VolumeSnapshot:\n'; cat /tmp/backup-snapshot; } | to_json_string)"'}
         ]'
       kill "$(cat /tmp/backup-tail-pid)" || true
@@ -453,11 +453,11 @@ EOF
     echo "Waiting for VolumeSnapshot to be ready"
     while true
     do
-      if ! retry kubectl get "$VOLUME_SNAPSHOT_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json > /tmp/backup-volumesnapshot 2> /tmp/backup-volumesnapshot-error
+      if ! retry "$KUBECTL_BIN_PATH" get "$VOLUME_SNAPSHOT_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json > /tmp/backup-volumesnapshot 2> /tmp/backup-volumesnapshot-error
       then
         cat /tmp/backup-volumesnapshot-error
         echo 'Backup failed while waiting VolumeSpanshot to be ready'
-        retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
           {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while waiting VolumeSpanshot to be ready:\n'; cat /tmp/backup-volumesnapshot-error; } | to_json_string)"'}
           ]'
         kill "$(cat /tmp/backup-tail-pid)" || true
@@ -473,7 +473,7 @@ EOF
       then
         cat /tmp/backup-volumesnapshot
         echo 'Backup failed due to error in VolumeSnapshot'
-        retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
           {"op":"replace","path":"/status/process/failure","value":'"$(jq '"Backup failed due to error in VolumeSnapshot: " + .status.error.message' /tmp/backup-volumesnapshot)"'}
           ]'
         kill "$(cat /tmp/backup-tail-pid)" || true
@@ -482,7 +482,7 @@ EOF
       if is_timeout_expired BACKUP
       then
         echo "Backup failed due to timeout ($BACKUP_TIMEOUT) while waiting VolumeSnapshot to be ready"
-        retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
           {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup failed due to timeout (%s) while waiting VolumeSnapshot to be ready' "$BACKUP_TIMEOUT" | to_json_string)"'}
           ]'
         kill "$(cat /tmp/backup-tail-pid)" || true
@@ -535,7 +535,7 @@ EOF
     if ! kill -0 "$(cat /tmp/backup-psql-pid)"
     then
       echo 'Backup failed while running pg_backup_stop'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while running pg_backup_stop:\n'; cat /tmp/backup-psql-out; } | to_json_string)"'}
         ]'
       kill "$(cat /tmp/backup-tail-pid)" || true
@@ -590,7 +590,7 @@ EOF
     then
       cat "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
       echo 'Backup failed while creating the sentinel JSON for wal-g'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while creating the JSON for wal-g:\n'; cat "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"; } | to_json_string)"'}
         ]'
       exit 1
@@ -626,14 +626,14 @@ EOF
     then
       cat "/tmp/${CURRENT_BACKUP_NAME}_metadata.json"
       echo 'Backup failed while creating the metadata JSON for wal-g'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while creating the metadata JSON for wal-g:\n'; cat "/tmp/${CURRENT_BACKUP_NAME}_metadata.json"; } | to_json_string)"'}
         ]'
       exit 1
     fi
     cat "/tmp/${CURRENT_BACKUP_NAME}_metadata.json"
 
-    if ! cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+    if ! cat << EOF | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE > /tmp/backup-push-volume-snapshot 2>&1
 cat << 'INNER_EOF' > /tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json
 $(cat /tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json)
@@ -645,11 +645,11 @@ cat << 'INNER_EOF' > /tmp/${CURRENT_BACKUP_NAME}_files_metadata.json
 {"Files":{}}
 INNER_EOF
 exec-with-env "$BACKUP_ENV" \
-  -- $(get_timeout_command BACKUP) wal-g st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" "basebackups_005/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
+  -- $(get_timeout_command BACKUP) "$WALG_BIN_PATH" st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" "basebackups_005/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
 exec-with-env "$BACKUP_ENV" \
-  -- $(get_timeout_command BACKUP) wal-g st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/metadata.json"
+  -- $(get_timeout_command BACKUP) "$WALG_BIN_PATH" st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/metadata.json"
 exec-with-env "$BACKUP_ENV" \
-  -- $(get_timeout_command BACKUP) wal-g st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_files_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/files_metadata.json"
+  -- $(get_timeout_command BACKUP) "$WALG_BIN_PATH" st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_files_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/files_metadata.json"
 rm \
   "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" \
   "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" \
@@ -658,7 +658,7 @@ EOF
     then
       cat /tmp/backup-push-volume-snapshot
       echo 'Backup failed while pushing the JSON files for wal-g'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while pushing the JSON files for wal-g:\n'; cat /tmp/backup-push-volume-snapshot; } | to_json_string)"'}
         ]'
       exit 1
@@ -670,15 +670,15 @@ EOF
 
   echo "Performing full backup stored on SGStorageObject"
 
-  if ! cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  if ! cat << EOF | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command BACKUP) wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && printf %s '-p' || true)
+  -- $(get_timeout_command BACKUP) "$WALG_BIN_PATH" backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && printf %s '-p' || true)
 EOF
   then
     cat /tmp/backup-push
     echo 'Backup failed while pushing'
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while perfroming backup-push:\n'; cat /tmp/backup-push; } | to_json_string)"'}
       ]'
     exit 1
@@ -692,7 +692,7 @@ EOF
   then
     cat /tmp/backup-push
     echo "Backup name not found in backup-push log"
-    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+    retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup name not found in backup-push log:\n'; cat /tmp/backup-push; } | to_json_string)"'}
       ]'
     exit 1
@@ -701,7 +701,7 @@ EOF
 }
 
 extract_controldata() {
-  if cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  if cat << EOF | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE > /tmp/pg_controldata
 pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
@@ -736,12 +736,12 @@ EOF
 }
 
 retain_backups() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  cat << EOF | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
   -- sh -e $SHELL_XTRACE
 
 # for each existing backup
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null \\
+  -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" backup-list --detail --json 2>/dev/null \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | while read BACKUP
@@ -760,7 +760,7 @@ exec-with-env "$BACKUP_ENV" \\
       then
         echo "Mark \$BACKUP_NAME as impermanent"
         exec-with-env "$BACKUP_ENV" \\
-          -- $(get_timeout_command RECONCILIATION) wal-g backup-mark -i "\$BACKUP_NAME"
+          -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" backup-mark -i "\$BACKUP_NAME"
       # if has not a managed lifecycle and in not marked as permanent, mark as permanent
       elif echo '$(cat /tmp/backups)' \\
         | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
@@ -771,13 +771,13 @@ exec-with-env "$BACKUP_ENV" \\
       then
         echo "Mark \$BACKUP_NAME as permanent"
         exec-with-env "$BACKUP_ENV" \\
-          -- $(get_timeout_command RECONCILIATION) wal-g backup-mark "\$BACKUP_NAME"
+          -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" backup-mark "\$BACKUP_NAME"
       fi
     done
 
 # for each existing backup sorted by backup time ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null \\
+  -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" backup-list --detail --json 2>/dev/null \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | sort -r -t , -k 2 \\
@@ -792,13 +792,13 @@ exec-with-env "$BACKUP_ENV" \\
         then
           echo "Deleting backup \$TO_REMOVE_BACKUP_NAME"
           exec-with-env "$BACKUP_ENV" \\
-            -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+            -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
         else
           echo "Deleting backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
           exec-with-env "$BACKUP_ENV" \\
-            -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
+            -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
           exec-with-env "$BACKUP_ENV" \\
-            -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+            -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
         fi
       fi
       TO_REMOVE_BACKUP_NAME=
@@ -843,37 +843,37 @@ exec-with-env "$BACKUP_ENV" \\
     then
       echo "Deleting latest backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
       exec-with-env "$BACKUP_ENV" \\
-        -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
+        -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
       exec-with-env "$BACKUP_ENV" \\
-        -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+        -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
     else
       echo "Deleting WAL files older than latest backup \$BACKUP_NAME"
       exec-with-env "$BACKUP_ENV" \\
-        -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$BACKUP_NAME" --confirm
+        -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" delete before "\$BACKUP_NAME" --confirm
     fi
     )
 
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g wal-verify integrity
+  -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" wal-verify integrity
 
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g wal-verify timeline
+  -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" wal-verify timeline
 EOF
 }
 
 list_backups() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  cat << EOF | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command BACKUP) wal-g backup-list --detail --json 2>/dev/null
+  -- $(get_timeout_command BACKUP) "$WALG_BIN_PATH" backup-list --detail --json 2>/dev/null
 EOF
 }
 
 list_backups_for_reconciliation() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  cat << EOF | "$KUBECTL_BIN_PATH" exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null
+  -- $(get_timeout_command RECONCILIATION) "$WALG_BIN_PATH" backup-list --detail --json 2>/dev/null
 EOF
 }
 
@@ -938,11 +938,11 @@ fi
 ]
 EOF
     )"
-  retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
+  retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
 }
 
 reconcile_backup_crs() {
-  retry kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  retry "$KUBECTL_BIN_PATH" get pod -n "$CLUSTER_NAMESPACE" \
     --template="{{ range .items }}{{ .metadata.name }}{{ printf "'"\n"'" }}{{ end }}" \
     > /tmp/pods
   for BACKUP in $(cat /tmp/backups)
@@ -955,9 +955,9 @@ reconcile_backup_crs() {
     BACKUP_SHEDULED_BACKUP="$(echo "$BACKUP" | cut -d : -f 7)"
     BACKUP_MANAGED_LIFECYCLE="$(echo "$BACKUP" | cut -d : -f 9)"
     BACKUP_IS_PERMANENT="$([ "$BACKUP_MANAGED_LIFECYCLE" = true ] && echo false || echo true)"
-    BACKUP_CONFIG="$(retry kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
+    BACKUP_CONFIG="$(retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
       --template="{{ .status.sgBackupConfig.storage }}")"
-    BACKUP_PATH="$(retry kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
+    BACKUP_PATH="$(retry "$KUBECTL_BIN_PATH" get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
       --template="{{ .status.backupPath }}")"
     # if backup CR has backup internal name, uses the same current
     # backup config and backup path but is not found in the storage, delete it
@@ -967,7 +967,7 @@ reconcile_backup_crs() {
       && ! grep -q "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups
     then
       echo "Deleting backup CR $BACKUP_CR_NAME since backup does not exists"
-      retry kubectl delete "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME"
+      retry "$KUBECTL_BIN_PATH" delete "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME"
     # if backup CR is a scheduled backup, is marked as running, has no pod or pod
     # has been terminated, delete it
     elif [ "$BACKUP_SHEDULED_BACKUP" = "$RIGHT_VALUE" ] \
@@ -975,7 +975,7 @@ reconcile_backup_crs() {
       && ([ -z "$BACKUP_POD" ] || ! grep -q "^$BACKUP_POD$" /tmp/pods)
     then
       echo "Deleting backup CR $BACKUP_CR_NAME since backup is running but pod does not exists"
-      retry kubectl delete "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME"
+      retry "$KUBECTL_BIN_PATH" delete "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME"
     # if backup CR has backup internal name, is marked as completed, and is marked as
     # stored as not managed lifecycle or managed lifecycle and is found as managed lifecycle or
     # not managed lifecycle respectively, then mark it as stored as managed lifecycle or
@@ -994,7 +994,7 @@ reconcile_backup_crs() {
         IS_BACKUP_MANAGED_LIFECYCLE="true"
       fi
       echo "Updating backup CR $BACKUP_CR_NAME .status.process.managedLifecycle to $IS_BACKUP_MANAGED_LIFECYCLE since was updated in the backup"
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" --type json --patch '[
+      retry "$KUBECTL_BIN_PATH" patch "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_MANAGED_LIFECYCLE'}
         ]'
     fi
