@@ -292,3 +292,19 @@ try_function_with_output() {
     printf %s "$?" > "$SHARED_PATH/exit_code"
   )
 }
+
+retry() {
+  local RETRY_MAX="$1"
+  local RETRY=0
+  shift
+  until "$@"
+  do
+    if ! [ "$RETRY" -le "$RETRY_MAX" ]
+    then
+      >&2 echo "Failed $@ after retrying $RETRY_MAX times"
+      return 1
+    fi
+    RETRY="$((RETRY+1))"
+    sleep 5
+  done      
+}

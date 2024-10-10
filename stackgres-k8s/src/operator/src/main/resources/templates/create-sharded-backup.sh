@@ -241,17 +241,14 @@ EOF
     do
       if ! grep -qxF "$BACKUP_NAME" /tmp/completed-backups
       then
-        BACKUP_STATUS="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+        BACKUP_STATUS="$(retry 5 kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
           --template='{{ .status.process.status }} {{ .status.backupInformation.size.compressed }} {{ .status.backupInformation.size.uncompressed }}')"
-        if ! printf %s "$BACKUP_STATUS" | grep -q "^\($BACKUP_PHASE_COMPLETED\|$BACKUP_PHASE_FAILED\) "
+        if [ "x$BACKUP_STATUS" != x ] && ! printf %s "$BACKUP_STATUS" | grep -q "^\($BACKUP_PHASE_COMPLETED\|$BACKUP_PHASE_FAILED\) "
         then
           COMPLETED=false
           continue
         fi
-        printf %s "$BACKUP_NAME" >> /tmp/completed-backups
-        BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
-        BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
-        if printf %s "$BACKUP_STATUS" | grep -q "^$BACKUP_PHASE_FAILED "
+        if [ "x$BACKUP_STATUS" = x ] || printf %s "$BACKUP_STATUS" | grep -q "^$BACKUP_PHASE_FAILED "
         then
           echo "Backup $BACKUP_NAME failed" > /tmp/backup-push
           kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
@@ -259,6 +256,9 @@ EOF
             ]'
           exit 1
         fi
+        printf %s "$BACKUP_NAME" >> /tmp/completed-backups
+        BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
+        BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
         echo "...$BACKUP_NAME completed"
       fi
     done
