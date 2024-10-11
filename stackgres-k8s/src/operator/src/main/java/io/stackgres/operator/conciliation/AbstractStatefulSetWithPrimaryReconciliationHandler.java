@@ -396,14 +396,6 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
         .toList();
     var requiredOwnerReferences = List.of(
-        new OwnerReferenceBuilder()
-        .withApiVersion(deployedStatefulSet.getApiVersion())
-        .withKind(deployedStatefulSet.getKind())
-        .withName(deployedStatefulSet.getMetadata().getName())
-        .withUid(deployedStatefulSet.getMetadata().getUid())
-        .withBlockOwnerDeletion(true)
-        .withController(true)
-        .build(),
         ResourceUtil.getOwnerReference(context));
 
     Seq.seq(pvcsToProtect)
