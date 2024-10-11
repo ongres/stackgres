@@ -45,7 +45,7 @@ public class PatroniHugePages1Gi implements VolumeFactory<StackGresDistributedLo
             .build())
         .filter(volumePair -> Optional.of(profile.getSpec())
             .map(StackGresProfileSpec::getHugePages)
-            .map(StackGresProfileHugePages::getHugepages2Mi)
+            .map(StackGresProfileHugePages::getHugepages1Gi)
             .isPresent());
   }
 
