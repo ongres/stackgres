@@ -1493,10 +1493,10 @@ spec:
                                 description: |
                                   Allow to configure the Sharding Shpere Proxy mode type. Options available are:
                                   
-                                  * `standalone`
-                                  * `cluster`
+                                  * `Standalone`
+                                  * `Cluster`
                                   
-                                  When `standalone` only 1 coordinator instance may be set.
+                                  When `Standalone` only 1 coordinator instance may be set.
                               properties:
                                 type: object
                                 description: |
@@ -1516,9 +1516,9 @@ spec:
                                     description: |
                                       Allow to configure the Sharding Shpere Proxy repository type. Options available are:
                                       
-                                      * `memory`
-                                      * `zooKeeper`
-                                      * `etcd`
+                                      * `Memory`
+                                      * `ZooKeeper`
+                                      * `Etcd`
                                       
                                       When `mode.type` is `standalone` then `repository.type` must be memory.
                                       When `mode.type` is `cluster` then `repository.type` could be any of zooKeeper or etcd.
