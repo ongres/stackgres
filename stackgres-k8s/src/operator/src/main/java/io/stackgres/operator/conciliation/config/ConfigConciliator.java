@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.config;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -20,10 +21,11 @@ public class ConfigConciliator extends AbstractConciliator<StackGresConfig> {
   @Inject
   public ConfigConciliator(
       KubernetesClient client,
+      CustomResourceFinder<StackGresConfig> finder,
       RequiredResourceGenerator<StackGresConfig> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresConfig> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
-    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
   }
 
 }

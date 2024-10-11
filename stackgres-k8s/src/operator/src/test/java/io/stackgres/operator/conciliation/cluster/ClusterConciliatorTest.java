@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -36,6 +37,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.DeployedResourcesSnapshot;
@@ -56,6 +58,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ClusterConciliatorTest {
 
   private StackGresCluster cluster;
+
+  @Mock
+  private CustomResourceFinder<StackGresCluster> finder;
 
   @Mock
   private RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator;
@@ -704,6 +709,8 @@ class ClusterConciliatorTest {
     DeployedResourcesSnapshot deplyedResourcesSnapshot =
         deployedResourcesCache.createDeployedResourcesSnapshot(ownedLastDeployed, foundDeployed);
 
+    when(finder.findByNameAndNamespace(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(cluster));
     when(requiredResourceGenerator.getRequiredResources(cluster))
         .thenReturn(required);
     when(deployedResourcesScanner.getDeployedResources(cluster, required))
@@ -711,7 +718,7 @@ class ClusterConciliatorTest {
 
     final ClusterConciliator clusterConciliator = new ClusterConciliator(
         null,
-        requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache,
+        finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache,
         new ClusterLabelFactory(new ClusterLabelMapper()),
         patroniCtl);
     return clusterConciliator;

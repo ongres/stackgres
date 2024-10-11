@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -22,10 +23,11 @@ public class ShardedBackupConciliator extends AbstractConciliator<StackGresShard
   @Inject
   public ShardedBackupConciliator(
       KubernetesClient client,
+      CustomResourceFinder<StackGresShardedBackup> finder,
       RequiredResourceGenerator<StackGresShardedBackup> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresShardedBackup> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
-    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
   }
 
   @Override

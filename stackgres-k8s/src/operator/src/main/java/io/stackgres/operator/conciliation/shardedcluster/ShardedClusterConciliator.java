@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.shardedcluster;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -20,10 +21,11 @@ public class ShardedClusterConciliator extends AbstractConciliator<StackGresShar
   @Inject
   public ShardedClusterConciliator(
       KubernetesClient client,
+      CustomResourceFinder<StackGresShardedCluster> finder,
       RequiredResourceGenerator<StackGresShardedCluster> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresShardedCluster> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
-    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
   }
 
 }
