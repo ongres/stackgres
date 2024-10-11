@@ -421,4 +421,11 @@ do
   fi
 done
 
+if [ ! -f "$PG_BASE_PATH/.psqlrc" ]
+then
+  cat << EOF > "$PG_BASE_PATH/.psqlrc"
+\pset pager off
+EOF
+fi
+
 PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_FILE_PATH"
