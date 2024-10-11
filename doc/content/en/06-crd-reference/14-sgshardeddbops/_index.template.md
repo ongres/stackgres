@@ -32,7 +32,7 @@ spec:
   op: restart
   maxRetries: 1
   restart:
-    mode: InPlace
+    method: InPlace
 ```
 
 {{% include "generated/SGShardedDbOps.md" %}}
