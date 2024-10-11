@@ -35,16 +35,14 @@ public class ShardedReshardingValidator implements ShardedDbOpsValidator {
   @Override
   public void validate(StackGresShardedDbOpsReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.CREATE
-        && ShardedDbOpsOperation.fromString(
-            review.getRequest().getObject().getSpec().getOp())
-        .equals(ShardedDbOpsOperation.RESHARDING)) {
+        && ShardedDbOpsOperation.RESHARDING.toString().equals(
+            review.getRequest().getObject().getSpec().getOp())) {
       String cluster = review.getRequest().getObject().getSpec().getSgShardedCluster();
       String namespace = review.getRequest().getObject().getMetadata().getNamespace();
       var invalidShardingType = clusterFinder.findByNameAndNamespace(cluster, namespace)
           .map(StackGresShardedCluster::getSpec)
           .map(StackGresShardedClusterSpec::getType)
-          .map(StackGresShardingType::fromString)
-          .filter(Predicate.not(StackGresShardingType.CITUS::equals));
+          .filter(Predicate.not(StackGresShardingType.CITUS.toString()::equals));
       if (invalidShardingType.isPresent()) {
         fail("Reshadring not implemented for SGShardedCluster of type "
             + invalidShardingType.get().toString());
