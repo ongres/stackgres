@@ -45,7 +45,7 @@ public class ShardedReshardingValidator implements ShardedDbOpsValidator {
           .filter(Predicate.not(StackGresShardingType.CITUS.toString()::equals));
       if (invalidShardingType.isPresent()) {
         fail("Reshadring not implemented for SGShardedCluster of type "
-            + invalidShardingType.get().toString());
+            + invalidShardingType.get());
       }
     }
   }
