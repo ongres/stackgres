@@ -51,7 +51,7 @@ check_replication_is_working() {
 
   local SYNCHRONOUS_STANDBY_NAMES
   SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-    psql -At -c 'SHOW synchronous_standby_names')"
+    psql -q -At -c 'SHOW synchronous_standby_names')"
   if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
   then
     success "async replication is set for primary"

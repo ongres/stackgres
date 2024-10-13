@@ -13,7 +13,7 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -t -A")
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -q -t -A")
     false
     ;;
     *)

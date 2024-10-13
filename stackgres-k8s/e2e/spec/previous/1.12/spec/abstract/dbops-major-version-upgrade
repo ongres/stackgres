@@ -107,7 +107,7 @@ reset_cluster_internal() {
 
   if [ "$ONLY_PG_REPACK" != true ] && [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
   then
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -q -c "$(cat << 'EOF'
 CREATE EXTENSION postgis;
 CREATE MATERIALIZED VIEW test AS
  SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName="EPSG:27582"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName="EPSG:27562"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));
@@ -117,7 +117,7 @@ EOF
 
   if [ "$ONLY_PG_REPACK" != true ] && [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -q -c "$(cat << 'EOF'
 CREATE EXTENSION timescaledb;
 EOF
       )"
@@ -125,7 +125,7 @@ EOF
 
   # Trigger libLLVM bug. See https://gitlab.com/ongresinc/stackgres/-/issues/1980
   kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util \
-    -- psql -c "$(cat << 'EOF'
+    -- psql -q -c "$(cat << 'EOF'
       DO $$DECLARE r integer;
         BEGIN
           FOR r IN SELECT i FROM generate_series(1, 300) AS i

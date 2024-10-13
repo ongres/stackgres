@@ -38,7 +38,7 @@ e2e_test() {
 }
 
 check_password_required() {
-  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
   then
     fail "was possible to connect to the cluster without password"
   else
@@ -57,10 +57,10 @@ host    replication     all             ::1/128                 trust
 host all all 0.0.0.0/0 md5
 host replication replicator 0.0.0.0/0 md5
 ' | tee /var/lib/postgresql/data/pg_hba.conf
-psql -c 'SELECT pg_reload_conf();'
+psql -q -c 'SELECT pg_reload_conf();'
 EOF
 
-  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
   then
     success "was possible to connect to the cluster without password after changing configuration"
   else
@@ -80,7 +80,7 @@ EOF
 }
 
 check_password_is_required() {
-  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -w -h localhost -p 5432 -c 'SELECT 1'
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
   then
     return 1
   fi
@@ -139,7 +139,7 @@ pgbouncer_database_check() {
     PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
       -o jsonpath='{.data.pgbouncer-admin-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
-    psql -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
+    psql -q -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
   then
     success "psql could connect to the pgbouncer database with pgobuncer_admin using service"
   else
@@ -150,7 +150,7 @@ pgbouncer_database_check() {
     PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
       -o jsonpath='{.data.pgbouncer-stats-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
-    psql -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
+    psql -q -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
   then
     success "psql could connect to the pgbouncer database with pgobuncer_stats using service"
   else

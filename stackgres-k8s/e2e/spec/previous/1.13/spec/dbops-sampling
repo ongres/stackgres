@@ -27,7 +27,7 @@ e2e_test() {
 
 check_sampling_is_working() {
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
-    -- psql -c 'CREATE DATABASE sampling'
+    -- psql -q -c 'CREATE DATABASE sampling'
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
     -- pgbench -s 10 -i -I dtgv
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \

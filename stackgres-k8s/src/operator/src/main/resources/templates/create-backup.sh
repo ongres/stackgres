@@ -377,7 +377,7 @@ do_backup() {
     mkfifo /tmp/backup-psql
     sh -c 'echo $$ > /tmp/backup-tail-pid; exec tail -f /tmp/backup-psql' \
       | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
-        -- psql -v ON_ERROR_STOP=1 -t -A > /tmp/backup-psql-out 2>&1 &
+        -- psql -v ON_ERROR_STOP=1 -q -t -A > /tmp/backup-psql-out 2>&1 &
     echo $! > /tmp/backup-psql-pid
 
     cat << EOF >> /tmp/backup-psql

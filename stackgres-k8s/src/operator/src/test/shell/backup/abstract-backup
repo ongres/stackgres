@@ -1,5 +1,6 @@
 #!/bin/sh
 
+RETRY_LIMIT=0
 LOCAL_BIN_SHELL_UTILS_PATH="$PROJECT_PATH/src/main/resources/templates/shell-utils"
 CLUSTER_NAMESPACE=test
 CLUSTER_NAME=test
@@ -133,7 +134,7 @@ EOF
       ;;
     esac
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -t -A")
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -q -t -A")
     while read -r LINE
     do
       case "$LINE" in

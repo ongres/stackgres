@@ -130,7 +130,7 @@ data:
     set -x
     if [ "$#" = 0 ] || [ "x$2" = xmaster ]
     then
-      until psql -tA -c 'SELECT pg_is_in_recovery()' | grep -qxF f
+      until psql -q -tA -c 'SELECT pg_is_in_recovery()' | grep -qxF f
       do
         true
       done
@@ -184,7 +184,7 @@ zerodowntime_check() {
       echo
       kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- env PATRONI_LOG_LEVEL=INFO patronictl list
       echo
-      kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- psql postgresql://pgbouncer_stats:pgb0unc3r@localhost/pgbouncer \
+      kubectl exec -n "$CLUSTER_NAMESPACE" deploy/pgbouncer -c pgbench -- psql -qpostgresql://pgbouncer_stats:pgb0unc3r@localhost/pgbouncer \
         -c "SHOW STATE" -c "SHOW DATABASES" -c "SHOW POOLS"
       echo
       sleep 2
@@ -225,7 +225,7 @@ zerodowntime_check() {
     kill "$BENCH_PID" || true
     kill "$(head -n 1 "$LOG_PATH/monitor")" || true
     wait "$MONITOR_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi

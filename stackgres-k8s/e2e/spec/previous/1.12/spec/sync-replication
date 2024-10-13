@@ -60,7 +60,7 @@ check_sync_replication_is_working() {
   wait_until check_connectivity -i 0
 
   if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-    psql -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
+    psql -q -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
   then
     echo "SUCCESS: sync replication is set for primary"
   else
@@ -240,7 +240,7 @@ check_strict_sync_replication_is_working() {
 
   local RESULT EXIT_CODE
   try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-    psql -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
+    psql -q -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
   if "$RESULT"
   then
     echo "SUCCESS: strict sync replication is set for primary"
@@ -285,7 +285,7 @@ check_sync_all_replication_is_working() {
   wait_until check_connectivity -i 0
 
   if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-    psql -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
+    psql -q -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
   then
     echo "SUCCESS: sync all replication is set for primary"
   else
@@ -358,7 +358,7 @@ check_strict_sync_all_replication_is_working() {
 
   local RESULT EXIT_CODE
   try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-    psql -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
+    psql -q -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
   if "$RESULT"
   then
     echo "SUCCESS: strict sync all replication is set for primary"

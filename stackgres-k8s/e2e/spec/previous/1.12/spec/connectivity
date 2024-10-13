@@ -93,7 +93,7 @@ pgbouncer_database_check() {
     PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
       -o jsonpath='{.data.pgbouncer-admin-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
-    psql -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
+    psql -q -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
   then
     echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_admin using service"
   else
@@ -105,7 +105,7 @@ pgbouncer_database_check() {
     PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
       -o jsonpath='{.data.pgbouncer-stats-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
-    psql -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
+    psql -q -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
   then
     echo "SUCCESS: psql could connect to the pgbouncer database with pgobuncer_stats using service"
   else

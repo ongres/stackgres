@@ -212,18 +212,18 @@ kubectl_mock() {
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
     echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW lc_collate")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c SHOW lc_collate")
     echo 'en_US.UTF-8'
     ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW server_encoding")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c SHOW server_encoding")
     echo 'UTF8'
     ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
     echo '"true"'
     ;;
     ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- sh -c rm -rf \"$PG_UPGRADE_PATH/$SOURCE_VERSION/data\""*)
     ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c CHECKPOINT -c CHECKPOINT")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c CHECKPOINT -c CHECKPOINT")
     echo 'en_US.UTF-8'
     ;;
     *)
