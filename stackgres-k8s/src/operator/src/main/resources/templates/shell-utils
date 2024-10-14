@@ -3,6 +3,8 @@
 LOCK_DURATION="${LOCK_DURATION:-60}"
 LOCK_SLEEP="${LOCK_SLEEP:-5}"
 QUEUE_NAME=create_event.pipe
+RETRY_DELAY="${RETRY_DELAY:-1000}"
+RETRY_LIMIT="${RETRY_LIMIT:-10}"
 
 SHELL="$(readlink /proc/$$/exe || true)"
 if ! command -v "$SHELL" >/dev/null 2>&1 \
@@ -294,16 +296,18 @@ try_function_with_output() {
 }
 
 retry() {
-  local RETRY_MAX="$1"
   local RETRY=0
-  shift
+  local BACKOFF
   until "$@"
   do
-    if ! [ "$RETRY" -le "$RETRY_MAX" ]
+    if [ "$RETRY" -ge "$RETRY_LIMIT" ]
     then
-      >&2 echo "Failed $@ after retrying $RETRY_MAX times"
-      return 1
+      >&2 echo "Failed $@ after retrying $RETRY_LIMIT times"
+      exit 1
     fi
+    BACKOFF="$(( (RETRY_DELAY << RETRY > 60 * 1000 ? 60 * 1000 : RETRY_DELAY << RETRY) / 1000 ))"
+    >&2 echo "Will retry command after backoff of $BACKOFF seconds ($((RETRY_LIMIT - RETRY)) retry left)"
+    sleep "$BACKOFF"
     RETRY="$((RETRY+1))"
     sleep 5
   done      

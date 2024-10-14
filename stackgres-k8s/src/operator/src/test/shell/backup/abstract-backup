@@ -89,7 +89,7 @@ EOF
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o name")
     return 1
     ;;
-    ("create -f - -o json")
+    ("create -f /tmp/backup-to-create -o json")
     printf %s '{"metadata":{"uid":"test"}}'
     ;;
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --template={{ .status.sgBackupConfig.storage }}")
@@ -154,7 +154,7 @@ EOF
       esac
     done
     ;;
-    ("create -f -")
+    ("create -f /tmp/snapshot-to-create")
     ;;
     ("get $VOLUME_SNAPSHOT_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json")
     printf '%s\n' '{"status":{"readyToUse":"true","restoreSize":"1Gi"}}'

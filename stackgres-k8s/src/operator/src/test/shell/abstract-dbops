@@ -1,5 +1,6 @@
 #!/bin/sh
 
+RETRY_LIMIT=0
 CLUSTER_CRD_NAME=sgcluster
 CRD_GROUP=stackgres.io
 CLUSTER_NAMESPACE=test
