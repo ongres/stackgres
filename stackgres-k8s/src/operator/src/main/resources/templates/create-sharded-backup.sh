@@ -127,7 +127,7 @@ status:
 SHARDED_BACKUP_STATUS_YAML_EOF
   )"
 
-  if retry kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o name 2>&1 | grep -q "/$SHARDED_BACKUP_NAME$"
+  if ! kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o name >/dev/null 2>&1
   then
     echo "Creating backup CR"
     cat << EOF | tee > /tmp/backup-to-create
@@ -284,7 +284,7 @@ create_backup_restore_point() {
   echo "Creating restore point $SHARDED_BACKUP_NAME"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
-psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -311,7 +311,7 @@ EOF
   echo "Retrieving latest LSNs"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-lsns-exit-code; } | tee /tmp/backup-restore-point-lsns
-psql -q -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -340,7 +340,7 @@ EOF
   echo "Creating checkpoint and rotate the WALs"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-checkpoint-exit-code; } | tee /tmp/backup-restore-point-checkpoint
-psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -378,7 +378,7 @@ EOF
   do
     cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
         -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-current-lnss-exit-code; } | tee /tmp/backup-restore-point-current-lnss
-psql -q -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then

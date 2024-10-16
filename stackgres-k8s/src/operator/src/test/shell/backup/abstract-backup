@@ -134,7 +134,7 @@ EOF
       ;;
     esac
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -q -t -A")
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -t -A")
     while read -r LINE
     do
       case "$LINE" in
