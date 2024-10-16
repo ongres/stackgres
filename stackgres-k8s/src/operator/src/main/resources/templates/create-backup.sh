@@ -279,7 +279,7 @@ $(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_C
 BACKUP_STATUS_YAML_EOF
   )"
 
-  if ! retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name 2>&1 | grep -q "/$BACKUP_NAME$"
+  if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
   then
     echo "Creating backup CR"
     cat << EOF > /tmp/backup-to-create

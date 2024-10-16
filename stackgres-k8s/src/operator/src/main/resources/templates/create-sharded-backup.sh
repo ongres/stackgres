@@ -127,7 +127,7 @@ status:
 SHARDED_BACKUP_STATUS_YAML_EOF
   )"
 
-  if retry kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o name 2>&1 | grep -q "/$SHARDED_BACKUP_NAME$"
+  if ! kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o name >/dev/null 2>&1
   then
     echo "Creating backup CR"
     cat << EOF | tee > /tmp/backup-to-create
