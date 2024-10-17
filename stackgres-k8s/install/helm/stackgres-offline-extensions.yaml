@@ -1,0 +1,76 @@
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  labels:
+    app: stackgres-offline-extensions
+  name: stackgres-offline-extensions
+  namespace: stackgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stackgres-offline-extensions
+  template:
+    metadata:
+      labels:
+        app: stackgres-offline-extensions
+    spec:
+      terminationGracePeriodSeconds: 0
+      restartPolicy: Always
+      containers:
+      - name: http
+        image: "registry.gitlab.com/ongresinc/stackgres/stackgres-offline-extensions"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 998
+          runAsGroup: 1000
+        args:
+        - '/bin/sh'
+        - '-ec'
+        - |
+          mkdir -p /var/lib/nginx/tmp
+          exec nginx
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+        volumeMounts:
+        - name: extensions-cache-nginx-var
+          subPath: var/cache/nginx
+          mountPath: /var/cache/nginx
+          readOnly: false
+        - name: extensions-cache-nginx-var
+          subPath: var/run
+          mountPath: /var/run
+          readOnly: false
+        - name: extensions-cache-nginx-var
+          subPath: var/lib/nginx
+          mountPath: /var/lib/nginx
+          readOnly: false
+        - name: extensions-cache-nginx-var
+          subPath: var/log/nginx
+          mountPath: /var/log/nginx
+          readOnly: false
+      volumes:
+      - name: extensions-cache-nginx-var
+        emptyDir: {}
+---
+apiVersion: "v1"
+kind: Service
+metadata:
+  labels:
+    app: stackgres-offline-extensions
+  name: stackgres-offline-extensions
+  namespace: stackgres
+spec:
+  selector:
+    app: stackgres-offline-extensions
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
