@@ -1,0 +1,53 @@
+FROM quay.io/ongres/kubectl AS offline-extensions
+  COPY stackgres-operator/extensions-cache-conciliator.sh /extensions-cache-conciliator.sh
+  ENV OFFLINE=true
+  USER root
+  RUN mkdir -p /opt/app-root/src
+  RUN chmod a+xw /opt/app-root/src
+  USER stackgres
+  ARG EXTENSIONS_CACHE_PRELOADED_EXTENSIONS
+  ARG EXTENSIONS_CACHE_LOG_LEVEL=INFO
+  RUN sh /extensions-cache-conciliator.sh run offline offline
+
+FROM registry.access.redhat.com/ubi8/nginx-120
+  COPY --from=offline-extensions /home/stackgres /opt/app-root/src
+  USER root
+  RUN rm /etc/nginx/nginx.conf
+  RUN cat <<'EOF' > /etc/nginx/nginx.conf
+    daemon off;
+    pid             /var/run/nginx.pid;
+    error_log stderr info;
+    events{
+    }
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+      
+      access_log  /dev/stdout  main;
+      
+      sendfile        on;
+      
+      keepalive_timeout  65;
+      
+      include /etc/nginx/conf.d/*.conf;
+    }
+EOF
+  RUN cat <<'EOF' > /etc/nginx/conf.d/stackgres-operator-extensions-cache.conf
+    server {
+      server_name  localhost;
+      
+      listen       8080;
+      root   /opt/app-root/src;
+      
+      location / {
+        try_files /$host$uri =404;
+      }
+    }
+EOF
+  USER default
+  EXPOSE 8080/tcp
+  CMD [ "nginx" ]

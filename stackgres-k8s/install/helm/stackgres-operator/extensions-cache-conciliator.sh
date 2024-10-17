@@ -7,6 +7,8 @@ set -e
 
 { [ "$EXTENSIONS_CACHE_LOG_LEVEL" != DEBUG ] && [ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ]; } || set -x
 
+EXTENSIONS_REPOSITORY_URLS="${EXTENSIONS_REPOSITORY_URLS:-https://extensions.stackgres.io/postgres/repository}"
+
 run () {
   # shellcheck disable=SC2153
   [ -n "$EXTENSIONS_REPOSITORY_URLS" ]
@@ -57,9 +59,12 @@ run () {
 
     echo "Updating extensions..."
     (
-    [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
-    STATEFULSET="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" -o json)"
-    printf '%s' "$STATEFULSET" > "$STATEFULSET_JSON_FILE"
+    if [ "$OFFLINE" != true ]
+    then
+      [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
+      STATEFULSET="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" -o json)"
+      printf '%s' "$STATEFULSET" > "$STATEFULSET_JSON_FILE"
+    fi
     )
     (
     [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
@@ -67,11 +72,14 @@ run () {
     sort full_to_install_extensions \
       | uniq | { grep -v '^$' || true; } > to_install_extensions
     TO_INSTALL_EXTENSIONS_JSON_STRING="$(jq -sR . to_install_extensions)"
-    PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
-      jq '.metadata.annotations
-        | if . != null then .pulled_extensions else "" end
-        | if . != null then . else "" end' "$STATEFULSET_JSON_FILE")"
-    printf '%s' "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" | jq -r . > already_pulled_to_install_extensions
+    if [ "$OFFLINE" != true ]
+    then
+      PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
+        jq '.metadata.annotations
+          | if . != null then .pulled_extensions else "" end
+          | if . != null then . else "" end' "$STATEFULSET_JSON_FILE")"
+      printf '%s' "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" | jq -r . > already_pulled_to_install_extensions
+    fi
     if [ "$TO_INSTALL_EXTENSIONS_JSON_STRING" != "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" ]
     then
       while read -r LINE
@@ -101,47 +109,54 @@ run () {
           fi
         done
     (
-    [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
-    ALREADY_PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
-      jq '.metadata.annotations.pulled_extensions' "$STATEFULSET_JSON_FILE")"
-    PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
-      cat pulled_to_install_extensions already_pulled_to_install_extensions \
-        | sort | uniq | jq -sR .)"
-    if [ "$ALREADY_PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" != "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" ]
+    if [ "$OFFLINE" != true ]
     then
-      RUNNING_IMAGES="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" \
-        --template '{{ range .spec.template.spec.containers }}{{ printf "%s\n" .image }}{{ end }}')"
-      RUNNING_IMAGES="$(printf '%s' "$RUNNING_IMAGES" | sort)"
-      REQUIRED_IMAGES="$(jq '.spec.template.spec.containers[].image' "$STATEFULSET_JSON_FILE")"
-      REQUIRED_IMAGES="$(printf '%s' "$REQUIRED_IMAGES" | sort)"
-      if [ "$RUNNING_IMAGES" != "$REQUIRED_IMAGES" ]
+      [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
+      ALREADY_PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
+        jq '.metadata.annotations.pulled_extensions' "$STATEFULSET_JSON_FILE")"
+      PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
+        cat pulled_to_install_extensions already_pulled_to_install_extensions \
+          | sort | uniq | jq -sR .)"
+      if [ "$ALREADY_PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" != "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" ]
       then
-        touch /tmp/need-restart
+        RUNNING_IMAGES="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" \
+          --template '{{ range .spec.template.spec.containers }}{{ printf "%s\n" .image }}{{ end }}')"
+        RUNNING_IMAGES="$(printf '%s' "$RUNNING_IMAGES" | sort)"
+        REQUIRED_IMAGES="$(jq '.spec.template.spec.containers[].image' "$STATEFULSET_JSON_FILE")"
+        REQUIRED_IMAGES="$(printf '%s' "$REQUIRED_IMAGES" | sort)"
+        if [ "$RUNNING_IMAGES" != "$REQUIRED_IMAGES" ]
+        then
+          touch /tmp/need-restart
+        fi
+        STATEFULSET="$(cat "$STATEFULSET_JSON_FILE")"
+        printf '%s' "$STATEFULSET" \
+          | jq ".metadata.annotations.pulled_extensions = $PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" \
+          > "$STATEFULSET_JSON_FILE"
+        cp "$STATEFULSET_JSON_FILE" "$STATEFULSET_JSON_FILE.new"
+        until kubectl replace statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" \
+          --cascade orphan -f "$STATEFULSET_JSON_FILE.new"
+        do
+          sleep 5
+          STATEFULSET="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" -o json)"
+          printf '%s' "$STATEFULSET" > "$STATEFULSET_JSON_FILE.lastest"
+          jq -s '.[0].spec.template = .[1].spec.template | .[0]' \
+            "$STATEFULSET_JSON_FILE.lastest" "$STATEFULSET_JSON_FILE" > "$STATEFULSET_JSON_FILE.new"
+        done
       fi
-      STATEFULSET="$(cat "$STATEFULSET_JSON_FILE")"
-      printf '%s' "$STATEFULSET" \
-        | jq ".metadata.annotations.pulled_extensions = $PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" \
-        > "$STATEFULSET_JSON_FILE"
-      cp "$STATEFULSET_JSON_FILE" "$STATEFULSET_JSON_FILE.new"
-      until kubectl replace statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" \
-        --cascade orphan -f "$STATEFULSET_JSON_FILE.new"
-      do
-        sleep 5
-        STATEFULSET="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" -o json)"
-        printf '%s' "$STATEFULSET" > "$STATEFULSET_JSON_FILE.lastest"
-        jq -s '.[0].spec.template = .[1].spec.template | .[0]' \
-          "$STATEFULSET_JSON_FILE.lastest" "$STATEFULSET_JSON_FILE" > "$STATEFULSET_JSON_FILE.new"
-      done
-    fi
-    if ! any_image_repository_url && test -f /tmp/need-restart
-    then
-      kubectl delete pod -n "$NAMESPACE" "$STATEFULSET_NAME-0"
+      if ! any_image_repository_url && test -f /tmp/need-restart
+      then
+        kubectl delete pod -n "$NAMESPACE" "$STATEFULSET_NAME-0"
+      fi
     fi
     )
     echo "done"
     echo
     )
     EXIT_CODE="$?"
+    if [ "$OFFLINE" = true ]
+    then
+      exit "$EXIT_CODE"
+    fi
     if [ "$EXIT_CODE" = 0 ]
     then
       if ! test -f /tmp/need-restart
@@ -162,6 +177,10 @@ run () {
 }
 
 any_image_repository_url() {
+  if [ "$OFFLINE" = true ]
+  then
+    return 1
+  fi
   local EXTENSIONS_REPOSITORY_URL
   for EXTENSIONS_REPOSITORY_URL in $(echo "$EXTENSIONS_REPOSITORY_URLS" | tr ',' '\n')
   do
@@ -377,37 +396,40 @@ update_repositories_credentials() {
 }
 
 get_to_install_extensions() {
-  (
-  CLUSTER_EXTENSIONS="$([ -n "$ALLOWED_NAMESPACES" ] \
-    && printf %s "$ALLOWED_NAMESPACES" \
-      | tr ' ' '\n' \
-      | xargs -I @NAMESPACE sh $([ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ] || printf %s -x) -c \
-        "kubectl get sgcluster -n @NAMESPACE -o json | jq '.items[]'" \
-    || kubectl get sgcluster -A -o json | jq '.items[]')"
-  DISTRIBUTEDLOGS_EXTENSIONS="$([ -n "$ALLOWED_NAMESPACES" ] \
-    && printf %s "$ALLOWED_NAMESPACES" \
-      | tr ' ' '\n' \
-      | xargs -I @NAMESPACE sh $([ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ] || printf %s -x) -c \
-        "kubectl get sgdistributedlogs -n @NAMESPACE -o json | jq '.items[]'" \
-    || kubectl get sgdistributedlogs -A -o json | jq '.items[]')"
-  printf '%s' "$CLUSTER_EXTENSIONS"
-  printf '%s' "$DISTRIBUTEDLOGS_EXTENSIONS"
-  ) | jq -r -s '.[]
-    | select(has("status") and (.status | has("arch") and has("os")))
-    | .status as $status
-    | .spec.toInstallPostgresExtensions
-    | if . != null then . else [] end
-    | .[]
-    | .repository + " "
-        + .publisher + " "
-        + .name + " "
-        + .version + " "
-        + .postgresVersion
-        + " " + (.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
-        + " " + $status.arch
-        + " " + $status.os
-        + " " + (.build | if . != null then . else "" end)
-        '
+  if [ "$OFFLINE" != true ]
+  then
+    (
+    CLUSTER_EXTENSIONS="$([ -n "$ALLOWED_NAMESPACES" ] \
+      && printf %s "$ALLOWED_NAMESPACES" \
+        | tr ' ' '\n' \
+        | xargs -I @NAMESPACE sh $([ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ] || printf %s -x) -c \
+          "kubectl get sgcluster -n @NAMESPACE -o json | jq '.items[]'" \
+      || kubectl get sgcluster -A -o json | jq '.items[]')"
+    DISTRIBUTEDLOGS_EXTENSIONS="$([ -n "$ALLOWED_NAMESPACES" ] \
+      && printf %s "$ALLOWED_NAMESPACES" \
+        | tr ' ' '\n' \
+        | xargs -I @NAMESPACE sh $([ "$EXTENSIONS_CACHE_LOG_LEVEL" != TRACE ] || printf %s -x) -c \
+          "kubectl get sgdistributedlogs -n @NAMESPACE -o json | jq '.items[]'" \
+      || kubectl get sgdistributedlogs -A -o json | jq '.items[]')"
+    printf '%s' "$CLUSTER_EXTENSIONS"
+    printf '%s' "$DISTRIBUTEDLOGS_EXTENSIONS"
+    ) | jq -r -s '.[]
+      | select(has("status") and (.status | has("arch") and has("os")))
+      | .status as $status
+      | .spec.toInstallPostgresExtensions
+      | if . != null then . else [] end
+      | .[]
+      | .repository + " "
+          + .publisher + " "
+          + .name + " "
+          + .version + " "
+          + .postgresVersion
+          + " " + (.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
+          + " " + $status.arch
+          + " " + $status.os
+          + " " + (.build | if . != null then . else "" end)
+          '
+  fi
   jq -r '
     .extensions[] | . as $extension
     | .versions[] | . as $version
