@@ -146,7 +146,6 @@ spec:
   managedLifecycle: $SHARDED_BACKUP_MANAGED_LIFECYCLE
 $SHARDED_BACKUP_STATUS_YAML
 EOF
-)"
     retry kubectl create -f /tmp/backup-to-create -o json > /tmp/created-sharded-backup
     SHARDED_BACKUP_UID="$(jq .metadata.uid /tmp/created-sharded-backup)"
   else
@@ -284,7 +283,7 @@ create_backup_restore_point() {
   echo "Creating restore point $SHARDED_BACKUP_NAME"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
-psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -311,7 +310,7 @@ EOF
   echo "Retrieving latest LSNs"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-lsns-exit-code; } | tee /tmp/backup-restore-point-lsns
-psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -340,7 +339,7 @@ EOF
   echo "Creating checkpoint and rotate the WALs"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-checkpoint-exit-code; } | tee /tmp/backup-restore-point-checkpoint
-psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -378,7 +377,7 @@ EOF
   do
     cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
         -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-current-lnss-exit-code; } | tee /tmp/backup-restore-point-current-lnss
-psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -423,20 +422,22 @@ EOF
 set_backup_completed() {
   cat << EOF | tee /tmp/backup-to-patch
 [
-  {"op":"replace","path":"/status/sgBackups","value":['"$(cat /tmp/current-backups \
-    | sed 's/^\(.*\)$/"\1"/' | tr '\n' ',' | sed 's/,$//')"']},
+  {"op":"replace","path":"/status/sgBackups","value":[$(
+    cat /tmp/current-backups \
+      | sed 's/^\(.*\)$/"\1"/' | tr '\n' ',' | sed 's/,$//'
+  )]},
   {"op":"replace","path":"/status/process/failure","value":""},
   {"op":"replace","path":"/status/process/timing","value":{
-      "stored":"'"$(date_iso8601)"'",
-      "start":"'"$(cat /tmp/current-start-time)"'",
-      "end":"'"$(cat /tmp/current-end-time)"'"
+      "stored":"$(date_iso8601)",
+      "start":"$(cat /tmp/current-start-time)",
+      "end":"$(cat /tmp/current-end-time)"
     }
   },
   {"op":"replace","path":"/status/backupInformation","value":{
-      "postgresVersion":"'"$POSTGRES_VERSION"'",
+      "postgresVersion":"$POSTGRES_VERSION",
       "size":{
-        "uncompressed":'"$(cat /tmp/current-uncompressed-size)"',
-        "compressed":'"$(cat /tmp/current-compressed-size)"'
+        "uncompressed":$(cat /tmp/current-uncompressed-size),
+        "compressed":$(cat /tmp/current-compressed-size)
       }
     }
   }
