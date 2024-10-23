@@ -78,7 +78,7 @@ check_stream_is_working_skippig_ddl_import() {
 
 check_stream_is_working() {
   SKIP_DDL_IMPORT="${1:-false}"
-  cat << 'EOF' | tee "$LOG_PATH/list-types.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on -tA > "$LOG_PATH/types"
+  cat << 'EOF' | tee "$LOG_PATH/list-types.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on -tA > "$LOG_PATH/types"
 SELECT typcategory || ' ' || typtype || ' ' || typname || ' ' || typformattype
 FROM (
   SELECT
@@ -112,12 +112,12 @@ FROM (
   ORDER BY typname;
 EOF
 
-  cat << EOF | tee "$LOG_PATH/reset-target-status.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
+  cat << EOF | tee "$LOG_PATH/reset-target-status.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 ALTER DATABASE postgres SET sgstream.ddl_import_completed = false;
 EOF
 
   TYPE_COUNT="$(wc -l "$LOG_PATH/types" | cut -d ' ' -f 1)"
-  cat << EOF | tee "$LOG_PATH/init-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
+  cat << EOF | tee "$LOG_PATH/init-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 DROP TABLE IF EXISTS test;
 CREATE TABLE test(i bigint, t text, PRIMARY KEY(i));
 DROP TABLE IF EXISTS pop;
@@ -264,7 +264,7 @@ EOF
     fail "streaming not started"
   fi
 
-  cat << 'EOF' | tee "$LOG_PATH/insert-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
+  cat << 'EOF' | tee "$LOG_PATH/insert-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 INSERT INTO test SELECT * FROM generate_series(4, 6);
 
 SELECT insert_complex(i) FROM generate_series(4, 6) AS i; 
@@ -294,7 +294,7 @@ EOF
     fail "sent insert events failed"
   fi
 
-  cat << EOF | tee "$LOG_PATH/delete-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
+  cat << EOF | tee "$LOG_PATH/delete-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 DELETE FROM test WHERE i = 1;
 
 $(
@@ -331,7 +331,7 @@ EOF
     fail "sent delete events failed"
   fi
 
-  cat << EOF | tee "$LOG_PATH/update-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
+  cat << EOF | tee "$LOG_PATH/update-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 UPDATE test SET t = 'hello' WHERE i = 6;
 
 $(
@@ -399,7 +399,7 @@ EOF
     fail "sent update events failed"
   fi
 
-  cat << 'EOF' | tee "$LOG_PATH/alter-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -v ON_ERROR_STOP=on
+  cat << 'EOF' | tee "$LOG_PATH/alter-tables.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 ALTER TABLE test ADD COLUMN n int DEFAULT 0;
 
 ALTER TABLE test DROP COLUMN t;

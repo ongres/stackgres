@@ -63,7 +63,7 @@ run_query() {
       PGPASSWORD="$PASSWORD" \
       PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
       PGSSLMODE="$SSLMODE" \
-      psql -t -A -U "$USERNAME" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
+      psql -q -t -A -U "$USERNAME" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
   elif [ "$TYPE" = babelfish ]
   then
     if [ -z "$USERNAME" ]

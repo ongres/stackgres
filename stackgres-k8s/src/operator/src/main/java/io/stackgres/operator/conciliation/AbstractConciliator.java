@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.ws.rs.core.Response;
 import org.jooq.lambda.tuple.Tuple;
@@ -33,16 +34,19 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
   protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractConciliator.class);
 
   private final KubernetesClient client;
+  private final CustomResourceFinder<T> finder;
   private final RequiredResourceGenerator<T> requiredResourceGenerator;
   private final AbstractDeployedResourcesScanner<T> deployedResourceScanner;
   protected final DeployedResourcesCache deployedResourcesCache;
 
   protected AbstractConciliator(
       KubernetesClient client,
+      CustomResourceFinder<T> finder,
       RequiredResourceGenerator<T> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<T> deployedResourceScanner,
       DeployedResourcesCache deployedResourcesCache) {
     this.client = client;
+    this.finder = finder;
     this.requiredResourceGenerator = requiredResourceGenerator;
     this.deployedResourceScanner = deployedResourceScanner;
     this.deployedResourcesCache = deployedResourcesCache;
@@ -51,6 +55,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
   public AbstractConciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.client = null;
+    this.finder = null;
     this.requiredResourceGenerator = null;
     this.deployedResourceScanner = null;
     this.deployedResourcesCache = null;
@@ -118,6 +123,20 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
       // Workaround for https://github.com/kubernetes/kubernetes/issues/120960
       cleanupNonGarbageCollectedResources(
           deployedResourcesSnapshot, deployedOtherOwnerRequiredResources);
+      return new ReconciliationResult(
+          List.of(),
+          List.of(),
+          List.of());
+    }
+
+    var foundConfig = finder.findByNameAndNamespace(
+        config.getMetadata().getName(),
+        config.getMetadata().getNamespace());
+
+    if (foundConfig.isEmpty()) {
+      LOGGER.debug("Config {}.{} was deleted aborting reconciliation",
+          config.getMetadata().getName(),
+          config.getMetadata().getNamespace());
       return new ReconciliationResult(
           List.of(),
           List.of(),

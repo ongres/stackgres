@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResource;
@@ -43,12 +44,13 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   @Inject
   public ClusterConciliator(
       KubernetesClient client,
+      CustomResourceFinder<StackGresCluster> finder,
       RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresCluster> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       PatroniCtl patroniCtl) {
-    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
     this.labelFactory = labelFactory;
     this.patroniCtl = patroniCtl;
   }

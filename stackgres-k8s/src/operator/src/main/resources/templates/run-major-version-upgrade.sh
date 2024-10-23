@@ -63,11 +63,11 @@ run_op() {
     SOURCE_BACKUP_PATH="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ if .spec.configurations.backups }}{{ (index .spec.configurations.backups 0).path }}{{ else }}{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ end }}{{ end }}')"
     LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
-      -- psql -t -A -c "SHOW lc_collate")"
+      -- psql -q -t -A -c "SHOW lc_collate")"
     ENCODING="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
-      -- psql -t -A -c "SHOW server_encoding")"
+      -- psql -q -t -A -c "SHOW server_encoding")"
     DATA_CHECKSUM="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
-      -- psql -t -A -c "SELECT CASE WHEN current_setting('data_checksums')::bool THEN 'true' ELSE 'false' END")"
+      -- psql -q -t -A -c "SELECT CASE WHEN current_setting('data_checksums')::bool THEN 'true' ELSE 'false' END")"
 
     if [ -z "${TARGET_VERSION}" ] || [ "${SOURCE_VERSION%%.*}" -ge "${TARGET_VERSION%%.*}" ]
     then
@@ -266,7 +266,7 @@ EOF
 
   echo "Running a double CHECKPOINT on the primary instance $PRIMARY_INSTANCE before major version upgrade..."
   kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
-      -- psql -t -A -c "CHECKPOINT" -c "CHECKPOINT"
+      -- psql -q -t -A -c "CHECKPOINT" -c "CHECKPOINT"
 
   PHASE="upgrade"
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"

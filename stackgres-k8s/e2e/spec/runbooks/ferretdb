@@ -91,9 +91,9 @@ db.test.insertOne({a:1})
 db.test.find()
 '
 
-  kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- psql ferretdb -c '\dt ferretdb.*'
+  kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- psql -qferretdb -c '\dt ferretdb.*'
   local TABLE
   TABLE="$(kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- \
-    psql ferretdb -c '\dt ferretdb.*' -tA | grep '^ferretdb|test_' | cut -d '|' -f 2)"
-  kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- psql ferretdb -c "SELECT * FROM ferretdb.$TABLE"
+    psql -qferretdb -c '\dt ferretdb.*' -tA | grep '^ferretdb|test_' | cut -d '|' -f 2)"
+  kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- psql -qferretdb -c "SELECT * FROM ferretdb.$TABLE"
 }

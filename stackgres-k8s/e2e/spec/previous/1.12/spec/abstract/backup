@@ -40,7 +40,7 @@ rotate_wal_file() {
   local CURRENT_WAL_FILE
   CURRENT_WAL_FILE="$(get_current_wal_file "$1")"
   wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-      psql -t -A -p 5432 \
+      psql -q -t -A -p 5432 \
       -c "CHECKPOINT" \
       -c "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]' >&2
   printf '%s' "$CURRENT_WAL_FILE"
@@ -49,7 +49,7 @@ rotate_wal_file() {
 get_current_wal_file() {
   local NODE="${1:-0}"
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-    psql -t -A -p 5432 -c \
+    psql -q -t -A -p 5432 -c \
     'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'
 }
 

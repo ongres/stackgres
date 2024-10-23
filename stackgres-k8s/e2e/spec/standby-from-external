@@ -8,10 +8,35 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
+  install_minio
+
   PRIMARY_CLUSTER_NAME="$(get_sgcluster_name "primary-$SPEC_NAME")"
-  create_or_replace_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1"
+  create_or_replace_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set configurations.objectstorage.create=true \
+    --set-string configurations.objectstorage.s3Compatible.bucket=stackgres \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=standby-from-external-minio \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=standby-from-external-minio \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
+    --set-string configurations.objectstorage.s3Compatible.region=k8s \
+    --set configurations.objectstorage.s3Compatible.enablePathStyleAddressing=true \
+    --set-string configurations.objectstorage.s3Compatible.endpoint=http://standby-from-external-minio:9000 \
+    --set cluster.configurations.backups.retention=2 \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf
   wait_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string configurations.objectstorage.s3Compatible.bucket=stackgres \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=standby-from-external-minio \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=standby-from-external-minio \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
+    --set-string configurations.objectstorage.s3Compatible.region=k8s \
+    --set configurations.objectstorage.s3Compatible.enablePathStyleAddressing=true \
+    --set-string configurations.objectstorage.s3Compatible.endpoint=http://standby-from-external-minio:9000 \
+    --set cluster.configurations.backups.retention=2 \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set configurations.create=false \
     --set instanceProfiles=null \
     --set-string cluster.replicateFrom.instance.external.host="$PRIMARY_CLUSTER_NAME" \
@@ -50,7 +75,7 @@ check_standby_is_working() {
 
   local SYNCHRONOUS_STANDBY_NAMES
   SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-    psql -At -c 'SHOW synchronous_standby_names')"
+    psql -q -At -c 'SHOW synchronous_standby_names')"
   if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
   then
     success "async replication is set for leader"

@@ -35,14 +35,14 @@ run_sampling() {
 
   if [ "x$DATABASE" = x ]
   then
-    DATABASE_EXISTS="$(psql -t -A \
+    DATABASE_EXISTS="$(psql -q -t -A \
       -c "SELECT EXISTS (SELECT * FROM pg_database WHERE datname = '$DATABASE_NAME')")"
     if [ "$DATABASE_EXISTS" != 'f' ]
     then
       try_drop_sampling_database
     fi
 
-    try_function_with_output psql -c "CREATE DATABASE $DATABASE_NAME"
+    try_function_with_output psql -q -c "CREATE DATABASE $DATABASE_NAME"
     if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
     then
       create_event_service "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
@@ -54,7 +54,7 @@ run_sampling() {
 
   create_event_service "BenchmarkInitializationStarted" "Normal" "Benchamrk initialization started"
   get_init_script > "$SHARED_PATH/init-script.sql"
-  try_function_with_output psql -t -A -d "$DATABASE_NAME" -f "$SHARED_PATH/init-script.sql"
+  try_function_with_output psql -q -t -A -d "$DATABASE_NAME" -f "$SHARED_PATH/init-script.sql"
   if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
   then
     create_event_service "BenchmarkInitialized" "Normal" "Benchamrk initialized"
@@ -66,19 +66,19 @@ run_sampling() {
   create_event_service "BenchmarkStarted" "Normal" "Benchamrk started"
   echo "Waiting  $TOP_QUERIES_COLLECT_DURATION seconds for top queries stats to be collected..."
   sleep "$TOP_QUERIES_COLLECT_DURATION"
-  try_function_with_output psql -t -A -d "$DATABASE_NAME" -c "CALL sampling.insert_topqueries()"
+  try_function_with_output psql -q -t -A -d "$DATABASE_NAME" -c "CALL sampling.insert_topqueries()"
   if [ "$(cat "$SHARED_PATH/exit_code")" != 0 ]
   then
     create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $(cat "$SHARED_PATH/output")"
     return 1
   fi
-  try_function_with_output psql -t -A -d "$DATABASE_NAME" -c "CALL sampling.insert_queries()"
+  try_function_with_output psql -q -t -A -d "$DATABASE_NAME" -c "CALL sampling.insert_queries()"
   if [ "$(cat "$SHARED_PATH/exit_code")" != 0 ]
   then
     create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $(cat "$SHARED_PATH/output")"
     return 1
   fi
-  try_function_with_output psql -t -A -d "$DATABASE_NAME" \
+  try_function_with_output psql -q -t -A -d "$DATABASE_NAME" \
     -c "SELECT query_id, to_char(timestamp,'YYYY-MM-DD\"T\"HH:MM:SSZ') AS timestamp, query FROM sampling.queries"
   if [ "$(cat "$SHARED_PATH/exit_code")" != 0 ]
   then
@@ -110,7 +110,7 @@ run_sampling() {
       continue
     fi
     QUERY_IDS="$QUERY_IDS $QUERY_ID"
-    try_function_with_output psql -t -A -d "$DATABASE_NAME" \
+    try_function_with_output psql -q -t -A -d "$DATABASE_NAME" \
       -c "SELECT stats FROM sampling.topqueries WHERE query_id = $QUERY_ID"
     if [ "$(cat "$SHARED_PATH/exit_code")" != 0 ]
     then
@@ -129,7 +129,7 @@ try_drop_sampling_database() {
   DROP_RETRY=3
   while [ "$DROP_RETRY" -ge 0 ]
   do
-    try_function_with_output psql \
+    try_function_with_output psql -q \
       -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE_NAME' AND pid != pg_backend_pid()" \
       -c "DROP DATABASE $DATABASE_NAME"
     if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]

@@ -75,8 +75,8 @@ public class ShardingSphereValidator implements ShardedClusterValidator {
     StackGresShardedCluster cluster = review.getRequest().getObject();
     if (review.getRequest().getOperation() == Operation.UPDATE
         || review.getRequest().getOperation() == Operation.CREATE) {
-      if (!StackGresShardingType.SHARDING_SPHERE.equals(
-          StackGresShardingType.fromString(cluster.getSpec().getType()))) {
+      if (!StackGresShardingType.SHARDING_SPHERE.toString().equals(
+          cluster.getSpec().getType())) {
         return;
       }
       if (cluster.getSpec().getCoordinator()
@@ -86,9 +86,9 @@ public class ShardingSphereValidator implements ShardedClusterValidator {
             typeField,
             shardingSphereField);
       }
-      if (StackGresShardingSphereModeType.STANDALONE.equals(
-          StackGresShardingSphereModeType.fromString(cluster.getSpec().getCoordinator()
-              .getConfigurationsForCoordinator().getShardingSphere().getMode().getType()))
+      if (StackGresShardingSphereModeType.STANDALONE.toString().equals(
+          cluster.getSpec().getCoordinator()
+          .getConfigurationsForCoordinator().getShardingSphere().getMode().getType())
           && cluster.getSpec().getCoordinator().getInstances() > 1) {
         failWithReasonAndFields(constraintViolationUri,
             "Standalone mode can not be set with more than 1 coordinator instances",
@@ -98,10 +98,10 @@ public class ShardingSphereValidator implements ShardedClusterValidator {
       if (StackGresShardingSphereModeType.STANDALONE.equals(
           StackGresShardingSphereModeType.fromString(cluster.getSpec().getCoordinator()
               .getConfigurationsForCoordinator().getShardingSphere().getMode().getType()))
-          && !StackGresShardingSphereRepositoryType.MEMORY.equals(
-              StackGresShardingSphereRepositoryType.fromString(cluster.getSpec().getCoordinator()
-                  .getConfigurationsForCoordinator().getShardingSphere().getMode()
-                  .getRepository().getType()))) {
+          && !StackGresShardingSphereRepositoryType.MEMORY.toString().equals(
+              cluster.getSpec().getCoordinator()
+              .getConfigurationsForCoordinator().getShardingSphere().getMode()
+              .getRepository().getType())) {
         failWithReasonAndFields(constraintViolationUri,
             "Standalone mode can only be used with repository type Memory",
             shardingSphereModeTypeField,

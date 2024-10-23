@@ -28,7 +28,7 @@ run() {
   if kill -0 "$PID" 2>/dev/null
   then
     kill_with_childs "$PID"
-    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+    retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Lock lost:\n'; cat /tmp/try-lock; } | to_json_string)"'}
       ]'
     cat /tmp/try-lock
@@ -96,20 +96,20 @@ get_backup_crs() {
   SHARDED_BACKUP_CR_TEMPLATE="${SHARDED_BACKUP_CR_TEMPLATE}:{{ with .metadata.labels }}{{ with index . \"$SCHEDULED_SHARDED_BACKUP_KEY\" }}{{ . }}{{ end }}{{ end }}"
   SHARDED_BACKUP_CR_TEMPLATE="${SHARDED_BACKUP_CR_TEMPLATE}:{{ range .status.sgBackups }}{{ . }},{{ end }}"
   SHARDED_BACKUP_CR_TEMPLATE="${SHARDED_BACKUP_CR_TEMPLATE}{{ printf "'"\n"'" }}{{ end }}"
-  kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
+  retry kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
     --template="$SHARDED_BACKUP_CR_TEMPLATE" > /tmp/all-sharded-backups-in-namespace
   grep "^$SHARDED_CLUSTER_NAME:" /tmp/all-sharded-backups-in-namespace > /tmp/sharded-backups-in-namespace
   true > /tmp/all-sharded-backups
   local CLUSTER_SHARDED_BACKUP_NAMESPACE
   for CLUSTER_SHARDED_BACKUP_NAMESPACE in $CLUSTER_SHARDED_BACKUP_NAMESPACES
   do
-    kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_SHARDED_BACKUP_NAMESPACE" \
+    retry kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_SHARDED_BACKUP_NAMESPACE" \
       --template="$SHARDED_BACKUP_CR_TEMPLATE" >> /tmp/all-sharded-backups
   done
   grep "^$CLUSTER_NAMESPACE.$SHARDED_CLUSTER_NAME:" /tmp/all-sharded-backups > /tmp/sharded-backups-out-of-namespace
   cat /tmp/sharded-backups-in-namespace /tmp/sharded-backups-out-of-namespace > /tmp/sharded-backups
 
-  kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
+  retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
     --template="{{ range .items }}{{ printf \"%s\n\" .metadata.name }}{{ end }}" > /tmp/all-backups-in-namespace
   cat /tmp/all-backups-in-namespace > /tmp/backups
 }
@@ -120,17 +120,17 @@ create_or_update_backup_cr() {
   then
     SHARDED_BACKUP_MANAGED_LIFECYCLE=false
   fi
-  SHARDED_BACKUP_STATUS_YAML=$(cat << SHARDED_BACKUP_STATUS_YAML_EOF
+  SHARDED_BACKUP_STATUS_YAML="$(cat << SHARDED_BACKUP_STATUS_YAML_EOF
 status:
   process:
     jobPod: "$POD_NAME"
 SHARDED_BACKUP_STATUS_YAML_EOF
-  )
+  )"
 
   if ! kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o name >/dev/null 2>&1
   then
     echo "Creating backup CR"
-    SHARDED_BACKUP_YAML="$(cat << EOF
+    cat << EOF | tee > /tmp/backup-to-create
 apiVersion: $SHARDED_BACKUP_CRD_APIVERSION
 kind: $SHARDED_BACKUP_CRD_KIND
 metadata:
@@ -146,21 +146,20 @@ spec:
   managedLifecycle: $SHARDED_BACKUP_MANAGED_LIFECYCLE
 $SHARDED_BACKUP_STATUS_YAML
 EOF
-)"
-    printf %s "$SHARDED_BACKUP_YAML" | kubectl create -f - -o json > /tmp/created-sharded-backup
+    retry kubectl create -f /tmp/backup-to-create -o json > /tmp/created-sharded-backup
     SHARDED_BACKUP_UID="$(jq .metadata.uid /tmp/created-sharded-backup)"
   else
-    if ! kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --template="{{ .status.process.status }}" \
+    if ! retry kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --template="{{ .status.process.status }}" \
       | grep -q "^$SHARDED_BACKUP_PHASE_COMPLETED$"
     then
       DRY_RUN_CLIENT=$(kubectl version --client=true -o json | jq -r 'if (.clientVersion.minor | tonumber) < 18 then "true" else "client" end')
       echo "Updating backup CR"
-      SHARDED_BACKUP_YAML="$(
-        (
-          kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o yaml
-          echo "$SHARDED_BACKUP_STATUS_YAML"
-        ) | kubectl create --dry-run="$DRY_RUN_CLIENT" -f - -o json)"
-      kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o yaml --type merge --patch "$SHARDED_BACKUP_YAML"
+      {
+        retry kubectl get "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o yaml
+        printf '%s\n' "$SHARDED_BACKUP_STATUS_YAML"
+      } | kubectl create --dry-run="$DRY_RUN_CLIENT" -f - -o json | tee /tmp/backup-to-patch
+      retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" -o yaml \
+        --type merge --patch-file /tmp/backup-to-patch
     else
       SHARDED_BACKUP_ALREADY_COMPLETED=true
     fi
@@ -168,13 +167,13 @@ EOF
 }
 
 get_primary_pod() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
+  retry kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
   if [ ! -s /tmp/current-primary ]
   then
-    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+    retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":"Unable to find coordinator primary, backup aborted"}
       ]'
-    kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS}" >&2
+    kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS}" >&2 || true
     echo "Unable to find cooridnator primary, backup aborted" > /tmp/backup-push
     exit 1
   fi
@@ -200,7 +199,7 @@ do_backup() {
     BACKUP_NAME="${SHARDED_BACKUP_NAME}-${CLUSTER_NAME#${SHARDED_CLUSTER_NAME}-}"
     echo "Creating $BACKUP_CRD_KIND $BACKUP_NAME for $CLUSTER_CRD_KIND $CLUSTER_NAME"
     echo "$BACKUP_NAME" >> /tmp/current-backups
-    BACKUP_YAML="$(cat << EOF
+    cat << EOF | tee /tmp/backup-to-create-backup
 apiVersion: $BACKUP_CRD_APIVERSION
 kind: $BACKUP_CRD_KIND
 metadata:
@@ -218,11 +217,11 @@ spec:
   reconciliationTimeout: $SHARDED_BACKUP_RECONCILIATION_TIMEOUT
   maxRetries: 0
 EOF
-)"
-    if ! printf %s "$BACKUP_YAML" | kubectl create -f - > /tmp/backup-create-backup 2>&1
+
+    if ! retry kubectl replace --force -f /tmp/backup-to-create-backup > /tmp/backup-create-backup 2>&1
     then
       cat /tmp/backup-create-backup > /tmp/backup-push
-      kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+      retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-create-backup; } | to_json_string)"'}
         ]'
       exit 1
@@ -241,24 +240,24 @@ EOF
     do
       if ! grep -qxF "$BACKUP_NAME" /tmp/completed-backups
       then
-        BACKUP_STATUS="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+        BACKUP_STATUS="$(retry kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
           --template='{{ .status.process.status }} {{ .status.backupInformation.size.compressed }} {{ .status.backupInformation.size.uncompressed }}')"
-        if ! printf %s "$BACKUP_STATUS" | grep -q "^\($BACKUP_PHASE_COMPLETED\|$BACKUP_PHASE_FAILED\) "
+        if [ "x$BACKUP_STATUS" != x ] && ! printf %s "$BACKUP_STATUS" | grep -q "^\($BACKUP_PHASE_COMPLETED\|$BACKUP_PHASE_FAILED\) "
         then
           COMPLETED=false
           continue
         fi
-        printf %s "$BACKUP_NAME" >> /tmp/completed-backups
-        BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
-        BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
-        if printf %s "$BACKUP_STATUS" | grep -q "^$BACKUP_PHASE_FAILED "
+        if [ "x$BACKUP_STATUS" = x ] || printf %s "$BACKUP_STATUS" | grep -q "^$BACKUP_PHASE_FAILED "
         then
           echo "Backup $BACKUP_NAME failed" > /tmp/backup-push
-          kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+          retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
             {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup failed: Backup %s failed' "$BACKUP_NAME" | to_json_string)"'}
             ]'
           exit 1
         fi
+        printf %s "$BACKUP_NAME" >> /tmp/completed-backups
+        BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
+        BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
         echo "...$BACKUP_NAME completed"
       fi
     done
@@ -284,7 +283,7 @@ create_backup_restore_point() {
   echo "Creating restore point $SHARDED_BACKUP_NAME"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
-psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -302,7 +301,7 @@ EOF
   if [ "$(cat /tmp/backup-restore-point-exit-code)" != 0 ]
   then
     cat /tmp/backup-restore-point > /tmp/backup-push
-    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+    retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point; } | to_json_string)"'}
       ]'
     exit 1
@@ -311,7 +310,7 @@ EOF
   echo "Retrieving latest LSNs"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-lsns-exit-code; } | tee /tmp/backup-restore-point-lsns
-psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -331,7 +330,7 @@ EOF
   if [ "$(cat /tmp/backup-restore-point-lsns-exit-code)" != 0 ]
   then
     cat /tmp/backup-restore-point-lsns > /tmp/backup-push
-    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+    retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point-lsns; } | to_json_string)"'}
       ]'
     exit 1
@@ -340,7 +339,7 @@ EOF
   echo "Creating checkpoint and rotate the WALs"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-checkpoint-exit-code; } | tee /tmp/backup-restore-point-checkpoint
-psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -364,7 +363,7 @@ EOF
   if [ "$(cat /tmp/backup-restore-point-checkpoint-exit-code)" != 0 ]
   then
     cat /tmp/backup-restore-point-checkpoint > /tmp/backup-push
-    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+    retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point-checkpoint; } | to_json_string)"'}
       ]'
     exit 1
@@ -378,7 +377,7 @@ EOF
   do
     cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
         -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-current-lnss-exit-code; } | tee /tmp/backup-restore-point-current-lnss
-psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+psql -q -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
 $(
   if [ "$SHARDING_TYPE" = citus ]
   then
@@ -398,7 +397,7 @@ EOF
     if [ "$(cat /tmp/backup-restore-point-current-lnss-exit-code)" != 0 ]
     then
       cat /tmp/backup-restore-point-current-lnss > /tmp/backup-push
-      kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+      retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point-current-lnss; } | to_json_string)"'}
         ]'
       exit 1
@@ -421,39 +420,34 @@ EOF
 }
 
 set_backup_completed() {
-  SHARDED_BACKUP_PATCH='[
-    {"op":"replace","path":"/status/sgBackups","value":['"$(cat /tmp/current-backups \
-      | sed 's/^\(.*\)$/"\1"/' | tr '\n' ',' | sed 's/,$//')"']},
-    {"op":"replace","path":"/status/process/failure","value":""},
-    {"op":"replace","path":"/status/process/timing","value":{
-        "stored":"'"$(date_iso8601)"'",
-        "start":"'"$(cat /tmp/current-start-time)"'",
-        "end":"'"$(cat /tmp/current-end-time)"'"
-      }
-    },
-    {"op":"replace","path":"/status/backupInformation","value":{
-        "postgresVersion":"'"$POSTGRES_VERSION"'",
-        "size":{
-          "uncompressed":'"$(cat /tmp/current-uncompressed-size)"',
-          "compressed":'"$(cat /tmp/current-compressed-size)"'
-        }
+  cat << EOF | tee /tmp/backup-to-patch
+[
+  {"op":"replace","path":"/status/sgBackups","value":[$(
+    cat /tmp/current-backups \
+      | sed 's/^\(.*\)$/"\1"/' | tr '\n' ',' | sed 's/,$//'
+  )]},
+  {"op":"replace","path":"/status/process/failure","value":""},
+  {"op":"replace","path":"/status/process/timing","value":{
+      "stored":"$(date_iso8601)",
+      "start":"$(cat /tmp/current-start-time)",
+      "end":"$(cat /tmp/current-end-time)"
+    }
+  },
+  {"op":"replace","path":"/status/backupInformation","value":{
+      "postgresVersion":"$POSTGRES_VERSION",
+      "size":{
+        "uncompressed":$(cat /tmp/current-uncompressed-size),
+        "compressed":$(cat /tmp/current-compressed-size)
       }
     }
-  ]'
-  RETRY=0
-  until kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch "$SHARDED_BACKUP_PATCH"
-  do
-    if [ "$RETRY" -gt 10 ]
-    then
-      exit 1
-    fi
-    sleep "$((RETRY_DELAY << RETRY > 60 * 1000 ? 60 * 1000 : RETRY_DELAY << RETRY))"
-    RETRY="$((RETRY + 1))"
-  done
+  }
+]
+EOF
+  retry kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch-file /tmp/backup-to-patch
 }
 
 reconcile_backup_crs() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  retry kubectl get pod -n "$CLUSTER_NAMESPACE" \
     --template="{{ range .items }}{{ .metadata.name }}{{ printf "'"\n"'" }}{{ end }}" \
     > /tmp/pods
   for SHARDED_BACKUP in $(cat /tmp/sharded-backups)
@@ -476,7 +470,7 @@ reconcile_backup_crs() {
     if "$MISSING_BACKUP"
     then
       echo "Deleting backup CR $SHARDED_BACKUP_CR_NAME since a referenced $BACKUP_CRD_KIND is missing"
-      kubectl delete "$SHARDED_BACKUP_CRD_NAME" -n "$SHARDED_BACKUP_CR_NAMESPACE" "$SHARDED_BACKUP_CR_NAME"
+      retry kubectl delete "$SHARDED_BACKUP_CRD_NAME" -n "$SHARDED_BACKUP_CR_NAMESPACE" "$SHARDED_BACKUP_CR_NAME"
     fi
     # if backup CR is a scheduled backup, is marked as running, has no pod or pod
     # has been terminated, delete it
@@ -485,7 +479,7 @@ reconcile_backup_crs() {
       && ([ -z "$SHARDED_BACKUP_POD" ] || ! grep -q "^$SHARDED_BACKUP_POD$" /tmp/pods)
     then
       echo "Deleting backup CR $SHARDED_BACKUP_CR_NAME since backup is running but pod does not exists"
-      kubectl delete "$SHARDED_BACKUP_CRD_NAME" -n "$SHARDED_BACKUP_CR_NAMESPACE" "$SHARDED_BACKUP_CR_NAME"
+      retry kubectl delete "$SHARDED_BACKUP_CRD_NAME" -n "$SHARDED_BACKUP_CR_NAMESPACE" "$SHARDED_BACKUP_CR_NAME"
     fi
   done
 }

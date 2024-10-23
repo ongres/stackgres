@@ -110,8 +110,7 @@ public class ShardedClusterValidator implements ShardedBackupValidator {
     if (clusterOpt
         .map(StackGresShardedCluster::getSpec)
         .map(StackGresShardedClusterSpec::getType)
-        .map(StackGresShardingType::fromString)
-        .map(StackGresShardingType.SHARDING_SPHERE::equals)
+        .map(StackGresShardingType.SHARDING_SPHERE.toString()::equals)
         .orElse(false)) {
       fail(onError);
     }

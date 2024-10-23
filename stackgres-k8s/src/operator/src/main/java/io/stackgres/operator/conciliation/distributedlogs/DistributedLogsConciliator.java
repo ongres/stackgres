@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResource;
@@ -32,11 +33,12 @@ public class DistributedLogsConciliator extends AbstractConciliator<StackGresDis
   @Inject
   public DistributedLogsConciliator(
       KubernetesClient client,
+      CustomResourceFinder<StackGresDistributedLogs> finder,
       RequiredResourceGenerator<StackGresDistributedLogs> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresDistributedLogs> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache,
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
-    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
     this.labelFactory = labelFactory;
   }
 

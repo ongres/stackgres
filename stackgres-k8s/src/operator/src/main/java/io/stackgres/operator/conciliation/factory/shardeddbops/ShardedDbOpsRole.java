@@ -136,7 +136,7 @@ public class ShardedDbOpsRole implements ResourceGenerator<StackGresShardedDbOps
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresDbOps.class))
-            .withVerbs("get", "list", "watch", "create", "patch", "update")
+            .withVerbs("get", "list", "watch", "create", "patch", "update", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)

@@ -24,7 +24,7 @@ e2e_test_install() {
 
   PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template '{{ (index .data "superuser-password") | base64decode }}')"
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME -s 10"
 }
 
@@ -52,9 +52,9 @@ benchmark_cluster_horizontal_autoscaling() {
     --set 'cluster.autoscaling.horizontal.cooldownPeriod=2' \
     --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05'
 
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT / 2))' -C -c 20 -j 20 --progress=5 --log --log-prefix=/tmp/pgbench_log --failures-detailed --aggregate-interval='$((E2E_TIMEOUT / 20))' -h $CLUSTER_NAME-replicas -S" 2>&1 | tee "$LOG_PATH/bench" &
   CONNECTION_BENCH_PID="$!"
   trap_kill "$CONNECTION_BENCH_PID"
@@ -68,7 +68,7 @@ benchmark_cluster_horizontal_autoscaling() {
   else
     echo "FAIL: KEDA can not scale the cluster based on connections"
     kill "$CONNECTION_BENCH_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
@@ -80,14 +80,14 @@ benchmark_cluster_horizontal_autoscaling() {
   else
     echo "FAIL: Benchmark not terminated succesfully"
     kill "$CONNECTION_BENCH_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
   kill "$CONNECTION_BENCH_PID" || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
   echo "Test results"
   echo
   cat "$LOG_PATH/bench"

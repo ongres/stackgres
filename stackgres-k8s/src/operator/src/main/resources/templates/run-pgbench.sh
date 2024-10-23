@@ -80,14 +80,14 @@ run_pgbench() {
 
   if [ "x$DATABASE" = x ]
   then
-    DATABASE_EXISTS="$(psql -t -A \
+    DATABASE_EXISTS="$(psql -q -t -A \
       -c "SELECT EXISTS (SELECT * FROM pg_database WHERE datname = '$DATABASE_NAME')")"
     if [ "$DATABASE_EXISTS" != 'f' ]
     then
       try_drop_pgbench_database
     fi
 
-    try_function_with_output psql -c "CREATE DATABASE $DATABASE_NAME"
+    try_function_with_output psql -q -c "CREATE DATABASE $DATABASE_NAME"
     if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
     then
       create_event_service "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
@@ -100,7 +100,7 @@ run_pgbench() {
   create_event_service "BenchmarkInitializationStarted" "Normal" "Benchamrk initialization started"
   if [ -s "$SHARED_PATH/init-script.sql" ]
   then
-    try_function_with_output psql -t -A -d "$DATABASE_NAME" -f "$SHARED_PATH/init-script.sql"
+    try_function_with_output psql -q -t -A -d "$DATABASE_NAME" -f "$SHARED_PATH/init-script.sql"
     if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
     then
       create_event_service "BenchmarkInitialized" "Normal" "Benchamrk initialized"
@@ -132,7 +132,7 @@ run_pgbench() {
   if ! "$READ_WRITE"
   then
     create_event_service "BenchmarkPostInitializationStarted" "Normal" "Benchamrk post initialization started"
-    until [ "$(PGHOST="$PRIMARY_PGHOST" psql -t -A -d "$DATABASE_NAME" \
+    until [ "$(PGHOST="$PRIMARY_PGHOST" psql -q -t -A -d "$DATABASE_NAME" \
       -c "SELECT NOT EXISTS (SELECT * FROM pg_stat_replication WHERE replay_lsn != pg_current_wal_lsn())")" = "t" ]
     do
       sleep 1
@@ -192,7 +192,7 @@ try_drop_pgbench_database() {
   DROP_RETRY=3
   while [ "$DROP_RETRY" -ge 0 ]
   do
-    try_function_with_output psql \
+    try_function_with_output psql -q \
       -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DATABASE_NAME' AND pid != pg_backend_pid()" \
       -c "DROP DATABASE $DATABASE_NAME"
     if [ "$(cat "$SHARED_PATH/exit_code")" = 0 ]
