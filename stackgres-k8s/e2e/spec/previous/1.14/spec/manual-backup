@@ -1,0 +1,120 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/backup"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/backup")"
+}
+
+e2e_test_install() {
+  install_minio
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  # Avoid backups before waiting for pods (since backup pods could biase the wait)
+  enable_cluster_cron_schedule
+}
+
+e2e_test() {
+  run_test "Checking that manual backup is working" check_manual_backup_is_working
+}
+
+check_manual_backup_is_working() {
+  check_manual_backup 0
+}
+
+check_manual_backup() {
+  local NODE="${1:-0}"
+  local BACKUP_NAME
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)")"
+  local BACKUP_2_NAME
+  BACKUP_2_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)-2")"
+  local BACKUP_3_NAME
+  BACKUP_3_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)-3")"
+  local ACTUAL_BACKUP_NAME
+
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
+
+  create_backup "$BACKUP_NAME" false
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+      -o name | wc -l)" -gt 0 ]'
+  then
+    success "The manual backup CR is running"
+  else
+    fail "The manual backup CR is not running"
+  fi
+
+  wait_backup_is_completed "$BACKUP_NAME" "$NODE"
+
+  ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}' \
+    | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+
+  if [ -z "$ACTUAL_BACKUP_NAME" ]
+  then
+    fail "Backup name not found"
+  fi
+
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
+  then
+    success "The full backup of created CR is available"
+  else
+    fail "The full backup of created CR is not available"
+  fi
+
+  check_is_managed_lifecycle_value "$BACKUP_NAME" false
+
+  kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":true}]'
+
+  create_backup "$BACKUP_2_NAME" false
+
+  wait_until check_is_managed_lifecycle_value "$BACKUP_NAME" true
+
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    fail "Default annotations not created"
+  else
+    success "Defaults annotations created"
+  fi
+
+  create_backup "$BACKUP_3_NAME" false
+
+  if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
+  then
+    success "The backup retention has been honored. Old backups deleted"
+  else
+    fail "The backup retention has not been honored. Old backups not deleted"
+  fi
+
+  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
+  then
+    success "The backup retention has been honored. Remaining backups are 2"
+  else
+    fail "The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
+  fi
+
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_2_NAME" --ignore-not-found
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME" --ignore-not-found
+
+  if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
+  then
+    success "The full backup of deleted CR has been removed"
+  else
+    fail "The full backup of deleted CR has not been removed"
+  fi
+}

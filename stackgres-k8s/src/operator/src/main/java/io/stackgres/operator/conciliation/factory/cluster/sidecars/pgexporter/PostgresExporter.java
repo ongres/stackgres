@@ -30,7 +30,6 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.Volume;
@@ -63,7 +62,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(StackGresContainer.POSTGRES_EXPORTER)
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_13)
+@OperatorVersionBinder
 @RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<ClusterContainerContext>,
         VolumeFactory<StackGresClusterContext> {
