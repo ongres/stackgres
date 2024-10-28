@@ -15,18 +15,18 @@ import io.stackgres.common.StackGresUtil;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClusterObservability {
 
-  private Boolean diableMetrics;
+  private Boolean disableMetrics;
 
   private String receiver;
 
   private Boolean prometheusAutobind;
 
-  public Boolean getDiableMetrics() {
-    return diableMetrics;
+  public Boolean getDisableMetrics() {
+    return disableMetrics;
   }
 
-  public void setDiableMetrics(Boolean diableMetrics) {
-    this.diableMetrics = diableMetrics;
+  public void setDisableMetrics(Boolean disableMetrics) {
+    this.disableMetrics = disableMetrics;
   }
 
   public String getReceiver() {

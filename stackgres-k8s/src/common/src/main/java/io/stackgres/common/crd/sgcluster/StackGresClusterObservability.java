@@ -21,18 +21,18 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterObservability {
 
-  private Boolean diableMetrics;
+  private Boolean disableMetrics;
 
   private String receiver;
 
   private Boolean prometheusAutobind;
 
-  public Boolean getDiableMetrics() {
-    return diableMetrics;
+  public Boolean getDisableMetrics() {
+    return disableMetrics;
   }
 
-  public void setDiableMetrics(Boolean diableMetrics) {
-    this.diableMetrics = diableMetrics;
+  public void setDisableMetrics(Boolean disableMetrics) {
+    this.disableMetrics = disableMetrics;
   }
 
   public String getReceiver() {
@@ -53,7 +53,7 @@ public class StackGresClusterObservability {
 
   @Override
   public int hashCode() {
-    return Objects.hash(diableMetrics, prometheusAutobind, receiver);
+    return Objects.hash(disableMetrics, prometheusAutobind, receiver);
   }
 
   @Override
@@ -65,7 +65,7 @@ public class StackGresClusterObservability {
       return false;
     }
     StackGresClusterObservability other = (StackGresClusterObservability) obj;
-    return Objects.equals(diableMetrics, other.diableMetrics)
+    return Objects.equals(disableMetrics, other.disableMetrics)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
         && Objects.equals(receiver, other.receiver);
   }

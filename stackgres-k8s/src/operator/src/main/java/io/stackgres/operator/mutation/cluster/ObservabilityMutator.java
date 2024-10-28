@@ -5,7 +5,8 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import io.stackgres.common.StackGresVersion;
+import java.util.Optional;
+
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterObservability;
@@ -17,32 +18,48 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class ObservabilityMutator implements ClusterMutator {
 
-  private static final long V_1_13 = StackGresVersion.V_1_13.getVersionAsNumber();
-
   @Override
   public StackGresCluster mutate(StackGresClusterReview review, StackGresCluster resource) {
     if (review.getRequest().getOperation() != Operation.CREATE
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
-    long version = StackGresVersion.getStackGresVersionFromResourceAsNumber(resource);
-    if (version <= V_1_13) {
-      if (resource.getSpec() == null) {
-        resource.setSpec(new StackGresClusterSpec());
-      }
-      if (resource.getSpec().getConfigurations() == null) {
-        resource.getSpec().setConfigurations(new StackGresClusterConfigurations());
-      }
-      if (resource.getSpec().getConfigurations().getObservability() == null) {
-        resource.getSpec().getConfigurations().setObservability(new StackGresClusterObservability());
-      }
+    if (resource.getSpec() == null) {
+      resource.setSpec(new StackGresClusterSpec());
+    }
+    if (resource.getSpec().getConfigurations() == null) {
+      resource.getSpec().setConfigurations(new StackGresClusterConfigurations());
+    }
+    if (resource.getSpec().getConfigurations().getObservability() == null) {
+      resource.getSpec().getConfigurations().setObservability(new StackGresClusterObservability());
+    }
+
+    var oldObservability = Optional.ofNullable(review.getRequest().getOldObject())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getObservability);
+    if (oldObservability
+        .map(StackGresClusterObservability::getDisableMetrics)
+        .map(disableMetrics -> disableMetrics.equals(
+            resource.getSpec().getConfigurations().getObservability().getDisableMetrics()))
+        .orElse(resource.getSpec().getConfigurations().getObservability().getDisableMetrics() == null)) {
       resource.getSpec().getConfigurations().getObservability()
-          .setDiableMetrics(resource.getSpec().getPods().getDisableMetricsExporter());
-      resource.getSpec().getPods().setDisableMetricsExporter(null);
+          .setDisableMetrics(resource.getSpec().getPods().getDisableMetricsExporter());
+    }
+    resource.getSpec().getPods().setDisableMetricsExporter(
+        resource.getSpec().getConfigurations().getObservability().getDisableMetrics());
+
+    if (oldObservability
+        .map(StackGresClusterObservability::getPrometheusAutobind)
+        .map(prometheusAutobind -> prometheusAutobind.equals(
+            resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind()))
+        .orElse(resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind() == null)) {
       resource.getSpec().getConfigurations().getObservability()
           .setPrometheusAutobind(resource.getSpec().getPrometheusAutobind());
-      resource.getSpec().setPrometheusAutobind(null);
     }
+    resource.getSpec().setPrometheusAutobind(
+        resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind());
+
     return resource;
   }
 
