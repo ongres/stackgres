@@ -714,8 +714,15 @@ check_cluster_before_security_upgrade() {
     PATRONI_CONFIG="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_CONFIG_ENDPOINTS_NAME" --template '{{ .metadata.annotations.config }}')"
     PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
       | if .synchronous_mode then . else del(.synchronous_node_count) end
-      | del(.postgresql.pg_hba)
       ')"
+    PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+    VERSION_AS_NUMBER_1_13_0="$(get_version_as_number 1.13.0-SNAPSHOT)"
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_13_0" ]
+    then
+      PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
+        | del(.postgresql.pg_hba)
+        ')"
+    fi
     jq -Sc '.
       | if .synchronous_mode then . else del(.synchronous_node_count) end
       | .postgresql.parameters = (.postgresql.parameters

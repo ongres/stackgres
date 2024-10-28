@@ -385,6 +385,55 @@ spec:
                    a configured target (by default will expose a Prometheus exporter).
                   
                   See receivers section to scale this architecture to a set of OpenTelemetry Collectors.
+                default:
+                  service:
+                    spec:
+                      type: ClusterIP
+                      ports:
+                        - name: prom-http
+                          protocol: TCP
+                          port: 9464
+                          targetPort: prom-http
+                  ports:
+                  - name: prom-http
+                    protocol: TCP
+                    containerPort: 9464    
+                  config:
+                    receivers:
+                      otlp:
+                        protocols:
+                          grpc:
+                            endpoint: "0.0.0.0:4317"
+                            tls:
+                              ca_file: "/etc/operator/certs/tls.crt"
+                              cert_file: "/etc/operator/certs/tls.crt"
+                              key_file: "/etc/operator/certs/tls.key"
+                    exporters:
+                      prometheus:
+                        endpoint: "0.0.0.0:9464"
+                        tls:
+                          ca_file: "/etc/operator/certs/tls.crt"
+                          cert_file: "/etc/operator/certs/tls.crt"
+                          key_file: "/etc/operator/certs/tls.key"
+                          reload_interval: 10m
+                        send_timestamps: true
+                        metric_expiration: 180m
+                        enable_open_metrics: false
+                        resource_to_telemetry_conversion:
+                          enabled: false
+                      otlp:
+                        endpoint: stackgres-collector:4317
+                        tls:
+                          ca_file: "/etc/operator/certs/tls.crt"
+                    service:
+                      pipelines:
+                        metrics:
+                          receivers:
+                          - prometheus
+                          exporters:
+                          - prometheus
+                  prometheusOperator:
+                    allowDiscovery: true
                 properties:
                   name:
                     type: string
@@ -526,20 +575,9 @@ spec:
                         type: object
                         x-kubernetes-preserve-unknown-fields: true
                         description: Section to configure OpenTelemetry Collector Service specs. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#servicespec-v1-core
-                        default:
-                          type: ClusterIP
-                          ports:
-                            - name: prom-http
-                              protocol: TCP
-                              port: 9464
-                              targetPort: prom-http
                   ports:
                     type: array
                     description: Section to configure OpenTelemetry Collector ports. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#containerport-v1-core
-                    default:
-                    - name: prom-http
-                      protocol: TCP
-                      containerPort: 9464    
                     items:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
@@ -559,41 +597,6 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                     description: Section to configure OpenTelemetry Collector Configuration. See https://opentelemetry.io/docs/collector/configuration
-                    default:
-                      config:
-                        receivers:
-                          otlp:
-                            protocols:
-                              grpc:
-                                endpoint: "0.0.0.0:4317"
-                                tls:
-                                  ca_file: "/etc/operator/certs/tls.crt"
-                                  cert_file: "/etc/operator/certs/tls.crt"
-                                  key_file: "/etc/operator/certs/tls.key"
-                        exporters:
-                          prometheus:
-                            endpoint: "0.0.0.0:9464"
-                            tls:
-                              ca_file: "/etc/operator/certs/tls.crt"
-                              cert_file: "/etc/operator/certs/tls.crt"
-                              key_file: "/etc/operator/certs/tls.key"
-                              reload_interval: 10m
-                            send_timestamps: true
-                            metric_expiration: 180m
-                            enable_open_metrics: false
-                            resource_to_telemetry_conversion:
-                              enabled: false
-                          otlp:
-                            endpoint: stackgres-collector:4317
-                            tls:
-                              ca_file: "/etc/operator/certs/tls.crt"
-                        service:
-                          pipelines:
-                            metrics:
-                              receivers:
-                              - prometheus
-                              exporters:
-                              - prometheus
                   prometheusOperator:
                     type: object
                     description: Section to configure OpenTelemetry Collector integration with Prometheus Operator.
@@ -1079,6 +1082,27 @@ spec:
                         description: |
                           If set, will use a host path volume with the specified path for the extensions cache
                            instead of a PersistentVolume
+              pga:
+                type: object
+                description: Section to configure PGA
+                properties:
+                  repositoryUrls:
+                    type: array
+                    default:
+                    - https://pga.sh
+                    description: |
+                      A list of PGA repository URLs used to retrieve images
+                      
+                      To set a proxy for PGA repository add parameter proxyUrl to the URL:
+                          `https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
+                      
+                      Other URL parameters are:
+                      
+                      * `skipHostnameVerification`: set it to `true` in order to use a server or a proxy with a self signed certificate
+                      * `retry`: set it to `<max retriex>[:<sleep before next retry>]` in order to retry a request on failure
+                      * `setHttpScheme`: set it to `true` in order to force using HTTP scheme
+                    items:
+                      type: string
               shardingSphere:
                 type: object
                 description: Section to configure integration with ShardingSphere operator
@@ -1149,6 +1173,12 @@ spec:
                   externalRestApiPort:
                     type: integer
                     description: Set the external REST API port
+                  externalPgaIp:
+                    type: string
+                    description: Set the external PGA IP
+                  externalPgaPort:
+                    type: integer
+                    description: Set the external PGA port
                   allowPullExtensionsFromImageRepository:
                     type: boolean
                     default: false
