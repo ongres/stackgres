@@ -1,5 +1,17 @@
 #!/bin/sh
 
+E2E_OLM_VERSION="${E2E_OLM_VERSION:-0.28.0}"
+
+. "$SPEC_PATH/abstract/metrics"
+
+e2e_test_extra_hash() {
+  printf 'E2E_OLM_VERSION=%s\n' "$E2E_OLM_VERSION"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "stackgres-k8s/install/operator-sdk"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
+}
+
 e2e_exclusive_lock() {
   true
 }
@@ -41,6 +53,8 @@ e2e_test() {
   run_test "Check that operator can be installed" check_operator_install
 
   run_test "Check that resources can be created" check_resources_creation
+
+  run_test "Checking that metrics are exported" check_metrics "$CLUSTER_1_NAME"
 
   run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
 
@@ -535,7 +549,8 @@ e2e_install_olm() {
       || ! kubectl get clusterrole system:controller:operator-lifecycle-manager 2>/dev/null
     wait_until eval '! kubectl get namespace olm > /dev/null 2>&1'
     operator-sdk olm install \
-      --timeout "${E2E_TIMEOUT}s"
+      --timeout "${E2E_TIMEOUT}s" \
+      --version "$E2E_OLM_VERSION"
   fi
 
   CATALOG_IMAGE_NAME="${E2E_CATALOG_IMAGE_REGISTRY:-$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
