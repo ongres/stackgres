@@ -369,13 +369,13 @@ cleanup_spec(){
   then
     for FUNCTION in $E2E_TEST_UNINSTALL_FUNCTION
     do
-      "$FUNCTION"
+      "$FUNCTION" || true
     done
   fi
 
   for FUNCTION in $E2E_TEST_AFTER_ALL_FUNCTION
   do
-    "$FUNCTION"
+    "$FUNCTION" || true
   done
 }
 
