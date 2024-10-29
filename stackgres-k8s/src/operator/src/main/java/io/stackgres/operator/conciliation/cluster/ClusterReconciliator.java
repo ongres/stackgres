@@ -27,6 +27,7 @@ import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -52,6 +53,7 @@ public class ClusterReconciliator
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject ObjectMapper objectMapper;
     @Inject OperatorLockHolder operatorLockReconciliator;
+    @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
   }
 
   private final StatusManager<StackGresCluster, Condition> statusManager;
@@ -65,6 +67,7 @@ public class ClusterReconciliator
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
+        parameters.reconciliatorWorkerThreadPool,
         StackGresCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
@@ -81,8 +84,8 @@ public class ClusterReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(StackGresCluster configKey, boolean load) {
-    super.reconciliationCycle(configKey, load);
+  protected void reconciliationCycle(StackGresCluster configKey, int retry, boolean load) {
+    super.reconciliationCycle(configKey, retry, load);
   }
 
   @Override

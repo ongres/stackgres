@@ -84,7 +84,7 @@ class ClusterReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(cluster, false);
+    reconciliator.reconciliationCycle(cluster, 0, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     creations.forEach(resource -> verify(handlerDelegator).create(cluster, resource));
@@ -106,7 +106,7 @@ class ClusterReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(cluster, false);
+    reconciliator.reconciliationCycle(cluster, 0, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     patches.forEach(resource -> verify(handlerDelegator).patch(cluster, resource.v1, resource.v2));
@@ -125,7 +125,7 @@ class ClusterReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(cluster, false);
+    reconciliator.reconciliationCycle(cluster, 0, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     deletions.forEach(resource -> verify(handlerDelegator).delete(cluster, resource));

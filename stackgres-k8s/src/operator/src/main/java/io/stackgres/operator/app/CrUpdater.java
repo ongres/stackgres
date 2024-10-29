@@ -61,10 +61,17 @@ public class CrUpdater {
   }
 
   public void updateExistingCustomResources() {
-    LOGGER.info("Updating existing custom resources");
     var config = configFinder.findByNameAndNamespace(operatorName, sgConfigNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig " + sgConfigNamespace + "." + operatorName + " was not found"));
+    if (Optional.of(config)
+        .map(StackGresConfig::getStatus)
+        .map(StackGresConfigStatus::getExistingCrUpdatedToVersion)
+        .filter(StackGresProperty.OPERATOR_VERSION.getString()::equals)
+        .isPresent()) {
+      return;
+    }
+    LOGGER.info("Updating existing custom resources");
     crdLoader.scanCrds()
         .stream()
         .forEach(installedCrd -> {

@@ -82,7 +82,7 @@ class StreamReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(stream, false);
+    reconciliator.reconciliationCycle(stream, 0, false);
 
     verify(conciliator).evalReconciliationState(stream);
     creations.forEach(resource -> verify(handlerDelegator).create(stream, resource));
@@ -104,7 +104,7 @@ class StreamReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(stream, false);
+    reconciliator.reconciliationCycle(stream, 0, false);
 
     verify(conciliator).evalReconciliationState(stream);
     patches.forEach(resource -> verify(handlerDelegator).patch(stream, resource.v1, resource.v2));
@@ -123,7 +123,7 @@ class StreamReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(stream, false);
+    reconciliator.reconciliationCycle(stream, 0, false);
 
     verify(conciliator).evalReconciliationState(stream);
     deletions.forEach(resource -> verify(handlerDelegator).delete(stream, resource));

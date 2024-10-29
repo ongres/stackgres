@@ -82,7 +82,7 @@ class DbOpsReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(dbOps, false);
+    reconciliator.reconciliationCycle(dbOps, 0, false);
 
     verify(conciliator).evalReconciliationState(dbOps);
     creations.forEach(resource -> verify(handlerDelegator).create(dbOps, resource));
@@ -104,7 +104,7 @@ class DbOpsReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(dbOps, false);
+    reconciliator.reconciliationCycle(dbOps, 0, false);
 
     verify(conciliator).evalReconciliationState(dbOps);
     patches.forEach(resource -> verify(handlerDelegator).patch(dbOps, resource.v1, resource.v2));
@@ -123,7 +123,7 @@ class DbOpsReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(dbOps, false);
+    reconciliator.reconciliationCycle(dbOps, 0, false);
 
     verify(conciliator).evalReconciliationState(dbOps);
     deletions.forEach(resource -> verify(handlerDelegator).delete(dbOps, resource));

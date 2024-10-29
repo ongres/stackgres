@@ -87,7 +87,7 @@ class DistributedLogsReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(distributedlogs, false);
+    reconciliator.reconciliationCycle(distributedlogs, 0, false);
 
     verify(conciliator).evalReconciliationState(distributedlogs);
     creations.forEach(resource -> verify(handlerDelegator).create(distributedlogs, resource));
@@ -110,7 +110,7 @@ class DistributedLogsReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(distributedlogs, false);
+    reconciliator.reconciliationCycle(distributedlogs, 0, false);
 
     verify(conciliator).evalReconciliationState(distributedlogs);
     patches.forEach(resource -> verify(handlerDelegator)
@@ -131,7 +131,7 @@ class DistributedLogsReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(distributedlogs, false);
+    reconciliator.reconciliationCycle(distributedlogs, 0, false);
 
     verify(conciliator).evalReconciliationState(distributedlogs);
     deletions.forEach(resource -> verify(handlerDelegator)

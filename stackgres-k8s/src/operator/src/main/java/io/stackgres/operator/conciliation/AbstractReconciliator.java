@@ -14,6 +14,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -23,6 +25,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.RetryUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -30,6 +34,7 @@ import io.stackgres.operator.app.OperatorLockHolder;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +55,15 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   private final OperatorLockHolder operatorLockReconciliator;
   private final String reconciliationName;
   private final ExecutorService executorService;
-  private final AtomicReference<List<Optional<T>>> atomicReference =
-      new AtomicReference<List<Optional<T>>>(List.of());
+  private final ScheduledExecutorService scheduledExecutorService;
+  private final AtomicReference<List<Optional<Tuple2<T, Integer>>>> atomicReference =
+      new AtomicReference<>(List.of());
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
+  private final ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
+
+  private final int reconciliationInitialBackoff;
+  private final int reconciliationMaxBackoff;
+  private final int reconciliationBackoffVariation;
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
   private boolean close = false;
@@ -65,6 +76,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
       OperatorLockHolder operatorLockReconciliator,
+      ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool,
       String reconciliationName) {
     this.scanner = scanner;
     this.finder = finder;
@@ -76,6 +88,22 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.operatorLockReconciliator = operatorLockReconciliator;
     this.executorService = Executors.newSingleThreadExecutor(
         r -> new Thread(r, reconciliationName + "-ReconciliationLoop"));
+    this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
+        r -> new Thread(r, reconciliationName + "-ReconciliationScheduler"));
+    this.reconciliatorWorkerThreadPool = reconciliatorWorkerThreadPool;
+    this.reconciliationInitialBackoff = OperatorProperty.RECONCILIATION_INITIAL_BACKOFF
+        .get()
+        .map(Integer::parseInt)
+        .filter(initial -> initial > 0)
+        .orElse(5);
+    this.reconciliationMaxBackoff = OperatorProperty.RECONCILIATION_MAX_BACKOFF
+        .get()
+        .map(Integer::parseInt)
+        .orElse(300);
+    this.reconciliationBackoffVariation = OperatorProperty.RECONCILIATION_BACKOFF_VARIATION
+        .get()
+        .map(Integer::parseInt)
+        .orElse(10);
   }
 
   public AbstractReconciliator() {
@@ -89,6 +117,11 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.reconciliationName = null;
     this.operatorLockReconciliator = null;
     this.executorService = null;
+    this.scheduledExecutorService = null;
+    this.reconciliatorWorkerThreadPool = null;
+    this.reconciliationInitialBackoff = 0;
+    this.reconciliationMaxBackoff = 0;
+    this.reconciliationBackoffVariation = 0;
   }
 
   protected void start() {
@@ -113,12 +146,16 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   }
 
   public void reconcile(T config) {
-    reconcile(List.of(Optional.of(config)));
+    reconcile(List.of(Optional.of(Tuple.tuple(config, 0))));
+  }
+
+  private void reconcile(T config, Integer retry) {
+    reconcile(List.of(Optional.of(Tuple.tuple(config, retry))));
   }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
       justification = "We do not care if queue is already filled")
-  private void reconcile(List<Optional<T>> configs) {
+  private void reconcile(List<Optional<Tuple2<T, Integer>>> configs) {
     atomicReference.updateAndGet(atomicConfigs -> Seq
         .seq(atomicConfigs)
         .append(configs)
@@ -138,7 +175,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
           continue;
         }
         arrayBlockingQueue.take();
-        List<Optional<T>> configs = atomicReference.getAndSet(List.of());
+        List<Optional<Tuple2<T, Integer>>> configs = atomicReference.getAndSet(List.of());
         if (close) {
           break;
         }
@@ -151,27 +188,32 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     stopped.complete(null);
   }
 
-  protected void reconciliationsCycle(List<Optional<T>> configs) {
+  protected void reconciliationsCycle(List<Optional<Tuple2<T, Integer>>> configs) {
     mergedConfigs(configs).stream()
         .filter(t -> Optional.ofNullable(t.v1.getMetadata().getAnnotations())
             .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
             .map(Boolean::parseBoolean)
             .map(b -> !b)
             .orElse(true))
-        .forEach(t -> reconciliationCycle(t.v1, t.v2));
+        .forEach(t -> reconciliatorWorkerThreadPool.scheduleReconciliation(
+            () -> reconciliationCycle(t.v1, t.v2, t.v3),
+            t.v4,
+            t.v5));
   }
 
-  private List<Tuple2<T, Boolean>> mergedConfigs(List<Optional<T>> configs) {
-    if (configs.stream().anyMatch(Optional::isEmpty)) {
-      return getExistentSources().stream()
-          .map(config -> Tuple.tuple(config, false))
-          .toList();
-    }
-    return Seq.seq(configs)
-        .map(Optional::get)
-        .grouped(this::configId)
-        .flatMap(t -> t.v2.limit(1))
-        .map(config -> Tuple.tuple(config, true))
+  private List<Tuple5<T, Integer, Boolean, String, Boolean>> mergedConfigs(List<Optional<Tuple2<T, Integer>>> configs) {
+    var groupedConfigs = Seq.seq(configs)
+        .flatMap(Optional::stream)
+        .groupBy(t -> configId(t.v1));
+    return Seq.seq(groupedConfigs)
+        .map(config -> Tuple.tuple(
+            config.v2.getFirst().v1, config.v2.getFirst().v2, true, config.v1, true))
+        .append(Optional.of(configs.stream().anyMatch(Optional::isEmpty))
+            .filter(anyMatch -> anyMatch)
+            .stream()
+            .flatMap(ignored -> getExistentSources().stream())
+            .map(config -> Tuple.tuple(config, 0, true, configId(config), false))
+            .filter(config -> !groupedConfigs.containsKey(config.v4)))
         .toList();
   }
 
@@ -185,10 +227,10 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   }
 
   private String configId(T config) {
-    return config.getMetadata().getNamespace() + "." + config.getMetadata().getName();
+    return config.getCRDName() + "/" + config.getMetadata().getNamespace() + "/" + config.getMetadata().getName();
   }
 
-  protected void reconciliationCycle(T configKey, boolean load) {
+  protected void reconciliationCycle(T configKey, int retry, boolean load) {
     final ObjectMeta metadata = configKey.getMetadata();
     final String configId = configKey.getKind()
         + " " + metadata.getNamespace() + "." + metadata.getName();
@@ -283,6 +325,12 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       exceptions.add(ex);
     }
     if (!exceptions.isEmpty()) {
+      scheduledExecutorService.schedule(() -> reconcile(configKey, retry + 1),
+          RetryUtil.calculateExponentialBackoffDelay(
+              reconciliationInitialBackoff,
+              reconciliationMaxBackoff,
+              reconciliationBackoffVariation,
+              retry + 1), TimeUnit.SECONDS);
       var iterator = exceptions.listIterator();
       Exception ex = iterator.next();
       iterator.forEachRemaining(otherEx -> ex.addSuppressed(otherEx));
