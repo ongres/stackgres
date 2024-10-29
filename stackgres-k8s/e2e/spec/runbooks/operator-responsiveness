@@ -1,0 +1,73 @@
+#!/bin/sh
+
+E2E_RESPOSIVENESS_CARDINALITY="${E2E_RESPOSIVENESS_CARDINALITY:-2000}"
+
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  seq 1 "$E2E_RESPOSIVENESS_CARDINALITY" \
+    | xargs_parallel_shell @ \
+      -ec "$(create_cluster_script)"
+  until kubectl get sts -n "$CLUSTER_NAMESPACE" -o name | wc -l | grep -qxF "$E2E_RESPOSIVENESS_CARDINALITY"
+  do
+    sleep 5
+  done
+}
+
+create_cluster_script() {
+  cat << EOF
+    CLUSTER_NAME="\$("$SHELL" "$E2E_PATH/e2e" get_sgcluster_name "$SPEC_NAME"-"@")"
+    "$SHELL" "$E2E_PATH/e2e" wait_until create_or_replace_cluster "\$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+      --force \
+      --set-string cluster.pods.scheduling.nodeSelector.none=none \
+      --set-string cluster.sgInstanceProfile="\$CLUSTER_NAME"-s \
+      --set-json instanceProfiles='[{"name":"'"\$CLUSTER_NAME"'-s","cpu":"1","memory":"2Gi"}]' \
+      --set-string cluster.configurations.sgPostgresConfig="\$CLUSTER_NAME" \
+      --set-string cluster.configurations.sgPoolingConfig="\$CLUSTER_NAME"
+EOF
+}
+
+wait_cluster_script() {
+  cat << EOF
+    CLUSTER_NAME="\$("$SHELL" "$E2E_PATH/e2e" get_sgcluster_name "$SPEC_NAME"-"@")"
+    until kubectl get sts -n "$CLUSTER_NAMESPACE" "\$CLUSTER_NAME" >/dev/null 2>&1
+    do
+      sleep 1
+    done
+EOF
+}
+
+e2e_test_uninstall() {
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Benchmarking operator responsiveness" benchmark_operator
+}
+
+benchmark_operator() {
+  for ROUND in $(seq 1 20)
+  do
+    INDEX="$(( ( E2E_RESPOSIVENESS_CARDINALITY * RANDOM / 32767 ) + 1 ))"
+    CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME"-"$INDEX")"
+    INSTANCES="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.instances }}')"
+    START="$(date +%s%N)"
+    kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "spec: { instances: $((INSTANCES + 1)) }"
+    {
+      echo "$$" > "$LOG_PATH"/kubectl_get_sts_pid
+      exec kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ printf "%d\n" .spec.replicas }}' -w
+    } \
+      | while read REPLICAS
+        do
+         if [ "$((INSTANCES + 1))" = "$REPLICAS" ]
+         then
+           kill "$(cat "$LOG_PATH"/kubectl_get_sts_pid)"
+           break
+         fi
+        done
+    END="$(date +%s%N)"
+    echo "$(( END - START ))" | tee -a "$LOG_PATH"/reconciliation_response_times
+  done
+  echo "Test results"
+  echo
+  cat "$LOG_PATH"/reconciliation_response_times
+}

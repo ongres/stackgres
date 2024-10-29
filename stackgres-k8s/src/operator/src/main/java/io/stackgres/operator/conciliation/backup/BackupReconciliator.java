@@ -22,6 +22,7 @@ import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -45,6 +46,7 @@ public class BackupReconciliator
     @Inject BackupStatusManager statusManager;
     @Inject ObjectMapper objectMapper;
     @Inject OperatorLockHolder operatorLockReconciliator;
+    @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
   }
 
   private final EventEmitter<StackGresBackup> eventController;
@@ -58,6 +60,7 @@ public class BackupReconciliator
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
+        parameters.reconciliatorWorkerThreadPool,
         StackGresBackup.KIND);
     this.eventController = parameters.eventController;
     this.backupScheduler = parameters.backupScheduler;
@@ -74,8 +77,8 @@ public class BackupReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(StackGresBackup configKey, boolean load) {
-    super.reconciliationCycle(configKey, load);
+  protected void reconciliationCycle(StackGresBackup configKey, int retry, boolean load) {
+    super.reconciliationCycle(configKey, retry, load);
   }
 
   @Override

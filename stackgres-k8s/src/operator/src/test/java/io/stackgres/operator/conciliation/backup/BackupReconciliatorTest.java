@@ -87,7 +87,7 @@ class BackupReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(backup, false);
+    reconciliator.reconciliationCycle(backup, 0, false);
 
     verify(conciliator).evalReconciliationState(backup);
     creations.forEach(resource -> verify(handlerDelegator).create(backup, resource));
@@ -109,7 +109,7 @@ class BackupReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(backup, false);
+    reconciliator.reconciliationCycle(backup, 0, false);
 
     verify(conciliator).evalReconciliationState(backup);
     patches.forEach(resource -> verify(handlerDelegator).patch(backup, resource.v1, resource.v2));
@@ -128,7 +128,7 @@ class BackupReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(backup, false);
+    reconciliator.reconciliationCycle(backup, 0, false);
 
     verify(conciliator).evalReconciliationState(backup);
     deletions.forEach(resource -> verify(handlerDelegator).delete(backup, resource));

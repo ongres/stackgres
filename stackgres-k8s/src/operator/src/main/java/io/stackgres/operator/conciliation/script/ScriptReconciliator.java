@@ -20,6 +20,7 @@ import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -42,6 +43,7 @@ public class ScriptReconciliator
     @Inject CustomResourceScheduler<StackGresScript> scriptScheduler;
     @Inject ScriptStatusManager statusManager;
     @Inject OperatorLockHolder operatorLockReconciliator;
+    @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
   }
 
   private final EventEmitter<StackGresScript> eventController;
@@ -54,6 +56,7 @@ public class ScriptReconciliator
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
+        parameters.reconciliatorWorkerThreadPool,
         StackGresScript.KIND);
     this.eventController = parameters.eventController;
     this.scriptScheduler = parameters.scriptScheduler;
@@ -69,8 +72,8 @@ public class ScriptReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(StackGresScript configKey, boolean load) {
-    super.reconciliationCycle(configKey, load);
+  protected void reconciliationCycle(StackGresScript configKey, int retry, boolean load) {
+    super.reconciliationCycle(configKey, retry, load);
   }
 
   @Override

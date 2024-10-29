@@ -33,6 +33,7 @@ import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
@@ -60,6 +61,7 @@ public class ConfigReconciliator
     @Inject CustomResourceScheduler<StackGresConfig> configScheduler;
     @Inject ObjectMapper objectMapper;
     @Inject OperatorLockHolder operatorLockReconciliator;
+    @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
   }
 
   private final StatusManager<StackGresConfig, Condition> statusManager;
@@ -77,6 +79,7 @@ public class ConfigReconciliator
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
+        parameters.reconciliatorWorkerThreadPool,
         StackGresConfig.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
@@ -97,8 +100,8 @@ public class ConfigReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(StackGresConfig configKey, boolean load) {
-    super.reconciliationCycle(configKey, load);
+  protected void reconciliationCycle(StackGresConfig configKey, int retry, boolean load) {
+    super.reconciliationCycle(configKey, retry, load);
   }
 
   @Override
