@@ -53,6 +53,13 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
 }
 
+e2e_test_uninstall() {
+  helm_cleanup_chart "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
 e2e_test() {
   if [ -n "$TIMESCALE_VERSION" ]
   then
