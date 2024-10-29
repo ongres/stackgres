@@ -53,6 +53,10 @@
           "version": "13.5",
           "flavor": "vanilla"
         },
+        "configurations": {
+          "observability": {
+          }
+        },
         "postgresServices": {
           "coordinator": {
             "any": {
@@ -102,8 +106,7 @@
               "storageClass": "standard"
             }
           }
-        },
-        "prometheusAutobind": "true"
+        }
       },
       "status": null
     },
@@ -124,6 +127,10 @@
           "version": "13.5",
           "flavor": "vanilla"
         },
+        "configurations": {
+          "observability": {
+          }
+        },
         "postgresServices": {
           "coordinator": {
             "any": {
@@ -173,8 +180,7 @@
               "storageClass": "standard"
             }
           }
-        },
-        "prometheusAutobind": "true"
+        }
       },
       "status": null
     },

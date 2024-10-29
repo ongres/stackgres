@@ -53,6 +53,10 @@
           "version": "13.5",
           "flavor": "vanilla"
         },
+        "configurations": {
+          "observability": {
+          }
+        },
         "initialData":{
           "restore": {
             "fromBackup": {
@@ -109,8 +113,7 @@
               "storageClass": "standard"
             }
           }
-        },
-        "prometheusAutobind": "true"
+        }
       },
       "status": null
     },
