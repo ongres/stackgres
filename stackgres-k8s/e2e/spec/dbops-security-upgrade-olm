@@ -1,8 +1,11 @@
 #!/bin/sh
 
+E2E_OLM_VERSION="${E2E_OLM_VERSION:-0.28.0}"
+
 . "$SPEC_PATH/dbops-security-upgrade"
 
 e2e_test_extra_hash() {
+  printf 'E2E_OLM_VERSION=%s\n' "$E2E_OLM_VERSION"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "stackgres-k8s/install/operator-sdk"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
@@ -73,7 +76,8 @@ e2e_install_previous_operator() {
       || ! kubectl get clusterrole system:controller:operator-lifecycle-manager 2>/dev/null
     wait_until eval '! kubectl get namespace olm > /dev/null 2>&1'
     operator-sdk olm install \
-      --timeout "${E2E_TIMEOUT}s"
+      --timeout "${E2E_TIMEOUT}s" \
+      --version "$E2E_OLM_VERSION"
   fi
 
   if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]

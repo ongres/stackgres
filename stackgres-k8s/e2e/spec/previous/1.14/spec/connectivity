@@ -1,0 +1,196 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/patroni"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/patroni")"
+}
+
+e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.password_encryption=md5'
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that it is not possible to connect to postgres without a password" check_password_required
+
+  run_test "Checking that all 4 ports (5432, 6432, 7432, 7433) in the patroni pods are openned and listening for queries" ports_check
+
+  run_test "Checking that is possible to connect using services is working" service_check
+
+  run_test "Check that patroni healthcheck endpoints are accesible" patroni_ports_check
+
+  run_test "Check that patroni management endpoints are not accesible" patroni_management_check
+
+  run_test "Check that patroni is not accisible directly" patroni_direct_check
+
+  run_test "Check that psql is storing history in postgres-util container" psql_is_storing_history_check
+
+  run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
+
+  run_test "Check that users configured in pgbouncer can access using the service" pgbouncer_users_check
+}
+
+check_password_required() {
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    fail "was possible to connect to the cluster without password"
+  else
+    success "was not possible to connect to the cluster without password"
+  fi
+
+  cat << EOF | kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- bash -c "$(cat)"
+echo '
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 trust
+local   replication     all                                     trust
+host    replication     all             127.0.0.1/32            trust
+host    replication     all             ::1/128                 trust
+
+host all all 0.0.0.0/0 md5
+host replication replicator 0.0.0.0/0 md5
+' | tee /var/lib/postgresql/data/pg_hba.conf
+psql -q -c 'SELECT pg_reload_conf();'
+EOF
+
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    success "was possible to connect to the cluster without password after changing configuration"
+  else
+    fail "was not possible to connect to the cluster without password after changing configuration"
+  fi
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  if wait_until check_password_is_required
+  then
+    success "was not possible to connect to the cluster without password after changing configuration and restarting the cluster"
+  else
+    fail "was possible to connect to the cluster without password after changing configuration and restarting the cluster"
+  fi
+}
+
+check_password_is_required() {
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    return 1
+  fi
+}
+
+ports_check() {
+  RESPONSE_5432="$(run_query -i 0 -p 5432)"
+  RESPONSE_6432="$(run_query -i 0 -p 6432)"
+  RESPONSE_7432="$(run_query -i 0 -p 7432)"
+  RESPONSE_7433="$(run_query -i 0 -p 7433)"
+
+  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
+  then
+    RESPONSE_5432="$(run_query -i 1 -p 5432)"
+    RESPONSE_6432="$(run_query -i 1 -p 6432)"
+    RESPONSE_7432="$(run_query -i 1 -p 7432)"
+    RESPONSE_7433="$(run_query -i 1 -p 7433)"
+
+    if ! ( [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ] )
+    then
+      fail "Not all 4 ports of the replica node are working"
+    fi
+  else 
+      fail "Not all 4 ports of the primary node are working"
+  fi
+}
+
+service_check() {
+  RESPONSE_PRIMARY="$(run_query -h "$CLUSTER_NAME" -i 1 -p 5432)"
+
+  if [ "$RESPONSE_PRIMARY" = "1" ]
+  then
+    RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
+    if [ "$RESPONSE_REPLICA" = "1" ]
+    then
+      success "Connections are possible using services"
+    else
+      fail "Cannot connect to replica db using a kubernetes service"
+    fi
+  else
+    fail "Cannot connect to primary db using a kubernetes service"
+  fi
+}
+
+psql_is_storing_history_check() {
+  if kubectl exec -t -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- touch /var/lib/postgresql/.psql_history > /dev/null 2>&1
+  then
+    success "psql could save history to file"
+  else
+    fail "psql could not save history to file"
+  fi
+}
+
+pgbouncer_database_check() {
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0" -c "postgres-util" -- env \
+    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
+      -o jsonpath='{.data.pgbouncer-admin-password}' | base64 -d)" \
+    PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
+    psql -q -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
+  then
+    success "psql could connect to the pgbouncer database with pgobuncer_admin using service"
+  else
+    fail "psql could not connect to the pgbouncer database with pgobuncer_admin using service"
+  fi
+
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0" -c "postgres-util" -- env \
+    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME" \
+      -o jsonpath='{.data.pgbouncer-stats-password}' | base64 -d)" \
+    PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
+    psql -q -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
+  then
+    success "psql could connect to the pgbouncer database with pgobuncer_stats using service"
+  else
+    fail "psql could not connect to the pgbouncer database with pgobuncer_stats using service"
+  fi
+}
+
+pgbouncer_users_check() {
+  # PgBouncer doesn't correctly support SCRAM in userlist.txt: https://github.com/pgbouncer/pgbouncer/issues/774
+  run_query -i 0 -p 5432 -q "SET password_encryption = 'md5'; CREATE USER user1 WITH PASSWORD 'test'";
+  run_query -i 0 -p 5432 -q "SET password_encryption = 'md5'; CREATE USER user2 WITH PASSWORD 'test'";
+  kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf -o json \
+    | jq '.spec.pgBouncer["pgbouncer.ini"].users = { user1: {}, user2: {} }' \
+    | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type merge -p "$(cat)"
+  wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 1 -p 5432 -u user1:test || true)"
+  if [ "$RESPONSE_REPLICA" = "1" ]
+  then
+    success "Connections are possible using user1 in pgbouncer users section"
+  else
+    fail_no_return "Cannot connect using user1 in pgbouncer users section"
+    echo
+    echo "Content of /etc/pgbouncer:"
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c pgbouncer -- grep . /etc/pgbouncer -R
+    return 1
+  fi
+
+  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 1 -p 5432 -u user2:test || true)"
+  if [ "$RESPONSE_REPLICA" = "1" ]
+  then
+    success "Connections are possible using user2 in pgbouncer users section"
+  else
+    fail_no_return "Cannot connect using user2 in pgbouncer users section"
+    echo
+    echo "Content of /etc/pgbouncer:"
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c pgbouncer -- grep . /etc/pgbouncer -R
+    return 1
+  fi
+}

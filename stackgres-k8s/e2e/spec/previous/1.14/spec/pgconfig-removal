@@ -1,0 +1,46 @@
+#!/bin/sh
+
+e2e_test_install() {
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
+}
+
+e2e_test() {
+  run_test "Trying to delete pgconfig with cluster running" delete_with_cluster
+
+  run_test "Trying to delete pgconfig without cluster running" delete_whitout_cluster
+}
+
+delete_with_cluster() {
+  if ERROR_MESSAGE="$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpgconfigs.stackgres.io postgresconf 2>&1)"
+  then
+    fail "It should not be able to delete sgspconfig"
+  else
+    success "Good it has failed"
+  fi
+
+  echo "$ERROR_MESSAGE" > "$LOG_PATH/test1.log"
+  if grep -q "Can't delete sgpgconfigs.stackgres.io postgresconf" "$LOG_PATH/test1.log"
+  then
+    success "Error message was the expected"
+    return 0
+  else
+    ERROR="$(cat "$LOG_PATH/test1.log")"
+    fail "Error is not what it should be. ERROR ${ERROR}"
+  fi
+}
+
+delete_whitout_cluster() {
+  kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
+
+  if ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sgpgconfigs.stackgres.io postgresconf 2>&1)"
+  then
+    success "Good. It has deleted the configuration"
+    return 0
+  else
+    fail "It should be able to delete the posgresconf. ERROR ${ERROR}"
+  fi
+}

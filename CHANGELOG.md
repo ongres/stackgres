@@ -1,3 +1,66 @@
+# :rocket: Release 1.14.0-rc1 (24-10-2024)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.14.0-rc1 is out! :confetti_ball: :champagne: 
+
+This new release of StackGres add a new layer that will collect all the metrics in an OpenTelemetry collector layer, allowing to export them
+ in a variety of other platform than Prometheus. But we also added a lot of fixes to improve stability!
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Postgres 17
+* Added OpenTelemetry Collector layer
+* Added common retry logic to backup and sharded backup and extended its usage
+
+## Web Console
+
+* Support for SGStreams in the Web Console
+* Include graphs for TPS, percentile histogram and most used statements on becnhmark status
+
+## :bug: FIXES
+
+* SGStream fields are not rendered in the CSV of operator bundle
+* Allow sgconfig to be installed before operator
+* Backup using volume snapshot do not wait on conflict
+* Sharded cluster is not setting any postgres services configuration
+* Replication initialization is not using the latest backup
+* Backups, dbops, sharded backups and sharded dbops change to completed state only on full resync
+* Sharded dbops/backup do not cleanup previous dbops/backup when retrying
+* Disable pager for patroni container
+* Validating webhook returns 500 on wrong enum values
+* Avoid removing resources when owner is deleted
+* Avoid adding StatefulSet owner reference on PVC to avoid deletion on removal
+* pg_replication_is_replica metric has no unique labels
+* Disable pager for patroni container
+* Sharded backup run forewer if a generated SGBackup not yet completed is removed
+* Backup configuration interfere with replicate from
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.14.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.14.0-rc1)
+
 # :rocket: Release 1.13.0 (09-09-2024)
 
 ## :notepad_spiral: NOTES
