@@ -75,7 +75,7 @@ Check each specific parameter on the manifest, they are all the same that you ca
 - **op:** Is the operation to be executed
 - **sgCluster:** The target cluster name to be upgraded
 - **minorVersionUpgrade:**
-  - **method:** InPlace or Reduce impact
+  - **method:** InPlace or ReducedImpact
   - **postgresVersion:** Target postgres version.
 
 Once you apply the manifest you can check the operation status with: 
