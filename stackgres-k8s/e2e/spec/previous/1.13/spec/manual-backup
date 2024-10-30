@@ -99,11 +99,11 @@ check_manual_backup() {
     fail "The backup retention has not been honored. Old backups not deleted"
   fi
 
-  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
+  if wait_until eval '[ "$(get_completed_managed_backup_count)" = "2" ]'
   then
     success "The backup retention has been honored. Remaining backups are 2"
   else
-    fail "The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
+    fail "The backup retention has not been honored. Remaining backups are $(get_completed_managed_backup_count)"
   fi
 
   kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
