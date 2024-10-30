@@ -220,15 +220,15 @@ check_backup_retention() {
     return 1
   fi
 
-  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
+  if wait_until eval '[ "$(get_completed_managed_backup_count)" = "2" ]'
   then
     success "The backup retention has been honored. Remaining backups are 2"
   else
-    fail "The backup retention has not been honored. Remaining backups are $(get_completed_backup_count)"
+    fail "The backup retention has not been honored. Remaining backups are $(get_completed_managed_backup_count)"
   fi
 }
 
-get_completed_backup_count() {
+get_completed_managed_backup_count() {
   kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns=PHASE:.status.process.status \
     | grep 'Completed' | wc -l
 }
