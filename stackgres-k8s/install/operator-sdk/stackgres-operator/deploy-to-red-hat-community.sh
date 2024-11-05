@@ -23,7 +23,10 @@ set_previous_version_override() {
       | cut -d / -f 5 | grep -v '.-rc.' | sort -t ' ' -k 1Vr \
       | while read CANDIDATE_SKIP_PREVIOUS_VERSION
         do
-          if [ "$PREVIOUS_OPENSHIFT_VERSIONS" != "$(yq -r '.annotations["com.redhat.openshift.versions"]' \
+          if [ "$CANDIDATE_SKIP_PREVIOUS_VERSION" = "$STACKGRES_VERSION" ]
+          then
+            continue
+          elif [ "$PREVIOUS_OPENSHIFT_VERSIONS" != "$(yq -r '.annotations["com.redhat.openshift.versions"]' \
             "$FORK_GIT_PATH/operators/$PROJECT_NAME/$CANDIDATE_SKIP_PREVIOUS_VERSION/metadata/annotations.yaml")" ]
           then
             break

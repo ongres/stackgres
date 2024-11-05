@@ -64,6 +64,9 @@
           }
         },
         "configurations": {
+          "observability": {
+            "disableMetrics": false
+          },
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
           "backups": [{
@@ -114,6 +117,9 @@
           }
         },
         "configurations": {
+          "observability": {
+            "disableMetrics": false
+          },
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
           "backups": [{

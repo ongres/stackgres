@@ -38,7 +38,7 @@ public interface ConversionUtil {
   }
 
   /**
-   * Extract `.apiVersion` field from a Kubernetes resource object
+   * Extract `.apiVersion` field from a Kubernetes resource object.
    */
   static String apiVersion(ObjectNode node) {
     return node.get("apiVersion").asText();

@@ -145,6 +145,104 @@ is_automatic_backup_cr_completed() {
   fi
 }
 
+check_manual_backup() {
+  local NODE="${1:-0}"
+  local BACKUP_NAME
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)")"
+  local BACKUP_2_NAME
+  BACKUP_2_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)-2")"
+  local BACKUP_3_NAME
+  BACKUP_3_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)-3")"
+  local ACTUAL_BACKUP_NAME
+
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
+
+  create_backup "$BACKUP_NAME" false
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+      -o name | wc -l)" -gt 0 ]'
+  then
+    echo "SUCCESS. The manual backup CR is running"
+  else
+    echo "FAIL. The manual backup CR is not running"
+    return 1
+  fi
+
+  wait_backup_is_completed "$BACKUP_NAME" "$NODE"
+
+  ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}' \
+    | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+
+  if [ -z "$ACTUAL_BACKUP_NAME" ]
+  then
+    echo "FAIL. Backup name not found"
+    return 1
+  fi
+
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -gt 0 ]
+  then
+    echo "SUCCESS. The full backup of created CR is available"
+  else
+    echo "FAIL. The full backup of created CR is not available"
+    return 1
+  fi
+
+  check_is_managed_lifecycle_value "$BACKUP_NAME" false
+
+  kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":true}]'
+
+  create_backup "$BACKUP_2_NAME" true
+
+  wait_until check_is_managed_lifecycle_value "$BACKUP_NAME" true
+
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    echo "FAIL. Default annotations not created"
+    return 1
+  else
+    echo "SUCCESS. Defaults annotations created"
+  fi
+
+  create_backup "$BACKUP_3_NAME" true
+
+  if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
+  then
+    echo "SUCCESS. The backup retention has been honored. Old backups deleted"
+  else
+    echo "FAIL. The backup retention has not been honored. Old backups not deleted"
+    return 1
+  fi
+
+  if wait_until eval '[ "$(get_completed_managed_backup_count)" = "2" ]'
+  then
+    echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
+  else
+    echo "FAIL. The backup retention has not been honored. Remaining backups are $(get_completed_managed_backup_count)"
+    return 1
+  fi
+
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_2_NAME"
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME"
+
+  if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+      exec-with-env backup -- wal-g backup-list 2>/dev/null | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
+  then
+    echo "SUCCESS. The full backup of deleted CR has been removed"
+  else
+    echo "FAIL. The full backup of deleted CR has not been removed"
+    return 1
+>>>>>>> main-1.14:stackgres-k8s/e2e/spec/previous/1.12/spec/abstract/backup
+  fi
+}
+
 wait_backup_is_completed() {
   local BACKUP_NAME="$1"
   local NODE="${2:-0}"
@@ -220,7 +318,7 @@ check_backup_retention() {
     return 1
   fi
 
-  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
+  if wait_until eval '[ "$(get_completed_managed_backup_count)" = "2" ]'
   then
     success "The backup retention has been honored. Remaining backups are 2"
   else
@@ -228,7 +326,7 @@ check_backup_retention() {
   fi
 }
 
-get_completed_backup_count() {
+get_completed_managed_backup_count() {
   kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns=PHASE:.status.process.status \
     | grep 'Completed' | wc -l
 }
