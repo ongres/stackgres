@@ -52,14 +52,14 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final PatroniConfigEndpoints patroniConfigEndpoints;
   private final ObjectMapper objectMapper;
   private final YAMLMapper yamlMapper;
 
   @Inject
   public PatroniConfigMap(
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       @OperatorVersionBinder
       PatroniConfigEndpoints patroniConfigEndpoints,
       ObjectMapper objectMapper,

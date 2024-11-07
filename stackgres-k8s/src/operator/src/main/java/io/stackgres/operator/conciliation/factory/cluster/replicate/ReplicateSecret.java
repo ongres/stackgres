@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class ReplicateSecret
     implements VolumeFactory<StackGresClusterContext> {
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   private BackupEnvVarFactory envVarFactory;
 
@@ -85,7 +85,7 @@ public class ReplicateSecret
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

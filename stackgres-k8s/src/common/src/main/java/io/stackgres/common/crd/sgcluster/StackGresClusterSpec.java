@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.stackgres.common.validation.ValidEnum;
@@ -74,7 +75,7 @@ public class StackGresClusterSpec {
   private StackGresClusterNonProduction nonProductionOptions;
 
   @Valid
-  private StackGresClusterPostgresServices postgresServices;
+  private StackGresPostgresServices postgresServices;
 
   @Valid
   private StackGresClusterSpecMetadata metadata;
@@ -345,11 +346,11 @@ public class StackGresClusterSpec {
     this.nonProductionOptions = nonProduction;
   }
 
-  public StackGresClusterPostgresServices getPostgresServices() {
+  public StackGresPostgresServices getPostgresServices() {
     return postgresServices;
   }
 
-  public void setPostgresServices(StackGresClusterPostgresServices postgresServices) {
+  public void setPostgresServices(StackGresPostgresServices postgresServices) {
     this.postgresServices = postgresServices;
   }
 

@@ -29,7 +29,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.ongres.process.FluentProcess;
 import com.ongres.process.FluentProcessBuilder;
 import com.ongres.process.Output;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -39,7 +38,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -54,32 +52,20 @@ public class PatroniCtl {
 
   final ObjectMapper objectMapper;
   final YAMLMapper yamlMapper;
-  final LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
-  final LabelFactoryForCluster<StackGresDistributedLogs> distributedLogsLabelFactory;
+  final LabelFactoryForCluster clusterLabelFactory;
 
   @Inject
   public PatroniCtl(ObjectMapper objectMapper, YamlMapperProvider yamlMapperProvider,
-      LabelFactoryForCluster<StackGresCluster> clusterLabelFactory,
-      LabelFactoryForCluster<StackGresDistributedLogs> distributedLogsLabelFactory) {
+      LabelFactoryForCluster clusterLabelFactory) {
     this.objectMapper = objectMapper;
     this.yamlMapper = yamlMapperProvider.get();
     this.clusterLabelFactory = clusterLabelFactory;
-    this.distributedLogsLabelFactory = distributedLogsLabelFactory;
   }
 
-  public PatroniCtlInstance instanceFor(CustomResource<?, ?> customResource) {
-    if (customResource instanceof StackGresCluster cluster) {
-      var instance = new PatroniCtlInstance(cluster);
-      instance.writeConfig();
-      return instance;
-    }
-    if (customResource instanceof StackGresDistributedLogs distributedLogs) {
-      var instance = new PatroniCtlInstance(distributedLogs);
-      instance.writeConfig();
-      return instance;
-    }
-    throw new IllegalArgumentException("Can not retrieve instance for "
-        + customResource.getClass().getSimpleName());
+  public PatroniCtlInstance instanceFor(StackGresCluster cluster) {
+    var instance = new PatroniCtlInstance(cluster);
+    instance.writeConfig();
+    return instance;
   }
 
   public class PatroniCtlInstance {
@@ -94,7 +80,7 @@ public class PatroniCtl {
     private static final TypeReference<List<PatroniHistoryEntry>> HISTORY_TYPE_REFERENCE =
         new TypeReference<List<PatroniHistoryEntry>>() { };
 
-    final CustomResource<?, ?> customResource;
+    final StackGresCluster cluster;
     final String scope;
     final Integer group;
     final String[] patroniCtlCommands;
@@ -106,7 +92,7 @@ public class PatroniCtl {
         .orElse(60L));
 
     PatroniCtlInstance(StackGresCluster cluster) {
-      this.customResource = cluster;
+      this.cluster = cluster;
       this.scope = PatroniUtil.clusterScope(cluster);
       this.group = Optional.of(cluster.getSpec())
           .map(StackGresClusterSpec::getConfigurations)
@@ -118,16 +104,6 @@ public class PatroniCtl {
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
           cluster, clusterLabelFactory, yamlMapper, objectMapper);
-    }
-
-    PatroniCtlInstance(StackGresDistributedLogs distributedLogs) {
-      this.customResource = distributedLogs;
-      this.scope = PatroniUtil.clusterScope(distributedLogs);
-      this.group = null;
-      this.patroniCtlCommands = patroniCtlCommands(StackGresUtil.getPatroniVersion(distributedLogs));
-      this.configPath = getConfigPath();
-      this.config = PatroniUtil.getInitialConfig(
-          distributedLogs, distributedLogsLabelFactory, yamlMapper, objectMapper);
     }
 
     final String[] patroniCtlCommands(String version) {
@@ -153,8 +129,8 @@ public class PatroniCtl {
 
     final Path getConfigPath() {
       return Paths.get("/tmp/patroni/"
-          + customResource.getMetadata().getNamespace()
-          + "/" + customResource.getMetadata().getName()
+          + cluster.getMetadata().getNamespace()
+          + "/" + cluster.getMetadata().getName()
           + "/config.yaml");
     }
 

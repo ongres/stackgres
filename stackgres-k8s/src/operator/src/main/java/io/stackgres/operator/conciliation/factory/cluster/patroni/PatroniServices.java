@@ -26,9 +26,8 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceNodePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -45,10 +44,10 @@ import org.jooq.lambda.Seq;
 public class PatroniServices implements
     ResourceGenerator<StackGresClusterContext> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   @Inject
-  public PatroniServices(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public PatroniServices(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 
@@ -98,7 +97,7 @@ public class PatroniServices implements
     return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
+        .map(StackGresPostgresServices::getReplicas)
         .map(StackGresPostgresService::getEnabled)
         .orElse(true);
   }
@@ -107,7 +106,7 @@ public class PatroniServices implements
     return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
+        .map(StackGresPostgresServices::getPrimary)
         .map(StackGresPostgresService::getEnabled)
         .orElse(true);
   }
@@ -205,8 +204,8 @@ public class PatroniServices implements
             Optional.of(cluster)
             .map(StackGresCluster::getSpec)
             .map(StackGresClusterSpec::getPostgresServices)
-            .map(StackGresClusterPostgresServices::getPrimary)
-            .map(StackGresClusterPostgresService::getCustomPorts)
+            .map(StackGresPostgresServices::getPrimary)
+            .map(StackGresPostgresService::getCustomPorts)
             .stream()
             .flatMap(List::stream)
             .map(ServicePortBuilder::new)
@@ -299,8 +298,8 @@ public class PatroniServices implements
             Optional.of(cluster)
             .map(StackGresCluster::getSpec)
             .map(StackGresClusterSpec::getPostgresServices)
-            .map(StackGresClusterPostgresServices::getReplicas)
-            .map(StackGresClusterPostgresService::getCustomPorts)
+            .map(StackGresPostgresServices::getReplicas)
+            .map(StackGresPostgresService::getCustomPorts)
             .stream()
             .flatMap(List::stream)
             .map(ServicePortBuilder::new)

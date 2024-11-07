@@ -33,8 +33,7 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
 public class CoordinatorPersistentVolumeSizeExpansionValidator
-    extends PersistentVolumeSizeExpansionValidator<StackGresShardedClusterReview,
-        StackGresShardedCluster, StackGresCluster>
+    extends PersistentVolumeSizeExpansionValidator<StackGresShardedClusterReview, StackGresShardedCluster>
     implements ShardedClusterValidator {
 
   private final ResourceFinder<StorageClass> finder;
@@ -45,7 +44,7 @@ public class CoordinatorPersistentVolumeSizeExpansionValidator
 
   private final LabelFactoryForShardedCluster labelFactory;
 
-  private final LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
+  private final LabelFactoryForCluster clusterLabelFactory;
 
   @Inject
   public CoordinatorPersistentVolumeSizeExpansionValidator(
@@ -53,7 +52,7 @@ public class CoordinatorPersistentVolumeSizeExpansionValidator
       CustomResourceScanner<StackGresCluster> clusterScanner,
       LabelFactoryForShardedCluster labelFactory,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      LabelFactoryForCluster<StackGresCluster> clusterLabelFactory) {
+      LabelFactoryForCluster clusterLabelFactory) {
     this.finder = finder;
     this.clusterScanner = clusterScanner;
     this.labelFactory = labelFactory;
@@ -87,7 +86,7 @@ public class CoordinatorPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  protected LabelFactoryForCluster<StackGresCluster> getLabelFactory() {
+  protected LabelFactoryForCluster getLabelFactory() {
     return clusterLabelFactory;
   }
 

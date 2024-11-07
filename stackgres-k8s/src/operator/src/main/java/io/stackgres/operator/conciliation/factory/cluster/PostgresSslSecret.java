@@ -42,7 +42,7 @@ public class PostgresSslSecret
 
   private static final String SSL_SUFFIX = "-ssl";
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   public static String name(StackGresClusterContext clusterContext) {
     return name(clusterContext.getSource());
@@ -54,7 +54,7 @@ public class PostgresSslSecret
   }
 
   @Inject
-  public PostgresSslSecret(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public PostgresSslSecret(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

@@ -33,7 +33,7 @@ public class PodTestUtil {
   private static final String JOB_NAME_FORMAT = "%s-%s-%d-%s";
 
   @Inject
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
+  LabelFactoryForCluster labelFactory;
 
   @Inject
   LabelFactoryForDbOps labelFactoryForDbOps;

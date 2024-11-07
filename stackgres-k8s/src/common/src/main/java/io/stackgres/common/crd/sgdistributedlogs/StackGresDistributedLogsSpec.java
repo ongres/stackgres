@@ -12,9 +12,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
@@ -34,19 +39,19 @@ public class StackGresDistributedLogsSpec {
 
   @NotNull(message = "Persistent volume must be specified")
   @Valid
-  private StackGresDistributedLogsPersistentVolume persistentVolume;
+  private StackGresClusterPodsPersistentVolume persistentVolume;
 
   @Valid
-  private StackGresDistributedLogsPostgresServices postgresServices;
+  private StackGresPostgresServices postgresServices;
 
   @Valid
-  private StackGresDistributedLogsNonProduction nonProductionOptions;
+  private StackGresClusterNonProduction nonProductionOptions;
 
   @Valid
   private StackGresClusterResources resources;
 
   @Valid
-  private StackGresDistributedLogsPodScheduling scheduling;
+  private StackGresClusterPodsScheduling scheduling;
 
   @NotNull(message = "resource profile is required")
   private String sgInstanceProfile;
@@ -56,7 +61,7 @@ public class StackGresDistributedLogsSpec {
   private StackGresDistributedLogsConfigurations configurations;
 
   @Valid
-  private StackGresDistributedLogsSpecMetadata metadata;
+  private StackGresClusterSpecMetadata metadata;
 
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
@@ -69,20 +74,20 @@ public class StackGresDistributedLogsSpec {
     this.profile = profile;
   }
 
-  public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
+  public StackGresClusterPodsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
 
   public void setPersistentVolume(
-      StackGresDistributedLogsPersistentVolume persistentVolume) {
+      StackGresClusterPodsPersistentVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
   }
 
-  public StackGresDistributedLogsNonProduction getNonProductionOptions() {
+  public StackGresClusterNonProduction getNonProductionOptions() {
     return nonProductionOptions;
   }
 
-  public void setNonProductionOptions(StackGresDistributedLogsNonProduction nonProductionOptions) {
+  public void setNonProductionOptions(StackGresClusterNonProduction nonProductionOptions) {
     this.nonProductionOptions = nonProductionOptions;
   }
 
@@ -94,11 +99,11 @@ public class StackGresDistributedLogsSpec {
     this.resources = resources;
   }
 
-  public StackGresDistributedLogsPodScheduling getScheduling() {
+  public StackGresClusterPodsScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(StackGresDistributedLogsPodScheduling scheduling) {
+  public void setScheduling(StackGresClusterPodsScheduling scheduling) {
     this.scheduling = scheduling;
   }
 
@@ -118,11 +123,11 @@ public class StackGresDistributedLogsSpec {
     this.configurations = configurations;
   }
 
-  public StackGresDistributedLogsSpecMetadata getMetadata() {
+  public StackGresClusterSpecMetadata getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(StackGresDistributedLogsSpecMetadata metadata) {
+  public void setMetadata(StackGresClusterSpecMetadata metadata) {
     this.metadata = metadata;
   }
 
@@ -135,11 +140,11 @@ public class StackGresDistributedLogsSpec {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
-  public StackGresDistributedLogsPostgresServices getPostgresServices() {
+  public StackGresPostgresServices getPostgresServices() {
     return postgresServices;
   }
 
-  public void setPostgresServices(StackGresDistributedLogsPostgresServices postgresServices) {
+  public void setPostgresServices(StackGresPostgresServices postgresServices) {
     this.postgresServices = postgresServices;
   }
 

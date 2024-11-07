@@ -13,7 +13,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluster> {
+public class ClusterLabelMapper implements LabelMapperForCluster {
 
   @Override
   public String appName() {

@@ -39,7 +39,6 @@ set_up_private_repository() {
   export PRIVATE_ADMINUI_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/admin-ui:$ADMINUI_IMAGE_TAG"
   export PRIVATE_JOBS_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/jobs:$IMAGE_TAG"
   export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/cluster-controller:$IMAGE_TAG"
-  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/distributedlogs-controller:$IMAGE_TAG"
   export PRIVATE_STREAM_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/stream:$IMAGE_TAG"
 
   if ! use_alternative_registry
@@ -56,7 +55,7 @@ set_up_private_repository() {
 
     local NAME
     for NAME in operator restapi admin-ui jobs \
-      cluster-controller distributedlogs-controller stream
+      cluster-controller stream
     do
       if ! aws ecr describe-repositories --repository-name "stackgres/$NAME" > /dev/null 2>&1
       then

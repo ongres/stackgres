@@ -57,7 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigEndpointsTest {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
+  private final LabelFactoryForCluster labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;

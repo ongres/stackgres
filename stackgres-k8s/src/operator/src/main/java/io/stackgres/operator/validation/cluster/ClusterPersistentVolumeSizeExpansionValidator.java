@@ -29,21 +29,20 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
 public class ClusterPersistentVolumeSizeExpansionValidator
-    extends PersistentVolumeSizeExpansionValidator<StackGresClusterReview,
-        StackGresCluster, StackGresCluster>
+    extends PersistentVolumeSizeExpansionValidator<StackGresClusterReview, StackGresCluster>
     implements ClusterValidator {
 
   private final ResourceFinder<StorageClass> finder;
 
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   @Inject
   public ClusterPersistentVolumeSizeExpansionValidator(
       ResourceFinder<StorageClass> finder,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      LabelFactoryForCluster<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster labelFactory) {
     this.finder = finder;
     this.pvcScanner = pvcScanner;
     this.labelFactory = labelFactory;
@@ -74,7 +73,7 @@ public class ClusterPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  protected LabelFactoryForCluster<StackGresCluster> getLabelFactory() {
+  protected LabelFactoryForCluster getLabelFactory() {
     return labelFactory;
   }
 

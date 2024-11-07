@@ -11,13 +11,16 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPersistentVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsCluster;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -28,24 +31,27 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
 public class DistributedLogsPersistentVolumeSizeExpansionValidator
-    extends PersistentVolumeSizeExpansionValidator<StackGresDistributedLogsReview,
-        StackGresDistributedLogs, StackGresDistributedLogs>
+    extends PersistentVolumeSizeExpansionValidator<StackGresDistributedLogsReview, StackGresDistributedLogs>
     implements DistributedLogsValidator {
 
   private final ResourceFinder<StorageClass> finder;
 
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
 
-  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForDistributedLogs labelFactory;
+
+  private final LabelFactoryForCluster labelFactoryForCluster;
 
   @Inject
   public DistributedLogsPersistentVolumeSizeExpansionValidator(
       ResourceFinder<StorageClass> finder,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+      LabelFactoryForDistributedLogs labelFactory,
+      LabelFactoryForCluster labelFactoryForCluster) {
     this.finder = finder;
     this.pvcScanner = pvcScanner;
     this.labelFactory = labelFactory;
+    this.labelFactoryForCluster = labelFactoryForCluster;
   }
 
   @Override
@@ -58,7 +64,7 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
     return Optional.of(cluster)
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getPersistentVolume)
-        .map(StackGresDistributedLogsPersistentVolume::getStorageClass);
+        .map(StackGresClusterPodsPersistentVolume::getStorageClass);
   }
 
   @Override
@@ -72,13 +78,13 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  protected LabelFactoryForCluster<StackGresDistributedLogs> getLabelFactory() {
-    return labelFactory;
+  protected LabelFactoryForCluster getLabelFactory() {
+    return labelFactoryForCluster;
   }
 
   @Override
-  protected List<StackGresDistributedLogs> getClusters(StackGresDistributedLogs resource) {
-    return List.of(resource);
+  protected List<StackGresCluster> getClusters(StackGresDistributedLogs resource) {
+    return List.of(DistributedLogsCluster.getCluster(labelFactory, resource));
   }
 
   @Override

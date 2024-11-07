@@ -7,37 +7,37 @@ package io.stackgres.common.labels;
 
 import java.util.Map;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import org.jetbrains.annotations.NotNull;
 
-public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
-    extends LabelFactory<T> {
+public interface LabelFactoryForCluster
+    extends LabelFactory<StackGresCluster> {
 
-  Map<String, String> clusterLabels(T resource);
+  Map<String, String> clusterLabels(StackGresCluster resource);
 
-  Map<String, String> clusterLabelsWithoutUid(T resource);
+  Map<String, String> clusterLabelsWithoutUid(StackGresCluster resource);
 
-  Map<String, String> patroniClusterLabels(T resource);
+  Map<String, String> patroniClusterLabels(StackGresCluster resource);
 
-  Map<String, String> clusterPrimaryLabels(T resource);
+  Map<String, String> clusterPrimaryLabels(StackGresCluster resource);
 
-  Map<String, String> clusterReplicaLabels(T resource);
+  Map<String, String> clusterReplicaLabels(StackGresCluster resource);
 
-  Map<String, String> clusterLabelsWithoutUidAndScope(T resource);
+  Map<String, String> clusterLabelsWithoutUidAndScope(StackGresCluster resource);
 
-  Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource);
+  Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(StackGresCluster resource);
 
-  Map<String, String> statefulSetPodLabels(T resource);
+  Map<String, String> statefulSetPodLabels(StackGresCluster resource);
 
-  Map<String, String> scheduledBackupPodLabels(T resource);
+  Map<String, String> scheduledBackupPodLabels(StackGresCluster resource);
 
-  Map<String, String> clusterCrossNamespaceLabels(T resource);
+  Map<String, String> clusterCrossNamespaceLabels(StackGresCluster resource);
 
-  Map<String, String> replicationInitializationBackupLabels(T resource);
+  Map<String, String> replicationInitializationBackupLabels(StackGresCluster resource);
 
-  String resourceScope(@NotNull T resource);
+  String resourceScope(@NotNull StackGresCluster resource);
 
   @Override
-  LabelMapperForCluster<T> labelMapper();
+  LabelMapperForCluster labelMapper();
 
 }

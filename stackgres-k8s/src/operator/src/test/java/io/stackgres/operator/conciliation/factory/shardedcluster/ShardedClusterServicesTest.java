@@ -36,7 +36,7 @@ class ShardedClusterServicesTest {
   private LabelFactoryForShardedCluster labelFactory;
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
+  private LabelFactoryForCluster clusterLabelFactory;
 
   @Mock
   private StackGresShardedClusterContext shardedClusterContext;

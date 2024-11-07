@@ -37,7 +37,7 @@ import org.mockito.MockitoAnnotations;
 public class BackupJobTest {
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
   @Mock
   private LabelFactoryForBackup backupLabelFactory;
   @Mock
@@ -49,7 +49,7 @@ public class BackupJobTest {
   @Mock
   private StackGresBackupContext backupContext;
   @Mock
-  private LabelMapperForCluster<StackGresCluster> labelMapperSgCluster;
+  private LabelMapperForCluster labelMapperSgCluster;
   @Mock
   private ClusterEnvironmentVariablesFactoryDiscoverer envFactoryDiscoverer;
   @Mock

@@ -56,7 +56,7 @@ public class ClusterStatefulSet
   protected static final Logger LOGGER =
       LoggerFactory.getLogger(ClusterStatefulSet.class);
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final PodTemplateFactoryDiscoverer<ClusterContainerContext>
       podTemplateSpecFactoryDiscoverer;
@@ -64,7 +64,7 @@ public class ClusterStatefulSet
 
   @Inject
   public ClusterStatefulSet(
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       PodTemplateFactoryDiscoverer<ClusterContainerContext>
           podTemplateSpecFactoryDiscoverer,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {

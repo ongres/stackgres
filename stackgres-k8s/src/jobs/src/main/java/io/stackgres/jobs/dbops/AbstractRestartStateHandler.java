@@ -63,7 +63,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
+  LabelFactoryForCluster labelFactory;
 
   @Inject
   ResourceFinder<StatefulSet> statefulSetFinder;

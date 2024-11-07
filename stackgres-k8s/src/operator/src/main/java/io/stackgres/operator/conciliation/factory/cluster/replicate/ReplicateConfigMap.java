@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 public class ReplicateConfigMap extends AbstractBackupConfigMap
     implements VolumeFactory<StackGresClusterContext> {
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   public static String name(ClusterContext context) {
     final String clusterName = context.getCluster().getMetadata().getName();
@@ -106,7 +106,7 @@ public class ReplicateConfigMap extends AbstractBackupConfigMap
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

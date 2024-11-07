@@ -25,7 +25,7 @@ class ClusterPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected PersistentVolumeSizeExpansionValidator<StackGresClusterReview,
-      StackGresCluster, StackGresCluster> getValidator() {
+      StackGresCluster> getValidator() {
     return new ClusterPersistentVolumeSizeExpansionValidator(finder, pvcScanner, labelFactory);
   }
 

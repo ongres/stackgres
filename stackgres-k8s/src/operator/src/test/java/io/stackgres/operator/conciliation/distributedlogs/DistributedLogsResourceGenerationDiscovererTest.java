@@ -17,8 +17,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -36,10 +34,6 @@ class DistributedLogsResourceGenerationDiscovererTest
 
   private StackGresDistributedLogs resource;
 
-  private StackGresPostgresConfig postgresConfig;
-
-  private StackGresProfile profile;
-
   private Optional<Secret> secret;
 
   private StackGresCluster connectecCluster;
@@ -48,11 +42,8 @@ class DistributedLogsResourceGenerationDiscovererTest
   public void setup() {
     this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.distributedLogs().loadDefault().get();
-    this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     this.connectecCluster = Fixtures.cluster().loadDefault()
         .withLatestPostgresVersion().get();
-    this.profile = Fixtures.instanceProfile().loadSizeM().get();
-    this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     this.secret = ofNullable(Fixtures.secret().loadMinio().get());
   }
 
@@ -77,8 +68,6 @@ class DistributedLogsResourceGenerationDiscovererTest
     return ImmutableStackGresDistributedLogsContext.builder()
         .config(config)
         .source(resource)
-        .postgresConfig(postgresConfig)
-        .profile(profile)
         .addAllConnectedClusters(List.of(connectecCluster))
         .databaseCredentials(secret)
         .build();

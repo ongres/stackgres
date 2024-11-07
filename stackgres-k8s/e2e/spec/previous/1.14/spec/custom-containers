@@ -79,7 +79,7 @@ custom_container_check() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
 
-  try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c custom-pg-controldata \
+  try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c c-pg-controldata \
       | grep -qx "Database cluster state:\s\+shut down"'
   if "$RESULT"
   then
@@ -88,7 +88,7 @@ custom_container_check() {
     fail "pg_controldata init container is not running as expected or is not aviable on primary service"
   fi
 
-  try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c custom-pg-controldata \
+  try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c c-pg-controldata \
       | grep -qx "Database cluster state:\s\+shut down in recovery"'
   if "$RESULT"
   then

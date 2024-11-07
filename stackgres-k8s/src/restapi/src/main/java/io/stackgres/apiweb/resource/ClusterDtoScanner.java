@@ -27,7 +27,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   private CustomResourceScanner<StackGresCluster> clusterScanner;
   private PodFinder podFinder;
   private ClusterTransformer clusterTransformer;
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Override
   public List<ClusterDto> getResources() {
@@ -123,7 +123,7 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

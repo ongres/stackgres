@@ -38,7 +38,7 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final PatroniCtl patroniCtl;
 
   @Inject
@@ -48,7 +48,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresCluster> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       PatroniCtl patroniCtl) {
     super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
     this.labelFactory = labelFactory;

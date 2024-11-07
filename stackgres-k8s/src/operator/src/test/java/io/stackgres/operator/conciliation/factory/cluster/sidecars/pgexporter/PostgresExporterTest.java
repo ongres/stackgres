@@ -42,7 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PostgresExporterTest {
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Mock
   private ContainerUserOverrideMounts containerUserOverrideMounts;

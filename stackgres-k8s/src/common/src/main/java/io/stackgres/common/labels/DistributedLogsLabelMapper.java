@@ -13,7 +13,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGresDistributedLogs> {
+public class DistributedLogsLabelMapper implements LabelMapperForDistributedLogs {
 
   @Override
   public String appName() {

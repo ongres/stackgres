@@ -52,13 +52,13 @@ public class ClusterDeployedResourceScanner
     implements ReconciliationOperations {
 
   private final KubernetesClient client;
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   @Inject
   public ClusterDeployedResourceScanner(
       DeployedResourcesCache deployedResourcesCache,
       KubernetesClient client,
-      LabelFactoryForCluster<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster labelFactory) {
     super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;

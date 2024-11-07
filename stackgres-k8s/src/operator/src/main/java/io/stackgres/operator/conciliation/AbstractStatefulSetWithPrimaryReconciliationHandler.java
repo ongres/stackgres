@@ -33,12 +33,12 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
@@ -53,8 +53,8 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T extends CustomResource<?, ?>>
-    implements ReconciliationHandler<T> {
+public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
+    implements ReconciliationHandler<StackGresCluster> {
 
   protected static final Logger LOGGER =
       LoggerFactory.getLogger(AbstractStatefulSetWithPrimaryReconciliationHandler.class);
@@ -62,11 +62,11 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   public static final Map<String, String> PLACEHOLDER_NODE_SELECTOR =
       Map.of("schedule", "this-pod-is-a-placeholder");
 
-  private final ReconciliationHandler<T> handler;
+  private final ReconciliationHandler<StackGresCluster> handler;
 
-  private final ReconciliationHandler<T> protectHandler;
+  private final ReconciliationHandler<StackGresCluster> protectHandler;
 
-  private final LabelFactoryForCluster<T> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final ResourceFinder<StatefulSet> statefulSetFinder;
 
@@ -79,9 +79,9 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   private final ObjectMapper objectMapper;
 
   protected AbstractStatefulSetWithPrimaryReconciliationHandler(
-      ReconciliationHandler<T> handler,
-      ReconciliationHandler<T> protectHandler,
-      LabelFactoryForCluster<T> labelFactory,
+      ReconciliationHandler<StackGresCluster> handler,
+      ReconciliationHandler<StackGresCluster> protectHandler,
+      LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
@@ -109,31 +109,31 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
     this.objectMapper = null;
   }
 
-  protected abstract boolean isPatroniOnKubernetes(T context);
+  protected abstract boolean isPatroniOnKubernetes(StackGresCluster context);
 
   @Override
-  public HasMetadata create(T context, HasMetadata resource) {
+  public HasMetadata create(StackGresCluster context, HasMetadata resource) {
     return concileSts(context, resource, (c, sts) -> createStatefulSet(c, sts));
   }
 
   @Override
-  public HasMetadata patch(T context, HasMetadata newResource,
+  public HasMetadata patch(StackGresCluster context, HasMetadata newResource,
       HasMetadata oldResource) {
     return concileSts(context, newResource, (c, sts) -> updateStatefulSet(c, sts));
   }
 
   @Override
-  public HasMetadata replace(T context, HasMetadata resource) {
+  public HasMetadata replace(StackGresCluster context, HasMetadata resource) {
     return concileSts(context, resource, (c, sts) -> replaceStatefulSet(c, sts));
   }
 
   @Override
-  public void delete(T context, HasMetadata resource) {
+  public void delete(StackGresCluster context, HasMetadata resource) {
     handler.delete(context, safeCast(resource));
   }
 
   @Override
-  public void deleteWithOrphans(T context, HasMetadata resource) {
+  public void deleteWithOrphans(StackGresCluster context, HasMetadata resource) {
     handler.deleteWithOrphans(context, safeCast(resource));
   }
 
@@ -144,11 +144,11 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
     return (StatefulSet) resource;
   }
 
-  private StatefulSet createStatefulSet(T context, StatefulSet requiredSts) {
+  private StatefulSet createStatefulSet(StackGresCluster context, StatefulSet requiredSts) {
     return (StatefulSet) handler.create(context, requiredSts);
   }
 
-  private StatefulSet updateStatefulSet(T context, StatefulSet requiredSts) {
+  private StatefulSet updateStatefulSet(StackGresCluster context, StatefulSet requiredSts) {
     try {
       return (StatefulSet) handler.patch(context, requiredSts, null);
     } catch (KubernetesClientException ex) {
@@ -174,7 +174,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
     }
   }
 
-  private StatefulSet replaceStatefulSet(T context, StatefulSet statefulSet) {
+  private StatefulSet replaceStatefulSet(StackGresCluster context, StatefulSet statefulSet) {
     handler.deleteWithOrphans(context, statefulSet);
     waitStatefulSetToBeDeleted(statefulSet);
     return (StatefulSet) handler.create(context, statefulSet);
@@ -190,9 +190,9 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private StatefulSet concileSts(
-      T context,
+      StackGresCluster context,
       HasMetadata resource,
-      BiFunction<T, StatefulSet, StatefulSet> writer) {
+      BiFunction<StackGresCluster, StatefulSet, StatefulSet> writer) {
     final StatefulSet requiredSts;
     try {
       requiredSts = objectMapper.treeToValue(
@@ -242,9 +242,9 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
     return updatedSts;
   }
 
-  private void startPrimaryIfRemoved(T context, StatefulSet requiredSts,
+  private void startPrimaryIfRemoved(StackGresCluster context, StatefulSet requiredSts,
       Map<String, String> appLabel, Optional<String> latestPrimaryFromPatroni,
-      BiFunction<T, StatefulSet, StatefulSet> writer) {
+      BiFunction<StackGresCluster, StatefulSet, StatefulSet> writer) {
     final String namespace = requiredSts.getMetadata().getNamespace();
     final String name = requiredSts.getMetadata().getName();
     if (latestPrimaryFromPatroni.map(ResourceUtil::getIndexFromNameWithIndex).orElse(0) <= 0) {
@@ -303,7 +303,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
     }).run();
   }
 
-  private void removeStatefulSetPlaceholderReplicas(T context, StatefulSet statefulSet) {
+  private void removeStatefulSetPlaceholderReplicas(StackGresCluster context, StatefulSet statefulSet) {
     final String namespace = statefulSet.getMetadata().getNamespace();
     final Map<String, String> stsMatchLabels = statefulSet.getSpec().getSelector().getMatchLabels();
     podScanner.getResourcesInNamespaceWithLabels(namespace, stsMatchLabels).stream()
@@ -319,7 +319,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         });
   }
 
-  private void makePrimaryPodNonDisruptable(T context, Pod primaryPod) {
+  private void makePrimaryPodNonDisruptable(StackGresCluster context, Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
       final String podName = primaryPod.getMetadata().getName();
@@ -333,7 +333,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
     handler.patch(context, primaryPod, null);
   }
 
-  private void makePrimaryPodDisruptable(T context, Pod primaryPod) {
+  private void makePrimaryPodDisruptable(StackGresCluster context, Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
       final String podName = primaryPod.getMetadata().getName();
@@ -348,7 +348,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private long countNonDisruptablePods(
-      T context,
+      StackGresCluster context,
       List<Pod> pods,
       int lastReplicaIndex) {
     return pods.stream()
@@ -359,7 +359,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private void protectPodsFromStatefulSetRemoval(
-      final T context,
+      final StackGresCluster context,
       final StatefulSet deployedStatefulSet,
       final Map<String, String> appLabel) {
     var podsToProtect = findStatefulSetPods(deployedStatefulSet, appLabel);
@@ -386,7 +386,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private void protectPvcsFromStatefulSetRemoval(
-      T context,
+      StackGresCluster context,
       StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
     final String namespace = deployedStatefulSet.getMetadata().getNamespace();
@@ -410,7 +410,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private void fixPods(
-      final T context,
+      final StackGresCluster context,
       final StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet,
       final Map<String, String> appLabel,
@@ -439,7 +439,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private List<Pod> fixNonDisruptablePods(
-      T context,
+      StackGresCluster context,
       StatefulSet statefulSet,
       PatroniCtlInstance patroniCtl,
       List<Pod> pods) {
@@ -460,7 +460,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         .toList();
   }
 
-  private Pod fixNonDisruptablePod(T context, Pod pod) {
+  private Pod fixNonDisruptablePod(StackGresCluster context, Pod pod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
@@ -475,7 +475,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private List<Pod> fixPodsPatroniLabels(
-      T context,
+      StackGresCluster context,
       StatefulSet statefulSet,
       PatroniCtlInstance patroniCtl,
       List<Pod> pods) {
@@ -576,7 +576,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private List<Pod> fixPodsOwnerReferences(
-      T context,
+      StackGresCluster context,
       StatefulSet statefulSet,
       List<Pod> pods) {
     var requiredOwnerReferences = List.of(
@@ -615,7 +615,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private List<Pod> fixPodsSelectorMatchLabels(
-      final T context,
+      final StackGresCluster context,
       final StatefulSet statefulSet,
       final List<Pod> pods) {
     final var requiredPodLabels =
@@ -655,7 +655,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private void fixPvcs(
-      T context,
+      StackGresCluster context,
       StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
@@ -785,7 +785,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
   }
 
   private List<PersistentVolumeClaim> fixPvcOwnerReferences(
-      T context,
+      StackGresCluster context,
       StatefulSet statefulSet,
       List<PersistentVolumeClaim> pvcs) {
     var requiredOwnerReferences = List.of(
@@ -841,7 +841,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         .toList();
   }
 
-  private boolean isNonDisruptable(T context, Pod pod) {
+  private boolean isNonDisruptable(StackGresCluster context, Pod pod) {
     return !Objects.equals(
         pod.getMetadata().getLabels().get(labelFactory.labelMapper().disruptableKey(context)),
         StackGresContext.RIGHT_VALUE);

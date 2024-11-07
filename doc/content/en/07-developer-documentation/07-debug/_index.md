@@ -23,7 +23,6 @@ Here is a list of categories for each StackGres component:
 | operator                     | io.stackgres.operator                     |
 | restapi controller           | io.stackgres.apiweb                       |
 | cluster controller           | io.stackgres.cluster-controller           |
-| distributedlogs controller   | io.stackgres.distributedlogs-controller   |
 | patroni                      | io.stackgres.patroni                      |
 | wal-g                        | io.stackgres.wal-g                        |
 | envoy                        | io.stackgres.envoy                        |

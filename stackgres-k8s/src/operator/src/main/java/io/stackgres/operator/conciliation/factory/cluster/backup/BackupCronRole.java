@@ -41,7 +41,7 @@ public class BackupCronRole implements ResourceGenerator<StackGresClusterContext
 
   public static final String SUFFIX = "-backup";
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   public static String roleName(StackGresClusterContext context) {
     return roleName(context.getSource());
@@ -156,7 +156,7 @@ public class BackupCronRole implements ResourceGenerator<StackGresClusterContext
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

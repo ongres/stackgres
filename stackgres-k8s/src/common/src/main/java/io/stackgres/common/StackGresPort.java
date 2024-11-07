@@ -7,7 +7,7 @@ package io.stackgres.common;
 
 public enum StackGresPort implements StackGresNamedObject {
 
-  CUSTOM("custom-%s");
+  CUSTOM("c-%s");
 
   private final String name;
   private final String resourceNameFormat;

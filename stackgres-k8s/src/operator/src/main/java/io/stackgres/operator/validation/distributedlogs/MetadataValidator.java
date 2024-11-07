@@ -12,10 +12,10 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecAnnotations;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -29,28 +29,28 @@ public class MetadataValidator implements DistributedLogsValidator {
 
   private final String annotationServicesPath;
   private final String annotationAllResourcesPath;
-  private final String annotationPodsPath;
+  private final String annotationClusterPodsPath;
 
   public MetadataValidator() {
     this.annotationServicesPath = getFieldPath(
       StackGresDistributedLogs.class, "spec",
       StackGresDistributedLogsSpec.class, "metadata",
-      StackGresDistributedLogsSpecMetadata.class, "annotations",
-      StackGresDistributedLogsSpecAnnotations.class, "services"
+      StackGresClusterSpecMetadata.class, "annotations",
+      StackGresClusterSpecAnnotations.class, "services"
     );
 
     this.annotationAllResourcesPath = getFieldPath(
       StackGresDistributedLogs.class, "spec",
       StackGresDistributedLogsSpec.class, "metadata",
-      StackGresDistributedLogsSpecMetadata.class, "annotations",
-      StackGresDistributedLogsSpecAnnotations.class, "allResources"
+      StackGresClusterSpecMetadata.class, "annotations",
+      StackGresClusterSpecAnnotations.class, "allResources"
     );
 
-    this.annotationPodsPath = getFieldPath(
+    this.annotationClusterPodsPath = getFieldPath(
       StackGresDistributedLogs.class, "spec",
       StackGresDistributedLogsSpec.class, "metadata",
-      StackGresDistributedLogsSpecMetadata.class, "annotations",
-      StackGresDistributedLogsSpecAnnotations.class, "pods"
+      StackGresClusterSpecMetadata.class, "annotations",
+      StackGresClusterSpecAnnotations.class, "clusterPods"
     );
   }
 
@@ -61,13 +61,13 @@ public class MetadataValidator implements DistributedLogsValidator {
 
         final StackGresDistributedLogs cluster = review.getRequest().getObject();
 
-        final Optional<StackGresDistributedLogsSpecAnnotations> maybeAnnotations = Optional
+        final Optional<StackGresClusterSpecAnnotations> maybeAnnotations = Optional
             .ofNullable(cluster.getSpec())
             .map(StackGresDistributedLogsSpec::getMetadata)
-            .map(StackGresDistributedLogsSpecMetadata::getAnnotations);
+            .map(StackGresClusterSpecMetadata::getAnnotations);
 
         if (maybeAnnotations.isPresent()) {
-          final StackGresDistributedLogsSpecAnnotations annotations = maybeAnnotations.get();
+          final StackGresClusterSpecAnnotations annotations = maybeAnnotations.get();
 
           final Map<String, String> services =
               Objects.requireNonNullElseGet(annotations.getServices(), Map::of);
@@ -82,9 +82,9 @@ public class MetadataValidator implements DistributedLogsValidator {
           }
 
           final Map<String, String> pods =
-              Objects.requireNonNullElseGet(annotations.getPods(), Map::of);
+              Objects.requireNonNullElseGet(annotations.getClusterPods(), Map::of);
           for (var entry : pods.entrySet()) {
-            checkAnnotation(annotationPodsPath, entry.getKey());
+            checkAnnotation(annotationClusterPodsPath, entry.getKey());
           }
         }
       }

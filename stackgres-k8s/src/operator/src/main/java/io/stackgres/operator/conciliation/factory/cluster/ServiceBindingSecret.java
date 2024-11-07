@@ -37,10 +37,10 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresClusterC
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + "-binding");
   }
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Inject
-  public ServiceBindingSecret(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public ServiceBindingSecret(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

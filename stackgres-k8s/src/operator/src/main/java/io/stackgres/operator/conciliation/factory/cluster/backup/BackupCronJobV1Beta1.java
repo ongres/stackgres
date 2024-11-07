@@ -70,7 +70,7 @@ public class BackupCronJobV1Beta1
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
   private final KubectlUtil kubectl;
   private final ClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer;
@@ -79,7 +79,7 @@ public class BackupCronJobV1Beta1
 
   @Inject
   public BackupCronJobV1Beta1(
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,
       KubectlUtil kubectl,
       ClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,

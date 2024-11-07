@@ -592,11 +592,11 @@ spec:
                         metadata:
                           annotations:
                             clusterPods:
-                              customAnnotations: customAnnotationValue
+                              key: value
                             primaryService:
-                              customAnnotations: customAnnotationValue
+                              key: value
                             replicasService:
-                              customAnnotations: customAnnotationValue
+                              key: value
                       ```
                     properties:
                       allResources:
@@ -689,10 +689,10 @@ spec:
                         description: |
                           The list of custom ports that will be exposed by the service.
                           
-                          The names of custom ports will be prefixed with the string `custom-` so they do not
+                          The names of custom ports will be prefixed with the string `c-` so they do not
                             conflict with ports defined for the service.
                           
-                          The names of target ports will be prefixed with the string `custom-` so that the ports
+                          The names of target ports will be prefixed with the string `c-` so that the ports
                             that can be referenced in this section will be only those defined under
                             .spec.pods.customContainers[].ports sections were names are also prepended with the same
                             prefix.
@@ -704,10 +704,10 @@ spec:
                           description: |
                             A custom port that will be exposed by the service.
                             
-                            The name of the custom port will be prefixed with the string `custom-` so it does not
+                            The name of the custom port will be prefixed with the string `c-` so it does not
                               conflict with ports defined for the service.
                             
-                            The name of target port will be prefixed with the string `custom-` so that the port
+                            The name of target port will be prefixed with the string `c-` so that the port
                               that can be referenced in this section will be only those defined under
                               .spec.pods.customContainers[].ports sections were names are also prepended with the same
                               prefix.
@@ -899,7 +899,7 @@ spec:
                       A list of custom volumes that may be used along with any container defined in
                         customInitContainers or customContainers sections.
                       
-                      The name used in this section will be prefixed with the string `custom-` so that when
+                      The name used in this section will be prefixed with the string `c-` so that when
                         referencing them in the customInitContainers or customContainers sections the name used
                         have to be prepended with the same prefix.
                       
@@ -915,7 +915,7 @@ spec:
                         A custom volume that may be used along with any container defined in
                          customInitContainers or customContainers sections.
                         
-                        The name used in this section will be prefixed with the string `custom-` so that when
+                        The name used in this section will be prefixed with the string `c-` so that when
                          referencing them in the customInitContainers or customContainers sections the name used
                          have to be prepended with the same prefix.
                         
@@ -929,7 +929,7 @@ spec:
                       properties:
                         name:
                           description: |
-                            name of the custom volume. The name will be implicitly prefixed with `custom-` to avoid clashing with internal operator volume names. Must be a DNS_LABEL and unique within the pod. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            name of the custom volume. The name will be implicitly prefixed with `c-` to avoid clashing with internal operator volume names. Must be a DNS_LABEL and unique within the pod. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                           type: string
                         configMap: #!jq_placeholder .definitions["io.k8s.api.core.v1.Volume"].properties.configMap #configmapvolumesource-v1-core
                           {"description":"Adapts a ConfigMap into a volume.\n\nThe contents of the target ConfigMap's Data field will be presented in a volume as files using the keys in the Data field as the file names, unless the items element is populated with specific mappings of keys to paths. ConfigMap volumes support ownership management and SELinux relabeling.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#configmapvolumesource-v1-core","properties":{"defaultMode":{"description":"defaultMode is optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.","format":"int32","type":"integer"},"items":{"description":"items if unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the ConfigMap, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.","items":{"description":"Maps a string key to a path within a volume.","properties":{"key":{"description":"key is the key to project.","type":"string"},"mode":{"description":"mode is Optional: mode bits used to set permissions on this file. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. If not specified, the volume defaultMode will be used. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.","format":"int32","type":"integer"},"path":{"description":"path is the relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'.","type":"string"}},"required":["key","path"],"type":"object"},"type":"array"},"name":{"description":"Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"optional specify whether the ConfigMap or its keys must be defined","type":"boolean"}},"type":"object"}
@@ -958,7 +958,7 @@ spec:
                         custom init containers will run following the defined sequence as the end of
                         cluster's Pods init containers.
                       
-                      The name used in this section will be prefixed with the string `custom-` so that when
+                      The name used in this section will be prefixed with the string `c-` so that when
                         referencing them in the .spec.containers section of SGInstanceProfile the name used
                         have to be prepended with the same prefix.
 
@@ -972,7 +972,7 @@ spec:
                          containers will run following the defined sequence as the end of cluster's Pods init
                          containers.
                         
-                        The name used in this section will be prefixed with the string `custom-` so that when
+                        The name used in this section will be prefixed with the string `c-` so that when
                          referencing them in the .spec.containers section of SGInstanceProfile the name used
                          have to be prepended with the same prefix.
                         
@@ -987,7 +987,7 @@ spec:
                     description: |
                       A list of custom application containers that run within the cluster's Pods.
                       
-                      The name used in this section will be prefixed with the string `custom-` so that when
+                      The name used in this section will be prefixed with the string `c-` so that when
                         referencing them in the .spec.containers section of SGInstanceProfile the name used
                         have to be prepended with the same prefix.
 
@@ -1001,7 +1001,7 @@ spec:
                          containers will run following the defined sequence as the end of cluster's Pods
                          containers.
                         
-                        The name used in this section will be prefixed with the string `custom-` so that when
+                        The name used in this section will be prefixed with the string `c-` so that when
                          referencing them in the .spec.containers section of SGInstanceProfile the name used
                          have to be prepended with the same prefix.
                         

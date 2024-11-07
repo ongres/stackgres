@@ -47,7 +47,7 @@ class PodTemplateSpecFactoryTest {
   private ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Mock
   private ClusterLabelMapper labelMapper;

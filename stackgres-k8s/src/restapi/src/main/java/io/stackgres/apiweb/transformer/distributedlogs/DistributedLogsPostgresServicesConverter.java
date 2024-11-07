@@ -13,14 +13,14 @@ import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.apiweb.transformer.converter.DtoConverter;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServicesBuilder;
 
 public class DistributedLogsPostgresServicesConverter implements
-    DtoConverter<StackGresDistributedLogsPostgresServices, DistributedLogsPostgresServices> {
+    DtoConverter<StackGresPostgresServices, DistributedLogsPostgresServices> {
 
   @Override
-  public DistributedLogsPostgresServices from(StackGresDistributedLogsPostgresServices source) {
+  public DistributedLogsPostgresServices from(StackGresPostgresServices source) {
     return Optional.ofNullable(source)
         .map(sgDlPgServices -> {
           return new DistributedLogsPostgresServices(
@@ -53,10 +53,10 @@ public class DistributedLogsPostgresServicesConverter implements
         }).orElse(null);
   }
 
-  public StackGresDistributedLogsPostgresServices to(
+  public StackGresPostgresServices to(
       DistributedLogsPostgresServices postgresServices) {
     return Optional.ofNullable(postgresServices)
-        .map(pgServices -> new StackGresDistributedLogsPostgresServicesBuilder()
+        .map(pgServices -> new StackGresPostgresServicesBuilder()
             .withPrimary(map(pgServices.getPrimary()))
             .withReplicas(map(pgServices.getReplicas()))
             .build()).orElse(null);

@@ -72,9 +72,6 @@ spec:
     dbops.set-dbops-result:
       cpu: "1"
       memory: 256Mi
-    distributedlogs-controller:
-      cpu: 250m
-      memory: 512Mi
     envoy:
       cpu: "1"
       memory: 64Mi
@@ -137,9 +134,6 @@ spec:
       dbops.set-dbops-result:
         cpu: "1"
         memory: 256Mi
-      distributedlogs-controller:
-        cpu: 250m
-        memory: 512Mi
       envoy:
         cpu: "1"
         memory: 64Mi
@@ -332,4 +326,4 @@ spec:
 
 ## Custom containers
 
-Any custom container (or init cunstom containers) resources limits and huge pages can be configured by creating a section `SGInstanceProfile.spec.containers.custom-<custom container name>` (or `SGInstanceProfile.spec.initContainers.custom-<custom init container name>`) and specifying `cpu`, `memory` and/or `hugePages`.
+Any custom container (or init cunstom containers) resources limits and huge pages can be configured by creating a section `SGInstanceProfile.spec.containers.c-<custom container name>` (or `SGInstanceProfile.spec.initContainers.c-<custom init container name>`) and specifying `cpu`, `memory` and/or `hugePages`.

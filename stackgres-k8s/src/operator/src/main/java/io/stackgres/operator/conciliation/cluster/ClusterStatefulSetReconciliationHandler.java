@@ -28,13 +28,13 @@ import jakarta.inject.Inject;
 @ReconciliationScope(value = StackGresCluster.class, kind = "StatefulSet")
 @ApplicationScoped
 public class ClusterStatefulSetReconciliationHandler
-    extends AbstractStatefulSetWithPrimaryReconciliationHandler<StackGresCluster> {
+    extends AbstractStatefulSetWithPrimaryReconciliationHandler {
 
   @Inject
   public ClusterStatefulSetReconciliationHandler(
       @ReconciliationScope(value = StackGresCluster.class, kind = "HasMetadata")
       ReconciliationHandler<StackGresCluster> handler,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
@@ -46,7 +46,7 @@ public class ClusterStatefulSetReconciliationHandler
   ClusterStatefulSetReconciliationHandler(
       ReconciliationHandler<StackGresCluster> handler,
       ReconciliationHandler<StackGresCluster> protectHandler,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,

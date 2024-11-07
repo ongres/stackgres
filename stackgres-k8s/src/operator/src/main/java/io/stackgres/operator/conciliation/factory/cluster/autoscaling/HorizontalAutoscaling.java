@@ -41,10 +41,10 @@ public class HorizontalAutoscaling implements ResourceGenerator<StackGresCluster
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + "-autoscaling");
   }
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Inject
-  public HorizontalAutoscaling(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public HorizontalAutoscaling(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

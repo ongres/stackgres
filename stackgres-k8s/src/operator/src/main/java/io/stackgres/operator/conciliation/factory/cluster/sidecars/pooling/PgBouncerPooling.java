@@ -64,13 +64,13 @@ import org.jetbrains.annotations.NotNull;
 public class PgBouncerPooling implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
   private final PostgresSocketMount postgresSocket;
   private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
 
   @Inject
-  protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  protected PgBouncerPooling(LabelFactoryForCluster labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts,
       PostgresSocketMount postgresSocket,
       ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
