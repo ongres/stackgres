@@ -75,14 +75,14 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
       "io.stackgres.prometheus-postgres-exporter");
   public static final String QUERIES_YAML = "queries.yaml";
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
   private final PostgresSocketMount postgresSocket;
   private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
   protected final YamlMapperProvider yamlMapperProvider;
 
   @Inject
-  public PostgresExporter(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public PostgresExporter(LabelFactoryForCluster labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts, PostgresSocketMount postgresSocket,
       ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts, YamlMapperProvider yamlMapperProvider) {
     super();

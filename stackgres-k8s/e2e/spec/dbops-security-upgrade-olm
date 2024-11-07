@@ -358,24 +358,6 @@ $(
           - name: app
             mountPath: /app/quarkus-run.jar
             subPath: quarkus-run.jar
-      distributedlogsController:
-        volumes:
-          - name: app
-            hostPath:
-              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
-        volumeMounts:
-          - name: app
-            mountPath: /app/app
-            subPath: app
-          - name: app
-            mountPath: /app/lib
-            subPath: lib
-          - name: app
-            mountPath: /app/quarkus
-            subPath: quarkus
-          - name: app
-            mountPath: /app/quarkus-run.jar
-            subPath: quarkus-run.jar
 INNER_EOF
   fi
 )

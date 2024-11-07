@@ -36,7 +36,7 @@ public class ClusterWatcher {
   PatroniApiHandler patroniApiHandler;
 
   @Inject
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
+  LabelFactoryForCluster labelFactory;
 
   @Inject
   ResourceScanner<Pod> podScanner;

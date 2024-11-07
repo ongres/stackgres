@@ -68,7 +68,7 @@ public class ConfigRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster;
+  private final LabelFactoryForCluster labelFactoryForCluster;
 
   private final ResourceScanner<Pod> podScanner;
 
@@ -83,7 +83,7 @@ public class ConfigRequiredResourcesGenerator
       ResourceFinder<Job> jobFinder,
       ConfigGrafanaIntegrationChecker grafanaIntegrationChecker,
       CustomResourceScanner<StackGresCluster> clusterScanner,
-      LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
+      LabelFactoryForCluster labelFactoryForCluster,
       ResourceScanner<Pod> podScanner,
       CustomResourceScanner<Prometheus> prometheusScanner) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;

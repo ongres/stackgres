@@ -48,11 +48,6 @@ public enum StackGresContainer implements StackGresContainerProfile {
           .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       ),
-  DISTRIBUTEDLOGS_CONTROLLER(StackGresGroupKind.CLUSTER, "distributedlogs-controller",
-      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
-          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-      memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
-      ),
   DBOPS_RUN_DBOPS(StackGresGroupKind.DBOPS, "run-dbops",
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
@@ -70,7 +65,7 @@ public enum StackGresContainer implements StackGresContainerProfile {
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       );
 
-  public static final String CUSTOM = "custom-%s";
+  public static final String CUSTOM = "c-%s";
 
   private final StackGresGroupKind kind;
   private final String name;

@@ -17,7 +17,7 @@ public class FluentdUtil {
   public static final String POSTGRES_LOG_TYPE = "postgres";
   public static final String PATRONI_LOG_TYPE = "patroni";
   public static final int FORWARD_PORT = 12225;
-  public static final String FORWARD_PORT_NAME = "fluentd-forward";
+  public static final String FORWARD_PORT_NAME = "fluentd-fwd";
 
   private static final String SUFFIX = "-fluentd";
   public static final String CONFIG = "fluentd-config";

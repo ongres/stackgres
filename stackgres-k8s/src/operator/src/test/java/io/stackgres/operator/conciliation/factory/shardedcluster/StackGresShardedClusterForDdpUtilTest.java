@@ -14,12 +14,12 @@ import java.util.List;
 
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -47,12 +47,12 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         0);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
@@ -77,12 +77,12 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         0);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
@@ -110,12 +110,12 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         0);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
@@ -132,12 +132,12 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         1);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
@@ -162,12 +162,12 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         1);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
@@ -192,12 +192,12 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         1);
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
@@ -270,7 +270,7 @@ class StackGresShardedClusterForDdpUtilTest {
         shardedCluster.getSpec().getPostgresServices().getShards().getPrimaries(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
-        new StackGresClusterPostgresServiceBuilder()
+        new StackGresPostgresServiceBuilder()
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());

@@ -78,7 +78,7 @@ public class ShardedBackupCronJob
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
   private final LabelFactoryForShardedCluster labelFactory;
-  private final LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
+  private final LabelFactoryForCluster clusterLabelFactory;
   private final ResourceFactory<StackGresShardedClusterContext, PodSecurityContext>
       podSecurityFactory;
   private final KubectlUtil kubectl;
@@ -89,7 +89,7 @@ public class ShardedBackupCronJob
   @Inject
   public ShardedBackupCronJob(
       LabelFactoryForShardedCluster labelFactory,
-      LabelFactoryForCluster<StackGresCluster> clusterLabelFactory,
+      LabelFactoryForCluster clusterLabelFactory,
       ResourceFactory<StackGresShardedClusterContext, PodSecurityContext> podSecurityFactory,
       KubectlUtil kubectl,
       ShardedClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,

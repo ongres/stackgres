@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkCredentials;
@@ -49,7 +48,7 @@ public class PgbenchBenchmark extends AbstractDbOpsJob {
   public PgbenchBenchmark(
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
       ObjectMapper jsonMapper,
       KubectlUtil kubectl,

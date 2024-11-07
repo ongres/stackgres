@@ -67,7 +67,7 @@ public class ClusterPodTemplateSpecFactory
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final RunningContainerFactoryDiscoverer<ClusterContainerContext>
       runningContainerFactoryDiscoverer;
@@ -78,7 +78,7 @@ public class ClusterPodTemplateSpecFactory
   @Inject
   public ClusterPodTemplateSpecFactory(
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       RunningContainerFactoryDiscoverer<ClusterContainerContext>
           runningContainerFactoryDiscoverer,
       InitContainerFactoryDiscoverer<ClusterContainerContext>

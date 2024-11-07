@@ -14,10 +14,12 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.SessionAffinityConfig;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.ServiceSpec;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import jakarta.validation.Valid;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -40,6 +42,9 @@ public class StackGresPostgresService extends ServiceSpec {
 
   protected StackGresPostgresServiceNodePort nodePorts;
 
+  @Valid
+  private List<CustomServicePort> customPorts;
+
   public StackGresPostgresService() {
     super();
   }
@@ -51,14 +56,23 @@ public class StackGresPostgresService extends ServiceSpec {
       String loadBalancerIP, List<String> loadBalancerSourceRanges, List<ServicePort> ports,
       Boolean publishNotReadyAddresses, Map<String, String> selector, String sessionAffinity,
       SessionAffinityConfig sessionAffinityConfig, String trafficDistribution, String type,
-      StackGresPostgresServiceNodePort nodePorts) {
+      StackGresPostgresServiceNodePort nodePorts, List<CustomServicePort> customPorts) {
     super(allocateLoadBalancerNodePorts, clusterIP, clusterIPs, externalIPs, externalName,
         externalTrafficPolicy, healthCheckNodePort, internalTrafficPolicy, ipFamilies,
         ipFamilyPolicy, loadBalancerClass, loadBalancerIP, loadBalancerSourceRanges, ports,
         publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig,
-        trafficDistribution, null);
+        trafficDistribution, type);
     this.type = type;
     this.nodePorts = nodePorts;
+    this.customPorts = customPorts;
+  }
+
+  public List<CustomServicePort> getCustomPorts() {
+    return customPorts;
+  }
+
+  public void setCustomPorts(List<CustomServicePort> customPorts) {
+    this.customPorts = customPorts;
   }
 
   public Boolean getEnabled() {

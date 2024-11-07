@@ -36,10 +36,10 @@ public class VerticalAutoscaling implements ResourceGenerator<StackGresClusterCo
     return ResourceUtil.resourceName(cluster.getMetadata().getName());
   }
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Inject
-  public VerticalAutoscaling(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public VerticalAutoscaling(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

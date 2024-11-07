@@ -6,7 +6,7 @@
 package io.stackgres.common.fixture.distributedlogs;
 
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.testutil.fixture.Fixture;
 
@@ -14,7 +14,7 @@ public class DistributedLogsSpecFixture extends Fixture<StackGresDistributedLogs
 
   public DistributedLogsSpecFixture emptyPostgresServices() {
     if (fixture.getPostgresServices() == null) {
-      fixture.setPostgresServices(new StackGresDistributedLogsPostgresServices());
+      fixture.setPostgresServices(new StackGresPostgresServices());
     }
     return this;
   }

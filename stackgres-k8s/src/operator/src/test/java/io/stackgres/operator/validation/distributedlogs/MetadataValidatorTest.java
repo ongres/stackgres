@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.distributedlogs;
 
 import java.util.Map;
 
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecAnnotations;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.StackGresDistributedLogsReviewBuilder;
@@ -81,13 +81,13 @@ class MetadataValidatorTest {
   }
 
   private void disableClusterAnnotations() {
-    defaultCluster.getSpec().setMetadata(new StackGresDistributedLogsSpecMetadata());
+    defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
     defaultCluster.getSpec().getMetadata().setAnnotations(null);
   }
 
   private void enableClusterAnnotations(String key, String value) {
-    defaultCluster.getSpec().setMetadata(new StackGresDistributedLogsSpecMetadata());
-    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresDistributedLogsSpecAnnotations());
+    defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
     defaultCluster
             .getSpec()
             .getMetadata()
@@ -98,7 +98,7 @@ class MetadataValidatorTest {
             .getSpec()
             .getMetadata()
             .getAnnotations()
-            .setPods(Map.of(key, value));
+            .setClusterPods(Map.of(key, value));
 
     defaultCluster
             .getSpec()

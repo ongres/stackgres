@@ -14,7 +14,6 @@ export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTR
 export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/restapi:$IMAGE_TAG"
 export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/jobs:$IMAGE_TAG"
 export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/cluster-controller:$IMAGE_TAG"
-export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/distributedlogs-controller:$IMAGE_TAG"
 export STREAM_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/stream:${NATIVE_IMAGE_TAG}-jvm"
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/admin-ui:$ADMINUI_IMAGE_TAG"
 export PGLAMBDA_JAVASCRIPT_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/pglambda:${NATIVE_IMAGE_TAG}-javascript"
@@ -78,7 +77,6 @@ build_all() {
     restapi-java \
     jobs-java \
     cluster-controller-java \
-    distributedlogs-controller-java \
     stream-java \
     admin-ui \
     helm-packages \
@@ -92,7 +90,6 @@ build_all() {
     restapi-jvm-image \
     jobs-jvm-image \
     cluster-controller-jvm-image \
-    distributedlogs-controller-jvm-image \
     stream-jvm-image \
     admin-ui-image \
     operator-bundle-image \
@@ -111,7 +108,6 @@ EOF
       restapi-java \
       jobs-java \
       cluster-controller-java \
-      distributedlogs-controller-java \
       stream-java \
       admin-ui \
       helm-packages \
@@ -129,8 +125,6 @@ EOF
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
@@ -143,7 +137,6 @@ EOF
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" "$STREAM_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
@@ -794,7 +787,6 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
   export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
-  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller"
   export PRIVATE_STREAM_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/stream"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
   upgrade_operator_vanilla \
@@ -1818,20 +1810,6 @@ EOF
     --set-string developer.patches.clusterController.volumeMounts[3].name=app 
     --set-string developer.patches.clusterController.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.clusterController.volumeMounts[3].subPath=quarkus-run.jar 
-    --set-string developer.patches.distributedlogsController.volumes[0].name=app 
-    --set-string developer.patches.distributedlogsController.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app) 
-    --set-string developer.patches.distributedlogsController.volumeMounts[0].name=app 
-    --set-string developer.patches.distributedlogsController.volumeMounts[0].mountPath=/app/app 
-    --set-string developer.patches.distributedlogsController.volumeMounts[0].subPath=app 
-    --set-string developer.patches.distributedlogsController.volumeMounts[1].name=app 
-    --set-string developer.patches.distributedlogsController.volumeMounts[1].mountPath=/app/lib 
-    --set-string developer.patches.distributedlogsController.volumeMounts[1].subPath=lib 
-    --set-string developer.patches.distributedlogsController.volumeMounts[2].name=app 
-    --set-string developer.patches.distributedlogsController.volumeMounts[2].mountPath=/app/quarkus 
-    --set-string developer.patches.distributedlogsController.volumeMounts[2].subPath=quarkus 
-    --set-string developer.patches.distributedlogsController.volumeMounts[3].name=app 
-    --set-string developer.patches.distributedlogsController.volumeMounts[3].mountPath=/app/quarkus-run.jar 
-    --set-string developer.patches.distributedlogsController.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.stream.volumes[0].name=app 
     --set-string developer.patches.stream.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/stream/target/quarkus-app) 
     --set-string developer.patches.stream.volumeMounts[0].name=app 

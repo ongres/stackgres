@@ -52,7 +52,7 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
   public DbOpsMajorVersionUpgradeJob(
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
       ObjectMapper jsonMapper,
       KubectlUtil kubectl,

@@ -1212,23 +1212,6 @@ spec:
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
-                      stream:
-                        type: object
-                        description: |
-                          Section to define volumes to be used by the stream container
-                        properties:
-                          volumes:
-                            type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
-                            items:
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                          volumeMounts:
-                            type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
-                            items:
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
                       restapi:
                         type: object
                         description: |
@@ -1297,10 +1280,10 @@ spec:
                             items:
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
-                      distributedlogsController:
+                      stream:
                         type: object
                         description: |
-                          Section to define volumes to be used by the distributedlogs controller container
+                          Section to define volumes to be used by the stream container
                         properties:
                           volumes:
                             type: array

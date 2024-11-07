@@ -21,29 +21,29 @@ import jakarta.validation.constraints.NotNull;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresPostgresServices<T extends StackGresPostgresService> {
+public class StackGresPostgresServices {
 
   @Valid
   @NotNull(message = "primary is required")
-  protected T primary;
+  protected StackGresPostgresService primary;
 
   @Valid
   @NotNull(message = "replicas is required")
-  protected T replicas;
+  protected StackGresPostgresService replicas;
 
-  public T getPrimary() {
+  public StackGresPostgresService getPrimary() {
     return primary;
   }
 
-  public void setPrimary(T primary) {
+  public void setPrimary(StackGresPostgresService primary) {
     this.primary = primary;
   }
 
-  public T getReplicas() {
+  public StackGresPostgresService getReplicas() {
     return replicas;
   }
 
-  public void setReplicas(T replicas) {
+  public void setReplicas(StackGresPostgresService replicas) {
     this.replicas = replicas;
   }
 
@@ -60,7 +60,7 @@ public class StackGresPostgresServices<T extends StackGresPostgresService> {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresPostgresServices<?> that = (StackGresPostgresServices<?>) o;
+    StackGresPostgresServices that = (StackGresPostgresServices) o;
     return Objects.equals(primary, that.primary)
         && Objects.equals(replicas, that.replicas);
   }

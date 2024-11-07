@@ -23,8 +23,6 @@ public class ConfigDeveloperPatches {
 
   private ConfigDeveloperContainerPatches clusterController;
 
-  private ConfigDeveloperContainerPatches distributedlogsController;
-
   public ConfigDeveloperContainerPatches getOperator() {
     return operator;
   }
@@ -63,15 +61,6 @@ public class ConfigDeveloperPatches {
 
   public void setClusterController(ConfigDeveloperContainerPatches clusterController) {
     this.clusterController = clusterController;
-  }
-
-  public ConfigDeveloperContainerPatches getDistributedlogsController() {
-    return distributedlogsController;
-  }
-
-  public void setDistributedlogsController(
-      ConfigDeveloperContainerPatches distributedlogsController) {
-    this.distributedlogsController = distributedlogsController;
   }
 
   @Override

@@ -91,11 +91,6 @@ deploy cluster-controller jvm image:
   variables:
     IMAGE_NAME: "stackgres/cluster-controller"
 
-deploy distributedlogs-controller jvm image:
-  extends: .deploy jvm image
-  variables:
-    IMAGE_NAME: "stackgres/distributedlogs-controller"
-
 deploy stream jvm image:
   extends: .deploy jvm image
   variables:
@@ -131,11 +126,6 @@ deploy cluster-controller native image:
   extends: .deploy native image
   variables:
     IMAGE_NAME: "stackgres/cluster-controller"
-
-deploy distributedlogs-controller native image:
-  extends: .deploy native image
-  variables:
-    IMAGE_NAME: "stackgres/distributedlogs-controller"
 
 .deploy stream native image:
   extends: .deploy native image

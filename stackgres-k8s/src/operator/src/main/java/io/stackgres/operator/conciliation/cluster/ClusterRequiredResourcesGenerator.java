@@ -110,7 +110,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final ResourceScanner<Pod> podScanner;
 
@@ -130,7 +130,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ResourceScanner<Pod> podScanner,
       BackupEnvVarFactory backupEnvVarFactory,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {

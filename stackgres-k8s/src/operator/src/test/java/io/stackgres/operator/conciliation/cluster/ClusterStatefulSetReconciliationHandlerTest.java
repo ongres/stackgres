@@ -81,7 +81,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       ClusterStatefulSetReconciliationHandlerTest.class);
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory =
+  private final LabelFactoryForCluster labelFactory =
       new ClusterLabelFactory(new ClusterLabelMapper());
 
   @Mock

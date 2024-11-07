@@ -54,7 +54,7 @@ import jakarta.inject.Singleton;
 public class PatroniRole implements
     ResourceGenerator<StackGresClusterContext> {
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   public static String roleName(ClusterContext clusterContext) {
     return PatroniUtil.roleName(clusterContext.getCluster());
@@ -212,7 +212,7 @@ public class PatroniRole implements
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

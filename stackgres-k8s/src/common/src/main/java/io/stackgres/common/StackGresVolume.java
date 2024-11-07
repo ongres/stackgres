@@ -43,7 +43,7 @@ public enum StackGresVolume implements StackGresNamedObject {
   FLUENTD("fluentd"),
   FLUENTD_BUFFER("fluentd-buffer"),
   FLUENTD_LOG("fluentd-log"),
-  CUSTOM("custom-%s");
+  CUSTOM("c-%s");
 
   private final String name;
   private final String resourceNameFormat;

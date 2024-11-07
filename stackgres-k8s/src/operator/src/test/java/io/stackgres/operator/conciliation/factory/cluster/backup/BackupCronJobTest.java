@@ -36,7 +36,7 @@ import org.mockito.MockitoAnnotations;
 public class BackupCronJobTest {
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
   @Mock
   private ResourceFactory<StackGresClusterContext, PodSecurityContext> clusterPodSecurityFactory;
   @Mock
@@ -46,7 +46,7 @@ public class BackupCronJobTest {
   @Mock
   private StackGresBackupContext backupContext;
   @Mock
-  private LabelMapperForCluster<StackGresCluster> labelMapperSgCluster;
+  private LabelMapperForCluster labelMapperSgCluster;
   @Mock
   private ClusterEnvironmentVariablesFactoryDiscoverer envFactoryDiscoverer;
   @Mock

@@ -34,11 +34,11 @@ public class ReplicationInitializationNewBackup
   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
       .withZone(ZoneId.systemDefault());
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   @Inject
   public ReplicationInitializationNewBackup(
-      LabelFactoryForCluster<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster labelFactory) {
     super();
     this.labelFactory = labelFactory;
   }

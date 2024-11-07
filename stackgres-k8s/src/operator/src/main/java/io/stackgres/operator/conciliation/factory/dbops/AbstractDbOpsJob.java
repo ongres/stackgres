@@ -36,7 +36,6 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
@@ -58,7 +57,7 @@ public abstract class AbstractDbOpsJob implements DbOpsJobFactory {
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
   private final DbOpsEnvironmentVariables clusterEnvironmentVariables;
   private final Map<DbOpsStatusCondition, String> conditions;
-  protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  protected final LabelFactoryForCluster labelFactory;
   protected final LabelFactoryForDbOps dbOpsLabelFactory;
   protected final KubectlUtil kubectl;
   private final DbOpsVolumeMounts dbOpsVolumeMounts;
@@ -67,7 +66,7 @@ public abstract class AbstractDbOpsJob implements DbOpsJobFactory {
   protected AbstractDbOpsJob(
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterEnvironmentVariables,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
       ObjectMapper jsonMapper,
       KubectlUtil kubectl,

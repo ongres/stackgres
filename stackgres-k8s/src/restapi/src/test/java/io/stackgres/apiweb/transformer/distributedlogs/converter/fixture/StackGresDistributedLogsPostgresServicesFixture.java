@@ -7,12 +7,12 @@ package io.stackgres.apiweb.transformer.distributedlogs.converter.fixture;
 
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 
 public class StackGresDistributedLogsPostgresServicesFixture {
 
-  StackGresDistributedLogsPostgresServices postgresServices =
-      new StackGresDistributedLogsPostgresServices();
+  StackGresPostgresServices postgresServices =
+      new StackGresPostgresServices();
 
   public StackGresDistributedLogsPostgresServicesFixture withPrimary() {
 
@@ -34,7 +34,7 @@ public class StackGresDistributedLogsPostgresServicesFixture {
     return this;
   }
 
-  public StackGresDistributedLogsPostgresServices build() {
+  public StackGresPostgresServices build() {
     return this.postgresServices;
   }
 

@@ -26,11 +26,11 @@ import jakarta.inject.Singleton;
 @OperatorVersionBinder
 public class PatroniDefaultScript implements ResourceGenerator<StackGresClusterContext> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final ClusterDefaultScripts patroniDefaultScripts;
 
   @Inject
-  public PatroniDefaultScript(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public PatroniDefaultScript(LabelFactoryForCluster labelFactory,
       ClusterDefaultScripts patroniDefaultScripts) {
     this.labelFactory = labelFactory;
     this.patroniDefaultScripts = patroniDefaultScripts;

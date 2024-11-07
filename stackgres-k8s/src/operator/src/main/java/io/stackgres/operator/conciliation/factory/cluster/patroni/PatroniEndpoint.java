@@ -22,10 +22,10 @@ import jakarta.inject.Singleton;
 @OperatorVersionBinder
 public class PatroniEndpoint implements ResourceGenerator<StackGresClusterContext> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   @Inject
-  public PatroniEndpoint(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public PatroniEndpoint(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

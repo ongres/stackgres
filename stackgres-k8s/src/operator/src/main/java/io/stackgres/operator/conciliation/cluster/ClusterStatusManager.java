@@ -44,12 +44,12 @@ public class ClusterStatusManager
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatusManager.class);
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final KubernetesClient client;
 
   @Inject
-  public ClusterStatusManager(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public ClusterStatusManager(LabelFactoryForCluster labelFactory,
       KubernetesClient client) {
     this.labelFactory = labelFactory;
     this.client = client;

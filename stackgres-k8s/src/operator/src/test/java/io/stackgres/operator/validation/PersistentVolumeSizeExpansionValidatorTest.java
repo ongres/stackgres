@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
@@ -44,7 +45,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
   protected ResourceScanner<PersistentVolumeClaim> pvcScanner;
 
   @Mock
-  protected LabelFactoryForCluster<S> labelFactory;
+  protected LabelFactoryForCluster labelFactory;
 
   protected T clusterReview;
 
@@ -336,11 +337,11 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
   }
 
   private void setupLabelFactory(R resource, Map<String, String> clusterLabels) {
-    S cluster = getCluster(resource);
+    StackGresCluster cluster = getCluster(resource);
     when(labelFactory.clusterLabels(cluster)).thenReturn(clusterLabels);
   }
 
-  protected abstract S getCluster(R resource);
+  protected abstract StackGresCluster getCluster(R resource);
 
   private String getStorageClass() {
     return getStorageClassName(clusterReview.getRequest().getObject());

@@ -60,14 +60,14 @@ public class FluentBit implements
   private static final Logger FLEUNTBIT_LOGGER = LoggerFactory.getLogger("io.stackgres.fluent-bit");
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final LogVolumeMounts logMounts;
   private final PostgresSocketMount postgresSocket;
   private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
 
   @Inject
-  public FluentBit(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public FluentBit(LabelFactoryForCluster labelFactory,
       LogVolumeMounts logMounts,
       PostgresSocketMount postgresSocket,
       ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {

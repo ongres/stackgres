@@ -10,7 +10,11 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
+import io.stackgres.apiweb.dto.cluster.ClusterNonProductionOptions;
+import io.stackgres.apiweb.dto.cluster.ClusterPodsPersistentVolume;
+import io.stackgres.apiweb.dto.cluster.ClusterPodsScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterResources;
+import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
@@ -19,21 +23,21 @@ public class DistributedLogsSpec {
 
   private String profile;
 
-  private DistributedLogsPersistentVolume persistentVolume;
+  private ClusterPodsPersistentVolume persistentVolume;
 
   private DistributedLogsPostgresServices postgresServices;
 
-  private DistributedLogsNonProductionOptions nonProductionOptions;
+  private ClusterNonProductionOptions nonProductionOptions;
 
   private ClusterResources resources;
 
-  private DistributedLogsPodScheduling scheduling;
+  private ClusterPodsScheduling scheduling;
 
   private String sgInstanceProfile;
 
   private DistributedLogsConfigurations configurations;
 
-  private DistributedLogsSpecMetadata metadata;
+  private ClusterSpecMetadata metadata;
 
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
@@ -45,20 +49,20 @@ public class DistributedLogsSpec {
     this.profile = profile;
   }
 
-  public DistributedLogsPersistentVolume getPersistentVolume() {
+  public ClusterPodsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
 
   public void setPersistentVolume(
-      DistributedLogsPersistentVolume persistentVolume) {
+      ClusterPodsPersistentVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
   }
 
-  public DistributedLogsNonProductionOptions getNonProductionOptions() {
+  public ClusterNonProductionOptions getNonProductionOptions() {
     return nonProductionOptions;
   }
 
-  public void setNonProductionOptions(DistributedLogsNonProductionOptions nonProductionOptions) {
+  public void setNonProductionOptions(ClusterNonProductionOptions nonProductionOptions) {
     this.nonProductionOptions = nonProductionOptions;
   }
 
@@ -70,11 +74,11 @@ public class DistributedLogsSpec {
     this.resources = resources;
   }
 
-  public DistributedLogsPodScheduling getScheduling() {
+  public ClusterPodsScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(DistributedLogsPodScheduling scheduling) {
+  public void setScheduling(ClusterPodsScheduling scheduling) {
     this.scheduling = scheduling;
   }
 
@@ -94,11 +98,11 @@ public class DistributedLogsSpec {
     this.configurations = configurations;
   }
 
-  public DistributedLogsSpecMetadata getMetadata() {
+  public ClusterSpecMetadata getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(DistributedLogsSpecMetadata metadata) {
+  public void setMetadata(ClusterSpecMetadata metadata) {
     this.metadata = metadata;
   }
 

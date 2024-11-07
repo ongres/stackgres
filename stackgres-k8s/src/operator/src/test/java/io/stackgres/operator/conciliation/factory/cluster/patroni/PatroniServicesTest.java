@@ -25,9 +25,8 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceNodePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.fixture.Fixtures;
@@ -42,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniServicesTest {
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Mock
   private io.stackgres.operator.conciliation.cluster.StackGresClusterContext context;
@@ -259,9 +258,9 @@ class PatroniServicesTest {
   }
 
   private void enablePrimaryService(boolean enabled) {
-    StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    StackGresClusterPostgresService primaryService = new StackGresClusterPostgresService();
-    StackGresClusterPostgresService replicasService = new StackGresClusterPostgresService();
+    StackGresPostgresServices postgresServices = new StackGresPostgresServices();
+    StackGresPostgresService primaryService = new StackGresPostgresService();
+    StackGresPostgresService replicasService = new StackGresPostgresService();
     primaryService.setEnabled(enabled);
     primaryService.setType("ClusterIP");
     postgresServices.setPrimary(primaryService);
@@ -305,9 +304,9 @@ class PatroniServicesTest {
   }
 
   private void resetReplicas(boolean enabled) {
-    StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    StackGresClusterPostgresService primaryService = new StackGresClusterPostgresService();
-    StackGresClusterPostgresService replicaService = new StackGresClusterPostgresService();
+    StackGresPostgresServices postgresServices = new StackGresPostgresServices();
+    StackGresPostgresService primaryService = new StackGresPostgresService();
+    StackGresPostgresService replicaService = new StackGresPostgresService();
     replicaService.setEnabled(enabled);
     replicaService.setType("ClusterIP");
     postgresServices.setPrimary(primaryService);

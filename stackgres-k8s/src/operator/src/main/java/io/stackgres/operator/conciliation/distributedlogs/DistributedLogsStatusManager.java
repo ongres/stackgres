@@ -27,7 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
-import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,11 +44,11 @@ public class DistributedLogsStatusManager
   private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsStatusManager.class);
 
   private final KubernetesClient client;
-  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForDistributedLogs labelFactory;
 
   @Inject
   public DistributedLogsStatusManager(KubernetesClient client,
-      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+      LabelFactoryForDistributedLogs labelFactory) {
     this.client = client;
     this.labelFactory = labelFactory;
   }

@@ -84,7 +84,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
           "envoy_port", EnvoyUtil.ENVOY_PORT);
 
   protected final YAMLMapper yamlMapper;
-  protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  protected final LabelFactoryForCluster labelFactory;
 
   private final ObjectMapper objectMapper;
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
@@ -92,7 +92,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
       ObjectMapper jsonMapper,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.yamlMapper = yamlMapperProvider.get();
     this.labelFactory = labelFactory;

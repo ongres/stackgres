@@ -18,25 +18,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomServicePort;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.labels.ClusterLabelFactory;
-import io.stackgres.common.labels.DistributedLogsLabelFactory;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
@@ -103,12 +98,8 @@ public interface PatroniUtil {
         .orElse(cluster.getMetadata().getName());
   }
 
-  static String clusterScope(StackGresDistributedLogs cluster) {
-    return cluster.getMetadata().getName();
-  }
-
-  static String readWriteName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.nameIsValidService(baseNameFor(cluster));
+  static String readWriteName(StackGresCluster cluster) {
+    return ResourceUtil.nameIsValidService(baseName(cluster));
   }
 
   static String readWriteNameForDistributedLogs(String name) {
@@ -149,28 +140,16 @@ public interface PatroniUtil {
     return ResourceUtil.nameIsValidService(clusterName + REST_SERVICE);
   }
 
-  static String configName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + CONFIG_SERVICE);
+  static String configName(StackGresCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(baseName(cluster) + CONFIG_SERVICE);
   }
 
-  static String failoverName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + FAILOVER_SERVICE);
+  static String failoverName(StackGresCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(baseName(cluster) + FAILOVER_SERVICE);
   }
 
-  static String syncName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + SYNC_SERVICE);
-  }
-
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
-  private static String baseNameFor(CustomResource<?, ?> resource) {
-    if (resource instanceof StackGresCluster cluster) {
-      return baseName(cluster);
-    } else if (resource instanceof StackGresDistributedLogs cluster) {
-      return baseName(cluster);
-    }
-    throw new IllegalArgumentException("Can not deternime base name for custom resource of kind "
-        + resource.getKind());
+  static String syncName(StackGresCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(baseName(cluster) + SYNC_SERVICE);
   }
 
   /**
@@ -197,10 +176,6 @@ public interface PatroniUtil {
             .map(group -> scope + "-" + group)
             .orElse(scope))
         .orElse(cluster.getMetadata().getName());
-  }
-
-  private static String baseName(StackGresDistributedLogs cluster) {
-    return cluster.getMetadata().getName();
   }
 
   /**
@@ -241,26 +216,9 @@ public interface PatroniUtil {
     return ResourceUtil.resourceName(clusterName);
   }
 
-  static <T extends CustomResource<?, ?>> String getInitialConfig(
-      T customResource,
-      LabelFactoryForCluster<T> labelFactory,
-      YAMLMapper yamlMapper,
-      ObjectMapper objectMapper) {
-    if (customResource instanceof StackGresCluster cluster
-        && labelFactory instanceof ClusterLabelFactory clusterLabelFactory) {
-      return getInitialConfig(cluster, clusterLabelFactory, yamlMapper, objectMapper);
-    }
-    if (customResource instanceof StackGresDistributedLogs cluster
-        && labelFactory instanceof DistributedLogsLabelFactory clusterLabelFactory) {
-      return getInitialConfig(cluster, clusterLabelFactory, yamlMapper, objectMapper);
-    }
-    throw new IllegalArgumentException(customResource.getClass().getSimpleName() + " is not supporter"
-        + " or do not match with " + labelFactory.getClass().getSimpleName());
-  }
-
   static String getInitialConfig(
       StackGresCluster cluster,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       YAMLMapper yamlMapper,
       ObjectMapper objectMapper) {
     return getInitialConfig(
@@ -284,19 +242,8 @@ public interface PatroniUtil {
   }
 
   static String getInitialConfig(
-      StackGresDistributedLogs cluster,
-      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
-      YAMLMapper yamlMapper,
-      ObjectMapper objectMapper) {
-    return getInitialConfig(
-        cluster, labelFactory, yamlMapper, objectMapper,
-        Optional.empty(),
-        PatroniUtil.clusterScope(cluster),
-        true);
-  }
-
-  static <T extends CustomResource<?, ?>> String getInitialConfig(T cluster,
-      LabelFactoryForCluster<T> labelFactory,
+      StackGresCluster cluster,
+      LabelFactoryForCluster labelFactory,
       YAMLMapper yamlMapper,
       ObjectMapper objectMapper,
       Optional<ObjectNode> initialConfig,
@@ -327,29 +274,19 @@ public interface PatroniUtil {
         .orElse("");
   }
 
-  private static <T extends CustomResource<?, ?>> JsonNode getClusterLabelsAsJson(
-      T cluster,
+  private static JsonNode getClusterLabelsAsJson(
+      StackGresCluster cluster,
       ObjectMapper objectMapper,
-      LabelFactoryForCluster<T> labelFactory) {
+      LabelFactoryForCluster labelFactory) {
     final Map<String, String> patroniClusterLabels = labelFactory
         .patroniClusterLabels(cluster);
     return objectMapper.valueToTree(patroniClusterLabels);
   }
 
-  private static <T extends CustomResource<?, ?>> JsonNode getPatroniEndpointPortsAsJson(
-      T cluster, ObjectMapper objectMapper) {
+  private static JsonNode getPatroniEndpointPortsAsJson(
+      StackGresCluster cluster, ObjectMapper objectMapper) {
     List<EndpointPort> patroniEndpointPorts = getPatroniEndpointPorts(cluster);
     return objectMapper.valueToTree(patroniEndpointPorts);
-  }
-
-  static List<EndpointPort> getPatroniEndpointPorts(final CustomResource<?, ?> customResource) {
-    if (customResource instanceof StackGresCluster cluster) {
-      return getPatroniEndpointPorts(cluster);
-    }
-    if (customResource instanceof StackGresDistributedLogs cluster) {
-      return getPatroniEndpointPorts(cluster);
-    }
-    throw new IllegalArgumentException(customResource.getClass().getSimpleName() + " is not supporter");
   }
 
   static List<EndpointPort> getPatroniEndpointPorts(final StackGresCluster cluster) {
@@ -374,27 +311,12 @@ public interface PatroniUtil {
     Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresClusterPostgresService::getCustomPorts)
+        .map(StackGresPostgresServices::getPrimary)
+        .map(StackGresPostgresService::getCustomPorts)
         .stream()
         .flatMap(List::stream)
         .map(customPort -> getEndpointPortFromCustomPort(cluster, customPort))
         .forEach(patroniEndpointPorts::add);
-    return patroniEndpointPorts;
-  }
-
-  static List<EndpointPort> getPatroniEndpointPorts(final StackGresDistributedLogs cluster) {
-    List<EndpointPort> patroniEndpointPorts = new ArrayList<>();
-    patroniEndpointPorts.add(new EndpointPortBuilder()
-        .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-        .withPort(EnvoyUtil.PG_PORT)
-        .withProtocol("TCP")
-        .build());
-    patroniEndpointPorts.add(new EndpointPortBuilder()
-        .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-        .withPort(EnvoyUtil.PG_PORT)
-        .withProtocol("TCP")
-        .build());
     return patroniEndpointPorts;
   }
 

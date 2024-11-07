@@ -40,7 +40,7 @@ import org.jooq.lambda.tuple.Tuple2;
 public class PatroniSecret
     implements VolumeFactory<StackGresClusterContext>, StackGresPasswordKeys {
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   public static String name(StackGresClusterContext clusterContext) {
     return PatroniUtil.secretName(clusterContext.getSource().getMetadata().getName());
@@ -245,7 +245,7 @@ public class PatroniSecret
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setFactoryFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

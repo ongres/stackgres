@@ -39,7 +39,7 @@ public class ClusterInstanceManager {
   CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   @Inject
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
+  LabelFactoryForCluster labelFactory;
 
   @Inject
   PodWatcher podWatcher;

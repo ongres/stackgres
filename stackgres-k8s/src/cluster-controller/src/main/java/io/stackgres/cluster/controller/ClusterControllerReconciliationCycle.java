@@ -43,7 +43,7 @@ public class ClusterControllerReconciliationCycle
 
   private final ClusterControllerPropertyContext propertyContext;
   private final EventController eventController;
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Dependent
@@ -59,7 +59,7 @@ public class ClusterControllerReconciliationCycle
     @Inject
     EventController eventController;
     @Inject
-    LabelFactoryForCluster<StackGresCluster> labelFactory;
+    LabelFactoryForCluster labelFactory;
     @Inject
     CustomResourceFinder<StackGresCluster> clusterFinder;
   }

@@ -7,8 +7,8 @@ package io.stackgres.operator.mutation.distributedlogs;
 
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -29,13 +29,13 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
 
   private void mutatePgServices(StackGresDistributedLogs resource) {
     if (resource.getSpec().getPostgresServices() == null) {
-      resource.getSpec().setPostgresServices(new StackGresDistributedLogsPostgresServices());
+      resource.getSpec().setPostgresServices(new StackGresPostgresServices());
     }
     setPgPrimaryService(resource.getSpec().getPostgresServices());
     setPgReplicasService(resource.getSpec().getPostgresServices());
   }
 
-  private void setPgPrimaryService(StackGresDistributedLogsPostgresServices postgresServices) {
+  private void setPgPrimaryService(StackGresPostgresServices postgresServices) {
     if (postgresServices.getPrimary() == null) {
       postgresServices.setPrimary(new StackGresPostgresService());
     }
@@ -46,7 +46,7 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
     }
   }
 
-  private void setPgReplicasService(StackGresDistributedLogsPostgresServices postgresServices) {
+  private void setPgReplicasService(StackGresPostgresServices postgresServices) {
     if (postgresServices.getReplicas() == null) {
       postgresServices.setReplicas(new StackGresPostgresService());
     }

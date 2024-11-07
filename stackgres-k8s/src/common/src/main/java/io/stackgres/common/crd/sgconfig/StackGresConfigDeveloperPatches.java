@@ -31,8 +31,6 @@ public class StackGresConfigDeveloperPatches {
 
   private StackGresConfigDeveloperContainerPatches clusterController;
 
-  private StackGresConfigDeveloperContainerPatches distributedlogsController;
-
   private StackGresConfigDeveloperContainerPatches stream;
 
   public StackGresConfigDeveloperContainerPatches getOperator() {
@@ -75,15 +73,6 @@ public class StackGresConfigDeveloperPatches {
     this.clusterController = clusterController;
   }
 
-  public StackGresConfigDeveloperContainerPatches getDistributedlogsController() {
-    return distributedlogsController;
-  }
-
-  public void setDistributedlogsController(
-      StackGresConfigDeveloperContainerPatches distributedlogsController) {
-    this.distributedlogsController = distributedlogsController;
-  }
-
   public StackGresConfigDeveloperContainerPatches getStream() {
     return stream;
   }
@@ -94,7 +83,7 @@ public class StackGresConfigDeveloperPatches {
 
   @Override
   public int hashCode() {
-    return Objects.hash(adminui, clusterController, distributedlogsController, jobs, operator,
+    return Objects.hash(adminui, clusterController, jobs, operator,
         restapi, stream);
   }
 
@@ -109,7 +98,6 @@ public class StackGresConfigDeveloperPatches {
     StackGresConfigDeveloperPatches other = (StackGresConfigDeveloperPatches) obj;
     return Objects.equals(adminui, other.adminui)
         && Objects.equals(clusterController, other.clusterController)
-        && Objects.equals(distributedlogsController, other.distributedlogsController)
         && Objects.equals(jobs, other.jobs) && Objects.equals(operator, other.operator)
         && Objects.equals(restapi, other.restapi) && Objects.equals(stream, other.stream);
   }

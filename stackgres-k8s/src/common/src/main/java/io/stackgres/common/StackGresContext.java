@@ -77,8 +77,6 @@ public interface StackGresContext {
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String CLUSTER_CONTROLLER_VERSION_KEY = STACKGRES_KEY_PREFIX + "cluster-controller-version";
-  String DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY =
-      STACKGRES_KEY_PREFIX + "distributedlogs-controller-version";
   String POSTGRES_VERSION_KEY = STACKGRES_KEY_PREFIX + "postgresql-version";
   String PATRONI_VERSION_KEY = STACKGRES_KEY_PREFIX + "patroni-version";
   String ENVOY_VERSION_KEY = STACKGRES_KEY_PREFIX + "envoy-version";
@@ -91,7 +89,6 @@ public interface StackGresContext {
   ImmutableMap<String, String> ANNOTATIONS_TO_COMPONENT =
       ImmutableMap.<String, String>builder()
       .put(CLUSTER_CONTROLLER_VERSION_KEY, "cluster-controller")
-      .put(DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY, "distributedlogs-controller")
       .put(POSTGRES_VERSION_KEY, "postgresql")
       .put(PATRONI_VERSION_KEY, "patroni")
       .put(ENVOY_VERSION_KEY, "envoy")

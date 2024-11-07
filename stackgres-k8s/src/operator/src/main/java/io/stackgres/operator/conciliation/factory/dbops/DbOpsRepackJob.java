@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepackConfig;
@@ -40,7 +39,7 @@ public class DbOpsRepackJob extends AbstractDbOpsJob {
   public DbOpsRepackJob(
       ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
       ObjectMapper jsonMapper,
       KubectlUtil kubectl,

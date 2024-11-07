@@ -14,7 +14,7 @@ import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.apiweb.transformer.distributedlogs.DistributedLogsPostgresServicesConverter;
 import io.stackgres.apiweb.transformer.distributedlogs.converter.fixture.StackGresDistributedLogsPostgresServicesFixture;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +29,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldPgServicePrimaryBeConvertedSuccessfully_fromSgDistributedLogsPgServicePrimary() {
-    StackGresDistributedLogsPostgresServices sgPostgresServices =
+    StackGresPostgresServices sgPostgresServices =
         new StackGresDistributedLogsPostgresServicesFixture().withPrimary().build();
     DistributedLogsPostgresServices pgServicesConverted = converter.from(sgPostgresServices);
     StackGresPostgresService sgPgPrimary = sgPostgresServices.getPrimary();
@@ -42,7 +42,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldPgServiceReplicasBeConvertedSuccessfully_fromSgDistributedLogsPgServiceReplicas() {
-    StackGresDistributedLogsPostgresServices sgPostgresServices =
+    StackGresPostgresServices sgPostgresServices =
         new StackGresDistributedLogsPostgresServicesFixture().withReplicas().build();
     DistributedLogsPostgresServices pgServicesConverted = converter.from(sgPostgresServices);
     StackGresPostgresService sgPgReplicas = sgPostgresServices.getReplicas();
@@ -55,7 +55,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldPgServicesPrimaryAndReplicasBeNull_onceThereIsNoSgDistributedLogsPgServices() {
-    StackGresDistributedLogsPostgresServices sgPostgresServices =
+    StackGresPostgresServices sgPostgresServices =
         new StackGresDistributedLogsPostgresServicesFixture().build();
     DistributedLogsPostgresServices pgServicesConverted = converter.from(sgPostgresServices);
     assertNull(pgServicesConverted.getReplicas());
@@ -70,7 +70,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldTranslateFromDistributedLogsPostgresServices_toSgDLogsPgServices() {
-    StackGresDistributedLogsPostgresServices postgresServices = converter
+    StackGresPostgresServices postgresServices = converter
         .to(new DistributedLogsPostgresServicesFixture().withPrimary().withReplicas().build());
     assertNotNull(postgresServices.getPrimary());
     assertNotNull(postgresServices.getReplicas());
@@ -78,7 +78,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldTranslateDistributedLogsPostgresServices_toSgDLogsPgServicesWithOnlyPrimaryInstace() {
-    StackGresDistributedLogsPostgresServices postgresServices =
+    StackGresPostgresServices postgresServices =
         converter.to(new DistributedLogsPostgresServicesFixture().withPrimary().build());
     assertNotNull(postgresServices.getPrimary());
     assertNull(postgresServices.getReplicas());
@@ -86,7 +86,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldTranslateDistributedLogsPostgresServices_toSgDLogsPgServicesWithOnlyReplicasInstace() {
-    StackGresDistributedLogsPostgresServices postgresServices =
+    StackGresPostgresServices postgresServices =
         converter.to(new DistributedLogsPostgresServicesFixture().withReplicas().build());
     assertNull(postgresServices.getPrimary());
     assertNotNull(postgresServices.getReplicas());
@@ -94,7 +94,7 @@ class DistributedLogsPostgresServicesConverterTest {
 
   @Test
   void shouldTranslateANullDistributedLogsPostgresServices_toNullSgDLogsPgServicesObject() {
-    StackGresDistributedLogsPostgresServices postgresServices = converter.to(null);
+    StackGresPostgresServices postgresServices = converter.to(null);
     assertNull(postgresServices);
   }
 }
