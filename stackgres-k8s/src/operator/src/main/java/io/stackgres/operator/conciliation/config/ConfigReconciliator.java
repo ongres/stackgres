@@ -145,7 +145,7 @@ public class ConfigReconciliator
   protected void onConfigCreated(StackGresConfig config, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(config, result);
     eventController.sendEvent(ConfigEventReason.CONFIG_CREATED,
-        "Config " + config.getMetadata().getNamespace() + "."
+        "SGConfig " + config.getMetadata().getNamespace() + "."
             + config.getMetadata().getName() + " created: " + resourceChanged, config);
     statusManager.updateCondition(
         ConfigStatusCondition.FALSE_FAILED.getCondition(), config);
@@ -155,7 +155,7 @@ public class ConfigReconciliator
   protected void onConfigUpdated(StackGresConfig config, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(config, result);
     eventController.sendEvent(ConfigEventReason.CONFIG_UPDATED,
-        "Config " + config.getMetadata().getNamespace() + "."
+        "SGConfig " + config.getMetadata().getNamespace() + "."
             + config.getMetadata().getName() + " updated: " + resourceChanged, config);
     statusManager.updateCondition(
         ConfigStatusCondition.FALSE_FAILED.getCondition(), config);
@@ -164,7 +164,7 @@ public class ConfigReconciliator
   @Override
   protected void onError(Exception ex, StackGresConfig config) {
     String message = MessageFormatter.arrayFormat(
-        "Config reconciliation cycle failed",
+        "SGConfig reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ConfigEventReason.CONFIG_ERROR,

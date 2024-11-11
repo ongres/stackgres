@@ -11,7 +11,7 @@ e2e_test_install() {
     --set-string 'cluster.configurations.credentials.users.superuser.password.key=superuser-password' \
     --set-string 'cluster.configurations.patroni.initialConfig.postgresql.callbacks.on_role_change=/callbacks/pre_promote' \
     --set-string 'cluster.configurations.patroni.initialConfig.postgresql.before_stop=/callbacks/before_stop' \
-    --set-string 'cluster.pods.customVolumeMounts.patroni[0].name=c-callbacks' \
+    --set-string 'cluster.pods.customVolumeMounts.patroni[0].name=custom-callbacks' \
     --set-string 'cluster.pods.customVolumeMounts.patroni[0].mountPath=/callbacks' \
     --set-string 'cluster.pods.customVolumes[0].name=callbacks' \
     --set-string 'cluster.pods.customVolumes[0].configMap.name=callbacks' \

@@ -32,7 +32,6 @@ public interface StackGresContext {
   String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
   String DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY = "distributed-logs-namespace";
   String DISTRIBUTED_LOGS_CLUSTER_UID_KEY = "distributed-logs-uid";
-  String DISTRIBUTED_LOGS_CLUSTER_SCOPE_KEY = "distributed-logs-scope";
   String DBOPS_APP_NAME = "StackGresDbOps";
   String DBOPS_NAME_KEY = "dbops-name";
   String DBOPS_UID_KEY = "dbops-uid";

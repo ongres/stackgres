@@ -6,7 +6,7 @@ e2e_use_extensions() {
 
 e2e_test_install() {
   COPY_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-copy")"
-  DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
+  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
 
   TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb "${E2E_POSTGRES_VERSION%.*}" || true)"
 
@@ -36,13 +36,13 @@ e2e_test_install() {
     --set instanceProfiles=null \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
     --set-string distributedLogs.persistentVolume.size=128Mi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
 
@@ -90,7 +90,7 @@ check_latest_timescaledb_version_is_installed() {
 
 default_annotations(){
   local DEFAULT_ANNOTATION
-  DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
+  DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
     -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
@@ -109,7 +109,7 @@ check_distributed_logs_attach_to_clusters() {
       --set distributedLogs.create=false \
       --set instanceProfiles=null \
       --set configurations.create=false \
-      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME" \
       --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
       --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
       --set-string 'cluster.postgres.extensions[0].version='"$TIMESCALE_VERSION" \
@@ -121,7 +121,7 @@ check_distributed_logs_attach_to_clusters() {
       --set distributedLogs.create=false \
       --set instanceProfiles=null \
       --set configurations.create=false \
-      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME" \
       --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION"
   fi
 
@@ -160,7 +160,7 @@ check_distributed_logs_attach_to_clusters() {
     fi
   done
 
-  wait_services_available "$CLUSTER_NAMESPACE" "1" "$DISTRIBUTED_LOGS_NAME$"
+  wait_services_available "$CLUSTER_NAMESPACE" "1" "$DISTRIBUTEDLOGS_NAME$"
 
   for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
   do
@@ -450,26 +450,22 @@ get_logs_count_with_filter_of_log_with_text() {
 
 check_retention() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
-    --set-string cluster.distributedLogs.retention="1 minutes" \
+    --set-string cluster.distributedLogs.retention="1 minute" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 
   local TABLE
   for TABLE in log_postgres log_patroni
   do
-    wait_until run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
-        -h "$DISTRIBUTED_LOGS_NAME" -p 5432 \
+    wait_until run_query -c "$DISTRIBUTEDLOGS_NAME" -x psql -k postgres \
+        -h "$DISTRIBUTEDLOGS_NAME" -p 5432 \
         -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
         -q "SELECT EXISTS (
         SELECT * FROM _timescaledb_catalog.hypertable
         LEFT JOIN _timescaledb_catalog.dimension ON (hypertable.id = dimension.hypertable_id)
         WHERE table_name = '$TABLE' AND column_name = 'log_time'
         AND INTERVAL '1 minute' = (interval_length / 1000000) * INTERVAL '1 second')"
-    run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
-      -h "$DISTRIBUTED_LOGS_NAME" -p 5432 \
-        -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
-      -q "SELECT drop_chunks(now() + INTERVAL '1 year', '$TABLE', newer_than => to_timestamp(0))"
   done
 
   for TEXT in distributed-logs-retention-worked distributed-logs-retention-works distributed-logs-retention-still-works

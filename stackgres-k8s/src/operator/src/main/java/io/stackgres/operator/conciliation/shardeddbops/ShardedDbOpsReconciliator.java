@@ -91,7 +91,7 @@ public class ShardedDbOpsReconciliator
   protected void onConfigCreated(StackGresShardedDbOps dbOps, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(dbOps, result);
     eventController.sendEvent(ShardedDbOpsEventReason.SHARDED_DBOPS_CREATED,
-        "ShardedDbOps " + dbOps.getMetadata().getNamespace() + "."
+        "SGShardedDbOps " + dbOps.getMetadata().getNamespace() + "."
             + dbOps.getMetadata().getName() + " created: " + resourceChanged, dbOps);
   }
 
@@ -99,14 +99,14 @@ public class ShardedDbOpsReconciliator
   protected void onConfigUpdated(StackGresShardedDbOps dbOps, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(dbOps, result);
     eventController.sendEvent(ShardedDbOpsEventReason.SHARDED_DBOPS_UPDATED,
-        "ShardedDbOps " + dbOps.getMetadata().getNamespace() + "."
+        "SGShardedDbOps " + dbOps.getMetadata().getNamespace() + "."
             + dbOps.getMetadata().getName() + " updated: " + resourceChanged, dbOps);
   }
 
   @Override
   protected void onError(Exception ex, StackGresShardedDbOps dbOps) {
     String message = MessageFormatter.arrayFormat(
-        "ShardedDbOps reconciliation cycle failed",
+        "SGShardedDbOps reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ShardedDbOpsEventReason.SHARDED_DBOPS_CONFIG_ERROR,

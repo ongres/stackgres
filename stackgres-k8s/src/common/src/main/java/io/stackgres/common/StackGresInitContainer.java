@@ -41,7 +41,7 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES));
 
-  public static final String CUSTOM = "c-%s";
+  public static final String CUSTOM = "custom-%s";
 
   private final StackGresGroupKind kind;
   private final String name;

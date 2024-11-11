@@ -6,26 +6,28 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+import static io.stackgres.operator.common.StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME;
+import static io.stackgres.operator.common.StackGresDistributedLogsUtil.getDefaultDistributedLogsExtensions;
+import static io.stackgres.operator.common.StackGresDistributedLogsUtil.getPostgresVersion;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
-import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresDistributedLogsUtil;
-import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.CustomContainerBuilder;
 import io.stackgres.common.crd.CustomVolumeBuilder;
@@ -33,25 +35,44 @@ import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
+import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfigurations;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.distributedlogs.v114.DistributedLogsCredentials;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_15)
 public class DistributedLogsCluster
     implements ResourceGenerator<StackGresDistributedLogsContext> {
+
+  public static final String NAME = "fluentd";
+  public static final int FORWARD_PORT = 12225;
+  public static final String FORWARD_PORT_NAME = "forward";
+
+  public static final String CONFIG = "fluentd-config";
+  public static final String BUFFER = "fluentd-buffer";
+  public static final String LOG = "fluentd-log";
 
   private final LabelFactoryForDistributedLogs labelFactory;
 
@@ -64,44 +85,91 @@ public class DistributedLogsCluster
   @Override
   public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs distributedLogs = context.getSource();
-    final StackGresCluster cluster = getCluster(labelFactory, distributedLogs);
+    final StackGresCluster cluster = getCluster(
+        labelFactory,
+        distributedLogs,
+        context.getCluster());
     return Stream.of(cluster);
   }
 
   public static StackGresCluster getCluster(
       final LabelFactoryForDistributedLogs labelFactory,
-      final StackGresDistributedLogs distributedLogs) {
+      final StackGresDistributedLogs distributedLogs,
+      final Optional<StackGresCluster> previousCluster) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     final String name = metadata.getName();
     final String namespace = metadata.getNamespace();
 
-    final StackGresCluster cluster = new StackGresClusterBuilder()
-        .withNewMetadata()
+    final StackGresCluster cluster =
+        new StackGresClusterBuilder(
+            previousCluster
+            .orElseGet(StackGresCluster::new))
+        .editMetadata()
+        .withAnnotations(
+            previousCluster
+            .map(StackGresCluster::getMetadata)
+            .map(ObjectMeta::getAnnotations)
+            .orElseGet(() -> Map.of(
+                StackGresContext.VERSION_KEY,
+                StackGresVersion.getStackGresVersion(distributedLogs).getVersion())))
         .withLabels(labelFactory.genericLabels(distributedLogs))
         .withNamespace(namespace)
         .withName(name)
         .endMetadata()
-        .withNewSpec()
-        .withInstances(1)
-        .withNewPostgres()
-        .withVersion(StackGresDistributedLogsUtil.getPostgresVersion(distributedLogs))
+        .editSpec()
+        .withInstances(
+            previousCluster
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getInstances)
+            .orElse(1))
+        .editPostgres()
+        .withVersion(
+            previousCluster
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPostgres)
+            .map(StackGresClusterPostgres::getVersion)
+            .orElse(getPostgresVersion(distributedLogs)))
         .withExtensions(
-            StackGresUtil.getDefaultDistributedLogsExtensions(distributedLogs)
-            .stream()
-            .map(extension -> new StackGresClusterExtensionBuilder()
-                .withName(extension.extensionName())
-                .withVersion(
-                    extension.extensionVersion()
-                    .orElse(null))
-                .build())
+            Seq.of(previousCluster
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPostgres)
+            .map(StackGresClusterPostgres::getExtensions)
+            .orElse(List.of()))
+            .flatMap(extensions -> Seq.seq(extensions)
+                .append(getDefaultDistributedLogsExtensions(distributedLogs)
+                    .stream()
+                    .filter(extension -> extensions
+                        .stream()
+                        .map(StackGresClusterExtension::getName)
+                        .noneMatch(extension.extensionName()::equals))
+                    .map(extension -> new StackGresClusterExtensionBuilder()
+                        .withName(extension.extensionName())
+                        .withVersion(
+                            Optional.of(distributedLogs)
+                            .map(StackGresDistributedLogs::getStatus)
+                            .map(StackGresDistributedLogsStatus::getTimescaledbVersion)
+                            .filter(ignored -> extension.extensionName().equals(TIMESCALEDB_EXTENSION_NAME))
+                            .or(() -> extension.extensionVersion())
+                            .orElse(null))
+                        .build())))
             .toList())
         .endPostgres()
-        .withNewConfigurations()
+        .editConfigurations()
         .withSgPostgresConfig(
-            Optional.of(distributedLogs.getSpec())
-            .map(StackGresDistributedLogsSpec::getConfigurations)
-            .map(StackGresDistributedLogsConfigurations::getSgPostgresConfig)
-            .orElseThrow())
+            DistributedLogsPostgresConfig.configName(distributedLogs))
+        .withCredentials(
+            previousCluster
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getConfigurations)
+            .map(StackGresClusterConfigurations::getCredentials)
+            .filter(credentials -> Optional.of(credentials)
+                .map(StackGresClusterCredentials::getUsers)
+                .map(StackGresClusterUsersCredentials::getSuperuser)
+                .map(StackGresClusterUserSecretKeyRef::getPassword)
+                .map(SecretKeySelector::getName)
+                .filter(DistributedLogsCredentials.secretName(distributedLogs)::equals)
+                .isEmpty())
+            .orElse(null))
         .endConfigurations()
         .withPostgresServices(
             Optional.of(distributedLogs.getSpec())
@@ -116,14 +184,16 @@ public class DistributedLogsCluster
         .editPrimary()
         .withEnabled()
         .addNewCustomPort()
-        .withName(FluentdUtil.FORWARD_PORT_NAME)
-        .withTargetPort(new IntOrString(FluentdUtil.FORWARD_PORT_NAME))
-        .withPort(FluentdUtil.FORWARD_PORT)
+        .withName(FORWARD_PORT_NAME)
+        .withTargetPort(new IntOrString(FORWARD_PORT_NAME))
+        .withPort(FORWARD_PORT)
         .withProtocol("TCP")
         .endCustomPort()
         .endPrimary()
         .endPostgresServices()
-        .withNewPods()
+        .withSgInstanceProfile(
+            distributedLogs.getSpec().getSgInstanceProfile())
+        .editPods()
         .withScheduling(Optional.of(distributedLogs)
             .map(StackGresDistributedLogs::getSpec)
             .map(StackGresDistributedLogsSpec::getScheduling)
@@ -134,36 +204,27 @@ public class DistributedLogsCluster
             .withImage(StackGresComponent.FLUENTD.get(distributedLogs)
                 .getLatestImageName())
             .withImagePullPolicy(getDefaultPullPolicy())
-            .withCommand("/bin/sh", "-exc")
-            .withArgs(
-                """
-                echo 'Wait for postgres to be up, running and initialized'
-                until curl -s localhost:8008/readiness --fail > /dev/null; do sleep 1; done
-                mkdir -p /tmp/fluentd
-                chmod 700 /tmp/fluentd
-                export TMPDIR=/tmp/fluentd
-                exec /usr/local/bin/fluentd -c /etc/fluentd/fluentd.conf
-                """)
+            .withCommand("/bin/sh", "-ex",
+                ClusterPath.TEMPLATES_PATH.path()
+                    + "/" + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename())
             .withPorts(
                 new ContainerPortBuilder()
                     .withProtocol("TCP")
-                    .withName(FluentdUtil.FORWARD_PORT_NAME)
-                    .withContainerPort(FluentdUtil.FORWARD_PORT)
+                    .withName(FORWARD_PORT_NAME)
+                    .withContainerPort(FORWARD_PORT)
                     .build())
-            .withLivenessProbe(new ProbeBuilder()
-                .withTcpSocket(new TCPSocketActionBuilder()
-                    .withPort(new IntOrString(FluentdUtil.FORWARD_PORT))
-                    .build())
-                .withInitialDelaySeconds(15)
-                .withPeriodSeconds(20)
-                .withFailureThreshold(6)
-                .build())
-            .withReadinessProbe(new ProbeBuilder()
-                .withTcpSocket(new TCPSocketActionBuilder()
-                    .withPort(new IntOrString(FluentdUtil.FORWARD_PORT))
-                    .build())
-                .withInitialDelaySeconds(5)
-                .withPeriodSeconds(10)
+            .withEnv(
+                new EnvVarBuilder()
+                .withName(ClusterPath.TEMPLATES_PATH.name())
+                .withValue(ClusterPath.TEMPLATES_PATH.path())
+                .build(),
+                new EnvVarBuilder()
+                .withName(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.name())
+                .withValue(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+                .build(),
+                new EnvVarBuilder()
+                .withName("FLUENTD_LAST_CONFIG_PATH")
+                .withValue("/tmp/fluentd/last-fluentd-config")
                 .build())
             .withVolumeMounts(
                 new VolumeMountBuilder()
@@ -195,9 +256,20 @@ public class DistributedLogsCluster
                 .withMountPath(ClusterPath.PG_RUN_PATH.path())
                 .build(),
                 new VolumeMountBuilder()
+                .withName(StackGresVolume.CUSTOM.getName("templates"))
+                .withMountPath(ClusterPath.TEMPLATES_PATH.path())
+                .withReadOnly(Boolean.FALSE)
+                .build(),
+                new VolumeMountBuilder()
                 .withName(StackGresVolume.CUSTOM.getName(
                     StackGresVolume.FLUENTD_CONFIG.getName()))
                 .withMountPath("/etc/fluentd")
+                .withReadOnly(Boolean.FALSE)
+                .build(),
+                new VolumeMountBuilder()
+                .withName(StackGresVolume.CUSTOM.getName(
+                    StackGresVolume.FLUENTD.getName()))
+                .withMountPath("/tmp/fluentd")
                 .withReadOnly(Boolean.FALSE)
                 .build(),
                 new VolumeMountBuilder()
@@ -208,9 +280,16 @@ public class DistributedLogsCluster
             .build())
         .withCustomVolumes(
             new CustomVolumeBuilder()
+            .withName("templates")
+            .withConfigMap(new ConfigMapVolumeSourceBuilder()
+                .withName(DistributedLogsTemplatesConfigMap.templatesName(distributedLogs))
+                .withDefaultMode(0550)
+                .build())
+            .build(),
+            new CustomVolumeBuilder()
             .withName(StackGresVolume.FLUENTD_CONFIG.getName())
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
-                .withName(FluentdUtil.configName(distributedLogs))
+                .withName(DistributedLogsFlunetdConfigMap.configName(distributedLogs))
                 .withDefaultMode(0440)
                 .build())
             .build(),
@@ -223,21 +302,31 @@ public class DistributedLogsCluster
             .withName(StackGresVolume.FLUENTD_BUFFER.getName())
             .withNewEmptyDir()
             .endEmptyDir()
-            .build(),
-            new CustomVolumeBuilder()
-            .withName(StackGresVolume.FLUENTD_LOG.getName())
-            .withNewEmptyDir()
-            .endEmptyDir()
             .build())
         .withPersistentVolume(
             Optional.of(distributedLogs.getSpec())
             .map(StackGresDistributedLogsSpec::getPersistentVolume)
             .orElseThrow())
+        .withResources(
+            Optional.of(distributedLogs.getSpec())
+            .map(StackGresDistributedLogsSpec::getResources)
+            .orElse(null))
         .endPods()
-        .withNewManagedSql()
-        .addNewScript()
-        .withSgScript(DistributedLogsScript.scriptName(distributedLogs))
-        .endScript()
+        .editManagedSql()
+        .withScripts(Seq.of(previousCluster
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getManagedSql)
+            .map(StackGresClusterManagedSql::getScripts)
+            .orElse(List.of()))
+            .flatMap(scripts -> Seq.seq(scripts)
+                .append(Optional.of(DistributedLogsScript.scriptName(distributedLogs))
+                    .filter(script -> scripts.stream()
+                        .map(StackGresClusterManagedScriptEntry::getSgScript)
+                        .noneMatch(script::equals))
+                    .map(script -> new StackGresClusterManagedScriptEntryBuilder()
+                        .withSgScript(script)
+                        .build())))
+            .toList())
         .endManagedSql()
         .withMetadata(
             Optional.of(distributedLogs.getSpec())
@@ -276,4 +365,8 @@ public class DistributedLogsCluster
     return cluster;
   }
 
+  public static void main(String[] args) {
+    System.out.println(StackGresVolume.CUSTOM.getName(
+        StackGresVolume.FLUENTD_CONFIG.getName()));
+  }
 }

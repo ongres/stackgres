@@ -52,13 +52,13 @@ cluster:
         name: pgadmin
         protocol: TCP
       volumeMounts:
-      - name: c-pgadmin-config
+      - name: custom-pgadmin-config
         mountPath: /pgadmin4/config_distro.py
         subPath: config_distro.py
-      - name: c-pgadmin
+      - name: custom-pgadmin
         mountPath: /var/log/pgadmin
         subPath: var/log/pgadmin
-      - name: c-pgadmin
+      - name: custom-pgadmin
         mountPath: /var/lib/pgadmin
         subPath: var/lib/pgadmin
     - name: postgrest
@@ -103,7 +103,7 @@ cluster:
       - |
         pg_controldata /stackgres/data || true
       volumeMounts:
-      - name: c-containers-data
+      - name: custom-containers-data
         mountPath: /stackgres
       - name: user
         mountPath: /etc/passwd
@@ -123,7 +123,7 @@ cluster:
         readOnly: true
     customVolumeMounts:
       patroni:
-      - name: c-pgadmin-config
+      - name: custom-pgadmin-config
         mountPath: /pgadmin4/config_distro.py
         subPath: config_distro.py
 nonProductionOptions:

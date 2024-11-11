@@ -277,7 +277,7 @@ class PatroniConfigMapTest {
         .get("kubernetes")
         .get("ports"), List.class);
     Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
-        .filter(ep -> StackGresPort.CUSTOM.getResourceName(csPort.getName()).equals(ep.get("name").toString()))
+        .filter(ep -> StackGresPort.CUSTOM.getName(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
     assertTrue(customPortIntValue.isPresent());
   }
@@ -315,7 +315,7 @@ class PatroniConfigMapTest {
         .get("kubernetes")
         .get("ports"), List.class);
     Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
-        .filter(ep -> StackGresPort.CUSTOM.getResourceName(csPort.getName()).equals(ep.get("name").toString()))
+        .filter(ep -> StackGresPort.CUSTOM.getName(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
     assertTrue(customPortIntValue.isPresent());
   }

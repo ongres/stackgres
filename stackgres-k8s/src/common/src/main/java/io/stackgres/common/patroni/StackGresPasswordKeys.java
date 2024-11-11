@@ -38,5 +38,6 @@ public interface StackGresPasswordKeys {
   String RESTAPI_PASSWORD_ENV = "PATRONI_RESTAPI_PASSWORD";
   String RESTAPI_USERNAME_KEY = "restapi-username";
   String RESTAPI_PASSWORD_KEY = "restapi-password";
+  String PASSWORD_UPDATE_SQL_KEY = "password-update-sql";
 
 }

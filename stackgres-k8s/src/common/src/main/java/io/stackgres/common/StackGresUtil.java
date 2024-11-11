@@ -416,23 +416,6 @@ public interface StackGresUtil {
         new ExtensionTuple("postgres_fdw"));
   }
 
-  static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      StackGresDistributedLogs cluster) {
-    return getDefaultDistributedLogsExtensions(
-        StackGresDistributedLogsUtil.POSTGRESQL_VERSION,
-        StackGresVersion.getStackGresVersion(cluster));
-  }
-
-  static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      String pgVersion, StackGresVersion sgVersion) {
-    return Seq.seq(getDefaultClusterExtensions(
-        sgVersion,
-        pgVersion,
-        StackGresPostgresFlavor.VANILLA.toString())).append(
-            new ExtensionTuple("timescaledb", "1.7.4"))
-        .toList();
-  }
-
   static boolean isLocked(HasMetadata resource) {
     return isLocked(resource, System.currentTimeMillis() / 1000);
   }

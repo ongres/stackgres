@@ -42,8 +42,7 @@ public enum StackGresVolume implements StackGresNamedObject {
   HUGEPAGES_1G("hugepages-1gi"),
   FLUENTD("fluentd"),
   FLUENTD_BUFFER("fluentd-buffer"),
-  FLUENTD_LOG("fluentd-log"),
-  CUSTOM("c-%s");
+  CUSTOM("custom-%s");
 
   private final String name;
   private final String resourceNameFormat;

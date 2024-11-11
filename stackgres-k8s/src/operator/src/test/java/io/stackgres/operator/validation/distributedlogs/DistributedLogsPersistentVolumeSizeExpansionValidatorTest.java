@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.distributedlogs;
 
+import java.util.Optional;
+
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
@@ -43,7 +45,7 @@ class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected StackGresCluster getCluster(StackGresDistributedLogs resource) {
-    return DistributedLogsCluster.getCluster(labelFactoryForDistributedLogs, resource);
+    return DistributedLogsCluster.getCluster(labelFactoryForDistributedLogs, resource, Optional.empty());
   }
 
   @Override

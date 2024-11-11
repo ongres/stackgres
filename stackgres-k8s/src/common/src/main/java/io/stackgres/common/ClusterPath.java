@@ -48,6 +48,7 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH(LOCAL_BIN_PATH,
       "dbops/major-version-upgrade/major-version-upgrade.sh"),
   LOCAL_BIN_START_FLUENTBIT_SH_PATH(LOCAL_BIN_PATH, "start-fluentbit.sh"),
+  LOCAL_BIN_START_FLUENTD_SH_PATH(LOCAL_BIN_PATH, "start-fluentd.sh"),
   LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH(LOCAL_BIN_PATH, "start-postgres-exporter.sh"),
   HUGEPAGES_2M_PATH("/hugepages-2Mi"),
   HUGEPAGES_1G_PATH("/hugepages-1Gi"),

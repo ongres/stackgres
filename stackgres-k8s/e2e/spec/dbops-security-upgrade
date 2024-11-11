@@ -17,6 +17,16 @@ e2e_test_install() {
     return
   fi
 
+  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+  VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
+  VERSION_AS_NUMBER_1_2_0_RC1="$(get_version_as_number 1.2.0-RC1)"
+  VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
+  VERSION_AS_NUMBER_1_3_0="$(get_version_as_number 1.3.0)"
+  VERSION_AS_NUMBER_1_3_3="$(get_version_as_number 1.3.3)"
+  VERSION_AS_NUMBER_1_10_0="$(get_version_as_number 1.10.0-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_13_0="$(get_version_as_number 1.13.0-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
+
   CLUSTER_CRD="sgclusters.stackgres.io"
 
   EXPECTED_PREVIOUS_OPERATOR_IMAGE="$STACKGRES_PREVIOUS_OPERATOR_IMAGE"
@@ -25,37 +35,49 @@ e2e_test_install() {
   EXPECTED_RESTAPI_IMAGE="$STACKGRES_RESTAPI_IMAGE"
 
   RANDOM_VALUE="$(random_string)"
+  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
   CLUSTER_3_NAME="$(get_sgcluster_name "$CLUSTER_NAME-3")"
+  DBOPS_DISTRIBUTEDLOGS_NAME="$(get_sgdbops_name "security-upgrade-logs")"
   DBOPS_1_NAME="$(get_sgdbops_name "security-upgrade-1")"
   DBOPS_2_NAME="$(get_sgdbops_name "security-upgrade-2")"
   DBOPS_3_NAME="$(get_sgdbops_name "security-upgrade-3")"
 
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
+  then
+    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg17\.')"
+  else
+    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
+  fi
+  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
+  PREVIOUS_OLDEST_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | head -n 1)"
+  PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE##*-pg}"
+  PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
   PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
-  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
+  OLDEST_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION-")"
+  OLDEST_PATRONI_IMAGE="$(printf '%s' "$OLDEST_PATRONI_IMAGE" | tail -n 1)"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
+  then
+    DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg17\.')"
+  else
+    DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
+  fi
+  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
+  PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
-
-  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
-  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.[0-9]\+-build-')"
-  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
 
   e2e_cleanup
 
   e2e_load_images
 
-  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
-  VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
-  VERSION_AS_NUMBER_1_2_0_RC1="$(get_version_as_number 1.2.0-RC1)"
-  VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
-  VERSION_AS_NUMBER_1_3_0="$(get_version_as_number 1.3.0)"
-  VERSION_AS_NUMBER_1_3_3="$(get_version_as_number 1.3.3)"
-  VERSION_AS_NUMBER_1_10_0="$(get_version_as_number 1.10.0-SNAPSHOT)"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_3_3" ]
   then
     install_prometheus_operator
@@ -72,13 +94,13 @@ e2e_test_install() {
 
   install_minio
 
-  DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set instanceProfiles[0].name=size-s \
     --set instanceProfiles[0].cpu=125m \
     --set instanceProfiles[0].memory=512Mi \
+    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
     --set configurations.objectstorage.create=true \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
@@ -88,13 +110,14 @@ e2e_test_install() {
     --set-string configurations.postgresconfig.postgresql\\.conf.invalid_param=true \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
     --set-string distributedLogs.persistentVolume.size=128Mi
 
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
+    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
@@ -104,15 +127,18 @@ e2e_test_install() {
     --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
     create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
       "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE" 2 \
-      --set configurations.create=false --set instanceProfiles=false \
+      --set configurations.create=true --set instanceProfiles=false \
+      --set configurations.postgresconfig.create=true \
+      --set configurations.poolingconfig.create=false \
       --set-string cluster.sgInstanceProfile=size-s \
-      --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
+      --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string cluster.postgres.version="$PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION" \
       --set cluster.configurations.observability.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
       --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
@@ -121,12 +147,14 @@ e2e_test_install() {
       --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
       --set distributedLogs.enabled=true \
       --set distributedLogs.create=false \
-      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
   
     create_or_replace_sharded_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
       "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE" 3 1 \
       --set configurations.create=false --set instanceProfiles=false \
       --set-string cluster.sgInstanceProfile=size-s \
+      --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
       --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
       --set cluster.configurations.observability.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
@@ -136,7 +164,7 @@ e2e_test_install() {
       --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
       --set distributedLogs.enabled=true \
       --set distributedLogs.create=false \
-      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
   fi
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -167,6 +195,7 @@ EOF
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
+    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
@@ -186,7 +215,7 @@ EOF
     --set-string cluster.metadata.annotations.replicasService.replicas-service-label="$RANDOM_VALUE" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -203,8 +232,9 @@ EOF
     wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
     wait_sharded_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   fi
-  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 
+  generate_mock_data "$DISTRIBUTEDLOGS_NAME"
   generate_mock_data "$CLUSTER_1_NAME"
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
@@ -212,6 +242,9 @@ EOF
     generate_mock_data "$CLUSTER_3_NAME-coord"
   fi
 
+  PREVIOUS_PATRONI_DISTRIBUTEDLOGS_CONFIG_PATH="$LOG_PATH/previous-patroni-logs-config.json"
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME-config" \
+    --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_DISTRIBUTEDLOGS_CONFIG_PATH"
   PREVIOUS_PATRONI_1_CONFIG_PATH="$LOG_PATH/previous-patroni-1-config.json"
   kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-config" \
     --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_1_CONFIG_PATH"
@@ -312,7 +345,7 @@ e2e_test() {
 
   run_test "Check that previous CRDs be converted to previous versions" check_previous_versions_conversion_webhooks
 
-  run_test "Check that distributedlogs node can be security upgrade after operator upgrade" check_distributedlogs_security_upgrade
+  run_test "Check that distributedlogs node can start security upgrade after operator upgrade" check_distributedlogs_security_upgrade_start
 
   run_test "Check that cluster with 1 node can start security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade_start
 
@@ -322,6 +355,8 @@ e2e_test() {
 
     run_test "Check that cluster with 3 node can start security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade_start
   fi
+
+  run_test "Check that distributedlogs node can complete security upgrade after operator upgrade with reduced impact" check_distributedlogs_security_upgrade
 
   run_test "Check that cluster with 1 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade
 
@@ -364,7 +399,7 @@ check_before_operator_upgrade() {
       echo "sgcluster/$CLUSTER_3_NAME-shard0"
       echo "sgcluster/$CLUSTER_3_NAME-shard1"
     fi
-    echo "sgdistributedlogs/$DISTRIBUTED_LOGS_NAME"
+    echo "sgdistributedlogs/$DISTRIBUTEDLOGS_NAME"
     )
   do
     if wait_until eval 'kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" \
@@ -518,24 +553,12 @@ check_previous_versions_conversion_webhooks() {
   fi
 }
 
-check_distributedlogs_security_upgrade() {
-  local CLUSTER_CRD="sgdistributedlogs.stackgres.io"
-  local CLUSTER_NAME="$DISTRIBUTED_LOGS_NAME"
+check_distributedlogs_security_upgrade_start() {
   local PREVIOUS_PATRONI_IMAGE="$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE"
 
-  check_cluster_before_security_upgrade "$DISTRIBUTED_LOGS_NAME"
-
-  kubectl annotate sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
-    --overwrite "stackgres.io/operatorVersion=$(get_installed_operator_version)"
-  wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o json \
-    | jq ".metadata.annotations[\"stackgres.io/operatorVersion\"]" \
-    | grep -q "$(get_installed_operator_version)"'
-  kubectl delete sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$DISTRIBUTED_LOGS_NAME-[0-9]\+"
-  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
-
-  check_cluster_after_security_upgrade "$DISTRIBUTED_LOGS_NAME"
+  check_cluster_security_upgrade_start \
+    "$DISTRIBUTEDLOGS_NAME" "$DBOPS_DISTRIBUTEDLOGS_NAME" "InPlace" \
+    "$PREVIOUS_PATRONI_DISTRIBUTEDLOGS_CONFIG_PATH" ""
 }
 
 check_cluster_1_security_upgrade_start() {
@@ -550,6 +573,8 @@ check_cluster_1_security_upgrade_start() {
 }
 
 check_cluster_2_security_upgrade_start() {
+  local PREVIOUS_PATRONI_IMAGE="$PREVIOUS_OLDEST_PATRONI_IMAGE"
+
   check_cluster_security_upgrade_start \
     "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact" \
     "$PREVIOUS_PATRONI_2_CONFIG_PATH" "$PREVIOUS_PGBOUNCER_2_CONFIG_PATH"
@@ -561,12 +586,21 @@ check_cluster_3_security_upgrade_start() {
     "$PREVIOUS_PATRONI_3_CONFIG_PATH" "$PREVIOUS_PGBOUNCER_3_CONFIG_PATH"
 }
 
+check_distributedlogs_security_upgrade() {
+  local PATRONI_IMAGE="$DISTRIBUTEDLOGS_PATRONI_IMAGE"
+
+  check_cluster_security_upgrade \
+    "$DISTRIBUTEDLOGS_NAME" "$DBOPS_DISTRIBUTEDLOGS_NAME" "InPlace"
+}
+
 check_cluster_1_security_upgrade() {
   check_cluster_security_upgrade \
     "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
 check_cluster_2_security_upgrade() {
+  local PATRONI_IMAGE="$OLDEST_PATRONI_IMAGE"
+
   check_cluster_security_upgrade \
     "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
 }
@@ -585,6 +619,12 @@ check_cluster_security_upgrade_start() {
   shift 5
 
   check_cluster_before_security_upgrade
+
+  if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ] \
+    && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_15_0" ]
+  then
+    wait_until run_query -h "$CLUSTER_NAME" -d "test" -q "SELECT 1"
+  fi
 
   check_mock_data_samehost "$CLUSTER_NAME"
 
@@ -680,34 +720,37 @@ check_cluster_before_security_upgrade() {
     fail "Cluster $CLUSTER_NAME is not pending upgrade after operator upgrade"
   fi
 
-  check_sts_is_not_altered "$CLUSTER_NAME"
+  if [ -n "$PREVIOUS_PATRONI_IMAGE" ]
+  then
+    check_sts_is_not_altered "$CLUSTER_NAME"
 
-  local POD
-  local PODS
-  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
-    | cut -d / -f 2)"
-  for POD in $PODS
-  do
-    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
-      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni\(-ext\)\?:')"
-    if ! printf %s "$POD_PATRONI_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
-    then
-      POD_PATRONI_IMAGE="docker.io/$POD_PATRONI_IMAGE"
-    fi
-    if [ "${POD_PATRONI_IMAGE#*/}" = "${PREVIOUS_PATRONI_IMAGE#*/}" ]
-    then
-      success "Pod $POD is using the previous patroni image"
-    else
-      echo "FAILURE. Pod $POD is not using the previous patroni image"
-      echo
-      echo "Expected previous patroni image is $PREVIOUS_PATRONI_IMAGE"
-      echo
-      echo "Used previous patroni image is $POD_PATRONI_IMAGE"
-      return 1
-    fi
-  done
+    local POD
+    local PODS
+    PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
+      | cut -d / -f 2)"
+    for POD in $PODS
+    do
+      POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+        --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+         | grep '/patroni\(-ext\)\?:')"
+      if ! printf %s "$POD_PATRONI_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
+      then
+        POD_PATRONI_IMAGE="docker.io/$POD_PATRONI_IMAGE"
+      fi
+      if [ "${POD_PATRONI_IMAGE#*/}" = "${PREVIOUS_PATRONI_IMAGE#*/}" ]
+      then
+        success "Pod $POD is using the previous patroni image"
+      else
+        echo "FAILURE. Pod $POD is not using the previous patroni image"
+        echo
+        echo "Expected previous patroni image is $PREVIOUS_PATRONI_IMAGE"
+        echo
+        echo "Used previous patroni image is $POD_PATRONI_IMAGE"
+        return 1
+      fi
+    done
+  fi
 
   if [ -n "$PREVIOUS_PATRONI_CONFIG_PATH" ]
   then
@@ -715,17 +758,26 @@ check_cluster_before_security_upgrade() {
     PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
       | if .synchronous_mode then . else del(.synchronous_node_count) end
       ')"
-    PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
-    VERSION_AS_NUMBER_1_13_0="$(get_version_as_number 1.13.0-SNAPSHOT)"
     if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_13_0" ]
     then
       PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
         | del(.postgresql.pg_hba)
         ')"
     fi
+    if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ] \
+      && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_15_0" ]
+    then
+      PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
+        | del(.check_timeline)
+        | del(.synchronous_mode)
+        | del(.synchronous_mode_strict)
+        | del(.postgresql.pg_hba)
+        ')"
+    fi
     jq -Sc '.
       | if .synchronous_mode then . else del(.synchronous_node_count) end
       | .postgresql.parameters = (.postgresql.parameters
+        | if .port == null then .port = "5432" else . end
         | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
         | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
         | if .log_autovacuum_min_duration == "0" then .log_autovacuum_min_duration = "0ms" else . end
@@ -743,6 +795,19 @@ check_cluster_before_security_upgrade() {
         else .postgresql.use_slots = true end
       ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config-filtered.json"
     PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config-filtered.json")"
+    if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ]
+    then
+      PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
+        | del(.postgresql.recovery_conf)
+        ')"
+    fi
+    if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ] \
+      && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_15_0" ]
+    then
+      PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
+        | del(.postgresql.parameters.dynamic_library_path)
+        ')"
+    fi
 
     if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
     then
@@ -850,31 +915,34 @@ check_cluster_after_security_upgrade() {
   do
     if [ "$POD_CONTROLLER_REVISION_HASH" != "$STS_UPDATE_REVISION" ]
     then
-      echo "FAILURE. Cluster $CLUSTER_NAME security upgrade did not updated sucesfully some pods"
+      echo "FAILURE. Cluster $CLUSTER_NAME security upgrade did not updated successfully some pods"
       return 1
     fi
   done
 
-  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
-    | cut -d / -f 2)"
-  for POD in $PODS
-  do
-    POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
-      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-       | grep '/patroni\(-ext\)\?:')"
-    if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
-    then
-      success "Pod $POD is using the latest patroni image"
-    else
-      echo "FAILURE. Pod $POD is not using the latest patroni image"
-      echo
-      echo "Expected new patroni images is '$PATRONI_IMAGE'"
-      echo
-      echo "Used new patroni image is '$POD_PATRONI_IMAGE'"
-      return 1
-    fi
-  done
+  if [ -n "$PATRONI_IMAGE" ]
+  then
+    PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
+      | cut -d / -f 2)"
+    for POD in $PODS
+    do
+      POD_PATRONI_IMAGE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+        --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+         | grep '/patroni\(-ext\)\?:')"
+      if [ "$POD_PATRONI_IMAGE" = "$PATRONI_IMAGE" ]
+      then
+        success "Pod $POD is using the latest patroni image"
+      else
+        echo "FAILURE. Pod $POD is not using the latest patroni image"
+        echo
+        echo "Expected new patroni images is '$PATRONI_IMAGE'"
+        echo
+        echo "Used new patroni image is '$POD_PATRONI_IMAGE'"
+        return 1
+      fi
+    done
+  fi
 
   local PRIMARY_SERVICE_TYPE
   PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
@@ -1053,21 +1121,21 @@ check_disable_cluster_resource_requirements_mutation() {
 }
 
 check_distributedlogs_mutations() {
-  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.sgInstanceProfile }')" \
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o=jsonpath='{ .spec.sgInstanceProfile }')" \
     != "<no value>" ]
   then
     success "SGInstanceProfile was added to distributed logs configuration after operator upgrade"
   else
     fail "SGInstanceProfile was not added to distributed logs configuration after operator upgrade"
   fi
-  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.configurations.sgPostgresConfig }')" \
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o=jsonpath='{ .spec.configurations.sgPostgresConfig }')" \
     = "<no value>" ]
   then
     success "SGPostgresConfig was added to distributed logs configuration after operator upgrade"
   else
     fail "SGPostgresConfig was not added to distributed logs configuration after operator upgrade"
   fi
-  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.nonProductionOptions.disableClusterResourceRequirements }')" \
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o=jsonpath='{ .spec.nonProductionOptions.disableClusterResourceRequirements }')" \
     = "true" ]
   then
     success "Non production option disableClusterResourceRequirements was set to true in distributed logs configuration after operator upgrade"

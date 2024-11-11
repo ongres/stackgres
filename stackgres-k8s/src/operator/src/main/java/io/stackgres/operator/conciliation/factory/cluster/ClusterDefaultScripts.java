@@ -16,6 +16,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
+import io.stackgres.common.crd.sgscript.StackGresScriptFromBuilder;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import jakarta.inject.Singleton;
@@ -27,6 +28,7 @@ public class ClusterDefaultScripts {
 
   public List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
     return Seq.of(getPostgresExporterInitScript())
+        .append(getPasswordsUpdateScript(cluster))
         .append(Seq.of(
             getBabelfishUserScript(cluster),
             getBabelfishDatabaseScript(),
@@ -34,6 +36,20 @@ public class ClusterDefaultScripts {
             .filter(
                 script -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH))
         .toList();
+  }
+
+  private StackGresScriptEntry getPasswordsUpdateScript(StackGresCluster cluster) {
+    final StackGresScriptEntry script = new StackGresScriptEntry();
+    script.setName("password-update");
+    script.setRetryOnError(true);
+    script.setScriptFrom(
+        new StackGresScriptFromBuilder()
+        .withNewSecretKeyRef()
+        .withName(PatroniSecret.name(cluster))
+        .withKey(PatroniSecret.PASSWORD_UPDATE_SQL_KEY)
+        .endSecretKeyRef()
+        .build());
+    return script;
   }
 
   private StackGresScriptEntry getPostgresExporterInitScript() {
