@@ -11,9 +11,19 @@ KIND_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc
 KIND_0_15_0="${KIND_0_15_0:-kind-0.15.0}"
 KIND_0_20_0="${KIND_0_20_0:-kind-0.20.0}"
 KIND_0_23_0="${KIND_0_23_0:-kind-0.23.0}"
+KIND_0_25_0="${KIND_0_25_0:-kind-0.25.0}"
 
 check_kind_version() {
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.26" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    KIND="$KIND_0_25_0"
+    if ! "$KIND" version | grep -q -F 'kind v0.25.0 '
+    then
+      echo "To run Kubernetes 1.26+ kind v0.25.0 is required"
+      return 1
+    fi
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
       -ge "$(echo "1.25" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     KIND="$KIND_0_23_0"
@@ -725,12 +735,12 @@ get_kind_image() {
 
 get_kind_images() {
   cat << EOF
-
-v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e
-v1.29.4@sha256:3abb816a5b1061fb15c6e9e60856ec40d56b7b52bcea5f5f1350bc6e2320b6f8
-v1.28.9@sha256:dca54bc6a6079dd34699d53d7d4ffa2e853e46a20cd12d619a09207e35300bd0
-v1.27.13@sha256:17439fa5b32290e3ead39ead1250dca1d822d94a10d26f1981756cd51b24b9d8
-v1.26.15@sha256:84333e26cae1d70361bb7339efb568df1871419f2019c80f9a12b7e2d485fe19
+v1.31.0@sha256:18fbefc20a7113353c7b75b5c869d7145a6abd6269154825872dc59c1329912e
+v1.30.6@sha256:b6d08db72079ba5ae1f4a88a09025c0a904af3b52387643c285442afb05ab994
+v1.29.10@sha256:3b2d8c31753e6c8069d4fc4517264cd20e86fd36220671fb7d0a5855103aa84b
+v1.28.15@sha256:a7c05c7ae043a0b8c818f5a06188bc2c4098f6cb59ca7d1856df00375d839251
+v1.27.16@sha256:2d21a61643eafc439905e18705b8186f3296384750a835ad7a005dceb9546d20
+v1.26.15@sha256:c79602a44b4056d7e48dc20f7504350f1e87530fe953428b792def00bc1076dd
 v1.25.16@sha256:5da57dfc290ac3599e775e63b8b6c49c0c85d3fec771cd7d55b45fae14b38d3b
 v1.24.15@sha256:7db4f8bea3e14b82d12e044e25e34bd53754b7f2b0e9d56df21774e6f66a70ab
 v1.23.17@sha256:59c989ff8a517a93127d4a536e7014d28e235fb3529d9fba91b3951d461edfdb
