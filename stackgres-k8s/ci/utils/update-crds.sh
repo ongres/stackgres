@@ -29,9 +29,11 @@ do
           jq -M -c "$JQ_EXPRESSION
             | if has(\"description\")
               then .description = .description + \"\n\nSee $KUBERNETES_API_BASE_URL/v$K8S_VERSION/$K8S_WEB_HASH\"
-              else . end" "$MERGED_DEFINITIONS_SWAGGER_FILE"
+              else . end" "$MERGED_DEFINITIONS_SWAGGER_FILE" \
+            | sed 's#"format":"int-or-string","type":"string"#"format":"int-or-string","x-kubernetes-int-or-string":true#g'
         else
-          jq -M -c "$JQ_EXPRESSION" "$MERGED_DEFINITIONS_SWAGGER_FILE"
+          jq -M -c "$JQ_EXPRESSION" "$MERGED_DEFINITIONS_SWAGGER_FILE" \
+            | sed 's#"format":"int-or-string","type":"string"#"format":"int-or-string","x-kubernetes-int-or-string":true#g'
         fi
         PREV_LINE_NUMBER="$((LINE_NUMBER+1))"
       done
