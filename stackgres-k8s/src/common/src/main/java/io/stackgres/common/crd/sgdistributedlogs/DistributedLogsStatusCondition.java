@@ -9,10 +9,6 @@ import io.stackgres.common.crd.Condition;
 
 public enum DistributedLogsStatusCondition {
 
-  POD_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PodRequiresRestart"),
-  FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, "FalsePendingRestart"),
-  CLUSTER_REQUIRES_UPGRADE(Type.PENDING_UPGRADE, Status.TRUE, "ClusterRequiresUpgrade"),
-  FALSE_PENDING_UPGRADE(Type.PENDING_UPGRADE, Status.FALSE, "FalsePendingUpgrade"),
   DISTRIBUTED_LOGS_CONFIG_ERROR(Type.FAILED, Status.TRUE, "DistributedLogsConfigFailed"),
   FALSE_FAILED(Type.FAILED, Status.FALSE, "FalseFailed");
 
@@ -32,8 +28,6 @@ public enum DistributedLogsStatusCondition {
 
   private enum Type {
 
-    PENDING_RESTART("PendingRestart"),
-    PENDING_UPGRADE("PendingUpgrade"),
     FAILED("Failed");
 
     private final String typeCondition;

@@ -38,7 +38,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
+  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
 }
 
 e2e_test_uninstall() {
@@ -359,7 +359,7 @@ EOF
 
   wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
 
-  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 }
 
 create_or_replace_distributed_logs() {
@@ -377,7 +377,7 @@ create_or_replace_distributed_logs() {
     --set-string configurations.postgresconfig.postgresql\\.conf.invalid_param=true \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
     --set-string distributedLogs.persistentVolume.size=128Mi
 }
 
@@ -394,7 +394,7 @@ create_or_replace_cluster_with_backups() {
     --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 }
 
 create_or_replace_cluster_from_backup() {
@@ -420,7 +420,7 @@ create_or_replace_cluster_from_backup() {
     --set-string cluster.metadata.annotations.replicasService.replicas-service-label="$RANDOM_VALUE" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 }
 
 check_operator_delete() {

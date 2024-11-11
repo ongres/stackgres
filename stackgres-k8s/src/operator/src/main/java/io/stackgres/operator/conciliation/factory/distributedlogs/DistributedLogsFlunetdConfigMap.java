@@ -5,16 +5,16 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
-import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
-
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresUtil;
@@ -25,10 +25,13 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.FluentBit;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +40,21 @@ import org.slf4j.LoggerFactory;
 public class DistributedLogsFlunetdConfigMap
     implements ResourceGenerator<StackGresDistributedLogsContext> {
 
+  public static final String POSTGRES_LOG_TYPE = "postgres";
+  public static final String PATRONI_LOG_TYPE = "patroni";
+
   static final String PATRONI_TABLE_FIELDS = Stream.of(PatroniTableFields.values())
       .map(PatroniTableFields::getFieldName)
       .collect(Collectors.joining(","));
   static final String POSTGRES_TABLE_FIELDS = Stream.of(PostgresTableFields.values())
       .map(PostgresTableFields::getFieldName)
       .collect(Collectors.joining(","));
-  private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
+  static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
+  static final String SUFFIX = "-fluentd";
+
+  public static String configName(StackGresDistributedLogs distributedLogs) {
+    return ResourceUtil.resourceName(distributedLogs.getMetadata().getName() + SUFFIX);
+  }
 
   private final LabelFactoryForDistributedLogs labelFactory;
 
@@ -64,10 +75,15 @@ public class DistributedLogsFlunetdConfigMap
         .withNewMetadata()
         .withLabels(labelFactory.genericLabels(distributedLogs))
         .withNamespace(namespace)
-        .withName(FluentdUtil.configName(distributedLogs))
+        .withName(configName(distributedLogs))
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(Map.of(
-            "fluentd.conf", getFluentdConfig(context))))
+            "fluentd.conf", getFluentdConfig(context),
+            ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename(), Unchecked.supplier(() -> Resources
+                .asCharSource(ClusterDefaultScripts.class.getResource(
+                    "/templates/" + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
+                    StandardCharsets.UTF_8)
+                .read()).get())))
         .build());
   }
 
@@ -81,7 +97,7 @@ public class DistributedLogsFlunetdConfigMap
         + "  <source>\n"
         + "    @type forward\n"
         + "    bind 0.0.0.0\n"
-        + "    port " + FluentdUtil.FORWARD_PORT + "\n"
+        + "    port " + DistributedLogsCluster.FORWARD_PORT + "\n"
         + "  </source>\n"
         + "\n"
         + "  <filter *.*.*.*.*>\n"
@@ -108,7 +124,7 @@ public class DistributedLogsFlunetdConfigMap
             + "    <server>\n"
             + "      name localhost\n"
             + "      host 127.0.0.1\n"
-            + "      port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
+            + "      port " + (DistributedLogsCluster.FORWARD_PORT + t.v2) + "\n"
             + "    </server>\n"
             + "  </match>\n"
             + "\n")
@@ -122,7 +138,7 @@ public class DistributedLogsFlunetdConfigMap
         + "    <server>\n"
         + "      name localhost\n"
         + "      host 127.0.0.1\n"
-        + "      port " + FluentdUtil.FORWARD_PORT + "\n"
+        + "      port " + DistributedLogsCluster.FORWARD_PORT + "\n"
         + "    </server>\n"
         + "  </match>\n"
         + "</worker>\n"
@@ -135,7 +151,7 @@ public class DistributedLogsFlunetdConfigMap
             + "  <source>\n"
             + "    @type forward\n"
             + "    bind 127.0.0.1\n"
-            + "    port " + (FluentdUtil.FORWARD_PORT + t.v2) + "\n"
+            + "    port " + (DistributedLogsCluster.FORWARD_PORT + t.v2) + "\n"
             + "  </source>\n"
             + "\n"
             + "  <match " + FluentBit.tagName(t.v1, POSTGRES_LOG_TYPE) + ".*.*>\n"

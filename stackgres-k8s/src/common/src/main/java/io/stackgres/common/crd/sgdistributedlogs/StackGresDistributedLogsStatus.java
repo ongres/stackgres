@@ -39,6 +39,10 @@ public class StackGresDistributedLogsStatus {
   @Valid
   private List<StackGresDistributedLogsStatusCluster> connectedClusters = new ArrayList<>();
 
+  private String postgresVersion;
+
+  private String timescaledbVersion;
+
   private String fluentdConfigHash;
 
   private String arch;
@@ -46,6 +50,8 @@ public class StackGresDistributedLogsStatus {
   private String os;
 
   private String labelPrefix;
+
+  private Boolean oldConfigMapRemoved;
 
   public List<Condition> getConditions() {
     return conditions;
@@ -77,6 +83,22 @@ public class StackGresDistributedLogsStatus {
 
   public void setConnectedClusters(List<StackGresDistributedLogsStatusCluster> connectedClusters) {
     this.connectedClusters = connectedClusters;
+  }
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getTimescaledbVersion() {
+    return timescaledbVersion;
+  }
+
+  public void setTimescaledbVersion(String timescaledbVersion) {
+    this.timescaledbVersion = timescaledbVersion;
   }
 
   public String getFluentdConfigHash() {
@@ -111,10 +133,18 @@ public class StackGresDistributedLogsStatus {
     this.labelPrefix = labelPrefix;
   }
 
+  public Boolean getOldConfigMapRemoved() {
+    return oldConfigMapRemoved;
+  }
+
+  public void setOldConfigMapRemoved(Boolean oldConfigMapRemoved) {
+    this.oldConfigMapRemoved = oldConfigMapRemoved;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(arch, conditions, connectedClusters, databases, fluentdConfigHash,
-        labelPrefix, os, podStatuses);
+        labelPrefix, oldConfigMapRemoved, os, podStatuses, postgresVersion, timescaledbVersion);
   }
 
   @Override
@@ -130,8 +160,11 @@ public class StackGresDistributedLogsStatus {
         && Objects.equals(connectedClusters, other.connectedClusters)
         && Objects.equals(databases, other.databases)
         && Objects.equals(fluentdConfigHash, other.fluentdConfigHash)
-        && Objects.equals(labelPrefix, other.labelPrefix) && Objects.equals(os, other.os)
-        && Objects.equals(podStatuses, other.podStatuses);
+        && Objects.equals(labelPrefix, other.labelPrefix)
+        && Objects.equals(oldConfigMapRemoved, other.oldConfigMapRemoved)
+        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses)
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(timescaledbVersion, other.timescaledbVersion);
   }
 
   @Override

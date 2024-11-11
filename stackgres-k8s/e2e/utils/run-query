@@ -8,7 +8,7 @@ run_query() {
   local HOST=127.0.0.1
   local DATABASE=postgres
   local INSTANCE=0
-  local CONTAINER="postgres-util"
+  local CONTAINER="patroni"
   local TYPE="postgres"
   local SSLMODE=prefer
   local USERNAME=

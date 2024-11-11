@@ -30,7 +30,7 @@ spec:
             properties:
               name:
                 type: string
-                maxLength: 52
+                maxLength: 44
                 pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
                 description: |
                   Name of the Distributed Logs cluster. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
@@ -348,6 +348,12 @@ spec:
                     type:
                       description: Type of deployment condition.
                       type: string
+              postgresVersion:
+                type: string
+                description: The used Postgres version
+              timescaledbVersion:
+                type: string
+                description: The used Timescaledb version
               databases:
                 type: array
                 description: The list of database status
@@ -390,3 +396,6 @@ spec:
               labelPrefix:
                 type: string
                 description: The custom prefix that is prepended to all labels.
+              oldConfigMapRemoved:
+                type: boolean
+                description: Flag to indicate the previous existing ConfigMap has been removed.

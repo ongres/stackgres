@@ -451,7 +451,8 @@ EOF
       then
         CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.22"
       elif [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.29 ] \
-        || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.30 ]
+        || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.30 ] \
+        || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.31 ]
       then
         CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.28"
       fi

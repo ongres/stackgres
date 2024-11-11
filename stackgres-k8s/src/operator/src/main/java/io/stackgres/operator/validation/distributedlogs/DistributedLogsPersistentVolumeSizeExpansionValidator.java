@@ -84,7 +84,7 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
 
   @Override
   protected List<StackGresCluster> getClusters(StackGresDistributedLogs resource) {
-    return List.of(DistributedLogsCluster.getCluster(labelFactory, resource));
+    return List.of(DistributedLogsCluster.getCluster(labelFactory, resource, Optional.empty()));
   }
 
   @Override

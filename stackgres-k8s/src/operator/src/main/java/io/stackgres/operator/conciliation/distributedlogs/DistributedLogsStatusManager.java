@@ -5,26 +5,16 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
+import static io.stackgres.operator.common.StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ClusterPendingRestartUtil;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
-import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
@@ -32,16 +22,11 @@ import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jooq.lambda.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager
     extends ConditionUpdater<StackGresDistributedLogs, Condition>
     implements StatusManager<StackGresDistributedLogs, Condition> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsStatusManager.class);
 
   private final KubernetesClient client;
   private final LabelFactoryForDistributedLogs labelFactory;
@@ -55,125 +40,33 @@ public class DistributedLogsStatusManager
 
   @Override
   public StackGresDistributedLogs refreshCondition(StackGresDistributedLogs source) {
-    if (isPendingRestart(source)) {
-      updateCondition(getPodRequiresRestart(), source);
-    } else {
-      updateCondition(getFalsePendingRestart(), source);
-    }
-    if (isPendingUpgrade(source)) {
-      updateCondition(getClusterRequiresUpgrade(), source);
-    } else {
-      updateCondition(getFalsePendingUpgrade(), source);
-    }
-    if (source.getStatus() != null
-        && source.getStatus().getArch() != null
-        && source.getStatus().getOs() != null
-        && source.getStatus().getPodStatuses() != null
-        && source.getSpec().getToInstallPostgresExtensions() != null) {
-      source.getStatus().getPodStatuses()
-          .stream()
-          .filter(StackGresClusterPodStatus::getPrimary)
-          .flatMap(podStatus -> source.getSpec().getToInstallPostgresExtensions().stream()
-              .filter(toInstallExtension -> podStatus
-                  .getInstalledPostgresExtensions().stream()
-                  .noneMatch(toInstallExtension::equals))
-              .map(toInstallExtension -> Tuple.tuple(
-                  toInstallExtension,
-                  podStatus.getInstalledPostgresExtensions().stream()
-                  .filter(installedExtension -> Objects.equals(
-                      installedExtension.getName(),
-                      toInstallExtension.getName()))
-                  .findFirst())))
-          .filter(t -> t.v2.isPresent())
-          .map(t -> t.map2(Optional::get))
-          .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
-    }
-    return source;
-  }
-
-  private static String getDistributedLogsId(StackGresDistributedLogs distributedLogs) {
-    return distributedLogs.getMetadata().getNamespace() + "/"
-        + distributedLogs.getMetadata().getName();
-  }
-
-  /**
-   * Check pending restart status condition.
-   */
-  public boolean isPendingRestart(StackGresDistributedLogs distributedLogs) {
-    List<StackGresClusterPodStatus> clusterPodStatuses = Optional.ofNullable(
-        distributedLogs.getStatus())
-        .map(StackGresDistributedLogsStatus::getPodStatuses)
-        .orElse(ImmutableList.of());
-    Optional<StatefulSet> clusterStatefulSet = getClusterStatefulSet(distributedLogs);
-    List<Pod> clusterPods = clusterStatefulSet.map(sts -> getClusterPods(sts, distributedLogs))
-        .orElse(ImmutableList.of());
-    RestartReasons reasons = ClusterPendingRestartUtil.getRestartReasons(
-        clusterPodStatuses, clusterStatefulSet, clusterPods);
-    for (RestartReason reason : reasons.getReasons()) {
-      switch (reason) {
-        case PATRONI:
-          LOGGER.debug("Distributed Logs {} requires restart due to patroni's indication",
-              getDistributedLogsId(distributedLogs));
-          break;
-        case POD_STATUS:
-          LOGGER.debug("Distributed Logs {} requires restart due to pod status indication",
-              getDistributedLogsId(distributedLogs));
-          break;
-        case STATEFULSET:
-          LOGGER.debug("Distributed Logs {} requires restart due to pod template changes",
-              getDistributedLogsId(distributedLogs));
-          break;
-        default:
-          break;
-      }
-    }
-    return reasons.requiresRestart();
-  }
-
-  /**
-   * Check pending upgrade status condition.
-   */
-  public boolean isPendingUpgrade(StackGresDistributedLogs distributedLogs) {
-    if (Optional.of(distributedLogs.getMetadata())
-        .map(ObjectMeta::getAnnotations)
-        .stream()
-        .map(Map::entrySet)
-        .flatMap(Set::stream)
-        .anyMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
-            && !e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))) {
-      LOGGER.debug("Distributed Logs {} requires restart due to operator version change",
-          getDistributedLogsId(distributedLogs));
-      return true;
-    }
-    return false;
-  }
-
-  private Optional<StatefulSet> getClusterStatefulSet(StackGresDistributedLogs cluster) {
-    return Optional.ofNullable(client.apps().statefulSets()
-        .inNamespace(cluster.getMetadata().getNamespace())
-        .withName(cluster.getMetadata().getName())
-        .get())
-        .stream()
-        .filter(sts -> sts.getMetadata().getOwnerReferences()
-            .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                .equals(StackGresDistributedLogs.KIND)
-                && ownerReference.getName().equals(cluster.getMetadata().getName())
-                && ownerReference.getUid().equals(cluster.getMetadata().getUid())))
-        .findFirst();
-  }
-
-  private List<Pod> getClusterPods(StatefulSet sts, StackGresDistributedLogs cluster) {
-    final Map<String, String> podClusterLabels =
-        labelFactory.clusterLabels(cluster);
-
-    return client.pods().inNamespace(sts.getMetadata().getNamespace())
-        .withLabels(podClusterLabels)
+    Optional<StackGresCluster> foundCluster = client.resources(StackGresCluster.class)
+        .inNamespace(source.getMetadata().getNamespace())
+        .withLabels(labelFactory.genericLabels(source))
         .list()
-        .getItems().stream()
-        .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
-            .anyMatch(ownerReference -> ownerReference.getKind().equals("StatefulSet")
-                && ownerReference.getName().equals(sts.getMetadata().getName())))
-        .collect(Collectors.toUnmodifiableList());
+        .getItems()
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getMetadata().getName(),
+            source.getMetadata().getName()))
+        .findFirst();
+    foundCluster.ifPresent(cluster -> {
+      if (source.getStatus() == null) {
+        source.setStatus(new StackGresDistributedLogsStatus());
+      }
+      source.getStatus().setPostgresVersion(cluster.getSpec().getPostgres().getVersion());
+      source.getStatus().setTimescaledbVersion(
+          Optional.ofNullable(cluster.getSpec().getPostgres().getExtensions())
+          .stream()
+          .flatMap(List::stream)
+          .filter(extension -> Objects.equals(
+              extension.getName(),
+              TIMESCALEDB_EXTENSION_NAME))
+          .map(StackGresClusterExtension::getVersion)
+          .findFirst()
+          .orElse(null));
+    });
+    return source;
   }
 
   @Override
@@ -194,19 +87,4 @@ public class DistributedLogsStatusManager
     distributedLogs.getStatus().setConditions(conditions);
   }
 
-  protected Condition getFalsePendingRestart() {
-    return DistributedLogsStatusCondition.FALSE_PENDING_RESTART.getCondition();
-  }
-
-  protected Condition getPodRequiresRestart() {
-    return DistributedLogsStatusCondition.POD_REQUIRES_RESTART.getCondition();
-  }
-
-  protected Condition getFalsePendingUpgrade() {
-    return DistributedLogsStatusCondition.FALSE_PENDING_UPGRADE.getCondition();
-  }
-
-  protected Condition getClusterRequiresUpgrade() {
-    return DistributedLogsStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition();
-  }
 }

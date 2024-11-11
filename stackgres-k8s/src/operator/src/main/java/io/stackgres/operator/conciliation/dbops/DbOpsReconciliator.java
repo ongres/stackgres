@@ -91,7 +91,7 @@ public class DbOpsReconciliator
   protected void onConfigCreated(StackGresDbOps dbOps, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(dbOps, result);
     eventController.sendEvent(DbOpsEventReason.DBOPS_CREATED,
-        "DbOps " + dbOps.getMetadata().getNamespace() + "."
+        "SGDbOps " + dbOps.getMetadata().getNamespace() + "."
             + dbOps.getMetadata().getName() + " created: " + resourceChanged, dbOps);
   }
 
@@ -99,14 +99,14 @@ public class DbOpsReconciliator
   protected void onConfigUpdated(StackGresDbOps dbOps, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(dbOps, result);
     eventController.sendEvent(DbOpsEventReason.DBOPS_UPDATED,
-        "DbOps " + dbOps.getMetadata().getNamespace() + "."
+        "SGDbOps " + dbOps.getMetadata().getNamespace() + "."
             + dbOps.getMetadata().getName() + " updated: " + resourceChanged, dbOps);
   }
 
   @Override
   protected void onError(Exception ex, StackGresDbOps dbOps) {
     String message = MessageFormatter.arrayFormat(
-        "DbOps reconciliation cycle failed",
+        "SGDbOps reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(DbOpsEventReason.DBOPS_CONFIG_ERROR,

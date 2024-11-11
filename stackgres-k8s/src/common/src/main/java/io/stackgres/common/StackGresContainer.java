@@ -65,7 +65,7 @@ public enum StackGresContainer implements StackGresContainerProfile {
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       );
 
-  public static final String CUSTOM = "c-%s";
+  public static final String CUSTOM = "custom-%s";
 
   private final StackGresGroupKind kind;
   private final String name;
