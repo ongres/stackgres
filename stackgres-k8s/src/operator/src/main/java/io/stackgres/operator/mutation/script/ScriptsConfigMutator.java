@@ -46,6 +46,13 @@ public class ScriptsConfigMutator
   }
 
   private void fillScriptsRequiredFields(StackGresScript resource) {
+    Optional.of(resource)
+        .map(StackGresScript::getSpec)
+        .map(StackGresScriptSpec::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .filter(scriptEntry -> Objects.equals(scriptEntry.getId(), -1))
+        .forEach(scriptEntry -> scriptEntry.setId(null));
     int lastId = Optional.of(resource)
         .map(StackGresScript::getSpec)
         .map(StackGresScriptSpec::getScripts)
