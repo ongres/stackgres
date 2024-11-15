@@ -51,6 +51,8 @@ spec:
                 type: array
                 description: |
                   A list of SQL scripts.
+                x_kubernetes_list_map_keys: [ id ]
+                x_kubernetes_list_type: map
                 items:
                   type: object
                   description: |
@@ -64,6 +66,7 @@ spec:
                         Name of the script. Must be unique across this SGScript.
                     id:
                       type: integer
+                      default: -1
                       description: |
                         The id is immutable and must be unique across all the script entries. It is replaced by the operator and is used to identify the script for the whole life of the `SGScript` object.
                     version:
