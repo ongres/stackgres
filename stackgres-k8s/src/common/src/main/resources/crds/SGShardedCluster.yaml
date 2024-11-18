@@ -1141,6 +1141,8 @@ spec:
                         description: If true, when any entry of any `SGScript` fail will not prevent subsequent `SGScript` from being executed. By default is `false`.
                       scripts:
                         type: array
+                        x-kubernetes-list-map-keys: [ id ]
+                        x-kubernetes-list-type: map
                         description: |
                           A list of script references that will be executed in sequence.
                         items:
@@ -1151,6 +1153,7 @@ spec:
                           properties:
                             id:
                               type: integer
+                              default: -1
                               description: The id is immutable and must be unique across all the `SGScript` entries. It is replaced by the operator and is used to identify the `SGScript` entry.
                             sgScript:
                               type: string

@@ -32,10 +32,22 @@ public class ScriptsConfigMutator implements ClusterMutator {
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
+    setDefaultScriptIds(resource);
     addDefaultScripts(resource);
     fillRequiredFields(resource);
     updateScriptsStatuses(resource);
     return resource;
+  }
+
+  private void setDefaultScriptIds(StackGresCluster resource) {
+    Optional.of(resource)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getManagedSql)
+        .map(StackGresClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .filter(scriptEntry -> Objects.equals(scriptEntry.getId(), -1))
+        .forEach(scriptEntry -> scriptEntry.setId(null));
   }
 
   private void addDefaultScripts(StackGresCluster resource) {

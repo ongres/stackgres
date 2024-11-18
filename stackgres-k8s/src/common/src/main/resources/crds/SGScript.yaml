@@ -51,8 +51,8 @@ spec:
                 type: array
                 description: |
                   A list of SQL scripts.
-                x_kubernetes_list_map_keys: [ id ]
-                x_kubernetes_list_type: map
+                x-kubernetes-list-map-keys: [ id ]
+                x-kubernetes-list-type: map
                 items:
                   type: object
                   description: |
