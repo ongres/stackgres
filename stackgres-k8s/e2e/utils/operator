@@ -349,7 +349,6 @@ load_operator_k8s() {
     local ORIGINAL_RESTAPI_IMAGE_NAME="$RESTAPI_IMAGE_NAME"
     local ORIGINAL_JOBS_IMAGE_NAME="$JOBS_IMAGE_NAME"
     local ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME="$CLUSTER_CONTROLLER_IMAGE_NAME"
-    local ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     local ORIGINAL_STREAM_IMAGE_NAME="$STREAM_IMAGE_NAME"
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
     local ORIGINAL_PGLAMBDA_JAVASCRIPT_IMAGE_NAME="$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
@@ -367,7 +366,6 @@ load_operator_k8s() {
     docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
     docker_tag "$ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker_tag "$ORIGINAL_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
     docker_tag "$ORIGINAL_STREAM_IMAGE_NAME" "$STREAM_IMAGE_NAME"
     docker_tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
     docker_tag "$ORIGINAL_PGLAMBDA_JAVASCRIPT_IMAGE_NAME" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
@@ -385,7 +383,6 @@ load_operator_k8s_only() {
     "$RESTAPI_IMAGE_NAME" \
     "$JOBS_IMAGE_NAME" \
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-    "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
     "$STREAM_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME" \
     "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
@@ -414,7 +411,6 @@ push_operator_images() {
     "$RESTAPI_IMAGE_NAME" \
     "$JOBS_IMAGE_NAME" \
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-    "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
     "$STREAM_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME" \
     "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
@@ -803,7 +799,6 @@ upgrade_operator_from_private_repository() {
       --set serviceAccount.repoCredentials[0]=regcred \
       --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
       --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME}:$IMAGE_TAG" \
-      --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}:$IMAGE_TAG" \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.collector".level=TRACE' \ 
@@ -957,13 +952,18 @@ load_operator_images_from() {
 get_operator_images() {
   [ -n "$1" ]
   local VERSION="$1"
-  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1 VERSION_1_13_0_ALPHA1
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1 VERSION_1_13_0_ALPHA1 VERSION_1_14_0_ALPHA1
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
   VERSION_1_12_0_ALPHA1="$(get_version_as_number 1.12.0-alpha1)"
   VERSION_1_13_0_ALPHA1="$(get_version_as_number 1.13.0-alpha1)"
-  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_13_0_ALPHA1" ]
+  VERSION_1_14_0_ALPHA1="$(get_version_as_number 1.14.0-alpha1)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_14_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_14_0_alpha1 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_13_0_ALPHA1" ]
   then
     get_operator_images_pre_1_13_0_alpha1 "$VERSION"
     return
@@ -995,9 +995,21 @@ get_operator_images() {
   echo "${RESTAPI_IMAGE_NAME%:*}:$TAG"
   echo "${JOBS_IMAGE_NAME%:*}:$TAG"
   echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$TAG"
-  echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$TAG"
   echo "${STREAM_IMAGE_NAME%:*}:${NATIVE_TAG}-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
+  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
+}
+
+get_operator_images_pre_1_14_0_alpha1() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
+  echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
+  echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${STREAM_IMAGE_NAME%:*}:$VERSION-jvm"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
   echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
 }
 
@@ -1730,7 +1742,6 @@ set_max_length() {
 set_helm_values_for_developer() {
   cat << EOF
     --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER=${CLUSTER_CONTROLLER_IMAGE_NAME} 
-    --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER=${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME} 
     --set-string developer.extraOpts[0]=-Dquarkus.log.category."io.stackgres".level=DEBUG 
     --set-string developer.extraOpts[1]=-Dquarkus.log.category."io.quarkus".level=INFO 
     --set-string developer.extraOpts[2]=-Dquarkus.log.category."io.stackgres.collector".level=TRACE 

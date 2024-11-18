@@ -209,6 +209,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(0)
         .withName("citus-update-shards")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
