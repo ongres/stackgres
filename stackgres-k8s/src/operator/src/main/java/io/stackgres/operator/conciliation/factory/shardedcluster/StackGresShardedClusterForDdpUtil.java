@@ -103,9 +103,9 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
             .build())
         .editSpec()
         .withScripts(
-            getDdpCreateDatabase(context),
-            getDdpInitScript(context),
-            getDdpUpdateShardsScript(context))
+            getDdpCreateDatabase(context, 0),
+            getDdpInitScript(context, 1),
+            getDdpUpdateShardsScript(context, 2))
         .endSpec()
         .build();
   }
@@ -120,15 +120,16 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
             .build())
         .editSpec()
         .withScripts(
-            getDdpCreateDatabase(context))
+            getDdpCreateDatabase(context, 0))
         .endSpec()
         .build();
   }
 
   private static StackGresScriptEntry getDdpCreateDatabase(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("ddp-create-database")
         .withRetryOnError(true)
         .withScript(Unchecked.supplier(() -> Resources
@@ -142,9 +143,10 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   }
 
   private static StackGresScriptEntry getDdpInitScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("ddp-init")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
@@ -158,9 +160,10 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   }
 
   private static StackGresScriptEntry getDdpUpdateShardsScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("ddp-update-shards")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())

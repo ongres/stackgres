@@ -382,7 +382,6 @@ EOF
       "resources": {},
       "env":[
         {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
-        {"name":"SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER","value":"${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}"},
         {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
         {"name":"APP_OPTS","value":$EXTRA_OPTS},
         {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}

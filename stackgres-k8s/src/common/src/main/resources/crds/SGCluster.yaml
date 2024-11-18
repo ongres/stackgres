@@ -1437,8 +1437,6 @@ spec:
                     type: array
                     description: |
                       A list of script references that will be executed in sequence.
-                    x-kubernetes-list-map-keys: [ id ]
-                    x-kubernetes-list-type: map
                     items:
                       type: object
                       description: |
@@ -1447,7 +1445,6 @@ spec:
                       properties:
                         id:
                           type: integer
-                          default: -1
                           description: |
                             The id is immutable and must be unique across all the `SGScript` entries. It is replaced by the operator and is used to identify the `SGScript` entry.
                         sgScript:
