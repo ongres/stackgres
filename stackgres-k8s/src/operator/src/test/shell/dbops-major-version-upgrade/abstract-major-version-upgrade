@@ -212,7 +212,7 @@ kubectl_mock() {
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
     echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c SHOW lc_collate")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c SELECT setting FROM pg_settings WHERE name = 'lc_collate' UNION ALL SELECT datcollate FROM pg_database WHERE datname = 'template1' LIMIT 1")
     echo 'en_US.UTF-8'
     ;;
     ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -q -t -A -c SHOW server_encoding")
