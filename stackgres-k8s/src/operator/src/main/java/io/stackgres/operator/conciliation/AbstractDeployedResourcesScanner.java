@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation;
 
-import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnNotFound;
+import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnForbiddenOrNotFound;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +49,7 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .values()
         .stream()
         .filter(op -> !genericLabels.isEmpty())
-        .<HasMetadata>flatMap(streamList(op -> listOrEmptyOnNotFound(() -> op.apply(client)
+        .<HasMetadata>flatMap(streamList(op -> listOrEmptyOnForbiddenOrNotFound(() -> op.apply(client)
             .inNamespace(config.getMetadata().getNamespace())
             .withLabels(genericLabels)
             .list()
@@ -82,14 +82,14 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
             .filter(Predicate.not(List::isEmpty))
             .map(allowedNamespaces -> allowedNamespaces.stream()
                 .flatMap(allowedNamespace -> Optional.of(
-                    listOrEmptyOnNotFound(() -> op.apply(client)
+                    listOrEmptyOnForbiddenOrNotFound(() -> op.apply(client)
                         .inNamespace(allowedNamespace)
                         .withLabels(crossNamespaceLabels)
                         .list()
                         .getItems())).stream())
                 .reduce(Seq.<HasMetadata>of(), (seq, items) -> seq.append(items), (u, v) -> v)
                 .toList())
-            .orElseGet(() -> listOrEmptyOnNotFound(() -> op.apply(client)
+            .orElseGet(() -> listOrEmptyOnForbiddenOrNotFound(() -> op.apply(client)
                 .inAnyNamespace()
                 .withLabels(crossNamespaceLabels)
                 .list()

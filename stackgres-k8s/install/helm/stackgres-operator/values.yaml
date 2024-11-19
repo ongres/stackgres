@@ -233,7 +233,6 @@ collector:
           - prometheus
           processors: []
           exporters:
-          - debug
           - prometheus
   # Section to configure OpenTelemetry Collector integration with Prometheus Operator.
   prometheusOperator:
