@@ -6,8 +6,10 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,6 +18,8 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -33,8 +37,10 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -157,7 +163,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             volumeMounts.addAll(restoreMounts.getVolumeMounts(context))
         );
 
-    return new ContainerBuilder()
+    var containerBuilder = new ContainerBuilder()
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
@@ -200,8 +206,59 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withInitialDelaySeconds(0)
             .withPeriodSeconds(2)
             .withTimeoutSeconds(1)
-            .build())
-        .build();
+            .build());
+    if (Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false)) {
+      containerBuilder.withPorts(getContainerPorts(cluster));
+    }
+    return containerBuilder.build();
+  }
+
+  private List<ContainerPort> getContainerPorts(StackGresCluster cluster) {
+    boolean isConnectionPoolingDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableConnectionPooling)
+        .orElse(false);
+    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+      return List.of(
+          new ContainerPortBuilder()
+              .withProtocol("TCP")
+              .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+              .withContainerPort(isConnectionPoolingDisabled
+                  ? EnvoyUtil.PG_ENTRY_PORT : EnvoyUtil.PG_POOL_PORT).build(),
+          new ContainerPortBuilder()
+              .withProtocol("TCP")
+              .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+              .withContainerPort(EnvoyUtil.PG_PORT).build(),
+          new ContainerPortBuilder()
+              .withProtocol("TCP")
+              .withName(EnvoyUtil.BABELFISH_PORT_NAME)
+              .withContainerPort(EnvoyUtil.BF_PORT).build(),
+          new ContainerPortBuilder()
+              .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
+              .withProtocol("TCP")
+              .withContainerPort(EnvoyUtil.PATRONI_PORT)
+              .build());
+    }
+    return List.of(
+        new ContainerPortBuilder()
+            .withProtocol("TCP")
+            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+            .withContainerPort(isConnectionPoolingDisabled
+                ? EnvoyUtil.PG_ENTRY_PORT : EnvoyUtil.PG_POOL_PORT).build(),
+        new ContainerPortBuilder()
+            .withProtocol("TCP")
+            .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+            .withContainerPort(EnvoyUtil.PG_PORT).build(),
+        new ContainerPortBuilder()
+            .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
+            .withProtocol("TCP")
+            .withContainerPort(EnvoyUtil.PATRONI_PORT)
+            .build());
   }
 
   private ImmutableList<EnvVar> getEnvVars(ClusterContainerContext context) {

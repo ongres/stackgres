@@ -821,6 +821,13 @@ spec:
 
                       **Changing this field may require a restart.**
                     default: false
+                  disableEnvoy:
+                    type: boolean
+                    description: |
+                      If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
+
+                      **Changing this field may require a restart.**
+                    default: false
                   resources:
                     type: object
                     description: Pod custom resources configuration.

@@ -30,6 +30,8 @@ public class ClusterPods {
 
   private Boolean disablePostgresUtil;
 
+  private Boolean disableEnvoy;
+
   private String managementPolicy;
 
   private ClusterResources resources;
@@ -76,6 +78,14 @@ public class ClusterPods {
 
   public void setDisablePostgresUtil(Boolean disablePostgresUtil) {
     this.disablePostgresUtil = disablePostgresUtil;
+  }
+
+  public Boolean getDisableEnvoy() {
+    return disableEnvoy;
+  }
+
+  public void setDisableEnvoy(Boolean disableEnvoy) {
+    this.disableEnvoy = disableEnvoy;
   }
 
   public String getManagementPolicy() {

@@ -139,6 +139,9 @@ spec:
     {{- with .Values.cluster.pods.disablePostgresUtil }}
     disablePostgresUtil: {{ . }}
     {{- end }}
+    {{- with .Values.cluster.pods.disableEnvoy }}
+    disableEnvoy: {{ . }}
+    {{- end }}
     {{- with .Values.cluster.pods.scheduling }}
     scheduling:
       {{- toYaml . | nindent 6 }}

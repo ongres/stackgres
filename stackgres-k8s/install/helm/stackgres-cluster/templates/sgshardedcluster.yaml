@@ -144,6 +144,9 @@ spec:
       {{- with .Values.cluster.pods.disablePostgresUtil }}
       disablePostgresUtil: {{ . }}
       {{- end }}
+      {{- with .Values.cluster.pods.disableEnvoy }}
+      disableEnvoy: {{ . }}
+      {{- end }}
       {{- with .Values.cluster.pods.scheduling }}
       scheduling:
         {{- toYaml . | nindent 8 }}
@@ -203,6 +206,9 @@ spec:
       {{- end }}
       {{- with .Values.shardedCluster.shards.pods.disablePostgresUtil }}
       disablePostgresUtil: {{ . }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.disableEnvoy }}
+      disableEnvoy: {{ . }}
       {{- end }}
       {{- with .Values.shardedCluster.shards.pods.scheduling }}
       scheduling:

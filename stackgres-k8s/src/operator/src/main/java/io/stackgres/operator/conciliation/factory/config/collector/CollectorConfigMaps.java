@@ -23,8 +23,10 @@ import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.JsonArray;
 import io.stackgres.common.crd.JsonObject;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterObservability;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCollector;
@@ -382,6 +384,11 @@ public class CollectorConfigMaps
 
   private void appendPatroniToScrapeConfigs(
       ObservedClusterContext cluster, CollectorPodContext pod, JsonArray scrapeConfigs) {
+    boolean isEnvoyDisabled = Optional.of(cluster.getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
     addOrOverwriteScrapeConfig(
         cluster,
         pod,
@@ -390,11 +397,18 @@ public class CollectorConfigMaps
         StackGresContainer.PATRONI,
         EnvoyUtil.PATRONI_RESTAPI_PORT_NAME,
         "/metrics",
-        EnvoyUtil.PATRONI_ENTRY_PORT);
+        isEnvoyDisabled ? EnvoyUtil.PATRONI_PORT : EnvoyUtil.PATRONI_ENTRY_PORT);
   }
 
   private void appendEnvoyToScrapeConfigs(
       ObservedClusterContext cluster, CollectorPodContext pod, JsonArray scrapeConfigs) {
+    if (Optional.of(cluster.getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false)) {
+      return;
+    }
     addOrOverwriteScrapeConfig(
         cluster,
         pod,
