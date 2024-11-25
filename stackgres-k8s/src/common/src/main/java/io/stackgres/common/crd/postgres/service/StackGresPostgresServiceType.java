@@ -11,7 +11,8 @@ public enum StackGresPostgresServiceType {
 
   CLUSTER_IP("ClusterIP"),
   LOAD_BALANCER("LoadBalancer"),
-  NODE_PORT("NodePort");
+  NODE_PORT("NodePort"),
+  NONE("None");
 
   private final @NotNull String type;
 

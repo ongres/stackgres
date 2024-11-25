@@ -55,7 +55,6 @@
       "track_activity_query_size": "4096",
       "lc_messages": "C",
       "log_directory": "log",
-      "listen_addresses": "localhost",
       "log_destination": "stderr",
       "log_statement": "none",
       "shared_preload_libraries": "pg_stat_statements, auto_explain",
