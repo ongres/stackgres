@@ -1082,27 +1082,6 @@ spec:
                         description: |
                           If set, will use a host path volume with the specified path for the extensions cache
                            instead of a PersistentVolume
-              pga:
-                type: object
-                description: Section to configure PGA
-                properties:
-                  repositoryUrls:
-                    type: array
-                    default:
-                    - https://pga.sh
-                    description: |
-                      A list of PGA repository URLs used to retrieve images
-                      
-                      To set a proxy for PGA repository add parameter proxyUrl to the URL:
-                          `https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
-                      
-                      Other URL parameters are:
-                      
-                      * `skipHostnameVerification`: set it to `true` in order to use a server or a proxy with a self signed certificate
-                      * `retry`: set it to `<max retriex>[:<sleep before next retry>]` in order to retry a request on failure
-                      * `setHttpScheme`: set it to `true` in order to force using HTTP scheme
-                    items:
-                      type: string
               shardingSphere:
                 type: object
                 description: Section to configure integration with ShardingSphere operator
@@ -1173,12 +1152,6 @@ spec:
                   externalRestApiPort:
                     type: integer
                     description: Set the external REST API port
-                  externalPgaIp:
-                    type: string
-                    description: Set the external PGA IP
-                  externalPgaPort:
-                    type: integer
-                    description: Set the external PGA port
                   allowPullExtensionsFromImageRepository:
                     type: boolean
                     default: false

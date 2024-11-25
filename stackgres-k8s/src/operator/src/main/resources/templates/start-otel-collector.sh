@@ -1,23 +1,50 @@
 #!/bin/sh
 
+OTEL_COLLECTOR_LAST_CONFIG_PATH=/tmp/otel-collector
+CONFIG_PATH="${COLLECTOR_CONFIG_PATH%/*}"
+
+update_config() {
+  rm -Rf "$OTEL_COLLECTOR_LAST_CONFIG_PATH"
+  cp -Lr "$CONFIG_PATH" "$OTEL_COLLECTOR_LAST_CONFIG_PATH"
+}
+
+has_config_changed() {
+  for file in $(ls -1 "$CONFIG_PATH")
+  do
+    [ "$(cat "$CONFIG_PATH/$file" | md5sum)" \
+      != "$(cat "$OTEL_COLLECTOR_LAST_CONFIG_PATH/$file" | md5sum)" ] \
+      && return || true
+  done
+  return 1
+}
+
+run_otel_collector() {
+  set -x
+  exec otelcol-contrib --config "$COLLECTOR_CONFIG_PATH"
+}
+
+is_child() {
+  local PID="$1"
+  grep -q "^PPid:[[:space:]]$$" "/proc/$PID/status" 2>/dev/null
+}
+
+set +x
+PID=
 while true
 do
-  CONFIG_HASH="$(md5sum "$COLLECTOR_CONFIG_PATH")"
-  if [ "x$PREVIOUS_CONFIG_HASH" != "x$CONFIG_HASH" ]
+  if ! is_child "$PID" || has_config_changed
   then
-    ls -1d /proc/[0-9]* \
-      | while read FILE
-        do
-          echo "${FILE##*/} -- $(cat "$FILE/cmdline" 2>/dev/null | tr '\0' ' ')"
-        done \
-      | grep ' -- [/]otelcol-contrib ' \
-      | cut -d ' ' -f 1 \
-      | while read PID
-        do
-          kill -SIGHUP "$PID" || true
-        done
-    PREVIOUS_CONFIG_HASH="$CONFIG_HASH"
-    otelcol-contrib --config "$COLLECTOR_CONFIG_PATH"
-  fi 
-  sleep 10
+    if [ -n "$PID" ] && is_child "$PID"
+    then
+      >&2 echo "Reloading otelcol-contrib config"
+      kill -s HUP "$PID" || true
+    else
+      >&2 echo "otelcol-contrib process not found, starting it"
+      run_otel_collector &
+      PID="$!"
+    fi
+    update_config
+  fi
+  sleep 5
 done
+

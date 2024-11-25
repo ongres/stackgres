@@ -17,6 +17,8 @@ if [ "$#" -gt 0 ]
 then
   MODULES="$*"
 
+  ORIGINAL_MODULES="$MODULES"
+
   COMPLETED_MODULES=""
 
   for MODULE in $MODULES
@@ -84,6 +86,12 @@ then
 fi
 
 echo "Building: $MODULES" 
+
+if [ "$SKIP_DEPENDENCIES" = true ]
+then
+  MODULES="$ORIGINAL_MODULES"
+fi
+
 
 for MODULE in $MODULES
 do

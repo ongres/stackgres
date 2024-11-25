@@ -17,7 +17,7 @@
   },
   "main": "index.js",
   "dependencies": {
-    "apexcharts": "^3.27.2",
+    "apexcharts": "3.45.x",
     "axios": "^1.7.2",
     "babel-runtime": "^6.26.0",
     "connect-history-api-fallback": "^1.6.0",
@@ -33,7 +33,7 @@
     "prettycron": "^0.10.0",
     "v-page": "^2.0.9",
     "vue": "^2.7.14",
-    "vue-apexcharts": "^1.6.2",
+    "vue-apexcharts": "1.6.x",
     "vue-axios": "^3.2.4",
     "vue-markdown": "^2.2.4",
     "vue-router": "^3.2.0",

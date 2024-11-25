@@ -233,7 +233,6 @@ collector:
           - prometheus
           processors: []
           exporters:
-          - debug
           - prometheus
   # Section to configure OpenTelemetry Collector integration with Prometheus Operator.
   prometheusOperator:
@@ -552,3 +551,9 @@ developer:
       volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
       volumeMounts: []
+# -- The list of fields that are serialized into the spec of SGConfig
+specFields: [
+  containerRegistry, imagePullPolicy, imagePullSecrets, allowedNamespaces, allowedNamespaceLabelSelector,
+  disableClusterRole, allowImpersonationForRestApi, disableCrdsAndWebhooksUpdate, sgConfigNamespace,
+  serviceAccount, operator, restapi, adminui, collector, jobs, deploy, cert, rbac, authentication,
+  prometheus, grafana, extensions, shardingSphere, developer ]
