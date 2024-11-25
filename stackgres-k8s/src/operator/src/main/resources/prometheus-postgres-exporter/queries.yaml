@@ -870,9 +870,29 @@ pg_stat_progress_vacuum:
           heap_blks_total,
           heap_blks_scanned,
           heap_blks_vacuumed,
-          index_vacuum_count,
+          index_vacuum_count,'
+        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 170000 THEN
+          '
+          NULL AS max_dead_tuples,
+          NULL AS num_dead_tuples,
+          max_dead_tuple_bytes,
+          dead_tuple_bytes,
+          num_dead_item_ids,
+          indexes_total,
+          indexes_processed
+          '
+          ELSE
+          '
           max_dead_tuples,
-          num_dead_tuples
+          num_dead_tuples,
+          NULL AS max_dead_tuple_bytes,
+          NULL AS dead_tuple_bytes,
+          NULL AS num_dead_item_ids,
+          NULL AS indexes_total,
+          NULL AS indexes_processed
+          '
+          END
+        || '
         FROM pg_stat_progress_vacuum
         JOIN pg_class ON (pg_stat_progress_vacuum.relid = pg_class.oid)
         JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
@@ -885,7 +905,12 @@ pg_stat_progress_vacuum:
             heap_blks_vacuumed bigint,
             index_vacuum_count bigint,
             max_dead_tuples bigint,
-            num_dead_tuples bigint)) AS _;
+            num_dead_tuples bigint,
+            max_dead_tuple_bytes bigint,
+            dead_tuple_bytes bigint,
+            num_dead_item_ids bigint,
+            indexes_total bigint,
+            indexes_processed bigint)) AS _;
   master: true
   metrics:
     - datname:
@@ -915,6 +940,21 @@ pg_stat_progress_vacuum:
     - num_dead_tuples:
         usage: "GAUGE"
         description: "Number of dead tuples collected since the last index vacuum cycle"
+    - max_dead_tuple_bytes:
+        usage: "GAUGE"
+        description: "Amount of dead tuple data that we can store before needing to perform an index vacuum cycle, based on maintenance_work_mem"
+    - dead_tuple_bytes:
+        usage: "GAUGE"
+        description: "Amount of dead tuple data collected since the last index vacuum cycle"
+    - num_dead_item_ids:
+        usage: "GAUGE"
+        description: "Number of dead item identifiers collected since the last index vacuum cycle"
+    - indexes_total:
+        usage: "GAUGE"
+        description: "Total number of indexes that will be vacuumed or cleaned up. This number is reported at the beginning of the vacuuming indexes phase or the cleaning up indexes phase"
+    - indexes_processed:
+        usage: "GAUGE"
+        description: "Number of indexes processed. This counter only advances when the phase is vacuuming indexes or cleaning up indexes"
 
 pg_stat_progress_cluster:
   query: |
@@ -1340,8 +1380,17 @@ pg_statements:
             pg_stat_statements.queryid,
             pg_stat_statements.calls as calls_total,
         '
-        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'pg_stat_statements.total_exec_time' ELSE 'pg_stat_statements.total_time' END || ' / 1000 AS total_exec_time, '
-        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'pg_stat_statements.mean_exec_time' ELSE 'pg_stat_statements.mean_time' END || ' / 1000 AS mean_exec_time, '
+        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN
+          '
+            pg_stat_statements.total_exec_time / 1000 AS total_exec_time,
+            pg_stat_statements.mean_exec_time / 1000 AS mean_exec_time,
+          '
+          ELSE
+          '
+            pg_stat_statements.total_time / 1000 AS total_exec_time,
+            pg_stat_statements.mean_time / 1000 AS mean_exec_time,
+          '
+          END
         || '
             pg_stat_statements.rows as rows_total
         FROM pg_stat_statements

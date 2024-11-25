@@ -445,7 +445,7 @@ public class CollectorConfigMaps
     scrapeConfig.put("tls_config", new JsonObject());
     scrapeConfig.getObject("tls_config").put("cert_file", ConfigPath.CERTIFICATE_PATH.path());
     scrapeConfig.getObject("tls_config").put("key_file", ConfigPath.CERTIFICATE_KEY_PATH.path());
-    scrapeConfig.put("static_configs", new JsonArray());
+    scrapeConfig.getArrayOrPut("static_configs");
     final JsonArray staticConfigs = scrapeConfig.getArray("static_configs");
     final String instance = pod.getIp() + ":" + metricsPort;
     staticConfigs.add(new JsonObject(Map.of(

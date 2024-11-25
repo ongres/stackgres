@@ -5,7 +5,7 @@
 
 package io.stackgres.common.resource;
 
-import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnForbidden;
+import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnForbiddenOrNotFound;
 
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
                     .withName(crdName)
                     .get() != null))
                 .filter(crdFound -> crdFound)
-                .map(crdFound -> listOrEmptyOnForbidden(() -> client
+                .map(crdFound -> listOrEmptyOnForbiddenOrNotFound(() -> client
                     .resources(customResourceClass, customResourceListClass)
                     .inNamespace(allowedNamespace)
                     .list()

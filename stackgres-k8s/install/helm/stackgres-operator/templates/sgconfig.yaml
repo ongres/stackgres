@@ -34,7 +34,11 @@ data:
       name: {{ .Release.Name }}
       namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
     spec:
-      {{ regexReplaceAll "[^ ]+: null" (unset .Values "global" | toYaml | nindent 6) "" }}
+      {{- $spec := dict }}
+      {{- range .Values.specFields }}
+      {{- $spec := set $spec . (index $.Values .) }}
+      {{- end }}
+      {{ regexReplaceAll "[^ ]+: null" (toYaml $spec | nindent 6) "" }}
 ---
 apiVersion: batch/v1
 kind: Job
