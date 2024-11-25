@@ -55,7 +55,6 @@
       "track_activity_query_size",
       "lc_messages",
       "log_directory",
-      "listen_addresses",
       "log_destination",
       "log_statement",
       "shared_preload_libraries",
