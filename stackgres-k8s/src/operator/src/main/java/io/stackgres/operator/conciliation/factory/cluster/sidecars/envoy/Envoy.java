@@ -100,6 +100,15 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
+  @Override
+  public boolean isActivated(ClusterContainerContext context) {
+    return !Optional.of(context.getClusterContext().getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+  }
+
   public static String serviceName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
     return ResourceUtil.resourceName(name + SERVICE);

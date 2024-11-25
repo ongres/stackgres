@@ -41,6 +41,8 @@ public class StackGresClusterPods {
 
   private Boolean disablePostgresUtil;
 
+  private Boolean disableEnvoy;
+
   @ValidEnum(enumClass = StackGresPodManagementPolicy.class, allowNulls = true,
       message = "managementPolicy must be OrderedReady or Parallel")
   private String managementPolicy;
@@ -109,6 +111,14 @@ public class StackGresClusterPods {
     this.disablePostgresUtil = disablePostgresUtil;
   }
 
+  public Boolean getDisableEnvoy() {
+    return disableEnvoy;
+  }
+
+  public void setDisableEnvoy(Boolean disableEnvoy) {
+    this.disableEnvoy = disableEnvoy;
+  }
+
   public StackGresClusterResources getResources() {
     return resources;
   }
@@ -175,9 +185,10 @@ public class StackGresClusterPods {
 
   @Override
   public int hashCode() {
-    return Objects.hash(customContainers, customInitContainers, customInitVolumeMounts, customVolumeMounts,
-        customVolumes, disableConnectionPooling, disableMetricsExporter, disablePostgresUtil, managementPolicy,
-        persistentVolume, resources, scheduling);
+    return Objects.hash(customContainers, customInitContainers, customInitVolumeMounts,
+        customVolumeMounts, customVolumes, disableConnectionPooling, disableEnvoy,
+        disableMetricsExporter, disablePostgresUtil, managementPolicy, persistentVolume, resources,
+        scheduling);
   }
 
   @Override
@@ -195,10 +206,12 @@ public class StackGresClusterPods {
         && Objects.equals(customVolumeMounts, other.customVolumeMounts)
         && Objects.equals(customVolumes, other.customVolumes)
         && Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
+        && Objects.equals(disableEnvoy, other.disableEnvoy)
         && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
         && Objects.equals(managementPolicy, other.managementPolicy)
-        && Objects.equals(persistentVolume, other.persistentVolume) && Objects.equals(resources, other.resources)
+        && Objects.equals(persistentVolume, other.persistentVolume)
+        && Objects.equals(resources, other.resources)
         && Objects.equals(scheduling, other.scheduling);
   }
 

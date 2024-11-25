@@ -1,0 +1,94 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/patroni"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/patroni")"
+}
+
+e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that all 2 ports (5432, 6432) in the patroni pods are opened and listeing for queries" ports_check
+
+  run_test "Checking that is possible to connect using services is working" service_check
+
+  run_test "Checking that envoy ports are not open" check_no_envoy
+
+  run_test "Check that patroni healthcheck endpoints are accesible" patroni_ports_check
+
+  run_test "Check that patroni management endpoints are not accesible" patroni_management_check
+
+  run_test "Check that patroni is not accisible directly" patroni_direct_check
+}
+
+ports_check() {
+  RESPONSE_5432="$(run_query -i 0 -p 5432)"
+  RESPONSE_6432="$(run_query -i 0 -p 6432)"
+
+  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ]
+  then
+    RESPONSE_5432="$(run_query -i 1 -p 5432)"
+    RESPONSE_6432="$(run_query -i 1 -p 6432)"
+
+    if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ]
+    then
+      success "All ports are ok"
+    else 
+      fail "Not all 2 ports of the replica node are working"
+    fi
+  else 
+      fail "Not all 2 ports of the primary node are working"
+  fi
+}
+
+service_check() {
+  RESPONSE_PRIMARY="$(run_query -h "$CLUSTER_NAME" -i 1 -p 5432)"
+
+  if [ "$RESPONSE_PRIMARY" = "1" ]
+  then
+    RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
+    if [ "$RESPONSE_REPLICA" = "1" ]
+    then
+      success "Connections are possible using services"
+    else
+      fail "Cannot connect to replica db using a kubernetes service"
+    fi
+  else
+    fail "Cannot connect to primary db using a kubernetes service"
+  fi
+}
+
+check_no_envoy() {
+  if run_query -i 0 -p 7432 > /dev/null
+  then
+    fail "envoy port 7432 on primary server is open"
+  else
+    if run_query -i 1 -p 7432 > /dev/null
+    then
+      fail "envoy port 7432 on replica server is open"
+    else
+      success "envoy port 7432 is closed"
+    fi
+  fi
+
+  if run_query -i 0 -p 7433 > /dev/null
+  then
+    fail "envoy port 7433 on primary server is open"
+  else
+    if run_query -i 1 -p 7433 > /dev/null
+    then
+      fail "envoy port 7433 on replica server is open"
+    else
+      success "envoy port 7433 is closed"
+    fi
+  fi
+}

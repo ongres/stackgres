@@ -225,6 +225,14 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
     Map<String, String> parameters = new HashMap<>(PgBouncerDefaultValues.getDefaultValues(
         StackGresVersion.getStackGresVersion(context.getCluster())));
 
+    boolean isEnvoyDisabled = Optional.of(context.getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    parameters.put("listen_addr", isEnvoyDisabled ? "*" : "127.0.0.1");
+    parameters.put("listen_port", String.valueOf(EnvoyUtil.PG_POOL_PORT));
+
     parameters.putAll(getDefaultParameters());
     parameters.putAll(newParams);
 

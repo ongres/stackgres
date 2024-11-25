@@ -1204,6 +1204,12 @@ spec:
                           If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
+                      disableEnvoy:
+                        type: boolean
+                        description: |
+                          If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
+
+                          **Changing this field may require a restart.**
                       resources:
                         type: object
                         description: Pod custom resources configuration.
@@ -1902,6 +1908,12 @@ spec:
                           If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
 
                           **Changing this field may require a restart.**
+                      disableEnvoy:
+                        type: boolean
+                        description: |
+                          If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
+
+                          **Changing this field may require a restart.**
                       resources:
                         type: object
                         description: Pod custom resources configuration.
@@ -2193,6 +2205,12 @@ spec:
                               type: boolean
                               description: |
                                 If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
+
+                                **Changing this field may require a restart.**
+                            disableEnvoy:
+                              type: boolean
+                              description: |
+                                If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 
                                 **Changing this field may require a restart.**
                             resources:
