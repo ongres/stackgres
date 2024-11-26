@@ -161,7 +161,9 @@ public class ClusterInstanceManager {
     if (replicas.isEmpty()) {
       return currentPods.stream()
           .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
-              pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
+              pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
+              || PatroniUtil.OLD_PRIMARY_ROLE.equals(
+                  pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
           .findFirst()
           .orElseThrow(() -> new InvalidClusterException(
               "Cluster does not have a primary pod"));

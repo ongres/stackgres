@@ -5,21 +5,27 @@
 
 package io.stackgres.common.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPatroniMajorVersion;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -29,6 +35,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.ongres.process.FluentProcess;
 import com.ongres.process.FluentProcessBuilder;
 import com.ongres.process.Output;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -42,10 +49,13 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
+@SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
+    justification = "Also hardcoded in generated image that use this code")
 public class PatroniCtl {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniCtl.class);
@@ -70,6 +80,8 @@ public class PatroniCtl {
 
   public class PatroniCtlInstance {
 
+    private static final String BIN_PATH = "/bin";
+    private static final String PATRONICTL_BINARY_PREFIX_PATH = "patronictl-";
     private static final Pattern SWITCHOVER_FAILED_PATTERN =
         Pattern.compile(".*(^Switchover failed.*$).*", Pattern.MULTILINE);
     private static final Pattern RESTART_FAILED_PATTERN =
@@ -84,6 +96,7 @@ public class PatroniCtl {
     final String scope;
     final Integer group;
     final String[] patroniCtlCommands;
+    final int patroniMajorVersion;
     final Path configPath;
     final String config;
     final Duration patroniCtlTimeout = Duration
@@ -100,13 +113,16 @@ public class PatroniCtl {
           .map(StackGresClusterPatroni::getInitialConfig)
           .flatMap(StackGresClusterPatroniConfig::getCitusGroup)
           .orElse(null);
-      this.patroniCtlCommands = patroniCtlCommands(StackGresUtil.getPatroniVersion(cluster));
+      final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+      int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
+      this.patroniMajorVersion = patroniMajorVersion;
+      this.patroniCtlCommands = patroniCtlCommands(patroniVersion, patroniMajorVersion);
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
           cluster, clusterLabelFactory, yamlMapper, objectMapper);
     }
 
-    final String[] patroniCtlCommands(String version) {
+    final String[] patroniCtlCommands(String version, int patroniMajorVersion) {
       String command = patroniCtlCommand(version);
       try (BufferedReader bufferedReader = new BufferedReader(new FileReader(command, StandardCharsets.UTF_8))) {
         String firstLine = bufferedReader.readLine();
@@ -120,11 +136,53 @@ public class PatroniCtl {
     }
 
     final String patroniCtlCommand(String version) {
-      String command = "/bin/patronictl-" + version;
+      String command = BIN_PATH + "/" + PATRONICTL_BINARY_PREFIX_PATH + version;
       if (Files.exists(Paths.get(command))) {
         return command;
       }
-      return "/bin/patronictl-" + StackGresUtil.getLatestPatroniVersion();
+      int patroniMajorVersion = getPatroniMajorVersion(version);
+      if (patroniMajorVersion < PatroniUtil.PATRONI_VERSION_4) {
+        patroniMajorVersion = 3;
+      }
+      final String patroniVersionPrefix = PATRONICTL_BINARY_PREFIX_PATH + patroniMajorVersion + ".";
+      var pathFound = Unchecked.supplier(() -> Files.list(Paths.get(BIN_PATH)))
+          .get()
+          .filter(path -> path.getFileName().toString().startsWith(patroniVersionPrefix))
+          .sorted(new PatroniCtlPathComparator())
+          .findFirst();
+      if (pathFound.isPresent()) {
+        return pathFound.get().toAbsolutePath().toString();
+      }
+      throw new RuntimeException("No patronictl binary found for version " + version);
+    }
+
+    static class PatroniCtlPathComparator implements Comparator<Path>, Serializable {
+
+      static final long serialVersionUID = 1L;
+
+      @Override
+      public int compare(Path o1, Path o2) {
+        return sortableVersion(o1).compareTo(sortableVersion(o2));
+      }
+
+      String sortableVersion(Path path) {
+        return sortableVersion(path.getFileName().toString()
+            .substring(PATRONICTL_BINARY_PREFIX_PATH.length()));
+      }
+
+      String sortableVersion(String version) {
+        final String[] versionParts = version.split("\\.", -1);
+        return IntStream.range(0, 5)
+            .mapToObj(i -> zeroPad(i < versionParts.length ? versionParts[i] : "", 10))
+            .collect(Collectors.joining());
+      }
+
+      String zeroPad(String string, int totalLength) {
+        string = string.substring(0, Math.min(string.length(), 10));
+        return IntStream.range(0, totalLength - string.length())
+            .mapToObj(i -> "0")
+            .collect(Collectors.joining()) + string;
+      }
     }
 
     final Path getConfigPath() {
@@ -255,7 +313,10 @@ public class PatroniCtl {
     }
 
     public void switchover(String username, String password, String leader, String candidate) {
-      Output output = patronictl("switchover", scope, "--leader", leader, "--candidate", candidate, "--force")
+      Output output = patronictl(
+          "switchover", scope,
+          patroniMajorVersion < PatroniUtil.PATRONI_VERSION_4 ? "--master" : "--primary", leader,
+          "--candidate", candidate, "--force")
           .environment("PATRONI_RESTAPI_USERNAME", username)
           .environment("PATRONI_RESTAPI_PASSWORD", password)
           .start()
@@ -298,7 +359,10 @@ public class PatroniCtl {
     }
 
     public JsonNode queryPrimary(String query, String username, String password) {
-      Output output = patronictl("query", "-c", query, "-U", username, "-r", "primary", "--format", "json")
+      Output output = patronictl(
+          "query", "-c", query, "-U", username,
+          "-r", patroniMajorVersion < PatroniUtil.PATRONI_VERSION_4 ? "master" : "primary",
+          "--format", "json")
           .environment("PGPASSWORD", password)
           .start()
           .withTimeout(patroniCtlTimeout)

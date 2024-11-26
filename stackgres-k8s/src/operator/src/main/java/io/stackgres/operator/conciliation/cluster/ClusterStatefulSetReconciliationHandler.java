@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -62,6 +63,11 @@ public class ClusterStatefulSetReconciliationHandler
         .map(StackGresClusterPatroni::getInitialConfig)
         .map(StackGresClusterPatroniConfig::isPatroniOnKubernetes)
         .orElse(true);
+  }
+
+  @Override
+  protected String getPatroniVersion(StackGresCluster context) {
+    return StackGresUtil.getPatroniVersion(context);
   }
 
 }

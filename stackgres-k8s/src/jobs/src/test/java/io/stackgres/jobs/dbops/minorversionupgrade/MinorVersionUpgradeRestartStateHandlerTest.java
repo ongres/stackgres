@@ -107,7 +107,7 @@ class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .toList());
-    minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(cluster, pods).getMetadata().getName());
     minorVersionUpgradeStatus.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
@@ -132,7 +132,7 @@ class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .toList());
-    minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(cluster, pods).getMetadata().getName());
     minorVersionUpgradeStatus.setSourcePostgresVersion(
         cluster.getSpec().getPostgres().getVersion());
     minorVersionUpgradeStatus.setTargetPostgresVersion(

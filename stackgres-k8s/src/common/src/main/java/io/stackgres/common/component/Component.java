@@ -229,7 +229,7 @@ public class Component {
     private static final Pattern IMAGE_TAG_PATTERN = Pattern.compile(
         "^(?<version>(?<major>\\d+)"
             + "(?:\\.(?<minor>\\d+))?"
-            + "(?:\\.(?<patch>\\d+))?"
+            + "(?:\\.(?<patch>\\d+)[^0-9-]*)?"
             + "(?:-(?<suffix>(?:alpha|beta)(?<suffixversion>\\d+)))?)"
             + "(?:-build-(?<build>(?<buildmajor>\\d+)"
             + "(?:\\.(?<buildminor>\\d+)(?:-dev)?)?))$");

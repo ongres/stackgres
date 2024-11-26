@@ -32,6 +32,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
@@ -44,6 +45,8 @@ import org.slf4j.LoggerFactory;
 
 public interface PatroniUtil {
 
+  int PATRONI_VERSION_4 = 4;
+
   String PATRONI_READ_ONLY_SERVICE_NAME = "PATRONI_READ_ONLY_SERVICE_NAME";
   String REPLICATION_SERVICE_PORT_ENV = "REPLICATION_SERVICE_PORT";
   String REPLICATION_INITIALIZATION_BACKUP = "REPLICATION_INITIALIZATION_BACKUP";
@@ -52,7 +55,8 @@ public interface PatroniUtil {
   String INITIALIZE_KEY = "initialize";
   String CONFIG_KEY = "config";
   String ROLE_KEY = "role";
-  String PRIMARY_ROLE = "master";
+  String PRIMARY_ROLE = "primary";
+  String OLD_PRIMARY_ROLE = "master";
   String REPLICA_ROLE = "replica";
   String PROMOTED_ROLE = "promoted";
   String DEMOTED_ROLE = "demoted";
@@ -354,6 +358,24 @@ public interface PatroniUtil {
         .filter(port -> Objects.equals(targetPort.getStrVal(), port.getName()))
         .findFirst()
         .map(ContainerPort::getContainerPort);
+  }
+
+  static String getPrimaryRole(StackGresCluster cluster) {
+    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+    final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
+    if (patroniMajorVersion < PATRONI_VERSION_4) {
+      return OLD_PRIMARY_ROLE;
+    }
+    return PRIMARY_ROLE;
+  }
+
+  static String getPrimaryRole(StackGresShardedCluster cluster) {
+    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+    final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
+    if (patroniMajorVersion < PATRONI_VERSION_4) {
+      return OLD_PRIMARY_ROLE;
+    }
+    return PRIMARY_ROLE;
   }
 
 }

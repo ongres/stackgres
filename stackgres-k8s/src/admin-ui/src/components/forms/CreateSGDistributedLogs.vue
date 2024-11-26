@@ -118,7 +118,6 @@
 
                     <div class="row-50">
                         <h3>Pods Resources</h3>
-                        <p>Please keep in mind that at the moment Postgres 12 is the only Postgres version supported by SGDistributedLogs.</p>
 
                         <div class="col">
                             <label for="spec.sgInstanceProfile">Instance Profile</label>  
@@ -137,7 +136,7 @@
                             <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
                             <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
                                 <option value="" selected>Default</option>
-                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == '12') )">{{ conf.name }}</option>
+                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) )">{{ conf.name }}</option>
                                 <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
                                     <option value="" disabled>– OR –</option>
                                     <option value="createNewResource">Create new configuration</option>

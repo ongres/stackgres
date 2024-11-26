@@ -55,6 +55,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardingSphereRepositor
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -279,7 +280,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
                 "/shardingsphere/shardingsphere-create-database.sql"),
                 StandardCharsets.UTF_8)
             .read()).get()
-            .formatted(cluster.getSpec().getDatabase()))
+            .formatted(DSL.inline(cluster.getSpec().getDatabase())))
         .build();
     return script;
   }
@@ -316,11 +317,12 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
                     "/shardingsphere/shardingsphere-init.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(
-                    StackGresShardedClusterUtil.primaryCoordinatorServiceName(cluster),
-                    PatroniUtil.POSTGRES_SERVICE_PORT,
-                    cluster.getSpec().getDatabase(),
-                    superuserCredentials.v1,
-                    superuserCredentials.v2))))
+                    DSL.inline(StackGresShardedClusterUtil.primaryCoordinatorServiceName(cluster)),
+                    DSL.inline(String.valueOf(PatroniUtil.POSTGRES_SERVICE_PORT)),
+                    DSL.inline(cluster.getSpec().getDatabase()),
+                    DSL.inline(superuserCredentials.v1),
+                    DSL.inline(superuserCredentials.v2),
+                    superuserCredentials.v1))))
         .build();
     return secret;
   }
@@ -358,11 +360,11 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(
                     cluster.getSpec().getShards().getClusters(),
-                    primaryShardServiceNamePlaceholder(cluster, "%1s"),
+                    DSL.inline(primaryShardServiceNamePlaceholder(cluster, "%1s")),
                     PatroniUtil.POSTGRES_SERVICE_PORT,
-                    cluster.getSpec().getDatabase(),
-                    superuserCredentials.v1,
-                    superuserCredentials.v2))))
+                    DSL.inline(cluster.getSpec().getDatabase()),
+                    DSL.inline(superuserCredentials.v1),
+                    DSL.inline(superuserCredentials.v2)))))
         .build();
     return secret;
   }

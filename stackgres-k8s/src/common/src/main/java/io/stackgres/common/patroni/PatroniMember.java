@@ -80,12 +80,17 @@ public class PatroniMember {
   }
 
   @JsonIgnore
-  public String getLabelRole() {
+  public String getLabelRole(int patroniMajorVersion) {
     if (role == null) {
       return null;
     }
     switch (role) {
-      case LEADER: return PatroniUtil.PRIMARY_ROLE;
+      case LEADER: {
+        if (patroniMajorVersion < PatroniUtil.PATRONI_VERSION_4) {
+          return PatroniUtil.OLD_PRIMARY_ROLE;
+        }
+        return PatroniUtil.PRIMARY_ROLE;
+      }
       case STANDBY_LEADER: return PatroniUtil.STANDBY_LEADER_ROLE;
       case SYNC_STANDBY: return PatroniUtil.SYNC_STANDBY_ROLE;
       case REPLICA: return PatroniUtil.REPLICA_ROLE;

@@ -28,6 +28,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
@@ -137,7 +138,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
                 "/ddp/ddp-create-database.sql"),
                 StandardCharsets.UTF_8)
             .read()).get()
-            .formatted(cluster.getSpec().getDatabase()))
+            .formatted(DSL.inline(cluster.getSpec().getDatabase())))
         .build();
     return script;
   }
@@ -193,12 +194,12 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(
                     cluster.getSpec().getShards().getClusters(),
-                    "host '" + primaryShardServiceNamePlaceholder(cluster, "%1s") + "', "
+                    DSL.inline("host '" + primaryShardServiceNamePlaceholder(cluster, "%1s") + "', "
                         + "port '" + PatroniUtil.POSTGRES_SERVICE_PORT + "', "
-                        + "dbname '" + cluster.getSpec().getDatabase() + "'",
-                    "user '" + superuserCredentials.v1 + "', "
-                        + "password '" + superuserCredentials.v2 + "'",
-                    superuserCredentials.v1,
+                        + "dbname '" + cluster.getSpec().getDatabase() + "'"),
+                    DSL.inline("user '" + superuserCredentials.v1 + "', "
+                        + "password '" + superuserCredentials.v2 + "'"),
+                    DSL.inline(superuserCredentials.v1),
                     1000))))
         .build();
     return secret;

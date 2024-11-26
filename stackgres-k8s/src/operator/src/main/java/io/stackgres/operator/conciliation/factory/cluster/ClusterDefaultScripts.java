@@ -57,7 +57,7 @@ public class ClusterDefaultScripts {
         .withNewScriptFrom()
         .withNewSecretKeyRef()
         .withName(PatroniSecret.name(cluster))
-        .withKey(PatroniSecret.PASSWORD_UPDATE_SQL_KEY)
+        .withKey(PatroniSecret.ROLES_UPDATE_SQL_KEY)
         .endSecretKeyRef()
         .endScriptFrom()
         .build();

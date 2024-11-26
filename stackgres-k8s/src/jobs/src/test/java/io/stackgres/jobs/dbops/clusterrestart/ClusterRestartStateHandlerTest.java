@@ -69,7 +69,7 @@ class ClusterRestartStateHandlerTest extends ClusterStateHandlerTest {
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .toList());
-    restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    restartStatus.setPrimaryInstance(getPrimaryInstance(cluster, pods).getMetadata().getName());
     restartStatus.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
@@ -91,7 +91,7 @@ class ClusterRestartStateHandlerTest extends ClusterStateHandlerTest {
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .limit(2)
             .toList());
-    restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    restartStatus.setPrimaryInstance(getPrimaryInstance(cluster, pods).getMetadata().getName());
     dbOpsStatus.setRestart(restartStatus);
     status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);

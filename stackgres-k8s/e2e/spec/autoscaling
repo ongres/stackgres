@@ -143,7 +143,7 @@ check_vertical_autoscaling() {
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.5))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=master" -o json \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=primary" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
     | wc -l | grep -qxF 1'
   then

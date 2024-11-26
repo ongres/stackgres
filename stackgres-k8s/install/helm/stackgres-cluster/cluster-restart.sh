@@ -78,9 +78,20 @@ wait_primary_pod() {
 
 perform_switchover() {
   echo "Performing switchover from primary pod $1 to read only pod $2"
-  [ -n "$2" ] && [ -n "$1" ] \
-    && kubectl exec -n "$NAMESPACE" "$1" -c patroni -- \
-      patronictl switchover --primary "$1" --candidate "$2" --force
+  if [ -z "$2" ] || [ -z "$1" ]
+  then
+    return 1
+  fi
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$ANY_POD" -c patroni -- \
+    patronictl version 2>/dev/null | cut -d . -f 1)"
+  if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
+  then
+    kubectl exec -n "$NAMESPACE" "$1" -c patroni -- \
+        patronictl switchover --master "$1" --candidate "$2" --force
+  else
+    kubectl exec -n "$NAMESPACE" "$1" -c patroni -- \
+        patronictl switchover --primary "$1" --candidate "$2" --force
+  fi
 }
 
 if [ "$REDUCED_IMPACT" = "true" ]
@@ -95,10 +106,21 @@ then
   READ_ONLY_PODS="$(echo "$READ_ONLY_PODS" | head -n -1)"
 fi
 
+ANY_POD="$(kubectl get pod -n "$NAMESPACE" \
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true" -o name | head -n 1)"
+
 if [ "$RESTART_PRIMARY_FIRST" = "true" ]
 then
-  PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$ANY_POD" -c patroni -- \
+    patronictl version 2>/dev/null | cut -d . -f 1)"
+  if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
+  then
+    PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+        -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+  else
+    PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+        -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=primary" -o name | head -n 1)"
+  fi
   PRIMARY_POD="${PRIMARY_POD#pod/}"
 
   restart_primary_instance "$PRIMARY_POD"
@@ -123,8 +145,16 @@ done
 
 READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
     -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name | head -n 1)"
-PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$ANY_POD" -c patroni -- \
+  patronictl version 2>/dev/null | cut -d . -f 1)"
+if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
+then
+  PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+else
+  PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=primary" -o name | head -n 1)"
+fi
 READ_ONLY_POD="${READ_ONLY_POD#pod/}"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 

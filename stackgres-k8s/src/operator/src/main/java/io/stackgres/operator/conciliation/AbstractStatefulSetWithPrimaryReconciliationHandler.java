@@ -479,9 +479,11 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
       StatefulSet statefulSet,
       PatroniCtlInstance patroniCtl,
       List<Pod> pods) {
+    final String patroniVersion = getPatroniVersion(context);
+    final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     var roles = patroniCtl.list()
         .stream()
-        .map(member -> Tuple.tuple(member.getMember(), member.getLabelRole()))
+        .map(member -> Tuple.tuple(member.getMember(), member.getLabelRole(patroniMajorVersion)))
         .filter(t -> t.v2 != null)
         .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
@@ -504,6 +506,8 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
             .map(pod -> removePodPatroniLabels(pod)))
         .toList();
   }
+
+  protected abstract String getPatroniVersion(StackGresCluster context);
 
   private Pod fixPodPatroniLabels(Pod pod, String role) {
     if (LOGGER.isDebugEnabled()) {

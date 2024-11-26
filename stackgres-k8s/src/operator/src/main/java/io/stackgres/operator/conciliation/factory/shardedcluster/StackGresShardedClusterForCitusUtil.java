@@ -38,6 +38,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
@@ -238,8 +239,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
                     "/citus/citus-update-shards.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(
-                    superuserCredentials.v1,
-                    "password=" + superuserCredentials.v2))))
+                    DSL.inline(superuserCredentials.v1),
+                    DSL.inline("password=" + DSL.inline(superuserCredentials.v2))))))
         .build();
     return secret;
   }

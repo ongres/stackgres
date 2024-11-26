@@ -508,6 +508,18 @@ public interface StackGresUtil {
             postgresVersion));
   }
 
+  static String getPatroniVersion(StackGresShardedCluster cluster) {
+    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniVersion(StackGresShardedCluster cluster, String postgresVersion) {
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    return StackGresComponent.PATRONI.get(cluster).getVersion(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            postgresVersion));
+  }
+
   static String getPatroniVersion(StackGresDistributedLogs distributedLogs) {
     Component postgresComponentFlavor = StackGresComponent.POSTGRESQL.get(distributedLogs);
     return StackGresComponent.PATRONI.get(distributedLogs).getVersion(
@@ -516,8 +528,12 @@ public interface StackGresUtil {
             DISTRIBUTEDLOGS_POSTGRES_VERSION));
   }
 
-  static String getLatestPatroniVersion() {
-    return StackGresComponent.PATRONI.getLatest().getLatestVersion();
+  static int getPatroniMajorVersion(String patroniVersion) {
+    return Optional.of(patroniVersion)
+        .map(version -> version.split("\\.")[0])
+        .map(Integer::parseInt)
+        .orElseThrow(() -> new RuntimeException("Can not extract patroni major version from "
+            + patroniVersion));
   }
 
   static String getPatroniImageName(StackGresCluster cluster) {

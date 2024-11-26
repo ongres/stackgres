@@ -13,6 +13,7 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -62,7 +63,7 @@ public class ClusterLabelFactory
   @Override
   public Map<String, String> clusterPrimaryLabels(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(clusterLabels(resource))
-        .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
+        .put(PatroniUtil.ROLE_KEY, getPrimaryRole(resource))
         .build();
   }
 
@@ -76,7 +77,7 @@ public class ClusterLabelFactory
   @Override
   public Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUidAndScope(resource))
-        .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
+        .put(PatroniUtil.ROLE_KEY, getPrimaryRole(resource))
         .build();
   }
 
@@ -129,6 +130,15 @@ public class ClusterLabelFactory
         .map(patroni -> patroni.getInitialConfig())
         .map(patroniConfig -> patroniConfig.getScope())
         .orElse(resourceName(resource));
+  }
+
+  private String getPrimaryRole(StackGresCluster resource) {
+    final String patroniVersion = StackGresUtil.getPatroniVersion(resource);
+    final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
+    if (patroniMajorVersion < PatroniUtil.PATRONI_VERSION_4) {
+      return PatroniUtil.OLD_PRIMARY_ROLE;
+    }
+    return PatroniUtil.PRIMARY_ROLE;
   }
 
 }

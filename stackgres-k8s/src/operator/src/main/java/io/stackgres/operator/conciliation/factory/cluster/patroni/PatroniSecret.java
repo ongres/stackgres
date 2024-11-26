@@ -33,6 +33,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -87,6 +88,8 @@ public class PatroniSecret
 
     final Map<String, String> data = new HashMap<>();
 
+    data.put(ROLES_UPDATE_SQL_KEY, "SET log_statement TO 'none';");
+
     setSuperuserCredentials(context, previousSecretData, data);
 
     setReplicationCredentials(context, previousSecretData, data);
@@ -122,8 +125,8 @@ public class PatroniSecret
     data.put(SUPERUSER_PASSWORD_KEY, superuserCredentials.v2);
     data.put(SUPERUSER_PASSWORD_ENV, superuserCredentials.v2);
     data.put(
-        PASSWORD_UPDATE_SQL_KEY,
-        Optional.ofNullable(data.get(PASSWORD_UPDATE_SQL_KEY)).orElse("") + "\n"
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
         + "ALTER ROLE " + superuserCredentials.v1 + " WITH PASSWORD '" + superuserCredentials.v2 + "';");
   }
 
@@ -161,8 +164,8 @@ public class PatroniSecret
     data.put(REPLICATION_PASSWORD_KEY, replicatorCredentials.v2);
     data.put(REPLICATION_PASSWORD_ENV, replicatorCredentials.v2);
     data.put(
-        PASSWORD_UPDATE_SQL_KEY,
-        Optional.ofNullable(data.get(PASSWORD_UPDATE_SQL_KEY)).orElse("") + "\n"
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
         + "ALTER ROLE " + replicatorCredentials.v1 + " WITH PASSWORD '" + replicatorCredentials.v2 + "';");
   }
 
@@ -215,9 +218,18 @@ public class PatroniSecret
         .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
     data.put(authenticatorOptionsEnv, "SUPERUSER");
     data.put(
-        PASSWORD_UPDATE_SQL_KEY,
-        Optional.ofNullable(data.get(PASSWORD_UPDATE_SQL_KEY)).orElse("") + "\n"
-        + "ALTER ROLE " + authenticatorUsername + " WITH SUPERUSER PASSWORD '" + authenticatorPassword + "';");
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
+        + "DO $$\n"
+        + "BEGIN\n"
+        + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = " + DSL.inline(authenticatorUsername) + ") THEN\n"
+        + "    CREATE USER " + DSL.quotedName(authenticatorUsername)
+        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorPassword) + ";\n"
+        + "  ELSE\n"
+        + "    ALTER ROLE " + DSL.quotedName(authenticatorUsername)
+        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorPassword) + ";\n"
+        + "  END IF;\n"
+        + "END$$;");
   }
 
   private void setBabelfishCredentials(
@@ -229,9 +241,16 @@ public class PatroniSecret
     data.put(BABELFISH_PASSWORD_KEY, babelfishPassword);
     data.put(BABELFISH_CREATE_USER_SQL_KEY,
         "SET log_statement TO 'none';\n"
-            + "DROP ROLE IF EXISTS " + BABELFISH_USERNAME + ";\n"
-            + "CREATE USER " + BABELFISH_USERNAME + " SUPERUSER"
-            + " PASSWORD '" + data.get(BABELFISH_PASSWORD_KEY) + "';");
+            + "DO $$\n"
+            + "BEGIN\n"
+            + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = " + DSL.inline(BABELFISH_USERNAME) + ") THEN\n"
+            + "    CREATE USER " + DSL.quotedName(BABELFISH_USERNAME)
+            + " WITH SUPERUSER PASSWORD " + DSL.inline(babelfishPassword) + ";\n"
+            + "  ELSE\n"
+            + "    ALTER ROLE " + DSL.quotedName(BABELFISH_USERNAME)
+            + " WITH SUPERUSER PASSWORD " + DSL.inline(babelfishPassword) + ";\n"
+            + "  END IF;\n"
+            + "END$$;");
   }
 
   private void setPgBouncerCredentials(

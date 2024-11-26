@@ -333,7 +333,7 @@ public class ShardedBackupCronJob
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_PRIMARY_ROLE")
-                        .withValue(PatroniUtil.PRIMARY_ROLE)
+                        .withValue(PatroniUtil.getPrimaryRole(cluster))
                         .build(),
                         new EnvVarBuilder()
                         .withName("PATRONI_REPLICA_ROLE")

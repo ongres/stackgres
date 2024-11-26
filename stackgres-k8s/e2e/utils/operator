@@ -14,6 +14,7 @@ export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTR
 export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/restapi:$IMAGE_TAG"
 export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/jobs:$IMAGE_TAG"
 export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/cluster-controller:$IMAGE_TAG"
+export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/distributedlogs-controller:$IMAGE_TAG"
 export STREAM_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/stream:${NATIVE_IMAGE_TAG}-jvm"
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/admin-ui:$ADMINUI_IMAGE_TAG"
 export PGLAMBDA_JAVASCRIPT_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/pglambda:${NATIVE_IMAGE_TAG}-javascript"
@@ -959,25 +960,25 @@ get_operator_images() {
   VERSION_1_12_0_ALPHA1="$(get_version_as_number 1.12.0-alpha1)"
   VERSION_1_13_0_ALPHA1="$(get_version_as_number 1.13.0-alpha1)"
   VERSION_1_14_0_ALPHA1="$(get_version_as_number 1.14.0-alpha1)"
-  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_14_0_ALPHA1" ]
-  then
-    get_operator_images_pre_1_14_0_alpha1 "$VERSION"
-    return
-  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_13_0_ALPHA1" ]
-  then
-    get_operator_images_pre_1_13_0_alpha1 "$VERSION"
-    return
-  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_12_0_ALPHA1" ]
-  then
-    get_operator_images_pre_1_12_0_alpha1 "$VERSION"
-    return
-  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1" ]
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1" ]
   then
     get_operator_images_pre_1_0_0_alpha1 "$VERSION"
     return
   elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA2" ]
   then
     get_operator_images_pre_1_0_0_alpha2 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_12_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_12_0_alpha1 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_13_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_13_0_alpha1 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_14_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_14_0_alpha1 "$VERSION"
     return
   fi
   local NATIVE_TAG="$VERSION"
@@ -1010,7 +1011,7 @@ get_operator_images_pre_1_14_0_alpha1() {
   echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
   echo "${STREAM_IMAGE_NAME%:*}:$VERSION-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
-  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
+  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${VERSION}-javascript"
 }
 
 get_operator_images_pre_1_13_0_alpha1() {
