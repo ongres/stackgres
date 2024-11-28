@@ -354,22 +354,65 @@ public interface PatroniUtil {
 
   static List<EndpointPort> getPatroniEndpointPorts(final StackGresCluster cluster) {
     List<EndpointPort> patroniEndpointPorts = new ArrayList<>();
-    patroniEndpointPorts.add(new EndpointPortBuilder()
-        .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-        .withPort(EnvoyUtil.PG_ENTRY_PORT)
-        .withProtocol("TCP")
-        .build());
-    patroniEndpointPorts.add(new EndpointPortBuilder()
-        .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-        .withPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
-        .withProtocol("TCP")
-        .build());
-    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+    boolean isEnvoyDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    boolean isConnectionPoolingDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableConnectionPooling)
+        .orElse(false);
+    if (isEnvoyDisabled) {
+      if (isConnectionPoolingDisabled) {
+        patroniEndpointPorts.add(new EndpointPortBuilder()
+            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+            .withPort(EnvoyUtil.PG_PORT)
+            .withProtocol("TCP")
+            .build());
+        patroniEndpointPorts.add(new EndpointPortBuilder()
+            .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+            .withPort(EnvoyUtil.PG_PORT)
+            .withProtocol("TCP")
+            .build());
+      } else {
+        patroniEndpointPorts.add(new EndpointPortBuilder()
+            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+            .withPort(EnvoyUtil.PG_POOL_PORT)
+            .withProtocol("TCP")
+            .build());
+        patroniEndpointPorts.add(new EndpointPortBuilder()
+            .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+            .withPort(EnvoyUtil.PG_PORT)
+            .withProtocol("TCP")
+            .build());
+      }
+      if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+        patroniEndpointPorts.add(new EndpointPortBuilder()
+            .withName(EnvoyUtil.BABELFISH_PORT_NAME)
+            .withPort(EnvoyUtil.BF_PORT)
+            .withProtocol("TCP")
+            .build());
+      }
+    } else {
       patroniEndpointPorts.add(new EndpointPortBuilder()
-          .withName(EnvoyUtil.BABELFISH_PORT_NAME)
-          .withPort(EnvoyUtil.BF_ENTRY_PORT)
+          .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+          .withPort(EnvoyUtil.PG_ENTRY_PORT)
           .withProtocol("TCP")
           .build());
+      patroniEndpointPorts.add(new EndpointPortBuilder()
+          .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+          .withPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
+          .withProtocol("TCP")
+          .build());
+      if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+        patroniEndpointPorts.add(new EndpointPortBuilder()
+            .withName(EnvoyUtil.BABELFISH_PORT_NAME)
+            .withPort(EnvoyUtil.BF_ENTRY_PORT)
+            .withProtocol("TCP")
+            .build());
+      }
     }
     Optional.of(cluster)
         .map(StackGresCluster::getSpec)

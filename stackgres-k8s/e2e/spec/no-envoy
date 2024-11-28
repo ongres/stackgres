@@ -8,6 +8,8 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
+  PATRONI_PORT=8009
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -51,11 +53,11 @@ ports_check() {
 }
 
 service_check() {
-  RESPONSE_PRIMARY="$(run_query -h "$CLUSTER_NAME" -i 1 -p 5432)"
+  RESPONSE_PRIMARY="$(wait_until run_query -h "$CLUSTER_NAME" -i 1 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
-    RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
+    RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
       success "Connections are possible using services"
