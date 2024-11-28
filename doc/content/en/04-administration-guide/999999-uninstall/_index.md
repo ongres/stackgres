@@ -186,34 +186,6 @@ sgpoolingconfig.stackgres.io "generated-from-default-1609864616550" deleted
 
 ```
 
-#### Prometheus service monitors and pod monitors
-
-The missing part are the ServiceMonitors and PodMonitors that the operator created to integrate with
- the Prometheus Operator.
-
-List all StackGres ServiceMonitors and PodMonitors:
-
-```
-kubectl get servicemonitors,podmonitors -A -l app=StackGresCluster
-```
-
-```
-NAMESPACE   NAME                                                                     AGE
-stackgres   servicemonitor.monitoring.coreos.com/ui-ui-stackgres-envoy               120m
-stackgres   servicemonitor.monitoring.coreos.com/ui-ui-stackgres-postgres-exporter   120m
-```
-
-To delete all:
-
-```
-kubectl get configmap -l app=StackGresCluster -o name -A | xargs kubectl delete
-```
-
-```
-configmap "my-db-cluster-prometheus-postgres-exporter-config" deleted
-```
-
-
 ## Uninstall the Operator
 
 ### Using Helm
@@ -223,7 +195,7 @@ Execute the steps below to remove the helm chart release:
 ```
 ## locate the namespace that the operator was installed
 ## our doc always points to `stackgres`
-helm list --all-namespaces | grep '^\(stackgres-operator\|NAME\)\s'
+helm list --all-namespaces
 ```
 
 Will show the installed StackGres helm chart releases like in the following output:
@@ -252,6 +224,8 @@ kubectl get all -n stackgres
 ```
 No resources found in stackgres namespace.
 ```
+
+See also the section about [uninstalling unamespaced resources](#cleanup-unamespaced-resources)
 
 ## Manually
 
@@ -288,7 +262,7 @@ deployment.apps "stackgres-restapi" deleted
 
 ## Cleanup unamespaced resources
 
-To completely remove all the
+Follow this section in order to remove unamesapced resources.
 
 ### Webhooks
 
