@@ -163,7 +163,14 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             volumeMounts.addAll(restoreMounts.getVolumeMounts(context))
         );
 
-    var containerBuilder = new ContainerBuilder()
+    boolean isEnvoyDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    final int patroniPort = isEnvoyDisabled ? EnvoyUtil.PATRONI_PORT : EnvoyUtil.PATRONI_ENTRY_PORT;
+
+    return new ContainerBuilder()
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
@@ -190,7 +197,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/liveness")
-                .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
+                .withPort(new IntOrString(patroniPort))
                 .withScheme("HTTP")
                 .build())
             .withInitialDelaySeconds(15)
@@ -200,44 +207,74 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withReadinessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()
                 .withPath("/readiness")
-                .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
+                .withPort(new IntOrString(patroniPort))
                 .withScheme("HTTP")
                 .build())
             .withInitialDelaySeconds(0)
             .withPeriodSeconds(2)
             .withTimeoutSeconds(1)
-            .build());
-    if (Optional.of(cluster)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getDisableEnvoy)
-        .orElse(false)) {
-      containerBuilder.withPorts(getContainerPorts(cluster));
-    }
-    return containerBuilder.build();
+            .build())
+        .withPorts(getContainerPorts(cluster))
+        .build();
   }
 
   private List<ContainerPort> getContainerPorts(StackGresCluster cluster) {
+    boolean isEnvoyDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    if (!isEnvoyDisabled) {
+      return List.of();
+    }
     boolean isConnectionPoolingDisabled = Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableConnectionPooling)
         .orElse(false);
     if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+      if (isConnectionPoolingDisabled) {
+        return List.of(
+            new ContainerPortBuilder()
+                .withProtocol("TCP")
+                .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT)
+                .build(),
+            new ContainerPortBuilder()
+                .withProtocol("TCP")
+                .withName(EnvoyUtil.BABELFISH_PORT_NAME)
+                .withContainerPort(EnvoyUtil.BF_PORT)
+                .build(),
+            new ContainerPortBuilder()
+                .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PATRONI_PORT)
+                .build());
+      }
+      return List.of(
+          new ContainerPortBuilder()
+              .withProtocol("TCP")
+              .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+              .withContainerPort(EnvoyUtil.PG_PORT)
+              .build(),
+          new ContainerPortBuilder()
+              .withProtocol("TCP")
+              .withName(EnvoyUtil.BABELFISH_PORT_NAME)
+              .withContainerPort(EnvoyUtil.BF_PORT)
+              .build(),
+          new ContainerPortBuilder()
+              .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
+              .withProtocol("TCP")
+              .withContainerPort(EnvoyUtil.PATRONI_PORT)
+              .build());
+    }
+    if (isConnectionPoolingDisabled) {
       return List.of(
           new ContainerPortBuilder()
               .withProtocol("TCP")
               .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-              .withContainerPort(isConnectionPoolingDisabled
-                  ? EnvoyUtil.PG_ENTRY_PORT : EnvoyUtil.PG_POOL_PORT).build(),
-          new ContainerPortBuilder()
-              .withProtocol("TCP")
-              .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-              .withContainerPort(EnvoyUtil.PG_PORT).build(),
-          new ContainerPortBuilder()
-              .withProtocol("TCP")
-              .withName(EnvoyUtil.BABELFISH_PORT_NAME)
-              .withContainerPort(EnvoyUtil.BF_PORT).build(),
+              .withContainerPort(EnvoyUtil.PG_PORT)
+              .build(),
           new ContainerPortBuilder()
               .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
               .withProtocol("TCP")
@@ -247,13 +284,9 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     return List.of(
         new ContainerPortBuilder()
             .withProtocol("TCP")
-            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-            .withContainerPort(isConnectionPoolingDisabled
-                ? EnvoyUtil.PG_ENTRY_PORT : EnvoyUtil.PG_POOL_PORT).build(),
-        new ContainerPortBuilder()
-            .withProtocol("TCP")
             .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-            .withContainerPort(EnvoyUtil.PG_PORT).build(),
+            .withContainerPort(EnvoyUtil.PG_PORT)
+            .build(),
         new ContainerPortBuilder()
             .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
             .withProtocol("TCP")

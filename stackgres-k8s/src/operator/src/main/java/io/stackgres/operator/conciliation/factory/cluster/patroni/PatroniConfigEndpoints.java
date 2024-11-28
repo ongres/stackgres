@@ -299,7 +299,7 @@ public class PatroniConfigEndpoints
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableEnvoy)
         .orElse(false);
-    params.put("listen_address", isEnvoyDisabled ? "0.0.0.0" : "localhost");
+    params.put("listen_addresses", isEnvoyDisabled ? "0.0.0.0" : "localhost");
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 
     if (isBackupConfigurationPresent) {
