@@ -19,7 +19,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.factory.distributedlogs.v114.DistributedLogsCredentials;
+import io.stackgres.operator.conciliation.factory.distributedlogs.v14.DistributedLogsCredentials;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;

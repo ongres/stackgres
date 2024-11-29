@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.distributedlogs.v114;
+package io.stackgres.operator.conciliation.factory.distributedlogs.v14;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 import static io.stackgres.operator.common.StackGresDistributedLogsUtil.TIMESCALEDB_EXTENSION_NAME;
