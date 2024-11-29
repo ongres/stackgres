@@ -61,8 +61,10 @@ public class ShardsScriptsConfigMutator implements ShardedClusterMutator {
         .map(StackGresShardedClusterShards::getOverrides)
         .stream()
         .flatMap(List::stream)
-        .map(StackGresShardedClusterShard::getManagedSql)
-        .map(StackGresClusterManagedSql::getScripts)
+        .flatMap(override -> Optional.of(override)
+            .map(StackGresShardedClusterShard::getManagedSql)
+            .map(StackGresClusterManagedSql::getScripts)
+            .stream())
         .flatMap(List::stream)
         .filter(scriptEntry -> Objects.equals(scriptEntry.getId(), -1))
         .forEach(scriptEntry -> scriptEntry.setId(null));

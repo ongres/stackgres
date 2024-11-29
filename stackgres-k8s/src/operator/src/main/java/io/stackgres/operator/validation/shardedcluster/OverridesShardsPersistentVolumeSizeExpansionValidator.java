@@ -126,8 +126,10 @@ public class OverridesShardsPersistentVolumeSizeExpansionValidator
           .filter(overrideShard -> Objects.equals(
               overrideShard.getIndex(),
               index))
-          .map(StackGresShardedClusterShard::getPodsForShards)
-          .map(StackGresClusterPods::getPersistentVolume)
+          .flatMap(override -> Optional.of(override)
+              .map(StackGresShardedClusterShard::getPodsForShards)
+              .map(StackGresClusterPods::getPersistentVolume)
+              .stream())
           .findFirst()
           .or(() -> Optional.of(cluster.getSpec().getShards().getPods().getPersistentVolume()))
           .map(StackGresClusterPodsPersistentVolume::getStorageClass);
