@@ -169,7 +169,6 @@ public class ReconciliatorWorkerThreadPool {
 
   static class ReconciliatorThreadPoolExecutor {
 
-    final int threads;
     final ThreadPoolExecutor threadPoolExecutor;
     final Map<ReconciliationRunnable, Long> executingReconciliations = Collections.synchronizedMap(new HashMap<>());
     final Set<ReconciliationRunnable> toExecuteReconciliations = Collections.synchronizedSet(new HashSet<>());
@@ -178,7 +177,6 @@ public class ReconciliatorWorkerThreadPool {
         int threads,
         BlockingQueue<Runnable> workQueue,
         ThreadFactory threadFactory) {
-      this.threads = threads;
       this.threadPoolExecutor = new ThreadPoolExecutor(
           threads,
           threads,
