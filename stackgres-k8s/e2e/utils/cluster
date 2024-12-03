@@ -90,6 +90,10 @@ wait_cluster() {
     wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
       --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   fi
+
+  wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
 }
 
 wait_cluster_external_dcs() {
@@ -339,6 +343,11 @@ wait_sharded_cluster() {
         --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
         | wc -l)" -ge 1 ]'
     fi
+
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+        psql -t -A -c "\du" \
+        | grep -q "^authenticator|"'
+
     INDEX="$((INDEX + 1))"
   done
 }
