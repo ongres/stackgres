@@ -17,7 +17,6 @@ spec:
   memory: '512Mi'
 EOF
 
-  RECONCILIATION_IGNORE_ANNOTATION="stackgres.io/reconciliation-pause"
   DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name "$CLUSTER_NAME-logs")"
 }
 
@@ -34,7 +33,6 @@ e2e_test() {
   run_test "A distributed logs cluster with ignore label should not be patched" ignore_sgdistributedlogs_patch
   
   run_test "A distributed logs cluster without ignore label should be patched" resume_sgdistributedlogs_reconciliation
-  
 }
 
 ignore_sgcluster_create(){
@@ -45,7 +43,7 @@ metadata:
   name: $CLUSTER_NAME
   namespace: $CLUSTER_NAMESPACE
   annotations:
-    $RECONCILIATION_IGNORE_ANNOTATION: "true"
+    stackgres.io/reconciliation-pause: "true"
 spec:
   instances: 1
   postgres:
@@ -71,13 +69,14 @@ EOF
 }
 
 ignore_sgcluster_patch(){
-  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION-"
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "stackgres.io/reconciliation-pause-"
 
   wait_until has_cluster_generated_resources
 
-  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "stackgres.io/reconciliation-pause=true"
 
-  patch_sgcluster_instances "2"
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type='json' \
+    -p='[{"op": "replace", "path": "/spec/instances", "value": 2}]'
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
@@ -89,7 +88,7 @@ ignore_sgcluster_patch(){
 }
 
 resume_sgcluster_reconciliation(){
-  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION"-
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "stackgres.io/reconciliation-pause"-
 
   if wait_until -t "15" eval '[ $(get_cluster_replicas) = 2 ]'
   then
@@ -107,7 +106,7 @@ metadata:
   name: $DISTRIBUTEDLOGS_NAME
   namespace: $CLUSTER_NAMESPACE
   annotations:
-    $RECONCILIATION_IGNORE_ANNOTATION: "true"
+    stackgres.io/reconciliation-pause: "true"
 spec:
   persistentVolume:
     size: '128Mi'
@@ -117,73 +116,49 @@ EOF
 
   if wait_until -t "15" has_logs_generated_resources
   then
-    fail "Distributed logs cluster where created"
+    fail "SGDistributedLogs cluster where created"
   else
-    success "Distributed logs cluster resources wheren't created"
+    success "SGDistributedLogs cluster resources wheren't created"
   fi
 }
 
 ignore_sgdistributedlogs_patch(){
-  
-  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
+  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "stackgres.io/reconciliation-pause=false" --overwrite
 
   wait_until has_logs_generated_resources
 
-  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"  --overwrite
+  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "stackgres.io/reconciliation-pause=true"  --overwrite
 
-  kubectl patch sts "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" --type='json' \
-    -p='[{"op": "replace", "path": "/spec/replicas", "value": 2}]'
+  kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --type='json' \
+    -p='[{"op": "replace", "path": "/spec/metadata", "value": {"annotations":{"clusterPods":{"test":"test"}}}}]'
 
-  if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
+  if wait_until -t "15" eval '[ "$(get_sgdistributedlogs_annotations)" = '' ]'
   then
-    fail "Distributed logs is not being ignored"
+    fail "SGDistributedLogs is not being ignored"
   else
-    success "Distributed logs is being ignored"
+    success "SGDistributedLogs is being ignored"
   fi
 }
 
 resume_sgdistributedlogs_reconciliation(){
-  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=false" --overwrite
+  kubectl annotate sgdistributedlogs "$DISTRIBUTEDLOGS_NAME" -n "$CLUSTER_NAMESPACE" "stackgres.io/reconciliation-pause=false" --overwrite
 
-  if wait_until -t "15" eval '[ $(get_sgdistributedlogs_replicas) = 1 ]'
+  if wait_until -t "15" eval '[ "$(get_sgdistributedlogs_annotations)" = test ]'
   then
-    success "Distributed logs is not being ignored"    
+    success "SGDistributedLogs is not being ignored"    
   else
-    fail "Distributed logs is being ignored"
+    fail "SGDistributedLogs is being ignored"
   fi
 }
 
 has_logs_generated_resources(){
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
+  kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
 get_cluster_replicas() {
   kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.replicas}'
 }
 
-get_sgdistributedlogs_replicas() {
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o jsonpath='{.spec.replicas}'
-}
-
-patch_sgcluster_instances(){
-  local DESIRED_INSTANCES="$1"
-
-  SG_INSTANCES="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')"
-
-  echo "Current SGCluster instances $SG_INSTANCES, patching to $DESIRED_INSTANCES"
-
-  while [ ! "$SG_INSTANCES" = 2 ]
-  do
-    kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type='json' \
-      -p='[{"op": "replace", "path": "/spec/instances", "value": '"$DESIRED_INSTANCES"'}]'
-    
-    sleep 10
-    SG_INSTANCES="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.instances}')"
-    if [ ! "$SG_INSTANCES" = 2 ]
-    then
-      echo "Patch not applied... retrying"
-      sleep 1
-    fi
-  done
-
+get_sgdistributedlogs_annotations() {
+  kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o jsonpath='{.spec.metadata.annotations.clusterPods.test}'
 }

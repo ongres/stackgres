@@ -16,8 +16,8 @@ metadata:
   {{- end }}
 spec:
   persistentVolume:
-    size: {{ quote .Values.cluster.distributedLogs.persistentVolume.size }}
-    {{- with .Values.cluster.distributedLogs.persistentVolume.storageClass }}
+    size: {{ quote .Values.distributedLogs.persistentVolume.size }}
+    {{- with .Values.distributedLogs.persistentVolume.storageClass }}
     {{- if eq "-" . }}
     storageClass: ""
     {{- else }}
@@ -28,7 +28,7 @@ spec:
   postgresServices:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.cluster.distributedLogs.scheduling }}
+  {{- with .Values.distributedLogs.scheduling }}
   scheduling:
     {{- toYaml . | nindent 4 }}
   {{- end }}
