@@ -246,9 +246,9 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
             .build())
         .editSpec()
         .withScripts(
-            getShardingSphereCreateDatabaseScript(context),
-            getShardingSphereInitScript(context),
-            getShardingSphereUpdateShardsScript(context))
+            getShardingSphereCreateDatabaseScript(context, 0),
+            getShardingSphereInitScript(context, 1),
+            getShardingSphereUpdateShardsScript(context, 2))
         .endSpec()
         .build();
   }
@@ -264,15 +264,16 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
             .build())
         .editSpec()
         .withScripts(
-            getShardingSphereCreateDatabaseScript(context))
+            getShardingSphereCreateDatabaseScript(context, 0))
         .endSpec()
         .build();
   }
 
   private static StackGresScriptEntry getShardingSphereCreateDatabaseScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("shardingsphere-create-database")
         .withRetryOnError(true)
         .withScript(Unchecked.supplier(() -> Resources
@@ -286,9 +287,10 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
   }
 
   private static StackGresScriptEntry getShardingSphereInitScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("shardingsphere-init")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
@@ -328,9 +330,10 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
   }
 
   private static StackGresScriptEntry getShardingSphereUpdateShardsScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("shardingsphere-update-shards")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())

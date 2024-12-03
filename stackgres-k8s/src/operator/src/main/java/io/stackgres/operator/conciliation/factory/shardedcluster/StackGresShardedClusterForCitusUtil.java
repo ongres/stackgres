@@ -201,16 +201,16 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .build())
         .editSpec()
         .withScripts(
-            getCitusUpdateShardsScript(context))
+            getCitusUpdateShardsScript(context, 0))
         .endSpec()
         .build();
   }
 
   private static StackGresScriptEntry getCitusUpdateShardsScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
-        .withId(0)
+        .withId(id)
         .withName("citus-update-shards")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
