@@ -15,6 +15,7 @@ e2e_test_install() {
   NOSIDECARS_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-nosidecars")"
 
   PGCONFIG_FIELDS=36
+  LOGS_PGCONFIG_FIELDS=37
   PGCONFIG_DEFAULTS_PARAMETERS=53
 
   PGBOUNCER_FIELDS=6
@@ -794,6 +795,9 @@ metadata:
 spec:
   persistentVolume:
     size: 128Mi
+  scheduling:
+    nodeSelector:
+      $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -811,7 +815,7 @@ EOF
   local CREATED_PGCONFIG_FIELDS
   CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
 
-  if [ "$CREATED_PGCONFIG_FIELDS" = "$PGCONFIG_FIELDS" ]
+  if [ "$CREATED_PGCONFIG_FIELDS" = "$LOGS_PGCONFIG_FIELDS" ]
   then
     success "Defaults pgconfig fields were created"
   else
