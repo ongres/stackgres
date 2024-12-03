@@ -574,7 +574,7 @@ spec:
                   **Changing this field may require a restart.**
               metadata:
                 type: object
-                description: Metadata information from cluster created resources.
+                description: Metadata information for cluster created resources.
                 properties:
                   annotations:
                     type: object
