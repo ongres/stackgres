@@ -45,10 +45,20 @@ EOF
 
   local RESULT
   local EXIT_CODE
-  try_function eval '
-    sleep 1
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
-      patronictl failover --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
+    patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
+  if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
+  then
+    try_function eval '
+      sleep 1
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
+        patronictl failover --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
+  else
+    try_function eval '
+      sleep 1
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
+        patronictl failover --candidate "$CLUSTER_NAME-1" --force'
+  fi
   if "$RESULT"
   then
     success "$CLUSTER_NAME-1 has been promoted to primary and $CLUSTER_NAME-0 has been removed abruptly!"
