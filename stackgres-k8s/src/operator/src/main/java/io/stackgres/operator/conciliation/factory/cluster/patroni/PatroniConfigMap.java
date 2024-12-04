@@ -31,6 +31,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -97,6 +99,11 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   public @NotNull ConfigMap buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
+    boolean isEnvoyDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
 
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
@@ -109,9 +116,9 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout)
         .map(Object::toString)
         .orElse("60"));
-    data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + EnvoyUtil.PG_PORT);
+    data.put("PATRONI_POSTGRESQL_LISTEN", (isEnvoyDisabled ? "0.0.0.0:" : "127.0.0.1:") + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
-        "${POD_IP}:" + EnvoyUtil.PG_REPL_ENTRY_PORT);
+        "${POD_IP}:" + (isEnvoyDisabled ? EnvoyUtil.PG_PORT : EnvoyUtil.PG_REPL_ENTRY_PORT));
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:" + EnvoyUtil.PATRONI_PORT);
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());

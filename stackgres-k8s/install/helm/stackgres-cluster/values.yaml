@@ -116,6 +116,7 @@ cluster:
       # storageClass: "-"
     disableConnectionPooling: false
     disablePostgresUtil: false
+    disableEnvoy: false
     # scheduling:
     #   nodeSelector:
     #     key: value

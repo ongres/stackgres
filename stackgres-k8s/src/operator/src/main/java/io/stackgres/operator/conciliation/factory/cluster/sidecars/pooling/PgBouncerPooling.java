@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,6 +18,8 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
@@ -117,6 +120,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .withEnv(
             ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
             ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar())
+        .withPorts(getContainerPorts(context.getClusterContext().getCluster()))
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(scriptTemplatesVolumeMounts.getVolumeMounts(context))
@@ -133,6 +137,28 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
                 .withReadOnly(true)
                 .build())
         .build();
+  }
+
+  private List<ContainerPort> getContainerPorts(StackGresCluster cluster) {
+    boolean isEnvoyDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    if (!isEnvoyDisabled) {
+      return List.of();
+    }
+    return List.of(
+        new ContainerPortBuilder()
+            .withProtocol("TCP")
+            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+            .withContainerPort(EnvoyUtil.PG_POOL_PORT)
+            .build(),
+        new ContainerPortBuilder()
+            .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
+            .withProtocol("TCP")
+            .withContainerPort(EnvoyUtil.PATRONI_PORT)
+            .build());
   }
 
   @Override
@@ -224,6 +250,14 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
 
     Map<String, String> parameters = new HashMap<>(PgBouncerDefaultValues.getDefaultValues(
         StackGresVersion.getStackGresVersion(context.getCluster())));
+
+    boolean isEnvoyDisabled = Optional.of(context.getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    parameters.put("listen_addr", isEnvoyDisabled ? "*" : "127.0.0.1");
+    parameters.put("listen_port", String.valueOf(EnvoyUtil.PG_POOL_PORT));
 
     parameters.putAll(getDefaultParameters());
     parameters.putAll(newParams);

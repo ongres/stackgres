@@ -49,6 +49,7 @@ import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -75,6 +76,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
     @Inject OperatorLockHolder operatorLockReconciliator;
+    @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
     @Inject LabelFactoryForDistributedLogs labelFactory;
     @Inject CustomResourceScanner<StackGresCluster> clusterScanner;
     @Inject CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
@@ -104,6 +106,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
+        parameters.reconciliatorWorkerThreadPool,
         StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
@@ -128,8 +131,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  protected void reconciliationCycle(StackGresDistributedLogs configKey, boolean load) {
-    super.reconciliationCycle(configKey, load);
+  protected void reconciliationCycle(StackGresDistributedLogs configKey, int retry, boolean load) {
+    super.reconciliationCycle(configKey, retry, load);
   }
 
   @Override

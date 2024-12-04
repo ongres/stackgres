@@ -34,6 +34,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniDynamicConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
@@ -225,13 +227,24 @@ public class PatroniConfigEndpoints
     patroniConf.setPostgresql(new PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setUseSlots(true);
-    patroniConf.getPostgresql().setPgHba(List.of(
-        "local all all trust",
-        "host all all 127.0.0.1/32 md5",
-        "host all all ::1/128 md5",
-        "local replication all trust",
-        "host all all 0.0.0.0/0 md5",
-        "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " 0.0.0.0/0 md5"));
+    patroniConf.getPostgresql().setPgHba(Seq
+        .seq(
+            Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getConfigurations)
+            .map(StackGresClusterConfigurations::getPatroni)
+            .map(StackGresClusterPatroni::getDynamicConfig)
+            .flatMap(StackGresClusterPatroniDynamicConfig::getPgHba)
+            .stream()
+            .flatMap(List::stream))
+        .append(
+            "local all all trust",
+            "host all all 127.0.0.1/32 md5",
+            "host all all ::1/128 md5",
+            "local replication all trust",
+            "host all all 0.0.0.0/0 md5",
+            "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " 0.0.0.0/0 md5")
+        .toList());
     patroniConf.getPostgresql().setParameters(
         getPostgresConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
     patroniConf.getPostgresql().setRecoveryConf(
@@ -281,6 +294,12 @@ public class PatroniConfigEndpoints
     PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
     params.putAll(userParams);
 
+    boolean isEnvoyDisabled = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(false);
+    params.put("listen_addresses", isEnvoyDisabled ? "0.0.0.0" : "localhost");
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 
     if (isBackupConfigurationPresent) {

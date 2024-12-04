@@ -44,7 +44,11 @@ public enum OperatorProperty implements StackGresPropertyReader {
   ALLOWED_NAMESPACES("stackgres.allowedNamespaces"),
   CLUSTER_ROLE_DISABLED("stackgres.clusterRoleDisabled"),
   FORCE_UNLOCK_OPERATOR("stackgres.forceUnlockOperator"),
-  STOP_AFTER_BOOTSTRAP("stackgres.stopAfterBootstrap");
+  STOP_AFTER_BOOTSTRAP("stackgres.stopAfterBootstrap"),
+  RECONCILIATION_THREADS("stackgres.reconciliationThreads"),
+  RECONCILIATION_INITIAL_BACKOFF("stackgres.reconciliationInitialBackoff"),
+  RECONCILIATION_MAX_BACKOFF("stackgres.reconciliationMaxBackoff"),
+  RECONCILIATION_BACKOFF_VARIATION("stackgres.reconciliationBackoffVariation");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);

@@ -87,7 +87,7 @@ class ShardedBackupReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(backup, false);
+    reconciliator.reconciliationCycle(backup, 0, false);
 
     verify(conciliator).evalReconciliationState(backup);
     creations.forEach(resource -> verify(handlerDelegator).create(backup, resource));
@@ -110,7 +110,7 @@ class ShardedBackupReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(backup, false);
+    reconciliator.reconciliationCycle(backup, 0, false);
 
     verify(conciliator).evalReconciliationState(backup);
     patches.forEach(resource -> verify(handlerDelegator)
@@ -131,7 +131,7 @@ class ShardedBackupReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(backup, false);
+    reconciliator.reconciliationCycle(backup, 0, false);
 
     verify(conciliator).evalReconciliationState(backup);
     deletions.forEach(resource -> verify(handlerDelegator).delete(backup, resource));

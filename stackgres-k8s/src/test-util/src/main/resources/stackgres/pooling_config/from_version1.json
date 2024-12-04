@@ -31,7 +31,6 @@
         "auth_user": "authenticator",
         "default_pool_size": "1000",
         "ignore_startup_parameters": "extra_float_digits",
-        "listen_addr": "127.0.0.1",
         "max_client_conn": "1000",
         "max_db_connections": "0",
         "max_user_connections": "0",

@@ -30,7 +30,6 @@
         "application_name_add_host",
         "max_user_connections",
         "auth_user",
-        "listen_addr",
         "admin_users",
         "server_check_query"
       ]
