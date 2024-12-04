@@ -1,4 +1,4 @@
 #!/bin/sh
 
 mkdir -p ~/.config/glab-cli
-docker run -u "$(id -u):$(id -g)" -v /etc/passwd:/etc/passwd:ro -v "$HOME":"$HOME":ro -e PROMPT_COMMAND= --rm -ti -v "$(pwd):$(pwd)" -w "$(pwd)" -v "$HOME/.config/glab-cli:$HOME/.config/glab-cli" registry.gitlab.com/gitlab-org/cli glab "$@"
+docker run -u "$(id -u):$(id -g)" -v /etc/passwd:/etc/passwd:ro -v "$HOME":"$HOME":ro -e PROMPT_COMMAND= --rm $([ -t 1 ] && printf %s -t) -i -v "$(pwd):$(pwd)" -w "$(pwd)" -v "$HOME/.config/glab-cli:$HOME/.config/glab-cli" registry.gitlab.com/gitlab-org/cli glab "$@"

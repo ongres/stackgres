@@ -57,7 +57,7 @@ $(
       | sed 's/^/  /'
 )
 EOF
-  BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden"
+  BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden-$(date +%s)-$RANDOM"
   docker build -t "$BUNDLE_IMAGE_NAME" -f "$LOG_PATH/operator-bundle.Dockerfile" "$LOG_PATH/operator-bundle" 
   docker push "$BUNDLE_IMAGE_NAME"
 }
