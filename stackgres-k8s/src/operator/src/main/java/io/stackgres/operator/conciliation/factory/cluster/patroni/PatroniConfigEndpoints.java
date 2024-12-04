@@ -61,13 +61,13 @@ import org.jooq.lambda.Unchecked;
 public class PatroniConfigEndpoints
     implements ResourceGenerator<StackGresClusterContext> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final ObjectMapper objectMapper;
   private final YAMLMapper yamlMapper;
 
   @Inject
   public PatroniConfigEndpoints(
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ObjectMapper objectMapper,
       YamlMapperProvider yamlMapperProvider) {
     this.labelFactory = labelFactory;

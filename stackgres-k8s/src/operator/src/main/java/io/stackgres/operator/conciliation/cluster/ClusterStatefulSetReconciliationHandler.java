@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -28,13 +29,13 @@ import jakarta.inject.Inject;
 @ReconciliationScope(value = StackGresCluster.class, kind = "StatefulSet")
 @ApplicationScoped
 public class ClusterStatefulSetReconciliationHandler
-    extends AbstractStatefulSetWithPrimaryReconciliationHandler<StackGresCluster> {
+    extends AbstractStatefulSetWithPrimaryReconciliationHandler {
 
   @Inject
   public ClusterStatefulSetReconciliationHandler(
       @ReconciliationScope(value = StackGresCluster.class, kind = "HasMetadata")
       ReconciliationHandler<StackGresCluster> handler,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
@@ -46,7 +47,7 @@ public class ClusterStatefulSetReconciliationHandler
   ClusterStatefulSetReconciliationHandler(
       ReconciliationHandler<StackGresCluster> handler,
       ReconciliationHandler<StackGresCluster> protectHandler,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
@@ -62,6 +63,11 @@ public class ClusterStatefulSetReconciliationHandler
         .map(StackGresClusterPatroni::getInitialConfig)
         .map(StackGresClusterPatroniConfig::isPatroniOnKubernetes)
         .orElse(true);
+  }
+
+  @Override
+  protected String getPatroniVersion(StackGresCluster context) {
+    return StackGresUtil.getPatroniVersion(context);
   }
 
 }

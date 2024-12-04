@@ -55,9 +55,9 @@ import io.stackgres.apiweb.dto.cluster.ClusterInitialData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
-import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
-import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterPods;
+import io.stackgres.apiweb.dto.cluster.ClusterPodsPersistentVolume;
+import io.stackgres.apiweb.dto.cluster.ClusterPodsScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
@@ -905,7 +905,7 @@ class ClusterResourceMockedTest extends
         assertEquals(dtoSpecPods.getDisableMetricsExporter(),
             resourceSpecPod.getDisableMetricsExporter());
 
-        final ClusterPodPersistentVolume dtoPV = dtoSpecPods.getPersistentVolume();
+        final ClusterPodsPersistentVolume dtoPV = dtoSpecPods.getPersistentVolume();
         final StackGresClusterPodsPersistentVolume resourcePV = resourceSpecPod.getPersistentVolume();
         if (dtoPV != null) {
           assertNotNull(resourcePV);
@@ -930,7 +930,7 @@ class ClusterResourceMockedTest extends
           assertNull(resourceMetadataLabels);
         }
 
-        final ClusterPodScheduling podScheduling = dtoSpecPods.getScheduling();
+        final ClusterPodsScheduling podScheduling = dtoSpecPods.getScheduling();
         final StackGresClusterPodsScheduling resourceScheduling = resourceSpecPod.getScheduling();
         if (podScheduling != null) {
           assertNotNull(resourceScheduling);

@@ -36,7 +36,6 @@
     <module>operator</module>
     <module>restapi</module>
     <module>cluster-controller</module>
-    <module>distributedlogs-controller</module>
     <module>jobs</module>
     <module>stream</module>
   </modules>
@@ -52,6 +51,7 @@
     <stackgres.crd.version>v1</stackgres.crd.version>
     <stackgres.operatorName>stackgres-operator</stackgres.operatorName>
     <stackgres.operatorNamespace>stackgres</stackgres.operatorNamespace>
+    <stackgres.operatorServiceAccount>stackgres</stackgres.operatorServiceAccount>
     <stackgres.operatorCertificateSecretName>stackgres-operator-certs</stackgres.operatorCertificateSecretName>
     <stackgres.jobNamespace>stackgres</stackgres.jobNamespace>
     <stackgres.operatorImageVersion>main-jvm</stackgres.operatorImageVersion>

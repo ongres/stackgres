@@ -9,5 +9,4 @@ import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public interface PgConfigValidator extends Validator<StackGresPostgresConfigReview> {
-
 }

@@ -18,7 +18,6 @@ import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsResharding;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsReshardingCitus;
@@ -35,7 +34,7 @@ import jakarta.inject.Singleton;
 @ShardedDbOpsJob("resharding")
 public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
 
-  private final LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
+  private final LabelFactoryForCluster clusterLabelFactory;
 
   @Inject
   public ShardedDbOpsReshardingJob(
@@ -46,7 +45,7 @@ public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
       KubectlUtil kubectl,
       ShardedDbOpsVolumeMounts dbOpsVolumeMounts,
       ShardedDbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory,
-      LabelFactoryForCluster<StackGresCluster> clusterLabelFactory) {
+      LabelFactoryForCluster clusterLabelFactory) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables,
         dbOpsLabelFactory, jsonMapper, kubectl, dbOpsVolumeMounts, dbOpsTemplatesVolumeFactory);
     this.clusterLabelFactory = clusterLabelFactory;

@@ -1,12 +1,12 @@
 .images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.29
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.9
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.20-2.1726695192
-  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.10-13
-  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.4-1227.1726694542
-  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-63
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-29
-  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-127
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.21-3
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.10-15
+  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.5-1731593028
+  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-69.1731463535
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-35.1731463551
+  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-133.1731463548
 platforms:
   - linux/x86_64
   - linux/aarch64
@@ -205,26 +205,6 @@ modules:
       - stackgres-k8s/src/cluster-controller/src/test
     artifacts:
       - stackgres-k8s/src/cluster-controller/target
-  distributedlogs-controller-java:
-    <<: *operator-framework-java
-    path: stackgres-k8s/src/distributedlogs-controller/.
-    filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh distributedlogs-controller
-    sources:
-      - stackgres-k8s/src/distributedlogs-controller/src/main/java
-      - stackgres-k8s/src/distributedlogs-controller/src/main/resources
-    artifacts:
-      - stackgres-k8s/src/distributedlogs-controller/target
-      - .m2/repository/io/stackgres/stackgres-distributedlogs-controller
-  distributedlogs-controller-java-test:
-    <<: *operator-framework-java-test
-    path: stackgres-k8s/src/distributedlogs-controller/.
-    filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh distributedlogs-controller
-    sources:
-      - stackgres-k8s/src/distributedlogs-controller/src/test
-    artifacts:
-      - stackgres-k8s/src/distributedlogs-controller/target
   admin-ui:
     type: ui
     platform_dependent: true
@@ -287,11 +267,6 @@ modules:
     path: stackgres-k8s/src/cluster-controller
     artifacts:
       - stackgres-k8s/src/cluster-controller/target/stackgres-cluster-controller-runner
-  distributedlogs-controller-native:
-    <<: *native
-    path: stackgres-k8s/src/distributedlogs-controller
-    artifacts:
-      - stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner
   operator-jvm-image: &operator-jvm-image
     type: jvm-image
     platform_dependent: true
@@ -360,19 +335,6 @@ modules:
       0: stackgres-k8s/src/cluster-controller/src/main/docker/LICENCE
       1: stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.jvm.sh
       2: stackgres-k8s/src/cluster-controller/target/quarkus-app
-  distributedlogs-controller-jvm-image: &distributedlogs-controller-jvm-image
-    <<: *operator-jvm-image
-    path: stackgres-k8s/src/distributedlogs-controller
-    dockerfile:
-      <<: *jvm-image-dockerfile
-      path: stackgres-k8s/src/distributedlogs-controller/src/main/docker/Dockerfile.jvm
-      args:
-        <<: *jvm-image-args
-        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh distributedlogs-controller)
-    artifacts: &distributedlogs-controller-jvm-image-artifacts
-      0: stackgres-k8s/src/distributedlogs-controller/src/main/docker/LICENCE
-      1: stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.jvm.sh
-      2: stackgres-k8s/src/distributedlogs-controller/target/quarkus-app
   admin-ui-image: &admin-ui-image
     type: ui-image
     platform_dependent: true
@@ -456,19 +418,6 @@ modules:
       0: stackgres-k8s/src/cluster-controller/src/main/docker/LICENCE
       1: stackgres-k8s/src/cluster-controller/target/stackgres-cluster-controller-runner
       2: stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.native.sh
-  distributedlogs-controller-native-image: &distributedlogs-controller-native-image
-    <<: *operator-native-image
-    path: stackgres-k8s/src/distributedlogs-controller
-    dockerfile:
-      <<: *native-image-dockerfile
-      path: stackgres-k8s/src/distributedlogs-controller/src/main/docker/Dockerfile.native
-      args:
-        <<: *native-image-args
-        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh distributedlogs-controller)
-    artifacts: &distributedlogs-controller-native-image-artifacts
-      0: stackgres-k8s/src/distributedlogs-controller/src/main/docker/LICENCE
-      1: stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner
-      2: stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.native.sh
   helm-packages: &helm-packages
     type: helm
     target_image: *ubi8_micro_image
@@ -627,12 +576,6 @@ modules:
     artifacts:
       <<: *cluster-controller-jvm-image-artifacts
       999: stackgres-k8s/src/cluster-controller/pom.xml
-  distributedlogs-controller-jvm-release-image:
-    <<: *distributedlogs-controller-jvm-image
-    type: jvm-release-image
-    artifacts:
-      <<: *distributedlogs-controller-jvm-image-artifacts
-      999: stackgres-k8s/src/distributedlogs-controller/pom.xml
   admin-ui-release-image:
     <<: *admin-ui-image
     type: ui-image
@@ -669,12 +612,6 @@ modules:
     artifacts:
       <<: *cluster-controller-native-image-artifacts
       999: stackgres-k8s/src/cluster-controller/pom.xml
-  distributedlogs-controller-native-release-image:
-    <<: *distributedlogs-controller-native-image
-    type: native-release-image
-    artifacts:
-      <<: *distributedlogs-controller-native-image-artifacts
-      999: stackgres-k8s/src/distributedlogs-controller/pom.xml
   helm-release-packages:
     <<: *helm-packages
     type: helm-release
@@ -729,7 +666,6 @@ stages:
   - jobs-java: common-java
   - stream-java: common-java
   - cluster-controller-java: common-java
-  - distributedlogs-controller-java: common-java
   - operator-framework-java-test: operator-framework-java
   - common-java-test: common-java
   - operator-java-test: operator-java
@@ -737,27 +673,23 @@ stages:
   - jobs-java-test: jobs-java
   - stream-java-test: stream-java
   - cluster-controller-java-test: cluster-controller-java
-  - distributedlogs-controller-java-test: distributedlogs-controller-java
   - admin-ui: restapi-java
   - operator-jvm-image: operator-java
   - restapi-jvm-image: restapi-java
   - jobs-jvm-image: jobs-java
   - stream-jvm-image: stream-java
   - cluster-controller-jvm-image: cluster-controller-java
-  - distributedlogs-controller-jvm-image: distributedlogs-controller-java
   - admin-ui-image: admin-ui
   - operator-native: operator-java
   - restapi-native: restapi-java
   - jobs-native: jobs-java
   - stream-native: stream-java
   - cluster-controller-native: cluster-controller-java
-  - distributedlogs-controller-native: distributedlogs-controller-java
   - operator-native-image: operator-native
   - restapi-native-image: restapi-native
   - jobs-native-image: jobs-native
   - stream-native-image: stream-native
   - cluster-controller-native-image: cluster-controller-native
-  - distributedlogs-controller-native-image: distributedlogs-controller-native
   - helm-packages: null
   - helm-templates: null
   - operator-bundle: helm-packages
@@ -770,14 +702,12 @@ stages:
   - jobs-jvm-release-image: jobs-java
   - stream-jvm-release-image: stream-java
   - cluster-controller-jvm-release-image: cluster-controller-java
-  - distributedlogs-controller-jvm-release-image: distributedlogs-controller-java
   - admin-ui-release-image: admin-ui
   - operator-native-release-image: operator-native
   - restapi-native-release-image: restapi-native
   - jobs-native-release-image: jobs-native
   - stream-native-release-image: stream-native
   - cluster-controller-native-release-image: cluster-controller-native
-  - distributedlogs-controller-native-release-image: distributedlogs-controller-native
   - helm-release-packages: null
   - helm-release-templates: null
   - operator-release-bundle: helm-release-packages

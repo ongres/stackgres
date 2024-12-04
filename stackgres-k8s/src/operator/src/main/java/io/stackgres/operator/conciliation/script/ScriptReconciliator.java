@@ -96,7 +96,7 @@ public class ScriptReconciliator
   @Override
   protected void onError(Exception ex, StackGresScript script) {
     String message = MessageFormatter.arrayFormat(
-        "Script reconciliation cycle failed",
+        "SGScript reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ScriptEventReason.SCRIPT_CONFIG_ERROR,

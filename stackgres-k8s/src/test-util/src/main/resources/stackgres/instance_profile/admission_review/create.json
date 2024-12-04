@@ -49,10 +49,6 @@
             "cpu": "250m",
             "memory": "512Mi"
           },
-          "distributedlogs-controller": {
-            "cpu": "250m",
-            "memory": "512Mi"
-          },
           "envoy": {
             "cpu": "250m",
             "memory": "64Mi"
@@ -133,10 +129,6 @@
           "memory": "512Mi",
           "containers": {
             "cluster-controller": {
-              "cpu": "250m",
-              "memory": "512Mi"
-            },
-            "distributedlogs-controller": {
               "cpu": "250m",
               "memory": "512Mi"
             },

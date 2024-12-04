@@ -17,7 +17,7 @@ public interface StackGresNamedObject {
 
   default String format(String format, String...parameters) {
     if (format == null) {
-      throw new IllegalArgumentException("Volume " + getClass().getSimpleName()
+      throw new IllegalArgumentException("Named object " + getClass().getSimpleName()
           + " " + getName() + " has no resource format configured");
     }
     return ResourceUtil.resourceName(String.format(format, (Object[]) parameters));

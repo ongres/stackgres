@@ -6,10 +6,10 @@ BEGIN
     IF ddp_has_shard_connection(shard_name => worker_index) IS NULL THEN
       PERFORM ddp_create_shard_connection(
         shard_name => worker_index,
-        shard_string_connection => format($quoted$%2$s$quoted$, worker_index),
-        um_data => $quoted$%3$s$quoted$,
-        local_user => $quoted$%4$s$quoted$,
-        fetch_size => %5d);
+        shard_string_connection => format(%2$s, worker_index),
+        um_data => %3$s,
+        local_user => %4$s,
+        fetch_size => %5$d);
     END IF;
   END LOOP;
 END$updateworkers$;

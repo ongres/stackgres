@@ -50,13 +50,13 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
       - name: pgbench
-        image: quay.io/ongres/postgres-util:v16.3-build-6.34
+        image: quay.io/ongres/postgres-util:v17.2-build-6.38
         command:
         - sh
         - -c
         - while true; do sleep 300; done;
       - name: pgbouncer
-        image: quay.io/ongres/pgbouncer:v1.22.1-build-6.33
+        image: quay.io/ongres/pgbouncer:v1.31.3-build-6.38
         command:
         - sh
         - /usr/local/bin/start-pgbouncer.sh
@@ -128,7 +128,7 @@ data:
   pre_promote: |
     #!/bin/sh
     set -x
-    if [ "$#" = 0 ] || [ "x$2" = xmaster ]
+    if [ "$#" = 0 ] || [ "x$2" = xprimary ]
     then
       until psql -q -tA -c 'SELECT pg_is_in_recovery()' | grep -qxF f
       do

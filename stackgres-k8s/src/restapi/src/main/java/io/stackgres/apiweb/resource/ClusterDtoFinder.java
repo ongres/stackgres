@@ -24,7 +24,7 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
   private CustomResourceFinder<StackGresCluster> clusterFinder;
   private PodFinder podFinder;
   private ClusterTransformer clusterTransformer;
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Override
   public Optional<ClusterDto> findByNameAndNamespace(String name, String namespace) {
@@ -55,7 +55,7 @@ public class ClusterDtoFinder implements CustomResourceFinder<ClusterDto> {
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

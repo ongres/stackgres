@@ -91,7 +91,7 @@ public class ShardedBackupReconciliator
   protected void onConfigCreated(StackGresShardedBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(ShardedBackupEventReason.BACKUP_CREATED,
-        "Sharded Backup " + backup.getMetadata().getNamespace() + "."
+        "SGShardedBackup " + backup.getMetadata().getNamespace() + "."
             + backup.getMetadata().getName() + " created: " + resourceChanged, backup);
   }
 
@@ -99,14 +99,14 @@ public class ShardedBackupReconciliator
   protected void onConfigUpdated(StackGresShardedBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(ShardedBackupEventReason.BACKUP_UPDATED,
-        "Sharded Backup " + backup.getMetadata().getNamespace() + "."
+        "SGShardedBackup " + backup.getMetadata().getNamespace() + "."
             + backup.getMetadata().getName() + " updated: " + resourceChanged, backup);
   }
 
   @Override
   protected void onError(Exception ex, StackGresShardedBackup backup) {
     String message = MessageFormatter.arrayFormat(
-        "Sharded Backup reconciliation cycle failed",
+        "SGShardedBackup reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ShardedBackupEventReason.BACKUP_CONFIG_ERROR,

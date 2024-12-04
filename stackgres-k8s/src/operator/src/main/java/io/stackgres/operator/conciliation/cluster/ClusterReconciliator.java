@@ -136,7 +136,7 @@ public class ClusterReconciliator
   protected void onConfigCreated(StackGresCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
-        "Cluster " + cluster.getMetadata().getNamespace() + "."
+        "SGCluster " + cluster.getMetadata().getNamespace() + "."
             + cluster.getMetadata().getName() + " created: " + resourceChanged, cluster);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), cluster);
@@ -146,7 +146,7 @@ public class ClusterReconciliator
   protected void onConfigUpdated(StackGresCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
-        "Cluster " + cluster.getMetadata().getNamespace() + "."
+        "SGCluster " + cluster.getMetadata().getNamespace() + "."
             + cluster.getMetadata().getName() + " updated: " + resourceChanged, cluster);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), cluster);
@@ -155,7 +155,7 @@ public class ClusterReconciliator
   @Override
   protected void onError(Exception ex, StackGresCluster cluster) {
     String message = MessageFormatter.arrayFormat(
-        "Cluster reconciliation cycle failed",
+        "SGCluster reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,

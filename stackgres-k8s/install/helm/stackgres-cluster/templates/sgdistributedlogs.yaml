@@ -16,114 +16,28 @@ metadata:
   {{- end }}
 spec:
   persistentVolume:
-    size: {{ .Values.distributedLogs.persistentVolume.size }}
-    {{- if .Values.distributedLogs.persistentVolume.storageClass }}
-    {{- if eq "-" .Values.distributedLogs.persistentVolume.storageClass }}
+    size: {{ quote .Values.distributedLogs.persistentVolume.size }}
+    {{- with .Values.distributedLogs.persistentVolume.storageClass }}
+    {{- if eq "-" . }}
     storageClass: ""
     {{- else }}
-    storageClass: {{ .Values.distributedLogs.persistentVolume.storageClass }}
+    storageClass: {{ . }}
     {{- end }}
     {{- end }}
-  {{- if .Values.distributedLogs.postgresServices }}
+  {{- with .Values.distributedLogs.postgresServices }}
   postgresServices:
-    {{- if .Values.distributedLogs.postgresServices.primary }}
-    primary:
-      {{- if .Values.distributedLogs.postgresServices.primary.type }}
-      type:  {{ .Values.distributedLogs.postgresServices.primary.type }}
-      {{- end }}
-      {{- if .Values.distributedLogs.postgresServices.primary.loadBalancerIP }}
-      loadBalancerIP:  {{ .Values.distributedLogs.postgresServices.primary.type }}
-      {{- end }}
-      {{- if .Values.distributedLogs.postgresServices.primary.loadBalancerIP }}
-      annotations:
-        {{- range $annot, $value := .Values.distributedLogs.postgresServices.primary.annotations }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
-    {{- end }}    
-    {{- if .Values.distributedLogs.postgresServices.replicas }}
-    replicas:
-      enabled: {{ .Values.distributedLogs.postgresServices.replicas.enabled }}
-      {{- if .Values.distributedLogs.postgresServices.replicas.type }}
-      type:  {{ .Values.distributedLogs.postgresServices.replicas.type }}
-      {{- end }}
-      {{- if .Values.distributedLogs.postgresServices.replicas.loadBalancerIP }}
-      loadBalancerIP:  {{ .Values.distributedLogs.postgresServices.replicas.loadBalancerIP }}
-      {{- end }}
-      {{- if .Values.distributedLogs.postgresServices.replicas.annotations }}
-      annotations:
-        {{- range $annot, $value := .Values.distributedLogs.postgresServices.replicas.annotations }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
-    {{- end }}    
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.distributedLogs.scheduling }}
+  {{- with .Values.distributedLogs.scheduling }}
   scheduling:
-    {{- if .Values.distributedLogs.scheduling.nodeAffinity }}
-    nodeAffinity:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
-    {{- with .Values.distributedLogs.scheduling.priorityClassName }}
-    priorityClassName: "{{ .Values.distributedLogs.scheduling.priorityClassName }}"
-    {{- end }}
-    {{- if .Values.distributedLogs.scheduling.nodeSelector }}
-    nodeSelector:
-      {{- range $label, $value := .Values.distributedLogs.scheduling.nodeSelector }}
-      {{ $label }}: {{ $value }}
-      {{- end }}
-    {{- end }}
-    {{- if .Values.distributedLogs.scheduling.tolerations }}
-    tolerations:
-      {{- range .Values.distributedLogs.scheduling.tolerations }}
-      - effect: {{ .effect }}
-        key: {{ .key }}
-        operator: {{ .operator }}
-        value: {{ .value }}
-        tolerationSeconds: {{ .tolerationSeconds }}
-      {{- end }}
-    {{- end }}
-  {{- end }} 
-  {{- if .Values.distributedLogs.metadata }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.distributedLogs.metadata }}
   metadata:
-    {{- if .Values.distributedLogs.metadata.annotations }}
-    annotations:
-      {{- if .Values.distributedLogs.metadata.annotations.allResources }}
-      allResources: 
-        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.allResources }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
-      {{- if .Values.distributedLogs.metadata.annotations.pods }}
-      pods:
-        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.pods }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
-      {{- if .Values.distributedLogs.metadata.annotations.services }}
-      services:
-        {{- range $annot, $value := .Values.distributedLogs.metadata.annotations.services }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
-      {{- end }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.nonProductionOptions }}
+  {{- with .Values.nonProductionOptions }}
   nonProductionOptions:
-  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
-    disableClusterPodAntiAffinity: false
-  {{- else }}
-    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
-  {{- end }}
-  {{- if not .Values.nonProductionOptions.disablePatroniResourceRequirements }}
-    disablePatroniResourceRequirements: false
-  {{- else }}
-    disablePatroniResourceRequirements: {{ .Values.nonProductionOptions.disablePatroniResourceRequirements }}
-  {{- end }}
-  {{- if not .Values.nonProductionOptions.disableClusterResourceRequirements }}
-    disableClusterResourceRequirements: false
-  {{- else }}
-    disableClusterResourceRequirements: {{ .Values.nonProductionOptions.disableClusterResourceRequirements }}
-  {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{ end }}

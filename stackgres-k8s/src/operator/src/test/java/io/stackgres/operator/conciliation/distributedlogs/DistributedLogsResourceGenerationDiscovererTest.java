@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import static java.util.Optional.ofNullable;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +16,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -38,11 +35,9 @@ class DistributedLogsResourceGenerationDiscovererTest
 
   private StackGresPostgresConfig postgresConfig;
 
-  private StackGresProfile profile;
+  private StackGresCluster connectecCluster;
 
   private Optional<Secret> secret;
-
-  private StackGresCluster connectecCluster;
 
   @BeforeEach
   public void setup() {
@@ -51,9 +46,7 @@ class DistributedLogsResourceGenerationDiscovererTest
     this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     this.connectecCluster = Fixtures.cluster().loadDefault()
         .withLatestPostgresVersion().get();
-    this.profile = Fixtures.instanceProfile().loadSizeM().get();
-    this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
-    this.secret = ofNullable(Fixtures.secret().loadMinio().get());
+    this.secret = Optional.ofNullable(Fixtures.secret().loadMinio().get());
   }
 
   @Override
@@ -78,7 +71,6 @@ class DistributedLogsResourceGenerationDiscovererTest
         .config(config)
         .source(resource)
         .postgresConfig(postgresConfig)
-        .profile(profile)
         .addAllConnectedClusters(List.of(connectecCluster))
         .databaseCredentials(secret)
         .build();

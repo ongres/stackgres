@@ -91,7 +91,7 @@ public class BackupReconciliator
   protected void onConfigCreated(StackGresBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(BackupEventReason.BACKUP_CREATED,
-        "Backup " + backup.getMetadata().getNamespace() + "."
+        "SGBackup " + backup.getMetadata().getNamespace() + "."
             + backup.getMetadata().getName() + " created: " + resourceChanged, backup);
   }
 
@@ -99,14 +99,14 @@ public class BackupReconciliator
   protected void onConfigUpdated(StackGresBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(BackupEventReason.BACKUP_UPDATED,
-        "Backup " + backup.getMetadata().getNamespace() + "."
+        "SGBackup " + backup.getMetadata().getNamespace() + "."
             + backup.getMetadata().getName() + " updated: " + resourceChanged, backup);
   }
 
   @Override
   protected void onError(Exception ex, StackGresBackup backup) {
     String message = MessageFormatter.arrayFormat(
-        "Backup reconciliation cycle failed",
+        "SGBackup reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,

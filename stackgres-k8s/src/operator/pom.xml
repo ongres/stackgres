@@ -19,6 +19,8 @@
   <name>StackGres Operator</name>
 
   <properties>
+    <jooq.version>3.19.15</jooq.version>
+
     <stackgres.authentication.secretName>stackgres-restapi</stackgres.authentication.secretName>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
@@ -58,6 +60,11 @@
       <groupId>io.sundr</groupId>
       <artifactId>builder-annotations</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>${jooq.version}</version>
     </dependency>
 
     <dependency>

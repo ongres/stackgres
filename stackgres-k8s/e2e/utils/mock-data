@@ -100,5 +100,12 @@ get_replica_index() {
 }
 
 get_primary_index() {
-  kubectl -n "$CLUSTER_NAMESPACE" get pod -l role=master | tail -n 1 | awk '{print $1}' | awk -F "-" '{print $NF}'
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
+  if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
+  then
+    kubectl -n "$CLUSTER_NAMESPACE" get pod -l role=master | tail -n 1 | awk '{print $1}' | awk -F "-" '{print $NF}'
+  else
+    kubectl -n "$CLUSTER_NAMESPACE" get pod -l role=primary | tail -n 1 | awk '{print $1}' | awk -F "-" '{print $NF}'
+  fi
 }

@@ -6,8 +6,8 @@
 package io.stackgres.apiweb.dto.fixture;
 
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
-import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterPods;
+import io.stackgres.apiweb.dto.cluster.ClusterPodsScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.NodeAffinity;
@@ -51,7 +51,7 @@ public class ClusterDtoFixture extends Fixture<ClusterDto> {
   public ClusterDtoFixture withScheduling() {
     withPods();
     if (fixture.getSpec().getPods().getScheduling() == null) {
-      fixture.getSpec().getPods().setScheduling(new ClusterPodScheduling());
+      fixture.getSpec().getPods().setScheduling(new ClusterPodsScheduling());
     }
     return this;
   }

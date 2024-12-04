@@ -5,18 +5,27 @@
 
 package io.stackgres.operator.validation.distributedlogs;
 
+import java.util.Optional;
+
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsCluster;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
     PersistentVolumeSizeExpansionValidatorTest<StackGresDistributedLogsReview,
         StackGresDistributedLogs, StackGresDistributedLogs> {
+
+  @Mock
+  LabelFactoryForDistributedLogs labelFactoryForDistributedLogs;
 
   @Override
   protected StackGresDistributedLogsReview getAdmissionReview() {
@@ -25,17 +34,18 @@ class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected PersistentVolumeSizeExpansionValidator<StackGresDistributedLogsReview,
-      StackGresDistributedLogs, StackGresDistributedLogs> getValidator() {
+      StackGresDistributedLogs> getValidator() {
     return new DistributedLogsPersistentVolumeSizeExpansionValidator(
         finder,
         pvcScanner,
+        labelFactoryForDistributedLogs,
         labelFactory
     );
   }
 
   @Override
-  protected StackGresDistributedLogs getCluster(StackGresDistributedLogs resource) {
-    return resource;
+  protected StackGresCluster getCluster(StackGresDistributedLogs resource) {
+    return DistributedLogsCluster.getCluster(labelFactoryForDistributedLogs, resource, Optional.empty());
   }
 
   @Override

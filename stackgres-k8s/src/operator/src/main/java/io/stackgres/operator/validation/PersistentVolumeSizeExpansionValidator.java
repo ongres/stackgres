@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
@@ -23,7 +24,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class PersistentVolumeSizeExpansionValidator<T extends AdmissionReview<R>,
-    R extends CustomResource<?, ?>, S extends CustomResource<?, ?>> implements Validator<T> {
+    R extends CustomResource<?, ?>> implements Validator<T> {
 
   private final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
 
@@ -94,7 +95,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    *
    * @return a label factory for cluster.
    */
-  protected abstract LabelFactoryForCluster<S> getLabelFactory();
+  protected abstract LabelFactoryForCluster getLabelFactory();
 
   /**
    * Looks for a PersistentVolumeClaim scanner.
@@ -131,7 +132,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
            * If we are here, is because there is no storage class configured,
            * therefore we have to look for the cluster PVCs
            */
-          final List<S> clusters = getClusters(review.getRequest().getObject());
+          final List<StackGresCluster> clusters = getClusters(review.getRequest().getObject());
           return clusters.stream()
               .flatMap(cluster -> {
                 String clusterNamespace = cluster.getMetadata().getNamespace();
@@ -150,7 +151,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
         });
   }
 
-  protected abstract List<S> getClusters(R resource);
+  protected abstract List<StackGresCluster> getClusters(R resource);
 
   /**
    * Checks if a storage class allows volume expansion.

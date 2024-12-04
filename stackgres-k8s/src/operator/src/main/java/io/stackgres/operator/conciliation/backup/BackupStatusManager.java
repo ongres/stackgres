@@ -31,13 +31,13 @@ public class BackupStatusManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(BackupStatusManager.class);
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final LabelMapperForCluster<StackGresCluster> clusterLabelMapper;
+  private final LabelMapperForCluster clusterLabelMapper;
   private final ResourceFinder<Job> jobFinder;
 
   @Inject
   public BackupStatusManager(
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      LabelMapperForCluster<StackGresCluster> clusterLabelMapper,
+      LabelMapperForCluster clusterLabelMapper,
       ResourceFinder<Job> jobFinder) {
     this.clusterFinder = clusterFinder;
     this.clusterLabelMapper = clusterLabelMapper;

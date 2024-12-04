@@ -17,7 +17,7 @@ public class PostgresServices<P extends PostgresService, R extends PostgresServi
 
   private R replicas;
 
-  public PostgresService getPrimary() {
+  public P getPrimary() {
     return primary;
   }
 

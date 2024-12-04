@@ -42,7 +42,7 @@ class CoordinatorPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected PersistentVolumeSizeExpansionValidator<StackGresShardedClusterReview,
-      StackGresShardedCluster, StackGresCluster> getValidator() {
+      StackGresShardedCluster> getValidator() {
     return new CoordinatorPersistentVolumeSizeExpansionValidator(
         finder, clusterScanner, shardedClusterLabelFactory, pvcScanner, labelFactory);
   }

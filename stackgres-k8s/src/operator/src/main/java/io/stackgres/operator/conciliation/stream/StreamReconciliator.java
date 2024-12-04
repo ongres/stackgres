@@ -91,7 +91,7 @@ public class StreamReconciliator
   protected void onConfigCreated(StackGresStream stream, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(stream, result);
     eventController.sendEvent(StreamEventReason.STREAM_CREATED,
-        "Stream " + stream.getMetadata().getNamespace() + "."
+        "SGStream " + stream.getMetadata().getNamespace() + "."
             + stream.getMetadata().getName() + " created: " + resourceChanged, stream);
   }
 
@@ -99,14 +99,14 @@ public class StreamReconciliator
   protected void onConfigUpdated(StackGresStream stream, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(stream, result);
     eventController.sendEvent(StreamEventReason.STREAM_UPDATED,
-        "Stream " + stream.getMetadata().getNamespace() + "."
+        "SGStream " + stream.getMetadata().getNamespace() + "."
             + stream.getMetadata().getName() + " updated: " + resourceChanged, stream);
   }
 
   @Override
   protected void onError(Exception ex, StackGresStream stream) {
     String message = MessageFormatter.arrayFormat(
-        "Stream reconciliation cycle failed",
+        "SGStream reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(StreamEventReason.STREAM_CONFIG_ERROR,

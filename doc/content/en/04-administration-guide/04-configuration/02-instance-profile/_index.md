@@ -72,9 +72,6 @@ spec:
     dbops.set-dbops-result:
       cpu: "1"
       memory: 256Mi
-    distributedlogs-controller:
-      cpu: 250m
-      memory: 512Mi
     envoy:
       cpu: "1"
       memory: 64Mi
@@ -137,9 +134,6 @@ spec:
       dbops.set-dbops-result:
         cpu: "1"
         memory: 256Mi
-      distributedlogs-controller:
-        cpu: 250m
-        memory: 512Mi
       envoy:
         cpu: "1"
         memory: 64Mi

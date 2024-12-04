@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
@@ -34,6 +35,9 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public class KubernetessMockResourceGenerationUtil {
 
+  private static final String POSTGRES_VERSION =
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+
   public static List<HasMetadata> buildResources(String name, String namespace) {
     StackGresCluster cluster = new StackGresClusterBuilder()
         .withNewMetadata()
@@ -41,6 +45,11 @@ public class KubernetessMockResourceGenerationUtil {
         .withName(name)
         .withUid(generateRandom())
         .endMetadata()
+        .withNewSpec()
+        .withNewPostgres()
+        .withVersion(POSTGRES_VERSION)
+        .endPostgres()
+        .endSpec()
         .build();
     return buildResources(cluster);
   }

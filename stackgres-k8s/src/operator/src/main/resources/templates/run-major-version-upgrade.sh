@@ -265,8 +265,16 @@ EOF
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
   echo "Running a double CHECKPOINT on the primary instance $PRIMARY_INSTANCE before major version upgrade..."
-  kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
+  if ! kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
       -- psql -q -t -A -c "CHECKPOINT" -c "CHECKPOINT"
+  then
+    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+    echo
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --all-containers --prefix --timestamps --ignore-errors || true
+    echo
+    rollback_major_version_upgrade "$PRIMARY_INSTANCE"
+    return 1
+  fi
 
   PHASE="upgrade"
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
@@ -489,8 +497,9 @@ wait_for_major_version_upgrade() {
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo
       echo
+      sleep 10
       kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
-        | jq '.status.containerStatuses' || true
+        | jq '[ .status.containerStatuses, .status.initContainerStatuses ]' || true
       echo
       kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --all-containers --prefix --timestamps --ignore-errors || true
       echo
@@ -521,6 +530,11 @@ wait_for_major_version_upgrade_check() {
       if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ]
       then
         echo "Major version upgrade check failed"
+        echo
+        echo
+        sleep 10
+        kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
+          | jq '[ .status.containerStatuses, .status.initContainerStatuses ]' || true
         echo
         kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --all-containers --prefix --timestamps --ignore-errors || true
         echo

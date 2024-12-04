@@ -33,7 +33,7 @@ describe('Create SGDistributedLog', () => {
                 namespace: namespace
             },
             spec: {
-                postgresVersion: "12",
+                postgresVersion: "17",
                 'postgresql.conf':""
             }
         })

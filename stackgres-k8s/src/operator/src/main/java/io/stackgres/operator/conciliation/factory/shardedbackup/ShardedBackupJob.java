@@ -77,7 +77,7 @@ public class ShardedBackupJob
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
   private final LabelFactoryForShardedBackup labelFactory;
-  private final LabelFactoryForCluster<StackGresCluster> clusterLabelFactory;
+  private final LabelFactoryForCluster clusterLabelFactory;
   private final ResourceFactory<StackGresShardedBackupContext, PodSecurityContext>
       podSecurityFactory;
   private final KubectlUtil kubectl;
@@ -88,7 +88,7 @@ public class ShardedBackupJob
   @Inject
   public ShardedBackupJob(
       LabelFactoryForShardedBackup labelFactory,
-      LabelFactoryForCluster<StackGresCluster> clusterLabelFactory,
+      LabelFactoryForCluster clusterLabelFactory,
       ResourceFactory<StackGresShardedBackupContext, PodSecurityContext> podSecurityFactory,
       KubectlUtil kubectl,
       ShardedClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,
@@ -359,7 +359,7 @@ public class ShardedBackupJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_PRIMARY_ROLE")
-                    .withValue(PatroniUtil.PRIMARY_ROLE)
+                    .withValue(PatroniUtil.getPrimaryRole(cluster))
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_REPLICA_ROLE")

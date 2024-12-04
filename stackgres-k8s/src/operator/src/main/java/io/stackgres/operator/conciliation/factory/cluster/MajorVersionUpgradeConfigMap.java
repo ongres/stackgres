@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 @OperatorVersionBinder
 public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClusterContext> {
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   public static String name(ClusterContext clusterContext) {
     return StackGresVolume.POSTGRES_CONFIG
@@ -78,7 +77,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
   }
 
   @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -38,7 +39,7 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
   private final PatroniCtl patroniCtl;
 
   @Inject
@@ -48,7 +49,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresCluster> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      LabelFactoryForCluster labelFactory,
       PatroniCtl patroniCtl) {
     super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
     this.labelFactory = labelFactory;
@@ -113,7 +114,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         anyPodWithWrongOrMissingRole = deployedResourcesCache
             .stream()
             .map(DeployedResource::foundDeployed)
-            .anyMatch(foundDeployedResource -> isPodWithWrongOrMissingRole(foundDeployedResource, members));
+            .anyMatch(foundDeployedResource -> isPodWithWrongOrMissingRole(config, foundDeployedResource, members));
       } else {
         anyPodWithWrongOrMissingRole = false;
       }
@@ -145,16 +146,19 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
       justification = "False positive")
   private boolean isPodWithWrongOrMissingRole(
+      StackGresCluster config,
       HasMetadata foundDeployedResource,
       List<PatroniMember> members) {
+    final String patroniVersion = StackGresUtil.getPatroniVersion(config);
+    final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     return foundDeployedResource instanceof Pod foundDeployedPod
         && !Optional.of(foundDeployedPod.getMetadata())
         .map(ObjectMeta::getLabels)
         .filter(labels -> Objects.equals(
             members.stream()
             .filter(member -> foundDeployedPod.getMetadata().getName().equals(member.getMember())
-                && member.getLabelRole() != null)
-            .map(PatroniMember::getLabelRole)
+                && member.getLabelRole(patroniMajorVersion) != null)
+            .map(member -> member.getLabelRole(patroniMajorVersion))
             .findFirst()
             .orElse(null),
             labels.get(PatroniUtil.ROLE_KEY)))

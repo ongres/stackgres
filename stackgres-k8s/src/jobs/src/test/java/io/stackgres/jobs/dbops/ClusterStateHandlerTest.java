@@ -166,9 +166,9 @@ public abstract class ClusterStateHandlerTest {
   protected abstract void initializeDbOpsStatus(StackGresDbOps dbOps, StackGresCluster cluster,
       List<Pod> pods);
 
-  protected Pod getPrimaryInstance(List<Pod> pods) {
+  protected Pod getPrimaryInstance(StackGresCluster cluster, List<Pod> pods) {
     return pods.stream()
-        .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
+        .filter(pod -> PatroniUtil.getPrimaryRole(cluster).equals(
             pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
         .findFirst().orElseThrow(() -> new InvalidClusterException(
             "Cluster has no primary pod"));

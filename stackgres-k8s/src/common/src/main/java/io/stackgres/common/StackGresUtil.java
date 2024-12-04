@@ -416,23 +416,6 @@ public interface StackGresUtil {
         new ExtensionTuple("postgres_fdw"));
   }
 
-  static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      StackGresDistributedLogs cluster) {
-    return getDefaultDistributedLogsExtensions(
-        StackGresDistributedLogsUtil.POSTGRESQL_VERSION,
-        StackGresVersion.getStackGresVersion(cluster));
-  }
-
-  static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      String pgVersion, StackGresVersion sgVersion) {
-    return Seq.seq(getDefaultClusterExtensions(
-        sgVersion,
-        pgVersion,
-        StackGresPostgresFlavor.VANILLA.toString())).append(
-            new ExtensionTuple("timescaledb", "1.7.4"))
-        .toList();
-  }
-
   static boolean isLocked(HasMetadata resource) {
     return isLocked(resource, System.currentTimeMillis() / 1000);
   }
@@ -525,6 +508,18 @@ public interface StackGresUtil {
             postgresVersion));
   }
 
+  static String getPatroniVersion(StackGresShardedCluster cluster) {
+    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniVersion(StackGresShardedCluster cluster, String postgresVersion) {
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    return StackGresComponent.PATRONI.get(cluster).getVersion(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            postgresVersion));
+  }
+
   static String getPatroniVersion(StackGresDistributedLogs distributedLogs) {
     Component postgresComponentFlavor = StackGresComponent.POSTGRESQL.get(distributedLogs);
     return StackGresComponent.PATRONI.get(distributedLogs).getVersion(
@@ -533,8 +528,12 @@ public interface StackGresUtil {
             DISTRIBUTEDLOGS_POSTGRES_VERSION));
   }
 
-  static String getLatestPatroniVersion() {
-    return StackGresComponent.PATRONI.getLatest().getLatestVersion();
+  static int getPatroniMajorVersion(String patroniVersion) {
+    return Optional.of(patroniVersion)
+        .map(version -> version.split("\\.")[0])
+        .map(Integer::parseInt)
+        .orElseThrow(() -> new RuntimeException("Can not extract patroni major version from "
+            + patroniVersion));
   }
 
   static String getPatroniImageName(StackGresCluster cluster) {

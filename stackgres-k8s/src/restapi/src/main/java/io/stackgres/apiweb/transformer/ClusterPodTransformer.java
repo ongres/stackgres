@@ -54,7 +54,8 @@ public class ClusterPodTransformer {
   }
 
   private String convertRole(String role) {
-    if (PatroniUtil.PRIMARY_ROLE.equals(role)) {
+    if (PatroniUtil.PRIMARY_ROLE.equals(role)
+        || PatroniUtil.OLD_PRIMARY_ROLE.equals(role)) {
       return "primary";
     }
 

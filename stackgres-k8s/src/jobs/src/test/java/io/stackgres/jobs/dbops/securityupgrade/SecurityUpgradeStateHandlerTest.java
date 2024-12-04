@@ -69,7 +69,7 @@ class SecurityUpgradeStateHandlerTest extends ClusterStateHandlerTest {
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .toList());
-    securityUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    securityUpgrade.setPrimaryInstance(getPrimaryInstance(cluster, pods).getMetadata().getName());
     securityUpgrade.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
@@ -90,7 +90,7 @@ class SecurityUpgradeStateHandlerTest extends ClusterStateHandlerTest {
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
             .toList());
-    securityUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
+    securityUpgradeStatus.setPrimaryInstance(getPrimaryInstance(cluster, pods).getMetadata().getName());
     dbOpsStatus.setSecurityUpgrade(securityUpgradeStatus);
     status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);

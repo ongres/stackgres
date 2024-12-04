@@ -1,8 +1,8 @@
 #!/bin/sh
 
 export E2E_DISABLE_RESOURCE_REQUIREMENTS="${E2E_DISABLE_RESOURCE_REQUIREMENTS:-true}"
-export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-16.3}"
-export E2E_POSTGRES_BABELFISH_VERSION="${E2E_POSTGRES_BABELFISH_VERSION:-16.2}"
+export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-16.4}"
+export E2E_POSTGRES_BABELFISH_VERSION="${E2E_POSTGRES_BABELFISH_VERSION:-16.4}"
 
 create_or_replace_cluster_without_defaults() {
   local RELEASE="$1"
@@ -78,14 +78,22 @@ wait_cluster() {
   then
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+    PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
     wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-      patronictl switchover "$RELEASE" --master "$LEADER" --candidate "$RELEASE-0" --force \
+      patronictl switchover "$RELEASE" \
+      $([ "$PATRONI_MAJOR_VERSION" -lt 4 ] && printf %s --master || printf %s --primary) "$LEADER" \
+      --candidate "$RELEASE-0" --force \
       | grep -q "^Switchover failed"'
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
     wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
       --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   fi
+
+  wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
 }
 
 wait_cluster_external_dcs() {
@@ -119,8 +127,12 @@ wait_cluster_external_dcs() {
 
   if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
   then
+    PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
     wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-      patronictl switchover "$SCOPE" --master "$LEADER" --candidate "$RELEASE-0" --force \
+      patronictl switchover "$SCOPE" \
+      $([ "$PATRONI_MAJOR_VERSION" -lt 4 ] && printf %s --master || printf %s --primary) "$LEADER" \
+      --candidate "$RELEASE-0" --force \
       | grep -q "^Switchover failed"'
     if [ "${LEADER%-*}" = "$RELEASE" ]
     then
@@ -318,8 +330,12 @@ wait_sharded_cluster() {
     then
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+      PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+        patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
       wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-        patronictl switchover "$CLUSTER_SCOPE" $PATRONICTL_OPTS --master "$LEADER" --candidate "$RELEASE-0" --force \
+        patronictl switchover "$CLUSTER_SCOPE" $PATRONICTL_OPTS \
+        $([ "$PATRONI_MAJOR_VERSION" -lt 4 ] && printf %s --master || printf %s --primary) "$LEADER" \
+        --candidate "$RELEASE-0" --force \
         | grep -q "^Switchover failed"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
@@ -327,6 +343,11 @@ wait_sharded_cluster() {
         --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
         | wc -l)" -ge 1 ]'
     fi
+
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+        psql -t -A -c "\du" \
+        | grep -q "^authenticator|"'
+
     INDEX="$((INDEX + 1))"
   done
 }

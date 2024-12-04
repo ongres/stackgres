@@ -5,6 +5,7 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import static io.stackgres.common.PatroniUtil.getPrimaryRole;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -75,7 +76,7 @@ class ClusterWatcherTest {
                 .map(pod -> createMember(
                     pod,
                     role -> PatroniMember.RUNNING,
-                    role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+                    role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
                 .toList()));
 
     clusterWatcher.waitUntilIsReady(clusterName, namespace)
@@ -93,7 +94,7 @@ class ClusterWatcherTest {
             .map(pod -> createMember(
                 pod,
                 role -> PatroniMember.RUNNING,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
             .toList()));
 
     assertThrows(TimeoutException.class,
@@ -112,7 +113,7 @@ class ClusterWatcherTest {
             .map(pod -> createMember(
                 pod,
                 role -> PatroniMember.RUNNING,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
             .toList()));
 
     CompletableFuture<StackGresCluster> clusterReady = new CompletableFuture<>();
@@ -139,8 +140,8 @@ class ClusterWatcherTest {
             (pods) -> pods.stream()
             .map(pod -> createMember(
                 pod,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
             .toList()));
 
     clusterWatcher.waitUntilIsReady(clusterName, namespace)
@@ -156,8 +157,8 @@ class ClusterWatcherTest {
             (pods) -> pods.stream()
             .map(pod -> createMember(
                 pod,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
             .toList()));
 
     clusterWatcher.getAvailablePrimary(clusterName, namespace)
@@ -167,7 +168,7 @@ class ClusterWatcherTest {
         .assertCompleted()
         .assertItem(Optional.of(podTestUtil.getClusterPods(cluster)
             .stream()
-            .filter(pod -> PatroniUtil.PRIMARY_ROLE
+            .filter(pod -> getPrimaryRole(cluster)
                 .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
             .findAny().orElseThrow().getMetadata().getName()));
   }
@@ -181,7 +182,7 @@ class ClusterWatcherTest {
             (pods) -> pods.stream()
             .map(pod -> createMember(
                 pod,
-                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
+                role -> getPrimaryRole(cluster).equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
                 role -> PatroniMember.REPLICA))
             .toList()));
 

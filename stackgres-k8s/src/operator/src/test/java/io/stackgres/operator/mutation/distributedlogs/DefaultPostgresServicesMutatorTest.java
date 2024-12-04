@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServicesBuilder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -40,7 +40,7 @@ class DefaultPostgresServicesMutatorTest {
 
   private DefaultPostgresServicesMutator mutator;
 
-  private StackGresDistributedLogsPostgresServices sgDistributedLogs;
+  private StackGresPostgresServices sgDistributedLogs;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
@@ -55,7 +55,7 @@ class DefaultPostgresServicesMutatorTest {
         withPgPrimaryService(TRUE, NODE_PORT.toString()),
         withPgReplicasService(TRUE, NODE_PORT.toString()));
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(sgDistributedLogs.getPrimary().getType(),
@@ -72,7 +72,7 @@ class DefaultPostgresServicesMutatorTest {
         withPgPrimaryService(TRUE, null),
         withPgReplicasService(FALSE, null));
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getPrimary().getType());
@@ -84,7 +84,7 @@ class DefaultPostgresServicesMutatorTest {
   void clusterWithNoPostgresService_shouldBeSetup() {
     review.getRequest().getObject().getSpec().setPostgresServices(null);
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getPrimary().getType());
@@ -98,7 +98,7 @@ class DefaultPostgresServicesMutatorTest {
         withNoPgPrimaryService(),
         withPgReplicasService(FALSE, LOAD_BALANCER.toString()));
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(CLUSTER_IP.toString(), pgServicesMuted.getPrimary().getType());
@@ -112,7 +112,7 @@ class DefaultPostgresServicesMutatorTest {
         withPgPrimaryService(FALSE, LOAD_BALANCER.toString()),
         withNoPgReplicasService());
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getPrimary().getType());
@@ -126,7 +126,7 @@ class DefaultPostgresServicesMutatorTest {
         withPgPrimaryService(null, LOAD_BALANCER.toString()),
         withNoPgReplicasService());
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getPrimary().getType());
@@ -140,7 +140,7 @@ class DefaultPostgresServicesMutatorTest {
         withPgPrimaryService(TRUE, LOAD_BALANCER.toString()),
         withPgReplicasService(null, LOAD_BALANCER.toString()));
 
-    StackGresDistributedLogsPostgresServices pgServicesMuted = mutate(review);
+    StackGresPostgresServices pgServicesMuted = mutate(review);
 
     assertNull(pgServicesMuted.getPrimary().getEnabled());
     assertEquals(LOAD_BALANCER.toString(), pgServicesMuted.getPrimary().getType());
@@ -171,7 +171,7 @@ class DefaultPostgresServicesMutatorTest {
 
   private void setupDistributedLogsPgServices(StackGresPostgresService primary,
       StackGresPostgresService replicas) {
-    this.sgDistributedLogs = new StackGresDistributedLogsPostgresServicesBuilder()
+    this.sgDistributedLogs = new StackGresPostgresServicesBuilder()
         .withPrimary(primary)
         .withReplicas(replicas)
         .build();
@@ -186,7 +186,7 @@ class DefaultPostgresServicesMutatorTest {
     return null;
   }
 
-  private StackGresDistributedLogsPostgresServices mutate(StackGresDistributedLogsReview review) {
+  private StackGresPostgresServices mutate(StackGresDistributedLogsReview review) {
     return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()))
         .getSpec()
         .getPostgresServices();

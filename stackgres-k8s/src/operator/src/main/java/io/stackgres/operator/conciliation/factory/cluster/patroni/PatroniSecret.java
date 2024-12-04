@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Secret;
@@ -32,6 +33,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -40,7 +42,7 @@ import org.jooq.lambda.tuple.Tuple2;
 public class PatroniSecret
     implements VolumeFactory<StackGresClusterContext>, StackGresPasswordKeys {
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   public static String name(StackGresClusterContext clusterContext) {
     return PatroniUtil.secretName(clusterContext.getSource().getMetadata().getName());
@@ -86,6 +88,8 @@ public class PatroniSecret
 
     final Map<String, String> data = new HashMap<>();
 
+    data.put(ROLES_UPDATE_SQL_KEY, "SET log_statement TO 'none';");
+
     setSuperuserCredentials(context, previousSecretData, data);
 
     setReplicationCredentials(context, previousSecretData, data);
@@ -120,6 +124,10 @@ public class PatroniSecret
     data.put(SUPERUSER_USERNAME_ENV, superuserCredentials.v1);
     data.put(SUPERUSER_PASSWORD_KEY, superuserCredentials.v2);
     data.put(SUPERUSER_PASSWORD_ENV, superuserCredentials.v2);
+    data.put(
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
+        + "ALTER ROLE " + superuserCredentials.v1 + " WITH PASSWORD '" + superuserCredentials.v2 + "';");
   }
 
   public static Tuple2<String, String> getSuperuserCredentials(
@@ -155,6 +163,10 @@ public class PatroniSecret
     data.put(REPLICATION_USERNAME_ENV, replicatorCredentials.v1);
     data.put(REPLICATION_PASSWORD_KEY, replicatorCredentials.v2);
     data.put(REPLICATION_PASSWORD_ENV, replicatorCredentials.v2);
+    data.put(
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
+        + "ALTER ROLE " + replicatorCredentials.v1 + " WITH PASSWORD '" + replicatorCredentials.v2 + "';");
   }
 
   public static Tuple2<String, String> getReplicatorCredentials(
@@ -186,36 +198,59 @@ public class PatroniSecret
       StackGresClusterContext context,
       Map<String, String> previousSecretData,
       Map<String, String> data) {
-    data.put(AUTHENTICATOR_USERNAME_KEY, context.getAuthenticatorUsername()
-        .orElse(previousSecretData
-            .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
-                .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME))));
-    data.put(AUTHENTICATOR_USERNAME_ENV, data.get(AUTHENTICATOR_USERNAME_KEY));
+    final String authenticatorUsername = context.getAuthenticatorUsername()
+            .orElse(previousSecretData
+                .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
+                    .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME)));
+    data.put(AUTHENTICATOR_USERNAME_KEY, authenticatorUsername);
+    data.put(AUTHENTICATOR_USERNAME_ENV, authenticatorUsername);
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
+        .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
     final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
-    data.put(AUTHENTICATOR_PASSWORD_KEY, context.getAuthenticatorPassword()
+        .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
+    final String authenticatorPassword = context.getAuthenticatorPassword()
         .orElse(previousSecretData
             .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
                 .getOrDefault(authenticatorPasswordEnv,
-                  context.getGeneratedAuthenticatorPassword()))));
+                  context.getGeneratedAuthenticatorPassword())));
+    data.put(AUTHENTICATOR_PASSWORD_KEY, authenticatorPassword);
     data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
         .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
-    data.put(authenticatorOptionsEnv, "superuser");
+    data.put(authenticatorOptionsEnv, "SUPERUSER");
+    data.put(
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
+        + "DO $$\n"
+        + "BEGIN\n"
+        + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = " + DSL.inline(authenticatorUsername) + ") THEN\n"
+        + "    CREATE USER " + DSL.quotedName(authenticatorUsername)
+        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorPassword) + ";\n"
+        + "  ELSE\n"
+        + "    ALTER ROLE " + DSL.quotedName(authenticatorUsername)
+        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorPassword) + ";\n"
+        + "  END IF;\n"
+        + "END$$;");
   }
 
   private void setBabelfishCredentials(
       StackGresClusterContext context,
       final Map<String, String> previousSecretData,
       final Map<String, String> data) {
-    data.put(BABELFISH_PASSWORD_KEY, previousSecretData
-        .getOrDefault(BABELFISH_PASSWORD_KEY, context.getGeneratedBabelfishPassword()));
+    final String babelfishPassword = previousSecretData
+            .getOrDefault(BABELFISH_PASSWORD_KEY, context.getGeneratedBabelfishPassword());
+    data.put(BABELFISH_PASSWORD_KEY, babelfishPassword);
     data.put(BABELFISH_CREATE_USER_SQL_KEY,
         "SET log_statement TO 'none';\n"
-            + "DROP ROLE IF EXISTS " + BABELFISH_USERNAME + ";\n"
-            + "CREATE USER " + BABELFISH_USERNAME + " SUPERUSER"
-            + " PASSWORD '" + data.get(BABELFISH_PASSWORD_KEY) + "';");
+            + "DO $$\n"
+            + "BEGIN\n"
+            + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = " + DSL.inline(BABELFISH_USERNAME) + ") THEN\n"
+            + "    CREATE USER " + DSL.quotedName(BABELFISH_USERNAME)
+            + " WITH SUPERUSER PASSWORD " + DSL.inline(babelfishPassword) + ";\n"
+            + "  ELSE\n"
+            + "    ALTER ROLE " + DSL.quotedName(BABELFISH_USERNAME)
+            + " WITH SUPERUSER PASSWORD " + DSL.inline(babelfishPassword) + ";\n"
+            + "  END IF;\n"
+            + "END$$;");
   }
 
   private void setPgBouncerCredentials(
@@ -245,7 +280,7 @@ public class PatroniSecret
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public void setFactoryFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 }

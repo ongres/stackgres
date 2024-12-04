@@ -26,7 +26,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
+  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
 }
 
 e2e_test_uninstall() {
@@ -171,24 +171,6 @@ $(
           - name: app
             mountPath: /app/quarkus-run.jar
             subPath: quarkus-run.jar
-      distributedlogsController:
-        volumes:
-          - name: app
-            hostPath:
-              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
-        volumeMounts:
-          - name: app
-            mountPath: /app/app
-            subPath: app
-          - name: app
-            mountPath: /app/lib
-            subPath: lib
-          - name: app
-            mountPath: /app/quarkus
-            subPath: quarkus
-          - name: app
-            mountPath: /app/quarkus-run.jar
-            subPath: quarkus-run.jar
 INNER_EOF
   fi
 )
@@ -229,7 +211,6 @@ spec:
     env: [
       $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
       {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
-      {"name":"SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER","value":"${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}"},
       {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
       {"name":"APP_OPTS","value":$EXTRA_OPTS},
       {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
@@ -363,7 +344,7 @@ EOF
 
   wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
 
-  wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 }
 
 create_or_replace_distributed_logs() {
@@ -381,7 +362,7 @@ create_or_replace_distributed_logs() {
     --set-string configurations.postgresconfig.postgresql\\.conf.invalid_param=true \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
+    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
     --set-string distributedLogs.persistentVolume.size=128Mi
 }
 
@@ -398,7 +379,7 @@ create_or_replace_cluster_with_backups() {
     --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 }
 
 create_or_replace_cluster_from_backup() {
@@ -424,7 +405,7 @@ create_or_replace_cluster_from_backup() {
     --set-string cluster.metadata.annotations.replicasService.replicas-service-label="$RANDOM_VALUE" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 }
 
 check_operator_delete() {

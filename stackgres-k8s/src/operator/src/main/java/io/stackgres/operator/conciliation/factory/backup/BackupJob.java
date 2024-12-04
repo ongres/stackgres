@@ -73,7 +73,7 @@ public class BackupJob
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
   private final LabelFactoryForBackup labelFactory;
-  private final LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster;
+  private final LabelFactoryForCluster labelFactoryForCluster;
   private final ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory;
   private final KubectlUtil kubectl;
   private final ClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer;
@@ -83,7 +83,7 @@ public class BackupJob
   @Inject
   public BackupJob(
       LabelFactoryForBackup labelFactory,
-      LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
+      LabelFactoryForCluster labelFactoryForCluster,
       ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory,
       KubectlUtil kubectl,
       ClusterEnvironmentVariablesFactoryDiscoverer clusterEnvVarFactoryDiscoverer,
@@ -356,7 +356,7 @@ public class BackupJob
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_PRIMARY_ROLE")
-                    .withValue(PatroniUtil.PRIMARY_ROLE)
+                    .withValue(PatroniUtil.getPrimaryRole(cluster))
                     .build(),
                     new EnvVarBuilder()
                     .withName("PATRONI_REPLICA_ROLE")

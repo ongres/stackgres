@@ -3,6 +3,7 @@ ARG BASE_IMAGE
 FROM quay.io/ongres/patroni:v3.0.2-pg15.0-build-6.22 AS patroni_3_0_2
 FROM quay.io/ongres/patroni:v3.2.2-pg16.2-build-6.30 AS patroni_3_2_2
 FROM quay.io/ongres/patroni:v3.3.3-pg16.4-build-6.37 AS patroni_3_3_3
+FROM quay.io/ongres/patroni:v4.0.4-pg17.2-build-6.38 AS patroni_4_0_4
 
 FROM "$BASE_IMAGE"
   USER root:root
@@ -22,6 +23,11 @@ FROM "$BASE_IMAGE"
   RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.3.3')" /usr/bin/patronictl-3.3.3
   COPY --from=patroni_3_3_3 /usr/lib64/python3.11/site-packages /usr/lib/patroni-3.3.3
   COPY --from=patroni_3_3_3 /usr/lib/python3.11/site-packages /usr/lib/patroni-3.3.3
+
+  COPY --from=patroni_4_0_4 /usr/bin/patronictl /usr/bin/patronictl-4.0.4
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-4.0.4')" /usr/bin/patronictl-4.0.4
+  COPY --from=patroni_4_0_4 /usr/lib64/python3.11/site-packages /usr/lib/patroni-4.0.4
+  COPY --from=patroni_4_0_4 /usr/lib/python3.11/site-packages /usr/lib/patroni-4.0.4
 
   WORKDIR '/app/'
 

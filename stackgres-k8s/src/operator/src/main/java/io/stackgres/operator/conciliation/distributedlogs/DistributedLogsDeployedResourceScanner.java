@@ -25,10 +25,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
-import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -41,13 +45,13 @@ public class DistributedLogsDeployedResourceScanner
     implements ReconciliationOperations {
 
   private final KubernetesClient client;
-  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForDistributedLogs labelFactory;
 
   @Inject
   public DistributedLogsDeployedResourceScanner(
       DeployedResourcesCache deployedResourcesCache,
       KubernetesClient client,
-      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+      LabelFactoryForDistributedLogs labelFactory) {
     super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;
@@ -103,8 +107,12 @@ public class DistributedLogsDeployedResourceScanner
           Map.entry(Job.class, client -> client.batch().v1().jobs()),
           Map.entry(CronJob.class, client -> client.batch().v1().cronjobs()),
           Map.entry(StatefulSet.class, client -> client.apps().statefulSets()),
+          Map.entry(StackGresCluster.class, client -> client
+              .resources(StackGresCluster.class, StackGresClusterList.class)),
           Map.entry(StackGresScript.class, client -> client
-              .resources(StackGresScript.class, StackGresScriptList.class))
+              .resources(StackGresScript.class, StackGresScriptList.class)),
+          Map.entry(StackGresPostgresConfig.class, client -> client
+              .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class))
           );
 
 }

@@ -30,7 +30,7 @@ spec:
             properties:
               name:
                 type: string
-                maxLength: 52
+                maxLength: 44
                 pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
                 description: |
                   Name of the Distributed Logs cluster. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
@@ -108,54 +108,57 @@ spec:
                   primary:
                     type: object
                     description: Configuration for the `-primary` service. It provides a stable connection (regardless of primary failures or switchovers) to the read-write Postgres server of the cluster.
-                    properties:
+                    properties: &service-properties
                       type:
                         type: string
                         enum: ["ClusterIP", "LoadBalancer", "NodePort"]
                         description: Specifies the type of Kubernetes service(`ClusterIP`, `LoadBalancer`, `NodePort`)
-                      annotations:
+                      allocateLoadBalancerNodePorts: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.allocateLoadBalancerNodePorts
+                        {"description":"allocateLoadBalancerNodePorts defines if NodePorts will be automatically allocated for services with type LoadBalancer.  Default is \"true\". It may be set to \"false\" if the cluster load-balancer does not rely on NodePorts.  If the caller requests specific NodePorts (by specifying a value), those requests will be respected, regardless of this field. This field may only be set for services with type LoadBalancer and will be cleared if the type is changed to any other type.","type":"boolean"}
+                      externalIPs: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.externalIPs #allocateloadbalancernodeports-v1-core
+                        {"description":"externalIPs is a list of IP addresses for which nodes in the cluster will also accept traffic for this service.  These IPs are not managed by Kubernetes.  The user is responsible for ensuring that traffic arrives at a node with this IP.  A common example is external load-balancers that are not part of the Kubernetes system.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#allocateloadbalancernodeports-v1-core","items":{"type":"string"},"type":"array"}
+                      externalTrafficPolicy: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.externalTrafficPolicy
+                        {"description":"externalTrafficPolicy describes how nodes distribute service traffic they receive on one of the Service's \"externally-facing\" addresses (NodePorts, ExternalIPs, and LoadBalancer IPs). If set to \"Local\", the proxy will configure the service in a way that assumes that external load balancers will take care of balancing the service traffic between nodes, and so each node will deliver traffic only to the node-local endpoints of the service, without masquerading the client source IP. (Traffic mistakenly sent to a node with no endpoints will be dropped.) The default value, \"Cluster\", uses the standard behavior of routing to all endpoints evenly (possibly modified by topology and other features). Note that traffic sent to an External IP or LoadBalancer IP from within the cluster will always get \"Cluster\" semantics, but clients sending to a NodePort from within the cluster may need to take traffic policy into account when picking a node.","type":"string"}
+                      healthCheckNodePort: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.healthCheckNodePort
+                        {"description":"healthCheckNodePort specifies the healthcheck nodePort for the service. This only applies when type is set to LoadBalancer and externalTrafficPolicy is set to Local. If a value is specified, is in-range, and is not in use, it will be used.  If not specified, a value will be automatically allocated.  External systems (e.g. load-balancers) can use this port to determine if a given node holds endpoints for this service or not.  If this field is specified when creating a Service which does not need it, creation will fail. This field will be wiped when updating a Service to no longer need it (e.g. changing type). This field cannot be updated once set.","format":"int32","type":"integer"}
+                      internalTrafficPolicy: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.internalTrafficPolicy
+                        {"description":"InternalTrafficPolicy describes how nodes distribute service traffic they receive on the ClusterIP. If set to \"Local\", the proxy will assume that pods only want to talk to endpoints of the service on the same node as the pod, dropping the traffic if there are no local endpoints. The default value, \"Cluster\", uses the standard behavior of routing to all endpoints evenly (possibly modified by topology and other features).","type":"string"}
+                      ipFamilies: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.ipFamilies
+                        {"description":"IPFamilies is a list of IP families (e.g. IPv4, IPv6) assigned to this service. This field is usually assigned automatically based on cluster configuration and the ipFamilyPolicy field. If this field is specified manually, the requested family is available in the cluster, and ipFamilyPolicy allows it, it will be used; otherwise creation of the service will fail. This field is conditionally mutable: it allows for adding or removing a secondary IP family, but it does not allow changing the primary IP family of the Service. Valid values are \"IPv4\" and \"IPv6\".  This field only applies to Services of types ClusterIP, NodePort, and LoadBalancer, and does apply to \"headless\" services. This field will be wiped when updating a Service to type ExternalName.\n\nThis field may hold a maximum of two entries (dual-stack families, in either order).  These families must correspond to the values of the clusterIPs field, if specified. Both clusterIPs and ipFamilies are governed by the ipFamilyPolicy field.","items":{"type":"string"},"type":"array"}
+                      ipFamilyPolicy: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.ipFamilyPolicy
+                        {"description":"IPFamilyPolicy represents the dual-stack-ness requested or required by this Service. If there is no value provided, then this field will be set to SingleStack. Services can be \"SingleStack\" (a single IP family), \"PreferDualStack\" (two IP families on dual-stack configured clusters or a single IP family on single-stack clusters), or \"RequireDualStack\" (two IP families on dual-stack configured clusters, otherwise fail). The ipFamilies and clusterIPs fields depend on the value of this field. This field will be wiped when updating a service to type ExternalName.","type":"string"}
+                      loadBalancerClass: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.loadBalancerClass
+                        {"description":"loadBalancerClass is the class of the load balancer implementation this Service belongs to. If specified, the value of this field must be a label-style identifier, with an optional prefix, e.g. \"internal-vip\" or \"example.com/internal-vip\". Unprefixed names are reserved for end-users. This field can only be set when the Service type is 'LoadBalancer'. If not set, the default load balancer implementation is used, today this is typically done through the cloud provider integration, but should apply for any default implementation. If set, it is assumed that a load balancer implementation is watching for Services with a matching class. Any default load balancer implementation (e.g. cloud providers) should ignore Services that set this field. This field can only be set when creating or updating a Service to type 'LoadBalancer'. Once set, it can not be changed. This field will be wiped when a service is updated to a non 'LoadBalancer' type.","type":"string"}
+                      loadBalancerIP: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.loadBalancerIP
+                        {"description":"Only applies to Service Type: LoadBalancer. This feature depends on whether the underlying cloud-provider supports specifying the loadBalancerIP when a load balancer is created. This field will be ignored if the cloud-provider does not support the feature. Deprecated: This field was under-specified and its meaning varies across implementations. Using it is non-portable and it may not support dual-stack. Users are encouraged to use implementation-specific annotations when available.","type":"string"}
+                      loadBalancerSourceRanges: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.loadBalancerSourceRanges
+                        {"description":"If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs. This field will be ignored if the cloud-provider does not support the feature.\" More info: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/","items":{"type":"string"},"type":"array"}
+                      publishNotReadyAddresses: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.publishNotReadyAddresses
+                        {"description":"publishNotReadyAddresses indicates that any agent which deals with endpoints for this Service should disregard any indications of ready/not-ready. The primary use case for setting this field is for a StatefulSet's Headless Service to propagate SRV DNS records for its Pods for the purpose of peer discovery. The Kubernetes controllers that generate Endpoints and EndpointSlice resources for Services interpret this to mean that all endpoints are considered \"ready\" even if the Pods themselves are not. Agents which consume only Kubernetes generated endpoints through the Endpoints or EndpointSlice resources can safely assume this behavior.","type":"boolean"}
+                      sessionAffinity: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.sessionAffinity
+                        {"description":"Supports \"ClientIP\" and \"None\". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies","type":"string"}
+                      sessionAffinityConfig: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.sessionAffinityConfig #sessionaffinityconfig-v1-core
+                        {"description":"SessionAffinityConfig represents the configurations of session affinity.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#sessionaffinityconfig-v1-core","properties":{"clientIP":{"description":"ClientIPConfig represents the configurations of Client IP based session affinity.","properties":{"timeoutSeconds":{"description":"timeoutSeconds specifies the seconds of ClientIP type session sticky time. The value must be >0 && <=86400(for 1 day) if ServiceAffinity == \"ClientIP\". Default value is 10800(for 3 hours).","format":"int32","type":"integer"}},"type":"object"}},"type":"object"}
+                      nodePorts:
                         type: object
-                        additionalProperties:
-                          type: string
-                        description: |
-                          Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
-
-                          **Example:**
-                          
-                          ```yaml
-                          apiVersion: stackgres.io/v1
-                          kind: SGDistributedLogs
-                          metadata:
-                            name: stackgres
-                          spec:
-                            pods:
-                              metadata:
-                                annotations:
-                                  allResources:
-                                    customAnnotations: customAnnotationValue
-                          ```
-                      loadBalancerIP:
-                        type: string
-                        description: Specify loadBalancer IP of Postgres primary service for Distributed Log
+                        description: nodePorts is a list of ports for exposing a cluster services to the outside
+                          world
+                        properties:
+                          pgport:
+                            type: integer
+                            description: the node port that will be exposed to connect to Postgres instance
+                          replicationport:
+                            type: integer
+                            description: the node port that will be exposed to connect to Postgres instance
+                              for replication purpose
                   replicas:
                     type: object
                     description: Configuration for the `-replicas` service. It provides a stable connection (regardless of replica node failures) to any read-only Postgres server of the cluster. Read-only servers are load-balanced via this service.
                     properties:
+                      <<: *service-properties
                       enabled:
                         type: boolean
                         description: Specify if the `-replicas` service should be created or not.
-                      type:
-                        type: string
-                        enum: ["ClusterIP", "LoadBalancer", "NodePort"]
-                        description: Specifies the type of Kubernetes service(`ClusterIP`, `LoadBalancer`, `NodePort`).
-                      annotations:
-                        type: object
-                        additionalProperties:
-                          type: string
-                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.                
-                      loadBalancerIP:
-                        type: string
-                        description: Specify loadBalancer IP of Postgres replica service for Distributed Log
               resources:
                 type: object
                 description: Pod custom resources configuration.
@@ -215,61 +218,87 @@ spec:
                       **Changing this field may require a restart.**
               metadata:
                 type: object
-                description: Metadata information from cluster created resources.
+                description: Metadata information for cluster created resources.
                 properties:
                   annotations:
                     type: object
-                    description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+                    description: |
+                      Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+
+                      **Example:**
+
+                      ```yaml
+                      apiVersion: stackgres.io/v1
+                      kind: SGDistributedLogs
+                      metadata:
+                        name: stackgres
+                      spec:
+                        metadata:
+                          annotations:
+                            clusterPods:
+                              key: value
+                            primaryService:
+                              key: value
+                            replicasService:
+                              key: value
+                      ```
                     properties:
                       allResources:
                         type: object
                         description: Annotations to attach to any resource created or managed by StackGres.
                         additionalProperties:
                           type: string
-                      pods:
+                      clusterPods:
                         type: object
                         description: Annotations to attach to pods created or managed by StackGres.
                         additionalProperties:
                           type: string
                       services:
                         type: object
-                        description: Annotations to attach to services created or managed by StackGres.
+                        description: Annotations to attach to all services created or managed by StackGres.
                         additionalProperties:
                           type: string
-              toInstallPostgresExtensions:
-                type: array
-                description: |
-                  The list of Postgres extensions to install.
-                  
-                  **This section is filled by the operator.**
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      description: The name of the extension to install.
-                    publisher:
-                      type: string
-                      description: The id of the publisher of the extension to install.
-                    version:
-                      type: string
-                      description: The version of the extension to install.
-                    repository:
-                      type: string
-                      description: The repository base URL from where the extension will be installed from.
-                    postgresVersion:
-                      type: string
-                      description: The postgres major version of the extension to install.
-                    build:
-                      type: string
-                      description: The build version of the extension to install.
-                    extraMounts:
-                      type: array
-                      description: The extra mounts of the extension to install.
-                      items:
-                        type: string
-                        description: The extra mount of the installed extension.
-                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                      primaryService:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                        additionalProperties:
+                          type: string
+                      replicasService:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.
+                        additionalProperties:
+                          type: string
+                  labels:
+                    type: object
+                    description: |
+                      Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.
+
+                      **Example:**
+
+                      ```yaml
+                      apiVersion: stackgres.io/v1
+                      kind: SGDistributedLogs
+                      metadata:
+                        name: stackgres
+                      spec:
+                        metadata:
+                          labels:
+                            clusterPods:
+                              customLabel: customLabelValue
+                            services:
+                              customLabel: customLabelValue
+                      ```
+                    properties:
+                      clusterPods:
+                        type: object
+                        description: Labels to attach to Pods created or managed by StackGres.
+                        additionalProperties:
+                          type: string 
+                      services:
+                        type: object
+                        description: Labels to attach to Services and Endpoints created or managed by StackGres.
+                        additionalProperties:
+                          type: string 
               nonProductionOptions:
                 type: object
                 properties:
@@ -369,47 +398,12 @@ spec:
                     type:
                       description: Type of deployment condition.
                       type: string
-              podStatuses:
-                type: array
-                description: The list of pod statuses.
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      description: The name of the pod.
-                    primary:
-                      type: boolean
-                      description: Indicates if the pod is the elected primary
-                    pendingRestart:
-                      type: boolean
-                      description: Indicates if the pod requires restart
-                    installedPostgresExtensions:
-                      type: array
-                      description: The list of extensions currently installed.
-                      items:
-                        type: object
-                        properties:
-                          name:
-                            type: string
-                            description: The name of the installed extension.
-                          publisher:
-                            type: string
-                            description: The id of the publisher of the installed extension.
-                          version:
-                            type: string
-                            description: The version of the installed extension.
-                          repository:
-                            type: string
-                            description: The repository base URL from where the extension was installed.
-                          postgresVersion:
-                            type: string
-                            description: The postgres major version of the installed extension.
-                          build:
-                            type: string
-                            description: The build version of the installed extension.
-                        required: ["name", "publisher", "version", "repository", "postgresVersion"]
-                  required: ["name"]
+              postgresVersion:
+                type: string
+                description: The used Postgres version
+              timescaledbVersion:
+                type: string
+                description: The used Timescaledb version
               databases:
                 type: array
                 description: The list of database status
@@ -449,12 +443,9 @@ spec:
               fluentdConfigHash:
                 type: string
                 description: The hash of the configuration file that is used by fluentd
-              arch:
-                type: string
-                description: The architecture on which the cluster has been initialized.
-              os:
-                type: string
-                description: The operative system on which the cluster has been initialized.
               labelPrefix:
                 type: string
                 description: The custom prefix that is prepended to all labels.
+              oldConfigMapRemoved:
+                type: boolean
+                description: Flag to indicate the previous existing ConfigMap has been removed.

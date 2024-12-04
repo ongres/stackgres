@@ -38,6 +38,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
@@ -200,15 +201,16 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .build())
         .editSpec()
         .withScripts(
-            getCitusUpdateShardsScript(context))
+            getCitusUpdateShardsScript(context, 0))
         .endSpec()
         .build();
   }
 
   private static StackGresScriptEntry getCitusUpdateShardsScript(
-      StackGresShardedClusterContext context) {
+      StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withId(id)
         .withName("citus-update-shards")
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
@@ -237,8 +239,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
                     "/citus/citus-update-shards.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(
-                    superuserCredentials.v1,
-                    "password=" + superuserCredentials.v2))))
+                    DSL.inline(superuserCredentials.v1),
+                    DSL.inline("password=" + DSL.inline(superuserCredentials.v2))))))
         .build();
     return secret;
   }

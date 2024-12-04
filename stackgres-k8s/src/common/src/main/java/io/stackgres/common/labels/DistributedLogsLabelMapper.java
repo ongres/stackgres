@@ -13,7 +13,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGresDistributedLogs> {
+public class DistributedLogsLabelMapper implements LabelMapperForDistributedLogs {
 
   @Override
   public String appName() {
@@ -33,11 +33,6 @@ public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGr
   @Override
   public String resourceUidKey(StackGresDistributedLogs resource) {
     return getKeyPrefix(resource) + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_UID_KEY;
-  }
-
-  @Override
-  public String resourceScopeKey(StackGresDistributedLogs resource) {
-    return getKeyPrefix(resource) + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_SCOPE_KEY;
   }
 
   @Override

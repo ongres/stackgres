@@ -17,9 +17,9 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.PatroniCtl;
-import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
@@ -65,13 +65,15 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
         .findByNameAndNamespace(podName, cluster.getMetadata().getNamespace())
         .orElseThrow(() -> new IllegalStateException("Pod " + podName + " not found"));
     final AtomicBoolean roleUpdated = new AtomicBoolean(false);
+    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
+    final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
 
     podWriter.update(pod, currentPod -> {
       final String role = patroniCtl.list()
           .stream()
           .filter(member -> podName.equals(member.getMember()))
           .findFirst()
-          .map(PatroniMember::getLabelRole)
+          .map(member -> member.getLabelRole(patroniMajorVersion))
           .orElse(null);
       if (role == null) {
         if (Optional.ofNullable(currentPod.getMetadata().getLabels())

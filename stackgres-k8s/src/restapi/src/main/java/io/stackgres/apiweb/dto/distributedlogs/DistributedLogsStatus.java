@@ -27,6 +27,10 @@ public class DistributedLogsStatus {
 
   private List<String> clusters;
 
+  private String postgresVersion;
+
+  private String timescaledbVersion;
+
   private String fluentdConfigHash;
 
   private String arch;
@@ -34,6 +38,8 @@ public class DistributedLogsStatus {
   private String os;
 
   private String labelPrefix;
+
+  private Boolean oldConfigMapRemoved;
 
   public List<DistributedLogsCondition> getConditions() {
     return conditions;
@@ -75,6 +81,22 @@ public class DistributedLogsStatus {
     this.clusters = clusters;
   }
 
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getTimescaledbVersion() {
+    return timescaledbVersion;
+  }
+
+  public void setTimescaledbVersion(String timescaledbVersion) {
+    this.timescaledbVersion = timescaledbVersion;
+  }
+
   public String getFluentdConfigHash() {
     return fluentdConfigHash;
   }
@@ -105,6 +127,14 @@ public class DistributedLogsStatus {
 
   public void setLabelPrefix(String labelPrefix) {
     this.labelPrefix = labelPrefix;
+  }
+
+  public Boolean getOldConfigMapRemoved() {
+    return oldConfigMapRemoved;
+  }
+
+  public void setOldConfigMapRemoved(Boolean oldConfigMapRemoved) {
+    this.oldConfigMapRemoved = oldConfigMapRemoved;
   }
 
   @Override

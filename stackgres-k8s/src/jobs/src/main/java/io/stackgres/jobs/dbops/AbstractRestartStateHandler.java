@@ -63,7 +63,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
+  LabelFactoryForCluster labelFactory;
 
   @Inject
   ResourceFinder<StatefulSet> statefulSetFinder;
@@ -408,7 +408,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return pods.stream()
         .filter(pod -> pod.getMetadata().getLabels() != null)
         .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
-            pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
+            pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
+            || PatroniUtil.OLD_PRIMARY_ROLE.equals(
+                pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
         .findFirst()
         .map(pod -> pod.getMetadata().getName())
         .or(() -> patroniApiHandler.getLatestPrimaryFromPatroni(

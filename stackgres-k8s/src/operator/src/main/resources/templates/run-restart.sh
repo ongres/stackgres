@@ -92,8 +92,16 @@ EOF
   then
     echo "Restarting primary inscante first..."
 
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
-      patronictl restart "$CLUSTER_NAME" -r master --force \
+    PATRONICTL_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+      patronictl version 2>/dev/null | sed -n 's/^patronictl version //p')"
+    if [ "${PATRONICTL_VERSION%%.*}" -lt 4 ]
+    then
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+        patronictl restart "$CLUSTER_NAME" -r master --force
+    else
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+        patronictl restart "$CLUSTER_NAME" -r primary --force
+    fi
 
     echo "Waiting primary instance $PRIMARY_INSTANCE to be ready..."
 
@@ -175,8 +183,16 @@ EOF
     then
       echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
-        patronictl switchover "$CLUSTER_NAME" --primary "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
+      PATRONICTL_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+        patronictl version 2>/dev/null | sed -n 's/^patronictl version //p')"
+      if [ "${PATRONICTL_VERSION%%.*}" -lt 4 ]
+      then
+        kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+          patronictl switchover "$CLUSTER_NAME" --primary "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force
+      else
+        kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+          patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force
+      fi
 
       echo "done"
       echo

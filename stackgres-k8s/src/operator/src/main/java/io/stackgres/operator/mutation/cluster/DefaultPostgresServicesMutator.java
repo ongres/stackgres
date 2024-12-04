@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,13 +24,13 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
     }
 
     if (resource.getSpec().getPostgresServices() == null) {
-      resource.getSpec().setPostgresServices(new StackGresClusterPostgresServices());
+      resource.getSpec().setPostgresServices(new StackGresPostgresServices());
     }
     if (resource.getSpec().getPostgresServices().getPrimary() == null) {
-      resource.getSpec().getPostgresServices().setPrimary(new StackGresClusterPostgresService());
+      resource.getSpec().getPostgresServices().setPrimary(new StackGresPostgresService());
     }
     if (resource.getSpec().getPostgresServices().getReplicas() == null) {
-      resource.getSpec().getPostgresServices().setReplicas(new StackGresClusterPostgresService());
+      resource.getSpec().getPostgresServices().setReplicas(new StackGresPostgresService());
     }
     setPostgresService(resource.getSpec().getPostgresServices().getPrimary());
     setPostgresService(resource.getSpec().getPostgresServices().getReplicas());
@@ -39,7 +39,7 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
   }
 
   private void setPostgresService(
-      StackGresClusterPostgresService postgresService) {
+      StackGresPostgresService postgresService) {
     if (postgresService.getEnabled() == null) {
       postgresService.setEnabled(Boolean.TRUE);
     }

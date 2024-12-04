@@ -22,11 +22,11 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
-import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -42,6 +42,9 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.LogVolumeMounts;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsCluster;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsFlunetdConfigMap;
+import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsService;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -51,7 +54,7 @@ import org.slf4j.LoggerFactory;
 
 @Sidecar(StackGresContainer.FLUENT_BIT)
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(stopAt = StackGresVersion.V_1_15)
 @RunningContainer(StackGresContainer.FLUENT_BIT)
 public class FluentBit implements
     ContainerFactory<ClusterContainerContext>,
@@ -60,14 +63,14 @@ public class FluentBit implements
   private static final Logger FLEUNTBIT_LOGGER = LoggerFactory.getLogger("io.stackgres.fluent-bit");
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   private final LogVolumeMounts logMounts;
   private final PostgresSocketMount postgresSocket;
   private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
 
   @Inject
-  public FluentBit(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public FluentBit(LabelFactoryForCluster labelFactory,
       LogVolumeMounts logMounts,
       PostgresSocketMount postgresSocket,
       ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
@@ -114,7 +117,7 @@ public class FluentBit implements
                 + "/" + ClusterPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH.filename())
         .addToEnv(
             new EnvVarBuilder()
-            .withName("FLUENT_BIT_LAST_CONFIG_PATH")
+            .withName(ClusterPath.FLUENT_BIT_LAST_CONFIG_PATH.name())
             .withValue(ClusterPath.FLUENT_BIT_LAST_CONFIG_PATH.path())
             .build())
         .addAllToEnv(logMounts.getDerivedEnvVars(context))
@@ -159,7 +162,7 @@ public class FluentBit implements
         .getDistributedLogs().getSgDistributedLogs();
     final String fluentdNamespace =
         StackGresUtil.getNamespaceFromRelativeId(fluentdRelativeId, namespace);
-    final String fluentdServiceName = FluentdUtil.serviceName(
+    final String fluentdServiceName = DistributedLogsService.serviceName(
         StackGresUtil.getNameFromRelativeId(fluentdRelativeId));
 
     String parsersConfigFile = ""
@@ -206,7 +209,7 @@ public class FluentBit implements
         + "[INPUT]\n"
         + "    Name              tail\n"
         + "    Path              " + ClusterPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
-        + "    Tag               " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
+        + "    Tag               " + DistributedLogsFlunetdConfigMap.POSTGRES_LOG_TYPE + "\n"
         + "    DB                " + ClusterPath.PG_LOG_PATH.path() + "/postgreslog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  postgreslog_firstline\n"
@@ -218,7 +221,7 @@ public class FluentBit implements
         + "    Name              tail\n"
         + "    Key               message\n"
         + "    Path              " + ClusterPath.PG_LOG_PATH.path() + "/patroni*.log\n"
-        + "    Tag               " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
+        + "    Tag               " + DistributedLogsFlunetdConfigMap.PATRONI_LOG_TYPE + "\n"
         + "    DB                " + ClusterPath.PG_LOG_PATH.path() + "/patronilog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  patronilog_firstline\n"
@@ -228,17 +231,17 @@ public class FluentBit implements
         + "\n"
         + "[FILTER]\n"
         + "    Name         rewrite_tag\n"
-        + "    Match        " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
+        + "    Match        " + DistributedLogsFlunetdConfigMap.POSTGRES_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
-        + tagName(cluster, FluentdUtil.POSTGRES_LOG_TYPE)
+        + tagName(cluster, DistributedLogsFlunetdConfigMap.POSTGRES_LOG_TYPE)
         + "." + clusterNamespace + ".${HOSTNAME} " + (FLEUNTBIT_LOGGER.isDebugEnabled() ? "true" : "false") + "\n"
         + "    Emitter_Name postgres_re_emitted"
         + "\n"
         + "[FILTER]\n"
         + "    Name         rewrite_tag\n"
-        + "    Match        " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
+        + "    Match        " + DistributedLogsFlunetdConfigMap.PATRONI_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
-        + tagName(cluster, FluentdUtil.PATRONI_LOG_TYPE)
+        + tagName(cluster, DistributedLogsFlunetdConfigMap.PATRONI_LOG_TYPE)
         + "." + clusterNamespace + ".${HOSTNAME} " + (FLEUNTBIT_LOGGER.isDebugEnabled() ? "true" : "false") + "\n"
         + "    Emitter_Name patroni_re_emitted"
         + "\n"
@@ -255,15 +258,15 @@ public class FluentBit implements
         + "    Name              forward\n"
         + "    Match             " + tagName(cluster, "*") + "\n"
         + "    Host              " + fluentdServiceName + "." + fluentdNamespace + "\n"
-        + "    Port              " + FluentdUtil.FORWARD_PORT + "\n"
+        + "    Port              " + DistributedLogsCluster.FORWARD_PORT + "\n"
         + "\n"
         + "[OUTPUT]\n"
         + "    Name              stdout\n"
-        + "    Match             " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
+        + "    Match             " + DistributedLogsFlunetdConfigMap.PATRONI_LOG_TYPE + "\n"
         + "\n"
         + "[OUTPUT]\n"
         + "    Name              stdout\n"
-        + "    Match             " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
+        + "    Match             " + DistributedLogsFlunetdConfigMap.POSTGRES_LOG_TYPE + "\n"
         + "\n";
     Map<String, String> data = Map.of(
         "parsers.conf", parsersConfigFile,

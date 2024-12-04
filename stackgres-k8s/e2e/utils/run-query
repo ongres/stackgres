@@ -8,7 +8,7 @@ run_query() {
   local HOST=127.0.0.1
   local DATABASE=postgres
   local INSTANCE=0
-  local CONTAINER="postgres-util"
+  local CONTAINER=""
   local TYPE="postgres"
   local SSLMODE=prefer
   local USERNAME=
@@ -52,6 +52,10 @@ run_query() {
 
   if [ "$TYPE" = postgres ]
   then
+    if [ -z "$CONTAINER" ]
+    then
+      CONTAINER=patroni
+    fi
     if [ -z "$USERNAME" ]
     then
       USERNAME="$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
@@ -66,6 +70,10 @@ run_query() {
       psql -q -t -A -U "$USERNAME" -d "$DATABASE" -p "$PORT" -h "$HOST" -c "$QUERY"
   elif [ "$TYPE" = babelfish ]
   then
+    if [ -z "$CONTAINER" ]
+    then
+      CONTAINER=postgres-util
+    fi
     if [ -z "$USERNAME" ]
     then
       USERNAME="babelfish:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \

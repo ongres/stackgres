@@ -7,13 +7,13 @@ BEGIN
       format(
         $rdl$
         REGISTER STORAGE UNIT IF NOT EXISTS %%1s (
-          HOST = '%%2s',
+          HOST = %%2s,
           PORT = %3$d,
-          DB = '%4$s',
-          USER = '%5$s',
-          PASSWORD = '%6$s');
+          DB = %4$s,
+          USER = %5$s,
+          PASSWORD = %6$s);
         $rdl$,
         'ds_' || worker_index,
-        format('%2$s', worker_index)));
+        quote_literal(format(%2$s, worker_index))));
   END LOOP;
 END$updateworkers$;

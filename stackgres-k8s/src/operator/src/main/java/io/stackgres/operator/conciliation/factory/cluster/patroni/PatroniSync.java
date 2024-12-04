@@ -22,10 +22,10 @@ import jakarta.inject.Singleton;
 @OperatorVersionBinder
 public class PatroniSync implements ResourceGenerator<StackGresClusterContext> {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster labelFactory;
 
   @Inject
-  public PatroniSync(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  public PatroniSync(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
   }
 

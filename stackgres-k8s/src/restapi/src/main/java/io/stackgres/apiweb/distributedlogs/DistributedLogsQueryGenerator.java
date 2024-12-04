@@ -102,6 +102,7 @@ public class DistributedLogsQueryGenerator {
       .as(LOG_TYPE_FIELD);
   public static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
       .when(PatroniUtil.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
+      .when(PatroniUtil.OLD_PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
       .when(PatroniUtil.REPLICA_ROLE, REPLICA_ROLE_VALUE)
       .when(PatroniUtil.PROMOTED_ROLE, PROMOTED_ROLE_VALUE)
       .when(PatroniUtil.DEMOTED_ROLE, DEMOTED_ROLE_VALUE)

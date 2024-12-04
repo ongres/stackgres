@@ -9,9 +9,11 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.stackgres.common.ErrorType;
@@ -22,6 +24,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgrad
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -88,6 +91,9 @@ public class DbOpsMajorVersionUpgradeValidator implements DbOpsValidator {
                 .map(ObjectMeta::getOwnerReferences)
                 .stream()
                 .flatMap(List::stream)
+                .filter(ownerReference -> !Objects.equals(
+                    ownerReference.getKind(),
+                    HasMetadata.getKind(StackGresDistributedLogs.class)))
                 .filter(ownerReference -> ownerReference.getController() != null
                     && ownerReference.getController())
                 .findFirst();

@@ -31,14 +31,17 @@ while true
 do
   if ! is_child "$PID" || has_config_changed
   then
-    update_config
     if [ -n "$PID" ] && is_child "$PID"
     then
+      >&2 echo "Restarting fluent-bit process"
       kill "$PID" || true
       wait "$PID" || true
+    else
+      >&2 echo "fluent-bit process not found, starting it"
     fi
     run_fluentbit &
     PID="$!"
+    update_config
   fi
   sleep 5
 done

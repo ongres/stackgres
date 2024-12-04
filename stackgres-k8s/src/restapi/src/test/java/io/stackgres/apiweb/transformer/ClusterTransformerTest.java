@@ -27,6 +27,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.common.crd.Condition;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -37,7 +38,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
@@ -250,9 +250,9 @@ class ClusterTransformerTest {
   }
 
   private static TransformerTuple<
-      ClusterPostgresServices, StackGresClusterPostgresServices> createPostgresServices() {
+      ClusterPostgresServices, StackGresPostgresServices> createPostgresServices() {
     return TransformerTestUtil.fillTupleWithRandomData(ClusterPostgresServices.class,
-        StackGresClusterPostgresServices.class);
+        StackGresPostgresServices.class);
   }
 
   private static TransformerTuple<

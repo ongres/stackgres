@@ -87,7 +87,7 @@ public class ShardedClusterReconciliator
     if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
         .contains(config.getSpec().getPostgres().getVersion())) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
-          "Sharded Cluster " + config.getMetadata().getNamespace() + "."
+          "SGShardedCluster " + config.getMetadata().getNamespace() + "."
               + config.getMetadata().getName() + " is using PostgreSQL "
               + config.getSpec().getPostgres().getVersion() + ". "
               + PostgresConfigValidator.BUGGY_PG_VERSIONS.get(
@@ -111,7 +111,7 @@ public class ShardedClusterReconciliator
   protected void onConfigCreated(StackGresShardedCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
-        "Sharded Cluster " + cluster.getMetadata().getNamespace() + "."
+        "SGShardedCluster " + cluster.getMetadata().getNamespace() + "."
             + cluster.getMetadata().getName() + " created: " + resourceChanged, cluster);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), cluster);
@@ -121,7 +121,7 @@ public class ShardedClusterReconciliator
   protected void onConfigUpdated(StackGresShardedCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
-        "Sharded Cluster " + cluster.getMetadata().getNamespace() + "."
+        "SGShardedCluster " + cluster.getMetadata().getNamespace() + "."
             + cluster.getMetadata().getName() + " updated: " + resourceChanged, cluster);
     statusManager.updateCondition(
         ClusterStatusCondition.FALSE_FAILED.getCondition(), cluster);
@@ -130,7 +130,7 @@ public class ShardedClusterReconciliator
   @Override
   protected void onError(Exception ex, StackGresShardedCluster cluster) {
     String message = MessageFormatter.arrayFormat(
-        "Cluster reconciliation cycle failed",
+        "SGShardedCluster reconciliation cycle failed",
         new String[]{
         }).getMessage();
     eventController.sendEvent(ClusterEventReason.CLUSTER_CONFIG_ERROR,

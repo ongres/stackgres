@@ -143,7 +143,7 @@ public enum StackGresVersion {
     return getStackGresVersionFromResource(stream);
   }
 
-  private static StackGresVersion getStackGresVersionFromResource(HasMetadata resource) {
+  public static StackGresVersion getStackGresVersionFromResource(HasMetadata resource) {
     return Optional.of(resource)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)

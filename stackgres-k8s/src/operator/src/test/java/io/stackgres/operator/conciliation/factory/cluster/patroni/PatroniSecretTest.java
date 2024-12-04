@@ -78,7 +78,7 @@ class PatroniSecretTest {
       ResourceUtil.decodeSecret(existentSecret.getData());
 
   @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster labelFactory;
 
   @Mock
   private StackGresClusterContext context;

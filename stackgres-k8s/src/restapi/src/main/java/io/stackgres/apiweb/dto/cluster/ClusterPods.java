@@ -22,7 +22,7 @@ import io.stackgres.common.crd.CustomVolumeMount;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClusterPods {
 
-  private ClusterPodPersistentVolume persistentVolume;
+  private ClusterPodsPersistentVolume persistentVolume;
 
   private Boolean disableConnectionPooling;
 
@@ -34,7 +34,7 @@ public class ClusterPods {
 
   private ClusterResources resources;
 
-  private ClusterPodScheduling scheduling;
+  private ClusterPodsScheduling scheduling;
 
   private List<CustomVolume> customVolumes;
 
@@ -46,11 +46,11 @@ public class ClusterPods {
 
   private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
 
-  public ClusterPodPersistentVolume getPersistentVolume() {
+  public ClusterPodsPersistentVolume getPersistentVolume() {
     return persistentVolume;
   }
 
-  public void setPersistentVolume(ClusterPodPersistentVolume persistentVolume) {
+  public void setPersistentVolume(ClusterPodsPersistentVolume persistentVolume) {
     this.persistentVolume = persistentVolume;
   }
 
@@ -94,11 +94,11 @@ public class ClusterPods {
     this.resources = resources;
   }
 
-  public ClusterPodScheduling getScheduling() {
+  public ClusterPodsScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(ClusterPodScheduling scheduling) {
+  public void setScheduling(ClusterPodsScheduling scheduling) {
     this.scheduling = scheduling;
   }
 

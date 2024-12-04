@@ -24,6 +24,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.CustomContainer;
@@ -52,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigMapTest {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
+  private final LabelFactoryForCluster labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
@@ -276,7 +277,7 @@ class PatroniConfigMapTest {
         .get("kubernetes")
         .get("ports"), List.class);
     Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
-        .filter(ep -> "custom-".concat(csPort.getName()).equals(ep.get("name").toString()))
+        .filter(ep -> StackGresPort.CUSTOM.getName(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
     assertTrue(customPortIntValue.isPresent());
   }
@@ -314,7 +315,7 @@ class PatroniConfigMapTest {
         .get("kubernetes")
         .get("ports"), List.class);
     Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
-        .filter(ep -> "custom-".concat(csPort.getName()).equals(ep.get("name").toString()))
+        .filter(ep -> StackGresPort.CUSTOM.getName(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
     assertTrue(customPortIntValue.isPresent());
   }
