@@ -14,6 +14,6 @@ BEGIN
           PASSWORD = %6$s);
         $rdl$,
         'ds_' || worker_index,
-        format(%2$s, worker_index)));
+        quote_literal(format(%2$s, worker_index))));
   END LOOP;
 END$updateworkers$;
