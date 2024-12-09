@@ -159,4 +159,4 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            kubectl delete sgconfig -n "{{ .Values.sgConfigNamespace | default .Release.Namespace }}" "{{ .Release.Name }}"
+            kubectl delete sgconfig --ignore-not-found -n "{{ .Values.sgConfigNamespace | default .Release.Namespace }}" "{{ .Release.Name }}"
