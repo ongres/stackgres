@@ -26,11 +26,6 @@ data:
     apiVersion: stackgres.io/v1
     kind: SGConfig
     metadata:
-      annotations:
-        meta.helm.sh/release-name: {{ .Release.Name }}
-        meta.helm.sh/release-namespace: {{ .Release.Namespace }}
-      labels:
-        app.kubernetes.io/managed-by: Helm
       name: {{ .Release.Name }}
       namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
     spec:
@@ -91,7 +86,21 @@ spec:
           - "-ecx"
           - |
             kubectl replace -f /SGConfig.yaml
-            kubectl apply -f /sgconfig.yaml
+            RETRY=10
+            while true
+            do
+              if kubectl apply -f /sgconfig.yaml
+              then
+                break
+              else
+                if [ "$RETRY" -le 0 ]
+                then
+                  exit 1
+                fi
+                RETRY="$((RETRY - 1))"
+                sleep 2
+              fi
+            done
         volumeMounts:
         - name: sgconfig-crd
           mountPath: /SGConfig.yaml

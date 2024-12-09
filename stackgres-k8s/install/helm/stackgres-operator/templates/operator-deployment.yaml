@@ -75,6 +75,24 @@ spec:
             value: "{{ trimSuffix "-jvm" .Values.operator.image.tag }}"
           - name: DISABLE_RECONCILIATION
             value: "false"
+
+          # Remove after version 1.13 get out of support
+          - name: INSTALL_CONFIG
+            value: "true"
+          - name: SGCONFIG
+            value: |
+              apiVersion: stackgres.io/v1
+              kind: SGConfig
+              metadata:
+                name: {{ .Release.Name }}
+                namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
+              spec:
+                {{- $spec := dict }}
+                {{- range .Values.specFields }}
+                {{- $spec := set $spec . (index $.Values .) }}
+                {{- end }}
+                {{ regexReplaceAll "[^ ]+: null" (toYaml $spec | nindent 16) "" }}
+
           - name: INSTALL_CRDS
             value: "{{ if or .Values.disableClusterRole .Values.disableCrdsAndWebhooksUpdate }}false{{ else }}true{{ end }}"
           - name: WAIT_CRDS_UPGRADE
