@@ -229,8 +229,8 @@ check_backup_retention() {
 }
 
 get_completed_managed_backup_count() {
-  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns=PHASE:.status.process.status \
-    | grep 'Completed' | wc -l
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns=PHASE:.status.process.status,MANAGED:.spec.managedLifecycle \
+    | tr -s ' ' | grep -xF 'Completed true' | wc -l
 }
 
 enable_cluster_cron_schedule() {

@@ -254,4 +254,10 @@ check_major_version_upgrade_check() {
   check_mock_data_samehost "$CLUSTER_NAME"
   wait_until run_query -i 1 -q "SELECT 1;"
   check_mock_data_replication "$CLUSTER_NAME"
+  if kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
+  then
+    fail "was possible to connect to the cluster without password"
+  else
+    success "was not possible to connect to the cluster without password"
+  fi
 }

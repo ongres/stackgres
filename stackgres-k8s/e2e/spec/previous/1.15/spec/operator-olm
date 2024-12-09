@@ -1,5 +1,17 @@
 #!/bin/sh
 
+E2E_OLM_VERSION="${E2E_OLM_VERSION:-0.28.0}"
+
+. "$SPEC_PATH/abstract/metrics"
+
+e2e_test_extra_hash() {
+  printf 'E2E_OLM_VERSION=%s\n' "$E2E_OLM_VERSION"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "stackgres-k8s/install/operator-sdk"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
+}
+
 e2e_exclusive_lock() {
   true
 }
@@ -42,6 +54,8 @@ e2e_test() {
 
   run_test "Check that resources can be created" check_resources_creation
 
+  run_test "Checking that metrics are exported" check_metrics "$CLUSTER_1_NAME"
+
   run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
 
   if [ "$E2E_SKIP_CHECK_OPERATOR_DELETE" = true ]
@@ -67,6 +81,11 @@ check_operator_install() {
 
 install_operator_olm() {
   echo "Installing of operator bundle ($STACKGRES_VERSION)"
+
+  # The operator-sdk does not allow to load a bundle with IfNotPresent so we have to pull it from the remote repository
+  kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" operator-bundle \
+    --from-file=.dockerconfigjson="$HOME"/.docker/config.json
+
   cat << EOF > "$LOG_PATH/stackgres-operator-group.yaml"
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -475,29 +494,35 @@ e2e_load_images() {
   OPERATOR_BUNDLE_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
   OPERATOR_BUNDLE_CATALOG_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-catalog:$OPERATOR_BUNDLE_IMAGE_TAG"
 
-  # The operator-registry check the images from the remote repository
+  # The operator-registry check the bundle image from the remote repository
   BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
-  BUNDLE_OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%%:*}:$BUNDLE_STACKGRES_VERSION"
-  EXPECTED_OPERATOR_IMAGE="$BUNDLE_OPERATOR_IMAGE_NAME"
+  docker pull "$BUNDLE_IMAGE_NAME"
+  mkdir -p "$LOG_PATH/operator-bundle"
+  cat << EOF > "$LOG_PATH/operator-bundle.Dockerfile"
+FROM "$BUNDLE_IMAGE_NAME" AS bundle
 
-  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ] \
-    && test -f stackgres-k8s/ci/build/target/image-hashes."$(cat stackgres-k8s/ci/build/target/build_hash)" \
-    && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1
-  then
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" "$OPERATOR_BUNDLE_IMAGE_NAME"
-    docker tag "$OPERATOR_BUNDLE_IMAGE_NAME" "$BUNDLE_IMAGE_NAME"
-    docker tag "$OPERATOR_IMAGE_NAME" "$BUNDLE_OPERATOR_IMAGE_NAME"
-    load_image_k8s "$OPERATOR_BUNDLE_IMAGE_NAME"
-    load_image_k8s "$BUNDLE_IMAGE_NAME"
-    load_image_k8s "$BUNDLE_OPERATOR_IMAGE_NAME"
-    BUNDLE_IMAGE_DIGEST="$(docker manifest inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r .config.digest 2>/dev/null || true)"
-    if [ -z "$BUNDLE_IMAGE_DIGEST" ] \
-      || [ "$BUNDLE_IMAGE_DIGEST" \
-        != "$(docker inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r '.[0].RepoDigests[0]|split("@")[1]' 2>/dev/null)" ]
-    then
-      docker push "$BUNDLE_IMAGE_NAME"
-    fi
-  fi
+FROM debian AS overwrites
+  COPY --from=bundle / /bundle
+  RUN sed -i 's|^  name: .*$|  name: stackgres.v$BUNDLE_STACKGRES_VERSION|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i 's|^  version: .*$|  version: $BUNDLE_STACKGRES_VERSION|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i 's|^    containerImage: quay.io/stackgres/operator:.*$|    containerImage: $OPERATOR_IMAGE_NAME|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i 's|^                    image: quay.io/stackgres/operator:.*$|                    image: $OPERATOR_IMAGE_NAME|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_VERSION$/{\$!{N;s/name: OPERATOR_VERSION\n\( *\)value: .*$/name: OPERATOR_VERSION\n\1value: "$STACKGRES_VERSION"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\n\1value: "$IMAGE_TAG"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_JVM_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_JVM_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_JVM_IMAGE_VERSION\n\1value: "$NATIVE_IMAGE_TAG-jvm"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_NATIVE_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_NATIVE_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_NATIVE_IMAGE_VERSION\n\1value: "$NATIVE_IMAGE_TAG"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+
+FROM scratch
+  COPY --from=overwrites /bundle /
+$(
+    docker inspect "$BUNDLE_IMAGE_NAME" -f json \
+      | jq -r '.[0].Config.Labels|to_entries|.[]|"LABEL \"" + .key + "\"=\"" + .value + "\""' \
+      | sed 's/^/  /'
+)
+EOF
+  BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden-$(date +%s)-$RANDOM"
+  docker build -t "$BUNDLE_IMAGE_NAME" -f "$LOG_PATH/operator-bundle.Dockerfile" "$LOG_PATH/operator-bundle" 
+  docker push "$BUNDLE_IMAGE_NAME"
 }
 
 e2e_install_olm() {
@@ -509,7 +534,8 @@ e2e_install_olm() {
       || ! kubectl get clusterrole system:controller:operator-lifecycle-manager 2>/dev/null
     wait_until eval '! kubectl get namespace olm > /dev/null 2>&1'
     operator-sdk olm install \
-      --timeout "${E2E_TIMEOUT}s"
+      --timeout "${E2E_TIMEOUT}s" \
+      --version "$E2E_OLM_VERSION"
   fi
 
   CATALOG_IMAGE_NAME="${E2E_CATALOG_IMAGE_REGISTRY:-$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
@@ -530,9 +556,6 @@ name: stable
 entries:
   - name: stackgres.v$BUNDLE_STACKGRES_VERSION
 EOF
-  sed -i "s/^name: stackgres.v${BUNDLE_STACKGRES_VERSION%-*}.*$/name: stackgres.v$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
-  sed -i "s/^    version: ${BUNDLE_STACKGRES_VERSION%-*}.*$/    version: $BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
-  sed -i "s/^- image: \([^:]\+\):${BUNDLE_STACKGRES_VERSION%-*}.*$/- image: \1:$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
   opm validate "$LOG_PATH/operator-catalog"
   (
   cd "$LOG_PATH"
