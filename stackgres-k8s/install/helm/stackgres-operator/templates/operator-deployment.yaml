@@ -77,6 +77,7 @@ spec:
             value: "false"
 
           # Remove after version 1.13 get out of support
+          {{- if not .Values.skipInstallConfig }}
           - name: INSTALL_CONFIG
             value: "true"
           - name: SGCONFIG
@@ -92,6 +93,7 @@ spec:
                 {{- $spec := set $spec . (index $.Values .) }}
                 {{- end }}
                 {{ regexReplaceAll "[^ ]+: null" (toYaml $spec | nindent 16) "" }}
+          {{- end }}
 
           - name: INSTALL_CRDS
             value: "{{ if or .Values.disableClusterRole .Values.disableCrdsAndWebhooksUpdate }}false{{ else }}true{{ end }}"
