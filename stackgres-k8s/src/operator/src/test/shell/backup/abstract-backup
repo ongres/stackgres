@@ -65,25 +65,9 @@ kubectl_mock() {
     ;;
     ("get $BACKUP_CRD_NAME -A --template=$BACKUP_CR_TEMPLATE")
     ;;
-    ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template=$BACKUP_CONFIG_YAML")
+    ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG -o json")
     cat << EOF
-    baseBackups:
-      compression: "lz4"
-    storage:
-      type: "s3Compatible"
-      s3Compatible:
-        awsCredentials:
-          secretKeySelectors:
-            accessKeyId:
-              key: "accesskey"
-              name: "minio"
-            secretAccessKey:
-              key: "secretkey"
-              name: "minio"
-        endpoint: "http://minio.stackgres:9000"
-        enablePathStyleAddressing: true
-        bucket: "stackgres"
-        region: "k8s"
+{"spec":{"storage":{"type":"s3Compatible","s3Compatible":{"awsCredentials":{"secretKeySelectors":{"accessKeyId":{"key":"accesskey","name":"minio"},"secretAccessKey":{"key":"secretkey","name":"minio"}}},"endpoint":"http://minio.stackgres:9000","enablePathStyleAddressing":true,"bucket":"stackgres","region":"k8s"}}}}
 EOF
     ;;
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o name")

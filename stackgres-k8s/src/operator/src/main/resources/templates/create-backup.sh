@@ -203,79 +203,16 @@ get_backup_crs() {
 }
 
 create_or_update_backup_cr() {
-  BACKUP_CONFIG_YAML="$(cat << BACKUP_CONFIG_YAML_EOF
-    baseBackups:
-      compression: "$COMPRESSION"
-    storage:
-      type: "{{ .$STORAGE_TEMPLATE_PATH.type }}"
-      {{- with .$STORAGE_TEMPLATE_PATH.s3 }}
-      s3:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        awsCredentials:
-          secretKeySelectors:
-            accessKeyId:
-              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
-            secretAccessKey:
-              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-        {{ with .region }}region: "{{ . }}"{{ end }}
-        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
-      {{- end }}
-      {{- with .$STORAGE_TEMPLATE_PATH.s3Compatible }}
-      s3Compatible:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        awsCredentials:
-          secretKeySelectors:
-            accessKeyId:
-              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
-            secretAccessKey:
-              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-        {{ with .region }}region: "{{ . }}"{{ end }}
-        {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
-        {{ with .enablePathStyleAddressing }}enablePathStyleAddressing: {{ . }}{{ end }}
-        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
-      {{- end }}
-      {{- with .$STORAGE_TEMPLATE_PATH.gcs }}
-      gcs:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        gcpCredentials:
-          {{- if .gcpCredentials.fetchCredentialsFromMetadataService }}
-          fetchCredentialsFromMetadataService: true
-          {{- else }}
-          secretKeySelectors:
-            serviceAccountJSON:
-              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
-              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
-          {{- end }}
-      {{- end }}
-      {{- with .$STORAGE_TEMPLATE_PATH.azureBlob }}
-      azureBlob:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        azureCredentials:
-          secretKeySelectors:
-            storageAccount:
-              key: "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}"
-              name: "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
-            accessKey:
-              key: "{{ .azureCredentials.secretKeySelectors.accessKey.key }}"
-              name: "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
-      {{- end }}
-BACKUP_CONFIG_YAML_EOF
-  )"
+  BACKUP_CONFIG_JSON="$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json)"
 BACKUP_STATUS_YAML="$(cat << BACKUP_STATUS_YAML_EOF
 status:
   backupPath: "$CLUSTER_BACKUP_PATH"
   process:
     jobPod: "$POD_NAME"
   sgBackupConfig:
-$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template="$BACKUP_CONFIG_YAML")
+    baseBackups:
+      compression: "$COMPRESSION"
+    storage: $(printf %s "$BACKUP_CONFIG_JSON" | jq .spec)
 BACKUP_STATUS_YAML_EOF
   )"
 
