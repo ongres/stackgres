@@ -577,7 +577,6 @@ spec:
                       receiver:
                         type: string
                         description: Indicate the receiver in the configuration for the collector scraper (if not specified, will default to prometheus).
-                        default: prometheus
                       prometheusAutobind:
                         type: boolean
                         description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
