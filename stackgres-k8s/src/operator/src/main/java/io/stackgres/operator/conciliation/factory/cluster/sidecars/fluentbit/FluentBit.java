@@ -26,7 +26,6 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -54,7 +53,7 @@ import org.slf4j.LoggerFactory;
 
 @Sidecar(StackGresContainer.FLUENT_BIT)
 @Singleton
-@OperatorVersionBinder(stopAt = StackGresVersion.V_1_15)
+@OperatorVersionBinder
 @RunningContainer(StackGresContainer.FLUENT_BIT)
 public class FluentBit implements
     ContainerFactory<ClusterContainerContext>,
