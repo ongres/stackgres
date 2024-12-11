@@ -10,6 +10,7 @@ find "$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds" -name
       cp "$FILE" "$(dirname "$0")/data/crds"
     done
 cp "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" "$(dirname "$0")/data/stackgres_operator_Chart.yaml"
+sed -n 's#^ *RUN wget "https://get.helm.sh/helm-v\([^-]\+\)-.*$#version: \1#p' "$(dirname "$0")/../stackgres-k8s/ci/build/Dockerfile-ci" > "$(dirname "$0")/data/helm_version.yaml"
 
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh stackgres-k8s/ci/build/version.sh)}"
 echo "current_version: \"$STACKGRES_VERSION\"" > "$(dirname "$0")/data/versions.yml"
@@ -51,7 +52,7 @@ helm-docs \
 )
 mv "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/generated.md" \
   "$(dirname "$0")/generated/stackgres-operator.md"
-TARGET_PATH="$(dirname "$0")/../doc/content/en/04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters"
+TARGET_PATH="$(dirname "$0")/../doc/content/en/04-administration-guide/01-installation/02-installation-via-helm/01-operator-parameters"
 INCLUDE_LINE="$(cat "$TARGET_PATH/_index.template.md" | grep -nxF '{{% include "generated/stackgres-operator.md" %}}' | cut -d : -f 1)"
 head -n "$((INCLUDE_LINE - 1))" "$TARGET_PATH/_index.template.md" > "$TARGET_PATH/_index.md"
 cat "$(dirname "$0")/generated/stackgres-operator.md" >> "$TARGET_PATH/_index.md"

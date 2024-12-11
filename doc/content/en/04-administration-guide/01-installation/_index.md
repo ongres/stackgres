@@ -1,5 +1,5 @@
 ---
-title: StackGres Installation
+title: Installation
 weight: 1
 url: /install
 aliases: [ /administration/install ]

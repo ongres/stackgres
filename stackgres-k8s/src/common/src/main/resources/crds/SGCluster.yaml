@@ -674,15 +674,20 @@ spec:
                         default: true
                       type:
                         type: string
-                        enum: ["ClusterIP", "LoadBalancer", "NodePort"]
+                        enum: ["ClusterIP", "LoadBalancer", "NodePort", "None"]
                         description: |
                           type determines how the Service is exposed. Defaults to ClusterIP. Valid
-                          options are ClusterIP, NodePort, and LoadBalancer. "ClusterIP" allocates
+                          options are ClusterIP, NodePort, LoadBalancer and None. "ClusterIP" allocates
                           a cluster-internal IP address for load-balancing to endpoints.
                           "NodePort" builds on ClusterIP and allocates a port on every node.
                           "LoadBalancer" builds on NodePort and creates
                           an external load-balancer (if supported in the current cloud).
-                          More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+                          "None" creates an headless service that can be use in conjunction with `.spec.pods.disableEnvoy`
+                           set to `true` in order to acces the database using a DNS.
+                          More info:
+                          * https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+                          * https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+                          * https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/
                         default: ClusterIP
                       customPorts:
                         type: array

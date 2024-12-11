@@ -164,6 +164,8 @@ public class PatroniServices implements
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getPrimary())
         .editSpec()
+        .withType(cluster.getSpec().getPostgresServices().getPrimary().getServiceType())
+        .withClusterIP(cluster.getSpec().getPostgresServices().getPrimary().getServiceClusterIP())
         .withPorts(getPrimaryServicePorts(cluster))
         .endSpec()
         .build();
@@ -298,6 +300,8 @@ public class PatroniServices implements
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getReplicas())
         .editSpec()
+        .withType(cluster.getSpec().getPostgresServices().getReplicas().getServiceType())
+        .withClusterIP(cluster.getSpec().getPostgresServices().getReplicas().getServiceClusterIP())
         .withSelector(labelFactory.clusterReplicaLabels(cluster))
         .withPorts(getReplicasPorts(cluster))
         .endSpec()

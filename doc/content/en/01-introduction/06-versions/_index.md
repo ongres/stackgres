@@ -8,6 +8,30 @@ showToc: true
 
 =======
 
+## StackGres 1.15.0-rc2
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 17 | 17.2, 17.0 |
+| PostgreSQL 16 | 16.6, 16.4, 16.3, 16.2, 16.1, 16.0 |
+| PostgreSQL 15 | 15.10, 15.8, 15.7, 15.6, 15.5, 15.4, 15.3, 15.2, 15.1, 15.0 |
+| PostgreSQL 14 | 14.15, 14.13, 14.12, 14.11, 14.10, 14.9, 14.8, 14.7, 14.6, 14.5, 14.4, ~14.2, 14.1, 14.0~ |
+| PostgreSQL 13 | 13.18, 13.16 13.15, 13.14, 13.13, 13.12, 13.11, 13.10, 13.9, 13.8, 13.7, 13.6, 13.5, 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.22, 12.20, 12.19, 12.18, 12.17, 12.16, 12.15, 12.14, 12.13, 12.12, 12.11, 12.10, 12.9, 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL for Babelfish 16 | 16.4, 16.2, 16.1 |
+| PostgreSQL for Babelfish 15 | 15.8, 15.5 |
+| PostgreSQL for Babelfish 14 | 14.11, 14.10, 14.3 |
+| PostgreSQL for Babelfish 13 | 13.9, 13.6 |
+| Patroni | 4.0.4, 3.3.3, 3.3.2, 3.3.0, 3.2.2, 3.0.2, 2.1.4 |
+| WAL-G | 3.0.3, 3.0.2, 3.0.1, 2.0.1, 2.0.0, 1.1 |
+| PgBouncer | 1.23.1 |
+| Postgres Exporter | 0.16.0 |
+| Envoy | 1.32.1 |
+| Fluent-Bit | 3.2.1 |
+| Fluentd | 1.17.1 |
+| Babelfish Compass | 2024.10b |
+| OTEL Collector | 0.114.0 |
+
 ## StackGres 1.15.0-rc1
 
 | Component | Versions |

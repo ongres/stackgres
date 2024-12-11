@@ -13,6 +13,8 @@ import static io.stackgres.operator.common.StackGresDistributedLogsUtil.getPostg
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -108,9 +110,14 @@ public class DistributedLogsCluster
             previousCluster
             .map(StackGresCluster::getMetadata)
             .map(ObjectMeta::getAnnotations)
-            .orElseGet(() -> Map.of(
-                StackGresContext.VERSION_KEY,
-                StackGresVersion.getStackGresVersion(distributedLogs).getVersion())))
+            .orElseGet(() -> Optional.of(distributedLogs)
+                .map(StackGresDistributedLogs::getMetadata)
+                .map(ObjectMeta::getAnnotations)
+                .map(Map::entrySet)
+                .stream()
+                .flatMap(Set::stream)
+                .filter(annotation -> annotation.getKey().equals(StackGresContext.VERSION_KEY))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
         .withLabels(labelFactory.genericLabels(distributedLogs))
         .withNamespace(namespace)
         .withName(name)

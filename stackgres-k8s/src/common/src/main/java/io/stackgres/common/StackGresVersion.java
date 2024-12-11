@@ -5,6 +5,10 @@
 
 package io.stackgres.common;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -25,6 +29,7 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgstream.StackGresStream;
+import jakarta.enterprise.util.Nonbinding;
 import org.jooq.lambda.Seq;
 
 public enum StackGresVersion {
@@ -33,6 +38,14 @@ public enum StackGresVersion {
   V_1_14("1.14"),
   V_1_15("1.15"),
   V_1_16("1.16");
+
+  @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface DeprecatedVersionPlaceholder {
+
+    @Nonbinding StackGresVersion value();
+
+  }
 
   public static final StackGresVersion OLDEST =
       Seq.of(values()).skip(1).findFirst().get();
