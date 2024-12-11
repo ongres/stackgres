@@ -14,7 +14,6 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -26,7 +25,7 @@ import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(stopAt = StackGresVersion.V_1_15)
+@OperatorVersionBinder
 public class DistributedLogsService
     implements ResourceGenerator<StackGresDistributedLogsContext> {
 

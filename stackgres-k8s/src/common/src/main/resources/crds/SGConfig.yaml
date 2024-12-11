@@ -910,12 +910,17 @@ spec:
                             type: string
               prometheus:
                 type: object
-                description: Section to configure Prometheus integration.
+                description: |
+                  **Deprecated** this section has been replaced by `.spec.collector.prometheusOperator`.
+                  
+                  Section to configure Prometheus integration.
                 properties: 
                   allowAutobind:
                     type: boolean
                     default: true
                     description: |
+                      **Deprecated** this field has been replaced by `.spec.collector.prometheusOperator.allowDiscovery`.
+  
                       If set to false disable automatic bind to Prometheus
                         created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
                       If disabled the cluster will not be binded to Prometheus automatically and will require manual

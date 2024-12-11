@@ -126,7 +126,7 @@ EOF
 Notice that each resource has been defined with its own `name`, and is referenced in the StackGres sharded cluster definition.
 The order of the CR creation is relevant to successfully create a sharded cluster, that is you create all resources, secrets, and permissions necessary before creating dependent resources.
 
-Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters" %}}) definition.
+Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-administration-guide/01-installation/02-installation-via-helm/01-operator-parameters" %}}) definition.
 This parameter automatically enables monitoring for our sharded cluster.
 We can use this since we've installed the Prometheus operator on our Kubernetes environment.
 

@@ -546,11 +546,6 @@ developer:
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
       volumeMounts: []
     # Section to define volumes to be used by the distributedlogs controller container
-    distributedlogsController:
-      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes: []
-      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts: []
 # -- The list of fields that are serialized into the spec of SGConfig
 specFields: [
   containerRegistry, imagePullPolicy, imagePullSecrets, allowedNamespaces, allowedNamespaceLabelSelector,

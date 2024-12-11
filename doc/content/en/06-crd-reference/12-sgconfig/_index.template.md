@@ -66,6 +66,6 @@ spec:
     allowAutobind: true
 ```
 
-See also [StackGres Installation section]({{%  relref "04-administration-guide/01-stackgres-installation" %}}).
+See also [StackGres Installation section]({{%  relref "04-administration-guide/01-installation" %}}).
 
 {{% include "generated/SGConfig.md" %}}

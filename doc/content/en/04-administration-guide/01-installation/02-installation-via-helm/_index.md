@@ -30,7 +30,7 @@ helm install --create-namespace --namespace stackgres stackgres-operator stackgr
 
 > You can specify the version adding `--version <version>` to the Helm command. 
 
-For more installation options have a look at the [Operator Parameters]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters" %}}) section for more information.
+For more installation options have a look at the [Operator Parameters]({{% relref "04-administration-guide/01-installation/02-installation-via-helm/01-operator-parameters" %}}) section for more information.
 
 If you want to integrate Prometheus and Grafana into StackGres, please read the next section. 
 
