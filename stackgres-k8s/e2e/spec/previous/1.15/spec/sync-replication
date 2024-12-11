@@ -140,7 +140,7 @@ check_replica_in_none_group_not_elegible_as_primary() {
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
   local RESULT EXIT_CODE
-  try_function wait_until eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}") = master ]'
+  try_function wait_until eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}") = primary ]'
   if "$RESULT"
   then
     success "first replica IP was elected as primary"
@@ -149,7 +149,7 @@ check_replica_in_none_group_not_elegible_as_primary() {
   fi
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   local RESULT EXIT_CODE
-  try_function wait_until -t 10 eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.role }}") = master ]'
+  try_function wait_until -t 10 eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.role }}") = primary ]'
   if "$RESULT"
   then
     fail "second replica IP was elected as primary"

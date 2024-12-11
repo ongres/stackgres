@@ -42,12 +42,16 @@ e2e_load_images() {
   cat << EOF > "$LOG_PATH/operator-bundle.Dockerfile"
 FROM "$BUNDLE_IMAGE_NAME" AS bundle
 
-FROM alpine AS overwrites
+FROM debian AS overwrites
   COPY --from=bundle / /bundle
   RUN sed -i 's|^  name: .*$|  name: stackgres.v$BUNDLE_STACKGRES_VERSION|' /bundle/manifests/stackgres.clusterserviceversion.yaml
   RUN sed -i 's|^  version: .*$|  version: $BUNDLE_STACKGRES_VERSION|' /bundle/manifests/stackgres.clusterserviceversion.yaml
   RUN sed -i 's|^    containerImage: quay.io/stackgres/operator:.*$|    containerImage: $OPERATOR_IMAGE_NAME|' /bundle/manifests/stackgres.clusterserviceversion.yaml
   RUN sed -i 's|^                    image: quay.io/stackgres/operator:.*$|                    image: $OPERATOR_IMAGE_NAME|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_VERSION$/{\$!{N;s/name: OPERATOR_VERSION\n\( *\)value: .*$/name: OPERATOR_VERSION\n\1value: "$STACKGRES_VERSION"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\n\1value: "$IMAGE_TAG"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_JVM_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_JVM_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_JVM_IMAGE_VERSION\n\1value: "$NATIVE_IMAGE_TAG-jvm"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_NATIVE_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_NATIVE_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_NATIVE_IMAGE_VERSION\n\1value: "$NATIVE_IMAGE_TAG"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
 
 FROM scratch
   COPY --from=overwrites /bundle /
@@ -57,7 +61,7 @@ $(
       | sed 's/^/  /'
 )
 EOF
-  BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden"
+  BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden-$(date +%s)-$RANDOM"
   docker build -t "$BUNDLE_IMAGE_NAME" -f "$LOG_PATH/operator-bundle.Dockerfile" "$LOG_PATH/operator-bundle" 
   docker push "$BUNDLE_IMAGE_NAME"
 }

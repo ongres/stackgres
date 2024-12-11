@@ -141,7 +141,7 @@ EOF
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set cluster.configurations.observability.prometheusAutobind=true \
+    --set configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \

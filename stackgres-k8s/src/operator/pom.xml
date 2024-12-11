@@ -11,7 +11,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>1.15.0-SNAPSHOT</version>
+    <version>1.16.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-operator</artifactId>
@@ -19,8 +19,6 @@
   <name>StackGres Operator</name>
 
   <properties>
-    <jooq.version>3.19.15</jooq.version>
-
     <stackgres.authentication.secretName>stackgres-restapi</stackgres.authentication.secretName>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
@@ -62,9 +60,16 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq</artifactId>
-      <version>${jooq.version}</version>
+      <groupId>io.quarkiverse.jooq</groupId>
+      <artifactId>quarkus-jooq</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
 
     <dependency>

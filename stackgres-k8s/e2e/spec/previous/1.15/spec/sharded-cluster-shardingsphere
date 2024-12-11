@@ -52,7 +52,7 @@ e2e_test() {
 }
 
 service_check() {
-  RESPONSE_PRIMARY="$(wait_until eval 'run_query -c "$CLUSTER_NAME" -x psql -q -k postgres -h "$CLUSTER_NAME" -p 5432')"
+  RESPONSE_PRIMARY="$(wait_until eval 'run_query -c "$CLUSTER_NAME" -x psql -k postgres -h "$CLUSTER_NAME" -p 5432')"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then

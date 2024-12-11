@@ -1,4 +1,5 @@
 #!/bin/sh
+
 patroni_ports_check() {
   if patroni_liveness_check
   then
@@ -38,11 +39,11 @@ patroni_switchover(){
 }
 
 patroni_direct_switchover_check(){
- patroni_curl -e "switchover" -p 8009 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
+  patroni_curl -e "switchover" -p 8009 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
 }
 
 patroni_liveness_check() {
-  patroni_curl -e "cluster" > /dev/null
+   patroni_curl -e "cluster" > /dev/null
 }
 
 patroni_readiness_check() {
@@ -54,7 +55,7 @@ get_pod_ip(){
 }
 
 patroni_curl(){
-  PORT=8008
+  PORT="${PATRONI_PORT:-8008}"
   POD_IP="$(get_pod_ip)"
   ENPOINT="cluster"
 

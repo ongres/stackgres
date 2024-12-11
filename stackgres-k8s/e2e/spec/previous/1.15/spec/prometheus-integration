@@ -11,9 +11,10 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
   install_prometheus_operator
 
-  kubectl create namespace "$OPERATOR_NAMESPACE"
   install_operator_only \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"

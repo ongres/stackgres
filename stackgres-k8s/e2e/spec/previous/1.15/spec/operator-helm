@@ -24,10 +24,10 @@ e2e_test() {
   run_test "Check that operator can not be upgrade from an alpha version" check_operator_upgrade_alpha
   run_test "Check that operator can not be upgrade from a beta version" check_operator_upgrade_beta
   run_test "Check that operator can not be upgrade from version 0.9.5" check_operator_upgrade_0_9_5
-  run_test "Check that operator can be upgrade from version 1.12.0" check_operator_upgrade_1_12_0
-  run_test "Check that operator can be upgrade from version 1.13.0" check_operator_upgrade_1_13_0
+  run_test "Check that operator can be upgrade from version 1.14.0" check_operator_upgrade_1_14_0
+  run_test "Check that operator can be upgrade from version 1.15.0" check_operator_upgrade_1_15_0
   run_test "Check that operator can not be upgrade with an SGCluster that uses version 0.9.5" check_operator_upgrade_with_cluster_using_0_9_5
-  run_test "Check that operator can be upgrade with an SGCluster that uses version 1.12.0 and 1.13.0" check_operator_upgrade_with_cluster_using_1_12_0_and_1_13_0
+  run_test "Check that operator can be upgrade with an SGCluster that uses version 1.14.0 and 1.15.0" check_operator_upgrade_with_cluster_using_1_14_0_and_1_15_0
   run_test "Check that operator can be deleted" check_operator_delete
   run_test "Check that operator can be installed from outside" check_operator_install_outside
   run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
@@ -163,31 +163,31 @@ check_operator_upgrade_0_9_5() {
   fi
 }
 
-check_operator_upgrade_1_12_0() {
-  local PREVIOUS_VERSION=1.12.0
+check_operator_upgrade_1_15_0() {
+  local PREVIOUS_VERSION=1.15.0
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
   then
-    success "Upgrade did not failed when previous version was 1.12.0"
+    success "Upgrade did not failed when previous version was 1.15.0"
   else
-    fail "Upgrade failed when previous version was 1.12.0"
+    fail "Upgrade failed when previous version was 1.15.0"
   fi
 }
 
-check_operator_upgrade_1_13_0() {
-  local PREVIOUS_VERSION=1.13.0
+check_operator_upgrade_1_14_0() {
+  local PREVIOUS_VERSION=1.14.0
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
   then
-    success "Upgrade did not failed when previous version was 1.13.0"
+    success "Upgrade did not failed when previous version was 1.14.0"
   else
-    fail "Upgrade failed when previous version was 1.13.0"
+    fail "Upgrade failed when previous version was 1.14.0"
   fi
 }
 
@@ -214,13 +214,13 @@ check_operator_upgrade_with_cluster_using_0_9_5() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
-check_operator_upgrade_with_cluster_using_1_12_0_and_1_13_0() {
+check_operator_upgrade_with_cluster_using_1_14_0_and_1_15_0() {
   CLUSTER_1_NAME="$(get_sgcluster_name "$SPEC_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$SPEC_NAME-2")"
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
-  local PREVIOUS_VERSION_1=1.12.0
-  local PREVIOUS_VERSION_2=1.13.0
+  local PREVIOUS_VERSION_1=1.14.0
+  local PREVIOUS_VERSION_2=1.15.0
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version=13.9
@@ -246,9 +246,9 @@ check_operator_upgrade_with_cluster_using_1_12_0_and_1_13_0() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    success "Upgrade did not failed with an SGCluster that uses version 1.12.0 and 1.13.0"
+    success "Upgrade did not failed with an SGCluster that uses version 1.14.0 and 1.15.0"
   else
-    fail "Upgrade failed with an SGCluster that uses version 1.12.0 and 1.13.0"
+    fail "Upgrade failed with an SGCluster that uses version 1.14.0 and 1.15.0"
   fi
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   remove_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"

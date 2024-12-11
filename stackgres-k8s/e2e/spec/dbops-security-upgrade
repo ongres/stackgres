@@ -59,6 +59,10 @@ e2e_test_install() {
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE##*-pg}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
+  PREVIOUS_SHARDED_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg16\.' | head -n 1)"
+  PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE##*-pg}"
+  PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
   PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
@@ -66,6 +70,8 @@ e2e_test_install() {
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
   OLDEST_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION-")"
   OLDEST_PATRONI_IMAGE="$(printf '%s' "$OLDEST_PATRONI_IMAGE" | tail -n 1)"
+  SHARDED_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION-")"
+  SHARDED_PATRONI_IMAGE="$(printf '%s' "$SHARDED_PATRONI_IMAGE" | tail -n 1)"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
   then
     DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
@@ -154,11 +160,13 @@ e2e_test_install() {
   
     create_or_replace_sharded_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
       "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE" 3 1 \
-      --set configurations.create=false --set instanceProfiles=false \
+      --set configurations.create=true --set instanceProfiles=false \
+      --set configurations.postgresconfig.create=true \
+      --set configurations.poolingconfig.create=false \
       --set-string cluster.sgInstanceProfile=size-s \
-      --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
-      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
-      --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
+      --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string cluster.postgres.version="$PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION" \
       --set cluster.configurations.observability.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
       --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
@@ -584,6 +592,8 @@ check_cluster_2_security_upgrade_start() {
 }
 
 check_cluster_3_security_upgrade_start() {
+  local PREVIOUS_PATRONI_IMAGE="$PREVIOUS_SHARDED_PATRONI_IMAGE"
+
   check_sharded_cluster_security_upgrade_start \
     "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace" \
     "$PREVIOUS_PATRONI_3_CONFIG_PATH" "$PREVIOUS_PGBOUNCER_3_CONFIG_PATH"
@@ -609,6 +619,8 @@ check_cluster_2_security_upgrade() {
 }
 
 check_cluster_3_security_upgrade() {
+  local PATRONI_IMAGE="$SHARDED_PATRONI_IMAGE"
+
   check_sharded_cluster_security_upgrade \
     "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
 }

@@ -450,7 +450,7 @@ get_logs_count_with_filter_of_log_with_text() {
 
 check_retention() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
-    --set-string cluster.distributedLogs.retention="1 minutes" \
+    --set-string cluster.distributedLogs.retention="1 minute" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
@@ -466,10 +466,6 @@ check_retention() {
         LEFT JOIN _timescaledb_catalog.dimension ON (hypertable.id = dimension.hypertable_id)
         WHERE table_name = '$TABLE' AND column_name = 'log_time'
         AND INTERVAL '1 minute' = (interval_length / 1000000) * INTERVAL '1 second')"
-    run_query -c "$DISTRIBUTEDLOGS_NAME" -x psql -k postgres \
-      -h "$DISTRIBUTEDLOGS_NAME" -p 5432 \
-        -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
-      -q "SELECT drop_chunks(now() + INTERVAL '1 year', '$TABLE', newer_than => to_timestamp(0))"
   done
 
   for TEXT in distributed-logs-retention-worked distributed-logs-retention-works distributed-logs-retention-still-works
