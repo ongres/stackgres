@@ -10,6 +10,8 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion.DeprecatedVersionPlaceholder;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -18,6 +20,9 @@ public class ClusterSpecAnnotations {
   private Map<String, String> allResources;
 
   private Map<String, String> clusterPods;
+
+  @DeprecatedVersionPlaceholder(StackGresVersion.V_1_15)
+  private Map<String, String> pods;
 
   private Map<String, String> services;
 
@@ -39,6 +44,14 @@ public class ClusterSpecAnnotations {
 
   public void setClusterPods(Map<String, String> pods) {
     this.clusterPods = pods;
+  }
+
+  public Map<String, String> getPods() {
+    return pods;
+  }
+
+  public void setPods(Map<String, String> pods) {
+    this.pods = pods;
   }
 
   public Map<String, String> getServices() {
