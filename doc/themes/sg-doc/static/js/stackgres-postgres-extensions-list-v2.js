@@ -5,16 +5,24 @@ $(document).ready(function(){
         $.ajax({
             url: "https://extensions.stackgres.io/postgres/repository/v2/index.json",
         }).done(function(extIndex) {
-            let extensions = extIndex.extensions.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
-    
+            let extensions = extIndex.extensions
+                .sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+            let postgresVersions = extensions
+                .flatMap(e => e.versions)
+                .flatMap(v => v.availableFor)
+                .reduce((pgs,af) => {
+                  if (pgs.find(pg => pg == af.postgresVersion.replace(/^([^.]+)(\.[^.]+)?$/, "$1")) == null) {
+                    pgs.push(af.postgresVersion.replace(/^([^.]+)(\.[^.]+)?$/, "$1"))
+                  }
+                  return pgs
+                }, [])
+                .sort()
             let tableHtml = `
                 <table>
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>PG 12</th>
-                            <th>PG 13</th>
-                            <th>PG 14</th>
+                            <th>Versions</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -26,44 +34,29 @@ $(document).ready(function(){
                     <tr>
                         <td><a href="` + ext.url + `" target="_blank">` + ext.name + `</a></td>`;
                 
-                /* Postgres 12 */
-                let pg12 = [];
-                
-                ext.versions.forEach(v => {
-                    v.availableFor.forEach( pg => {
-                        if( (pg.postgresVersion.split(".")[0] == "12") && !pg12.includes(v.version) ) {
-                            pg12.push(v.version)
+                tableHtml += '<td>' + postgresVersions
+                  .reduce((tds, pg) => {
+                    versions = ext.versions
+                      .reduce((vs, v) => {
+                        if (v.availableFor.find(af => af.postgresVersion.split(".")[0] == pg)
+                            && vs.find(vv => vv == v.version) == null) {
+                          vs.push(v.version)
+                        }                   
+                        return vs         
+                      }, [])
+                      .map(v => {
+                        return {
+                          v: v,
+                          sv: v.split(".").concat(Array(16).fill("")).slice(0,16).reduce((sv, v) => sv + v.padStart(8, "0"), "")
                         }
-                    })
-                })
-
-                tableHtml += '<td>' + pg12.join(', ') + '</td>';
-                
-                /* Postgres 13 */
-                let pg13 = [];
-                
-                ext.versions.forEach(v => {
-                    v.availableFor.forEach( pg => {
-                        if( (pg.postgresVersion.split(".")[0] == "13") && !pg13.includes(v.version) ) {
-                            pg13.push(v.version)
-                        }
-                    })
-                })
-
-                tableHtml += '<td>' + pg13.join(', ') + '</td>';                
-                        
-                /* Postgres 14 */
-                let pg14 = [];
-
-                ext.versions.forEach(v => {
-                    v.availableFor.forEach( pg => {
-                        if( (pg.postgresVersion.split(".")[0] == "14") && !pg14.includes(v.version) ) {
-                            pg14.push(v.version)
-                        }
-                    })
-                })
-
-                tableHtml += '<td>' + pg14.join(', ') + '</td>';
+                      })
+                      .sort(v => v.sv)
+                      .map(v => v.v)
+                    if (!versions.length) {
+                      return ""
+                    }
+                    return tds + '<b>PG ' + pg + '</b>: ' + versions.join(", ") + '</br>'
+                  }, "") + '</td>'
 
                 tableHtml += `<td class="capitalFirstLetter">` + ext.description + `</td>
                 </tr>`;
