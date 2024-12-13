@@ -10,6 +10,7 @@ find "$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds" -name
       cp "$FILE" "$(dirname "$0")/data/crds"
     done
 cp "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" "$(dirname "$0")/data/stackgres_operator_Chart.yaml"
+cp "$(dirname "$0")/../stackgres-k8s/install/operator-sdk/stackgres-operator/openshift-operator-bundle/metadata/annotations.yaml" "$(dirname "$0")/data/stackgres_operator_openshift_annotations.yaml"
 sed -n 's#^ *RUN wget "https://get.helm.sh/helm-v\([^-]\+\)-.*$#version: \1#p' "$(dirname "$0")/../stackgres-k8s/ci/build/Dockerfile-ci" > "$(dirname "$0")/data/helm_version.yaml"
 
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh stackgres-k8s/ci/build/version.sh)}"
