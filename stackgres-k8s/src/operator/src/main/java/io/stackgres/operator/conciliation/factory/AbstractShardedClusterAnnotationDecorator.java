@@ -96,9 +96,7 @@ public abstract class AbstractShardedClusterAnnotationDecorator<T>
     Map<String, String> customServiceAnnotations;
 
     final String serviceName = service.getMetadata().getName();
-    if (serviceName.endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)) {
-      customServiceAnnotations = getPrimaryServiceAnnotations(context);
-    } else if (serviceName.endsWith(PatroniUtil.READ_ONLY_SERVICE)) {
+    if (serviceName.endsWith(PatroniUtil.READ_ONLY_SERVICE)) {
       customServiceAnnotations = getReplicasServiceAnnotations(context);
     } else {
       customServiceAnnotations = getServiceAnnotations(context);

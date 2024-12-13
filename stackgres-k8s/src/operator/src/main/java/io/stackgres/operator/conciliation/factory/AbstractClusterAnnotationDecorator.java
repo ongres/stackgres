@@ -91,14 +91,15 @@ public abstract class AbstractClusterAnnotationDecorator<T>
   }
 
   @Override
-  protected void decorateService(@NotNull T context,
+  protected void decorateService(
+      @NotNull T context,
       @NotNull HasMetadata service) {
     Map<String, String> customServiceAnnotations;
 
     final String serviceName = service.getMetadata().getName();
-    if (serviceName.endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)) {
+    if (serviceName.equals(PatroniUtil.readWriteName(getCluster(context)))) {
       customServiceAnnotations = getPrimaryServiceAnnotations(context);
-    } else if (serviceName.endsWith(PatroniUtil.READ_ONLY_SERVICE)) {
+    } else if (serviceName.equals(PatroniUtil.readOnlyName(getCluster(context)))) {
       customServiceAnnotations = getReplicasServiceAnnotations(context);
     } else {
       customServiceAnnotations = getServiceAnnotations(context);
