@@ -8,7 +8,7 @@ showToc: true
 
 ## Customizing Your Postgres Sharded Clusters
 
-Refer to [Customizing Your Postgres Clusters]({{% relref "04-administration-guide/03-cluster-creation" %}}#customizing-your-postgres-clusters) section for more details on the configuraion used
+Refer to [Customizing Your Postgres Clusters]({{% relref "04-administration-guide/02-cluster-creation" %}}#customizing-your-postgres-clusters) section for more details on the configuraion used
  for the sharded cluster. In particular you will end up creating the following custom resources in the `my-cluster` namespace:
 
 * An [SGInstanceProfile]({{% relref "04-administration-guide/04-configuration/02-instance-profile" %}}) called `size-small`

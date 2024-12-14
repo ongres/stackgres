@@ -28,7 +28,7 @@ Meanwhile, the replica node is accessible through the URL: `cluster-replicas.def
 
 For the following example we assume that we have a StackGres cluster named `cluster` in the namespace `default`.
 
-In a pod that is running in the same Kubernetes cluster as StackGres and that has `psql` installed, we can connect to the primary node using the `postgres` user and the password that you retrieve as described in [Retrieving the Generated Password]({{% relref "04-administration-guide/02-connecting-to-the-cluster/01-passwords" %}}):
+In a pod that is running in the same Kubernetes cluster as StackGres and that has `psql` installed, we can connect to the primary node using the `postgres` user and the password that you retrieve as described in [Retrieving the Generated Password]({{% relref "04-administration-guide/03-connecting-to-the-cluster/01-passwords" %}}):
 
 ```
 PGPASSWORD=$PASSWORD psql -h cluster.default -U postgres
