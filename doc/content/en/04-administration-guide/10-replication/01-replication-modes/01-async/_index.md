@@ -9,7 +9,7 @@ As indicated in the [CRD reference]({{% relref "06-crd-reference/01-sgcluster/#s
 
 ## Setting up a Cluster with Asynchronous replicas
 
-Setting up the StackGres Cluster with asynchronous replica members is quite straightforward. In the [Cluster Creation]({{% relref "04-administration-guide/03-cluster-creation" %}})  section, the example used the default way, async.
+Setting up the StackGres Cluster with asynchronous replica members is quite straightforward. In the [Cluster Creation]({{% relref "04-administration-guide/02-cluster-creation" %}})  section, the example used the default way, async.
 
 Nevertheless, the next box highlight the SGCluster CRD again:
 

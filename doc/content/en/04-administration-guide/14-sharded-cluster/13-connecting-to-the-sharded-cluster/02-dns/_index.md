@@ -30,7 +30,7 @@ Finally, primary node of any shard cluster will be accessible through the URL: `
 
 For the following example we assume that we have a StackGres sharded cluster named `cluster` in the namespace `default`.
 
-In a pod that is running in the same Kubernetes cluster as StackGres and that has `psql` installed, we can connect to the coordinator primary node using the `postgres` user and the password that you retrieve as described in [Retrieving the Generated Password]({{% relref "04-administration-guide/02-connecting-to-the-cluster/01-passwords" %}}):
+In a pod that is running in the same Kubernetes cluster as StackGres and that has `psql` installed, we can connect to the coordinator primary node using the `postgres` user and the password that you retrieve as described in [Retrieving the Generated Password]({{% relref "04-administration-guide/03-connecting-to-the-cluster/01-passwords" %}}):
 
 ```
 PGPASSWORD=$PASSWORD psql -h cluster.default -U postgres

@@ -11,12 +11,12 @@ This page will guide you though the creation of a production-ready StackGres clu
 
 ## Customizing Your Postgres Clusters
 
-The following shows examples of StackGres' versatile configuration options.
+The following shows examples of StackGres versatile configuration options.
 In general, these steps are optional, but we do recommend to consider these features for production setups.
 
 ### Configuring an Instance Profile
 
-You can create your cluster with different hardware specifications using an [SGInstanceProfile]({{% relref "06-crd-reference/02-sginstanceprofile" %}}) custom resource (CR) as follows:
+You can create your cluster with different resources requirements using an [SGInstanceProfile]({{% relref "06-crd-reference/02-sginstanceprofile" %}}) custom resource (CR) as follows:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -31,9 +31,11 @@ spec:
 EOF
 ```
 
+By default the resources requests will be applied as the sum of the resources requests of all the containers of a cluster's Pod. Instead the resources limits will be applied for the `patroni` container that will run the Postgres process. For more advanced understanding see the [Instance Profile Configuration section]({{% relref "06-crd-reference/02-instance-profile" %}}).
+
 ### Configuring Postgres and PGBouncer
 
-You can also change Postgres' configuration using an [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) CR, or the PGBouncer settings using [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}), the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}), and more.
+You can also change Postgres configuration using an [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) CR, or the PGBouncer settings using [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}), the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}), and more.
 
 The next code snippets will show you how to use these CRs.
 
@@ -59,9 +61,16 @@ EOF
 You can configure the variables supported by StackGres.
 
 The connection pooler (currently PgBouncer) is an important part of a Postgres cluster, as it provides connection scaling capabilities.
-We'll cover all more details about this in the [Customizing Pooling configuration section]({{% relref "04-administration-guide/04-configuration/03-connection-pooling" %}}).
+We'll cover all the details about this in the [Customizing Pooling configuration section]({{% relref "04-administration-guide/04-configuration/03-connection-pooling" %}}).
 
-For improved performance and stability, it is recommended to set the `pool_mode` to `transaction`. An example pooling configuration looks like this:
+For improved performance and stability, it is recommended to set the `pool_mode` to `transaction`.
+
+> **IMPORTANT**: setting the `pool_mode` to `transaction` may require some changes in how the application
+>  use the database. In particular the application will not be able to use session object. For more
+>  information see the [PgBouncer official documentation](https://www.pgbouncer.org). In order to enable prepared statements in this
+>  mode see [PgBouncer FAQ](https://www.pgbouncer.org/faq.html#how-to-use-prepared-statements-with-transaction-pooling).
+
+The following command shows an example pooling configuration:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -84,7 +93,7 @@ EOF
 
 The [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) CRs are used to configure how backups are being taken.
 
-The following shows and example configuration using [Google Cloud Storage](https://cloud.google.com/storage/):
+The following command shows and example configuration using [Google Cloud Storage](https://cloud.google.com/storage/):
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -126,11 +135,11 @@ EOF
 ```
 
 You will need to perform additional steps in order to configure backups in your cloud environment.
-Have a look at the section [Backups]({{% relref "04-administration-guide/05-backups" %}}) for full examples using S3, GKE, Digital Ocean, and more.
+Have a look at the section [Backups]({{% relref "04-administration-guide/05-backups" %}}) for full examples using AWS S3, Google Cloud Storage, Digital Ocean Spaces, and more.
 
 ### Configuring Distributed Logs
 
-You can create an SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}):
+You can create an [SGDistributedLogs]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}) CR to create a distributed log cluster that will receive the logs from the SGCluster configured to do so and to be able to view logs directly from the [Admin UI]({{% relref "04-administration-guide/13-admin-ui" %}}):
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -147,16 +156,18 @@ EOF
 
 ### Configuring Scripts
 
-Last but not least, StackGres lets you include several `managedSql` scripts, to perform cluster operations at startup.
+Last but not least, StackGres lets you include several `managedSql` scripts, to perform cluster operations at startup or on demand.
 
-In this example, we're creating a Postgres user, using a Kubernetes secret:
+In this example, we're creating the `pgbench` user, using a Kubernetes secret:
 
 ```
 kubectl -n my-cluster create secret generic pgbench-user-password-secret \
-  --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
+  --from-literal=pgbench-create-user-sql="CREATE USER pgbench WITH PASSWORD 'admin123'"
 ```
 
-Then we reference the secret in a [SGScript]({{% relref "06-crd-reference/10-sgscript" %}}):
+Then we reference the secret in a [SGScript]({{% relref "06-crd-reference/10-sgscript" %}}) that contains
+ an inline script to create the `pgbench` database using the previously created user `pgbench` as the
+ owner:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -174,21 +185,18 @@ spec:
         key: pgbench-create-user-sql
   - name: create-pgbench-database
     script: |
-      create database pgbench owner pgbench;
+      CREATE DATABASE pgbench OWNER pgbench;
 EOF
 ```
 
-The scripts are defined both by the Secret created before and SQL instructions inline.
-
 The SGScript will be referenced in the `managedSql` definition of the cluster, shown below.
 
-Note that we could equally well define the SQL script in a config map, however, since the password represents a credential, we're using a secret.
+Note that we could equally well define the SQL script in a ConfigMap, however, since the password
+ represents a credential, we're using a Secret instead.
 
 ## Creating the Cluster
 
-All the required steps were performed to create our StackGres Cluster.
-
-Create the SGCluster resource:
+All the required steps were performed in order to allow create our production ready SGCluster:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -212,26 +220,23 @@ spec:
     - sgObjectStorage: 'backupconfig1'
       cronSchedule: '*/5 * * * *'
       retention: 6
+    observability:
+      prometheusAutobind: true
   managedSql:
     scripts:
     - sgScript: cluster-scripts
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
-  prometheusAutobind: true
 EOF
 ```
 
-Notice that each resource has been defined with its own `name`, and is referenced in the StackGres cluster definition.
+Notice that each resource has been defined with its own name, and is referenced in the SGCluster definition.
 The order of the CR creation is relevant to successfully create a cluster, that is you create all resources, secrets, and permissions necessary before creating dependent resources.
 
-Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-administration-guide/01-installation/02-installation-via-helm/01-operator-parameters" %}}) definition.
-This parameter automatically enables monitoring for our cluster.
-We can use this since we've installed the Prometheus operator on our Kubernetes environment.
+Another helpful configuration is the [`prometheusAutobind`]({{% relref "04-administration-guide/01-installation/02-installation-via-helm/01-operator-parameters" %}}) set to `true`.
+This parameter automatically enables monitoring for our cluster by integrating with the Prometheus operator.
+The StackGres operator will breate the necessary PodMonitor to scrape the cluster's Pods.
 
-Awesome, now you can sit back and relax while the SGCluster is spinning up.
+Awesome, now you can sit back and relax while the SGCluster's Pods are spinning up.
 
-While the cluster is being created, you may notice a blip in the distributed logs server, where a container is restarted.
-This behavior is caused by a re-configuration which requires a container restart, and only temporarily pauses the log collection.
-No logs are lost, since they are buffered on the source pods.
-
-Have a look at [Connecting to the Cluster]({{% relref "04-administration-guide/02-connecting-to-the-cluster" %}}), to see how to connect to the created Postgres cluster.
+Have a look at [Connecting to the Cluster]({{% relref "04-administration-guide/03-connecting-to-the-cluster" %}}), to see how to connect to the created Postgres cluster.

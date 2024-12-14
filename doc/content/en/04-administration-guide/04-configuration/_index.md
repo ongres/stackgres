@@ -1,6 +1,6 @@
 ---
 title: Configuration
-weight: 3
+weight: 4
 url: /administration/configuration
 aliases: [ /administration/custom/postgres/config ]
 description: Details about default and custom configurations.

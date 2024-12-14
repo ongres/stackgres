@@ -37,7 +37,7 @@ spec:
       size: '5Gi'
 ```
 
-See also [Cluster Creation section]({{% relref "04-administration-guide/03-cluster-creation" %}}).
+See also [Cluster Creation section]({{% relref "04-administration-guide/02-cluster-creation" %}}).
 
 {{% include "generated/SGCluster.md" %}}
 

@@ -106,7 +106,7 @@ kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io
 
 > **Note:** Connecting directly through the `postgres-util` sidecar will grant you access with the postgres user. It works similar to `sudo -i postgres -c psql`.
 
-Please read about the [postgres-util side car]({{% relref "04-administration-guide/02-connecting-to-the-cluster/03-postgres-util" %}}) and [how to connect to the Postgres cluster]({{% relref "04-administration-guide/02-connecting-to-the-cluster" %}}) for more details.
+Please read about the [postgres-util side car]({{% relref "04-administration-guide/03-connecting-to-the-cluster/03-postgres-util" %}}) and [how to connect to the Postgres cluster]({{% relref "04-administration-guide/03-connecting-to-the-cluster" %}}) for more details.
 
 
 ## Accessing Postgres via Kubernetes Services
