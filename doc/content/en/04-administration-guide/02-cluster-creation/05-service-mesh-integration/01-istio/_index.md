@@ -18,7 +18,6 @@ Before you create a StackGres cluster, make sure you add the annotation `sidecar
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  namespace: demo
   name: cluster
 spec:
   metadata:

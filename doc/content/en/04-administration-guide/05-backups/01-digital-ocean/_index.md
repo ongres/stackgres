@@ -15,76 +15,43 @@ You need to configure `s3cmd` following the [instructions in the official docs](
 
 Go to the [API page](https://cloud.digitalocean.com/settings/api/tokens) and create a spaces key.
 
-Create the bucket with the following characteristics (that you may change):
+Let's create the bucket with the following characteristics (that you may change):
+
+* Bucket name: `my-stackgres-bucket`
 
 ```
-export DO_SPACES_BACKUP_BUCKET=stackgres-tutorial
-s3cmd mb s3://${DO_SPACES_BACKUP_BUCKET}
+s3cmd mb s3://my-stackgres-bucket
 ```
 
-## Kubernetes Setup
+## Secret and SGObjectStorage
 
 Create a Kubernetes secret with the following contents:
 
 ```
 ACCESS_KEY="**********" ## fix me
 SECRET_KEY="**********" ## fix me
-CLUSTER_NAMESPACE=demo
 kubectl create secret generic \
-  --namespace ${CLUSTER_NAMESPACE} \
-  do-creds-secret \
+  do-backup-secret \
   --from-literal=accessKeyId=${ACCESS_KEY} \
   --from-literal=secretAccessKey=${SECRET_KEY}
 ```
 
-Having the credentials secret created, we now need to create the object storage configuration and to set the backup configuration.
+Having the credentials secret created, we now need to create the object storage configuration and set the backup configuration.
 The object storage configuration it is governed by the [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) CRD.
 This CRD allows to specify the object storage technology, required parameters, as well as a reference to the credentials secret.
-
-Create a file `sgobjectstorage-backupconfig1.yaml` with the following contents:
 
 ```yaml
 apiVersion: stackgres.io/v1beta1
 kind: SGObjectStorage
 metadata:
-  namespace: demo
-  name: backupconfig1
+  name: objectstorage
 spec:
   type: s3Compatible
   s3Compatible:
-    bucket: 'stackgres-tutorial' ## change me if needed
+    bucket: my-stackgres-bucket
     endpoint: https://nyc3.digitaloceanspaces.com
     awsCredentials:
       secretKeySelectors:
-        accessKeyId: {name: 'do-creds-secret', key: 'accessKeyId'}
-        secretAccessKey: {name: 'do-creds-secret', key: 'secretAccessKey'}
+        accessKeyId: {name: 'do-backup-secret', key: 'accessKeyId'}
+        secretAccessKey: {name: 'do-backup-secret', key: 'secretAccessKey'}
 ```
-
-and deploy it to Kubernetes:
-
-```
-kubectl apply -f sgobjectstorage-backupconfig1.yaml
-```
-
-The backup configuration can be set under the section `.spec.configurations.backups` of the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD.
-Here we define the retention window for the automated backups and when base backups are performed.
-Additionally, you can define performance-related configuration of the backup process.
-
-An example cluster configuration looks as follows:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGCluster
-# [...]
-spec:
-  configurations:
-    backups:
-    - sgObjectStorage: backupconfig1
-      cronSchedule: '*/5 * * * *'
-      retention: 6
-```
-
-For this tutorial, backups are created every 5 minutes.
-Change the `.spec.backups[0].cronSchedule` parameter according to your own needs.
-
-The above configuration will be applied when the SGCluster resource is created.

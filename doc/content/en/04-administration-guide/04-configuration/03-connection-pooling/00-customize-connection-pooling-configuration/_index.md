@@ -6,17 +6,33 @@ draft: true
 showToc: true
 ---
 
-## Transaction Mode
+## Session Mode
 
-This configuration is recommended for most efficient pool allocations:
+This is the most stable and default mode. In order for the pool to be effectively used it requires the clients to close the connection when a session is no longer used. Here is an example of `SGPoolingConfig` that uses session mode:
 
-```
-cat << EOF | kubectl apply -f -
+```yaml
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
-  namespace: my-cluster
-  name: poolconfig1
+  name: poolconfig
+spec:
+  pgBouncer:
+    pgbouncer.ini:
+      pgbouncer:
+        pool_mode: session
+        max_client_conn: '100'
+        default_pool_size: '80'
+```
+
+## Transaction Mode
+
+This configuration is recommended for most efficient pool allocations but requires the application to be restricted in order to not use session objects. A session object is any object that can be created during a connection session with the database (see [Postgres Architectural Fundamentals](https://www.postgresql.org/docs/current/tutorial-arch.html)) like session settings, temporary tables, prepared statements, etc. (prepared statements can be used in some cases, see the [Pgbouncer FAQ](https://www.pgbouncer.org/faq.html#how-to-use-prepared-statements-with-transaction-pooling)). Here is an example of `SGPoolingConfig` that uses transaction mode:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGPoolingConfig
+metadata:
+  name: poolconfig
 spec:
   pgBouncer:
     pgbouncer.ini:
@@ -24,7 +40,6 @@ spec:
         pool_mode: transaction
         max_client_conn: '1000'
         default_pool_size: '80'
-EOF
 ```
 
 ## Session Mode with Connection release through timeouts
@@ -40,12 +55,10 @@ You'll notice that the bellow is ordered from variables that affect client-side 
 
 
 ```
-cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
-  namespace: my-cluster
-  name: poolconfig-session-prod
+  name: poolconfig
 spec:
   pgBouncer:
     pgbouncer.ini:
@@ -61,6 +74,4 @@ spec:
 EOF
 ```
 
-When the server pool is fulfilled, incoming client connection stablish requests will be queued set
- in `wait` state by PgBouncer. This is why it is important to ensure that server connections are
- released properly, specially if they are keep during long periods of time.
+When the server pool is fulfilled, incoming client connection will be queued in `wait` state by PgBouncer. This is why it is important to ensure that server connections are released properly, specially if they are keep during long periods of time.
