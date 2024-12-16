@@ -80,7 +80,7 @@ spec:
                     user:
                       type: string
                       description: |
-                        User that will execute the script. Defaults to the `postgres` user.
+                        User that will execute the script. Defaults to the superuser username when not set (that by default is `postgres`) user.
                     wrapInTransaction:
                       type: string
                       description: |
