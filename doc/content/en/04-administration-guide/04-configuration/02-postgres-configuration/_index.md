@@ -1,6 +1,6 @@
 ---
 title: Postgres Configuration
-weight: 1
+weight: 2
 url: /administration/configuration/postgres
 aliases: [ /administration/custom/postgres/config , /tutorial/complete-cluster/postgres-config ]
 description: Details about how the PostgresSQL configuration works and how to customize it.
@@ -25,8 +25,7 @@ This is an example config definition:
 apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
-  namespace: demo
-  name: pgconfig1
+  name: pgconfig
 spec:
   postgresVersion: "14"
   postgresql.conf:
@@ -38,7 +37,7 @@ spec:
     jit: 'off'
 ```
 
-This definition is created in Kubernetes (e.g. using `kubectl apply`) and can be inspected (`kubectl describe sgpgconfig pgconfig1`) like any other Kubernetes resource.
+This definition is created in Kubernetes (e.g. using `kubectl apply`) and can be inspected (`kubectl describe sgpgconfig pgconfig`) like any other Kubernetes resource.
 
 StackGres clusters can reference this configuration as follows:
 
@@ -46,10 +45,9 @@ StackGres clusters can reference this configuration as follows:
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  namespace: demo
   name: cluster
 spec:
 # [...]
   configurations:
-    sgPostgresConfig: 'pgconfig1'
+    sgPostgresConfig: 'pgconfig'
 ```

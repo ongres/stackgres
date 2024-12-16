@@ -1,6 +1,6 @@
 ---
 title: Instance Profile Configuration
-weight: 2
+weight: 1
 url: /administration/configuration/instance
 aliases: [ /tutorial/complete-cluster/instance-profile ]
 ---
@@ -18,7 +18,6 @@ This is an example config definition:
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
-  namespace: demo
   name: size-small
 spec:
   cpu: "4"
@@ -39,7 +38,6 @@ StackGres clusters can reference this configuration as follows:
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  namespace: demo
   name: cluster
 spec:
 # [...]
@@ -54,7 +52,6 @@ When an SGInstanceProfile is created specifying only `cpu` and `memory` fields u
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
-  namespace: demo
   name: size-small
 spec:
   cpu: "4"
@@ -194,7 +191,7 @@ Other containers will not receive any resources limits unless the `SGCluster.spe
 For example without setting `SGCluster.spec.pods.resources.enableClusterLimitsRequirements` a Pod resources limits would look like:
 
 ```
-$ kubectl get pod -n demo cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.limits }}{{ end }}'
+$ kubectl get pod cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.limits }}{{ end }}'
 patroni:
   limits: map[cpu:4 memory:8Gi]
 
@@ -220,7 +217,7 @@ cluster-controller:
 While with setting `SGCluster.spec.pods.resources.enableClusterLimitsRequirements` to `true` will look like:
 
 ```
-$ kubectl get pod -n demo cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.limits }}{{ end }}'
+$ kubectl get pod cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.limits }}{{ end }}'
 patroni:
   limits: map[cpu:4 memory:8Gi]
 
@@ -252,7 +249,7 @@ If `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal` is set
 For example without setting `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal` a Pod resources limits would look like:
 
 ```
-$ kubectl get pod -n demo cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.requests }}{{ end }}'
+$ kubectl get pod cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.requests }}{{ end }}'
 patroni:
   limits: map[cpu:1750m memory:7Gi]
 
@@ -278,7 +275,7 @@ cluster-controller:
 While with setting `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal` to `true` will look like:
 
 ```
-$ kubectl get pod -n demo cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.limits }}{{ end }}'
+$ kubectl get pod cluster-0 --template '{{ range .spec.containers }}{{ printf "%s:\n  limits: %s\n\n" .name .resources.limits }}{{ end }}'
 patroni:
   limits: map[cpu:4 memory:8Gi]
 
@@ -315,7 +312,6 @@ For example to specify 8 huge pages of `1Gi`:
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
-  namespace: demo
   name: size-small
 spec:
   cpu: "4"

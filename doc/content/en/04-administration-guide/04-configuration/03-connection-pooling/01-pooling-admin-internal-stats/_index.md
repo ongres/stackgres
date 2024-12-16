@@ -9,11 +9,11 @@ showToc: true
 
 ## Accessing the Pooling Admin console
 
-PgBouncer includes an admin database-style connection for getting valuable information about the pool stats, like
+PgBouncer includes an admin database-style connection for getting valuable information about the pool stats, like 
 counters, aggregations, client and server connection, etc. Those values are critical to be understood for a production
 alike environment.
 
-Access the console through container socket and `pgbouncer` (this is not a database user) user:
+Access the console through container socket and `pgbouncer` user (this user is only available when connecting directly to pgbouncer through socket):
 
 ```
 kubectl exec -it  -c postgres-util test-0 -- psql  -p 6432 -d pgbouncer pgbouncer
@@ -25,7 +25,6 @@ Expanded display is on.
 ```
 
 ## Getting valuable pool information
-
 
 ```
 pgbouncer=# show stats;
@@ -94,25 +93,4 @@ Other useful commands:
 - `show stats_totals`
 - `show stat_averages `
 
-
-## Reference
-
-Available commands:
-
-```
-        SHOW HELP|CONFIG|DATABASES|POOLS|CLIENTS|SERVERS|USERS|VERSION
-        SHOW FDS|SOCKETS|ACTIVE_SOCKETS|LISTS|MEM
-        SHOW DNS_HOSTS|DNS_ZONES
-        SHOW STATS|STATS_TOTALS|STATS_AVERAGES|TOTALS
-        SET key = arg
-        RELOAD
-        PAUSE [<db>]
-        RESUME [<db>]
-        DISABLE <db>
-        ENABLE <db>
-        RECONNECT [<db>]
-        KILL <db>
-        SUSPEND
-        SHUTDOWN
-```
-
+See also [PgBouncer official docs](https://www.pgbouncer.org/).

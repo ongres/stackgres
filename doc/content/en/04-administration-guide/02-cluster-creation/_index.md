@@ -31,7 +31,7 @@ spec:
 EOF
 ```
 
-By default the resources requests will be applied as the sum of the resources requests of all the containers of a cluster's Pod. Instead the resources limits will be applied for the `patroni` container that will run the Postgres process. For more advanced understanding see the [Instance Profile Configuration section]({{% relref "06-crd-reference/02-instance-profile" %}}).
+By default the resources requests will be applied as the sum of the resources requests of all the containers of a cluster's Pod. Instead the resources limits will be applied for the `patroni` container that will run the Postgres process. For more advanced understanding see the [Instance Profile Configuration section]({{% relref "06-crd-reference/02-sginstanceprofile" %}}).
 
 ### Configuring Postgres and PGBouncer
 

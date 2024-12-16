@@ -23,8 +23,7 @@ This is an example PgBouncer configuration definition:
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
-  namespace: demo
-  name: poolconfig1
+  name: poolconfig
 spec:
   pgBouncer:
     pgbouncer.ini:
@@ -34,7 +33,7 @@ spec:
         pool_mode: transaction
 ```
 
-This definition is created in Kubernetes (e.g. using `kubectl apply`) and can be inspected (`kubectl describe sgpoolconfig poolconfig1`) like any other Kubernetes resource.
+This definition is created in Kubernetes (e.g. using `kubectl apply`) and can be inspected (`kubectl describe sgpoolconfig poolconfig`) like any other Kubernetes resource.
 
 StackGres clusters can reference this configuration as follows:
 
@@ -42,12 +41,11 @@ StackGres clusters can reference this configuration as follows:
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  namespace: demo
   name: cluster
 spec:
 # [...]
   configurations:
-    sgPoolingConfig: 'poolconfig1'
+    sgPoolingConfig: 'poolconfig'
 ```
 
 <!--
@@ -63,15 +61,7 @@ Some applications, do not handle connection closing properly, which may require 
 
 The [SGPoolingConfig Customizing Pooling Configuration Section]({{% relref "06-crd-reference/04-sgpoolingconfig/#pgbouncer" %}}) explains the different options for scaling connections properly.
 
-Each configuration, once applied, need to be _reloaded_.
-This can be done by getting the corresponding primary node pod name and issue the same signal it is done on most of the environments:
-
-```
-PRIMARY=$(kubectl get pod -l role=master -n cluster -o name)
-kubectl exec -n cluster -it ${PRIMARY} -c postgres-util -- pkill --signal HUP pgbouncer
-```
-
-Check the following to know more about it:
+Check the following sections for more insights related to how to configure the connection pool:
 
 {{% children style="li" depth="1" description="true" %}}
 
@@ -84,12 +74,11 @@ It is possible to disable pooling by setting `disableConnectionPooling` to `true
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
-  namespace: demo
   name: cluster
 spec:
+# [...]
   pods:
     disableConnectionPooling: false
-...
 ```
 
 Either way, if your application does internal pooling or it already has a pooling middleware, you can consider disabling internal pooling mechanisms.
