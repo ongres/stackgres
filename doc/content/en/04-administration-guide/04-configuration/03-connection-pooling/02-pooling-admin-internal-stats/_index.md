@@ -1,6 +1,6 @@
 ---
 title: Pooling Administration and Internal Stats
-weight: 1
+weight: 2
 url: /administration/configuration/pool/admin
 aliases: [ /administration/cluster/pool/admin ]
 description: Details about how to check the pool configuration.
@@ -16,7 +16,7 @@ alike environment.
 Access the console through container socket and `pgbouncer` user (this user is only available when connecting directly to pgbouncer through socket):
 
 ```
-kubectl exec -it  -c postgres-util test-0 -- psql  -p 6432 -d pgbouncer pgbouncer
+kubectl exec -it  -c postgres-util cluster-0 -- psql  -p 6432 -U pgbouncer -d pgbouncer
 psql (12.4 OnGres Inc., server 1.13.0/bouncer)
 Type "help" for help.
 

@@ -1,8 +1,8 @@
 ---
-title: Customize Connection Pooling Configuration
-weight: 2
+title: Configuration of the Connection Pooler Modes
+weight: 1
 url: /administration/cluster/pool/custom/config
-draft: true
+description: Details about how to configure the connection pooler modes
 showToc: true
 ---
 

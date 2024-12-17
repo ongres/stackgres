@@ -9,9 +9,34 @@ find "$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds" -name
     do
       cp "$FILE" "$(dirname "$0")/data/crds"
     done
-cp "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" "$(dirname "$0")/data/stackgres_operator_Chart.yaml"
-cp "$(dirname "$0")/../stackgres-k8s/install/operator-sdk/stackgres-operator/openshift-operator-bundle/metadata/annotations.yaml" "$(dirname "$0")/data/stackgres_operator_openshift_annotations.yaml"
-sed -n 's#^ *RUN wget "https://get.helm.sh/helm-v\([^-]\+\)-.*$#version: \1#p' "$(dirname "$0")/../stackgres-k8s/ci/build/Dockerfile-ci" > "$(dirname "$0")/data/helm_version.yaml"
+cp "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" \
+  "$(dirname "$0")/data/stackgres_operator_Chart.yaml"
+cp "$(dirname "$0")/../stackgres-k8s/install/operator-sdk/stackgres-operator/openshift-operator-bundle/metadata/annotations.yaml" \
+  "$(dirname "$0")/data/stackgres_operator_openshift_annotations.yaml"
+sed -n 's#^ *RUN wget "https://get.helm.sh/helm-v\([^-]\+\)-.*$#version: \1#p' \
+  "$(dirname "$0")/../stackgres-k8s/ci/build/Dockerfile-ci" \
+  > "$(dirname "$0")/data/helm_version.yaml"
+(
+  cat "$(ls -1 "$(dirname "$0")"/../stackgres-k8s/src/operator/src/main/resources/postgresql-default-values-pg*.properties \
+    | tail -n 1)" \
+  || echo :
+) \
+  | sed 's/=\(.*\)$/: "\1"/' | yq . > "$(dirname "$0")/data/postgresql_default_values.yaml"
+(
+  cat "$(dirname "$0")"/../stackgres-k8s/src/operator/src/main/resources/postgresql-blocklist.properties \
+  || echo :
+) \
+  | yq 'split(" ")' > "$(dirname "$0")/data/postgresql_blocklist.yaml"
+(
+  cat "$(dirname "$0")"/../stackgres-k8s/src/operator/src/main/resources/pgbouncer-default-values.properties \
+  || echo :
+) \
+  | sed 's/=\(.*\)$/: "\1"/' | yq . > "$(dirname "$0")/data/pgbouncer_default_values.yaml"
+(
+  cat "$(dirname "$0")"/../stackgres-k8s/src/operator/src/main/resources/pgbouncer-blocklist.properties \
+  || echo :
+) \
+  | yq 'split(" ")' > "$(dirname "$0")/data/pgbouncer_blocklist.yaml"
 
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh stackgres-k8s/ci/build/version.sh)}"
 echo "current_version: \"$STACKGRES_VERSION\"" > "$(dirname "$0")/data/versions.yml"

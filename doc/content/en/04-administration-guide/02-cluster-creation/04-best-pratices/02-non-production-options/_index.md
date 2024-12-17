@@ -36,7 +36,7 @@ spec:
     disableClusterResourceRequirements: true
 ```
 
-After setting those options you will have to restart the Postgres cluster Pods by simply deleting them (or using a [restart SGDbOps]({{% relref "06-crd-reference/08-sgdbops#restart" %}})):
+After setting those options you will have to restart the SGCluster's Pods by running a [restart SGDbOps]({{% relref "06-crd-reference/08-sgdbops#restart" %}}):
 
 ```bash
 kubectl delete pod -l app=StackGresCluster,stackgres.io/cluster-name=simple
