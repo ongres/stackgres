@@ -320,6 +320,10 @@ spec:
     hugepages-1Gi: 8Gi
 ```
 
+## Apply Configuration changes
+
+Each configuration, once applied, require a restart of the SGCluster's Pods by running a [restart SGDbOps]({{% relref "06-crd-reference/08-sgdbops#restart" %}}).
+
 ## Custom containers
 
 Any custom container (or init cunstom containers) resources limits and huge pages can be configured by creating a section `SGInstanceProfile.spec.containers.custom-<custom container name>` (or `SGInstanceProfile.spec.initContainers.custom-<custom init container name>`) and specifying `cpu`, `memory` and/or `hugePages`.

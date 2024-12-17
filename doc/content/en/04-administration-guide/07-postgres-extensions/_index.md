@@ -156,7 +156,6 @@ apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
   name: postgres-12-generated-from-default-1622494739858
-  namespace: default
   # ...
 spec:
   # ...
@@ -179,7 +178,6 @@ apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
   name: restart-1622494739858
-  namespace: default
 spec:
   sgCluster: cluster
   op: restart
