@@ -392,9 +392,9 @@ EOF
     cat /tmp/backup-psql-out
     if ! kill -0 "$(cat /tmp/backup-psql-pid)"
     then
-      echo 'Backup failed while connection to primary'
+      echo 'Backup failed while connecting to primary'
       retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while connection to primary:\n'; cat /tmp/backup-psql-out; } | to_json_string)"'}
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while connecting to primary:\n'; cat /tmp/backup-psql-out; } | to_json_string)"'}
         ]'
       kill "$(cat /tmp/backup-tail-pid)" || true
       exit 1
@@ -455,6 +455,18 @@ spec:
   source:
     persistentVolumeClaimName: $(cat /tmp/current-primary-pvc)
 EOF
+    if ! retry kubectl exec -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni -- \
+      rm -rf "$PG_DATA_PATH.backup" "$PG_DATA_PATH/.restored_from_volume_snapshot" > /tmp/backup-cleanup 2>&1
+    then
+      cat /tmp/backup-cleanup
+      echo 'Backup failed while cleaning up before snapshot'
+      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while cleaning up before snapshot:\n'; cat /tmp/backup-cleanup; } | to_json_string)"'}
+        ]'
+      kill "$(cat /tmp/backup-tail-pid)" || true
+      exit 1
+    fi
+    cat /tmp/backup-cleanup
     if ! retry kubectl create -f /tmp/snapshot-to-create > /tmp/backup-snapshot 2>&1
     then
       cat /tmp/backup-snapshot
