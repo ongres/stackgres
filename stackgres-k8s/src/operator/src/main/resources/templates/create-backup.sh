@@ -381,6 +381,7 @@ do_backup() {
         -- psql -v ON_ERROR_STOP=1 -t -A > /tmp/backup-psql-out 2>&1 &
     echo $! > /tmp/backup-psql-pid
 
+    echo "Starting backup"
     cat << EOF >> /tmp/backup-psql
 SELECT 'Backup bootstrap';
 EOF
@@ -455,6 +456,7 @@ spec:
   source:
     persistentVolumeClaimName: $(cat /tmp/current-primary-pvc)
 EOF
+    echo "Performing cleanup of backup restored files before creating the VolumeSnapshot"
     if ! retry kubectl exec -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni -- \
       rm -rf "$PG_DATA_PATH.backup" "$PG_DATA_PATH/.restored_from_volume_snapshot" > /tmp/backup-cleanup 2>&1
     then
@@ -466,6 +468,7 @@ EOF
       kill "$(cat /tmp/backup-tail-pid)" || true
       exit 1
     fi
+    echo "Creating VolumeSnapshot"
     cat /tmp/backup-cleanup
     if ! retry kubectl create -f /tmp/snapshot-to-create > /tmp/backup-snapshot 2>&1
     then
@@ -521,6 +524,7 @@ EOF
       sleep 1
     done
 
+    echo "Stopping backup"
     cat << EOF >> /tmp/backup-psql
 SET client_min_messages TO WARNING;
 SELECT
