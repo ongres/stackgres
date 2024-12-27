@@ -241,13 +241,26 @@ check_volume_snapshot_backup_can_be_restored() {
      --set configurations.create=false --set instanceProfiles=null
 
   wait_pods_running "$CLUSTER_NAMESPACE" 4
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   check_init_data_after_restore
 
   check_replica_data_after_restore
 
   check_replication_after_restore
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.initialData.restore.fromBackup.name="$BACKUP_VOLUME_SNAPSHOT_NAME" \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+     --set configurations.create=false --set instanceProfiles=null
+
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 3
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l app=StackGresCluster,stackgres.io/cluster-name="$CLUSTER_NAME",stackgres.io/cluster=true
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }

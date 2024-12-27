@@ -203,13 +203,13 @@ public class ConfigRequiredResourcesGenerator
           .stream()
           .flatMap(List::stream)
           .filter(prometheus -> monitors.stream()
-              .anyMatch(monitor -> monitor.getMetadata().getNamespace().equals(prometheus.getMetadata().getNamespace())
-                  && monitor.getMetadata().getName().equals(prometheus.getMetadata().getName())))
+              .anyMatch(monitor -> monitor.getNamespace().equals(prometheus.getMetadata().getNamespace())
+                  && monitor.getName().equals(prometheus.getMetadata().getName())))
           .map(prometheus -> PrometheusContext.toPrometheusContext(
               prometheus,
               monitors.stream()
-              .filter(monitor -> monitor.getMetadata().getNamespace().equals(prometheus.getMetadata().getNamespace())
-                  && monitor.getMetadata().getName().equals(prometheus.getMetadata().getName()))
+              .filter(monitor -> monitor.getNamespace().equals(prometheus.getMetadata().getNamespace())
+                  && monitor.getName().equals(prometheus.getMetadata().getName()))
               .findFirst()
               .orElseThrow()))
           .toList();
