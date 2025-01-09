@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.SessionAffinityConfig;
@@ -83,6 +84,14 @@ public class StackGresPostgresService extends ServiceSpec {
     this.enabled = enabled;
   }
 
+  @JsonIgnore
+  public String getServiceType() {
+    if (Objects.equals(getType(), StackGresPostgresServiceType.NONE.toString())) {
+      return "ClusterIP";
+    }
+    return getType();
+  }
+
   @Override
   public String getType() {
     return type;
@@ -101,6 +110,14 @@ public class StackGresPostgresService extends ServiceSpec {
   @Override
   public void setAllocateLoadBalancerNodePorts(Boolean allocateLoadBalancerNodePorts) {
     super.setAllocateLoadBalancerNodePorts(allocateLoadBalancerNodePorts);
+  }
+
+  @JsonIgnore
+  public String getServiceClusterIP() {
+    if (Objects.equals(getType(), StackGresPostgresServiceType.NONE.toString())) {
+      return "None";
+    }
+    return null;
   }
 
   @Override

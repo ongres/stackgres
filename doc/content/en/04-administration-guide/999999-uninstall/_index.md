@@ -7,11 +7,11 @@ description: Details about how to uninstall the operator and all its components.
 showToc: true
 ---
 
-## Uninstalling StackGres clusters
+## Uninstalling StackGres custom resources
 
-### Database clusters
+Assuming that your clusters are running on the `default` namespace, execute the commands below to find and delete the clusters and other StackGres custom resources.
 
-Assuming that your cluster is running on the `default` namespace, execute the commands below to find and delete the clusters.
+### SGClusters
 
 List the available clusters:
 
@@ -39,6 +39,15 @@ my-db-cluster-1   5/5     Running   1          99s
 my-db-cluster-2   5/5     Running   0          74s
 ```
 
+> **IMPORTANT**: before deleting the cluster make sure all the PersistentVolume are going to be removed
+> (if that is your intention). To do so set the field `.spec.persistentVolumeReclaimPolicy` to
+> `Delete` for the PersistentVolume that are associated to the PersisitentVolumeClaim of the cluster.
+> To find out which are the PersisitentVolume use the the following command:
+> 
+> ```
+> kubectl get pvc -l app=StackGresCluster
+> ```
+
 Delete the cluster:
 
 ```
@@ -59,9 +68,64 @@ kubectl get pods -n default
 No resources found in default namespace.
 ```
 
-### Distributed Logs cluster
+### SGShardedClusters
 
-Assuming that your distributed logs cluster is running on the `default` namespace, execute the commands below to find and delete the distributed logs clusters.
+List the available clusters:
+
+```
+kubectl get sgshardedcluster -n default
+```
+
+Will show the available SGShardedCluster like in the following output:
+
+```
+NAME            AGE
+my-db-cluster   4m27s
+```
+
+List the pods for the cluster:
+
+```
+kubectl get pods -n default
+```
+
+```
+NAME                    READY   STATUS    RESTARTS   AGE
+my-db-cluster-coord-0   5/5     Running   1          2m29s
+my-db-cluster-shard0-0  5/5     Running   1          99s
+my-db-cluster-shard1-1  5/5     Running   0          74s
+```
+
+> **IMPORTANT**: before deleting the cluster make sure all the PersistentVolume are going to be removed
+> (if that is your intention). To do so set the field `.spec.persistentVolumeReclaimPolicy` to
+> `Delete` for the PersistentVolume that are associated to the PersisitentVolumeClaim of the cluster.
+> To find out which are the PersisitentVolume use the the following command:
+> 
+> ```
+> kubectl get pvc -l app=StackGresShardedCluster
+> ```
+
+Delete the cluster:
+
+```
+kubectl delete sgshardedcluster my-db-cluster -n default
+```
+
+```
+sgshardedcluster.stackgres.io "my-db-cluster" deleted
+```
+
+Check if the pods were deleted:
+
+```
+kubectl get pods -n default
+```
+
+```
+No resources found in default namespace.
+```
+
+### SGDistributedLogs
 
 List the available distributed logs clusters:
 
@@ -87,6 +151,15 @@ NAME              READY   STATUS    RESTARTS   AGE
 my-dl-cluster-0   5/5     Running   1          2m59s
 ```
 
+> **IMPORTANT**: before deleting the cluster make sure all the PersistentVolume are going to be removed
+> (if that is your intention). To do so set the field `.spec.persistentVolumeReclaimPolicy` to
+> `Delete` for the PersistentVolume that are associated to the PersisitentVolumeClaim of the cluster.
+> To find out which are the PersisitentVolume use the the following command:
+> 
+> ```
+> kubectl get pvc -l app=StackGresCluster
+> ```
+
 Delete the distributed logs cluster:
 
 ```
@@ -107,26 +180,18 @@ kubectl get pods -n default
 No resources found in default namespace.
 ```
 
-### Other objects
-
-The `SGCluster` depends on other objects to work properly, such as [instance profiles]({{% relref "/06-crd-reference/02-sginstanceprofile" %}}),
- [postgres configurations]({{% relref "/06-crd-reference/03-sgpostgresconfig" %}}), [connection pooling]({{% relref "/06-crd-reference/04-sgpoolingconfig/" %}}),
- [object storage]({{% relref "/06-crd-reference/09-sgobjectstorage/" %}}), [backups]({{% relref "/06-crd-reference/06-sgbackup/" %}}),
- [scripts]({{% relref "/06-crd-reference/10-sgscript/" %}}) .
- Execute the commands below to find and delete those objects:
+### Other StackGres resources
 
 List all StackGres objects:
 
 ```
-kubectl get sgobjectstorages,sgbackups,sginstanceprofiles,sgpgconfigs,sgpoolconfigs,sgscripts -n default
+kubectl api-resources -o name | grep -F .stackgres.io \
+  | kubectl get "$(tr '\n' ',' | sed 's/,$//')" -n default
 ```
 
 ```
 NAME                                                      AGE
 sgobjectstorage.stackgres.io/backup-config-minio-backend   162m
-
-NAME                          AGE
-sgbackup.stackgres.io/teste   14m
 
 NAME                                                     AGE
 sginstanceprofile.stackgres.io/instance-profile-medium   148m
@@ -155,11 +220,13 @@ sgpoolingconfig.stackgres.io/generated-from-default-1609864616550   8m6s
 
 To delete them all:
 
-> **IMPORTANT:** this WILL remove the backups too!
+> **IMPORTANT:** this WILL remove the SGBackups too including the physical backups stored in the
+>  VolumeSnapshots (but not the physical backups stored in the object storage).
 > **PROCEED WITH CARE.**
 
 ```
-kubectl get sgobjectstorages,sgbackups,sgclusters,sginstanceprofiles,sgpgconfigs,sgpoolconfigs,sgscripts -n default -o name | xargs kubectl delete
+kubectl api-resources -o name | grep -F .stackgres.io \
+  | kubectl delete --all "$(tr '\n' ',' | sed 's/,$//')" -n default
 ```
 
 ```
@@ -186,44 +253,18 @@ sgpoolingconfig.stackgres.io "generated-from-default-1609864616550" deleted
 
 ```
 
-#### Prometheus service monitors and pod monitors
-
-The missing part are the ServiceMonitors and PodMonitors that the operator created to integrate with
- the Prometheus Operator.
-
-List all StackGres ServiceMonitors and PodMonitors:
-
-```
-kubectl get servicemonitors,podmonitors -A -l app=StackGresCluster
-```
-
-```
-NAMESPACE   NAME                                                                     AGE
-stackgres   servicemonitor.monitoring.coreos.com/ui-ui-stackgres-envoy               120m
-stackgres   servicemonitor.monitoring.coreos.com/ui-ui-stackgres-postgres-exporter   120m
-```
-
-To delete all:
-
-```
-kubectl get configmap -l app=StackGresCluster -o name -A | xargs kubectl delete
-```
-
-```
-configmap "my-db-cluster-prometheus-postgres-exporter-config" deleted
-```
-
-
 ## Uninstall the Operator
 
-### Using Helm
+See also the section about [uninstalling unamespaced resources](#cleanup-unamespaced-resources)
+
+### When installed with Helm
 
 Execute the steps below to remove the helm chart release:
 
 ```
 ## locate the namespace that the operator was installed
 ## our doc always points to `stackgres`
-helm list --all-namespaces | grep '^\(stackgres-operator\|NAME\)\s'
+helm list --all-namespaces
 ```
 
 Will show the installed StackGres helm chart releases like in the following output:
@@ -253,42 +294,47 @@ kubectl get all -n stackgres
 No resources found in stackgres namespace.
 ```
 
-## Manually
+### When installed with OperatorHub
 
-This tutorial expects that the operator was installed on the `stackgres` namespace. Change it if you have this installed in a different namespace.
-
-### Operator deployments
-
-Execute the commands below to find and remove the operator deployments.
-
-List the deployments in the `stackgres` namespace:
+First delete the Subscription OLM custom resource:
 
 ```
-kubectl get deployments -n stackgres
+kubectl delete subscription -n stackgres stackgres
 ```
 
-Will show the installed StackGres deployments like in the following output:
+Then delete the ClusterServiceVersion OLM custom resource:
 
 ```
-NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
-stackgres-operator   1/1     1            1           171m
-stackgres-restapi    1/1     1            1           171m
+kubectl delete clusterserviceversion -n stackgres stackgres.v1.14.1
 ```
 
-Delete the deployments in the `stackgres` namespace:
+Finally delete the SGConfig StackGres custom resource:
 
 ```
-kubectl get deployments -n stackgres -o name | xargs kubectl delete -n stackgres
+kubectl delete sgconfig -n stackgres stackgres
 ```
 
+### When installed in OpenShift 4.x
+
 ```
-deployment.apps "stackgres-operator" deleted
-deployment.apps "stackgres-restapi" deleted
+kubectl delete subscription -n openshift-operators stackgres
+```
+
+Then delete the ClusterServiceVersion OLM custom resource:
+
+```
+kubectl delete clusterserviceversion -n openshift-operators stackgres.v1.14.1
+```
+
+Finally delete the SGConfig StackGres custom resource:
+
+```
+kubectl delete sgconfig -n openshift-operators stackgres
 ```
 
 ## Cleanup unamespaced resources
 
-To completely remove all the
+Follow this section in order to remove unamesapced resources.
 
 ### Webhooks
 

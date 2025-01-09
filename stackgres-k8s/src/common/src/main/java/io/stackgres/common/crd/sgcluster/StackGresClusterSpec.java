@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion.DeprecatedVersionPlaceholder;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -69,6 +71,7 @@ public class StackGresClusterSpec {
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
+  @DeprecatedVersionPlaceholder(StackGresVersion.V_1_14)
   private Boolean prometheusAutobind;
 
   @Valid
