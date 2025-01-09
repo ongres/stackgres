@@ -138,6 +138,8 @@ EOF
       esac
     done
     ;;
+    ("exec -n $CLUSTER_NAMESPACE $(cat /tmp/current-primary) -c patroni -- rm -rf "*)
+    ;;
     ("create -f /tmp/snapshot-to-create")
     ;;
     ("get $VOLUME_SNAPSHOT_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json")
