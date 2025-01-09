@@ -124,6 +124,7 @@ public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
     context.getReplicateConfiguration()
         .ifPresent(config -> data.putAll(
                 getBackupEnvVars(
+                    context,
                     config
                 )
             )

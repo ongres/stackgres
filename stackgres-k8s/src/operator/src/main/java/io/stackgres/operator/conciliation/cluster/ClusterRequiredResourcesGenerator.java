@@ -23,6 +23,8 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
@@ -114,6 +116,8 @@ public class ClusterRequiredResourcesGenerator
 
   private final ResourceScanner<Pod> podScanner;
 
+  private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
+
   private final BackupEnvVarFactory backupEnvVarFactory;
 
   private final ResourceGenerationDiscoverer<StackGresClusterContext> discoverer;
@@ -132,6 +136,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceScanner<StackGresBackup> backupScanner,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       ResourceScanner<Pod> podScanner,
+      ResourceScanner<PersistentVolumeClaim> pvcScanner,
       BackupEnvVarFactory backupEnvVarFactory,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
@@ -146,6 +151,7 @@ public class ClusterRequiredResourcesGenerator
     this.backupScanner = backupScanner;
     this.labelFactory = labelFactory;
     this.podScanner = podScanner;
+    this.pvcScanner = pvcScanner;
     this.backupEnvVarFactory = backupEnvVarFactory;
     this.discoverer = discoverer;
   }
@@ -219,7 +225,27 @@ public class ClusterRequiredResourcesGenerator
         getReplicationInitializationBackupAndSecrets(cluster, backupObjectStorage);
     final Optional<StackGresBackup> replicationInitializationBackupToCreate =
         getReplicationInitializationBackupToCreate(cluster, backupObjectStorage);
-    final int currentInstances = countCurrentInstances(cluster);
+    final List<Pod> clusterPods = getClusterPods(cluster);
+    final List<PersistentVolumeClaim> clusterDataPvcs = getClusterDataPvcs(cluster);
+    final int currentInstances = clusterPods.size();
+    final String clusterDataPersistentVolumeClaimName =
+        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(cluster);
+    final Map<String, String> podDataPersistentVolumeNames = clusterPods
+        .stream()
+        .map(pod -> Tuple.tuple(
+            pod.getMetadata().getName(),
+            clusterDataPvcs
+            .stream()
+            .filter(pvc -> pvc.getMetadata().getName().equals(
+                clusterDataPersistentVolumeClaimName
+                + "-"
+                + ResourceUtil.getIndexFromNameWithIndex(pod.getMetadata().getName())))
+            .findFirst()
+            .map(PersistentVolumeClaim::getSpec)
+            .map(PersistentVolumeClaimSpec::getVolumeName)))
+        .filter(entry -> entry.v2.isPresent())
+        .map(entry -> entry.map2(Optional::get))
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(cluster, clusterNamespace);
 
@@ -309,6 +335,7 @@ public class ClusterRequiredResourcesGenerator
             .map(Tuple2::v2)
             .orElse(Map.of()))
         .currentInstances(currentInstances)
+        .podDataPersistentVolumeNames(podDataPersistentVolumeNames)
         .restoreBackup(restoreBackup)
         .restoreSecrets(restoreSecrets)
         .databaseSecret(databaseSecret)
@@ -482,16 +509,28 @@ public class ClusterRequiredResourcesGenerator
         .findFirst();
   }
 
-  private int countCurrentInstances(StackGresCluster cluster) {
+  private List<Pod> getClusterPods(StackGresCluster cluster) {
     var clusterLabels = labelFactory.clusterLabels(cluster);
-    return (int) podScanner.getResourcesInNamespaceWithLabels(
+    return podScanner.getResourcesInNamespaceWithLabels(
         cluster.getMetadata().getNamespace(),
         clusterLabels)
         .stream()
         .filter(pod -> Optional.ofNullable(pod.getMetadata())
             .map(ObjectMeta::getDeletionTimestamp)
             .isEmpty())
-        .count();
+        .toList();
+  }
+
+  private List<PersistentVolumeClaim> getClusterDataPvcs(StackGresCluster cluster) {
+    var clusterLabels = labelFactory.clusterLabels(cluster);
+    return pvcScanner.getResourcesInNamespaceWithLabels(
+        cluster.getMetadata().getNamespace(),
+        clusterLabels)
+        .stream()
+        .filter(pod -> Optional.ofNullable(pod.getMetadata())
+            .map(ObjectMeta::getDeletionTimestamp)
+            .isEmpty())
+        .toList();
   }
 
   record Credentials(

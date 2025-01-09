@@ -151,6 +151,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   int getCurrentInstances();
 
+  Map<String, String> getPodDataPersistentVolumeNames();
+
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfigurations> config = Optional.of(getCluster())
         .map(StackGresCluster::getSpec)

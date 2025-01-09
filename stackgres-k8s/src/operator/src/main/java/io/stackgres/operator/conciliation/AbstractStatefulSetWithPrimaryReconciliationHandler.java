@@ -381,8 +381,10 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         .map(pod -> fixPodOwnerReferences(
             requiredOwnerReferences, pod,
             deployedStatefulSet.getMetadata().getName()))
-        .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(pod -> protectHandler.patch(context, pod, null));
+        .grouped(pod -> pod.getMetadata().getName())
+        .map(Tuple2::v2).map(Seq::findFirst)
+        .map(Optional::get)
+        .forEach(pod -> protectHandler.patch(context, pod, null));
   }
 
   private void protectPvcsFromStatefulSetRemoval(
@@ -405,8 +407,11 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         .map(pvc -> fixPvcOwnerReferences(
             requiredOwnerReferences, pvc,
             deployedStatefulSet.getMetadata().getName()))
-        .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(pvc -> protectHandler.patch(context, pvc, null));
+        .grouped(pvc -> pvc.getMetadata().getName())
+        .map(Tuple2::v2)
+        .map(Seq::findFirst)
+        .map(Optional::get)
+        .forEach(pvc -> protectHandler.patch(context, pvc, null));
   }
 
   private void fixPods(
@@ -434,8 +439,11 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         .append(podAnnotationsToPatch)
         .append(podOwnerReferencesToPatch)
         .append(podSelectorMatchLabelsToPatch)
-        .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(pod -> handler.patch(context, pod, null));
+        .grouped(pod -> pod.getMetadata().getName())
+        .map(Tuple2::v2)
+        .map(Seq::findFirst)
+        .map(Optional::get)
+        .forEach(pod -> handler.patch(context, pod, null));
   }
 
   private List<Pod> fixNonDisruptablePods(
@@ -671,9 +679,14 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler<T exte
         statefulSet, pvcsToFix);
     List<PersistentVolumeClaim> pvcOwnerReferencesToPatch = fixPvcOwnerReferences(
         context, deployedStatefulSet, pvcsToFix);
-    Seq.seq(pvcAnnotationsToPatch).append(pvcLabelsToPatch).append(pvcOwnerReferencesToPatch)
-        .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(pvc -> handler.patch(context, pvc, null));
+    Seq.seq(pvcAnnotationsToPatch)
+        .append(pvcLabelsToPatch)
+        .append(pvcOwnerReferencesToPatch)
+        .grouped(pvc -> pvc.getMetadata().getName())
+        .map(Tuple2::v2)
+        .map(Seq::findFirst)
+        .map(Optional::get)
+        .forEach(pvc -> handler.patch(context, pvc, null));
   }
 
   private List<PersistentVolumeClaim> fixPvcsAnnotations(

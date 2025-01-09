@@ -135,7 +135,13 @@ reconcile_backups() {
 
   echo "Updating backup CR as completed"
   set_backup_completed
-  echo "Backup CR updated as completed"
+  if [ "$?" = 0 ]
+  then
+    echo "Backup CR updated as completed"
+  else
+    echo "Unable to update backup CR as completed"
+    return 1
+  fi
   echo "Backup completed"
 
   RECONCILIATION_START_TIMESTAMP="$(date +%s)"
@@ -203,79 +209,16 @@ get_backup_crs() {
 }
 
 create_or_update_backup_cr() {
-  BACKUP_CONFIG_YAML="$(cat << BACKUP_CONFIG_YAML_EOF
-    baseBackups:
-      compression: "$COMPRESSION"
-    storage:
-      type: "{{ .$STORAGE_TEMPLATE_PATH.type }}"
-      {{- with .$STORAGE_TEMPLATE_PATH.s3 }}
-      s3:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        awsCredentials:
-          secretKeySelectors:
-            accessKeyId:
-              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
-            secretAccessKey:
-              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-        {{ with .region }}region: "{{ . }}"{{ end }}
-        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
-      {{- end }}
-      {{- with .$STORAGE_TEMPLATE_PATH.s3Compatible }}
-      s3Compatible:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        awsCredentials:
-          secretKeySelectors:
-            accessKeyId:
-              key: "{{ .awsCredentials.secretKeySelectors.accessKeyId.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.accessKeyId.name }}"
-            secretAccessKey:
-              key: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.key }}"
-              name: "{{ .awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-        {{ with .region }}region: "{{ . }}"{{ end }}
-        {{ with .endpoint }}endpoint: "{{ . }}"{{ end }}
-        {{ with .enablePathStyleAddressing }}enablePathStyleAddressing: {{ . }}{{ end }}
-        {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
-      {{- end }}
-      {{- with .$STORAGE_TEMPLATE_PATH.gcs }}
-      gcs:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        gcpCredentials:
-          {{- if .gcpCredentials.fetchCredentialsFromMetadataService }}
-          fetchCredentialsFromMetadataService: true
-          {{- else }}
-          secretKeySelectors:
-            serviceAccountJSON:
-              key: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
-              name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
-          {{- end }}
-      {{- end }}
-      {{- with .$STORAGE_TEMPLATE_PATH.azureBlob }}
-      azureBlob:
-        bucket: "{{ .bucket }}"
-        {{ with .path }}path: "{{ . }}"{{ end }}
-        azureCredentials:
-          secretKeySelectors:
-            storageAccount:
-              key: "{{ .azureCredentials.secretKeySelectors.storageAccount.key }}"
-              name: "{{ .azureCredentials.secretKeySelectors.storageAccount.name }}"
-            accessKey:
-              key: "{{ .azureCredentials.secretKeySelectors.accessKey.key }}"
-              name: "{{ .azureCredentials.secretKeySelectors.accessKey.name }}"
-      {{- end }}
-BACKUP_CONFIG_YAML_EOF
-  )"
+  BACKUP_CONFIG_JSON="$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json)"
 BACKUP_STATUS_YAML="$(cat << BACKUP_STATUS_YAML_EOF
 status:
   backupPath: "$CLUSTER_BACKUP_PATH"
   process:
     jobPod: "$POD_NAME"
   sgBackupConfig:
-$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template="$BACKUP_CONFIG_YAML")
+    baseBackups:
+      compression: "$COMPRESSION"
+    storage: $(printf %s "$BACKUP_CONFIG_JSON" | jq .spec)
 BACKUP_STATUS_YAML_EOF
   )"
 
@@ -456,20 +399,7 @@ spec:
   source:
     persistentVolumeClaimName: $(cat /tmp/current-primary-pvc)
 EOF
-    echo "Performing cleanup of backup restored files before creating the VolumeSnapshot"
-    if ! retry kubectl exec -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni -- \
-      rm -rf "$PG_DATA_PATH.backup" "$PG_DATA_PATH/.restored_from_volume_snapshot" > /tmp/backup-cleanup 2>&1
-    then
-      cat /tmp/backup-cleanup
-      echo 'Backup failed while cleaning up before snapshot'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while cleaning up before snapshot:\n'; cat /tmp/backup-cleanup; } | to_json_string)"'}
-        ]'
-      kill "$(cat /tmp/backup-tail-pid)" || true
-      exit 1
-    fi
     echo "Creating VolumeSnapshot"
-    cat /tmp/backup-cleanup
     if ! retry kubectl create -f /tmp/snapshot-to-create > /tmp/backup-snapshot 2>&1
     then
       cat /tmp/backup-snapshot
