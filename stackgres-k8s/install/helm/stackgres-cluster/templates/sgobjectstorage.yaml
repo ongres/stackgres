@@ -28,92 +28,24 @@ spec:
           name: {{ .Release.Name }}-minio
           key: secretkey
   {{- end }}
-  {{- if .Values.configurations.objectstorage.s3 }}
+  {{- with .Values.configurations.objectstorage.s3 }}
   type: s3
   s3:
-    bucket: "{{ .Values.configurations.objectstorage.s3.bucket }}"
-    {{- if .Values.configurations.objectstorage.s3.path }}
-    path: "{{ .Values.configurations.objectstorage.s3.path }}"
-    {{- end }}
-    awsCredentials:
-      secretKeySelectors:
-        accessKeyId:
-          name: "{{ .Values.configurations.objectstorage.s3.awsCredentials.secretKeySelectors.accessKeyId.name }}"
-          key: "{{ .Values.configurations.objectstorage.s3.awsCredentials.secretKeySelectors.accessKeyId.key }}"
-        secretAccessKey:
-          name: "{{ .Values.configurations.objectstorage.s3.awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-          key: "{{ .Values.configurations.objectstorage.s3.awsCredentials.secretKeySelectors.secretAccessKey.key }}"
-    {{- if .Values.configurations.objectstorage.s3.region }}
-    region: "{{ .Values.configurations.objectstorage.s3.region }}"
-    {{- end }}
-    {{- if .Values.configurations.objectstorage.s3.storageClass }}
-    storageClass: "{{ .Values.configurations.objectstorage.s3.storageClass }}"
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.configurations.objectstorage.s3Compatible }}
+  {{- with .Values.configurations.objectstorage.s3Compatible }}
   type: s3Compatible
   s3Compatible:
-    bucket: "{{ .Values.configurations.objectstorage.s3Compatible.bucket }}"
-    {{- if .Values.configurations.objectstorage.s3Compatible.path }}
-    path: "{{ .Values.configurations.objectstorage.s3Compatible.path }}"
-    {{- end }}
-    awsCredentials:
-      secretKeySelectors:
-        accessKeyId:
-          name: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name }}"
-          key: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key }}"
-        secretAccessKey:
-          name: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name }}"
-          key: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key }}"
-        {{- if .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.caCerrtificate }}
-        caCerrtificate:
-          name: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.caCerrtificate.name }}"
-          key: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.caCerrtificate.key }}"
-        {{- end }}
-    {{- if .Values.configurations.objectstorage.s3Compatible.region }}
-    region: "{{ .Values.configurations.objectstorage.s3Compatible.region }}"
-    {{- end }}
-    {{- if .Values.configurations.objectstorage.s3Compatible.endpoint }}
-    endpoint: "{{ .Values.configurations.objectstorage.s3Compatible.endpoint }}"
-    {{- end }}
-    {{- if .Values.configurations.objectstorage.s3Compatible.enablePathStyleAddressing }}
-    enablePathStyleAddressing: {{ .Values.configurations.objectstorage.s3Compatible.enablePathStyleAddressing }}
-    {{- end }}
-    {{- if .Values.configurations.objectstorage.s3Compatible.storageClass }}
-    storageClass: "{{ .Values.configurations.objectstorage.s3Compatible.storageClass }}"
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.configurations.objectstorage.gcs }}
+  {{- with .Values.configurations.objectstorage.gcs }}
   type: gcs
   gcs:
-    bucket: "{{ .Values.configurations.objectstorage.gcs.bucket }}"
-    {{- if .Values.configurations.objectstorage.gcs.path }}
-    path: "{{ .Values.configurations.objectstorage.gcs.path }}"
-    {{- end }}
-    gcpCredentials:
-      {{- if .Values.configurations.objectstorage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
-      fetchCredentialsFromMetadataService: {{ .Values.configurations.objectstorage.gcs.gcpCredentials.fetchCredentialsFromMetadataService }}
-      {{- else }}
-      secretKeySelectors:
-        serviceAccountJSON:
-          name: "{{ .Values.configurations.objectstorage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
-          key: "{{ .Values.configurations.objectstorage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}"
-      {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.configurations.objectstorage.azureBlob }}
+  {{- with .Values.configurations.objectstorage.azureBlob }}
   type: azureBlob
   azureBlob:
-    bucket: "{{ .Values.configurations.objectstorage.azureBlob.bucket }}"
-    {{- if .Values.configurations.objectstorage.azureBlob.path }}
-    path: "{{ .Values.configurations.objectstorage.azureBlob.path }}"
-    {{- end }}
-    azureCredentials:
-      secretKeySelectors:
-        storageAccount:
-          name: "{{ .Values.configurations.objectstorage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.name }}"
-          key: "{{ .Values.configurations.objectstorage.azureBlob.azureCredentials.secretKeySelectors.storageAccount.key }}"
-        accessKey:
-          name: "{{ .Values.configurations.objectstorage.azureBlob.azureCredentials.secretKeySelectors.accessKey.name }}"
-          key: "{{ .Values.configurations.objectstorage.azureBlob.azureCredentials.secretKeySelectors.accessKey.key }}"
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{ end }}

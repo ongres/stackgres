@@ -18,6 +18,40 @@ install_minio() {
   MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
   kubectl create namespace "$MINIO_NAMESPACE" || true
 
+  if printf %s "$*" | grep -qF 'tls.enabled=true'
+  then
+    cat << EOF > "$LOG_PATH/minio-cert.config"
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C = US
+ST = VA
+L = Somewhere
+O = MyOrg
+OU = MyOU
+CN = MyServerName
+
+[v3_req]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = ${MINIO_NAME}.${MINIO_NAMESPACE}
+DNS.2 = ${MINIO_NAME}
+EOF
+
+    openssl genrsa -out "$LOG_PATH/minio-cert.key" 2048
+    openssl req -new -x509 -nodes \
+      -keyout "$LOG_PATH/minio-cert.key" \
+      -out "$LOG_PATH/minio-cert.crt" \
+      -config "$LOG_PATH/minio-cert.config" 
+    kubectl create secret tls -n "$MINIO_NAMESPACE" "$MINIO_NAME"-certs \
+      --cert="$LOG_PATH/minio-cert.crt" \
+      --key="$LOG_PATH/minio-cert.key"
+  fi
+
   cat << EOF > "$LOG_PATH/minio.yaml"
 resources:
   requests:
