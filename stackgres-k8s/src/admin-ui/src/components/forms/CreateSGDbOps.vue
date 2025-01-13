@@ -340,7 +340,13 @@
             <fieldset class="minorVersionUpgrade" v-else-if="op == 'minorVersionUpgrade'">
                 <template v-if="sgCluster.length">
                     <template v-for="cluster in allClusters" v-if="sgCluster == cluster.name">
-                        <template v-if="(typeof (postgresVersionsList[cluster.data.spec.postgres.version.substring(0,2)].find(v => v > cluster.data.spec.postgres.version)) != 'undefined')">
+                        <template v-if="
+                            typeof 
+                                postgresVersionsList[cluster.data.spec.postgres.version.split('.')[0]]
+                                    .find(v => 
+                                        parseInt(v.split('.')[1]) > parseInt(cluster.data.spec.postgres.version.split('.')[1])
+                                    ) != 'undefined'
+                            ">
                             <div class="header open">
                                 <h3>Minor Version Upgrade Details</h3>
                             </div>
@@ -359,7 +365,12 @@
                                     <label for="spec.minorVersionUpgrade.postgresVersion">Target Postgres Version <span class="req">*</span></label>
                                     <select v-model="minorVersionUpgrade.postgresVersion" required data-field="spec.minorVersionUpgrade.postgresVersion">
                                         <option disabled value="">Choose version...</option>
-                                        <option v-for="version in postgresVersionsList[cluster.data.spec.postgres.version.substring(0,2)]" v-if="version > cluster.data.spec.postgres.version">{{ version }}</option>
+                                        <option
+                                            v-for="version in postgresVersionsList[cluster.data.spec.postgres.version.split('.')[0]]"
+                                            v-if="parseInt(version.split('.')[1]) > parseInt(cluster.data.spec.postgres.version.split('.')[1])"
+                                        >
+                                            {{ version }}
+                                        </option>
                                     </select>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.minorVersionUpgrade.postgresVersion')"></span>
                                 </div>
