@@ -1,3 +1,50 @@
+# :rocket: Release 1.14.3 (2025-01-13)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.14.3 is out! :confetti_ball: :champagne: 
+
+This hotfix release solve an important issue regarding SGClusters restored from VolumeSnapshots that may get unavailable after restart. Version 1.14.2 claimed to solve the issue but was not the case.
+
+For more info see https://gitlab.com/ongresinc/stackgres/-/issues/2956
+
+Do not wait more and upgrade StackGres to this latest version!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+Nothing new here! :eyes:
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Primary Pod does not start when restarted after a restore from snapshot backup
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.14.3/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.14.3)
+
 # :rocket: Release 1.14.2 (2024-12-26)
 
 ## :notepad_spiral: NOTES
