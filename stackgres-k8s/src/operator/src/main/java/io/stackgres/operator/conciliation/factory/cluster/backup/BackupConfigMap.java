@@ -82,6 +82,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     context.getBackupConfiguration()
         .ifPresent(config -> data.putAll(
                 getBackupEnvVars(
+                    context,
                     config
                 )
             )

@@ -42,7 +42,8 @@ then
     printf %s "$RESTORE_TABLESPACE_MAP" | base64 -d > "$PG_DATA_PATH"/tablespace_map
     chmod 600 "$PG_DATA_PATH"/tablespace_map
   fi
-  touch "$PG_DATA_PATH/.restored_from_volume_snapshot"
+  POD_DATA_PV_NAME_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_NAME"
+  touch "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")"
 else
   wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_NAME"
 fi
@@ -83,7 +84,8 @@ then
     printf %s "$REPLICATION_INITIALIZATION_TABLESPACE_MAP" | base64 -d > "$PG_DATA_PATH"/tablespace_map
     chmod 600 "$PG_DATA_PATH"/tablespace_map
   fi
-  touch "$PG_DATA_PATH/.restored_from_volume_snapshot"
+  POD_DATA_PV_NAME_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_NAME"
+  touch "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")"
 else
   wal-g backup-fetch "$PG_DATA_PATH" "$REPLICATION_INITIALIZATION_BACKUP_NAME"
 fi
@@ -394,10 +396,19 @@ initialize() {
     return
   fi
 
-  if [ -f "$PG_DATA_PATH/.restored_from_volume_snapshot" ]
+  POD_DATA_PV_NAME_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_NAME"
+  while eval "test -z \"\$$POD_DATA_PV_NAME_ENV_VAR\""
+  do
+    echo "Waiting for $POD_DATA_PV_NAME_ENV_VAR env var to be set"
+    sleep 5
+  done
+
+  if [ -f "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")" ]
   then
     return
   fi
+
+  echo "File $PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"") was not found, preparing restore of snapshot based backup"
   
   if [ -d "$PG_DATA_PATH".failed ] \
     && ! [ -d "$PG_DATA_PATH" ]
@@ -410,6 +421,14 @@ initialize() {
   then
     mv "$PG_DATA_PATH" "$PG_DATA_PATH".backup
   fi
+
+  echo
+  echo "WARNING: In case you upgraded from 1.14.2 or older StackGres release and the primary Pod do not start"
+  echo " run the following commands on the patroni container of your primary Pod:"
+  echo
+  echo " mv $PG_DATA_PATH.backup $PG_DATA_PATH"
+  echo " touch $PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")"
+  echo
 }
 
 initialize
@@ -445,10 +464,19 @@ initialize() {
     return;
   fi
 
-  if [ -f "$PG_DATA_PATH/.restored_from_volume_snapshot" ]
+  POD_DATA_PV_NAME_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_NAME"
+  while eval "test -z \"\$$POD_DATA_PV_NAME_ENV_VAR\""
+  do
+    echo "Waiting for $POD_DATA_PV_NAME_ENV_VAR env var to be set"
+    sleep 5
+  done
+
+  if [ -f "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")" ]
   then
     return
   fi
+
+  echo "File $PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"") was not found, preparing restore of snapshot based backup"
 
   if [ -d "$PG_DATA_PATH".failed ] \
     && ! [ -d "$PG_DATA_PATH" ]
