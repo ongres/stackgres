@@ -30,6 +30,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.Volume;
@@ -241,14 +242,23 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
       }
     }
 
+    final String queriesResourcePath;
+
+    final long versionAsNumber = StackGresVersion.getStackGresVersionAsNumber(context.getCluster());
+    if (versionAsNumber <= StackGresVersion.V_1_14.getVersionAsNumber()) {
+      queriesResourcePath = "/prometheus-postgres-exporter/queries-1.23.yaml";
+    } else {
+      queriesResourcePath = "/prometheus-postgres-exporter/queries.yaml";
+    }
+
     return builder
-            .withData(Map.of(QUERIES_YAML,
-                    Unchecked.supplier(() ->
-                            Resources
-                                    .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-                                            "/prometheus-postgres-exporter/queries.yaml")),
-                                            StandardCharsets.UTF_8).read()).get()))
-            .build();
+        .withData(Map.of(QUERIES_YAML,
+            Unchecked.supplier(() ->
+            Resources
+            .asCharSource(
+                Objects.requireNonNull(PostgresExporter.class.getResource(queriesResourcePath)),
+                StandardCharsets.UTF_8).read()).get()))
+        .build();
   }
 
 }
