@@ -135,7 +135,13 @@ reconcile_backups() {
 
   echo "Updating backup CR as completed"
   set_backup_completed
-  echo "Backup CR updated as completed"
+  if [ "$?" = 0 ]
+  then
+    echo "Backup CR updated as completed"
+  else
+    echo "Unable to update backup CR as completed"
+    return 1
+  fi
   echo "Backup completed"
 
   RECONCILIATION_START_TIMESTAMP="$(date +%s)"
@@ -393,20 +399,7 @@ spec:
   source:
     persistentVolumeClaimName: $(cat /tmp/current-primary-pvc)
 EOF
-    echo "Performing cleanup of backup restored files before creating the VolumeSnapshot"
-    if ! retry kubectl exec -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c patroni -- \
-      rm -rf "$PG_DATA_PATH.backup" "$PG_DATA_PATH/.restored_from_volume_snapshot" > /tmp/backup-cleanup 2>&1
-    then
-      cat /tmp/backup-cleanup
-      echo 'Backup failed while cleaning up before snapshot'
-      retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while cleaning up before snapshot:\n'; cat /tmp/backup-cleanup; } | to_json_string)"'}
-        ]'
-      kill "$(cat /tmp/backup-tail-pid)" || true
-      exit 1
-    fi
     echo "Creating VolumeSnapshot"
-    cat /tmp/backup-cleanup
     if ! retry kubectl create -f /tmp/snapshot-to-create > /tmp/backup-snapshot 2>&1
     then
       cat /tmp/backup-snapshot
