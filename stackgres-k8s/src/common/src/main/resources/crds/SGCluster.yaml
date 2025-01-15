@@ -2226,6 +2226,10 @@ spec:
                         type: string
                         description: |
                           The source backup path
+                      sourceReplicationMode:
+                        type: string
+                        description: |
+                          The source replication mode
                       targetPostgresVersion:
                         type: string
                         description: |
