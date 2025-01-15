@@ -38,6 +38,9 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
   private String sourceBackupPath;
 
   @NotNull
+  private String sourceReplicationMode;
+
+  @NotNull
   private String targetPostgresVersion;
 
   @NotNull
@@ -115,6 +118,14 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
     this.sourceBackupPath = sourceBackupPath;
   }
 
+  public String getSourceReplicationMode() {
+    return sourceReplicationMode;
+  }
+
+  public void setSourceReplicationMode(String sourceReplicationMode) {
+    this.sourceReplicationMode = sourceReplicationMode;
+  }
+
   public String getTargetPostgresVersion() {
     return targetPostgresVersion;
   }
@@ -183,9 +194,9 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Objects.hash(check, clone, dataChecksum, encoding,
-        sourcePostgresExtensions, link, locale, rollback, sourceBackupPath, sourcePostgresVersion,
-        sourceSgPostgresConfig, targetPostgresVersion);
+    result = prime * result + Objects.hash(check, clone, dataChecksum, encoding, link, locale,
+        rollback, sourceBackupPath, sourcePostgresExtensions, sourcePostgresVersion,
+        sourceReplicationMode, sourceSgPostgresConfig, targetPostgresVersion);
     return result;
   }
 
@@ -200,18 +211,15 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
     if (!(obj instanceof StackGresClusterDbOpsMajorVersionUpgradeStatus)) {
       return false;
     }
-    StackGresClusterDbOpsMajorVersionUpgradeStatus other =
-        (StackGresClusterDbOpsMajorVersionUpgradeStatus) obj;
-    return Objects.equals(check, other.check)
-        && Objects.equals(clone, other.clone)
+    StackGresClusterDbOpsMajorVersionUpgradeStatus other = (StackGresClusterDbOpsMajorVersionUpgradeStatus) obj;
+    return Objects.equals(check, other.check) && Objects.equals(clone, other.clone)
         && Objects.equals(dataChecksum, other.dataChecksum)
-        && Objects.equals(encoding, other.encoding)
-        && Objects.equals(sourcePostgresExtensions, other.sourcePostgresExtensions)
-        && Objects.equals(link, other.link)
-        && Objects.equals(locale, other.locale)
-        && Objects.equals(rollback, other.rollback)
+        && Objects.equals(encoding, other.encoding) && Objects.equals(link, other.link)
+        && Objects.equals(locale, other.locale) && Objects.equals(rollback, other.rollback)
         && Objects.equals(sourceBackupPath, other.sourceBackupPath)
+        && Objects.equals(sourcePostgresExtensions, other.sourcePostgresExtensions)
         && Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)
+        && Objects.equals(sourceReplicationMode, other.sourceReplicationMode)
         && Objects.equals(sourceSgPostgresConfig, other.sourceSgPostgresConfig)
         && Objects.equals(targetPostgresVersion, other.targetPostgresVersion);
   }

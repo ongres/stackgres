@@ -31,6 +31,9 @@ kubectl_mock_overwrite() {
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps.majorVersionUpgrade.sourceBackupPath }}{{ .status.dbOps.majorVersionUpgrade.sourceBackupPath }}{{ end }}")
     printf %s "sgbackup.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${SOURCE_VERSION%.*}"
     ;;
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.dbOps.$OP_NAME.sourceReplicationMode }}")
+    printf %s async
+    ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ with .status.dbOps.$OP_NAME.initialInstances }}{{ . }}{{ end }}")
     printf '[test-0 test-1]'
     ;;
