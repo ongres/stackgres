@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.autoscaling;
+package io.stackgres.operator.conciliation.factory.cluster.autoscaling.v114;
 
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +31,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_15)
+@OperatorVersionBinder(stopAt = StackGresVersion.V_1_14)
 public class HorizontalAutoscaling implements ResourceGenerator<StackGresClusterContext> {
 
   public static String name(StackGresCluster cluster) {
@@ -149,10 +149,9 @@ public class HorizontalAutoscaling implements ResourceGenerator<StackGresCluster
                           'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
                           'show databases'::text)
                         AS _(
-                          name text, host text, port integer, database text, force_user text, pool_size integer,
-                          min_pool_size integer, reserve_pool integer, server_lifetime integer, pool_mode text,
-                          load_balance_hosts text, max_connections integer, current_connections integer,
-                          max_client_connections integer, current_client_connections integer,
+                          name text, host text, port integer, database text, force_user text,
+                          pool_size integer, min_pool_size integer, reserve_pool integer, server_lifetime integer,
+                          pool_mode text, max_connections integer, current_connections integer,
                           paused boolean, disabled boolean)),
                       active_connections (size) AS (
                         SELECT SUM(_.current_connections)::numeric
@@ -160,10 +159,9 @@ public class HorizontalAutoscaling implements ResourceGenerator<StackGresCluster
                           'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
                           'show databases'::text)
                         AS _(
-                          name text, host text, port integer, database text, force_user text, pool_size integer,
-                          min_pool_size integer, reserve_pool integer, server_lifetime integer, pool_mode text,
-                          load_balance_hosts text, max_connections integer, current_connections integer,
-                          max_client_connections integer, current_client_connections integer,
+                          name text, host text, port integer, database text, force_user text,
+                          pool_size integer, min_pool_size integer, reserve_pool integer, server_lifetime integer,
+                          pool_mode text, max_connections integer, current_connections integer,
                           paused boolean, disabled boolean))
                     SELECT active_connections.size / max_connections.size AS connection_usage
                     FROM max_connections, active_connections; 
