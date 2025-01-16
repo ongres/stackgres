@@ -156,4 +156,6 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   RUN chmod a+x /bin/operator-sdk-1.32
   RUN wget -O /bin/kind-0.25.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.25.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind-0.25.0
+  RUN wget -O /bin/kind-0.26.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.26.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/kind-0.26.0
   
