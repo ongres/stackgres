@@ -12,6 +12,13 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_only
+
   STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
 
   install_knative

@@ -11,6 +11,13 @@ e2e_test_install() {
     return
   fi
 
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_only
+
   install_metric_server
   install_keda
   if [ "$E2E_DISABLE_VPA" != true ]
