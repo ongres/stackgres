@@ -183,12 +183,20 @@ check_pgbench() {
     fail "pgbench did not returned the statements script."
   fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ .status.benchmark.pgbench.hdrHistogram }}' | grep -x '[0-9A-Za-z+/=]\+'
+  kubectl get -n "$CLUSTER_NAMESPACE" pod -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
+    | jq -r '.items[0].spec.containers[0].image' | grep -q '^.*-build-6\.\(.*\)$'
+
+  if kubectl get -n "$CLUSTER_NAMESPACE" pod -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
+    | jq -r '.items[0].spec.containers[0].image' | sed 's/^.*-build-6\.\(.*\)$/\1/' \
+    | test "$(cat)" -ge 35
   then
-    success "pgbench returned the HdrHistogram."
-  else
-    fail "pgbench did not returned the HdrHistogram."
+    if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ .status.benchmark.pgbench.hdrHistogram }}' | grep -x '[0-9A-Za-z+/=]\+'
+    then
+      success "pgbench returned the HdrHistogram."
+    else
+      fail "pgbench did not returned the HdrHistogram."
+    fi
   fi
 
   RESULT="$(run_query -i 0 -p 5432 -q "SELECT EXISTS(SELECT * FROM pg_database WHERE datname LIKE 'pgbench-%')")"

@@ -8,9 +8,9 @@ run_op() {
 
   if [ -z "$TARGET_BACKUP_PATH" ]
   then
-    echo "Checking setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
+    echo "Checking setting postgres version to $TARGET_VERSION, postgres config to $TARGET_POSTGRES_CONFIG, replication mode to async and instances to 1..."
   else
-    echo "Checking setting postgres version to $TARGET_VERSION, postgres config to $TARGET_POSTGRES_CONFIG and backup path to $TARGET_BACKUP_PATH..."
+    echo "Checking setting postgres version to $TARGET_VERSION, postgres config to $TARGET_POSTGRES_CONFIG, replication mode to async, instances to 1 and backup path to $TARGET_BACKUP_PATH..."
   fi
   echo
   until {
@@ -18,6 +18,8 @@ run_op() {
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.extensions = '"$TARGET_EXTENSIONS")"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "async"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.instances = 1')"
     if [ -n "$TARGET_BACKUP_PATH" ]
     then
       CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '
@@ -62,6 +64,8 @@ run_op() {
       --template='{{ .spec.configurations.sgPostgresConfig }}')"
     SOURCE_BACKUP_PATH="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ if .spec.configurations.backups }}{{ (index .spec.configurations.backups 0).path }}{{ else }}{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ end }}{{ end }}')"
+    SOURCE_REPLICATION_MODE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+      --template='{{ .spec.replication.mode }}')"
     LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
       -- psql -q -t -A -c "SELECT setting FROM pg_settings WHERE name = 'lc_collate' UNION ALL SELECT datcollate FROM pg_database WHERE datname = 'template1' LIMIT 1")"
     ENCODING="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
@@ -98,6 +102,7 @@ run_op() {
           "sourcePostgresVersion": "$SOURCE_VERSION",
           "sourcePostgresExtensions": $SOURCE_EXTENSIONS,
           "sourceSgPostgresConfig": "$SOURCE_POSTGRES_CONFIG",
+          "sourceReplicationMode": "$SOURCE_REPLICATION_MODE",
           $(
           if [ -n "$SOURCE_BACKUP_PATH" ]
           then
@@ -140,6 +145,8 @@ EOF
       --template='{{ .status.dbOps.majorVersionUpgrade.sourceSgPostgresConfig }}')"
     SOURCE_BACKUP_PATH="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ if .status.dbOps.majorVersionUpgrade.sourceBackupPath }}{{ .status.dbOps.majorVersionUpgrade.sourceBackupPath }}{{ end }}')"
+    SOURCE_REPLICATION_MODE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+      --template='{{ .status.dbOps.majorVersionUpgrade.sourceReplicationMode }}')"
     INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ with .status.dbOps.majorVersionUpgrade.initialInstances }}{{ . }}{{ end }}')"
     INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
@@ -175,6 +182,72 @@ EOF
   fi
 
   PHASE="pre-upgrade"
+  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+
+  INITIAL_INSTANCES_COUNT="$(printf '%s' "$INITIAL_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"
+  echo "Initial instances:"
+  echo "$INITIAL_INSTANCES" | sed 's/^/ - /'
+  echo
+
+  update_status init
+
+  RETRY=3
+  while [ "$RETRY" != 0 ]
+  do
+    CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
+    if [ -n "$CURRENT_PRIMARY_POD" ]
+    then
+      break
+    fi
+    RETRY="$((RETRY-1))"
+    sleep 5
+  done
+  CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
+  if [ "x$CURRENT_PRIMARY_INSTANCE" != "x" ] \
+    && [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
+  then
+    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+    exit 1
+  fi
+
+  PHASE="downscale"
+  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+
+  if [ "$SOURCE_REPLICATION_MODE" != async ]
+  then
+    echo "Setting replication mode to async..."
+    echo
+    until {
+      CLUSTER="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
+      CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "async"')"
+      REPLACE_OUTPUT="$(printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f - 2>&1)"
+      }
+    do
+      if ! printf %s "$REPLACE_OUTPUT" | grep -q 'the object has been modified; please apply your changes to the latest version and try again'
+      then
+        echo "FAILURE=$NORMALIZED_OP_NAME failed. $REPLACE_OUTPUT" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+        exit 1
+      fi 
+      sleep 1
+    done
+    echo "done"
+    echo
+  fi
+
+  downscale_cluster_instances
+
+  PHASE="checkpoint"
+  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+
+  echo "Running a double CHECKPOINT on the primary instance $PRIMARY_INSTANCE before major version upgrade..."
+  if ! kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
+      -- psql -q -t -A -c "CHECKPOINT" -c "CHECKPOINT"
+  then
+    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+    return 1
+  fi
+
+  PHASE="upgrade"
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
   if [ -z "$TARGET_BACKUP_PATH" ]
@@ -229,55 +302,6 @@ EOF
   done
   echo "done"
   echo
-
-  INITIAL_INSTANCES_COUNT="$(printf '%s' "$INITIAL_INSTANCES" | tr ' ' 's' | tr '\n' ' ' | wc -w)"
-  echo "Initial instances:"
-  echo "$INITIAL_INSTANCES" | sed 's/^/ - /'
-  echo
-
-  update_status init
-
-  RETRY=3
-  while [ "$RETRY" != 0 ]
-  do
-    CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
-    if [ -n "$CURRENT_PRIMARY_POD" ]
-    then
-      break
-    fi
-    RETRY="$((RETRY-1))"
-    sleep 5
-  done
-  CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
-  if [ "x$CURRENT_PRIMARY_INSTANCE" != "x" ] \
-    && [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
-  then
-    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-    exit 1
-  fi
-
-  PHASE="downscale"
-  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-
-  downscale_cluster_instances
-
-  PHASE="checkpoint"
-  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-
-  echo "Running a double CHECKPOINT on the primary instance $PRIMARY_INSTANCE before major version upgrade..."
-  if ! kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
-      -- psql -q -t -A -c "CHECKPOINT" -c "CHECKPOINT"
-  then
-    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-    echo
-    kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --all-containers --prefix --timestamps --ignore-errors || true
-    echo
-    rollback_major_version_upgrade "$PRIMARY_INSTANCE"
-    return 1
-  fi
-
-  PHASE="upgrade"
-  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
   if [ "$CHECK" != true ]
   then
@@ -358,6 +382,22 @@ EOF
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
   update_status
+
+  if [ "$SOURCE_REPLICATION_MODE" != async ]
+  then
+    echo "Cleaning up major version upgrade by setting replication mode to $SOURCE_REPLICATION_MODE..."
+    echo
+    until {
+      CLUSTER="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
+      CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "'"$SOURCE_REPLICATION_MODE"'"')"
+      printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
+      }
+    do
+      sleep 1
+    done
+    echo "done"
+    echo
+  fi
 
   echo "Signaling major version upgrade finished to cluster"
   echo
@@ -569,9 +609,9 @@ rollback_major_version_upgrade() {
 
   if [ -z "$SOURCE_BACKUP_PATH" ]
   then
-    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION and postgres config to $SOURCE_POSTGRES_CONFIG..."
+    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG and replication mode to $SOURCE_REPLICATION_MODE..."
   else
-    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG and backup path to $SOURCE_BACKUP_PATH..."
+    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG, replication mode to $SOURCE_REPLICATION_MODE and backup path to $SOURCE_BACKUP_PATH..."
   fi
   echo
   until {
@@ -579,6 +619,7 @@ rollback_major_version_upgrade() {
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.version = "'"$SOURCE_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.extensions = '"$SOURCE_EXTENSIONS")"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.configurations.sgPostgresConfig = "'"$SOURCE_POSTGRES_CONFIG"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "'"$SOURCE_REPLICATION_MODE"'"')"
     if [ -n "$SOURCE_BACKUP_PATH" ]
     then
       CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '

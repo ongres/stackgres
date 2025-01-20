@@ -33,6 +33,7 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntryStatus;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -135,6 +136,15 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
         || !isBootstrappedLeader(context)) {
       return;
     }
+    String superuserUsername = secretFinder.findByNameAndNamespace(
+        PatroniUtil.secretName(context.getCluster().getMetadata().getName()),
+        context.getCluster().getMetadata().getNamespace())
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .map(data -> data.get(StackGresPasswordKeys.SUPERUSER_USERNAME_KEY))
+        .orElseThrow(() -> new RuntimeException("Can not find secret with name "
+            + PatroniUtil.secretName(context.getCluster().getMetadata().getName())
+            + " or can not find key " + StackGresPasswordKeys.SUPERUSER_USERNAME_KEY));
     var scriptsStatus = Optional.of(context.getCluster())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getManagedSql)
@@ -169,8 +179,12 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
             .scriptEntryStatus(managedScriptEntry.v5)
             .build();
         ManagedSqlScriptEntryReconciliator scriptEntryReconciliator =
-            new ManagedSqlScriptEntryReconciliator(this, client, context,
-                managedSqlScriptEntry);
+            new ManagedSqlScriptEntryReconciliator(
+                this,
+                client,
+                context,
+                managedSqlScriptEntry,
+                superuserUsername);
         boolean result = scriptEntryReconciliator.reconcile();
         scriptResult = scriptResult && result;
         if (!result && !doesScriptEntryContinueOnError(managedScriptEntry.v2)) {

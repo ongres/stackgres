@@ -27,6 +27,8 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
 
   private String sourceBackupPath;
 
+  private String sourceReplicationMode;
+
   private String targetPostgresVersion;
 
   private String locale;
@@ -90,6 +92,14 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
 
   public void setSourceBackupPath(String sourceBackupPath) {
     this.sourceBackupPath = sourceBackupPath;
+  }
+
+  public String getSourceReplicationMode() {
+    return sourceReplicationMode;
+  }
+
+  public void setSourceReplicationMode(String sourceReplicationMode) {
+    this.sourceReplicationMode = sourceReplicationMode;
   }
 
   public String getTargetPostgresVersion() {

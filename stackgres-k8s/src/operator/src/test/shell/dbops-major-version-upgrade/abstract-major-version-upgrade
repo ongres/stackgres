@@ -72,6 +72,9 @@ kubectl_mock() {
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .spec.configurations.backups }}{{ (index .spec.configurations.backups 0).path }}{{ else }}{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ end }}{{ end }}")
     printf %s "sgbackup.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${SOURCE_VERSION%.*}"
     ;;
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.replication.mode }}")
+    printf %s async
+    ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
       echo '{
               "apiVersion": "stackgres.io/v1",

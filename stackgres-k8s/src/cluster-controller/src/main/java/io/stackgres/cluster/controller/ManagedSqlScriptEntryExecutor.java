@@ -60,17 +60,20 @@ public class ManagedSqlScriptEntryExecutor {
   private final PostgresConnectionManager postgresConnectionManager;
 
   @Inject
-  public ManagedSqlScriptEntryExecutor(PostgresConnectionManager postgresConnectionManager) {
+  public ManagedSqlScriptEntryExecutor(
+      PostgresConnectionManager postgresConnectionManager) {
     this.postgresConnectionManager = postgresConnectionManager;
   }
 
   protected void executeScriptEntry(
-      ManagedSqlScriptEntry scriptEntry, String sql)
+      ManagedSqlScriptEntry scriptEntry,
+      String sql,
+      String superuserUsername)
       throws SQLException {
     if (scriptEntry.getScriptEntry().getWrapInTransaction() == null) {
       LOGGER.info("Executing managed script {} with no transaction",
           scriptEntry.getManagedScriptEntryDescription());
-      executeScriptEntryWithoutTransaction(scriptEntry, sql);
+      executeScriptEntryWithoutTransaction(scriptEntry, sql, superuserUsername);
     } else {
       StackGresScriptTransactionIsolationLevel transactionIsolationLevel =
           fromString(scriptEntry.getScriptEntry().getWrapInTransaction());
@@ -79,22 +82,25 @@ public class ManagedSqlScriptEntryExecutor {
             + " isolation level {}",
             scriptEntry.getManagedScriptEntryDescription(),
             transactionIsolationLevel.toSqlString());
-        executeScriptEntryAndStoreStatusInTransaction(scriptEntry, transactionIsolationLevel, sql);
+        executeScriptEntryAndStoreStatusInTransaction(scriptEntry, transactionIsolationLevel, sql, superuserUsername);
       } else {
         LOGGER.info("Executing managed script {} wrapped in a transaction with isolation level {}",
             scriptEntry.getManagedScriptEntryDescription(),
             transactionIsolationLevel.toSqlString());
-        executeScriptEntryInTransaction(scriptEntry, transactionIsolationLevel, sql);
+        executeScriptEntryInTransaction(scriptEntry, transactionIsolationLevel, sql, superuserUsername);
       }
     }
   }
 
   private void executeScriptEntryWithoutTransaction(
-      ManagedSqlScriptEntry scriptEntry, String sql)
+      ManagedSqlScriptEntry scriptEntry,
+      String sql,
+      String superuserUsername)
       throws SQLException {
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
-        scriptEntry.getScriptEntry().getUserOrDefault())) {
+        Optional.ofNullable(scriptEntry.getScriptEntry().getUser())
+        .orElse(superuserUsername))) {
       try (var statement = connection.createStatement()) {
         statement.execute(sql);
       }
@@ -102,11 +108,14 @@ public class ManagedSqlScriptEntryExecutor {
   }
 
   private void executeScriptEntryInTransaction(ManagedSqlScriptEntry scriptEntry,
-      StackGresScriptTransactionIsolationLevel transactionIsolationLevel, String sql)
+      StackGresScriptTransactionIsolationLevel transactionIsolationLevel,
+      String sql,
+      String superuserUsername)
       throws SQLException {
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
-        scriptEntry.getScriptEntry().getUserOrDefault())) {
+        Optional.ofNullable(scriptEntry.getScriptEntry().getUser())
+        .orElse(superuserUsername))) {
       connection.setAutoCommit(false);
       connection.setTransactionIsolation(transactionIsolationLevel.toJdbcConstant());
       try {
@@ -121,8 +130,11 @@ public class ManagedSqlScriptEntryExecutor {
     }
   }
 
-  private void executeScriptEntryAndStoreStatusInTransaction(ManagedSqlScriptEntry scriptEntry,
-      StackGresScriptTransactionIsolationLevel transactionIsolationLevel, String sql)
+  private void executeScriptEntryAndStoreStatusInTransaction(
+      ManagedSqlScriptEntry scriptEntry,
+      StackGresScriptTransactionIsolationLevel transactionIsolationLevel,
+      String sql,
+      String superuserUsername)
       throws SQLException {
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
@@ -143,7 +155,8 @@ public class ManagedSqlScriptEntryExecutor {
 
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
-        scriptEntry.getScriptEntry().getUserOrDefault())) {
+        Optional.ofNullable(scriptEntry.getScriptEntry().getUser())
+        .orElse(superuserUsername))) {
       connection.setAutoCommit(false);
       connection.setTransactionIsolation(transactionIsolationLevel.toJdbcConstant());
       try {

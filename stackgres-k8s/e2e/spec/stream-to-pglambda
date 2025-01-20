@@ -7,7 +7,18 @@ e2e_test_extra_hash() {
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/backup")"
 }
 
+e2e_exclusive_lock() {
+  true
+}
+
 e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_only
+
   STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
 
   install_knative
@@ -45,9 +56,10 @@ EXECUTE 'CREATE FUNCTION create_complex_table() RETURNS void AS $sql$CREATE TABL
   WHERE (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid))
   AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
   AND pg_catalog.pg_type_is_visible(t.oid)
+  AND t.typname NOT LIKE 'pg_%'
   AND t.typtype NOT IN ('p')
   AND t.typcategory NOT IN ('U','Z')
-  ORDER BY t.typname)) || ', PRIMARY KEY (i))' || '$sql$ LANGUAGE sql';
+  ORDER BY t.typname) _) || ', PRIMARY KEY (i))' || '$sql$ LANGUAGE sql';
 END$$;
 
 DO $$BEGIN
@@ -82,9 +94,10 @@ EXECUTE 'CREATE FUNCTION insert_complex(i bigint) RETURNS void LANGUAGE plpgsql 
   WHERE (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid))
   AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
   AND pg_catalog.pg_type_is_visible(t.oid)
+  AND t.typname NOT LIKE 'pg_%'
   AND t.typtype NOT IN ('p')
   AND t.typcategory NOT IN ('U','Z')
-  ORDER BY t.typname)) || '$insert$; END$plpgsql$;';
+  ORDER BY t.typname) _) || '$insert$; END$plpgsql$;';
 END$$;
 
 SELECT create_complex_table();
