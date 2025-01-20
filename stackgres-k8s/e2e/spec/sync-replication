@@ -180,18 +180,18 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
-    --set cluster.replication.role=ha-read \
+    --set cluster.replication.role=ha \
     --set cluster.replication.syncInstances=2 \
     --set cluster.replication.groups[0].instances=1 \
-    --set cluster.replication.groups[0].role=ha \
+    --set cluster.replication.groups[0].role=ha-read \
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
   # This is not a typo, helm does not support removing a property so we need to repeat the change in order to make it work :facepalm:
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
-    --set cluster.replication.role=ha-read \
+    --set cluster.replication.role=ha \
     --set cluster.replication.syncInstances=2 \
     --set cluster.replication.groups[0].instances=1 \
-    --set cluster.replication.groups[0].role=ha \
+    --set cluster.replication.groups[0].role=ha-read \
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
   wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
   wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
@@ -395,11 +395,11 @@ check_pod_ip_exposed_by_service() {
   local CLUSTER_NAMESPACE="$1"
   local POD_NAME="$2"
   local SERVICE_NAME="$3"
-  local POD_2_IP SERVICE_IPS
-  POD_2_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
+  local POD_IP SERVICE_IPS
+  POD_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
   SERVICE_IPS="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$SERVICE_NAME" \
     --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
-  if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
+  if echo "$SERVICE_IPS" | grep -qxF "$POD_IP"
   then
     success "pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else
@@ -411,11 +411,11 @@ check_pod_ip_not_exposed_by_service() {
   local CLUSTER_NAMESPACE="$1"
   local POD_NAME="$2"
   local SERVICE_NAME="$3"
-  local POD_2_IP SERVICE_IPS
-  POD_2_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
+  local POD_IP SERVICE_IPS
+  POD_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
   SERVICE_IPS="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$SERVICE_NAME" \
     --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
-  if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
+  if echo "$SERVICE_IPS" | grep -qxF "$POD_IP"
   then
     fail "pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else
