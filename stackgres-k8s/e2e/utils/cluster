@@ -22,7 +22,7 @@ create_or_replace_cluster() {
 
   create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" \
     -f "$SPEC_VALUES_FILE" \
-    --set cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    --set-string cluster.postgres.version="$E2E_POSTGRES_VERSION" \
     $(
     if ! printf %s " $* " | tr -s '\n' ' ' | grep -qF ' --set credentials=null '
     then
@@ -244,7 +244,7 @@ create_or_replace_sharded_cluster() {
 
   create_or_replace_sharded_cluster_only "$RELEASE" "$NAMESPACE" "$CLUSTERS" "$INSTANCES" \
     -f "$SPEC_VALUES_FILE" \
-    --set cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    --set-string cluster.postgres.version="$E2E_POSTGRES_VERSION" \
     $(
     if ! printf %s " $* " | tr -s '\n' ' ' | grep -qF ' --set credentials=null '
     then
