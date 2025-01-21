@@ -1238,8 +1238,10 @@ spec:
                           * synchronous_mode
                           * synchronous_mode_strict
                           * failsafe_mode
-                          * postgresql
+                          * postgresql (except pg_hba section)
                           * standby_cluster
+                          
+                          > NOTE: pg_hba section will be appended with some rules required to make the cluster working as expected.
                         "x-kubernetes-preserve-unknown-fields": true
                       initialConfig:
                         type: object
@@ -2226,6 +2228,10 @@ spec:
                         type: string
                         description: |
                           The source backup path
+                      sourceReplicationMode:
+                        type: string
+                        description: |
+                          The source replication mode
                       targetPostgresVersion:
                         type: string
                         description: |

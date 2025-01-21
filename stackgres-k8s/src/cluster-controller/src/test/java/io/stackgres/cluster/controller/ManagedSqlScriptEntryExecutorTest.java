@@ -83,7 +83,7 @@ class ManagedSqlScriptEntryExecutorTest {
     when(resultSet.next()).thenReturn(true).thenReturn(false);
     when(resultSet.getBoolean(anyInt())).thenReturn(true);
 
-    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres");
 
     verify(postgresConnectionManager, times(2)).getUnixConnection(
         any(), anyInt(), any(), any(), any());
@@ -179,7 +179,7 @@ class ManagedSqlScriptEntryExecutorTest {
     when(resultSet.getBoolean(anyInt())).thenReturn(false);
     when(resultSet.getTimestamp(anyInt())).thenReturn(new Timestamp(System.currentTimeMillis()));
 
-    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres");
 
     verify(postgresConnectionManager, times(2)).getUnixConnection(
         any(), anyInt(), any(), any(), any());
@@ -244,7 +244,7 @@ class ManagedSqlScriptEntryExecutorTest {
         .thenThrow(new SQLException("test"));
 
     assertThrows(SQLException.class, () -> scriptEntryExecutor
-        .executeScriptEntry(scriptEntry, "CREATE TABLE test"));
+        .executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres"));
 
     verify(postgresConnectionManager, times(1)).getUnixConnection(
         any(), anyInt(), any(), any(), any());
@@ -300,7 +300,7 @@ class ManagedSqlScriptEntryExecutorTest {
         .thenThrow(new SQLException("test"));
 
     assertThrows(SQLException.class, () -> scriptEntryExecutor
-        .executeScriptEntry(scriptEntry, "CREATE TABLE test"));
+        .executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres"));
 
     verify(postgresConnectionManager, times(2)).getUnixConnection(
         any(), anyInt(), any(), any(), any());
@@ -361,7 +361,7 @@ class ManagedSqlScriptEntryExecutorTest {
         .thenReturn(connection);
     when(connection.createStatement()).thenReturn(statement);
 
-    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres");
 
     verify(postgresConnectionManager, times(1)).getUnixConnection(
         any(), anyInt(), any(), any(), any());
@@ -395,7 +395,7 @@ class ManagedSqlScriptEntryExecutorTest {
     when(statement.execute(any())).thenThrow(new SQLException("test"));
 
     assertThrows(SQLException.class,
-        () -> scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test"));
+        () -> scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres"));
 
     verify(postgresConnectionManager, times(1)).getUnixConnection(
         any(), anyInt(), any(), any(), any());
@@ -427,7 +427,7 @@ class ManagedSqlScriptEntryExecutorTest {
         .thenReturn(connection);
     when(connection.createStatement()).thenReturn(statement);
 
-    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres");
 
     verify(postgresConnectionManager, times(1)).getUnixConnection(
         any(), anyInt(), any(), any(), any());

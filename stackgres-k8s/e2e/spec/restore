@@ -19,7 +19,7 @@ e2e_test_install() {
     --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
     --set cluster.configurations.backups.useVolumeSnapshot=false
 
-  wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
+  wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 1 "$BACKUP_CLUSTER_NAME-[0-9]\+"
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
 
   create_mock_data
@@ -90,6 +90,10 @@ EOF
   rotate_wal_file
 
   kubectl create ns "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "configurations" "$CLUSTER_NAMESPACE" 0 \
+    --set cluster.create=false \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION"
 }
 
 is_backup_phase() {
@@ -119,9 +123,9 @@ e2e_test() {
     echo "Skipping Check that volume snapshot backup can be restored since volume snapshot feature is not available"
   fi
 
-  run_test "Check that backup is compatible with cluster" check_backup_pg_version
-
   run_test "Check that restore using PITR" check_restore_using_pitr
+
+  run_test "Check that backup is compatible with cluster" check_backup_pg_version
 
   run_test "Check that after deleting original backup the backup is not deleted if a copy exists" \
     check_delete_original_backup_dont_delete_backup_if_copy_exists
@@ -211,10 +215,12 @@ check_backup_can_be_restored() {
   fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set configurations.create=false \
+    --set instanceProfiles=null \
     --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   check_init_data_after_restore
@@ -222,6 +228,11 @@ check_backup_can_be_restored() {
   check_replica_data_after_restore
 
   check_replication_after_restore
+
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
+  then
+    remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  fi
 }
 
 check_volume_snapshot_backup_can_be_restored() {
@@ -235,12 +246,17 @@ check_volume_snapshot_backup_can_be_restored() {
     fail "backup not performed using volume snapshot"
   fi
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+  create_or_replace_cluster_only "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set configurations.postgresconfig.create=false \
+    --set configurations.poolingconfig.create=false \
+    --set instanceProfiles=null \
     --set cluster.initialData.restore.fromBackup.name="$BACKUP_VOLUME_SNAPSHOT_NAME" \
     --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
-     --set configurations.create=false --set instanceProfiles=null
+    -f "$SPEC_FILE.backup.values.yaml" \
+    --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+    --set cluster.configurations.backups.useVolumeSnapshot=true
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
   SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   check_init_data_after_restore
@@ -249,20 +265,43 @@ check_volume_snapshot_backup_can_be_restored() {
 
   check_replication_after_restore
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster_only "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set configurations.postgresconfig.create=false \
+    --set configurations.poolingconfig.create=false \
+    --set instanceProfiles=null \
     --set cluster.initialData.restore.fromBackup.name="$BACKUP_VOLUME_SNAPSHOT_NAME" \
     --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
-     --set configurations.create=false --set instanceProfiles=null
+    -f "$SPEC_FILE.backup.values.yaml" \
+    --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+    --set cluster.configurations.backups.useVolumeSnapshot=true
 
-  wait_pods_terminated "$CLUSTER_NAMESPACE" 3
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[0-9]\+"
+
+  BACKUP_NEW_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-2-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NEW_NAME"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l app=StackGresCluster,stackgres.io/cluster-name="$CLUSTER_NAME",stackgres.io/cluster=true
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[0-9]\+"
 
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
-  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
+  then
+    remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  fi
 }
 
 check_init_data_after_restore() {
@@ -321,6 +360,34 @@ check_replication_after_restore() {
   fi
 }
 
+check_restore_using_pitr() {
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" = true ]
+  then
+    remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  fi
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set configurations.create=false \
+    --set instanceProfiles=null \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+    --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
+    --set-string cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp="$BACKUP_PITR_DATE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  local RESULT
+  RESULT="$(run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
+    -q "SELECT num FROM fibonacci ORDER BY num;")"
+  if printf '%s' "$RESULT" \
+    | tr -d '\n' \
+    | grep -q "^123$"
+  then
+    success "restore replica db restored successfully using PITR"
+  else
+    fail "replica db not restored successfully using PITR"
+  fi
+}
+
 check_backup_pg_version() {
   ALTERNATIVE_PG_VERSION="12.9"
 
@@ -345,29 +412,6 @@ check_backup_pg_version() {
     success "Error message was the expected"
   else 
     fail "Unexpected error message $ERROR_MESSAGE"
-  fi
-}
-
-check_restore_using_pitr() {
-  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
-    --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
-    --set-string cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp="$BACKUP_PITR_DATE"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  local RESULT
-  RESULT="$(run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
-    -q "SELECT num FROM fibonacci ORDER BY num;")"
-  if printf '%s' "$RESULT" \
-    | tr -d '\n' \
-    | grep -q "^123$"
-  then
-    success "restore replica db restored successfully using PITR"
-  else
-    fail "replica db not restored successfully using PITR"
   fi
 }
 
@@ -453,7 +497,7 @@ check_delete_backup_dont_require_restart() {
 
   local RESULT
   local EXIT_CODE
-  try_function wait_pods_running "$CLUSTER_NAMESPACE" 1
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[0-9]\+"
   if "$RESULT"
   then
     success "Cluster can be restarted."

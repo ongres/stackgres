@@ -5,15 +5,13 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import java.util.ArrayList;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
-import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
+import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -42,15 +40,16 @@ public class PatroniDefaultScript implements ResourceGenerator<StackGresClusterC
   }
 
   private StackGresScript getDefaultScript(StackGresCluster cluster) {
-    StackGresScript defaultScript = new StackGresScript();
-    defaultScript.setMetadata(new ObjectMeta());
-    defaultScript.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
-    defaultScript.getMetadata().setName(ManagedSqlUtil.defaultName(cluster));
-    defaultScript.getMetadata().setLabels(labelFactory.genericLabels(cluster));
-    defaultScript.setSpec(new StackGresScriptSpec());
-    defaultScript.getSpec().setScripts(new ArrayList<>());
-    defaultScript.getSpec().getScripts().addAll(patroniDefaultScripts.getDefaultScripts(cluster));
-    return defaultScript;
+    return new StackGresScriptBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(ManagedSqlUtil.defaultName(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
+        .endMetadata()
+        .withNewSpec()
+        .withScripts(patroniDefaultScripts.getDefaultScripts(cluster))
+        .endSpec()
+        .build();
   }
 
 }

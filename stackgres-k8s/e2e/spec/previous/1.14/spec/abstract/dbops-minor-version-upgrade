@@ -23,7 +23,7 @@ reset_cluster() {
     --set-string cluster.postgres.version="$E2E_MINOR_SOURCE_POSTGRES_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   set_restarted_pods
 

@@ -481,7 +481,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "label_replace(count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==0),\"replicationslots\",\"active\",\"slots\",\".*\")",
+          "expr": "label_replace(count(pg_replication_slots_stats_active{instance=~\"${instance}:9187\"}==0),\"replicationslots\",\"active\",\"slots\",\".*\")",
           "instant": true,
           "interval": "",
           "legendFormat": "",

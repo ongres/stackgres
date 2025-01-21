@@ -303,7 +303,7 @@ retry() {
     if [ "$RETRY" -ge "$RETRY_LIMIT" ]
     then
       >&2 echo "Failed $@ after retrying $RETRY_LIMIT times"
-      exit 1
+      return 1
     fi
     BACKOFF="$(( (RETRY_DELAY << RETRY > 60 * 1000 ? 60 * 1000 : RETRY_DELAY << RETRY) / 1000 ))"
     >&2 echo "Will retry command after backoff of $BACKOFF seconds ($((RETRY_LIMIT - RETRY)) retry left)"

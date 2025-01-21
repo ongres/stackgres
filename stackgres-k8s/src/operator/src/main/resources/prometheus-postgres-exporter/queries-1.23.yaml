@@ -9,12 +9,12 @@ pg_replication:
     CASE
       WHEN pg_is_in_recovery() THEN 1
       ELSE 0
-    END AS is_replica;
+    END AS is_replicating;
   metrics:
     - lag:
         usage: "GAUGE"
         description: "Replication lag behind master in seconds"
-    - is_replica:
+    - is_replicating:
         usage: "GAUGE"
         description: "Indicates if this host is a replica"
 
@@ -479,7 +479,7 @@ pg_wal_position:
         description: "Postgres LSN (log sequence number) being generated on primary or replayed on replica (truncated to low 52 bits)"
 
 
-pg_replication_slots:
+pg_replication_slots_stats:
   master: true
   query: |
     SELECT slot_name, slot_type,
@@ -870,9 +870,29 @@ pg_stat_progress_vacuum:
           heap_blks_total,
           heap_blks_scanned,
           heap_blks_vacuumed,
-          index_vacuum_count,
+          index_vacuum_count,'
+        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 170000 THEN
+          '
+          NULL AS max_dead_tuples,
+          NULL AS num_dead_tuples,
+          max_dead_tuple_bytes,
+          dead_tuple_bytes,
+          num_dead_item_ids,
+          indexes_total,
+          indexes_processed
+          '
+          ELSE
+          '
           max_dead_tuples,
-          num_dead_tuples
+          num_dead_tuples,
+          NULL AS max_dead_tuple_bytes,
+          NULL AS dead_tuple_bytes,
+          NULL AS num_dead_item_ids,
+          NULL AS indexes_total,
+          NULL AS indexes_processed
+          '
+          END
+        || '
         FROM pg_stat_progress_vacuum
         JOIN pg_class ON (pg_stat_progress_vacuum.relid = pg_class.oid)
         JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
@@ -885,7 +905,12 @@ pg_stat_progress_vacuum:
             heap_blks_vacuumed bigint,
             index_vacuum_count bigint,
             max_dead_tuples bigint,
-            num_dead_tuples bigint)) AS _;
+            num_dead_tuples bigint,
+            max_dead_tuple_bytes bigint,
+            dead_tuple_bytes bigint,
+            num_dead_item_ids bigint,
+            indexes_total bigint,
+            indexes_processed bigint)) AS _;
   master: true
   metrics:
     - datname:
@@ -915,6 +940,21 @@ pg_stat_progress_vacuum:
     - num_dead_tuples:
         usage: "GAUGE"
         description: "Number of dead tuples collected since the last index vacuum cycle"
+    - max_dead_tuple_bytes:
+        usage: "GAUGE"
+        description: "Amount of dead tuple data that we can store before needing to perform an index vacuum cycle, based on maintenance_work_mem"
+    - dead_tuple_bytes:
+        usage: "GAUGE"
+        description: "Amount of dead tuple data collected since the last index vacuum cycle"
+    - num_dead_item_ids:
+        usage: "GAUGE"
+        description: "Number of dead item identifiers collected since the last index vacuum cycle"
+    - indexes_total:
+        usage: "GAUGE"
+        description: "Total number of indexes that will be vacuumed or cleaned up. This number is reported at the beginning of the vacuuming indexes phase or the cleaning up indexes phase"
+    - indexes_processed:
+        usage: "GAUGE"
+        description: "Number of indexes processed. This counter only advances when the phase is vacuuming indexes or cleaning up indexes"
 
 pg_stat_progress_cluster:
   query: |
@@ -983,6 +1023,7 @@ pgbouncer_show_clients:
     SELECT _.type,
     _."user",
     _.database,
+    _.replication,
     _.state,
     _.addr,
     _.port,
@@ -1000,7 +1041,7 @@ pgbouncer_show_clients:
     _.application_name,
     _.prepared_statements
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
-    AS _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
+    AS _(type text, "user" text, database text, replication text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
     ptr text, link text, remote_pid integer, tls text, application_name text, prepared_statements integer);
   metrics:
@@ -1013,6 +1054,9 @@ pgbouncer_show_clients:
     - database:
         usage: "LABEL"
         description: "Database name"
+    - replication:
+        usage: "LABEL"
+        description: "Replication status"
     - state:
         usage: "LABEL"
         description: "State of the client connection, one of active or waiting"
@@ -1089,6 +1133,9 @@ pgbouncer_show_pools:
     - database:
         usage: "LABEL"
         description: "Database name"
+    - replication:
+        usage: "LABEL"
+        description: "Replication type"
     - user:
         usage: "LABEL"
         description: "User name"
@@ -1141,7 +1188,7 @@ pgbouncer_show_pools:
 pgbouncer_show_databases:
   master: true
   query: |
-    select _.name,
+    SELECT _.name,
     _.host,
     _.port,
     _.database,
@@ -1149,6 +1196,7 @@ pgbouncer_show_databases:
     _.pool_size,
     _.min_pool_size,
     _.reserve_pool,
+    _.server_lifetime,
     _.pool_mode,
     _.max_connections,
     _.current_connections,
@@ -1156,7 +1204,7 @@ pgbouncer_show_databases:
     _.disabled
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
     AS _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
-      reserve_pool integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
+      reserve_pool integer, server_lifetime integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
   metrics:
     - name:
         usage: "LABEL"
@@ -1182,6 +1230,9 @@ pgbouncer_show_databases:
     - reserve_pool:
         usage: "GAUGE"
         description: "Maximum number of additional connections for this database"
+    - server_lifetime:
+        usage: "GAUGE"
+        description: "The maximum lifetime of a server connection for this database"
     - pool_mode:
         usage: "LABEL"
         description: "The database override pool_mode"
@@ -1201,9 +1252,10 @@ pgbouncer_show_databases:
 pgbouncer_show_stats:
   master: true
   query: |
-    select _.database,
+    SELECT _.database,
     _.total_xact_count,
     _.total_query_count,
+    _.total_server_assignment_count,
     _.total_received,
     _.total_sent,
     _.total_xact_time,
@@ -1211,14 +1263,15 @@ pgbouncer_show_stats:
     _.total_wait_time,
     _.avg_xact_count,
     _.avg_query_count,
+    _.avg_server_assignment_count,
     _.avg_recv,
     _.avg_sent,
     _.avg_xact_time,
     _.avg_query_time,
     _.avg_wait_time
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats'::text)
-    AS _(database text, total_xact_count bigint, total_query_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
-      total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
+    AS _(database text, total_xact_count bigint, total_query_count bigint, total_server_assignment_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
+      total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_server_assignment_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
       avg_wait_time bigint);
   metrics:
     - database:
@@ -1230,6 +1283,9 @@ pgbouncer_show_stats:
     - total_query_count:
         usage: "GAUGE"
         description: "Total number of SQL queries pooled"
+    - total_server_assignment_count:
+        usage: "GAUGE"
+        description: "Total times a server was assigned to a client"
     - total_received:
         usage: "GAUGE"
         description: "Total volume in bytes of network traffic received"
@@ -1251,6 +1307,9 @@ pgbouncer_show_stats:
     - avg_query_count:
         usage: "GAUGE"
         description: "Average queries per second in last stat period"
+    - avg_server_assignment_count:
+        usage: "GAUGE"
+        description: "Average number of times a server as assigned to a client per second in the last stat period"
     - avg_recv:
         usage: "GAUGE"
         description: "Average received from clients bytes per second"
@@ -1324,8 +1383,17 @@ pg_statements:
             pg_stat_statements.queryid,
             pg_stat_statements.calls as calls_total,
         '
-        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'pg_stat_statements.total_exec_time' ELSE 'pg_stat_statements.total_time' END || ' / 1000 AS total_exec_time, '
-        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'pg_stat_statements.mean_exec_time' ELSE 'pg_stat_statements.mean_time' END || ' / 1000 AS mean_exec_time, '
+        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN
+          '
+            pg_stat_statements.total_exec_time / 1000 AS total_exec_time,
+            pg_stat_statements.mean_exec_time / 1000 AS mean_exec_time,
+          '
+          ELSE
+          '
+            pg_stat_statements.total_time / 1000 AS total_exec_time,
+            pg_stat_statements.mean_time / 1000 AS mean_exec_time,
+          '
+          END
         || '
             pg_stat_statements.rows as rows_total
         FROM pg_stat_statements

@@ -74,10 +74,10 @@ install_knative() {
     --type merge \
     --patch '{"data":{"127.0.0.1.sslip.io":""}}'
 
-  kubectl wait -n "$(knative_namespace)" deployment/activator --for condition=Available 
-  kubectl wait -n "$(knative_namespace)" deployment/autoscaler --for condition=Available 
-  kubectl wait -n "$(knative_namespace)" deployment/controller --for condition=Available 
-  kubectl wait -n "$(knative_namespace)" deployment/webhook --for condition=Available 
-  kubectl wait -n "$(knative_namespace)" deployment/net-kourier-controller --for condition=Available 
+  kubectl wait --timeout="${E2E_TIMEOUT}s" -n "$(knative_namespace)" deployment/activator --for condition=Available 
+  kubectl wait --timeout="${E2E_TIMEOUT}s" -n "$(knative_namespace)" deployment/autoscaler --for condition=Available 
+  kubectl wait --timeout="${E2E_TIMEOUT}s" -n "$(knative_namespace)" deployment/controller --for condition=Available 
+  kubectl wait --timeout="${E2E_TIMEOUT}s" -n "$(knative_namespace)" deployment/webhook --for condition=Available 
+  kubectl wait --timeout="${E2E_TIMEOUT}s" -n "$(knative_namespace)" deployment/net-kourier-controller --for condition=Available 
   wait_until eval 'kubectl get crd -o name | grep -cF .knative. | grep -q 12'
 }

@@ -6831,7 +6831,7 @@
           "pluginVersion": "7.0.6",
           "targets": [
             {
-              "expr": "count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==1)",
+              "expr": "count(pg_replication_slots_stats_active{instance=~\"${instance}:9187\"}==1)",
               "refId": "A"
             }
           ],
@@ -7168,7 +7168,7 @@
           "pluginVersion": "7.0.6",
           "targets": [
             {
-              "expr": "count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==0)",
+              "expr": "count(pg_replication_slots_stats_active{instance=~\"${instance}:9187\"}==0)",
               "format": "time_series",
               "legendFormat": "",
               "refId": "A"

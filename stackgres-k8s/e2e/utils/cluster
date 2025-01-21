@@ -21,7 +21,14 @@ create_or_replace_cluster() {
   shift 3
 
   create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" \
-    -f "$SPEC_VALUES_FILE" --set cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    -f "$SPEC_VALUES_FILE" \
+    --set-string cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    $(
+    if ! printf %s " $* " | tr -s '\n' ' ' | grep -qF ' --set credentials=null '
+    then
+      printf '%s %s' --set-string credentials.users.superuser.username="${E2E_SUPERUSER_USERNAME:-postgres}"
+    fi
+    ) \
     "$@"
 }
 
@@ -74,7 +81,7 @@ wait_cluster() {
     --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   LEADER="$(kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
     --template="{{ .metadata.annotations.leader }}")"
-  if [ "$LEADER" != "$RELEASE-0" ]
+  if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
   then
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
@@ -236,7 +243,14 @@ create_or_replace_sharded_cluster() {
   shift 4
 
   create_or_replace_sharded_cluster_only "$RELEASE" "$NAMESPACE" "$CLUSTERS" "$INSTANCES" \
-    -f "$SPEC_VALUES_FILE" --set cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    -f "$SPEC_VALUES_FILE" \
+    --set-string cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    $(
+    if ! printf %s " $* " | tr -s '\n' ' ' | grep -qF ' --set credentials=null '
+    then
+      printf '%s %s' --set-string credentials.users.superuser.username="${E2E_SUPERUSER_USERNAME:-postgres}"
+    fi
+    ) \
     "$@"
 }
 
@@ -326,7 +340,7 @@ wait_sharded_cluster() {
       --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
     LEADER="$(kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
       --template="{{ .metadata.annotations.leader }}")"
-    if [ "$LEADER" != "$RELEASE-0" ]
+    if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
     then
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'

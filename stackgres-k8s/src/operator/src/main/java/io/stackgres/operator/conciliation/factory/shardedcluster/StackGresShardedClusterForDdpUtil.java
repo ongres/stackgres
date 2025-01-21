@@ -195,7 +195,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
                 .read()).get().formatted(
                     cluster.getSpec().getShards().getClusters(),
                     DSL.inline("host '" + primaryShardServiceNamePlaceholder(cluster, "%1s") + "', "
-                        + "port '" + PatroniUtil.POSTGRES_SERVICE_PORT + "', "
+                        + "port '" + PatroniUtil.REPLICATION_SERVICE_PORT + "', "
                         + "dbname '" + cluster.getSpec().getDatabase() + "'"),
                     DSL.inline("user '" + superuserCredentials.v1 + "', "
                         + "password '" + superuserCredentials.v2 + "'"),

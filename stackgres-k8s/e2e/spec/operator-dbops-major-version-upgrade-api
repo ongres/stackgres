@@ -20,7 +20,7 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.objectstorage.create=true \
     --set cluster.configurations.backups.sgObjectStorage="$BACKUPCONF" \
-    --set cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+    --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set-string configurations.objectstorage.s3Compatible.bucket=test \
     --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name="$CLUSTER_NAME-minio" \
