@@ -1,16 +1,17 @@
 #!/bin/sh
 
-export K8S_MINIKUBE_CPUS="${K8S_MINIKUBE_CPUS:-2}"
-export K8S_MINIKUBE_MEMORY="${K8S_MINIKUBE_MEMORY:-4GB}"
-export K8S_MINIKUBE_DISK="${K8S_MINIKUBE_DISK:-20GB}"
-export K8S_MINIKUBE_DRIVER="${K8S_MINIKUBE_DRIVER:-docker}"
-export K8S_MINIKUBE_CONTAINER_RUNTIME="${K8S_MINIKUBE_CONTAINER_RUNTIME:-containerd}"
-export K8S_MINIKUBE_FEATURE_GATES="${K8S_MINIKUBE_FEATURE_GATES:-x}"
+export MINIKUBE_NAME="${MINIKUBE_NAME:-minikube}"
+export MINIKUBE_CPUS="${MINIKUBE_CPUS:-8}"
+export MINIKUBE_MEMORY="${MINIKUBE_MEMORY:-8GB}"
+export MINIKUBE_DISK="${MINIKUBE_DISK:-40GB}"
+export MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-virtualbox}"
+export MINIKUBE_CONTAINER_RUNTIME="${MINIKUBE_CONTAINER_RUNTIME:-containerd}"
+export MINIKUBE_FEATURE_GATES="${MINIKUBE_FEATURE_GATES:-x}"
 
 check_minikube_version() {
-  if ! minikube version | grep -q -F 'minikube version: v1.24.0'
+  if ! minikube version | grep -q -F 'minikube version: v1.34.0'
   then
-    echo "minikube version v1.24.0 is required"
+    echo "minikube version v1.34.0 is required"
     return 1
   fi
 }
@@ -23,7 +24,7 @@ get_k8s_env_version() {
 reuse_k8s() {
   check_minikube_version
 
-  if ! minikube status > /dev/null 2>&1
+  if ! minikube -p "$MINIKUBE_NAME" status > /dev/null 2>&1
   then
     reset_k8s
     return
@@ -39,7 +40,7 @@ reset_k8s() {
   delete_k8s
 
   if [ -n "$K8S_CACHE_PATH" ] \
-    && [ "$K8S_MINIKUBE_DRIVER" = docker ]
+    && [ "$MINIKUBE_DRIVER" = docker ]
   then
     echo "Setting up minikube containerd cache for $K8S_CACHE_PATH..."
     if [ "$K8S_CACHE_RESET" = true ]
@@ -87,25 +88,26 @@ reset_k8s() {
         '
   fi
 
-  if [ "$K8S_MINIKUBE_FEATURE_GATES" = "x" ]
+  if [ "$MINIKUBE_FEATURE_GATES" = "x" ]
   then
-    K8S_MINIKUBE_FEATURE_GATES=""
+    MINIKUBE_FEATURE_GATES=""
     if [ "${K8S_VERSION%.*}" = 1.11 ]
     then
-      K8S_MINIKUBE_FEATURE_GATES="PodShareProcessNamespace=true"
+      MINIKUBE_FEATURE_GATES="PodShareProcessNamespace=true"
     fi
   fi
 
-  minikube start --kubernetes-version "$K8S_VERSION" \
-    --cpus "$K8S_MINIKUBE_CPUS" \
-    --memory "$K8S_MINIKUBE_MEMORY" \
-    --disk-size "$K8S_MINIKUBE_DISK" \
-    --vm-driver "$K8S_MINIKUBE_DRIVER" \
-    --container-runtime "$K8S_MINIKUBE_CONTAINER_RUNTIME" \
-    --feature-gates "$K8S_MINIKUBE_FEATURE_GATES"
+  minikube -p "$MINIKUBE_NAME" start --kubernetes-version "$K8S_VERSION" \
+    --cpus "$MINIKUBE_CPUS" \
+    --memory "$MINIKUBE_MEMORY" \
+    --disk-size "$MINIKUBE_DISK" \
+    --vm-driver "$MINIKUBE_DRIVER" \
+    --container-runtime "$MINIKUBE_CONTAINER_RUNTIME" \
+    --feature-gates "$MINIKUBE_FEATURE_GATES"
+  minikube -p "$MINIKUBE_NAME" addons enable volumesnapshots
 
   if [ -n "$K8S_CACHE_PATH" ] \
-    && [ "$K8S_MINIKUBE_DRIVER" = docker ] \
+    && [ "$MINIKUBE_DRIVER" = docker ] \
     && docker run --rm -v "$K8S_CACHE_PATH:/containerd-cache" alpine \
       sh -ec '
         ! test -d /containerd-cache/boot-volume \
@@ -113,7 +115,7 @@ reset_k8s() {
         '
   then
     echo "Replacing minikube containerd cache with $K8S_CACHE_PATH..."
-    minikube stop
+    minikube -p "$MINIKUBE_NAME" stop
     docker run --rm -v "$K8S_CACHE_PATH:/containerd-cache" alpine \
       sh -ec '
         if ! test -d /containerd-cache/boot-volume
@@ -131,7 +133,7 @@ reset_k8s() {
           mv /containerd-cache/containerd /containerd-cache/volume/lib/containerd
         fi
         '
-    minikube start
+    minikube -p "$MINIKUBE_NAME" start
   fi
 
   echo "...done"
@@ -139,16 +141,16 @@ reset_k8s() {
 
 upgrade_k8s() {
   check_minikube_version
-  minikube start --kubernetes-version "$1"
-  minikube addons enable storage-provisioner
+  minikube -p "$MINIKUBE_NAME" start --kubernetes-version "$1"
+  minikube -p "$MINIKUBE_NAME" addons enable storage-provisioner
 }
 
 delete_k8s() {
   check_minikube_version
   echo "Deleting minikube environment..."
 
-  minikube stop || true
-  minikube delete || true
+  minikube -p "$MINIKUBE_NAME" stop || true
+  minikube -p "$MINIKUBE_NAME" delete || true
 
   echo "...done"
 }
@@ -156,24 +158,21 @@ delete_k8s() {
 load_image_k8s() {
   check_minikube_version
 
-  if [ "$K8S_MINIKUBE_DRIVER" = docker ]
+  local IMAGE_ID
+  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  local MINIKUBE_IMAGE_ID
+  MINIKUBE_IMAGE_ID="$( (minikube -p "$MINIKUBE_NAME" image ls --format json 2>/dev/null || printf '[]') | jq -r --arg image registry.gitlab.com/ongresinc/stackgres/stackgres/admin-ui:6884291a 'map(select(.repoTags|any(. == $image)))|if (.|length) > 0 then .[0].id else "unknown" end')"
+  if [ "$IMAGE_ID" = unknown ] && [ "$MINIKUBE_IMAGE_ID" != unknown ]
   then
-    local IMAGE_ID
-    IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
-    local MINIKUBE_IMAGE_ID
-    MINIKUBE_IMAGE_ID="$( (docker exec minikube crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
-    if [ "$IMAGE_ID" = unknown ] && [ "$MINIKUBE_IMAGE_ID" != unknown ]
-    then
-      echo "Image $1 already loaded in minikube environemnt $MINIKUBE_NAME"
-      return
-    fi
-    if [ "$MINIKUBE_IMAGE_ID" = "$IMAGE_ID" ]
-    then
-      echo "Image $1 already loaded in minikube environemnt $MINIKUBE_NAME"
-      return
-    fi
+    echo "Image $1 already loaded in minikube environemnt $MINIKUBE_NAME"
+    return
   fi
-  minikube image load --daemon "$1"
+  if [ "$MINIKUBE_IMAGE_ID" = "$IMAGE_ID" ]
+  then
+    echo "Image $1 already loaded in minikube environemnt $MINIKUBE_NAME"
+    return
+  fi
+  minikube -p "$MINIKUBE_NAME" image load --daemon "$1"
 
   echo "Loaded image $1 in minikube environemnt $MINIKUBE_NAME"
 }
@@ -181,9 +180,9 @@ load_image_k8s() {
 pull_image_k8s() {
   check_minikube_version
 
-  if [ "$K8S_MINIKUBE_DRIVER" != docker ]
+  if [ "$MINIKUBE_DRIVER" != docker ]
   then
-    echo "Can not pull image in internal repository since K8S_MINIKUBE_DRIVER is not set to docker"
+    echo "Can not pull image in internal repository since MINIKUBE_DRIVER is not set to docker"
     return 1
   fi
   local AUTH
@@ -191,24 +190,18 @@ pull_image_k8s() {
     | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
   if [ -n "$AUTH" ]
   then
-    docker exec minikube crictl pull --auth "$AUTH" "$1"
+    minikube -p "$MINIKUBE_NAME" image pull --auth "$AUTH" "$1"
   else
-    docker exec minikube crictl pull "$1"
+    minikube -p "$MINIKUBE_NAME" image pull "$1"
   fi
 
-  echo "Pulled image $1 in minikube environemnt"
+  echo "Pulled image $1 in minikube environemnt $MINIKUBE_NAME"
 }
 
 tag_image_k8s() {
   check_minikube_version
 
-  if [ "$K8S_MINIKUBE_DRIVER" != docker ]
-  then
-    echo "Can not tag image in internal repository since K8S_MINIKUBE_DRIVER is not set to docker"
-    return 1
-  fi
-
-  docker exec minikube ctr -n k8s.io images tag --force "$1" "$2"
+  minikube -p "$MINIKUBE_NAME" image tag "$1" "$2"
 
   echo "Tagged image $1 as $2 in minikube environemnt"
 }

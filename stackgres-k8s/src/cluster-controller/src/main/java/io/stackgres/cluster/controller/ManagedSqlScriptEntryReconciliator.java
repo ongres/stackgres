@@ -34,15 +34,20 @@ public class ManagedSqlScriptEntryReconciliator {
   private final KubernetesClient client;
   private final StackGresClusterContext context;
   private final ManagedSqlScriptEntry managedSqlScriptEntry;
+  private final String superuserUsername;
 
-  protected ManagedSqlScriptEntryReconciliator(ManagedSqlReconciliator managedSqlReconciliator,
-      KubernetesClient client, StackGresClusterContext context,
-      ManagedSqlScriptEntry managedSqlScriptEntry) {
+  protected ManagedSqlScriptEntryReconciliator(
+      ManagedSqlReconciliator managedSqlReconciliator,
+      KubernetesClient client,
+      StackGresClusterContext context,
+      ManagedSqlScriptEntry managedSqlScriptEntry,
+      String superuserUsername) {
     super();
     this.managedSqlReconciliator = managedSqlReconciliator;
     this.client = client;
     this.context = context;
     this.managedSqlScriptEntry = managedSqlScriptEntry;
+    this.superuserUsername = superuserUsername;
   }
 
   @SuppressFBWarnings(value = "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
@@ -69,7 +74,7 @@ public class ManagedSqlScriptEntryReconciliator {
           managedSqlScriptEntry.getManagedScriptEntryDescription());
       return false;
     }
-    executeScriptEntry(managedScriptEntryStatus, sql);
+    executeScriptEntry(managedScriptEntryStatus, sql, superuserUsername);
     managedSqlReconciliator.updateManagedSqlStatus(context,
         managedSqlScriptEntry.getManagedSqlStatus());
     boolean isScriptEntryUpToDate = managedSqlReconciliator.isScriptEntryUpToDate(
@@ -130,7 +135,8 @@ public class ManagedSqlScriptEntryReconciliator {
 
   private void executeScriptEntry(
       StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus,
-      String sql) {
+      String sql,
+      String superuserUsername) {
     try {
       setIntents(managedScriptEntryStatus);
       if (managedSqlScriptEntry.getManagedScriptStatus().getStartedAt() == null) {
@@ -140,7 +146,7 @@ public class ManagedSqlScriptEntryReconciliator {
       managedSqlReconciliator.updateManagedSqlStatus(context,
           managedSqlScriptEntry.getManagedSqlStatus());
       managedSqlReconciliator.getManagedSqlScriptEntryExecutor()
-          .executeScriptEntry(managedSqlScriptEntry, sql);
+          .executeScriptEntry(managedSqlScriptEntry, sql, superuserUsername);
       resetIntentsAndFailure(managedScriptEntryStatus);
       if (Seq.seq(managedSqlScriptEntry.getScript().getSpec().getScripts()).findLast()
           .orElseThrow() == managedSqlScriptEntry.getScriptEntry()

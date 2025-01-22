@@ -15,7 +15,7 @@ e2e_test_install() {
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 7
-  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_mock_data
 
@@ -213,7 +213,7 @@ check_restore_sharded_backup_is_working() {
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 7
   if "$RESULT"
   then
-    try_function wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+    SWITCHOVER_TO_FIRST=true try_function wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   fi
 
   if "$RESULT"

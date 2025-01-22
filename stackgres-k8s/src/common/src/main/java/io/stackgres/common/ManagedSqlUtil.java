@@ -6,6 +6,7 @@
 package io.stackgres.common;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
@@ -64,7 +65,7 @@ public interface ManagedSqlUtil {
   static String generateScriptEntryHash(StackGresScriptEntry scriptEntry, String script) {
     return StackGresUtil.getMd5Sum(
         scriptEntry.getDatabaseOrDefault(),
-        scriptEntry.getUserOrDefault(),
+        Optional.ofNullable(scriptEntry.getUser()).orElse("postgres"),
         scriptEntry.getWrapInTransaction(),
         String.valueOf(scriptEntry.getStoreStatusInDatabaseOrDefault()),
         String.valueOf(scriptEntry.getRetryOnErrorOrDefault()),

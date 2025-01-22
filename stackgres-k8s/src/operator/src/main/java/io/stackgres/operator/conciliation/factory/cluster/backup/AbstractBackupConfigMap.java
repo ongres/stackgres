@@ -41,9 +41,12 @@ public abstract class AbstractBackupConfigMap {
   private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("io.stackgres.wal-g");
 
   protected ImmutableMap<String, String> getBackupEnvVars(
+      StackGresClusterContext context,
       BackupConfiguration backupConfiguration) {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
+    context.getPodDataPersistentVolumeNames().forEach((podName, pvDataName) -> backupEnvVars
+        .put("POD_" + podName.replace("-", "_") + "_DATA_PV_NAME", pvDataName));
     backupEnvVars.put("PGDATA", ClusterPath.PG_DATA_PATH.path());
     backupEnvVars.put("PGPORT", String.valueOf(EnvoyUtil.PG_PORT));
     backupEnvVars.put("PGUSER", "postgres");
@@ -100,7 +103,9 @@ public abstract class AbstractBackupConfigMap {
     );
     if (backupConfig.getBaseBackups() != null) {
       result.putAll(
-          getBackupEnvVars(new BackupConfiguration(
+          getBackupEnvVars(
+              context,
+              new BackupConfiguration(
               backupConfig.getBaseBackups().getRetention(),
               backupConfig.getBaseBackups().getCronSchedule(),
               backupConfig.getBaseBackups().getCompression(),

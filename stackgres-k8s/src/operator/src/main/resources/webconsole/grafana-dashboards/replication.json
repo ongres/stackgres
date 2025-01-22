@@ -133,7 +133,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==1)",
+          "expr": "count(pg_replication_slots_stats_active{instance=~\"${instance}:9187\"}==1)",
           "refId": "A"
         }
       ],
@@ -362,7 +362,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==0)",
+          "expr": "count(pg_replication_slots_stats_active{instance=~\"${instance}:9187\"}==0)",
           "format": "time_series",
           "legendFormat": "",
           "refId": "A"

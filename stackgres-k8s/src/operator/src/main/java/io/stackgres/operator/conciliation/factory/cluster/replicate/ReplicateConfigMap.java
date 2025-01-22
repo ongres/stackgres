@@ -78,6 +78,7 @@ public class ReplicateConfigMap extends AbstractBackupConfigMap
     context.getReplicateConfiguration()
         .ifPresent(config -> data.putAll(
                 getBackupEnvVars(
+                    context,
                     config
                 )
             )

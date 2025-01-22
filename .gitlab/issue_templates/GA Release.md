@@ -50,7 +50,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
      ```
      # Remember to create a key pair called gitlab-runner in the target AWS region
      AMI="$(aws ssm get-parameters --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2 --query "Parameters[].Value" --output text)"
-     curl -s https://gitlab.com/snippets/1985684/raw | bash -s -- -r "glpat-BkmNTE69g2-4cuS2Qkv4" -t m6gd.4xlarge -i "" -d 14400 -df internal -dp /dev/nvme1n1 -rn army-builder -tl 'docker-junit-extension-runner, oci-image, ongresinc, stackgres-maven-runner, stackgres-native-build-runner, stackgres-quarkus-test-runner, stackgres-runner-v2, linux-arm64, stackgres-e2e-runner'
+     curl -s https://gitlab.com/snippets/1985684/raw | bash -s -- -r "$GITLAB_TOKEN" -t m6gd.4xlarge -i "$AMI" -d $((4 * 60 * 60)) -df internal -dp /dev/nvme1n1 -rn army-builder -tl 'docker-junit-extension-runner, oci-image, ongresinc, stackgres-maven-runner, stackgres-native-build-runner, stackgres-quarkus-test-runner, stackgres-runner-v2, linux-arm64, stackgres-e2e-runner'
      ```
 
      Now we can push `release-1.15.0` branch and wait for the pipeline to complete:

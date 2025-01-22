@@ -478,8 +478,7 @@ pg_wal_position:
         usage: "COUNTER"
         description: "Postgres LSN (log sequence number) being generated on primary or replayed on replica (truncated to low 52 bits)"
 
-
-pg_replication_slots:
+pg_replication_slots_stats:
   master: true
   query: |
     SELECT slot_name, slot_type,
@@ -1043,7 +1042,7 @@ pgbouncer_show_clients:
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
     AS _(type text, "user" text, database text, replication text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
-    ptr text, link text, remote_pid integer, tls text, application_name text, prepared_statements integer);
+    ptr text, link text, remote_pid integer, tls text, application_name text, prepared_statements integer, uid bigint);
   metrics:
     - type:
         usage: "LABEL"
@@ -1054,6 +1053,9 @@ pgbouncer_show_clients:
     - database:
         usage: "LABEL"
         description: "Database name"
+    - replication:
+        usage: "LABEL"
+        description: "Replication status"
     - state:
         usage: "LABEL"
         description: "State of the client connection, one of active or waiting"
@@ -1125,7 +1127,7 @@ pgbouncer_show_pools:
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show pools'::text)
     _(database text, "user" text, cl_active integer, cl_waiting integer, cl_active_cancel_req integer, cl_waiting_cancel_req integer,
     sv_active integer, sv_active_cancel integer, sv_being_canceled integer, sv_idle integer, sv_used integer,
-    sv_tested integer, sv_login integer, maxwait integer, maxwait_us integer, pool_mode text);
+    sv_tested integer, sv_login integer, maxwait integer, maxwait_us integer, pool_mode text, load_balance_hosts text);
   metrics:
     - database:
         usage: "LABEL"
@@ -1197,11 +1199,15 @@ pgbouncer_show_databases:
     _.pool_mode,
     _.max_connections,
     _.current_connections,
+    _.max_client_connections,
+    _.current_client_connections,
     _.paused,
     _.disabled
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
     AS _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
-      reserve_pool integer, server_lifetime integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
+      reserve_pool integer, server_lifetime integer, pool_mode text, load_balance_hosts text,
+      max_connections integer, current_connections integer, max_client_connections integer, current_client_connections integer,
+      paused boolean, disabled boolean);
   metrics:
     - name:
         usage: "LABEL"
@@ -1235,10 +1241,16 @@ pgbouncer_show_databases:
         description: "The database override pool_mode"
     - max_connections:
         usage: "GAUGE"
-        description: "Maximum number of allowed connections for this database"
+        description: "    Maximum number of allowed server connections for this database, as set by max_db_connections, either globally or per database"
     - current_connections:
         usage: "GAUGE"
         description: "Current number of connections for this database"
+    - max_client_connections:
+        usage: "GAUGE"
+        description: "Maximum number of allowed client connections for this pgbouncer instance, as set by max_db_client_connections per database"
+    - current_client_connections:
+        usage: "GAUGE"
+        description: "    Current number of client connections for this database"
     - paused:
         usage: "GAUGE"
         description: "1 if this database is currently paused, else 0"
@@ -1258,6 +1270,9 @@ pgbouncer_show_stats:
     _.total_xact_time,
     _.total_query_time,
     _.total_wait_time,
+    _.total_client_parse_count,
+    _.total_server_parse_count,
+    _.total_bind_count,
     _.avg_xact_count,
     _.avg_query_count,
     _.avg_server_assignment_count,
@@ -1265,11 +1280,14 @@ pgbouncer_show_stats:
     _.avg_sent,
     _.avg_xact_time,
     _.avg_query_time,
-    _.avg_wait_time
+    _.avg_wait_time,
+    _.avg_client_parse_count,
+    _.avg_server_parse_count,
+    _.avg_bind_count
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats'::text)
     AS _(database text, total_xact_count bigint, total_query_count bigint, total_server_assignment_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
-      total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_server_assignment_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
-      avg_wait_time bigint);
+      total_wait_time bigint, total_client_parse_count bigint, total_server_parse_count bigint, total_bind_count bigint, avg_xact_count bigint, avg_query_count bigint, avg_server_assignment_count bigint,
+      avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint, avg_wait_time bigint, avg_client_parse_count bigint, avg_server_parse_count bigint, avg_bind_count bigint);
   metrics:
     - database:
         usage: "LABEL"
@@ -1298,6 +1316,15 @@ pgbouncer_show_stats:
     - total_wait_time:
         usage: "GAUGE"
         description: "Time spent by clients waiting for a server, in microseconds"
+    - total_client_parse_count:
+        usage: "GAUGE"
+        description: "Total number of prepared statements created by clients. Only applicable in named prepared statement tracking mode, see max_prepared_statements"
+    - total_server_parse_count:
+        usage: "GAUGE"
+        description: "Total number of prepared statements created by pgbouncer on a server. Only applicable in named prepared statement tracking mode, see max_prepared_statements"
+    - total_bind_count:
+        usage: "GAUGE"
+        description: "Total number of prepared statements readied for execution by clients and forwarded to PostgreSQL by pgbouncer. Only applicable in named prepared statement tracking mode, see max_prepared_statements"
     - avg_xact_count:
         usage: "GAUGE"
         description: "Average transactions per second in last stat period"
@@ -1322,6 +1349,15 @@ pgbouncer_show_stats:
     - avg_wait_time:
         usage: "GAUGE"
         description: "Time spent by clients waiting for a server, in microseconds average per second"
+    - avg_client_parse_count:
+        usage: "GAUGE"
+        description: "Average number of prepared statements created by clients. Only applicable in named prepared statement tracking mode, see max_prepared_statements."
+    - avg_server_parse_count:
+        usage: "GAUGE"
+        description: "Average number of prepared statements created by pgbouncer on a server. Only applicable in named prepared statement tracking mode, see max_prepared_statements"
+    - avg_bind_count:
+        usage: "GAUGE"
+        description: "Average number of prepared statements readied for execution by clients and forwarded to PostgreSQL by pgbouncer. Only applicable in named prepared statement tracking mode, see max_prepared_statements"
 
 node_filesystem:
   master: true

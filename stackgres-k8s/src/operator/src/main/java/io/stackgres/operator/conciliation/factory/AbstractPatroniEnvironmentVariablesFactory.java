@@ -9,11 +9,9 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
-import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 
 public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
@@ -22,70 +20,79 @@ public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
     return List.of(
         new EnvVarBuilder().withName("PATRONI_NAME")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(
-                    new ObjectFieldSelectorBuilder()
-                        .withFieldPath("metadata.name").build())
-                .build())
-            .build(),
+        .withNewValueFrom()
+        .withNewFieldRef()
+        .withFieldPath("metadata.name")
+        .endFieldRef()
+        .endValueFrom()
+        .build(),
         new EnvVarBuilder().withName("POD_IP")
-            .withValueFrom(
-                new EnvVarSourceBuilder()
-                    .withFieldRef(
-                        new ObjectFieldSelectorBuilder()
-                            .withFieldPath("status.podIP")
-                            .build())
-                    .build())
-            .build(),
+        .withNewValueFrom()
+        .withNewFieldRef()
+        .withFieldPath("status.podIP")
+        .endFieldRef()
+        .endValueFrom()
+        .build(),
+        new EnvVarBuilder().withName("POD_NAME")
+        .withNewValueFrom()
+        .withNewFieldRef()
+        .withFieldPath("metadata.name")
+        .endFieldRef()
+        .endValueFrom()
+        .build(),
+        new EnvVarBuilder().withName("CLUSTER_UID")
+        .withNewValueFrom()
+        .withNewFieldRef()
+        .withFieldPath("metadata.labels['"
+            + StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_UID_KEY + "']")
+        .endFieldRef()
+        .endValueFrom()
+        .build(),
         new EnvVarBuilder().withName("PATRONI_SUPERUSER_PASSWORD")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY)
-                        .build())
-                .build())
-            .build(),
+        .withNewValueFrom()
+        .withNewSecretKeyRef()
+        .withName(cluster.getMetadata().getName())
+        .withKey(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY)
+        .endSecretKeyRef()
+        .endValueFrom()
+        .build(),
         new EnvVarBuilder().withName("PATRONI_REPLICATION_PASSWORD")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresPasswordKeys.REPLICATION_PASSWORD_KEY)
-                        .build())
-                .build())
-            .build(),
+        .withNewValueFrom()
+        .withNewSecretKeyRef()
+        .withName(cluster.getMetadata().getName())
+        .withKey(StackGresPasswordKeys.REPLICATION_PASSWORD_KEY)
+        .endSecretKeyRef()
+        .endValueFrom()
+        .build(),
         new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue("${POD_IP}:" + EnvoyUtil.PATRONI_PORT)
-            .build(),
+        .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
+        .withValue("${POD_IP}:" + EnvoyUtil.PATRONI_PORT)
+        .build(),
         new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_USERNAME")
-            .withValue("superuser")
-            .build(),
+        .withName("PATRONI_RESTAPI_USERNAME")
+        .withValue("superuser")
+        .build(),
         new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_PASSWORD")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY)
-                        .build())
-                .build())
-            .build(),
-        new EnvVarBuilder().withName(
-            StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY)
-                        .build())
-                .build())
-            .build(),
-        new EnvVarBuilder().withName(
-            StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV)
-            .withValue("superuser")
-            .build());
+        .withName("PATRONI_RESTAPI_PASSWORD")
+        .withNewValueFrom()
+        .withNewSecretKeyRef()
+        .withName(cluster.getMetadata().getName())
+        .withKey(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY)
+        .endSecretKeyRef()
+        .endValueFrom()
+        .build(),
+        new EnvVarBuilder()
+        .withName(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
+        .withNewValueFrom()
+        .withNewSecretKeyRef()
+        .withName(cluster.getMetadata().getName())
+        .withKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY)
+        .endSecretKeyRef()
+        .endValueFrom()
+        .build(),
+        new EnvVarBuilder()
+        .withName(StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV)
+        .withValue("superuser")
+        .build());
   }
 }
