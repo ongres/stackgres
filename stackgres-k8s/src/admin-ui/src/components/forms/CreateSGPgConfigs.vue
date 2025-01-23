@@ -253,7 +253,7 @@
                         .update('sgpgconfigs', config, vc.dryRun)
                         .then(function (response) {
                             if(vc.dryRun) {
-                                vc.showSummary = !vc.loadingDefaults;
+                                vc.showSummary = true;
                                 vc.validateDryRun(response.data);
                             } else {
                                 vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
@@ -275,7 +275,7 @@
                         .then(function (response) {
 
                             if(vc.dryRun) {
-                                vc.showSummary = !vc.loadingDefaults;
+                                vc.showSummary = true;
                                 vc.validateDryRun(response.data);
                             } else {
                                 var urlParams = new URLSearchParams(window.location.search);
