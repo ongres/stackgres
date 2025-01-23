@@ -40,12 +40,12 @@ check_grafana_secret() {
 check_exporter_queries() {
   local METRIC
   local QUERIES_FILE=queries.yaml
-  local VERSION_AS_NUMBER VERSION_1_12_0
-  VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_VERSION")"
-  VERSION_1_12_0="$(get_version_as_number 1.12.0)"
-  if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_12_0" ]
+  local VERSION_AS_NUMBER VERSION_1_14_0
+  VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_TARGET_VERSION")"
+  VERSION_1_14_0="$(get_version_as_number 1.14.0)"
+  if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_14_0" ]
   then
-    QUERIES_FILE=queries-1.22.yaml
+    QUERIES_FILE=queries-1.23.yaml
   fi
   for METRIC in $(yq -r 'keys[]' "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/"$QUERIES_FILE")
   do

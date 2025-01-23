@@ -14,7 +14,7 @@ e2e_test_install() {
     --set-string "configurations.postgresconfig.postgresql\.conf.citus\.desired_percent_disk_available_after_move=0"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 6
-  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -36,8 +36,10 @@ check_sharded_dbops_resharding_is_working() {
   kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -d citus -v ON_ERROR_STOP=1 \
     -c "SELECT citus_drain_node('$NODE_NAME', 7433)" \
-    -c "SELECT citus_remove_node('$NODE_NAME', 7433)" \
-    -c "SELECT citus_add_node('$NODE_NAME', 7433)"
+    -c "SELECT citus_remove_node('$NODE_NAME', 7433)"
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+      psql -q -d citus -v ON_ERROR_STOP=1 \
+      -c "SELECT citus_add_node('$NODE_NAME', 7433)"
   if ! kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
   then

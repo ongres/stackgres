@@ -39,7 +39,7 @@ spec:
   sgCluster: $CLUSTER_NAME
   op: restart
   timeout: PT10S
-  maxRetries: 3
+  maxRetries: 0
   restart:
     method: InPlace
 EOF

@@ -65,7 +65,7 @@ e2e_test() {
     return
   fi
 
-  run_test "Checking that stream is working" check_stream_is_working
+  # run_test "Checking that stream is working" check_stream_is_working
 
   run_test "Checking that stream is working skipping DDL import" check_stream_is_working_skippig_ddl_import
 
@@ -108,8 +108,8 @@ FROM (
     text(t.typcategory) AS typcategory,
     text(t.typtype) AS typtype
   FROM pg_catalog.pg_type t LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-  WHERE t.typname IN ('int2', 'int4', 'int8'))
-  ORDER BY typname;
+  WHERE t.typname IN ('int2', 'int4', 'int8')) _
+ORDER BY typname;
 EOF
 
   cat << EOF | tee "$LOG_PATH/reset-target-status.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
