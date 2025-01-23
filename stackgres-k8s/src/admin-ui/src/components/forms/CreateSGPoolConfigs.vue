@@ -36,6 +36,90 @@
                 </div>
             </div>
 
+            <br/>
+            <hr/>
+            <br/>
+
+            <template v-for="(section, sectionName) in poolConfigSections">
+                <div
+                    class="repeater"
+                    :key="'pgpoolingconfig-' + sectionName"
+                >
+                    <fieldset
+                        :class="!section.length && 'noMargin'"
+                        :data-fieldset="'spec.pgBouncer.pgbouncer.ini.' + sectionName"
+                    >
+                        <div
+                            class="header capitalize"
+                            :class="!section.length && 'noMargin'"
+                        >
+                            <h3 :for="'spec.pgBouncer.pgbouncer.ini.' + sectionName">
+                                {{ sectionName }}
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer\.ini.' + sectionName)"></span>
+                            </h3>
+                        </div>
+                        <template v-for="(element, index) in section">
+                            <fieldset
+                                :key="'pgpoolingconfig-' + sectionName + '-' + index"
+                                :data-fieldset="'spec.pgBouncer.pgbouncer.ini.' + sectionName"
+                                :class="(index === (section.length - 1)) && 'noMargin'"
+                            >
+                                <div class="header capitalize">
+                                    <h3 :for="'spec.pgBouncer.pgbouncer.ini.' + sectionName + '.items'">
+                                        {{ sectionName.slice(0,-1) }} #{{ index + 1}}
+                                    </h3>
+                                    <a class="addRow delete" @click="spliceArray(section, index)">Delete</a>
+                                </div>
+
+                                <div class="row-50">
+                                    <div class="col">
+                                        <label
+                                            class="capitalize"
+                                            :for="'spec.pgBouncer.pgbouncer.ini.' + sectionName + '[' + index + '].name'"
+                                        >
+                                            {{ sectionName.slice(0,-1) }} Name
+                                            <span class="req">
+                                                *
+                                            </span>
+                                        </label>
+                                        <input
+                                            v-model="element.name"
+                                            required
+                                            :data-field="'spec.pgBouncer.pgbouncer.ini.' + sectionName + '[' + index + '].name'"
+                                            autocomplete="off"
+                                        >
+                                        <span class="helpTooltip" :data-tooltip="'The name of the ' + sectionName.slice(0,-1) + ' to associate with this configuration.'"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row-100">
+                                    <div class="col marginBottom">
+                                        <label for="spec.pgBouncer.pgbouncer\.ini">PgBouncer Parameters</label>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
+                                        <textarea v-model="element.config" placeholder="parameter = value" :data-field="'spec.pgBouncer.pgbouncer.ini.' + sectionName + '[' + index + '].config'"></textarea>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </template>
+                    </fieldset>
+                    <div
+                        class="fieldsetFooter"
+                    >
+                        <a
+                            class="addRow capitalize"
+                            @click="section.push({
+                                name: '',
+                                config: ''
+                            })"
+                        >
+                            Add {{ sectionName.slice(0,-1) }}
+                        </a>
+                    </div>
+                    <br/>
+                    <br/>
+                </div>
+            </template>
+
             <template v-if="Object.keys(defaultParams).length">
                 <div class="paramDetails">
                     <hr/>
@@ -110,6 +194,10 @@
                 configClusters: [],
                 poolConfigParamsObj: null,
                 defaultParams: {},
+                poolConfigSections: {
+                    databases: [],
+                    users: []
+                }
             }
 
         },
@@ -189,7 +277,7 @@
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "pgBouncer": {
-                            "pgbouncer.ini": this.editMode ? vc.unifyParams() : this.poolConfigParams
+                            "pgbouncer.ini": vc.parsePgBouncerConfig()
                         }
                     }
                 }
@@ -301,6 +389,26 @@
                 });
 
                 return finalParamsArr.join('\n')
+            },
+
+            parsePoolConfigSection(section) {
+                let poolConfigSection = '\n[' + section + ']\n';
+                
+                this.poolConfigSections[section].forEach( (element) => {
+                    poolConfigSection += `${element.name} = ${element.config.replaceAll(' = ', '=').replaceAll('\n', ' ')}`;
+                })
+
+                return poolConfigSection
+            },
+
+            parsePgBouncerConfig() {
+                let pgBouncer = '';
+
+                pgBouncer += this.editMode ? this.unifyParams() : this.poolConfigParams;
+                pgBouncer += this.poolConfigSections.databases.length ? this.parsePoolConfigSection('databases') : '';
+                pgBouncer += this.poolConfigSections.users.length ? this.parsePoolConfigSection('users') : '';
+
+                return pgBouncer;
             }
 
         }
