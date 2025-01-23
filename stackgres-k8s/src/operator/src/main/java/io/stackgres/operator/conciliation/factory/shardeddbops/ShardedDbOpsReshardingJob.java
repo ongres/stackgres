@@ -84,7 +84,7 @@ public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
             .build(),
             new EnvVarBuilder()
             .withName("PATRONI_PRIMARY_ROLE")
-            .withValue(PatroniUtil.PRIMARY_ROLE)
+            .withValue(PatroniUtil.getPrimaryRole(context.getShardedCluster()))
             .build(),
             new EnvVarBuilder()
             .withName("PATRONI_REPLICA_ROLE")
