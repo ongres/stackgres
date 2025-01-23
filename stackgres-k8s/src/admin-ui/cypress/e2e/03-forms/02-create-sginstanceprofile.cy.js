@@ -13,7 +13,10 @@ describe('Create SGInstanceProfile', () => {
     });
 
     beforeEach( () => {
-        Cypress.Cookies.preserveOnce('sgToken')
+        cy.gc()
+        cy.login()
+        cy.setCookie('sgReload', '0')
+        cy.setCookie('sgTimezone', 'utc')
         cy.visit(namespace + '/sginstanceprofiles/new')
     });
 
