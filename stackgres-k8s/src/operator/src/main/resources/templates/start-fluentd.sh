@@ -54,7 +54,7 @@ do
       PID="$!"
     else
       >&2 echo "Reloading fluentd configuration"
-      kill -n USR2 "$PID"
+      kill -n USR1 "$PID"
     fi
     update_config
   fi
