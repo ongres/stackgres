@@ -65,7 +65,7 @@ e2e_test() {
     return
   fi
 
-  # run_test "Checking that stream is working" check_stream_is_working
+  run_test "Checking that stream is working" check_stream_is_working
 
   run_test "Checking that stream is working skipping DDL import" check_stream_is_working_skippig_ddl_import
 
@@ -459,7 +459,7 @@ DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
   AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
@@ -538,7 +538,7 @@ EOF
 DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=sakila --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
   AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
@@ -560,7 +560,7 @@ EOF
   DATA_QUERY="$(cat << 'EOF'
 DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --inserts --rows-per-insert=1 --dbname=sakila --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT regexp_replace(line, 'setval\(([^,]*,[^,]*), true\)', 'setval(\1, false)') FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+SELECT regexp_replace(line, 'setval\(([^,]*,[^,]*), true\)', 'setval(\1, false)') FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
   AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'

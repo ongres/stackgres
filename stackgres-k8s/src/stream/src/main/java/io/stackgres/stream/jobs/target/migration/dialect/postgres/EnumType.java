@@ -21,19 +21,20 @@ import org.slf4j.LoggerFactory;
  */
 class EnumType extends AbstractType {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EnumType.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EnumType.class);
 
-    public static final EnumType INSTANCE = new EnumType();
+  public static final EnumType INSTANCE = new EnumType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ Enum.LOGICAL_NAME };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { Enum.LOGICAL_NAME };
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        LOGGER.warn("Cannot create enum types automatically, please create the table by hand. Using STRING fallback.");
-        return ConnectStringType.INSTANCE.getTypeName(dialect, schema, key);
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    LOGGER.warn(
+        "Cannot create enum types automatically, please create the table by hand. Using STRING fallback.");
+    return ConnectStringType.INSTANCE.getTypeName(dialect, schema, key);
+  }
 
 }

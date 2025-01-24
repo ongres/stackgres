@@ -12,17 +12,17 @@ import org.apache.kafka.connect.data.Schema;
 
 public class GeographyType extends GeometryType {
 
-    public static final Type INSTANCE = new GeographyType();
+  public static final Type INSTANCE = new GeographyType();
 
-    private static final String TYPE_NAME = "%s.geography";
+  private static final String TYPE_NAME = "%s.geography";
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ Geography.LOGICAL_NAME };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { Geography.LOGICAL_NAME };
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return String.format(TYPE_NAME, postgisSchema);
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return String.format(TYPE_NAME, postgisSchema);
+  }
 }

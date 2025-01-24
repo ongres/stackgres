@@ -106,8 +106,9 @@
     <javapoet.version>1.13.0</javapoet.version>
     <compile-testing.version>0.21.0</compile-testing.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <debezium.version>2.7.0.Final</debezium.version>
-    <jmx-prometheus-collector.version>1.0.1</jmx-prometheus-collector.version>
+    <debezium.version>3.0.7.Final</debezium.version>
+    <kafka-clients.version>3.9.0</kafka-clients.version>
+    <jmx-prometheus-collector.version>1.1.0</jmx-prometheus-collector.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <jar-plugin.version>3.4.1</jar-plugin.version>
@@ -196,6 +197,12 @@
         <groupId>io.debezium</groupId>
         <artifactId>debezium-embedded</artifactId>
         <version>${debezium.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.debezium</groupId>
@@ -212,6 +219,11 @@
         <groupId>io.debezium</groupId>
         <artifactId>debezium-connector-jdbc</artifactId>
         <version>${debezium.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>${kafka-clients.version}</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus.jmx</groupId>
