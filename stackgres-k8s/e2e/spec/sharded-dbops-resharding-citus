@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-$E2E_CITUS_POSTGRES_VERSION}"
+
 . "$SPEC_PATH/abstract/sharded-dbops"
 
 e2e_test_extra_hash() {

@@ -15,7 +15,7 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 4
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   # Avoid backups before waiting for pods (since backup pods could biase the wait)
   enable_cluster_cron_schedule
