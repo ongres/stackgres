@@ -32,6 +32,7 @@ LOCK_TIMEOUT_KEY=stackgres.io/lockTimeout
 LOCK_POD_KEY=stackgres.io/lockPod
 VOLUME_SNAPSHOT_CRD_NAME=volumesnapshot
 PG_DATA_PATH=/var/lib/postgresql/data
+POSTGRES_VERSION=17.2
 
 shell_unit_test_backup() {
   . "$PROJECT_PATH/src/main/resources/templates/create-backup.sh"
