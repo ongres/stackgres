@@ -1,12 +1,11 @@
 #!/bin/sh
 
-export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-$E2E_CITUS_POSTGRES_VERSION}"
-
 . "$SPEC_PATH/abstract/patroni"
 
 . "$SPEC_PATH/abstract/sql-scripts"
 
 e2e_test_extra_hash() {
+  printf '%s\n' E2E_CITUS_POSTGRES_VERSION="$E2E_CITUS_POSTGRES_VERSION"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/patroni")"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
@@ -16,6 +15,7 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
+  E2E_POSTGRES_VERSION="${E2E_CITUS_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
   CLUSTER_NAME="$(get_sgshardedcluster_name "$SPEC_NAME")"
 
   install_minio
