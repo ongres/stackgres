@@ -1,11 +1,22 @@
 #!/bin/sh
 
+e2e_exclusive_lock() {
+  true
+}
+
 e2e_test_install() {
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
       -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     return
   fi
+
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_only
 
   install_metric_server
   install_keda
@@ -143,7 +154,7 @@ check_vertical_autoscaling() {
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.5))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=master" -o json \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=primary" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
     | wc -l | grep -qxF 1'
   then

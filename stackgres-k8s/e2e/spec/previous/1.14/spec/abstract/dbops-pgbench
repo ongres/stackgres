@@ -143,44 +143,47 @@ check_pgbench() {
     fail "pgbench did not returned the tps over time interval duration unit."
   fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ .status.benchmark.pgbench.statements | len }}')" -gt 0 ]
+  if [ "${E2E_POSTGRES_VERSION%.*}" -ge 15 ]
   then
-    success "pgbench returned the statements."
-  else
-    fail "pgbench did not returned the statements."
-  fi
+    if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ .status.benchmark.pgbench.statements | len }}')" -gt 0 ]
+    then
+      success "pgbench returned the statements."
+    else
+      fail "pgbench did not returned the statements."
+    fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ (index .status.benchmark.pgbench.statements 0).command }}' | grep .
-  then
-    success "pgbench returned the statements command."
-  else
-    fail "pgbench did not returned the statements command."
-  fi
+    if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.pgbench.statements 0).command }}' | grep .
+    then
+      success "pgbench returned the statements command."
+    else
+      fail "pgbench did not returned the statements command."
+    fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ (index .status.benchmark.pgbench.statements 0).latency }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
-  then
-    success "pgbench returned the statements latency."
-  else
-    fail "pgbench did not returned the statements latency."
-  fi
+    if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.pgbench.statements 0).latency }}' | grep -x '[0-9]\+\(\.[0-9]\+\)\?'
+    then
+      success "pgbench returned the statements latency."
+    else
+      fail "pgbench did not returned the statements latency."
+    fi
 
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ (index .status.benchmark.pgbench.statements 0).unit }}')" = ms ]
-  then
-    success "pgbench returned the statements unit."
-  else
-    fail "pgbench did not returned the statements unit."
-  fi
+    if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.pgbench.statements 0).unit }}')" = ms ]
+    then
+      success "pgbench returned the statements unit."
+    else
+      fail "pgbench did not returned the statements unit."
+    fi
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --template '{{ (index .status.benchmark.pgbench.statements 0).script }}' | grep -x '[0-9]\+'
-  then
-    success "pgbench returned the statements script."
-  else
-    fail "pgbench did not returned the statements script."
+    if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+      --template '{{ (index .status.benchmark.pgbench.statements 0).script }}' | grep -x '[0-9]\+'
+    then
+      success "pgbench returned the statements script."
+    else
+      fail "pgbench did not returned the statements script."
+    fi
   fi
 
   kubectl get -n "$CLUSTER_NAMESPACE" pod -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \

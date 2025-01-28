@@ -13,8 +13,19 @@ e2e_test_extra_hash() {
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/sql-scripts.sakila.sql")"
 }
 
+e2e_exclusive_lock() {
+  true
+}
+
 e2e_test_install() {
   CLUSTER_NAME="$(get_sgshardedcluster_name "$SPEC_NAME")"
+
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_only
 
   install_shardingsphere_operator
 
@@ -52,7 +63,7 @@ e2e_test() {
 }
 
 service_check() {
-  RESPONSE_PRIMARY="$(wait_until eval 'run_query -c "$CLUSTER_NAME" -x psql -q -k postgres -h "$CLUSTER_NAME" -p 5432')"
+  RESPONSE_PRIMARY="$(wait_until eval 'run_query -c "$CLUSTER_NAME" -x psql -k postgres -h "$CLUSTER_NAME" -p 5432')"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then

@@ -100,9 +100,9 @@ pgbouncer_database_check() {
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -q -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
   then
-    success "psql -qcould connect to the pgbouncer database with pgobuncer_admin using service"
+    success "psql could connect to the pgbouncer database with pgobuncer_admin using service"
   else
-    fail "psql -qcould not connect to the pgbouncer database with pgobuncer_admin using service"
+    fail "psql could not connect to the pgbouncer database with pgobuncer_admin using service"
   fi
 
   if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- env \
@@ -111,9 +111,9 @@ pgbouncer_database_check() {
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -q -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
   then
-    success "psql -qcould connect to the pgbouncer database with pgobuncer_stats using service"
+    success "psql could connect to the pgbouncer database with pgobuncer_stats using service"
   else
-    fail "psql -qcould not connect to the pgbouncer database with pgobuncer_stats using service"
+    fail "psql could not connect to the pgbouncer database with pgobuncer_stats using service"
   fi
 }
 

@@ -91,6 +91,7 @@ check_external_dcs_two_clusters_is_working() {
     --set instanceProfiles[0].name=size-s \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
+    --set credentials=null \
     --set-string cluster.configurations.credentials.users.superuser.username.name="$CLUSTER_NEAR_NAME" \
     --set-string cluster.configurations.credentials.users.superuser.username.key="superuser-username" \
     --set-string cluster.configurations.credentials.users.superuser.password.name="$CLUSTER_NEAR_NAME" \

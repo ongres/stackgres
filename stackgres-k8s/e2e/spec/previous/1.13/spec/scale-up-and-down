@@ -6,13 +6,13 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
   run_test "Checking scaledown is working" check_scaledown
 
-  run_test "Checking scalezero is working" check_scalezero
+  run_test "Checking scaledown to zero is working" check_scalezero
 
   run_test "Checking that scaleup is working" check_scaleup
 
@@ -172,8 +172,12 @@ check_scaleup() {
 }
 
 check_switchover() {
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
   if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
-    patronictl switchover --primary "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force
+    patronictl switchover \
+    $([ "$PATRONI_MAJOR_VERSION" -lt 4 ] && printf %s --master || printf %s --primary) "$CLUSTER_NAME"-0 \
+    --candidate "$CLUSTER_NAME"-1 --force
   then
     success "The switchover has been performed"
   else
