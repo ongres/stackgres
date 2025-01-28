@@ -390,6 +390,10 @@ check_restore_using_pitr() {
 
 check_backup_pg_version() {
   ALTERNATIVE_PG_VERSION="12.9"
+  if [ "${E2E_POSTGRES_VERSION%.*}" = "${ALTERNATIVE_PG_VERSION%.*}" ]
+  then
+    ALTERNATIVE_PG_VERSION="13.5"
+  fi
 
   local RESULT EXIT_CODE
   try_function create_or_replace_cluster "$ALTER_CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
