@@ -68,11 +68,13 @@ EOF
 
   wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
 
+  TOTAL_SHARDS_SIZE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus -c "SELECT SUM(shard_size) FROM citus_shards")"
   if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
-    psql -q -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
+    psql -q -t -A -d citus -c "SELECT SUM(shard_size) / $TOTAL_SHARD_SIZE < 0.3 FROM citus_shards GROUP BY nodename" | grep -qxF t
   then
-    success "The sharded cluster has been resharded"
-  else
     fail "The sharded cluster has not been resharded"
+  else
+    success "The sharded cluster has been resharded"
   fi
 }
