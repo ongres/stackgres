@@ -41,7 +41,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import jakarta.inject.Inject;
@@ -55,13 +55,13 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
 
   private final PostgresDataMounts postgresDataMounts;
   private final ContainerUserOverrideMounts userContainerMounts;
-  private final PostgresSocketMount postgresSocket;
+  private final PostgresSocketMounts postgresSocket;
 
   @Inject
   public ClusterController(
       PostgresDataMounts postgresDataMounts,
       ContainerUserOverrideMounts userContainerMounts,
-      PostgresSocketMount postgresSocket) {
+      PostgresSocketMounts postgresSocket) {
     this.postgresDataMounts = postgresDataMounts;
     this.userContainerMounts = userContainerMounts;
     this.postgresSocket = postgresSocket;

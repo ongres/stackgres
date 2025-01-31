@@ -34,9 +34,9 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -65,14 +65,14 @@ public class FluentBit implements
   private final LabelFactoryForCluster labelFactory;
 
   private final LogVolumeMounts logMounts;
-  private final PostgresSocketMount postgresSocket;
-  private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
+  private final PostgresSocketMounts postgresSocket;
+  private final TemplatesMounts scriptTemplatesVolumeMounts;
 
   @Inject
   public FluentBit(LabelFactoryForCluster labelFactory,
       LogVolumeMounts logMounts,
-      PostgresSocketMount postgresSocket,
-      ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
+      PostgresSocketMounts postgresSocket,
+      TemplatesMounts scriptTemplatesVolumeMounts) {
     this.labelFactory = labelFactory;
     this.logMounts = logMounts;
     this.postgresSocket = postgresSocket;

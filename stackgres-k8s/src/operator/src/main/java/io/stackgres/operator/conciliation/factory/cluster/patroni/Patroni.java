@@ -45,16 +45,17 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.cluster.BackupMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicateMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationMounts;
+import io.stackgres.operator.conciliation.factory.cluster.RestoreMounts;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -68,14 +69,15 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
-  private final PostgresSocketMount postgresSocket;
+  private final PostgresSocketMounts postgresSocket;
   private final PostgresExtensionMounts postgresExtensions;
+  private final TemplatesMounts templateMounts;
   private final LocalBinMounts localBinMounts;
-  private final RestoreVolumeMounts restoreMounts;
-  private final BackupVolumeMounts backupMounts;
-  private final ReplicationInitializationVolumeMounts replicationInitMounts;
-  private final ReplicateVolumeMounts replicateMounts;
-  private final PatroniVolumeMounts patroniMounts;
+  private final RestoreMounts restoreMounts;
+  private final BackupMounts backupMounts;
+  private final ReplicationInitializationMounts replicationInitMounts;
+  private final ReplicateMounts replicateMounts;
+  private final PatroniMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
   private final PatroniConfigMap patroniConfigMap;
 
@@ -89,14 +91,15 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   public Patroni(
       PatroniEnvironmentVariables patroniEnvironmentVariables,
       PostgresEnvironmentVariables postgresEnvironmentVariables,
-      PostgresSocketMount postgresSocket,
+      PostgresSocketMounts postgresSocket,
       PostgresExtensionMounts postgresExtensions,
+      TemplatesMounts templateMounts,
       LocalBinMounts localBinMounts,
-      RestoreVolumeMounts restoreMounts,
-      BackupVolumeMounts backupMounts,
-      ReplicationInitializationVolumeMounts replicationInitMounts,
-      ReplicateVolumeMounts replicateMounts,
-      PatroniVolumeMounts patroniMounts,
+      RestoreMounts restoreMounts,
+      BackupMounts backupMounts,
+      ReplicationInitializationMounts replicationInitMounts,
+      ReplicateMounts replicateMounts,
+      PatroniMounts patroniMounts,
       HugePagesMounts hugePagesMounts,
       @OperatorVersionBinder
       PatroniConfigMap patroniConfigMap) {
@@ -105,6 +108,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     this.postgresEnvironmentVariables = postgresEnvironmentVariables;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
+    this.templateMounts = templateMounts;
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
@@ -143,6 +147,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withName(StackGresVolume.LOG.getName())
             .withMountPath(ClusterPath.PG_LOG_PATH.path())
             .build())
+        .addAll(templateMounts.getVolumeMounts(context))
         .addAll(localBinMounts.getVolumeMounts(context))
         .addAll(patroniMounts.getVolumeMounts(context))
         .addAll(backupMounts.getVolumeMounts(context))
@@ -174,7 +179,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
+            ClusterPath.TEMPLATES_PATH.path() + "/"
+                + ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withVolumeMounts(volumeMounts.build())
         .withEnv(getEnvVars(context))
@@ -299,6 +305,10 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     return ImmutableList.<EnvVar>builder()
         .addAll(patroniEnvironmentVariables.getEnvVars(clusterContext))
         .addAll(postgresEnvironmentVariables.getEnvVars(clusterContext))
+        .add(new EnvVarBuilder()
+            .withName(ClusterPath.TEMPLATES_PATH.name())
+            .withValue(ClusterPath.TEMPLATES_PATH.path())
+            .build())
         .addAll(localBinMounts.getDerivedEnvVars(context))
         .addAll(postgresExtensions.getDerivedEnvVars(context))
         .addAll(patroniMounts.getDerivedEnvVars(context))

@@ -22,8 +22,8 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
-import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
@@ -48,10 +48,10 @@ class PostgresExporterTest {
   private ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Mock
-  private PostgresSocketMount postgresSocket;
+  private PostgresSocketMounts postgresSocket;
 
   @Mock
-  private ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
+  private TemplatesMounts scriptTemplatesVolumeMounts;
 
   private final YamlMapperProvider yamlMapperProvider = new YamlMapperProvider();
 

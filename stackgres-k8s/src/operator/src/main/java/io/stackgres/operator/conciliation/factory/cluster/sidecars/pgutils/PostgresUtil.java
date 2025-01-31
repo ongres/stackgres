@@ -24,7 +24,7 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
@@ -38,13 +38,13 @@ import jakarta.inject.Singleton;
 public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
 
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
-  private final PostgresSocketMount postgresSocket;
+  private final PostgresSocketMounts postgresSocket;
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
   public PostgresUtil(
       PostgresEnvironmentVariables postgresEnvironmentVariables,
-      PostgresSocketMount postgresSocket,
+      PostgresSocketMounts postgresSocket,
       ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.postgresEnvironmentVariables = postgresEnvironmentVariables;
     this.postgresSocket = postgresSocket;

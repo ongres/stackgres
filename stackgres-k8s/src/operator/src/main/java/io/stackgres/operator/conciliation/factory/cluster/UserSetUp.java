@@ -23,7 +23,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
-import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -32,7 +32,7 @@ import jakarta.inject.Singleton;
 @InitContainer(StackGresInitContainer.SETUP_ARBITRARY_USER)
 public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
 
-  private final ScriptTemplatesVolumeMounts scriptTemplateMounts;
+  private final TemplatesMounts scriptTemplateMounts;
 
   private final PostgresDataMounts postgresDataMounts;
 
@@ -41,7 +41,7 @@ public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
 
   @Inject
   public UserSetUp(
-      ScriptTemplatesVolumeMounts scriptTemplateMounts,
+      TemplatesMounts scriptTemplateMounts,
       PostgresDataMounts postgresDataMounts) {
     this.scriptTemplateMounts = scriptTemplateMounts;
     this.postgresDataMounts = postgresDataMounts;

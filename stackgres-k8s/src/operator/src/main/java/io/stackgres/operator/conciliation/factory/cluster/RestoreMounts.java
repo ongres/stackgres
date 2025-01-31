@@ -18,19 +18,19 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ReplicateVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
+public class RestoreMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         new VolumeMountBuilder()
-            .withName(StackGresVolume.REPLICATE_ENV.getName())
-            .withMountPath(ClusterPath.REPLICATE_ENV_PATH.path(clusterContext))
+            .withName(StackGresVolume.RESTORE_ENV.getName())
+            .withMountPath(ClusterPath.RESTORE_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
-            .withName(StackGresVolume.REPLICATE_CREDENTIALS.getName())
-            .withMountPath(ClusterPath.REPLICATE_SECRET_PATH.path(clusterContext))
+            .withName(StackGresVolume.RESTORE_CREDENTIALS.getName())
+            .withMountPath(ClusterPath.RESTORE_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -39,9 +39,9 @@ public class ReplicateVolumeMounts implements VolumeMountsProvider<ClusterContai
   public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
-        ClusterEnvVar.REPLICATE_ENV.envVar(clusterContext),
-        ClusterPath.REPLICATE_ENV_PATH.envVar(clusterContext),
-        ClusterPath.REPLICATE_SECRET_PATH.envVar(clusterContext)
+        ClusterEnvVar.RESTORE_ENV.envVar(clusterContext),
+        ClusterPath.RESTORE_ENV_PATH.envVar(clusterContext),
+        ClusterPath.RESTORE_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

@@ -19,7 +19,7 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContex
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
+public class PatroniMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {

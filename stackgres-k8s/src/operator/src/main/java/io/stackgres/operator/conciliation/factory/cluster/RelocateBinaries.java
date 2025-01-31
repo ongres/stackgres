@@ -18,25 +18,25 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.RELOCATE_BINARIES)
-public class InitRelocateBinaries implements ContainerFactory<ClusterContainerContext> {
+public class RelocateBinaries implements ContainerFactory<ClusterContainerContext> {
 
   private final PostgresExtensionMounts postgresExtensionsMounts;
 
-  private final ScriptTemplatesVolumeMounts templateMounts;
+  private final TemplatesMounts templateMounts;
 
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
-  public InitRelocateBinaries(
+  public RelocateBinaries(
       PostgresExtensionMounts postgresExtensionsMounts,
-      ScriptTemplatesVolumeMounts templateMounts,
+      TemplatesMounts templateMounts,
       ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.postgresExtensionsMounts = postgresExtensionsMounts;
     this.templateMounts = templateMounts;
