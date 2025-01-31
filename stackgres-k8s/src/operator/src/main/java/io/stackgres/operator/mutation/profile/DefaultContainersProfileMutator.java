@@ -110,10 +110,13 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
       Map<String, StackGresProfileContainer> initContainers) {
     for (var container : Stream.of(StackGresInitContainer.values())
         .toList()) {
-      var containerProfile = initContainers
-          .computeIfAbsent(container.getNameWithPrefix(), k -> new StackGresProfileContainer());
-      setContainerCpu(cpu, container, containerProfile);
-      setContainerMemory(memory, container, containerProfile);
+      var containerProfile = initContainers.get(container.getNameWithPrefix());
+      if (containerProfile == null) {
+        containerProfile = new StackGresProfileContainer();
+        setContainerCpu(cpu, container, containerProfile);
+        setContainerMemory(memory, container, containerProfile);
+        initContainers.put(container.getNameWithPrefix(), containerProfile);
+      }
     }
   }
 

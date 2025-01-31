@@ -1,3 +1,84 @@
+# :rocket: Release 1.15.0-rc4 (2025-01-30)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.15.0-rc4 has been released! :confetti_ball: :champagne: 
+
+This release brings support for Patroni 4 that include some cool features like "Quorum-based failover" or "Register Citus secondaries in pg_dist_node" but also many bugfixes.
+
+Another important change is the new SGDistributedLogs that after the upgrade will generate an SGCluster. This change allow to use SGDbOps in order to perform restart, security upgrade, minor version and major version upgrades operations.
+
+Performance and responsiveness have been improved by allowing to reconcile StackGres custom resources in parallel with a queue that gives priority to reconciliation of StackGres custom resources that receive changes. This should improve the use cases with many StackGres custom resources.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Kubernetes 1.32
+* Support for Patroni 4.0.4
+* Support for Postgres 17.2, 16.6, 15.10, 14.15, 13.18 and 12.22
+* Envoy 1.32.3
+* PgBouncer 1.24.0
+* Prometheus Postgres Exporter 0.16.0
+* Fluent-bit 3.2.4
+* Fluentd 1.18.0
+* OTEL Collector 0.117.0
+* Babelfish Compass 2024.12
+* Make SGDistributedLogs generate an SGCluster
+* Support for headless service
+* Improve performance and responsiveness
+* Allow to disable Envoy
+* Allow to set parameter `track_commit_timestamp` (useful in some migration cases)
+* Allow `pg_hba` section to be set for Patroni
+* Allow to set any value for init containers in SGInstanceProfile
+* Updated Debezium dependency to 3.0.7 in SGStream
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Backups using VolumeSnapshot do not work for Postgres 14 or less
+* Make int-or-string fields real int-or-string and not just string fields
+* Allow to rollback upgrade when CHECKPOINT fail
+* SGScript and SGCluster script entry version are resetted to 0 if part of a reconciliation of another CR
+* SGShardedCluster metrics are not collected by default
+* SGScript fails if superuser username is changed
+* Major version upgrade fails when replication mode is not async
+* After restore from snapshot primary fail to restart
+* Prometheus instances are not filtered by monitors name and namespace
+* Replication initialization from newly created backup create many backups
+* wal-g s3 CA not used on restore
+* When SGConfig is not found on uninstall ignore it
+* Installation fail on k8s 1.30+
+* REST API logs endpoints role filter is not mapping correctly values
+* SGShardedDbOps resharding operation fails when using old versions of patroni
+* patronictl selected version is the oldest minor
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.15.0-rc4/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.15.0-rc4)
+
 # :rocket: Release 1.15.0-rc3 (2025-01-21)
 
 ## :notepad_spiral: NOTES

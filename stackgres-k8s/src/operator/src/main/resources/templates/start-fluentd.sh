@@ -40,22 +40,16 @@ while true
 do
   if ! is_child "$PID" || has_config_changed
   then
-    if [ -z "$PID" ] || ! is_child "$PID" || has_config_workers_changed
+    if [ -n "$PID" ] && is_child "$PID"
     then
-      if [ -n "$PID" ] && is_child "$PID"
-      then
-        >&2 echo "Restarting fluentd process"
-        kill "$PID"
-        wait "$PID" || true
-      else
-        >&2 echo "fluentd process not found, starting it"
-      fi
-      run_fluentd &
-      PID="$!"
+      >&2 echo "Restarting fluentd process"
+      kill "$PID"
+      wait "$PID" || true
     else
-      >&2 echo "Reloading fluentd configuration"
-      kill -n USR2 "$PID"
+      >&2 echo "fluentd process not found, starting it"
     fi
+    run_fluentd &
+    PID="$!"
     update_config
   fi
   sleep 5

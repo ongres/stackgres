@@ -95,10 +95,8 @@ public class PostgresSslReconciliator extends SafeReconciliator<StackGresCluster
   }
 
   /**
-   * <p>
    * If any file in /etc/ssl change or if ssl is not working will reload PostgreSQL config through
    *  patroni reload.
-   * </p>
    */
   private void reconcilePostgresSsl(KubernetesClient client, StackGresClusterContext context)
       throws IOException {

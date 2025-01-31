@@ -24,37 +24,39 @@ import org.apache.kafka.connect.errors.ConnectException;
  */
 class TimeWithTimezoneType extends ZonedTimeType {
 
-    public static final TimeWithTimezoneType INSTANCE = new TimeWithTimezoneType();
+  public static final TimeWithTimezoneType INSTANCE = new TimeWithTimezoneType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ ZonedTime.SCHEMA_NAME };
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { ZonedTime.SCHEMA_NAME };
+  }
+
+  @Override
+  public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
+
+    if (value == null) {
+      return List.of(new ValueBindDescriptor(index, null));
     }
 
-    @Override
-    public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
+    if (value instanceof String) {
 
-        if (value == null) {
-            return List.of(new ValueBindDescriptor(index, null));
+      final ZonedDateTime zdt = OffsetTime.parse((String) value, ZonedTime.FORMATTER)
+          .atDate(LocalDate.now()).toZonedDateTime();
+
+      if (getDialect().isTimeZoneSet()) {
+        if (getDialect().shouldBindTimeWithTimeZoneAsDatabaseTimeZone()) {
+          return List.of(new ValueBindDescriptor(index,
+              zdt.withZoneSameInstant(getDatabaseTimeZone().toZoneId())));
         }
 
-        if (value instanceof String) {
+        return List.of(new ValueBindDescriptor(index, zdt.toOffsetDateTime().toOffsetTime()));
+      }
 
-            final ZonedDateTime zdt = OffsetTime.parse((String) value, ZonedTime.FORMATTER).atDate(LocalDate.now()).toZonedDateTime();
+      return List.of(new ValueBindDescriptor(index, zdt));
 
-            if (getDialect().isTimeZoneSet()) {
-                if (getDialect().shouldBindTimeWithTimeZoneAsDatabaseTimeZone()) {
-                    return List.of(new ValueBindDescriptor(index, zdt.withZoneSameInstant(getDatabaseTimeZone().toZoneId())));
-                }
-
-                return List.of(new ValueBindDescriptor(index, zdt.toOffsetDateTime().toOffsetTime()));
-            }
-
-            return List.of(new ValueBindDescriptor(index, zdt));
-
-        }
-
-        throw new ConnectException(String.format("Unexpected %s value '%s' with type '%s'", getClass().getSimpleName(),
-                value, value.getClass().getName()));
     }
+
+    throw new ConnectException(String.format("Unexpected %s value '%s' with type '%s'",
+        getClass().getSimpleName(), value, value.getClass().getName()));
+  }
 }

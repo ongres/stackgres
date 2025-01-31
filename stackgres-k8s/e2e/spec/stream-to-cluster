@@ -97,6 +97,10 @@ FROM (
     AND t.typname != 'oidvector' -- See https://stackoverflow.com/a/74612592
     AND t.typname != 'gtsvector' -- See https://doxygen.postgresql.org/tsgistidx_8c_source.html#l00094
     AND t.typname != 'refcursor' -- See https://www.postgresql.org/docs/current/plpgsql-cursors.html
+    AND t.typname != 'pg_dependencies' -- See https://github.com/postgres/postgres/blob/035f99cbebe5ffcaf52f8370394446cd59621ab7/src/backend/statistics/dependencies.c#L646-L664
+    AND t.typname != 'pg_mcv_list' -- See https://github.com/postgres/postgres/blob/master/src/backend/statistics/README.mcv
+    AND t.typname != 'pg_ndistinct' -- See https://www.postgresql.org/message-id/MN2PR05MB68795FCDB5B560D350084753B6FA9%40MN2PR05MB6879.namprd05.prod.outlook.com
+    AND t.typname != 'pg_node_tree' -- See https://www.postgresql.org/message-id/20595.1347653162%40sss.pgh.pa.us
   UNION ALL
   SELECT
     (CASE
@@ -108,8 +112,8 @@ FROM (
     text(t.typcategory) AS typcategory,
     text(t.typtype) AS typtype
   FROM pg_catalog.pg_type t LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-  WHERE t.typname IN ('int2', 'int4', 'int8'))
-  ORDER BY typname;
+  WHERE t.typname IN ('int2', 'int4', 'int8')) _
+ORDER BY typname;
 EOF
 
   cat << EOF | tee "$LOG_PATH/reset-target-status.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
@@ -152,7 +156,7 @@ do
         WHEN '$TYPE_NAME' = 'macaddr' THEN '''08:00:2b:01:02:03'''
         WHEN '$TYPE_NAME' = 'macaddr8' THEN '''08:00:2b:01:02:03:04:05'''
         WHEN '$TYPE_NAME' = 'pg_lsn' THEN '''FFFFFFFF/FFFFFFFF'''
-        WHEN '$TYPE_NAME' = 'pg_snapshot' THEN '''' || pg_current_snapshot() || ''''
+        WHEN '$TYPE_NAME' = 'pg_snapshot' THEN '''' || txid_current_snapshot() || ''''
         WHEN '$TYPE_NAME' = 'txid_snapshot' THEN '''10:20:10,14,15'''
         WHEN '$TYPE_NAME' = 'uuid' THEN '''a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'''
         WHEN '$TYPE_NAME' = 'datemultirange' THEN '''{(,)}'''
@@ -345,7 +349,7 @@ UPDATE "complex_$TYPE_NAME" SET "c_$TYPE_NAME" = (CASE
         WHEN '$TYPE_NAME' = 'macaddr' THEN '09:00:2b:01:02:03'
         WHEN '$TYPE_NAME' = 'macaddr8' THEN '09:00:2b:01:02:03:04:05'
         WHEN '$TYPE_NAME' = 'pg_lsn' THEN '0/0'
-        WHEN '$TYPE_NAME' = 'pg_snapshot' THEN pg_current_snapshot()::text
+        WHEN '$TYPE_NAME' = 'pg_snapshot' THEN txid_current_snapshot()::text
         WHEN '$TYPE_NAME' = 'txid_snapshot' THEN '20:30:20,24,25'
         WHEN '$TYPE_NAME' = 'uuid' THEN 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
         WHEN '$TYPE_NAME' = 'datemultirange' THEN '{(,)}'
@@ -459,7 +463,7 @@ DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
   AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
@@ -538,7 +542,7 @@ EOF
 DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=sakila --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
   AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
@@ -560,7 +564,7 @@ EOF
   DATA_QUERY="$(cat << 'EOF'
 DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --inserts --rows-per-insert=1 --dbname=sakila --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT regexp_replace(line, 'setval\(([^,]*,[^,]*), true\)', 'setval(\1, false)') FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input)
+SELECT regexp_replace(line, 'setval\(([^,]*,[^,]*), true\)', 'setval(\1, false)') FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
   AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'

@@ -148,7 +148,7 @@ public class PatroniCtl {
       var pathFound = Unchecked.supplier(() -> Files.list(Paths.get(BIN_PATH)))
           .get()
           .filter(path -> path.getFileName().toString().startsWith(patroniVersionPrefix))
-          .sorted(new PatroniCtlPathComparator())
+          .sorted(new PatroniCtlPathComparator().reversed())
           .findFirst();
       if (pathFound.isPresent()) {
         return pathFound.get().toAbsolutePath().toString();

@@ -1,11 +1,22 @@
 #!/bin/sh
 
+e2e_exclusive_lock() {
+  true
+}
+
 e2e_test_install() {
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
       -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     return
   fi
+
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  install_operator_only
 
   install_metric_server
   install_keda

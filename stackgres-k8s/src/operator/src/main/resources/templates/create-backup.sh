@@ -345,7 +345,9 @@ EOF
     fi
     truncate -s 0 /tmp/backup-psql-out
 
-    cat << EOF >> /tmp/backup-psql
+    if [ "${POSTGRES_VERSION%.*}" -gt 14 ]
+    then
+      cat << EOF >> /tmp/backup-psql
 SET client_min_messages TO WARNING;
 SELECT
   (SELECT system_identifier FROM pg_control_system()),
@@ -365,6 +367,28 @@ FROM (SELECT
   FROM pg_backup_start(label => '$BACKUP_NAME', fast => $FAST_VOLUME_SNAPSHOT) AS lsn) AS lsn;
 SELECT 'Backup started';
 EOF
+    else
+      cat << EOF >> /tmp/backup-psql
+SET client_min_messages TO WARNING;
+SELECT
+  (SELECT system_identifier FROM pg_control_system()),
+  current_setting('server_version_num')::int,
+  pg_is_in_recovery(),
+  CASE WHEN pg_is_in_recovery() THEN upper(
+    lpad(to_hex((SELECT timeline_id FROM pg_control_checkpoint()))::text, 8, '0')
+    || lpad(to_hex(lsn_high)::text, 8, '0')
+    || lpad(to_hex(lsn_low - 1
+      / (SELECT bytes_per_wal_segment::bigint FROM pg_control_init()))::text, 8, '0'))
+  ELSE (pg_walfile_name_offset(lsn)).file_name END,
+  (lsn_high << 32) | lsn_low
+FROM (SELECT 
+  lsn,
+  ('x' || lower(lpad(substring(lsn::text from '^[^/]+'), 8, '0')))::bit(32)::bigint AS lsn_high,
+  ('x' || lower(lpad(substring(lsn::text from '[^/]+$'), 8, '0')))::bit(32)::bigint AS lsn_low
+  FROM pg_start_backup(label => '$BACKUP_NAME', fast => $FAST_VOLUME_SNAPSHOT, exclusive => false) AS lsn) AS lsn;
+SELECT 'Backup started';
+EOF
+    fi
     until grep -qxF 'Backup started' /tmp/backup-psql-out \
       || ! kill -0 "$(cat /tmp/backup-psql-pid)"
     do
@@ -455,7 +479,9 @@ EOF
     done
 
     echo "Stopping backup"
-    cat << EOF >> /tmp/backup-psql
+    if [ "${POSTGRES_VERSION%.*}" -gt 14 ]
+    then
+      cat << EOF >> /tmp/backup-psql
 SET client_min_messages TO WARNING;
 SELECT
   (lsn_high << 32) | lsn_low,
@@ -470,6 +496,23 @@ FROM (SELECT
   FROM pg_backup_stop(wait_for_archive => true)) AS lsn;
 SELECT 'Backup stopped';
 EOF
+    else
+      cat << EOF >> /tmp/backup-psql
+SET client_min_messages TO WARNING;
+SELECT
+  (lsn_high << 32) | lsn_low,
+  CASE WHEN labelfile IS NULL OR labelfile = '' THEN '' ELSE regexp_replace(encode(labelfile::bytea, 'base64'), '[\n\r]+', '', 'g' ) END,
+  CASE WHEN spcmapfile IS NULL OR spcmapfile = '' THEN '' ELSE regexp_replace(encode(spcmapfile::bytea, 'base64'), '[\n\r]+', '', 'g' ) END
+FROM (SELECT 
+  lsn,
+  ('x' || lower(lpad(substring(lsn::text from '^[^/]+'), 8, '0')))::bit(32)::bigint AS lsn_high,
+  ('x' || lower(lpad(substring(lsn::text from '[^/]+$'), 8, '0')))::bit(32)::bigint AS lsn_low,
+  labelfile,
+  spcmapfile
+  FROM pg_stop_backup(exclusive => false, wait_for_archive => true)) AS lsn;
+SELECT 'Backup stopped';
+EOF
+    fi
     until grep -qxF 'Backup stopped' /tmp/backup-psql-out \
       || ! kill -0 "$(cat /tmp/backup-psql-pid)"
     do

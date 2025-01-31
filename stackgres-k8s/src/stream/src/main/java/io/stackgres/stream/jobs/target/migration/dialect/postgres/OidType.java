@@ -26,7 +26,7 @@ class OidType extends AbstractType {
 
     @Override
     public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "oid";
+      return "oid";
     }
 
 }

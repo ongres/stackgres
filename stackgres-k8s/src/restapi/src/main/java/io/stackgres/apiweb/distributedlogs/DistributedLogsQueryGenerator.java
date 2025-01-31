@@ -112,15 +112,16 @@ public class DistributedLogsQueryGenerator {
       .else_(DSL.castNull(ROLE_FIELD))
       .as(ROLE_FIELD);
 
-  public static final ImmutableMap<String, String> REVERSE_ROLE_MAP =
-      ImmutableMap.<String, String>builder()
-          .put(PRIMARY_ROLE_VALUE.getValue(), PatroniUtil.PRIMARY_ROLE)
-          .put(REPLICA_ROLE_VALUE.getValue(), PatroniUtil.REPLICA_ROLE)
-          .put(PROMOTED_ROLE_VALUE.getValue(), PatroniUtil.PROMOTED_ROLE)
-          .put(DEMOTED_ROLE_VALUE.getValue(), PatroniUtil.DEMOTED_ROLE)
-          .put(UNINITIALIZED_ROLE_VALUE.getValue(), PatroniUtil.UNINITIALIZED_ROLE)
-          .put(REPLICA_LEADER_ROLE_VALUE.getValue(), PatroniUtil.STANDBY_LEADER_ROLE)
-          .put(SYNC_REPLICA_ROLE_VALUE.getValue(), PatroniUtil.SYNC_STANDBY_ROLE)
+  public static final ImmutableMap<String, List<String>> REVERSE_ROLE_MAP =
+      ImmutableMap.<String, List<String>>builder()
+          .put(PRIMARY_ROLE_VALUE.getValue(), List.of(
+              PatroniUtil.PRIMARY_ROLE, PatroniUtil.OLD_PRIMARY_ROLE))
+          .put(REPLICA_ROLE_VALUE.getValue(), List.of(PatroniUtil.REPLICA_ROLE))
+          .put(PROMOTED_ROLE_VALUE.getValue(), List.of(PatroniUtil.PROMOTED_ROLE))
+          .put(DEMOTED_ROLE_VALUE.getValue(), List.of(PatroniUtil.DEMOTED_ROLE))
+          .put(UNINITIALIZED_ROLE_VALUE.getValue(), List.of(PatroniUtil.UNINITIALIZED_ROLE))
+          .put(REPLICA_LEADER_ROLE_VALUE.getValue(), List.of(PatroniUtil.STANDBY_LEADER_ROLE))
+          .put(SYNC_REPLICA_ROLE_VALUE.getValue(), List.of(PatroniUtil.SYNC_STANDBY_ROLE))
           .build();
 
   public static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =
@@ -379,7 +380,8 @@ public class DistributedLogsQueryGenerator {
     if (field == MAPPED_ROLE_FIELD) {
       return DSL.field(field.getName())
           .in(filter.v2.stream()
-              .map(f -> REVERSE_ROLE_MAP.getOrDefault(f, f))
+              .map(f -> REVERSE_ROLE_MAP.getOrDefault(f, List.of(f)))
+              .flatMap(List::stream)
               .map(f -> DSL.cast(f, field))
               .collect(Collectors.toList()));
     }

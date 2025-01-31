@@ -23,7 +23,7 @@ reset_cluster() {
     --set instanceProfiles[0].memory=512Mi \
 
   wait_pods_running "$CLUSTER_NAMESPACE" "$((PODS_COUNT + 1))"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   set_restarted_pods
 

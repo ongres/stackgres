@@ -18,21 +18,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class CaseInsensitiveTextType extends AbstractType {
 
-    public static final CaseInsensitiveTextType INSTANCE = new CaseInsensitiveTextType();
+  public static final CaseInsensitiveTextType INSTANCE = new CaseInsensitiveTextType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "CITEXT" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "CITEXT" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as citext)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as citext)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "citext";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "citext";
+  }
 
 }
