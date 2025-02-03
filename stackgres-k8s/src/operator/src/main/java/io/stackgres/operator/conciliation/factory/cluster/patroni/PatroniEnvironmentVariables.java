@@ -19,8 +19,11 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.ClusterPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
@@ -34,12 +37,11 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
+import io.stackgres.operator.conciliation.factory.EnvVarProvider;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class PatroniEnvironmentVariables
-    extends AbstractPatroniEnvironmentVariablesFactory<StackGresClusterContext> {
+public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClusterContext> {
 
   @Override
   public List<EnvVar> getEnvVars(StackGresClusterContext context) {
@@ -47,23 +49,32 @@ public class PatroniEnvironmentVariables
 
     List<EnvVar> additionalEnvVars = new ArrayList<>();
 
-    additionalEnvVars.add(new EnvVarBuilder()
+    additionalEnvVars.add(
+        new EnvVarBuilder()
+        .withName(ClusterPath.PATRONI_START_FILE_PATH.name())
+        .withValue(ClusterPath.PATRONI_START_FILE_PATH.path())
+        .build());
+    additionalEnvVars.add(
+        new EnvVarBuilder()
         .withName(PatroniUtil.PATRONI_READ_ONLY_SERVICE_NAME)
         .withValue(PatroniUtil.readOnlyName(cluster))
         .build());
-    additionalEnvVars.add(new EnvVarBuilder()
+    additionalEnvVars.add(
+        new EnvVarBuilder()
         .withName(PatroniUtil.REPLICATION_SERVICE_PORT_ENV)
         .withValue(String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT))
         .build());
     var replication = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplication);
-    appendEnvVarIfPresent("REPLICATION_INITIALIZATION_FROM_BACKUP",
+    appendEnvVarIfPresent(
+        "REPLICATION_INITIALIZATION_FROM_BACKUP",
         replication, additionalEnvVars,
         Function.<StackGresClusterReplication>identity()
         .andThen(StackGresClusterReplication::getInitializationModeOrDefault)
         .andThen(mode -> StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal() >= mode.ordinal()),
         Object::toString);
-    appendEnvVarIfPresent("REPLICATION_INITIALIZATION_FROM_REPLICA",
+    appendEnvVarIfPresent(
+        "REPLICATION_INITIALIZATION_FROM_REPLICA",
         replication, additionalEnvVars,
         Function.<StackGresClusterReplication>identity()
         .andThen(StackGresClusterReplication::getInitializationModeOrDefault)
@@ -72,7 +83,8 @@ public class PatroniEnvironmentVariables
 
     var replicateFrom = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplicateFrom);
-    appendEnvVarIfPresent("REPLICATE_FROM_BACKUP",
+    appendEnvVarIfPresent(
+        "REPLICATE_FROM_BACKUP",
         replicateFrom, additionalEnvVars,
         Function.<StackGresClusterReplicateFrom>identity(),
         Function.<StackGresClusterReplicateFrom>identity()
@@ -82,37 +94,45 @@ public class PatroniEnvironmentVariables
         .map(StackGresClusterSpec::getInitialData)
         .map(StackGresClusterInitialData::getRestore)
         .map(StackGresClusterRestore::getFromBackup);
-    appendEnvVarIfPresent("RECOVERY_FROM_BACKUP",
+    appendEnvVarIfPresent(
+        "RECOVERY_FROM_BACKUP",
         fromBackup, additionalEnvVars,
         Function.<StackGresClusterRestoreFromBackup>identity(),
         Function.<StackGresClusterRestoreFromBackup>identity()
         .andThen(value -> Boolean.TRUE.toString()));
-    appendEnvVarIfPresent("RECOVERY_TARGET",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getTarget,
         Function.identity());
-    appendEnvVarIfPresent("RECOVERY_TARGET_TIMELINE",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET_TIMELINE",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getTargetTimeline,
         Function.identity());
-    appendEnvVarIfPresent("RECOVERY_TARGET_INCLUSIVE",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET_INCLUSIVE",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getTargetInclusive,
         Function.<Boolean>identity()
         .andThen(value -> value ? "on" : "off"));
-    appendEnvVarIfPresent("RECOVERY_TARGET_NAME",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET_NAME",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getTargetName,
         Function.identity());
-    appendEnvVarIfPresent("RECOVERY_TARGET_XID",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET_XID",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getTargetXid,
         Function.identity());
-    appendEnvVarIfPresent("RECOVERY_TARGET_LSN",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET_LSN",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getTargetLsn,
         Function.identity());
-    appendEnvVarIfPresent("RECOVERY_TARGET_TIME",
+    appendEnvVarIfPresent(
+        "RECOVERY_TARGET_TIME",
         fromBackup, additionalEnvVars,
         StackGresClusterRestoreFromBackup::getPointInTimeRecovery,
         Function.<StackGresClusterRestorePitr>identity()
@@ -125,7 +145,8 @@ public class PatroniEnvironmentVariables
             .withZone(ZoneId.from(ZoneOffset.UTC))
             .format(restoreToTimestamp)));
 
-    appendEnvVarIfPresent("INITDB_AUTH_HOST",
+    appendEnvVarIfPresent(
+        "INITDB_AUTH_HOST",
         Optional.of(context.getPostgresConfig()),
         additionalEnvVars,
         Function.<StackGresPostgresConfig>identity()
@@ -135,27 +156,52 @@ public class PatroniEnvironmentVariables
         Function.<String>identity());
     if (additionalEnvVars.stream().map(EnvVar::getName).noneMatch("INITDB_AUTH_HOST"::equals)
         && getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
-      additionalEnvVars.add(new EnvVarBuilder()
+      additionalEnvVars.add(
+          new EnvVarBuilder()
           .withName("INITDB_AUTH_HOST")
           .withValue("md5")
           .build());
     }
 
-    List<EnvVar> patroniEnvVars = createPatroniEnvVars(cluster)
-        .stream()
-        .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV))
-        .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV))
-        .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV))
-        .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV))
-        .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.RESTAPI_USERNAME_ENV))
-        .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.RESTAPI_PASSWORD_ENV))
-        .toList();
+    List<EnvVar> patroniEnvVars =
+        List.of(
+            new EnvVarBuilder()
+            .withName("PATRONI_NAME")
+            .withNewValueFrom()
+            .withNewFieldRef()
+            .withFieldPath("metadata.name")
+            .endFieldRef()
+            .endValueFrom()
+            .build(),
+            new EnvVarBuilder()
+            .withName("POD_IP")
+            .withNewValueFrom()
+            .withNewFieldRef()
+            .withFieldPath("status.podIP")
+            .endFieldRef()
+            .endValueFrom()
+            .build(),
+            new EnvVarBuilder()
+            .withName("POD_NAME")
+            .withNewValueFrom()
+            .withNewFieldRef()
+            .withFieldPath("metadata.name")
+            .endFieldRef()
+            .endValueFrom()
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLUSTER_UID")
+            .withNewValueFrom()
+            .withNewFieldRef()
+            .withFieldPath("metadata.labels['"
+                + StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_UID_KEY + "']")
+            .endFieldRef()
+            .endValueFrom()
+            .build(),
+            new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
+            .withValue("${POD_IP}:" + EnvoyUtil.PATRONI_PORT)
+            .build());
 
     return ImmutableList.<EnvVar>builder()
         .addAll(patroniEnvVars)

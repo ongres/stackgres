@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import com.ongres.process.FluentProcess;
@@ -55,7 +56,7 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
       Pattern.compile("^/usr/local/bin/pgbouncer .*$");
 
   private final EventController eventController;
-  private final boolean pgbouncerReconciliationEnabled;
+  private final Supplier<Boolean> pgbouncerReconciliationEnabled;
   private final PgBouncerAuthFileReconciliator authFileReconciliator;
 
   @Dependent
@@ -71,7 +72,7 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
   @Inject
   public PgBouncerReconciliator(Parameters parameters) {
     this.eventController = parameters.eventController;
-    this.pgbouncerReconciliationEnabled = parameters.propertyContext.getBoolean(
+    this.pgbouncerReconciliationEnabled = () -> parameters.propertyContext.getBoolean(
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER);
     this.authFileReconciliator = new PgBouncerAuthFileReconciliator(
         parameters.propertyContext.getPodName(), parameters.podFinder,
@@ -82,7 +83,7 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
   @Override
   public ReconciliationResult<Void> safeReconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
-    if (pgbouncerReconciliationEnabled) {
+    if (pgbouncerReconciliationEnabled.get()) {
       try {
         authFileReconciliator.updatePgbouncerUsersInAuthFile(context);
         reconcilePgBouncerConfig(client);

@@ -12,10 +12,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,6 +64,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
 
+  private static final Path PATRONI_START_FILE_PATH =
+      Paths.get(ClusterPath.PATRONI_START_FILE_PATH.path());
   private static final Path PATRONI_CONFIG_PATH =
       Paths.get(ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
   private static final Path LAST_PATRONI_CONFIG_PATH =
@@ -78,7 +83,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   private static final String TRUE_TAG_VALUE = PatroniUtil.TRUE_TAG_VALUE;
   private static final String FALSE_TAG_VALUE = PatroniUtil.FALSE_TAG_VALUE;
 
-  private final boolean reconcilePatroni;
+  private final Supplier<Boolean> reconcilePatroni;
   private final String podName;
   private final EventController eventController;
   private final ObjectMapper objectMapper;
@@ -92,7 +97,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
 
   @Inject
   public PatroniReconciliator(Parameters parameters) {
-    this.reconcilePatroni = parameters.propertyContext
+    this.reconcilePatroni = () -> parameters.propertyContext
         .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PATRONI);
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
@@ -103,7 +108,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   @Override
   public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client,
       StackGresClusterContext context) {
-    if (!reconcilePatroni) {
+    if (!reconcilePatroni.get()) {
       return new ReconciliationResult<>(false);
     }
     try {
@@ -164,14 +169,24 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
    */
   private boolean reconcilePatroni(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
-    final StackGresCluster cluster = context.getCluster();
-    final Optional<Tuple2<StackGresReplicationRole, Long>> podReplicationRole =
-        getPodAssignedReplicationRole(cluster);
-    if (podReplicationRole.isEmpty()) {
+    if (Files.exists(PATRONI_START_FILE_PATH)) {
+      Files.setLastModifiedTime(PATRONI_START_FILE_PATH, FileTime.from(Instant.now()));
+    } else {
+      Files.createFile(PATRONI_START_FILE_PATH);
+    }
+    if (!Files.exists(PATRONI_CONFIG_PATH)) {
+      LOGGER.warn("Can not reload patroni config since config file {} was not found, will retry later",
+          PATRONI_CONFIG_PATH);
       return false;
     }
-    final boolean statusUpdated =
-        setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
+    final StackGresCluster cluster = context.getCluster();
+    final Optional<Tuple2<StackGresReplicationRole, Long>> podReplicationRole =
+        getPodAssignedReplicationRole(cluster, podName);
+    if (podReplicationRole.isEmpty()) {
+      LOGGER.warn("Can not reload patroni config since role for pod {} is unknown, will retry later",
+          podName);
+      return false;
+    }
     final Map<String, String> tagsMap =
         getPatroniTagsForReplicationRole(podReplicationRole.get().v1);
     final String tags = getTagsAsYamlString(tagsMap);
@@ -210,8 +225,13 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
       addOrReplacePatroniPostgresqlBeforeStop(beforeStop);
     }
     if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
-      PatroniCommandUtil.reloadPatroniConfig();
-      setPatroniTagsAsPodLabels(client, cluster, tagsMap);
+      try {
+        PatroniCommandUtil.reloadPatroniConfig();
+      } catch (Exception ex) {
+        LOGGER.warn("Can not reload patroni config now, will retry later: {}", ex.getMessage(), ex);
+        return false;
+      }
+      setPatroniTagsAsPodLabels(client, cluster, podName, tagsMap);
       Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
           StandardCopyOption.REPLACE_EXISTING);
       LOGGER.info("Patroni config updated");
@@ -219,6 +239,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
           "Patroni config updated", client);
     }
 
+    final boolean statusUpdated =
+        setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
     return statusUpdated;
   }
 
@@ -247,7 +269,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   }
 
   private Optional<Tuple2<StackGresReplicationRole, Long>> getPodAssignedReplicationRole(
-      final StackGresCluster cluster) {
+      final StackGresCluster cluster, final String podName) {
     final int podIndex = getPodIndex(podName);
     return Seq.seq(cluster.getSpec().getReplicationGroups())
         .zipWithIndex()
@@ -417,7 +439,10 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     }
   }
 
-  private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,
+  private void setPatroniTagsAsPodLabels(
+      final KubernetesClient client,
+      final StackGresCluster cluster,
+      final String podName,
       final Map<String, String> tagsMap) {
     KubernetesClientUtil.retryOnConflict(() -> {
       Pod pod = client.pods()

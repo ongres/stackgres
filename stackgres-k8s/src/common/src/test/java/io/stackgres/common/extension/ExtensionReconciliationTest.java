@@ -97,7 +97,7 @@ public class ExtensionReconciliationTest {
               extension, version, target, publisher);
         });
     initReconciliator = new ExtensionReconciliator<>("test-0",
-        extensionManager, false, eventEmitter) {
+        extensionManager, () -> false, eventEmitter) {
       @Override
       protected void onUninstallException(KubernetesClient client, StackGresCluster cluster,
                                           String extension, String podName, Exception ex) {
@@ -111,7 +111,7 @@ public class ExtensionReconciliationTest {
       }
     };
     reconciliator = new ExtensionReconciliator<>("test-0",
-        extensionManager, true, eventEmitter) {
+        extensionManager, () -> true, eventEmitter) {
       @Override
       protected void onUninstallException(KubernetesClient client, StackGresCluster cluster,
                                           String extension, String podName, Exception ex) {

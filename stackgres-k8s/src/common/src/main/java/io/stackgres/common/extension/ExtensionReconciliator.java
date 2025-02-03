@@ -8,6 +8,7 @@ package io.stackgres.common.extension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
@@ -33,13 +34,13 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
 
   private final String podName;
   private final ExtensionManager extensionManager;
-  private final boolean skipSharedLibrariesOverwrites;
+  private final Supplier<Boolean> skipSharedLibrariesOverwrites;
   private final ExtensionEventEmitter extensionEventEmitter;
 
   protected ExtensionReconciliator(
       String podName,
       ExtensionManager extensionManager,
-      boolean skipSharedLibrariesOverwrites,
+      Supplier<Boolean> skipSharedLibrariesOverwrites,
       ExtensionEventEmitter extensionEventEmitter) {
     this.podName = podName;
     this.extensionManager = extensionManager;
@@ -51,7 +52,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.podName = null;
     this.extensionManager = null;
-    this.skipSharedLibrariesOverwrites = false;
+    this.skipSharedLibrariesOverwrites = null;
     this.extensionEventEmitter = null;
   }
 
@@ -59,6 +60,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
       justification = "False positives")
   public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client, T context)
       throws Exception {
+    final boolean skipSharedLibrariesOverwrites = this.skipSharedLibrariesOverwrites.get();
     final ImmutableList.Builder<Exception> exceptions = ImmutableList.builder();
     final StackGresCluster cluster = context.getCluster();
     final ImmutableList<StackGresClusterInstalledExtension> toInstallExtensions =

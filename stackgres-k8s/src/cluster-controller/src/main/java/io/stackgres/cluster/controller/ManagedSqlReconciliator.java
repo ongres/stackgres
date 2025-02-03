@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -53,7 +54,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
   private static final Logger LOGGER = LoggerFactory.getLogger(ManagedSqlReconciliator.class);
 
   private final ManagedSqlScriptEntryExecutor managedSqlScriptEntryExecutor;
-  private final boolean reconcileManagedSql;
+  private final Supplier<Boolean> reconcileManagedSql;
   private final PatroniCtl patroniCtl;
   private final CustomResourceFinder<StackGresScript> scriptFinder;
   private final ResourceFinder<Secret> secretFinder;
@@ -77,7 +78,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
   @Inject
   public ManagedSqlReconciliator(Parameters parameters) {
     this.managedSqlScriptEntryExecutor = parameters.managedSqlScriptEntryExecutor;
-    this.reconcileManagedSql = parameters.propertyContext
+    this.reconcileManagedSql = () -> parameters.propertyContext
         .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL);
     this.patroniCtl = parameters.patroniCtl;
     this.scriptFinder = parameters.scriptFinder;
@@ -93,7 +94,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
   public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client,
       StackGresClusterContext context) throws Exception {
     StackGresClusterManagedSqlStatus managedSqlStatus = getManagedSqlStatus(context);
-    if (!reconcileManagedSql || managedSqlStatus == null) {
+    if (!reconcileManagedSql.get() || managedSqlStatus == null) {
       return new ReconciliationResult<>(false);
     }
     try {

@@ -101,6 +101,7 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterEnvVar.PATRONI_ENV.substVar()),
   PATRONI_SECRET_ENV_PATH(BASE_SECRET_PATH, ClusterEnvVar.PATRONI_ENV.substVar()),
   PATRONI_CONFIG_PATH("/etc/patroni"),
+  PATRONI_START_FILE_PATH(PATRONI_CONFIG_PATH, ".start-patroni"),
   PATRONI_CONFIG_FILE_PATH(PATRONI_CONFIG_PATH, "config.yml"),
   BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterEnvVar.BACKUP_ENV.substVar()),
   BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterEnvVar.BACKUP_ENV.substVar()),

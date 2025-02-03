@@ -43,7 +43,7 @@ public class ClusterExtensionReconciliator
     super(parameters.propertyContext.getString(
         ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME),
         parameters.extensionManager,
-        parameters.propertyContext.getBoolean(ClusterControllerProperty
+        () -> parameters.propertyContext.getBoolean(ClusterControllerProperty
             .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES),
         parameters.extensionEventEmitter);
     this.eventController = parameters.eventController;
