@@ -14,7 +14,7 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -69,7 +69,7 @@ EOF
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
   wait_pods_running "$CLUSTER_NAMESPACE" 3
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   if wait_until check_password_is_required
   then
@@ -168,7 +168,7 @@ pgbouncer_users_check() {
   wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
   wait_pods_running "$CLUSTER_NAMESPACE" 3
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 1 -p 5432 -u user1:test || true)"
   if [ "$RESPONSE_REPLICA" = "1" ]
