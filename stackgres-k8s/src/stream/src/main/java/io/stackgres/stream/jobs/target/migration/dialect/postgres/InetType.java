@@ -18,21 +18,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class InetType extends AbstractType {
 
-    public static final InetType INSTANCE = new InetType();
+  public static final InetType INSTANCE = new InetType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "INET" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "INET" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as inet)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as inet)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "inet";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "inet";
+  }
 
 }

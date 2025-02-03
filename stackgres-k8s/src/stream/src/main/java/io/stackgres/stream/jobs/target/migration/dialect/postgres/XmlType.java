@@ -19,21 +19,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class XmlType extends AbstractType {
 
-    public static final XmlType INSTANCE = new XmlType();
+  public static final XmlType INSTANCE = new XmlType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ Xml.LOGICAL_NAME, "XML" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { Xml.LOGICAL_NAME, "XML" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as xml)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as xml)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "xml";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "xml";
+  }
 
 }

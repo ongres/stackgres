@@ -19,21 +19,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class UuidType extends AbstractType {
 
-    public static final UuidType INSTANCE = new UuidType();
+  public static final UuidType INSTANCE = new UuidType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ Uuid.LOGICAL_NAME };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { Uuid.LOGICAL_NAME };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as uuid)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as uuid)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "uuid";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "uuid";
+  }
 
 }

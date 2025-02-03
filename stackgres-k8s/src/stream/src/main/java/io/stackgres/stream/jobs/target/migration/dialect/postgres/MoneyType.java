@@ -18,21 +18,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class MoneyType extends AbstractType {
 
-    public static final MoneyType INSTANCE = new MoneyType();
+  public static final MoneyType INSTANCE = new MoneyType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "MONEY" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "MONEY" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as money)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as money)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "money";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "money";
+  }
 
 }

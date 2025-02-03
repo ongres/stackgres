@@ -22,28 +22,29 @@ import org.apache.kafka.connect.data.Schema;
 
 public class ArrayType extends AbstractType {
 
-    public static final ArrayType INSTANCE = new ArrayType();
+  public static final ArrayType INSTANCE = new ArrayType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "ARRAY" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "ARRAY" };
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return getElementTypeName(dialect, schema, key) + "[]";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return getElementTypeName(dialect, schema, key) + "[]";
+  }
 
-    private String getElementTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        Type elementType = dialect.getSchemaType(schema.valueSchema());
-        return elementType.getTypeName(dialect, schema.valueSchema(), key);
-    }
+  private String getElementTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    Type elementType = dialect.getSchemaType(schema.valueSchema());
+    return elementType.getTypeName(dialect, schema.valueSchema(), key);
+  }
 
-    @Override
-    public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
-        if (value == null) {
-            return Arrays.asList(new ValueBindDescriptor(index, null));
-        }
-        return List.of(new ValueBindDescriptor(index, value, java.sql.Types.ARRAY, getElementTypeName(this.getDialect(), schema, false)));
+  @Override
+  public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
+    if (value == null) {
+      return Arrays.asList(new ValueBindDescriptor(index, null));
     }
+    return List.of(new ValueBindDescriptor(index, value, java.sql.Types.ARRAY,
+        getElementTypeName(this.getDialect(), schema, false)));
+  }
 }

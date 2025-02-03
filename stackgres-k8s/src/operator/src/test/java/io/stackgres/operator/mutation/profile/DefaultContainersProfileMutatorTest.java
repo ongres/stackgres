@@ -151,12 +151,12 @@ class DefaultContainersProfileMutatorTest {
   }
 
   @Test
-  void missingLimitsContainersCpus_shouldSetOnlyForInitContainers() throws Exception {
+  void missingLimitsContainersCpus_shouldNotSet() throws Exception {
     review.getRequest().getObject().getSpec().getContainers().values()
         .forEach(container -> container.setCpu(null));
-    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
     review.getRequest().getObject().getSpec().getInitContainers().values()
         .forEach(container -> container.setCpu(null));
+    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
 
     StackGresProfile result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -167,12 +167,12 @@ class DefaultContainersProfileMutatorTest {
   }
 
   @Test
-  void missingLimitsContainersMemories_shouldSetOnlyForInitContainers() throws Exception {
+  void missingLimitsContainersMemories_shouldNotSet() throws Exception {
     review.getRequest().getObject().getSpec().getContainers().values()
         .forEach(container -> container.setMemory(null));
-    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
     review.getRequest().getObject().getSpec().getInitContainers().values()
         .forEach(container -> container.setMemory(null));
+    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
 
     StackGresProfile result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -183,12 +183,12 @@ class DefaultContainersProfileMutatorTest {
   }
 
   @Test
-  void missingRequestsContainersCpus_shouldSetOnlyForInitContainers() throws Exception {
+  void missingRequestsContainersCpus_shouldNotSet() throws Exception {
     review.getRequest().getObject().getSpec().getRequests().getContainers().values()
         .forEach(container -> container.setCpu(null));
-    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
     review.getRequest().getObject().getSpec().getRequests().getInitContainers().values()
         .forEach(container -> container.setCpu(null));
+    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
 
     StackGresProfile result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -199,12 +199,12 @@ class DefaultContainersProfileMutatorTest {
   }
 
   @Test
-  void missingRequestsContainersMemories_shouldSetOnlyForInitContainers() throws Exception {
+  void missingRequestsContainersMemories_shouldNotSet() throws Exception {
     review.getRequest().getObject().getSpec().getRequests().getContainers().values()
         .forEach(container -> container.setMemory(null));
-    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
     review.getRequest().getObject().getSpec().getRequests().getInitContainers().values()
         .forEach(container -> container.setMemory(null));
+    StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
 
     StackGresProfile result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));

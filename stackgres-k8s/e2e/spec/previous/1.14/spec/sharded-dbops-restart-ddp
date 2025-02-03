@@ -10,7 +10,8 @@ e2e_test_extra_hash() {
 e2e_test_install() {
   CLUSTER_NAME="$(get_sgshardedcluster_name "$SPEC_NAME")"
 
-  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2"
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" \
+    --set-string shardedCluster.type=ddp
 
   wait_pods_running "$CLUSTER_NAMESPACE" 6
   wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

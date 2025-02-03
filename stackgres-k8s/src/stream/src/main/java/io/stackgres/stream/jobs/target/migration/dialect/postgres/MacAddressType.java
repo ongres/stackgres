@@ -18,21 +18,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class MacAddressType extends AbstractType {
 
-    public static final MacAddressType INSTANCE = new MacAddressType();
+  public static final MacAddressType INSTANCE = new MacAddressType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "MACADDR" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "MACADDR" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as macaddr)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as macaddr)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "macaddr";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "macaddr";
+  }
 
 }

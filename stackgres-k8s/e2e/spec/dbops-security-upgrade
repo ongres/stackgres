@@ -54,7 +54,7 @@ e2e_test_install() {
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
-  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
+  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg' | grep -v '.-pg17\.')"
   PREVIOUS_OLDEST_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | head -n 1)"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE##*-pg}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
@@ -164,8 +164,8 @@ e2e_test_install() {
       --set configurations.postgresconfig.create=true \
       --set configurations.poolingconfig.create=false \
       --set-string cluster.sgInstanceProfile=size-s \
-      --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
-      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string cluster.configurations.sgPostgresConfig=postgresconf-sharded-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-sharded-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
       --set-string cluster.postgres.version="$PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION" \
       --set cluster.configurations.observability.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
@@ -237,13 +237,13 @@ EOF
     wait_pods_running "$CLUSTER_NAMESPACE" 4
   fi
 
-  wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
-    wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
-    wait_sharded_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
+    SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
+    SWITCHOVER_TO_FIRST=true wait_sharded_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   fi
-  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$DISTRIBUTEDLOGS_NAME"
   generate_mock_data "$CLUSTER_1_NAME"

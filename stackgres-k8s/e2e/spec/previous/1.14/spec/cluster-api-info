@@ -34,7 +34,7 @@ get_api_cluster_info() {
 
   assert_string_equal "$CLUSTER_NAME.$CLUSTER_NAMESPACE" "$CLUSTER_INFO_PRIMARYDNS"
   assert_string_equal "$CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE" "$CLUSTER_INFO_REPLICADNS"
-  assert_string_equal "postgres" "$CLUSTER_INFO_USERNAME"
+  assert_string_equal "${E2E_SUPERUSER_USERNAME:-postgres}" "$CLUSTER_INFO_USERNAME"
   assert_string_equal "$CLUSTER_NAME" "$CLUSTER_INFO_SECRETNAME"
   assert_string_equal "superuser-password" "$CLUSTER_INFO_PWKEY"
 }

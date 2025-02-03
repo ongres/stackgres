@@ -29,7 +29,7 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -138,9 +138,10 @@ check_replica_in_none_group_not_elegible_as_primary() {
     --set cluster.replication.groups[0].instances=1 \
     --set cluster.replication.groups[0].role=none \
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
+  wait_until eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.nofailover }}") = true ]'
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
   local RESULT EXIT_CODE
-  try_function wait_until eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}") = primary ]'
+  try_function wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}" | grep -q "\(primary\|master\)"'
   if "$RESULT"
   then
     success "first replica IP was elected as primary"
@@ -149,7 +150,7 @@ check_replica_in_none_group_not_elegible_as_primary() {
   fi
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   local RESULT EXIT_CODE
-  try_function wait_until -t 10 eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.role }}") = primary ]'
+  try_function wait_until -t 10 eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.role }}" | grep -q "\(primary\|master\)"'
   if "$RESULT"
   then
     fail "second replica IP was elected as primary"
@@ -196,7 +197,7 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
   wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
   wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   wait_pods_running "$CLUSTER_NAMESPACE" "3"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   local RESULT EXIT_CODE
   try_function wait_until eval 'check_pod_ip_not_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
@@ -395,11 +396,11 @@ check_pod_ip_exposed_by_service() {
   local CLUSTER_NAMESPACE="$1"
   local POD_NAME="$2"
   local SERVICE_NAME="$3"
-  local POD_2_IP SERVICE_IPS
-  POD_2_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
+  local POD_IP SERVICE_IPS
+  POD_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
   SERVICE_IPS="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$SERVICE_NAME" \
     --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
-  if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
+  if echo "$SERVICE_IPS" | grep -qxF "$POD_IP"
   then
     success "pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else
@@ -411,11 +412,11 @@ check_pod_ip_not_exposed_by_service() {
   local CLUSTER_NAMESPACE="$1"
   local POD_NAME="$2"
   local SERVICE_NAME="$3"
-  local POD_2_IP SERVICE_IPS
-  POD_2_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
+  local POD_IP SERVICE_IPS
+  POD_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
   SERVICE_IPS="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$SERVICE_NAME" \
     --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
-  if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
+  if echo "$SERVICE_IPS" | grep -qxF "$POD_IP"
   then
     fail "pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else

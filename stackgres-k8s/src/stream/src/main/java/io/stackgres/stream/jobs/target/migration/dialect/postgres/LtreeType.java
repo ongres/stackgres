@@ -18,21 +18,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class LtreeType extends AbstractType {
 
-    public static final LtreeType INSTANCE = new LtreeType();
+  public static final LtreeType INSTANCE = new LtreeType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "io.debezium.data.Ltree" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "io.debezium.data.Ltree" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as ltree)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as ltree)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "ltree";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "ltree";
+  }
 
 }

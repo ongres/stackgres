@@ -133,6 +133,8 @@ helm_custom_annotations(){
     --set cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
     --set distributedLogs.metadata.annotations.clusterPods.test-annotation="$POD_RANDOM_VALUE" \
     --set distributedLogs.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
+    --from-literal=superuser-password="$RANDOM"
 
   wait_until check_sts_annotation "$POD_RANDOM_VALUE"
 

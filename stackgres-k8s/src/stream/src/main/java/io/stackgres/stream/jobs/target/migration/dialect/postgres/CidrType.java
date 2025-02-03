@@ -18,21 +18,21 @@ import org.apache.kafka.connect.data.Schema;
  */
 class CidrType extends AbstractType {
 
-    public static final CidrType INSTANCE = new CidrType();
+  public static final CidrType INSTANCE = new CidrType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "CIDR" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "CIDR" };
+  }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        return "cast(? as cidr)";
-    }
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    return "cast(? as cidr)";
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        return "cidr";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "cidr";
+  }
 
 }

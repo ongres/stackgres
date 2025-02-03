@@ -123,14 +123,13 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   }
 
   /**
-   * <p>
    * Implementation of replication groups is based on Patroni tags and Service
    *  labels. Depending on the role assigned Patroni tags are changed accordingly
    *  in the Patroni config file (`/etc/patroni/config.yml`) and the
    *  configuration is reloaded by sending signal `HUP` to the Patroni process.
    *  The same tags are also used to label the Pod and the label
    *  `noloadbalance: "false"` is added to the Service selector for replicas.
-   * </p>
+   * 
    * <p>
    * Groups including the implicit first group follow an absolute ordering.
    *  Implicit first group has index 0. Other groups have index equals to
@@ -138,6 +137,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
    *  group is then flattened by the number of instances the group declare
    *  and mapped to the group role.
    * </p>
+   * 
    * <p>
    * For instance, if we have a first implicit
    *  group of 3 instances with role `HA` (calculated by subtracting the sum
@@ -157,6 +157,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
    * </ul>
    * Pods of the StatefulSet is then mapped 1 on 1 to this list using the index in their names.
    * </p>
+   * 
    * <p>
    * If any file in /etc/ssl change will reload PostgreSQL config through patroni
    * </p>

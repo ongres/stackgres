@@ -6,17 +6,20 @@ configurations:
     create: true
     s3Compatible:
       bucket: restore-backup
+      enablePathStyleAddressing: true
+      endpoint: https://restore-backup-minio.restore-backup:9000
+      region: k8s
       awsCredentials:
         secretKeySelectors:
+          caCertificate:
+            key: tls.crt
+            name: restore-backup-minio-certs
           accessKeyId:
             name: restore-backup-minio
             key: accesskey
           secretAccessKey:
             name: restore-backup-minio
             key: secretkey
-      region: k8s
-      enablePathStyleAddressing: true
-      endpoint: http://restore-backup-minio.restore-backup:9000
 cluster:
   pods:
     persistentVolume:

@@ -51,8 +51,12 @@ EOF
   then
     try_function eval '
       sleep 1
+      PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+        patronictl version 2>/dev/null | sed -n "s/^patronictl version \([0-9]\+\)\..*$/\1/p")"
       kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
-        patronictl failover --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
+        patronictl failover \
+          $([ "$PATRONI_MAJOR_VERSION" -lt 4 ] && printf %s --master || printf %s --primary) "$CLUSTER_NAME-0" \
+          --candidate "$CLUSTER_NAME-1" --force'
   else
     try_function eval '
       sleep 1

@@ -26,80 +26,81 @@ import org.apache.kafka.connect.data.Schema;
  */
 class BitType extends AbstractType {
 
-    public static final BitType INSTANCE = new BitType();
+  public static final BitType INSTANCE = new BitType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ Bits.LOGICAL_NAME, "BIT", "VARBIT" };
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { Bits.LOGICAL_NAME, "BIT", "VARBIT" };
+  }
+
+  @Override
+  public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
+    if (isBitOne(schema)) {
+      final Optional<String> columnType = getSourceColumnType(schema);
+      if (columnType.isPresent() && "BIT".equals(columnType.get())) {
+        final Optional<String> columnSize = getSourceColumnSize(schema);
+        if (columnSize.isPresent() && "1".equals(columnSize.get())) {
+          return "cast(? as bit)";
+        }
+      }
+    }
+    return "cast(? as bit varying)";
+  }
+
+  @Override
+  public String getDefaultValueBinding(DatabaseDialect dialect, Schema schema, Object value) {
+    // todo: add support for BIT/VARBIT/BIT VARYING(n) default values
+    return null;
+  }
+
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    if (isBitOne(schema)) {
+      return "bit";
     }
 
-    @Override
-    public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-        if (isBitOne(schema)) {
-            final Optional<String> columnType = getSourceColumnType(schema);
-            if (columnType.isPresent() && "BIT".equals(columnType.get())) {
-                final Optional<String> columnSize = getSourceColumnSize(schema);
-                if (columnSize.isPresent() && "1".equals(columnSize.get())) {
-                    return "cast(? as bit)";
-                }
-            }
-        }
-        return "cast(? as bit varying)";
+    final int bitSize = Integer.parseInt(schema.parameters().get(Bits.LENGTH_FIELD));
+    if (Integer.MAX_VALUE == bitSize) {
+      // this is the only way to detect a varying bit field without type propagation
+      return "bit varying";
     }
 
-    @Override
-    public String getDefaultValueBinding(DatabaseDialect dialect, Schema schema, Object value) {
-        // todo: add support for BIT/VARBIT/BIT VARYING(n) default values
-        return null;
+    final Optional<String> columnType = getSourceColumnType(schema);
+    if (columnType.isPresent() && "VARBIT".equals(columnType.get())) {
+      return String.format("bit varying(%d)", bitSize);
     }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-        if (isBitOne(schema)) {
-            return "bit";
-        }
+    return String.format("bit(%d)", bitSize);
+  }
 
-        final int bitSize = Integer.parseInt(schema.parameters().get(Bits.LENGTH_FIELD));
-        if (Integer.MAX_VALUE == bitSize) {
-            // this is the only way to detect a varying bit field without type propagation
-            return "bit varying";
-        }
+  @Override
+  public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
 
-        final Optional<String> columnType = getSourceColumnType(schema);
-        if (columnType.isPresent() && "VARBIT".equals(columnType.get())) {
-            return String.format("bit varying(%d)", bitSize);
-        }
-
-        return String.format("bit(%d)", bitSize);
+    if (value == null) {
+      return List.of(new ValueBindDescriptor(index, null));
     }
 
-    @Override
-    public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
-
-        if (value == null) {
-            return List.of(new ValueBindDescriptor(index, null));
-        }
-
-        if (isBitOne(schema) && (value instanceof Boolean)) {
-            return List.of(new ValueBindDescriptor(index, ((boolean) value) ? '1' : '0'));
-        }
-
-        //this is a simple varbit case
-        if ((value instanceof byte[]) && ((byte[]) value).length == 0) {
-            return List.of(new ValueBindDescriptor(index, '0'));
-        }
-
-        final int length = Integer.parseInt(schema.parameters().get(Bits.LENGTH_FIELD));
-        final String binaryBitString = new BigInteger((byte[]) value).toString(2);
-        if (length == Integer.MAX_VALUE) {
-            return List.of(new ValueBindDescriptor(index, binaryBitString));
-        }
-
-        return List.of(new ValueBindDescriptor(index, Strings.justifyRight(binaryBitString, length, '0')));
+    if (isBitOne(schema) && (value instanceof Boolean)) {
+      return List.of(new ValueBindDescriptor(index, ((boolean) value) ? '1' : '0'));
     }
 
-    private boolean isBitOne(Schema schema) {
-        return Objects.isNull(schema.name());
+    // this is a simple varbit case
+    if ((value instanceof byte[]) && ((byte[]) value).length == 0) {
+      return List.of(new ValueBindDescriptor(index, '0'));
     }
+
+    final int length = Integer.parseInt(schema.parameters().get(Bits.LENGTH_FIELD));
+    final String binaryBitString = new BigInteger((byte[]) value).toString(2);
+    if (length == Integer.MAX_VALUE) {
+      return List.of(new ValueBindDescriptor(index, binaryBitString));
+    }
+
+    return List
+        .of(new ValueBindDescriptor(index, Strings.justifyRight(binaryBitString, length, '0')));
+  }
+
+  private boolean isBitOne(Schema schema) {
+    return Objects.isNull(schema.name());
+  }
 
 }

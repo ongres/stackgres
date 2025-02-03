@@ -48,7 +48,8 @@ e2e_test() {
 
   run_test "Checking that replication is working from backup" check_replication_is_working_from_backup
 
-  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ] \
+    && [ "${E2E_POSTGRES_VERSION%.*}" -ge 15 ] # StackGres snapshot backup only supported for Postgres 15+
   then
     run_test "Checking that replication is working from snapshot backup" check_replication_is_working_from_snapshot_backup
   else
