@@ -164,8 +164,8 @@ e2e_test_install() {
       --set configurations.postgresconfig.create=true \
       --set configurations.poolingconfig.create=false \
       --set-string cluster.sgInstanceProfile=size-s \
-      --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
-      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string cluster.configurations.sgPostgresConfig=postgresconf-sharded-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+      --set-string shardedCluster.shards.configurations.sgPostgresConfig=postgresconf-sharded-"${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
       --set-string cluster.postgres.version="$PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION" \
       --set cluster.configurations.observability.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
