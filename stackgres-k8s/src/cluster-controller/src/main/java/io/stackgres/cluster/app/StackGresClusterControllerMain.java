@@ -10,6 +10,9 @@ import static io.stackgres.common.ClusterControllerProperty.CLUSTER_CONTROLLER_R
 import static io.stackgres.common.ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER;
 import static io.stackgres.common.ClusterControllerProperty.CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +25,7 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import jakarta.enterprise.event.Event;
@@ -37,6 +41,9 @@ public class StackGresClusterControllerMain {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       StackGresClusterControllerMain.class);
+
+  private static final Path PATRONI_START_FILE_PATH =
+      Paths.get(ClusterPath.PATRONI_START_FILE_PATH.path());
 
   public static void main(String... args) {
     AtomicReference<Tuple2<Integer, Throwable>> exitCodeReference =
@@ -74,18 +81,21 @@ public class StackGresClusterControllerMain {
         return 0;
       }
 
-      var controllerProperties = Stream.of(ClusterControllerProperty.values())
-          .map(property -> Map.entry(property.getPropertyName(), property.get()))
-          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-      System.setProperty(CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES.getPropertyName(), "false");
-      System.setProperty(CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER.getPropertyName(), "false");
-      System.setProperty(CLUSTER_CONTROLLER_RECONCILE_PATRONI.getPropertyName(), "false");
-      System.setProperty(CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL.getPropertyName(), "false");
+      if (!Files.exists(PATRONI_START_FILE_PATH)) {
+        final var controllerProperties = Stream.of(ClusterControllerProperty.values())
+            .map(property -> Map.entry(property.getPropertyName(), property.get()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        System.setProperty(CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES.getPropertyName(), "false");
+        System.setProperty(CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER.getPropertyName(), "false");
+        System.setProperty(CLUSTER_CONTROLLER_RECONCILE_PATRONI.getPropertyName(), "false");
+        System.setProperty(CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL.getPropertyName(), "false");
+  
+        runSingleReconciliationCycle();
+  
+        controllerProperties.entrySet().stream()
+            .forEach(entry -> System.setProperty(entry.getKey(), entry.getValue().orElse(null)));
+      }
 
-      runSingleReconciliationCycle();
-
-      controllerProperties.entrySet().stream()
-          .forEach(entry -> System.setProperty(entry.getKey(), entry.getValue().orElse(null)));
       LOGGER.info("Starting StackGres Cluster Controller...");
       startupEvent.fire(StackGresClusterControllerAppStartupEvent.INSTANCE);
       Quarkus.waitForExit();
