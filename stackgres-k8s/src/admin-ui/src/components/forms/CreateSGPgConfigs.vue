@@ -29,7 +29,7 @@
                         v-model="pgConfigVersion"
                         :disabled="(editMode)"
                         required data-field="spec.postgresVersion"
-                        @change="loadingDefaults = true; dryRun = true; createPGConfig();"
+                        @change="getDefaultParams()"
                     >
                         <option disabled value="">Select Major Postgres Version</option>
                         <option v-for="version in postgresVersions">{{ version }}</option>
@@ -50,7 +50,7 @@
                 </div>
             </div>
 
-            <template v-if="Object.keys(defaultParams).length">
+            <template v-if="Object.keys(defaultParams).length || loadingDefaults">
                 <div class="paramDetails">
                     <hr/>
                     <h2>Default Parameters</h2><br/>
@@ -94,10 +94,7 @@
                 type="button"
                 class="btn border floatRight"
                 title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
-                @click="
-                    dryRun = true;
-                    createPGConfig();
-                "
+                @click="createPGConfig(true, true)"
             >
                 Dry Run
             </button>
@@ -105,11 +102,11 @@
         <CRDSummary
             v-if="showSummary"
             :crd="previewConfig"
-            :dryRun="dryRun"
+            :dryRun="showDryRun"
             kind="SGPostgresConfig"
             @closeSummary="
                 showSummary = false;
-                dryRun = false;
+                showDryRun = false;
                 previewConfig = {};
             "
         ></CRDSummary>
@@ -139,9 +136,9 @@
             return {
                 editMode: (vm.$route.name === 'EditPgConfig'),
                 editReady: false,
-                dryRun: false,
                 previewConfig: {},
                 showSummary: false,
+                showDryRun: false,
                 pgConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 pgConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 pgConfigParams: '',
@@ -200,7 +197,36 @@
         },
         methods: {
 
-            createPGConfig(preview = false, previous) {
+            getDefaultParams() {
+                const vc = this;
+
+                vc.loadingDefaults = true;
+                
+                let config = {
+                    "metadata": {
+                        "name": vc.pgConfigName.length ? vc.pgConfigName : 'get-default-params',
+                        "namespace": vc.pgConfigNamespace
+                    },
+                    "spec": {
+                        "postgresVersion": vc.pgConfigVersion
+                    }
+                };
+
+                sgApi
+                .create('sgpgconfigs', config, true)
+                .then(function (response) {
+                    vc.defaultParams = response.data.status.defaultParameters;
+                    vc.pgConfigParamsObj = response.data.status['postgresql.conf'];
+                    vc.loadingDefaults = false;
+                })
+                .catch(function (error) {
+                    console.log(error.response);
+                    vc.notify(error.response.data,'error', 'sgpgconfigs');
+                    vc.loadingDefaults = false;
+                });
+            },
+
+            createPGConfig(preview = false, dryRun = false, previous) {
                 const vc = this;
 
                 if (!vc.loadingDefaults && !vc.checkRequired()) {
@@ -213,7 +239,7 @@
                     sgApi
                     .getResourceDetails('sgpgconfigs', this.pgConfigNamespace, this.pgConfigName)
                     .then(function (response) {
-                        vc.createPGConfig(preview, response.data);
+                        vc.createPGConfig(preview, dryRun, response.data);
                     })
                     .catch(function (error) {
                         if (error.response.status != 404) {
@@ -221,7 +247,7 @@
                           vc.notify(error.response.data,'error', 'sgpgconfigs');
                           return;
                         }
-                        vc.createPGConfig(preview, {});
+                        vc.createPGConfig(preview, dryRun, {});
                     });
                     return;
                 }
@@ -247,17 +273,17 @@
                     store.commit('loading', false);
 
                 } else {
+                    vc.showDryRun = dryRun;
 
                     if(this.editMode) {
                         sgApi
-                        .update('sgpgconfigs', config, vc.dryRun)
+                        .update('sgpgconfigs', config, dryRun)
                         .then(function (response) {
-                            if(vc.dryRun) {
+                            if(dryRun) {
                                 vc.showSummary = true;
                                 vc.validateDryRun(response.data);
                             } else {
                                 vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
-
                                 vc.fetchAPI('sgpgconfig');
                                 router.push('/' + config.metadata.namespace + '/sgpgconfig/' + config.metadata.name);
                             }
@@ -271,10 +297,10 @@
                     } else {
 
                         sgApi
-                        .create('sgpgconfigs', config, vc.dryRun)
+                        .create('sgpgconfigs', config, dryRun)
                         .then(function (response) {
 
-                            if(vc.dryRun) {
+                            if(dryRun) {
                                 vc.showSummary = true;
                                 vc.validateDryRun(response.data);
                             } else {
@@ -387,7 +413,13 @@
         transform: translate(20px, 15px);
     }
 
+    table.defaultParams.loading {
+        min-height: 100px;
+    }
+
     .defaultParams.loadingContainer.loading:after {
         position: absolute;
+        left: 0;
+        width: 100%;
     }
 </style>
