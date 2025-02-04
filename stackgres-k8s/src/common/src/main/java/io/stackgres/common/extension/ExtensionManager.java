@@ -419,16 +419,8 @@ public abstract class ExtensionManager {
         try {
           fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
         } catch (IOException ex) {
-          try {
-            fileSystemHandler.deleteIfExists(targetPath);
-            fileSystemHandler.createDirectories(targetPath);
-            fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
-          } catch (IOException dex) {
-            LOGGER.warn("Can not change permission of directory {} to {}, cleaning directory",
-                targetPath, Integer.toOctalString(fileMode));
-            ex.addSuppressed(dex);
-            throw ex;
-          }
+          LOGGER.warn("Can not change permission of directory {} to {}, skipping perission change",
+              targetPath, Integer.toOctalString(fileMode));
         }
       } else {
         LOGGER.warn("Can not extract file {}", targetPath);
