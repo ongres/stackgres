@@ -217,7 +217,11 @@ public class ReconciliatorWorkerThreadPool {
             LOGGER.trace("{} has been scheduled to be reconcilied",
                 r);
           }
-          toExecuteReconciliations.stream().filter(r::equals).forEach(this::execute);
+          toExecuteReconciliations.forEach(ter -> {
+            if (ter.equals(r)) {
+              this.execute(ter);
+            }
+          });
           toExecuteReconciliations.remove(r);
         }
       }
