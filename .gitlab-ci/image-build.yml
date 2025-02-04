@@ -77,11 +77,16 @@
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-amd64'
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true"  && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_NATIVE
+  rules:
+  - if: |
+      ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+      || $CI_PIPELINE_SOURCE == 'push'
+      || $CI_PIPELINE_SOURCE == 'schedule'
+      || $CI_PIPELINE_SOURCE == 'trigger'
+      || $CI_COMMIT_TAG )
+      && ( ( $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+      || ( $SKIP_NATIVE != "true"  && $CI_COMMIT_TAG )
+      || $DO_NATIVE ) )
 
 build operator jvm image amd64:
   extends: .build jvm image amd64
@@ -175,10 +180,16 @@ build admin-ui image amd64:
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-jvm-arm64'
-  only:
-    variables:
-      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || $DO_ARM ) )
 
 .build native image arm64:
   extends: .build image
@@ -189,10 +200,16 @@ build admin-ui image amd64:
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-arm64'
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_NATIVE && $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_NATIVE && $DO_ARM ) ) )
 
 build operator jvm image arm64:
   extends: .build jvm image arm64
@@ -276,10 +293,16 @@ build admin-ui image arm64:
     IMAGE_BASE_NAME: stackgres/admin-ui
     LOCK_FILE: stackgres-adminui-build-image
     IMAGE_MODULE_NAME: admin-ui-image
-  only:
-    variables:
-      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        ||  $DO_ARM ) )
 
 .build jvm image multi archs:
   extends: .build image multi archs
@@ -294,11 +317,17 @@ build admin-ui image arm64:
     - stackgres-runner-v2
   variables:
     IMAGE_SUFFIX: ''
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_NATIVE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_NATIVE != "true" && $CI_COMMIT_TAG )
+        || $DO_NATIVE ) )
 
 build operator jvm image multi archs:
   extends: .build jvm image multi archs
@@ -379,10 +408,16 @@ build admin-ui image multi archs:
   variables:
     IMAGE_SUFFIX: '-arm64'
     IMAGE_BASE_NAME: stackgres/operator-bundle
-  only:
-    variables:
-      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        ||  $DO_ARM ) )
 
 build operator bundle image amd64:
   extends: .build operator bundle image amd64
@@ -444,10 +479,16 @@ build operator openshift bundle image multi archs:
   variables:
     IMAGE_SUFFIX: '-javascript-arm64'
     IMAGE_BASE_NAME: stackgres/pglambda
-  only:
-    variables:
-      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+       ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+       || $DO_ARM ) )
 
 build pglambda javascript image amd64:
   extends: .build pglambda javascript image amd64
