@@ -91,10 +91,11 @@ public abstract class ExtensionManager {
     private final URI extensionsRepositoryUri;
     private final URI extensionUri;
 
-    private ExtensionInstaller(ClusterContext context,
-        StackGresClusterInstalledExtension installedExtension,
-        StackGresExtensionPublisher extensionPublisher,
-        URI extensionsRepositoryUri) {
+    private ExtensionInstaller(
+        final ClusterContext context,
+        final StackGresClusterInstalledExtension installedExtension,
+        final StackGresExtensionPublisher extensionPublisher,
+        final URI extensionsRepositoryUri) {
       this.context = context;
       this.installedExtension = installedExtension;
       this.extensionPublisher = extensionPublisher;
@@ -240,8 +241,9 @@ public abstract class ExtensionManager {
     private final ClusterContext context;
     private final String packageName;
 
-    private ExtensionUninstaller(ClusterContext context,
-        StackGresClusterInstalledExtension extension) {
+    private ExtensionUninstaller(
+        final ClusterContext context,
+        final StackGresClusterInstalledExtension extension) {
       this.context = context;
       this.packageName = ExtensionUtil.getExtensionPackageName(context.getCluster(), extension);
     }
@@ -285,7 +287,8 @@ public abstract class ExtensionManager {
     }
 
     private void removeTarFiles(InputStream inputStream) throws Exception {
-      visitTar(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
+      visitTar(
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
           ExtensionManager.this::removeFileIfExists,
           null, (prev, next) -> null);
@@ -294,9 +297,13 @@ public abstract class ExtensionManager {
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
       justification = "False positive")
-  private <T> T visitTar(Path extensionsPath, InputStream inputStream,
-      BiFunction<TarArchiveInputStream, Path, T> visitor,
-      T initialValue, BiFunction<T, T, T> accumulator) throws Exception {
+  private <T> T visitTar(
+      final Path extensionsPath,
+      final InputStream inputStream,
+      final BiFunction<TarArchiveInputStream, Path, T> visitor,
+      T initialValue,
+      final BiFunction<T, T, T> accumulator)
+          throws Exception {
     try (TarArchiveInputStream tarEntryInputStream = new TarArchiveInputStream(inputStream)) {
       TarArchiveEntry tarArchiveEntry = tarEntryInputStream.getNextEntry();
       if (tarArchiveEntry == null) {
@@ -321,8 +328,10 @@ public abstract class ExtensionManager {
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
       justification = "False positive")
-  private boolean isSharedFileOverwritten(TarArchiveInputStream tarEntryInputStream,
-      Path targetPath) throws UncheckedIOException {
+  private boolean isSharedFileOverwritten(
+      final TarArchiveInputStream tarEntryInputStream,
+      final Path targetPath)
+          throws UncheckedIOException {
     if (isScriptOrControlFile(targetPath)) {
       return false;
     }
@@ -339,8 +348,11 @@ public abstract class ExtensionManager {
     }
   }
 
-  private boolean isSharedFileOverwritten(TarArchiveInputStream tarEntryInputStream,
-      Path targetPath, final TarArchiveEntry tarEntry) throws IOException {
+  private boolean isSharedFileOverwritten(
+      final TarArchiveInputStream tarEntryInputStream,
+      final Path targetPath,
+      final TarArchiveEntry tarEntry)
+          throws IOException {
     if (tarEntry.isFile() && fileSystemHandler.exists(targetPath)) {
       if (tarEntry.isSymbolicLink()) {
         return !fileSystemHandler.identicalLink(
@@ -355,8 +367,10 @@ public abstract class ExtensionManager {
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
       justification = "False positive")
-  private Void extractFile(TarArchiveInputStream tarEntryInputStream, Path targetPath)
-      throws UncheckedIOException {
+  private Void extractFile(
+      final TarArchiveInputStream tarEntryInputStream,
+      final Path targetPath)
+          throws UncheckedIOException {
     try {
       final TarArchiveEntry tarEntry = tarEntryInputStream.getCurrentEntry();
 
@@ -370,7 +384,20 @@ public abstract class ExtensionManager {
         fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
         int fileMode = tarEntry.getMode();
         Set<PosixFilePermission> permissions = parseMode(fileMode);
-        fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
+        try {
+          fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
+        } catch (IOException ex) {
+          try {
+            fileSystemHandler.deleteIfExists(targetPath);
+            fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
+            fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
+          } catch (IOException dex) {
+            LOGGER.warn("Can not change permission of file {} to {}, cleaning file",
+                targetPath, Integer.toOctalString(fileMode));
+            ex.addSuppressed(dex);
+            throw ex;
+          }
+        }
       } else if (tarEntry.isSymbolicLink()) {
         Path linkTarget = Paths.get(tarEntry.getLinkName());
         if (linkTarget.isAbsolute()) {
@@ -389,7 +416,20 @@ public abstract class ExtensionManager {
         fileSystemHandler.createDirectories(targetPath);
         int fileMode = tarEntry.getMode();
         Set<PosixFilePermission> permissions = parseMode(fileMode);
-        fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
+        try {
+          fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
+        } catch (IOException ex) {
+          try {
+            fileSystemHandler.deleteIfExists(targetPath);
+            fileSystemHandler.createDirectories(targetPath);
+            fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
+          } catch (IOException dex) {
+            LOGGER.warn("Can not change permission of directory {} to {}, cleaning directory",
+                targetPath, Integer.toOctalString(fileMode));
+            ex.addSuppressed(dex);
+            throw ex;
+          }
+        }
       } else {
         LOGGER.warn("Can not extract file {}", targetPath);
         return null;
@@ -434,8 +474,10 @@ public abstract class ExtensionManager {
 
   @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
       justification = "False positive")
-  private Void removeFileIfExists(TarArchiveInputStream tarEntryInputStream, Path targetPath)
-      throws UncheckedIOException {
+  private Void removeFileIfExists(
+      final TarArchiveInputStream tarEntryInputStream,
+      final Path targetPath)
+          throws UncheckedIOException {
     if (!tarEntryInputStream.getCurrentEntry().isFile()) {
       return null;
     }
