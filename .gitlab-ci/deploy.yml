@@ -59,11 +59,17 @@
         mv ~/.docker/gitlab.json ~/.docker/config.json
       done
   retry: 2
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY ) )
 
 .deploy jvm image:
   extends: .deploy image
@@ -102,10 +108,16 @@ deploy stream jvm image:
   variables:
     IMAGE_TAG_SUFFIX: "-release"
     IMAGE_PUSH_TAG_SUFFIX: ""
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG ) ) )
 
 deploy operator native image:
   extends: .deploy native image
@@ -204,12 +216,18 @@ deploy helm packages and templates:
       fi
       aws s3 sync stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
       aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_HELM_DEPLOY
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        (  $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        ||  $DO_DEPLOY
+        ||  $DO_HELM_DEPLOY ) )
 
 pages:
   stage: deploy
@@ -231,8 +249,14 @@ pages:
     paths:
     - public
   retry: 2
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_PAGES
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_PAGES ) )

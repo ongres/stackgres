@@ -67,12 +67,18 @@
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-jvm-amd64'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_RELEASE_IMAGE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY
+        || $DO_RELEASE_IMAGE ) )
 
 .release native image amd64:
   extends: .release image
@@ -83,12 +89,18 @@
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-amd64'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY && $DO_NATIVE
-      - $DO_RELEASE_IMAGE && $DO_NATIVE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG )
+        || ( $DO_DEPLOY && $DO_NATIVE )
+        || ( $DO_RELEASE_IMAGE && $DO_NATIVE ) ) )
 
 release operator jvm image amd64:
   extends: .release jvm image amd64
@@ -172,12 +184,18 @@ release admin-ui image amd64:
     IMAGE_BASE_NAME: stackgres/admin-ui
     LOCK_FILE: stackgres-adminui-release-release-image
     IMAGE_MODULE_NAME: admin-ui-release-image
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_RELEASE_IMAGE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY
+        || $DO_RELEASE_IMAGE ) )
 
 .release jvm image arm64:
   extends: .release image
@@ -188,11 +206,17 @@ release admin-ui image amd64:
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-release-jvm-arm64'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY && $DO_ARM
-      - $DO_RELEASE_IMAGE && $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_DEPLOY && $DO_ARM )
+        || ( $DO_RELEASE_IMAGE && $DO_ARM ) ) )
 
 .release native image arm64:
   extends: .release image
@@ -203,11 +227,17 @@ release admin-ui image amd64:
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-release-arm64'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY && $DO_NATIVE && $DO_ARM
-      - $DO_RELEASE_IMAGE && $DO_NATIVE && $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_DEPLOY && $DO_NATIVE && $DO_ARM )
+        || ( $DO_RELEASE_IMAGE && $DO_NATIVE && $DO_ARM ) ) )
 
 release operator jvm image arm64:
   extends: .release jvm image arm64
@@ -291,11 +321,17 @@ release admin-ui image arm64:
     IMAGE_BASE_NAME: stackgres/admin-ui
     LOCK_FILE: stackgres-adminui-release-release-image
     IMAGE_MODULE_NAME: admin-ui-release-image
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY && $DO_ARM
-      - $DO_RELEASE_IMAGE && $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        (  $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_DEPLOY && $DO_ARM )
+        || ( $DO_RELEASE_IMAGE && $DO_ARM ) ) )
 
 .release jvm image multi archs:
   extends: .release image multi archs
@@ -303,12 +339,18 @@ release admin-ui image arm64:
     - stackgres-runner-v2
   variables:
     IMAGE_SUFFIX: '-release-jvm'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_RELEASE_IMAGE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY
+        || $DO_RELEASE_IMAGE ) )
 
 .release native image multi archs:
   extends: .release image multi archs
@@ -316,12 +358,18 @@ release admin-ui image arm64:
     - stackgres-runner-v2
   variables:
     IMAGE_SUFFIX: '-release'
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY && $DO_NATIVE
-      - $DO_RELEASE_IMAGE && $DO_NATIVE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG )
+        || ( $DO_DEPLOY && $DO_NATIVE )
+        || ( $DO_RELEASE_IMAGE && $DO_NATIVE ) ) )
 
 release operator jvm image multi archs:
   extends: .release jvm image multi archs
@@ -380,12 +428,18 @@ release admin-ui image multi archs:
   variables:
     IMAGE_SUFFIX: '-release'
     IMAGE_BASE_NAME: stackgres/admin-ui
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_RELEASE_IMAGE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY
+        || $DO_RELEASE_IMAGE ) )
 
 .release operator bundle image amd64:
   extends: .release image
@@ -397,12 +451,18 @@ release admin-ui image multi archs:
   variables:
     IMAGE_SUFFIX: '-release-amd64'
     IMAGE_BASE_NAME: stackgres/operator-bundle
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_RELEASE_IMAGE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY
+        || $DO_RELEASE_IMAGE ) )
 
 .release operator bundle image arm64:
   extends: .release image
@@ -414,11 +474,17 @@ release admin-ui image multi archs:
   variables:
     IMAGE_SUFFIX: '-release-arm64'
     IMAGE_BASE_NAME: stackgres/operator-bundle
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY && $DO_ARM
-      - $DO_RELEASE_IMAGE && $DO_ARM
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_DEPLOY && $DO_ARM )
+        || (  $DO_RELEASE_IMAGE && $DO_ARM ) ) )
 
 release operator bundle image amd64:
   extends: .release operator bundle image amd64
@@ -453,12 +519,18 @@ release operator openshift bundle image arm64:
   variables:
     IMAGE_SUFFIX: '-release'
     IMAGE_BASE_NAME: stackgres/operator-bundle
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_RELEASE_IMAGE
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
+       || $CI_PIPELINE_SOURCE == 'push'
+       || $CI_PIPELINE_SOURCE == 'schedule'
+       || $CI_PIPELINE_SOURCE == 'trigger'
+       || $CI_COMMIT_TAG )
+       && (
+        ( $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG )
+        || $DO_DEPLOY
+        || $DO_RELEASE_IMAGE ) )
 
 release operator bundle image multi archs:
   extends: .release operator bundle image multi archs
