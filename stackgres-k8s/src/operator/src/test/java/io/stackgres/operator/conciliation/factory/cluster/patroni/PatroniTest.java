@@ -28,6 +28,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.cluster.BackupMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
@@ -59,6 +60,8 @@ class PatroniTest {
   PostgresExtensionMounts postgresExtensions;
   @Mock
   TemplatesMounts templateMounts;
+  @Mock
+  UserOverrideMounts userOverrideMounts;
   @Mock
   LocalBinMounts localBinMounts;
   @Mock
@@ -92,7 +95,7 @@ class PatroniTest {
   @BeforeEach
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables, postgresEnvironmentVariables,
-        postgresSocket, postgresExtensions, templateMounts, localBinMounts,
+        postgresSocket, postgresExtensions, templateMounts, userOverrideMounts, localBinMounts,
         restoreMounts, backupMounts, replicationInitializationMounts,
         replicateMounts, patroniMounts, hugePagesMounts, patroniConfigMap);
     cluster = Fixtures.cluster().loadDefault().get();

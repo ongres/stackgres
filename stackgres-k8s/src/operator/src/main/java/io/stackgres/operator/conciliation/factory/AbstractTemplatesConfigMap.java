@@ -21,6 +21,7 @@ public abstract class AbstractTemplatesConfigMap {
 
   public static final List<ClusterPath> CLUSTER_TEMPLATE_PATHS = List.of(
       ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH,
+      ClusterPath.LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH,
       ClusterPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH,
       ClusterPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH,
       ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH,

@@ -39,7 +39,7 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -54,17 +54,17 @@ import jakarta.inject.Singleton;
 public class ClusterController implements ContainerFactory<ClusterContainerContext> {
 
   private final PostgresDataMounts postgresDataMounts;
-  private final ContainerUserOverrideMounts userContainerMounts;
-  private final PostgresSocketMounts postgresSocket;
+  private final UserOverrideMounts userOverrideMounts;
+  private final PostgresSocketMounts postgresSocketMounts;
 
   @Inject
   public ClusterController(
       PostgresDataMounts postgresDataMounts,
-      ContainerUserOverrideMounts userContainerMounts,
-      PostgresSocketMounts postgresSocket) {
+      UserOverrideMounts userOverrideMounts,
+      PostgresSocketMounts postgresSocketMounts) {
     this.postgresDataMounts = postgresDataMounts;
-    this.userContainerMounts = userContainerMounts;
-    this.postgresSocket = postgresSocket;
+    this.userOverrideMounts = userOverrideMounts;
+    this.postgresSocketMounts = postgresSocketMounts;
   }
 
   @Override
@@ -189,9 +189,9 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .endResourceFieldRef()
             .endValueFrom()
             .build())
-        .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
+        .withVolumeMounts(userOverrideMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
-        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresSocketMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())

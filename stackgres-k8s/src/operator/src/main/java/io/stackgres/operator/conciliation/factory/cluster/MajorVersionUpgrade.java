@@ -38,13 +38,13 @@ import jakarta.inject.Singleton;
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.MAJOR_VERSION_UPGRADE)
-public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContainerContext> {
+public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerContext> {
 
   private final MajorVersionUpgradeMounts majorVersionUpgradeMounts;
   private final TemplatesMounts templateMounts;
 
   @Inject
-  public MajorVersionUpgradeInit(
+  public MajorVersionUpgrade(
       MajorVersionUpgradeMounts majorVersionUpgradeMounts,
       TemplatesMounts templateMounts) {
     this.majorVersionUpgradeMounts = majorVersionUpgradeMounts;

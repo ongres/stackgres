@@ -21,9 +21,9 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
@@ -45,13 +45,13 @@ class PostgresExporterTest {
   private LabelFactoryForCluster labelFactory;
 
   @Mock
-  private ContainerUserOverrideMounts containerUserOverrideMounts;
+  private UserOverrideMounts userOverrideMounts;
 
   @Mock
-  private PostgresSocketMounts postgresSocket;
+  private PostgresSocketMounts postgresSocketMounts;
 
   @Mock
-  private TemplatesMounts scriptTemplatesVolumeMounts;
+  private TemplatesMounts templatesMounts;
 
   private final YamlMapperProvider yamlMapperProvider = new YamlMapperProvider();
 
@@ -59,8 +59,8 @@ class PostgresExporterTest {
 
   @BeforeEach
   public void setupClass() {
-    this.postgresExporter = new PostgresExporter(labelFactory, containerUserOverrideMounts,
-        postgresSocket, scriptTemplatesVolumeMounts, yamlMapperProvider);
+    this.postgresExporter = new PostgresExporter(labelFactory,
+        postgresSocketMounts, templatesMounts, userOverrideMounts, yamlMapperProvider);
   }
 
   @Test

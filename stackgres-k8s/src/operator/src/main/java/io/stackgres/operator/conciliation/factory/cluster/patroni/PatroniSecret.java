@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -257,11 +258,63 @@ public class PatroniSecret
       StackGresClusterContext context,
       final Map<String, String> previousSecretData,
       final Map<String, String> data) {
-    data.put(PGBOUNCER_ADMIN_USERNAME_ENV, PGBOUNCER_ADMIN_USERNAME);
-    data.put(PGBOUNCER_ADMIN_PASSWORD_KEY, previousSecretData
+    var adminCredentials = getPgBouncerAdminCredentials(context, previousSecretData);
+    var statsCredentials = getPgBouncerStatsCredentials(context, previousSecretData);
+    data.put(PGBOUNCER_ADMIN_USERNAME_ENV, adminCredentials.v1);
+    data.put(PGBOUNCER_ADMIN_PASSWORD_KEY, adminCredentials.v2);
+    data.put(PGBOUNCER_STATS_USERNAME_ENV, statsCredentials.v1);
+    data.put(PGBOUNCER_STATS_PASSWORD_KEY, statsCredentials.v2);
+    final String pgbouncerAdminMd5 =
+        StackGresUtil.getMd5Sum(
+            adminCredentials.v2,
+            adminCredentials.v1)
+        .toLowerCase(Locale.US);
+    final String pgbouncerStatsMd5 =
+        StackGresUtil.getMd5Sum(
+            statsCredentials.v2,
+            statsCredentials.v1)
+        .toLowerCase(Locale.US);
+    data.put(
+        PGBOUNCER_USERS_KEY,
+        '"' + PGBOUNCER_ADMIN_USERNAME + '"' + " " + '"' + "md5" + pgbouncerAdminMd5 + '"' + '\n'
+        + '"' + PGBOUNCER_STATS_USERNAME + '"' + " " + '"' + "md5" + pgbouncerStatsMd5 + '"' + '\n');
+  }
+
+  public static Tuple2<String, String> getPgBouncerAdminCredentials(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+
+    return getPgBouncerAdminCredentials(context, previousSecretData);
+  }
+
+  private static Tuple2<String, String> getPgBouncerAdminCredentials(StackGresClusterContext context,
+      Map<String, String> previousSecretData) {
+    return Tuple.tuple(
+        previousSecretData
+        .getOrDefault(PGBOUNCER_ADMIN_USERNAME_ENV, PGBOUNCER_ADMIN_USERNAME),
+        previousSecretData
         .getOrDefault(PGBOUNCER_ADMIN_PASSWORD_KEY, context.getGeneratedPgBouncerAdminPassword()));
-    data.put(PGBOUNCER_STATS_USERNAME_ENV, PGBOUNCER_STATS_USERNAME);
-    data.put(PGBOUNCER_STATS_PASSWORD_KEY, previousSecretData
+  }
+
+  public static Tuple2<String, String> getPgBouncerStatsCredentials(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+
+    return getPgBouncerStatsCredentials(context, previousSecretData);
+  }
+
+  private static Tuple2<String, String> getPgBouncerStatsCredentials(StackGresClusterContext context,
+      Map<String, String> previousSecretData) {
+    return Tuple.tuple(
+        previousSecretData
+        .getOrDefault(PGBOUNCER_STATS_USERNAME_ENV, PGBOUNCER_STATS_USERNAME),
+        previousSecretData
         .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, context.getGeneratedPgBouncerStatsPassword()));
   }
 

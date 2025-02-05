@@ -48,6 +48,7 @@ import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.cluster.BackupMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
@@ -72,6 +73,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final PostgresSocketMounts postgresSocket;
   private final PostgresExtensionMounts postgresExtensions;
   private final TemplatesMounts templateMounts;
+  private final UserOverrideMounts userOverrideMounts;
   private final LocalBinMounts localBinMounts;
   private final RestoreMounts restoreMounts;
   private final BackupMounts backupMounts;
@@ -94,6 +96,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       PostgresSocketMounts postgresSocket,
       PostgresExtensionMounts postgresExtensions,
       TemplatesMounts templateMounts,
+      UserOverrideMounts userOverrideMounts,
       LocalBinMounts localBinMounts,
       RestoreMounts restoreMounts,
       BackupMounts backupMounts,
@@ -109,6 +112,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
     this.templateMounts = templateMounts;
+    this.userOverrideMounts = userOverrideMounts;
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
@@ -148,6 +152,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withMountPath(ClusterPath.PG_LOG_PATH.path())
             .build())
         .addAll(templateMounts.getVolumeMounts(context))
+        .addAll(userOverrideMounts.getVolumeMounts(context))
         .addAll(localBinMounts.getVolumeMounts(context))
         .addAll(patroniMounts.getVolumeMounts(context))
         .addAll(backupMounts.getVolumeMounts(context))

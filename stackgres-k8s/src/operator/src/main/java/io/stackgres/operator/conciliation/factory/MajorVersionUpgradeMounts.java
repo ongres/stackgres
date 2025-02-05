@@ -33,6 +33,9 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
   @Inject
   PostgresExtensionMounts postgresExtensionMounts;
 
+  @Inject
+  UserOverrideMounts userOverrideMounts;
+
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     if (Optional.of(context.getClusterContext().getSource())
@@ -43,6 +46,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .orElse(false)) {
       return ImmutableList.<VolumeMount>builder()
           .addAll(postgresExtensionMounts.getVolumeMounts(context))
+          .addAll(userOverrideMounts.getVolumeMounts(context))
           .build();
     }
 
@@ -50,6 +54,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
 
     return ImmutableList.<VolumeMount>builder()
         .addAll(postgresExtensionMounts.getVolumeMounts(context))
+        .addAll(userOverrideMounts.getVolumeMounts(context))
         .add(
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())

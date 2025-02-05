@@ -23,9 +23,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import jakarta.inject.Inject;
@@ -38,17 +38,17 @@ import jakarta.inject.Singleton;
 public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
 
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
-  private final PostgresSocketMounts postgresSocket;
-  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final PostgresSocketMounts postgresSocketMounts;
+  private final UserOverrideMounts userOverrideMounts;
 
   @Inject
   public PostgresUtil(
       PostgresEnvironmentVariables postgresEnvironmentVariables,
-      PostgresSocketMounts postgresSocket,
-      ContainerUserOverrideMounts containerUserOverrideMounts) {
+      PostgresSocketMounts postgresSocketMounts,
+      UserOverrideMounts userOverrideMounts) {
     this.postgresEnvironmentVariables = postgresEnvironmentVariables;
-    this.postgresSocket = postgresSocket;
-    this.containerUserOverrideMounts = containerUserOverrideMounts;
+    this.postgresSocketMounts = postgresSocketMounts;
+    this.userOverrideMounts = userOverrideMounts;
   }
 
   @Override
@@ -81,14 +81,14 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")
         .withArgs("-c", "while true; do sleep 10; done")
-        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresSocketMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.EMPTY_BASE.getName())
                 .withMountPath("/var/lib/postgresql")
                 .build()
         )
-        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(userOverrideMounts.getVolumeMounts(context))
         .addAllToEnv(postgresEnvironmentVariables.getEnvVars(context.getClusterContext()))
         .build();
   }

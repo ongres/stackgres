@@ -76,6 +76,7 @@ fi
 
 for EXTRA_MOUNT in $EXTRA_MOUNTS
 do
+  echo "Creating extra mount folder $PG_EXTENSIONS_EXTENSION_PATH/$EXTRA_MOUNT"
   mkdir -p "$PG_EXTENSIONS_EXTENSION_PATH/$EXTRA_MOUNT"
 done
 

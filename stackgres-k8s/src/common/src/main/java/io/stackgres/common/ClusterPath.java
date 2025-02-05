@@ -21,6 +21,7 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   SHARED_MEMORY_PATH("/dev/shm"),
   LOCAL_BIN_PATH("/usr/local/bin"),
   LOCAL_BIN_SHELL_UTILS_PATH(LOCAL_BIN_PATH, "shell-utils"),
+  LOCAL_BIN_SETUP_FILESYSTEM_SH_PATH(LOCAL_BIN_PATH, "setup-filesystem.sh"),
   LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH(LOCAL_BIN_PATH, "setup-arbitrary-user.sh"),
   LOCAL_BIN_SETUP_SCRIPTS_SH_PATH(LOCAL_BIN_PATH, "setup-scripts.sh"),
   LOCAL_BIN_RELOCATE_BINARIES_SH_PATH(LOCAL_BIN_PATH, "relocate-binaries.sh"),
@@ -120,6 +121,7 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   PGBOUNCER_CONFIG_UPDATED_FILE_PATH(PGBOUNCER_CONFIG_PATH, "updated"),
   PGBOUNCER_AUTH_PATH(PGBOUNCER_CONFIG_PATH, "auth"),
   PGBOUNCER_AUTH_FILE_PATH(PGBOUNCER_AUTH_PATH, "users.txt"),
+  PGBOUNCER_AUTH_TEMPLATE_FILE_PATH("/etc/pgbouncer-auth-users.template.txt"),
   FLUENT_BIT_LAST_CONFIG_PATH("/tmp", "last-fluentbit-conf");
 
   private final String path;

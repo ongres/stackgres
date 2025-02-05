@@ -37,6 +37,7 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -66,17 +67,21 @@ public class FluentBit implements
 
   private final LogVolumeMounts logMounts;
   private final PostgresSocketMounts postgresSocket;
-  private final TemplatesMounts scriptTemplatesVolumeMounts;
+  private final TemplatesMounts templatesMounts;
+  private final UserOverrideMounts userOverrideMounts;
 
   @Inject
-  public FluentBit(LabelFactoryForCluster labelFactory,
+  public FluentBit(
+      LabelFactoryForCluster labelFactory,
       LogVolumeMounts logMounts,
       PostgresSocketMounts postgresSocket,
-      TemplatesMounts scriptTemplatesVolumeMounts) {
+      TemplatesMounts templatesMounts,
+      UserOverrideMounts userOverrideMounts) {
     this.labelFactory = labelFactory;
     this.logMounts = logMounts;
     this.postgresSocket = postgresSocket;
-    this.scriptTemplatesVolumeMounts = scriptTemplatesVolumeMounts;
+    this.templatesMounts = templatesMounts;
+    this.userOverrideMounts = userOverrideMounts;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -121,10 +126,11 @@ public class FluentBit implements
             .build())
         .addAllToEnv(logMounts.getDerivedEnvVars(context))
         .addAllToEnv(postgresSocket.getDerivedEnvVars(context))
-        .addAllToEnv(scriptTemplatesVolumeMounts.getDerivedEnvVars(context))
+        .addAllToEnv(templatesMounts.getDerivedEnvVars(context))
         .addAllToVolumeMounts(logMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
-        .addAllToVolumeMounts(scriptTemplatesVolumeMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(templatesMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(userOverrideMounts.getVolumeMounts(context))
         .addToVolumeMounts(new VolumeMountBuilder()
             .withName(StackGresVolume.FLUENT_BIT.getName())
             .withMountPath("/etc/fluent-bit")

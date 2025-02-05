@@ -46,9 +46,9 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -87,17 +87,18 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   protected final LabelFactoryForCluster labelFactory;
 
   private final ObjectMapper objectMapper;
-  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final UserOverrideMounts userOverrideMounts;
 
   @Inject
-  public Envoy(YamlMapperProvider yamlMapperProvider,
+  public Envoy(
+      YamlMapperProvider yamlMapperProvider,
       ObjectMapper jsonMapper,
       LabelFactoryForCluster labelFactory,
-      ContainerUserOverrideMounts containerUserOverrideMounts) {
+      UserOverrideMounts userOverrideMounts) {
     this.yamlMapper = yamlMapperProvider.get();
     this.labelFactory = labelFactory;
     this.objectMapper = jsonMapper;
-    this.containerUserOverrideMounts = containerUserOverrideMounts;
+    this.userOverrideMounts = userOverrideMounts;
   }
 
   @Override
@@ -412,7 +413,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   }
 
   private List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
-    return Seq.seq(containerUserOverrideMounts.getVolumeMounts(context))
+    return Seq.seq(userOverrideMounts.getVolumeMounts(context))
         .append(Seq.of(
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
