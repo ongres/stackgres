@@ -64,11 +64,8 @@ build arm64:
     - linux-arm64
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         || $DO_ARM ) )
@@ -106,11 +103,8 @@ build ui arm64:
     - linux-arm64
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         ||  $DO_ARM ) )

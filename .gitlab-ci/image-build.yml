@@ -182,11 +182,8 @@ build admin-ui image amd64:
     IMAGE_SUFFIX: '-jvm-arm64'
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         || $DO_ARM ) )
@@ -202,11 +199,8 @@ build admin-ui image amd64:
     IMAGE_SUFFIX: '-arm64'
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         || ( $DO_NATIVE && $DO_ARM ) ) )
@@ -295,11 +289,8 @@ build admin-ui image arm64:
     IMAGE_MODULE_NAME: admin-ui-image
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         ||  $DO_ARM ) )
@@ -319,11 +310,8 @@ build admin-ui image arm64:
     IMAGE_SUFFIX: ''
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
         || ( $SKIP_NATIVE != "true" && $CI_COMMIT_TAG )
@@ -410,11 +398,8 @@ build admin-ui image multi archs:
     IMAGE_BASE_NAME: stackgres/operator-bundle
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
         ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         ||  $DO_ARM ) )
@@ -481,11 +466,8 @@ build operator openshift bundle image multi archs:
     IMAGE_BASE_NAME: stackgres/pglambda
   rules:
   - if: |
-     ( ( $CI_PIPELINE_SOURCE == 'merge_request_event'
-       || $CI_PIPELINE_SOURCE == 'push'
-       || $CI_PIPELINE_SOURCE == 'schedule'
-       || $CI_PIPELINE_SOURCE == 'trigger'
-       || $CI_COMMIT_TAG )
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
        ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
        || $DO_ARM ) )
