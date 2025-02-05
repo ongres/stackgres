@@ -257,7 +257,8 @@ check_volume_snapshot_backup_can_be_restored() {
     --set cluster.configurations.backups.useVolumeSnapshot=true
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
-  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   check_init_data_after_restore
 

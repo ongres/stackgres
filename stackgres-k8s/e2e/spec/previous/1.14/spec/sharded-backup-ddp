@@ -15,7 +15,8 @@ e2e_test_install() {
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 7
-  SWITCHOVER_TO_FIRST=true wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_sharded_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_mock_data
 
