@@ -32,7 +32,7 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
                             <ul class="paramUl">
                                 <li v-for="param in crd.data.status.pgBouncer['pgbouncer.ini']" v-if="(!crd.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter) || (crd.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter) && (crd.data.status.pgBouncer.defaultParameters[param.parameter] != param.value)) )">
-                                    <strong class="label">{{ param.parameter }}:</strong>
+                                    <strong class="label">{{ param.parameter }}: </strong>
                                     <span>{{ param.value }}</span>
                                 </li>
                             </ul>
@@ -44,7 +44,7 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.status.pgBouncer.defaultParameters')"></span>
                             <ul class="paramUl">
                                 <li v-for="param in crd.data.status.pgBouncer['pgbouncer.ini']" v-if="( crd.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter) && (crd.data.status.pgBouncer.defaultParameters[param.parameter] == param.value))">
-                                    <strong class="label">{{ param.parameter }}:</strong>
+                                    <strong class="label">{{ param.parameter }}: </strong>
                                     <span>{{ param.value }}</span>
                                 </li>
                             </ul>
@@ -66,7 +66,7 @@
                             <ul>
                                 <li v-for="param in (crd.data.spec.pgBouncer['pgbouncer.ini'].split(/\r?\n/))" v-if="param.length">
                                     <strong class="label" :set="p = getParam(param)">
-                                        {{ p.param }}:
+                                        {{ p.param }}: 
                                     </strong>
                                     <span class="value">
                                         {{ p.value }}

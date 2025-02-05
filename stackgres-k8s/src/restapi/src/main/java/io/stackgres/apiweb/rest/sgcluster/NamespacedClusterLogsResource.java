@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest.cluster;
+package io.stackgres.apiweb.rest.sgcluster;
 
 import java.time.Instant;
 import java.util.List;

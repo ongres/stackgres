@@ -1294,6 +1294,19 @@ describe('Create SGCluster', () => {
         cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
             .select('Disable')
 
+        // Test Dry Run
+        cy.get('form#createCluster button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#clusterSummary')
+            .should('be.visible')
+
+        cy.get('#clusterSummary span.close')
+            .click()
+
+        cy.get('#clusterSummary')
+            .should('not.exist')
+
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/advanced-' + resourceName)
             .as('getCluster')

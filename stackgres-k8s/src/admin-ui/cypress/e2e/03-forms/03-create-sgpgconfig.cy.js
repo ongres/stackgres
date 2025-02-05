@@ -49,6 +49,19 @@ describe('Create SGPostgresConfig', () => {
         cy.get('[data-field="spec.postgresql\\\\.conf"]')
             .type('autovacuum_max_workers = 2')
 
+        // Test Dry Run
+        cy.get('form#createPgConfig button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Test Submit form
         cy.get('form#createPgConfig button[type="submit"]')
             .click()

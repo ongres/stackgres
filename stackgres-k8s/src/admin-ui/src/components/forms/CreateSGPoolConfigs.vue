@@ -74,8 +74,30 @@
             <button @click="cancel()" class="btn border">Cancel</button>
             
             <button type="button" class="btn floatRight" @click="createPoolConfig(true)">View Summary</button>
+            <button
+                data-field="dryRun"
+                type="button"
+                class="btn border floatRight"
+                title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
+                @click="
+                    dryRun = true;
+                    createPoolConfig();
+                "
+            >
+                Dry Run
+            </button>
         </form>
-        <CRDSummary :crd="previewCRD" kind="SGPoolingConfig" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+        <CRDSummary
+            v-if="showSummary"
+            :crd="previewCRD"
+            :dryRun="dryRun"
+            kind="SGPoolingConfig"
+            @closeSummary="
+                showSummary = false;
+                dryRun = false;
+                previewCRD = {};
+            "
+        ></CRDSummary>
     </div>
 </template>
 
@@ -102,6 +124,7 @@
             return {
                 editMode: (vm.$route.name === 'EditPoolConfig'),
                 editReady: false,
+                dryRun: false,
                 previewCRD: {},
                 showSummary: false,
                 poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -140,7 +163,7 @@
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.poolConfigParams = vm.getParams(conf);
                             vm.poolConfigParamsObj = conf.data.status.pgBouncer["pgbouncer.ini"];
-                            vm.defaultParams = conf.data.status.pgBouncer["defaultParameters"];
+                            vm.defaultParams = conf.data.status.pgBouncer.defaultParameters;
                             vm.configClusters = [...conf.data.status.clusters];
                             config = conf;
 
@@ -159,8 +182,12 @@
                 const vc = this;
 
                 if(!vc.checkRequired()) {
+                    vc.dryRun = false;
+                    vc.showSummary = false;
                     return;
                 }
+
+                store.commit('loading', true);
 
                 if (!previous) {
                     sgApi
@@ -199,42 +226,58 @@
                     vc.previewCRD = {};
                     vc.previewCRD['data'] = config;
                     vc.showSummary = true;
+                    store.commit('loading', false);
 
                 } else {
 
                     if(this.editMode) {
                         sgApi
-                        .update('sgpoolconfigs', config)
+                        .update('sgpoolconfigs', config, vc.dryRun)
                         .then(function (response) {
-                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfigs');
 
-                            vc.fetchAPI('sgpoolconfig');
-                            router.push('/' + config.metadata.namespace + '/sgpoolconfig/' + config.metadata.name);
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
+                            } else {
+                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfigs');
+
+                                vc.fetchAPI('sgpoolconfig');
+                                router.push('/' + config.metadata.namespace + '/sgpoolconfig/' + config.metadata.name);
+                            }
+                            store.commit('loading', false);
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error','sgpoolconfigs');
+                            store.commit('loading', false);
                         });
 
                     } else {
                         sgApi
-                        .create('sgpoolconfigs', config)
+                        .create('sgpoolconfigs', config, vc.dryRun)
                         .then(function (response) {
                             
-                            var urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sgpoolconfig');
-                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpoolconfigs');
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
                             } else {
-                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
-                            }
+                                var urlParams = new URLSearchParams(window.location.search);
+                                if(urlParams.has('newtab')) {
+                                    opener.fetchParentAPI('sgpoolconfig');
+                                    vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpoolconfigs');
+                                } else {
+                                    vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
+                                }
 
-                            vc.fetchAPI('sgpoolconfig');
-                            router.push('/' + config.metadata.namespace + '/sgpoolconfigs');
+                                vc.fetchAPI('sgpoolconfig');
+                                router.push('/' + config.metadata.namespace + '/sgpoolconfigs');
+                            }
+                            store.commit('loading', false);
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error','sgpoolconfigs');
+                            store.commit('loading', false);
                         });
                     }
                 }
@@ -303,6 +346,30 @@
                 return finalParamsArr.join('\n')
             }
 
+        },
+
+        mounted() {
+            const vc = this;
+            
+            if(!vc.editMode) {
+                const config = {
+                    metadata: {
+                        name: '',
+                        namespace: vc.$route.params.namespace
+                    }
+                };
+
+                sgApi
+                .create('sgpoolconfigs', config, true)
+                .then(function (response) {
+                    vc.poolConfigParamsObj = response.data.status.pgBouncer["pgbouncer.ini"];
+                    vc.defaultParams = response.data.status.pgBouncer.defaultParameters;
+                })
+                .catch(function (error) {
+                    console.log(error.response);
+                });;
+            }
+            
         }
 
     }

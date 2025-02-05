@@ -198,6 +198,19 @@ describe('Create SGDbOp', () => {
         cy.get('select[data-field="spec.benchmark.pgbench.duration.seconds"]')
             .select('40')
 
+        // Test Dry Run
+        cy.get('form#createDbops button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
             .click()
@@ -257,6 +270,19 @@ describe('Create SGDbOp', () => {
         cy.get('select[data-field="spec.vacuum.databases[0].disablePageSkipping"]')
             .select('true')
 
+        // Test Dry Run
+        cy.get('form#createDbops button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
             .click()
@@ -293,6 +319,19 @@ describe('Create SGDbOp', () => {
         // Test Security Upgrade specs
         cy.get('select[data-field="spec.securityUpgrade.method"]')
             .select('ReducedImpact')
+
+        // Test Dry Run
+        cy.get('form#createDbops button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
 
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
@@ -333,6 +372,19 @@ describe('Create SGDbOp', () => {
 
         cy.get('select[data-field="spec.minorVersionUpgrade.postgresVersion"]')
             .select('14.5')
+
+        // Test Dry Run
+        cy.get('form#createDbops button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
 
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
@@ -384,6 +436,19 @@ describe('Create SGDbOp', () => {
         cy.get('select[data-field="spec.majorVersionUpgrade.sgPostgresConfig"]')
             .select(pgConfigName)
 
+        // Test Dry Run
+        cy.get('form#createDbops button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
             .click()
@@ -423,6 +488,19 @@ describe('Create SGDbOp', () => {
 
         cy.get('label[data-field="spec.restart.onlyPendingRestart"]')
             .click()
+
+        // Test Dry Run
+        cy.get('form#createDbops button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
 
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
