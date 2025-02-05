@@ -24,12 +24,12 @@ The `SGInstanceProfile` custom resource represents the CPU and memory resources 
 
 ```yaml
 apiVersion: stackgres.io/v1
-  kind: SGInstanceProfile
-  metadata:
-    name: size-l
-  spec:
-    cpu: "4"
-    memory: 8Gi
+kind: SGInstanceProfile
+metadata:
+  name: size-l
+spec:
+  cpu: "4"
+  memory: 8Gi
 ```
 
 See also [Instance Configuration section]({{% relref "04-administration-guide/04-configuration/02-instance-profile" %}}).
