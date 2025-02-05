@@ -95,10 +95,6 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "pgbouncer-auth-file": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "setup-filesystem": {
             "cpu": "500m",
             "memory": "512Mi"
@@ -163,10 +159,6 @@
               "memory": "512Mi"
             },
             "major-version-upgrade": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "pgbouncer-auth-file": {
               "cpu": "500m",
               "memory": "512Mi"
             },
@@ -253,10 +245,6 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "pgbouncer-auth-file": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "setup-filesystem": {
             "cpu": "500m",
             "memory": "512Mi"
@@ -321,10 +309,6 @@
               "memory": "512Mi"
             },
             "major-version-upgrade": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "pgbouncer-auth-file": {
               "cpu": "500m",
               "memory": "512Mi"
             },
