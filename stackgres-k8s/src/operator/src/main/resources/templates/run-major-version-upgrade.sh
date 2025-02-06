@@ -106,7 +106,7 @@ run_op() {
           $(
           if [ -n "$SOURCE_BACKUP_PATH" ]
           then
-            printf %s '"sourceBackupPath": "$SOURCE_BACKUP_PATH",'
+            printf '"sourceBackupPath": "%s",' "$SOURCE_BACKUP_PATH"
           fi
           )
           "targetPostgresVersion": "$TARGET_VERSION",
