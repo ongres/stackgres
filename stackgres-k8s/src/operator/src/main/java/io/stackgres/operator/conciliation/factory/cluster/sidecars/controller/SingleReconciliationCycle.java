@@ -41,7 +41,7 @@ import jakarta.inject.Singleton;
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.CLUSTER_RECONCILIATION_CYCLE)
-public class InitReconciliationCycle implements ContainerFactory<ClusterContainerContext> {
+public class SingleReconciliationCycle implements ContainerFactory<ClusterContainerContext> {
 
   @Override
   public boolean isActivated(ClusterContainerContext context) {

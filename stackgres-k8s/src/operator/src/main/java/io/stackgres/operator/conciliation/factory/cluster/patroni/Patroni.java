@@ -23,8 +23,8 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -179,6 +179,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .map(StackGresClusterPods::getDisableEnvoy)
         .orElse(false);
     final int patroniPort = isEnvoyDisabled ? EnvoyUtil.PATRONI_PORT : EnvoyUtil.PATRONI_ENTRY_PORT;
+    final int controllerPort = 8080;
 
     return new ContainerBuilder()
         .withName(StackGresContainer.PATRONI.getName())
@@ -205,25 +206,47 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
                 .map(data -> data.get(StackGresUtil.MD5SUM_2_KEY))
                 .orElseThrow())
             .build())
-        .withLivenessProbe(new ProbeBuilder()
-            .withHttpGet(new HTTPGetActionBuilder()
-                .withPath("/liveness")
-                .withPort(new IntOrString(patroniPort))
-                .withScheme("HTTP")
-                .build())
-            .withInitialDelaySeconds(15)
-            .withPeriodSeconds(20)
-            .withFailureThreshold(6)
+        .withReadinessProbe(new ProbeBuilder(cluster.getSpec().getPods().getReadinessProbe())
+            .withNewHttpGet()
+            .withPath("/readiness")
+            .withPort(new IntOrString(patroniPort))
+            .withScheme("HTTP")
+            .endHttpGet()
+            .withInitialDelaySeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getInitialDelaySeconds)
+                .orElse(0))
+            .withPeriodSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getPeriodSeconds)
+                .orElse(2))
+            .withTimeoutSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getTimeoutSeconds)
+                .orElse(1))
+            .withFailureThreshold(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getFailureThreshold)
+                .orElse(6))
             .build())
-        .withReadinessProbe(new ProbeBuilder()
-            .withHttpGet(new HTTPGetActionBuilder()
-                .withPath("/readiness")
-                .withPort(new IntOrString(patroniPort))
-                .withScheme("HTTP")
-                .build())
-            .withInitialDelaySeconds(0)
-            .withPeriodSeconds(2)
-            .withTimeoutSeconds(1)
+        .withLivenessProbe(new ProbeBuilder()
+            .withNewHttpGet()
+            .withPath("/controller/liveness")
+            .withPort(new IntOrString(controllerPort))
+            .withScheme("HTTP")
+            .endHttpGet()
+            .withInitialDelaySeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getInitialDelaySeconds)
+                .orElse(15))
+            .withPeriodSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getPeriodSeconds)
+                .orElse(20))
+            .withFailureThreshold(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getFailureThreshold)
+                .orElse(6))
             .build())
         .withPorts(getContainerPorts(cluster))
         .build();
