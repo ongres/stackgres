@@ -5,23 +5,34 @@ e2e_test_install() {
   EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_configured)"
   HIGH_PV_SIZE="256Mi"
   LOW_PV_SIZE="128Mi"  
+  DISTRIBUTEDLOGS_NAME="$CLUSTER_NAME-dl"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set cluster.pods.persistentVolume.size="$LOW_PV_SIZE" \
-    --set cluster.pods.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
+    --set cluster.pods.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME" \
+    --set cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
+    --set distributedLogs.enabled=true \
+    --set distributedLogs.create=create \
+    --set distributedLogs.persistentVolume.size="$LOW_PV_SIZE" \
+    --set distributedLogs.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
     
-  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_pods_running "$CLUSTER_NAMESPACE" "3"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 }
 
 e2e_test() {
   run_test "Checking that is possible to increase SGCluster PVC size" test_increase_sgcluster_pvc_size
 
-  # Removed test for distributed logs since it is not possible to create one using version 1.13
+  run_test "Checking that is possible to increase SGDistributedLogs PVC size" test_increase_sgdistributedlogs_pvc_size    
 }
 
 test_increase_sgcluster_pvc_size(){
   increase_sgcluster_pv_size
   wait_until assert_sgcluster_pvc_sizes
+}
+
+test_increase_sgdistributedlogs_pvc_size(){
+  increase_sgdistributedlogs_pv_size
+  wait_until assert_sgdistributedlogs_pvc_sizes
 }
 
 patch_sgcluster_pv(){
@@ -31,8 +42,18 @@ patch_sgcluster_pv(){
     -p '[{ "op": "replace", "path": "/spec/pods/persistentVolume/size", "value": '"$NEW_SIZE"' }]'
 }
 
+patch_sgdistributedlogs_pv(){
+  local NEW_SIZE
+  NEW_SIZE="$1"
+  kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --type='json' \
+    -p '[{ "op": "replace", "path": "/spec/persistentVolume/size", "value": '"$NEW_SIZE"' }]'
+}
 increase_sgcluster_pv_size(){
   patch_sgcluster_pv "$HIGH_PV_SIZE"
+}
+
+increase_sgdistributedlogs_pv_size(){
+  patch_sgdistributedlogs_pv "$HIGH_PV_SIZE"
 }
 
 assert_sgcluster_pvc_sizes(){
@@ -50,6 +71,19 @@ assert_sgcluster_pvc_sizes(){
   fi
 }
 
+assert_sgdistributedlogs_pvc_sizes(){
+  local EXPECTED_SIZE
+  local PVC_SIZE
+  EXPECTED_SIZE="$(get_sgdistributedlogs_pv_size)"
+  PVC_SIZE="$(get_sgdistributedlogs_pvc_size 0)"
+  if [ "$PVC_SIZE" = "$EXPECTED_SIZE" ]
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
 get_sgcluster_pv_size(){
   kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.pods.persistentVolume.size}'
 }
@@ -57,6 +91,15 @@ get_sgcluster_pv_size(){
 get_sgcluster_pvc_size(){
   INSTANCE=$1
   kubectl get pvc -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-data-$CLUSTER_NAME-$INSTANCE" -o jsonpath='{.spec.resources.requests.storage}'
+}
+
+get_sgdistributedlogs_pv_size(){
+  kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o jsonpath='{.spec.persistentVolume.size}'
+}
+
+get_sgdistributedlogs_pvc_size(){
+  INSTANCE=$1
+  kubectl get pvc -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME-data-$DISTRIBUTEDLOGS_NAME-$INSTANCE" -o jsonpath='{.spec.resources.requests.storage}'
 }
 
 e2e_test_uninstall() {

@@ -11,7 +11,6 @@ e2e_test_install() {
     --set-string cluster.distributedLogs.sgDistributedLogs=distributedlogs \
     --set distributedLogs.enabled=true \
     --set-string "distributedLogs.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
-
 }
 
 e2e_test_uninstall() {

@@ -16,7 +16,7 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-}}
+}
 
 e2e_test() {
   run_test "Checking that it is not possible to connect to postgres without a password" check_password_required

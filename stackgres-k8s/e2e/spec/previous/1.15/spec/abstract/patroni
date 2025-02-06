@@ -51,7 +51,7 @@ patroni_readiness_check() {
 }
 
 get_pod_ip(){
-  kubectl get pods -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o wide | tail -n 1 | awk '{ print $6 }'
+  kubectl get pods -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o json | jq -r .status.podIP
 }
 
 patroni_curl(){
