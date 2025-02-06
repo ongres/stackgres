@@ -164,7 +164,9 @@ public class ClusterPodTemplateSpecFactory
         .withVolumes(volumes)
         .withContainers(containers)
         .withInitContainers(initContainers)
-        .withTerminationGracePeriodSeconds(60L)
+        .withTerminationGracePeriodSeconds(
+            Optional.ofNullable(cluster.getSpec().getPods().getTerminationGracePeriodSeconds())
+            .orElse(60L))
         .withShareProcessNamespace(Boolean.TRUE)
         .withServiceAccountName(PatroniRole.roleName(context.getClusterContext()))
         .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))

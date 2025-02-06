@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
@@ -47,6 +48,12 @@ public class ClusterPods {
   private Map<String, List<CustomVolumeMount>> customVolumeMounts;
 
   private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
+
+  private Long terminationGracePeriodSeconds;
+
+  private Probe readinessProbe;
+
+  private Probe livenessProbe;
 
   public ClusterPodsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -150,6 +157,30 @@ public class ClusterPods {
 
   public void setCustomInitVolumeMounts(Map<String, List<CustomVolumeMount>> customInitVolumeMounts) {
     this.customInitVolumeMounts = customInitVolumeMounts;
+  }
+
+  public Long getTerminationGracePeriodSeconds() {
+    return terminationGracePeriodSeconds;
+  }
+
+  public void setTerminationGracePeriodSeconds(Long terminationGracePeriodSeconds) {
+    this.terminationGracePeriodSeconds = terminationGracePeriodSeconds;
+  }
+
+  public Probe getReadinessProbe() {
+    return readinessProbe;
+  }
+
+  public void setReadinessProbe(Probe readinessProbe) {
+    this.readinessProbe = readinessProbe;
+  }
+
+  public Probe getLivenessProbe() {
+    return livenessProbe;
+  }
+
+  public void setLivenessProbe(Probe livenessProbe) {
+    this.livenessProbe = livenessProbe;
   }
 
   @Override

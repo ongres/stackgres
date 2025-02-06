@@ -48,11 +48,7 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
 
     List<EnvVar> additionalEnvVars = new ArrayList<>();
 
-    additionalEnvVars.add(
-        new EnvVarBuilder()
-        .withName(ClusterPath.PATRONI_START_FILE_PATH.name())
-        .withValue(ClusterPath.PATRONI_START_FILE_PATH.path())
-        .build());
+    additionalEnvVars.add(ClusterPath.PATRONI_START_FILE_PATH.envVar());
     additionalEnvVars.add(
         new EnvVarBuilder()
         .withName(PatroniUtil.PATRONI_READ_ONLY_SERVICE_NAME)

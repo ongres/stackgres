@@ -12,6 +12,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
@@ -68,6 +69,12 @@ public class StackGresClusterPods {
   @Valid
   private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
 
+  private Long terminationGracePeriodSeconds;
+
+  private Probe readinessProbe;
+
+  private Probe livenessProbe;
+  
   @ReferencedField("persistentVolume")
   interface PersistentVolume extends FieldReference {
   }
@@ -183,12 +190,36 @@ public class StackGresClusterPods {
     this.customInitVolumeMounts = customInitVolumeMounts;
   }
 
+  public Long getTerminationGracePeriodSeconds() {
+    return terminationGracePeriodSeconds;
+  }
+
+  public void setTerminationGracePeriodSeconds(Long terminationGracePeriodSeconds) {
+    this.terminationGracePeriodSeconds = terminationGracePeriodSeconds;
+  }
+
+  public Probe getReadinessProbe() {
+    return readinessProbe;
+  }
+
+  public void setReadinessProbe(Probe readinessProbe) {
+    this.readinessProbe = readinessProbe;
+  }
+
+  public Probe getLivenessProbe() {
+    return livenessProbe;
+  }
+
+  public void setLivenessProbe(Probe livenessProbe) {
+    this.livenessProbe = livenessProbe;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(customContainers, customInitContainers, customInitVolumeMounts,
         customVolumeMounts, customVolumes, disableConnectionPooling, disableEnvoy,
-        disableMetricsExporter, disablePostgresUtil, managementPolicy, persistentVolume, resources,
-        scheduling);
+        disableMetricsExporter, disablePostgresUtil, livenessProbe, managementPolicy,
+        persistentVolume, readinessProbe, resources, scheduling, terminationGracePeriodSeconds);
   }
 
   @Override
@@ -209,10 +240,13 @@ public class StackGresClusterPods {
         && Objects.equals(disableEnvoy, other.disableEnvoy)
         && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
+        && Objects.equals(livenessProbe, other.livenessProbe)
         && Objects.equals(managementPolicy, other.managementPolicy)
         && Objects.equals(persistentVolume, other.persistentVolume)
+        && Objects.equals(readinessProbe, other.readinessProbe)
         && Objects.equals(resources, other.resources)
-        && Objects.equals(scheduling, other.scheduling);
+        && Objects.equals(scheduling, other.scheduling)
+        && Objects.equals(terminationGracePeriodSeconds, other.terminationGracePeriodSeconds);
   }
 
   @Override

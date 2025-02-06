@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -83,6 +84,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   private static final String TRUE_TAG_VALUE = PatroniUtil.TRUE_TAG_VALUE;
   private static final String FALSE_TAG_VALUE = PatroniUtil.FALSE_TAG_VALUE;
 
+  private static final AtomicBoolean STARTUP = new AtomicBoolean(false);
+
   private final Supplier<Boolean> reconcilePatroni;
   private final String podName;
   private final EventController eventController;
@@ -103,6 +106,10 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.eventController = parameters.eventController;
     this.objectMapper = parameters.objectMapper;
+  }
+
+  public Boolean isStartup() {
+    return STARTUP.get();
   }
 
   @Override
@@ -173,6 +180,9 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
       Files.setLastModifiedTime(PATRONI_START_FILE_PATH, FileTime.from(Instant.now()));
     } else {
       Files.createFile(PATRONI_START_FILE_PATH);
+    }
+    if (!STARTUP.get()) {
+      STARTUP.set(true);
     }
     if (!Files.exists(PATRONI_CONFIG_PATH)) {
       LOGGER.warn("Can not reload patroni config since config file {} was not found, will retry later",

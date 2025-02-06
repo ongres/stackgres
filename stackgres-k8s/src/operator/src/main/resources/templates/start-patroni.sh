@@ -1,3 +1,5 @@
+#!/bin/sh
+
 export SHELL_XTRACE=$(! echo $- | grep -q x || printf %s -x)
 export HOME="$PG_BASE_PATH"
 export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
@@ -6,6 +8,7 @@ export PATRONI_RESTAPI_CONNECT_ADDRESS="$(eval "echo $PATRONI_RESTAPI_CONNECT_AD
 
 echo "Setting up scripts..."
 sh -e $SHELL_XTRACE "$TEMPLATES_PATH/setup-scripts.sh"
+
 
 echo "Waiting for the controller to setup things..."
 (
