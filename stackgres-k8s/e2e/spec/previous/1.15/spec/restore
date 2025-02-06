@@ -21,6 +21,7 @@ e2e_test_install() {
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 1 "$BACKUP_CLUSTER_NAME-[0-9]\+"
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
 
   create_mock_data
 
@@ -222,6 +223,7 @@ check_backup_can_be_restored() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   check_init_data_after_restore
 
@@ -298,6 +300,7 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[0-9]\+"
 
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
   then
@@ -375,6 +378,7 @@ check_restore_using_pitr() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   local RESULT
   RESULT="$(run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
