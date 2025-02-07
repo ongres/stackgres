@@ -32,7 +32,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgcluster'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -57,7 +57,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpgconfig'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -82,7 +82,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpoolconfig'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -107,7 +107,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sginstanceprofile'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -132,7 +132,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackupconfig'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -157,7 +157,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackup'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -182,7 +182,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdistributedlogs'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -207,7 +207,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdbops'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -232,7 +232,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgobjectstorage'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -257,7 +257,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgscript'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -282,7 +282,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardedcluster'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -307,7 +307,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardedbackup'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -332,7 +332,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardeddbops'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
@@ -357,7 +357,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgstreams'
-        port: {{ .Values.operator.port }}
+        port: {{ .Values.operator.servicePort }}
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
