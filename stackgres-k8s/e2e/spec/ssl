@@ -19,6 +19,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -39,34 +40,7 @@ generated_ssl_check() {
 
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls /etc/ssl/tls.key
 
-  if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
-  then
-    echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-      sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
-  fi
-
-  RESPONSE_PRIMARY="$(wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432)"
-
-  if [ "$RESPONSE_PRIMARY" = "1" ]
-  then
-    if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
-    then
-      echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c postgres-util -- \
-        sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
-    fi
-
-    RESPONSE_REPLICA="$(run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
-    if [ "$RESPONSE_REPLICA" = "1" ]
-    then
-      success "Connections are possible using SSL"
-    else
-      fail "Cannot connect to replica db using SSL"
-    fi
-  else
-    fail "Cannot connect to primary db using SSL"
-  fi
+  ssl_check
 }
 
 provided_ssl_check() {
@@ -84,23 +58,53 @@ provided_ssl_check() {
   wait_until eval '[ "$(kubectl get secret -n "$CLUSTER_NAME" ssl-provided --template "{{ .data \"tls.key\" | base64decode }}")" = \
     "$(kubectl exec -n "$CLUSTER_NAME" "$CLUSTER_NAME-0" -c patroni -- cat /etc/ssl/tls.key)" ]'
 
-  if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432 >/dev/null 2>&1
-  then
-    echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-      sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
-  fi
+  ssl_check
+}
+
+ssl_check() {
+  local RETRY=3
+  local EXIT_CODE RESULT
+  while [ "$RETRY" -gt 0 ]
+  do
+    if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
+    then
+      echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
+      kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
+      wait_pods_running "$CLUSTER_NAMESPACE" 2
+      wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+      switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+    fi
+    try_function wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
+    if "$RESULT"
+    then
+      break
+    fi
+    RETRY="$((RETRY - 1))"
+  done
 
   RESPONSE_PRIMARY="$(wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
-    if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
-    then
-      echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c postgres-util -- \
-        sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
-    fi
+    local RETRY=3
+    local EXIT_CODE RESULT
+    while [ "$RETRY" -gt 0 ]
+    do
+      if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
+      then
+        echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
+        kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+        wait_pods_running "$CLUSTER_NAMESPACE" 2
+        wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+        switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+      fi
+      try_function wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
+      if "$RESULT"
+      then
+        break
+      fi
+      RETRY="$((RETRY - 1))"
+    done
 
     RESPONSE_REPLICA="$(wait_until run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
