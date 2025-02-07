@@ -71,6 +71,8 @@ exec java \
     [ -z "$OPERATOR_CERT_FILE" ] || printf ' %s' "-Dquarkus.http.ssl.certificate.files=$OPERATOR_CERT_FILE"
     [ -z "$OPERATOR_KEY_FILE" ] || printf ' %s' "-Dquarkus.http.ssl.certificate.key-files=$OPERATOR_KEY_FILE"
   ) \
-  $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
   -Dquarkus.http.host=0.0.0.0 \
+  -Dquarkus.http.port="${OPERATOR_HTTP_PORT:-8080}" \
+  -Dquarkus.http.ssl-port="${OPERATOR_HTTPS_PORT:-8443}" \
+  $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
   $APP_OPTS
