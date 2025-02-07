@@ -28,6 +28,8 @@ public class StackGresClusterPodStatus {
 
   private String name;
 
+  private String nodeName;
+
   private Integer replicationGroup;
 
   private Boolean primary;
@@ -51,6 +53,14 @@ public class StackGresClusterPodStatus {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getNodeName() {
+    return nodeName;
+  }
+
+  public void setNodeName(String nodeName) {
+    this.nodeName = nodeName;
   }
 
   public Integer getReplicationGroup() {
@@ -88,7 +98,7 @@ public class StackGresClusterPodStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(installedPostgresExtensions, name, pendingRestart, primary,
+    return Objects.hash(installedPostgresExtensions, name, nodeName, pendingRestart, primary,
         replicationGroup);
   }
 
@@ -102,7 +112,8 @@ public class StackGresClusterPodStatus {
     }
     StackGresClusterPodStatus other = (StackGresClusterPodStatus) obj;
     return Objects.equals(installedPostgresExtensions, other.installedPostgresExtensions)
-        && Objects.equals(name, other.name) && Objects.equals(pendingRestart, other.pendingRestart)
+        && Objects.equals(name, other.name) && Objects.equals(nodeName, other.nodeName)
+        && Objects.equals(pendingRestart, other.pendingRestart)
         && Objects.equals(primary, other.primary)
         && Objects.equals(replicationGroup, other.replicationGroup);
   }

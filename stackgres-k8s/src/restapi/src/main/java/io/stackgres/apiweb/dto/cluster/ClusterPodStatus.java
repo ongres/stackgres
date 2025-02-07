@@ -17,6 +17,8 @@ public class ClusterPodStatus {
 
   private String name;
 
+  private String nodeName;
+
   private Integer replicationGroup;
 
   private Boolean primary;
@@ -31,6 +33,14 @@ public class ClusterPodStatus {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getNodeName() {
+    return nodeName;
+  }
+
+  public void setNodeName(String nodeName) {
+    this.nodeName = nodeName;
   }
 
   public Integer getReplicationGroup() {

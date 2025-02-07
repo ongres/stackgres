@@ -7,6 +7,7 @@ package io.stackgres.cluster.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -45,6 +46,7 @@ public class ClusterControllerReconciliator
   private final PatroniBackupFailoverRestartReconciliator patroniBackupFailoverRestartReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
   private final String podName;
+  private final String nodeName;
 
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
@@ -63,6 +65,8 @@ public class ClusterControllerReconciliator
     this.propertyContext = parameters.propertyContext;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
+    this.nodeName = parameters.propertyContext
+        .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_NODE_NAME);
   }
 
   public ClusterControllerReconciliator() {
@@ -82,6 +86,7 @@ public class ClusterControllerReconciliator
     this.patroniBackupFailoverRestartReconciliator = null;
     this.propertyContext = null;
     this.podName = null;
+    this.nodeName = null;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
@@ -90,13 +95,19 @@ public class ClusterControllerReconciliator
   public ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresClusterContext context) throws Exception {
     final StackGresCluster cluster = context.getCluster();
-    final boolean podStatusMissing = Optional.ofNullable(cluster.getStatus())
+    final Optional<StackGresClusterPodStatus> foundPodStatus =
+        Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getPodStatuses)
         .stream()
         .flatMap(List::stream)
-        .map(StackGresClusterPodStatus::getName)
-        .noneMatch(podName::equals);
-    if (podStatusMissing) {
+        .filter(podStatus -> Objects.equals(podName, podStatus.getName()))
+        .findFirst();
+    final boolean nodeNameChanged;
+    if (foundPodStatus.isPresent()) {
+      nodeNameChanged = Objects.equals(foundPodStatus.get().getNodeName(), nodeName);
+      foundPodStatus.get().setNodeName(nodeName);
+    } else {
+      nodeNameChanged = true;
       if (cluster.getStatus() == null) {
         cluster.setStatus(new StackGresClusterStatus());
       }
@@ -105,6 +116,7 @@ public class ClusterControllerReconciliator
       }
       StackGresClusterPodStatus podStatus = new StackGresClusterPodStatus();
       podStatus.setName(podName);
+      podStatus.setNodeName(nodeName);
       podStatus.setPrimary(false);
       podStatus.setPendingRestart(false);
       cluster.getStatus().getPodStatuses().add(podStatus);
@@ -131,7 +143,8 @@ public class ClusterControllerReconciliator
     ReconciliationResult<Void> patroniBackupFailoverRestartReconciliatorResult =
         patroniBackupFailoverRestartReconciliator.reconcile(client, context);
 
-    if (podStatusMissing
+    if (foundPodStatus.isEmpty()
+        || nodeNameChanged
         || postgresBootstrapReconciliatorResult.result().orElse(false)
         || extensionReconciliationResult.result().orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
