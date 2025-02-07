@@ -244,6 +244,27 @@ spec:
                           Section to configure Operator Service annotations
 
                           > This value can only be set in operator helm chart.
+                  port:
+                    type: integer
+                    description: |
+                      The port that will be exposed by the operator Service for HTTPS
+
+                      > This value can only be set in operator helm chart.
+                    default: 443
+                  internalHttpPort:
+                    type: integer
+                    description: |
+                      The port that the operator will use to listen for HTTP
+                      
+                      > This value can only be set in operator helm chart or with the environment variable `OPERATOR_HTTP_PORT`.
+                    default: 8080
+                  internalHttpsPort:
+                    type: integer
+                    description: |
+                      The port that the operator will use to listen for HTTPS
+
+                      > This value can only be set in operator helm chart or with the environment variable `OPERATOR_HTTPS_PORT`.
+                    default: 8443
               restapi:
                 type: object
                 description: Section to configure REST API Pod

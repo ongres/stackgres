@@ -43,6 +43,10 @@ operator:
   service:
     # -- Section to configure Operator Service annotations
     annotations: {}
+  # Section to configure Operator port
+  # port: 443
+  # internalHttpPort: 8080
+  # internalHttpsPort: 8443
 
 # Section to configure REST API Pod
 restapi:

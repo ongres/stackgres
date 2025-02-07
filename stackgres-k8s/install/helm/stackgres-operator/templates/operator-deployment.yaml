@@ -144,6 +144,14 @@ spec:
           - name: DEBUG_OPERATOR_SUSPEND
             value: "{{ .Values.developer.enableJvmDebugSuspend }}"
           {{- end }}
+          {{- with .Values.operator.internalHttpPort }}
+          - name: OPERATOR_HTTP_PORT
+            value: {{ . }}
+          {{- end }}
+          {{- with .Values.operator.internalHttpsPort }}
+          - name: OPERATOR_HTTPS_PORT
+            value: {{ . }}
+          {{- end }}
           - name: OPERATOR_SERVICE_ACCOUNT
             valueFrom:
               fieldRef:
