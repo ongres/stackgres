@@ -17,6 +17,7 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -28,6 +29,7 @@ public class StackGresClusterRestoreFromBackup {
 
   private String uid;
 
+  @NotNull(message = "name cannot be null")
   private String name;
 
   private String target;
@@ -45,8 +47,8 @@ public class StackGresClusterRestoreFromBackup {
   @Valid
   private StackGresClusterRestorePitr pointInTimeRecovery;
 
-  @ReferencedField("name")
-  interface Name extends FieldReference { }
+  @ReferencedField("uid")
+  interface Uid extends FieldReference { }
 
   @ReferencedField("targetName")
   interface TargetName extends FieldReference { }
@@ -61,11 +63,10 @@ public class StackGresClusterRestoreFromBackup {
   interface PointInTimeRecovery extends FieldReference { }
 
   @JsonIgnore
-  @AssertTrue(message = "name cannot be null",
-      payload = { Name.class })
-  public boolean isNameNotNullOrUidNotNull() {
-    return (name != null && uid == null) // NOPMD
-        || (name == null && uid != null); // NOPMD
+  @AssertTrue(message = "uid is deprecated, use name instead!",
+      payload = { Uid.class })
+  public boolean isUidNull() {
+    return uid == null;
   }
 
   @JsonIgnore

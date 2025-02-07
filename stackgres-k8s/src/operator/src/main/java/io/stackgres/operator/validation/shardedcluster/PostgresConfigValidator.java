@@ -9,15 +9,12 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operatorframework.resource.ResourceUtil.getServiceAccountFromUsername;
 import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAccountUsername;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
@@ -25,16 +22,10 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardConfigurations;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
-import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
-import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -59,8 +50,6 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
       Map.entry("14.3", PG_14_CREATE_CONCURRENT_INDEX_BUG)
       );
 
-  private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
-
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
 
@@ -68,16 +57,13 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
   private final String errorForbiddenUpdateUri;
 
   @Inject
-  public PostgresConfigValidator(
-      CustomResourceFinder<StackGresPostgresConfig> configFinder) {
-    this(configFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
+  public PostgresConfigValidator() {
+    this(ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public PostgresConfigValidator(
-      CustomResourceFinder<StackGresPostgresConfig> configFinder,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>>
           orderedSupportedPostgresVersions) {
-    this.configFinder = configFinder;
     this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
@@ -120,28 +106,8 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
       fail(errorPostgresMismatchUri, message);
     }
 
-    new CoordinatorPostgresConfigValidator(configFinder).validate(review);
-    new ShardsPostgresConfigValidator(configFinder).validate(review);
-    for (var overrideShard : Optional.ofNullable(review.getRequest().getObject())
-        .map(StackGresShardedCluster::getSpec)
-        .map(StackGresShardedClusterSpec::getShards)
-        .map(StackGresShardedClusterShards::getOverrides)
-        .map(Seq::seq)
-        .map(seq -> seq.zipWithIndex().toList())
-        .orElse(List.of())) {
-      if (overrideShard.v1.getConfigurationsForShards() == null
-          || overrideShard.v1.getConfigurationsForShards().getSgPostgresConfig() == null) {
-        continue;
-      }
-      new ShardsOverridePostgresConfigValidator(
-          configFinder,
-          overrideShard.v2.intValue(),
-          overrideShard.v1.getIndex()).validate(review);
-    }
-
     String givenMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
         .getMajorVersion(givenPgVersion);
-    String namespace = cluster.getMetadata().getNamespace();
     String username = review.getRequest().getUserInfo().getUsername();
 
     switch (review.getRequest().getOperation()) {
@@ -151,22 +117,6 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
           fail(errorForbiddenUpdateUri, "Do not use PostgreSQL " + givenPgVersion + ". "
               + BUGGY_PG_VERSIONS.get(givenPgVersion));
         }
-        validateAgainstConfiguration(givenMajorVersion, coordinatorPgConfig, namespace,
-            "for coordinator");
-        validateAgainstConfiguration(givenMajorVersion, shardsPgConfig, namespace,
-            "for shards");
-        for (var overrideShard : Optional.of(cluster.getSpec().getShards())
-            .map(StackGresShardedClusterShards::getOverrides)
-            .orElse(List.of())) {
-          if (overrideShard.getConfigurationsForShards() == null
-              || overrideShard.getConfigurationsForShards().getSgPostgresConfig() == null) {
-            continue;
-          }
-          String overrideShardsPgConfig = overrideShard
-              .getConfigurationsForShards().getSgPostgresConfig();
-          validateAgainstConfiguration(givenMajorVersion, overrideShardsPgConfig, namespace,
-              "for shard " + overrideShard.getIndex());
-        }
         break;
       case UPDATE:
         StackGresShardedCluster oldCluster = review.getRequest().getOldObject();
@@ -175,45 +125,6 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
             getPostgresFlavorComponent(oldCluster))) {
           fail(errorForbiddenUpdateUri,
               "postgres flavor can not be changed");
-        }
-
-        String oldCoordinatorPgConfig = oldCluster.getSpec().getCoordinator()
-            .getConfigurationsForCoordinator().getSgPostgresConfig();
-        if (!oldCoordinatorPgConfig.equals(coordinatorPgConfig)) {
-          validateAgainstConfiguration(givenMajorVersion, coordinatorPgConfig, namespace,
-              "for coordinator");
-        }
-        String oldShardsPgConfig = oldCluster.getSpec().getShards()
-            .getConfigurations().getSgPostgresConfig();
-        if (!oldShardsPgConfig.equals(shardsPgConfig)) {
-          validateAgainstConfiguration(givenMajorVersion, shardsPgConfig, namespace,
-              "for shards");
-        }
-        for (var overrideShard : Optional.of(cluster.getSpec().getShards())
-            .map(StackGresShardedClusterShards::getOverrides)
-            .orElse(List.of())) {
-          if (overrideShard.getConfigurationsForShards() == null
-              || overrideShard.getConfigurationsForShards().getSgPostgresConfig() == null) {
-            continue;
-          }
-          String overrideShardsPgConfig = overrideShard
-              .getConfigurationsForShards().getSgPostgresConfig();
-          String oldOverrideShardsPgConfig = Optional.of(oldCluster.getSpec().getShards())
-              .map(StackGresShardedClusterShards::getOverrides)
-              .stream()
-              .flatMap(List::stream)
-              .filter(oldOverride -> Objects.equals(
-                  oldOverride.getIndex(),
-                  overrideShard.getIndex()))
-              .findFirst()
-              .map(StackGresShardedClusterShard::getConfigurationsForShards)
-              .map(StackGresShardedClusterShardConfigurations::getSgPostgresConfig)
-              .orElse(oldCluster.getSpec().getShards()
-                  .getConfigurations().getSgPostgresConfig());
-          if (!oldOverrideShardsPgConfig.equals(overrideShardsPgConfig)) {
-            validateAgainstConfiguration(givenMajorVersion, overrideShardsPgConfig, namespace,
-                "for shard " + overrideShard.getIndex());
-          }
         }
 
         long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
@@ -260,159 +171,10 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
     }
   }
 
-  private void validateAgainstConfiguration(String givenMajorVersion,
-      String pgConfig, String namespace, String...messageSuffixes) throws ValidationFailed {
-    Optional<StackGresPostgresConfig> postgresConfigOpt = configFinder
-        .findByNameAndNamespace(pgConfig, namespace);
-
-    if (postgresConfigOpt.isPresent()) {
-      StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
-      String pgVersion = postgresConfig.getSpec().getPostgresVersion();
-
-      if (!pgVersion.equals(givenMajorVersion)) {
-        final String message = "Invalid postgres version, must be "
-            + pgVersion + " to use SGPostgresConfig " + pgConfig
-            + (messageSuffixes.length == 0 ? ""
-                : " " + Arrays.asList(messageSuffixes).stream().collect(Collectors.joining(" ")));
-        fail(errorPostgresMismatchUri, message);
-      }
-    }
-  }
-
   private boolean isPostgresVersionSupported(StackGresShardedCluster cluster, String version) {
     return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
         .get(StackGresVersion.getStackGresVersion(cluster))
         .contains(version);
-  }
-
-  private class CoordinatorPostgresConfigValidator
-      extends AbstractReferenceValidator<
-        StackGresShardedCluster, StackGresShardedClusterReview, StackGresPostgresConfig> {
-
-    private CoordinatorPostgresConfigValidator(
-        CustomResourceFinder<StackGresPostgresConfig> configFinder) {
-      super(configFinder);
-    }
-
-    @Override
-    protected Class<StackGresPostgresConfig> getReferenceClass() {
-      return StackGresPostgresConfig.class;
-    }
-
-    @Override
-    protected String getReference(StackGresShardedCluster resource) {
-      return Optional.ofNullable(resource.getSpec()
-          .getCoordinator().getConfigurationsForCoordinator())
-          .map(StackGresClusterConfigurations::getSgPostgresConfig)
-          .orElse(null);
-    }
-
-    @Override
-    protected boolean checkReferenceFilter(StackGresShardedClusterReview review) {
-      return !Optional.ofNullable(review.getRequest().getDryRun()).orElse(false);
-    }
-
-    @Override
-    protected void onNotFoundReference(String message) throws ValidationFailed {
-      PostgresConfigValidator.this.fail(message);
-    }
-
-    @Override
-    protected String getCreateNotFoundErrorMessage(String reference) {
-      return HasMetadata.getKind(getReferenceClass())
-          + " " + reference + " not found for coordinator";
-    }
-
-    @Override
-    protected String getUpdateNotFoundErrorMessage(String reference) {
-      return "Cannot update coordinator to "
-          + HasMetadata.getKind(getReferenceClass()) + " "
-          + reference + " because it doesn't exists";
-    }
-  }
-
-  private class ShardsPostgresConfigValidator
-      extends CoordinatorPostgresConfigValidator {
-
-    private ShardsPostgresConfigValidator(
-        CustomResourceFinder<StackGresPostgresConfig> configFinder) {
-      super(configFinder);
-    }
-
-    @Override
-    protected String getReference(StackGresShardedCluster resource) {
-      return Optional.ofNullable(resource.getSpec()
-          .getShards().getConfigurations())
-          .map(StackGresClusterConfigurations::getSgPostgresConfig)
-          .orElse(null);
-    }
-
-    @Override
-    protected String getCreateNotFoundErrorMessage(String reference) {
-      return HasMetadata.getKind(getReferenceClass())
-          + " " + reference + " not found for shards";
-    }
-
-    @Override
-    protected String getUpdateNotFoundErrorMessage(String reference) {
-      return "Cannot update shards to "
-          + HasMetadata.getKind(getReferenceClass()) + " "
-          + reference + " because it doesn't exists";
-    }
-  }
-
-  private class ShardsOverridePostgresConfigValidator
-      extends CoordinatorPostgresConfigValidator {
-
-    private final int index;
-    private final Integer shardIndex;
-
-    private ShardsOverridePostgresConfigValidator(
-        CustomResourceFinder<StackGresPostgresConfig> configFinder,
-        int index,
-        Integer shardIndex) {
-      super(configFinder);
-      this.index = index;
-      this.shardIndex = shardIndex;
-    }
-
-    @Override
-    protected String getReference(StackGresShardedCluster resource) {
-      return Optional.ofNullable(resource.getSpec()
-          .getShards().getOverrides())
-          .map(overrides -> overrides.get(index))
-          .map(StackGresShardedClusterShard::getConfigurationsForShards)
-          .map(StackGresClusterConfigurations::getSgPostgresConfig)
-          .orElse(null);
-    }
-
-    @Override
-    protected boolean checkReferenceFilter(StackGresShardedClusterReview review) {
-      return super.checkReferenceFilter(review)
-          && !Objects.equals(
-              review.getRequest().getObject().getSpec()
-              .getShards().getOverrides().get(index)
-              .getConfigurationsForShards().getSgPostgresConfig(),
-              Optional.ofNullable(review.getRequest().getOldObject())
-              .map(StackGresShardedCluster::getSpec)
-              .map(StackGresShardedClusterSpec::getShards)
-              .map(StackGresClusterSpec::getConfigurations)
-              .map(StackGresClusterConfigurations::getSgPostgresConfig)
-              .orElse(null));
-    }
-
-    @Override
-    protected String getCreateNotFoundErrorMessage(String reference) {
-      return HasMetadata.getKind(getReferenceClass())
-          + " " + reference + " not found for shards override " + shardIndex;
-    }
-
-    @Override
-    protected String getUpdateNotFoundErrorMessage(String reference) {
-      return "Cannot update shards override " + shardIndex + " to "
-          + HasMetadata.getKind(getReferenceClass()) + " "
-          + reference + " because it doesn't exists";
-    }
   }
 
 }

@@ -18,7 +18,9 @@ import io.quarkus.test.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -117,6 +119,11 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
     setNamespace(instanceProfile);
     backup = Fixtures.backup().loadDefault().get();
     setNamespace(backup);
+    backup.getStatus().getProcess().setStatus(BackupStatus.COMPLETED.status());
+    backup.getStatus().setInternalName("test");
+    backup.getStatus().setBackupInformation(new StackGresBackupInformation());
+    backup.getStatus().getBackupInformation().setPostgresVersion(
+        cluster.getSpec().getPostgres().getVersion());
     minioSecret = Fixtures.secret().loadMinio().get();
     when(configScanner.findResources()).thenReturn(Optional.of(List.of(config)));
   }
