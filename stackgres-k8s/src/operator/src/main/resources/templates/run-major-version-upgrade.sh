@@ -609,9 +609,9 @@ rollback_major_version_upgrade() {
 
   if [ -z "$SOURCE_BACKUP_PATH" ]
   then
-    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG and replication mode to $SOURCE_REPLICATION_MODE..."
+    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG and replication mode to async..."
   else
-    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG, replication mode to $SOURCE_REPLICATION_MODE and backup path to $SOURCE_BACKUP_PATH..."
+    echo "Rollback major version upgrade by setting postgres version to $SOURCE_VERSION, postgres config to $SOURCE_POSTGRES_CONFIG, replication mode to async and backup path to $SOURCE_BACKUP_PATH..."
   fi
   echo
   until {
@@ -619,7 +619,7 @@ rollback_major_version_upgrade() {
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.version = "'"$SOURCE_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.extensions = '"$SOURCE_EXTENSIONS")"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.configurations.sgPostgresConfig = "'"$SOURCE_POSTGRES_CONFIG"'"')"
-    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "'"$SOURCE_REPLICATION_MODE"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "async"')"
     if [ -n "$SOURCE_BACKUP_PATH" ]
     then
       CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '
