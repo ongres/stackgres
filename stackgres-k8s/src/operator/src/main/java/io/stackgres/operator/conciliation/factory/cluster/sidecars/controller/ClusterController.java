@@ -101,6 +101,13 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                 .build())
             .build(),
             new EnvVarBuilder()
+            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_NODE_NAME
+                .getEnvironmentVariableName())
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "spec.nodeName"))
+                .build())
+            .build(),
+            new EnvVarBuilder()
             .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
                 .getEnvironmentVariableName())
             .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS

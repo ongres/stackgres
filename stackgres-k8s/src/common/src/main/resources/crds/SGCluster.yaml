@@ -2135,6 +2135,9 @@ spec:
                     name:
                       type: string
                       description: The name of the pod.
+                    nodeName:
+                      type: string
+                      description: The node name where the pod is running.
                     replicationGroup:
                       type: integer
                       description: Indicates the replication group this Pod belongs to.
