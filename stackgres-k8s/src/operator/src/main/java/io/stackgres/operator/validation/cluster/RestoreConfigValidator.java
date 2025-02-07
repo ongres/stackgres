@@ -5,50 +5,28 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-
 import java.util.Objects;
 import java.util.Optional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgbackup.BackupStatus;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
-import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
-import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class RestoreConfigValidator
-    extends AbstractReferenceValidator<
-      StackGresCluster, StackGresClusterReview, StackGresBackup>
     implements ClusterValidator {
 
-  private final String errorPostgresMismatch = ErrorType
-      .getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
   private final String errorConstraintViolationUri = ErrorType
       .getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
-
-  private final CustomResourceFinder<StackGresBackup> backupFinder;
-
-  @Inject
-  public RestoreConfigValidator(CustomResourceFinder<StackGresBackup> backupFinder) {
-    super(backupFinder);
-    this.backupFinder = backupFinder;
-  }
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
@@ -72,54 +50,10 @@ public class RestoreConfigValidator
   private void checkBackup(
       StackGresClusterReview review,
       StackGresClusterRestore restoreConfig) throws ValidationFailed {
-    StackGresCluster cluster = review.getRequest().getObject();
-    String backupName = restoreConfig.getFromBackup().getName();
-    String namespace = cluster.getMetadata().getNamespace();
-
     switch (review.getRequest().getOperation()) {
       case CREATE:
         if (restoreConfig.getFromBackup() == null) {
           break;
-        }
-        if (restoreConfig.getFromBackup().getUid() != null) {
-          final String message = "uid is deprecated, use name instead!";
-          fail(errorConstraintViolationUri, message);
-        }
-
-        super.validate(review);
-
-        Optional<StackGresBackup> foundBackup = backupFinder
-            .findByNameAndNamespace(backupName, namespace);
-
-        if (foundBackup
-            .map(StackGresBackup::getStatus)
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getStatus)
-            .map(BackupStatus.COMPLETED.status()::equals)
-            .map(completed -> !completed)
-            .orElse(true)) {
-          final String message = "Cannot restore from SGBackup " + backupName
-              + " because it's not ready";
-          fail(message);
-        }
-
-        if (foundBackup.isPresent()) {
-          String backupMajorVersion = foundBackup.get()
-              .getStatus()
-              .getBackupInformation()
-              .getPostgresMajorVersion();
-
-          String givenPgVersion = review.getRequest().getObject().getSpec()
-              .getPostgres().getVersion();
-          String givenMajorVersion = getPostgresFlavorComponent(cluster)
-              .get(cluster)
-              .getMajorVersion(givenPgVersion);
-
-          if (!backupMajorVersion.equals(givenMajorVersion)) {
-            final String message = "Cannot restore from SGBackup " + backupName
-                + " because it comes from an incompatible postgres version";
-            fail(errorPostgresMismatch, message);
-          }
         }
         break;
       case UPDATE:
@@ -150,27 +84,6 @@ public class RestoreConfigValidator
         fail(errorConstraintViolationUri, "Cannot update SGCluster's restore configuration");
       }
     }
-  }
-
-  @Override
-  protected Class<StackGresBackup> getReferenceClass() {
-    return StackGresBackup.class;
-  }
-
-  @Override
-  protected String getReference(StackGresCluster resource) {
-    return Optional.ofNullable(resource)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getInitialData)
-        .map(StackGresClusterInitialData::getRestore)
-        .map(StackGresClusterRestore::getFromBackup)
-        .map(StackGresClusterRestoreFromBackup::getName)
-        .orElse(null);
-  }
-
-  @Override
-  protected void onNotFoundReference(String message) throws ValidationFailed {
-    fail(message);
   }
 
 }

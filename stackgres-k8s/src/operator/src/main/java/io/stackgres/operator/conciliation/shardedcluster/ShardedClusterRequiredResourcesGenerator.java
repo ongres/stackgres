@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardedcluster;
 import static io.stackgres.common.StackGresShardedClusterUtil.CERTIFICATE_KEY;
 import static io.stackgres.common.StackGresShardedClusterUtil.PRIVATE_KEY_KEY;
 import static io.stackgres.common.StackGresShardedClusterUtil.postgresSslSecretName;
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +37,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -146,14 +149,53 @@ public class ShardedClusterRequiredResourcesGenerator
         .isPresent()) {
       String backupName = cluster.getSpec().getInitialData().getRestore()
           .getFromBackup().getName();
-      var sgBackups = backupFinder.findByNameAndNamespace(
-          backupName,
-          clusterNamespace)
+      StackGresShardedBackup restoreBackup = backupFinder
+          .findByNameAndNamespace(backupName, clusterNamespace)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "SGShardedBackup " + backupName + " not found"));
+
+      if (Optional.of(restoreBackup)
+          .map(StackGresShardedBackup::getStatus)
+          .map(StackGresShardedBackupStatus::getProcess)
+          .map(StackGresShardedBackupProcess::getStatus)
+          .map(ShardedBackupStatus.COMPLETED.status()::equals)
+          .map(completed -> !completed)
+          .orElse(true)) {
+        throw new IllegalArgumentException("Cannot restore from SGShardedBackup "
+            + backupName + " because it's not Completed");
+      }
+
+      int clusters = 1 + cluster.getSpec().getShards().getClusters();
+      var sgBackups = Optional.of(restoreBackup)
           .map(StackGresShardedBackup::getStatus)
           .map(StackGresShardedBackupStatus::getSgBackups)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "SGShardedBackup " + backupName + " not found"
-                  + " or SGBackup reference not found in it"));
+          .orElse(null);
+      if (!Optional.ofNullable(sgBackups)
+          .map(list -> list.size() == clusters)
+          .orElse(false)) {
+        throw new IllegalArgumentException(
+            "In SGShardedBackup " + backupName
+            + " sgBackups must be an array of size " + clusters
+            + " (the coordinator plus the number of shards)"
+            + " but was " + Optional.ofNullable(sgBackups)
+            .map(List::size)
+            .orElse(null));
+      }
+
+      String backupMajorVersion = restoreBackup.getStatus()
+          .getBackupInformation().getPostgresVersion().split("\\.")[0];
+      String givenPgVersion = cluster.getSpec()
+          .getPostgres().getVersion();
+      String givenMajorVersion = getPostgresFlavorComponent(cluster)
+          .get(cluster)
+          .getMajorVersion(givenPgVersion);
+
+      if (!backupMajorVersion.equals(givenMajorVersion)) {
+        throw new IllegalArgumentException(
+            "Cannot restore from SGShardedBackup " + backupName
+            + " because it has been created from a postgres instance"
+            + " with version " + backupMajorVersion);
+      }
       if (cluster.getStatus() == null) {
         cluster.setStatus(new StackGresShardedClusterStatus());
       }

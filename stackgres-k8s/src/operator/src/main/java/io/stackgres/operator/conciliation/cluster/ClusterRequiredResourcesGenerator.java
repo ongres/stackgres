@@ -178,6 +178,18 @@ public class ClusterRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGCluster " + clusterNamespace + "." + clusterName
                 + " have a non existent SGPostgresConfig postgresconf"));
+    String givenPgVersion = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getVersion)
+        .orElse(null);
+    String givenMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .getMajorVersion(givenPgVersion);
+    String pgVersion = pgConfig.getSpec().getPostgresVersion();
+
+    if (!pgVersion.equals(givenMajorVersion)) {
+      throw new IllegalArgumentException("Invalid postgres version, must be "
+          + pgVersion + " to use SGPostgresConfig " + clusterConfiguration.getSgPostgresConfig());
+    }
 
     final StackGresProfile profile = profileFinder
         .findByNameAndNamespace(spec.getSgInstanceProfile(), clusterNamespace)
@@ -893,14 +905,47 @@ public class ClusterRequiredResourcesGenerator
         .keySet();
   }
 
-  private Optional<StackGresBackup> findRestoreBackup(StackGresCluster config,
+  private Optional<StackGresBackup> findRestoreBackup(
+      StackGresCluster cluster,
       final String clusterNamespace) {
-    return Optional
-        .ofNullable(config.getSpec().getInitialData())
+    Optional<StackGresBackup> restoreBackup = Optional
+        .ofNullable(cluster.getSpec().getInitialData())
         .map(StackGresClusterInitialData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)
         .map(StackGresClusterRestoreFromBackup::getName)
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
+    if (restoreBackup.isPresent()) {
+      if (restoreBackup
+          .map(StackGresBackup::getStatus)
+          .map(StackGresBackupStatus::getProcess)
+          .map(StackGresBackupProcess::getStatus)
+          .map(BackupStatus.COMPLETED.status()::equals)
+          .map(completed -> !completed)
+          .orElse(true)) {
+        throw new IllegalArgumentException("Cannot restore from SGBackup "
+            + restoreBackup.get().getMetadata().getName()
+            + " because it's not Completed");
+      }
+
+      String backupMajorVersion = restoreBackup.get()
+          .getStatus()
+          .getBackupInformation()
+          .getPostgresMajorVersion();
+
+      String givenPgVersion = cluster.getSpec()
+          .getPostgres().getVersion();
+      String givenMajorVersion = getPostgresFlavorComponent(cluster)
+          .get(cluster)
+          .getMajorVersion(givenPgVersion);
+
+      if (!backupMajorVersion.equals(givenMajorVersion)) {
+        throw new IllegalArgumentException("Cannot restore from SGBackup "
+            + restoreBackup.get().getMetadata().getName()
+            + " because it has been created from a postgres instance"
+            + " with version " + backupMajorVersion);
+      }
+    }
+    return restoreBackup;
   }
 
 }
