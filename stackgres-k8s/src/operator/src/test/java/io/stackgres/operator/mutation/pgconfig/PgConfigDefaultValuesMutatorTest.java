@@ -16,12 +16,9 @@ import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
 class PgConfigDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresPostgresConfig, StackGresPostgresConfigReview> {
 

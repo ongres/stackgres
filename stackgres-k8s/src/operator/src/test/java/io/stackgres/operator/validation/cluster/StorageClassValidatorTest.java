@@ -25,13 +25,10 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
 class StorageClassValidatorTest {
 
   private static final StorageClass DEFAULT_STORAGE_CLASS = Fixtures.storageClass()
