@@ -35,13 +35,10 @@ import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
 class ShardedDbOpsMajorVersionUpgradeValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
