@@ -5,19 +5,59 @@
 
 package io.stackgres.operator.initialization;
 
-public interface DefaultCustomResourceFactory<T> {
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
-  String DEFAULT_RESOURCE_NAME_PREFIX = "generated-from-default-";
+import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import com.google.common.collect.Maps;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.StackGresUtil;
 
-  T buildResource();
+public abstract class DefaultCustomResourceFactory<T, S extends HasMetadata> {
 
-  default String generateDefaultName() {
-    long epoch = System.currentTimeMillis();
-    return DEFAULT_RESOURCE_NAME_PREFIX + epoch;
+  public static final String DEFAULT_SUFFIX = "-default";
+
+  public abstract T buildResource(S source);
+
+  public String getDefaultResourceName(S resource) {
+    return resource.getMetadata().getName() + DEFAULT_SUFFIX;
   }
 
-  default String getDefaultPrefix() {
-    return DEFAULT_RESOURCE_NAME_PREFIX;
+  protected static final JavaPropsMapper MAPPER = new JavaPropsMapper();
+  private Map<String, Properties> defaultProperties = new HashMap<>();
+
+  private Properties getDefaultProperties(S source) {
+    final String defaultPropertyResourceName = getDefaultPropertyResourceName(source);
+    synchronized (defaultProperties) {
+      Properties properties = defaultProperties.get(defaultPropertyResourceName);
+      if (properties == null) {
+        properties = loadDefaultProperties(defaultPropertyResourceName);
+        defaultProperties.put(
+            defaultPropertyResourceName,
+            properties);
+      }
+      return properties;
+    }
+  }
+
+  protected abstract String getDefaultPropertyResourceName(S source);
+
+  protected Properties loadDefaultProperties(String defaultPropertyResourceName) {
+    return StackGresUtil.loadProperties(defaultPropertyResourceName);
+  }
+
+  protected <R> R buildFromDefaults(S source, Class<R> clazz) {
+    try {
+      return MAPPER.readPropertiesAs(getDefaultProperties(source), clazz);
+    } catch (IOException ex) {
+      throw new RuntimeException("Couldn't map default properties to spec", ex);
+    }
+  }
+
+  protected Map<String, String> getDefaultValues(S source) {
+    return Maps.fromProperties(getDefaultProperties(source));
   }
 
 }

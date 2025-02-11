@@ -8,24 +8,31 @@ package io.stackgres.operator.mutation.pgconfig;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.AbstractValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class PgConfigDefaultValuesMutatorTest
-    extends DefaultValuesMutatorTest<StackGresPostgresConfig, StackGresPostgresConfigReview> {
+    extends DefaultValuesMutatorTest<StackGresPostgresConfig, StackGresPostgresConfigReview, StackGresCluster> {
 
   @Override
-  protected AbstractValuesMutator<StackGresPostgresConfig, StackGresPostgresConfigReview> getMutatorInstance(
-      DefaultCustomResourceFactory<StackGresPostgresConfig> factory, JsonMapper jsonMapper) {
+  protected PgConfigDefaultValuesMutator getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> factory,
+      JsonMapper jsonMapper) {
     return new PgConfigDefaultValuesMutator(factory, jsonMapper);
+  }
+
+  @Override
+  protected DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> createFactory() {
+    return new DefaultClusterPostgresConfigFactory();
   }
 
   @Override
@@ -42,7 +49,16 @@ class PgConfigDefaultValuesMutatorTest
 
   @Override
   protected StackGresPostgresConfig getDefaultResource() {
-    return Fixtures.postgresConfig().loadDefault().get();
+    return new PgConfigNormalizeValuesMutator().mutate(
+        getDefaultReview(),
+        factory.buildResource(
+            Fixtures.cluster().loadDefault().getBuilder()
+            .editSpec()
+            .editPostgres()
+            .withVersion(getDefaultReview().getRequest().getObject().getSpec().getPostgresVersion())
+            .endPostgres()
+            .endSpec()
+            .build()));
   }
 
 }

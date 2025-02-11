@@ -13,6 +13,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.common.StackGresInstanceProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,8 @@ class DefaultContainersProfileMutatorTest {
   void setUp() throws NoSuchFieldException, IOException {
     review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
 
-    mutator = new DefaultContainersProfileMutator();
+    DefaultProfileFactory defaultProfileFactory = new DefaultProfileFactory();
+    mutator = new DefaultContainersProfileMutator(defaultProfileFactory);
   }
 
   @Test

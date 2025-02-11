@@ -28,7 +28,9 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
+import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
+import io.stackgres.common.resource.ProfileFinder;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
@@ -44,7 +46,13 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
   ClusterFinder clusterFinder;
 
   @InjectMock
+  ProfileFinder profileFinder;
+
+  @InjectMock
   PostgresConfigFinder postgresConfigFinder;
+
+  @InjectMock
+  PoolingConfigFinder poolingConfigFinder;
 
   @InjectMock
   SecretFinder secretFinder;
@@ -100,11 +108,37 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
     assertEquals(message, ex.getMessage());
   }
 
+  void mockProfile() {
+    when(profileFinder.findByNameAndNamespace(
+        cluster.getSpec().getCoordinator().getSgInstanceProfile(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.instanceProfile));
+    when(profileFinder.findByNameAndNamespace(
+        cluster.getSpec().getShards().getSgInstanceProfile(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.instanceProfile));
+  }
+
   void mockPgConfig() {
     when(postgresConfigFinder.findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(this.postgresConfig));
+    when(postgresConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getShards().getConfigurations().getSgPostgresConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.postgresConfig));
+  }
+
+  void mockPoolConfig() {
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPoolingConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.poolingConfig));
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getShards().getConfigurations().getSgPoolingConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.poolingConfig));
   }
 
 }

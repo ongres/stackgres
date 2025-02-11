@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.initialization.DefaultLoaderFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,13 +18,13 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class DefaultRestoreMutator implements ClusterMutator {
 
-  private final DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
+  private final DefaultLoaderFactory<StackGresClusterRestore> defaultRestoreFactory;
 
   private final ObjectMapper jsonMapper;
 
   @Inject
   public DefaultRestoreMutator(
-      DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory,
+      DefaultLoaderFactory<StackGresClusterRestore> defaultRestoreFactory,
       ObjectMapper jsonMapper) {
     this.defaultRestoreFactory = defaultRestoreFactory;
     this.jsonMapper = jsonMapper;

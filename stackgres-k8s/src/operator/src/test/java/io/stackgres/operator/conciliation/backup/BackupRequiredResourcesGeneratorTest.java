@@ -28,7 +28,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ObjectStorageFinder;
-import io.stackgres.common.resource.ProfileConfigFinder;
+import io.stackgres.common.resource.ProfileFinder;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +41,7 @@ class BackupRequiredResourcesGeneratorTest {
   ClusterFinder clusterFinder;
 
   @InjectMock
-  ProfileConfigFinder profileFinder;
+  ProfileFinder profileFinder;
 
   @InjectMock
   ObjectStorageFinder objectStorageFinder;

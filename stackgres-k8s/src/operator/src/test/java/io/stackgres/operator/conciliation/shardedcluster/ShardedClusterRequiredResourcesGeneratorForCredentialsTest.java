@@ -32,168 +32,232 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   @Test
   void givenClusterWithUsersCredentials_shouldReadUsersSecrets() {
     mockUsersCredentials();
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutSecretForSuperuserUsername_shouldFail() {
     mockUsersCredentialsWithoutSecret(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Superuser username secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutSecretForSuperuserPassword_shouldFail() {
     mockUsersCredentialsWithoutSecret(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Superuser password secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutSecretForReplicationUsername_shouldFail() {
     mockUsersCredentialsWithoutSecret(StackGresPasswordKeys.REPLICATION_USERNAME_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Replication username secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutSecretForReplicationPassword_shouldFail() {
     mockUsersCredentialsWithoutSecret(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Replication password secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutSecretForAuthenticatorUsername_shouldFail() {
     mockUsersCredentialsWithoutSecret(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Authenticator username secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutSecretForAuthenticatorPassword_shouldFail() {
     mockUsersCredentialsWithoutSecret(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Authenticator password secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutKeyForSuperuserUsername_shouldFail() {
     mockUsersCredentialsWithoutKey(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Superuser username key PATRONI_SUPERUSER_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutKeyForSuperuserPassword_shouldFail() {
     mockUsersCredentialsWithoutKey(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Superuser password key PATRONI_SUPERUSER_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutKeyForReplicationUsername_shouldFail() {
     mockUsersCredentialsWithoutKey(StackGresPasswordKeys.REPLICATION_USERNAME_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Replication username key PATRONI_REPLICATION_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutKeyForReplicationPassword_shouldFail() {
     mockUsersCredentialsWithoutKey(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Replication password key PATRONI_REPLICATION_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutKeyForAuthenticatorUsername_shouldFail() {
     mockUsersCredentialsWithoutKey(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Authenticator username key PATRONI_authenticator_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithUsersCredentialsWithoutKeyForAuthenticatorPassword_shouldFail() {
     mockUsersCredentialsWithoutKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Authenticator password key PATRONI_authenticator_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPatroniCredentials_shouldReadpatroniSecrets() {
     mockPatroniCredentials();
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPatroniCredentialsWithoutSecretForRestApiPassword_shouldFail() {
     mockPatroniCredentialsWithoutSecret(StackGresPasswordKeys.RESTAPI_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Patroni REST API password secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPatroniCredentialsWithoutKeyForRestApiPassword_shouldFail() {
     mockPatroniCredentialsWithoutKey(StackGresPasswordKeys.RESTAPI_PASSWORD_ENV);
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Patroni REST API password key PATRONI_RESTAPI_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   private void mockUsersCredentials() {

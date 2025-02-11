@@ -39,6 +39,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,8 +51,7 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
 
   private static final StackGresGroupKind KIND = StackGresGroupKind.CLUSTER;
 
-  private final ClusterStatefulSetContainerProfileDecorator profileDecorator =
-      new ClusterStatefulSetContainerProfileDecorator();
+  private ClusterStatefulSetContainerProfileDecorator profileDecorator;
 
   @Mock
   private StackGresClusterContext context;
@@ -66,6 +66,9 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
 
   @BeforeEach
   void setUp() {
+    DefaultProfileFactory defaultProfileFactory = new DefaultProfileFactory();
+    profileDecorator =
+        new ClusterStatefulSetContainerProfileDecorator(defaultProfileFactory);
     cluster = Fixtures.cluster().loadDefault().get();
     profile = Fixtures.instanceProfile().loadSizeS().get();
 
@@ -128,7 +131,7 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
 
     lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getSource()).thenReturn(cluster);
-    lenient().when(context.getProfile()).thenReturn(profile);
+    lenient().when(context.getProfile()).thenReturn(Optional.of(profile));
   }
 
   @Override

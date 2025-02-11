@@ -47,6 +47,7 @@ import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,8 +69,9 @@ class PatroniConfigEndpointsTest {
 
   @BeforeEach
   void setUp() {
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
     generator = new PatroniConfigEndpoints(
-        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider());
+        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider(), defaultPostgresConfigFactory);
 
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations()
@@ -82,7 +84,7 @@ class PatroniConfigEndpointsTest {
     setDefaultParameters(postgresConfig);
 
     lenient().when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
-    lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    lenient().when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
   }
 
   private void setDefaultParameters(StackGresPostgresConfig postgresConfig) {
@@ -328,7 +330,7 @@ class PatroniConfigEndpointsTest {
     when(context.getCluster()).thenReturn(cluster);
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
 
     List<HasMetadata> endpoints = generator.generateResource(context)
         .collect(Collectors.toUnmodifiableList());

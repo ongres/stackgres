@@ -52,7 +52,6 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingS
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereRepository;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereZooKeeper;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingSphereRepositoryType;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.impl.DSL;
@@ -277,7 +276,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .withName("shardingsphere-create-database")
         .withRetryOnError(true)
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(StackGresShardedClusterForShardingSphereUtil.class.getResource(
                 "/shardingsphere/shardingsphere-create-database.sql"),
                 StandardCharsets.UTF_8)
             .read()).get()
@@ -315,7 +314,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .endMetadata()
         .withData(ResourceUtil.encodeSecret(Map.of("shardingsphere-init.sql",
             Unchecked.supplier(() -> Resources
-                .asCharSource(ClusterDefaultScripts.class.getResource(
+                .asCharSource(StackGresShardedClusterForShardingSphereUtil.class.getResource(
                     "/shardingsphere/shardingsphere-init.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(
@@ -358,7 +357,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .endMetadata()
         .withData(ResourceUtil.encodeSecret(Map.of("shardingsphere-update-shards.sql",
             Unchecked.supplier(() -> Resources
-                .asCharSource(ClusterDefaultScripts.class.getResource(
+                .asCharSource(StackGresShardedClusterForShardingSphereUtil.class.getResource(
                     "/shardingsphere/shardingsphere-update-shards.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(

@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -21,23 +19,37 @@ class ShardedClusterRequiredResourcesGeneratorTest
 
   @Test
   void givenValidCluster_getRequiredResourcesShouldNotFail() {
+    mockProfile();
+    mockPgConfig();
+    mockPoolConfig();
+
+    generator.getRequiredResources(cluster);
+  }
+
+  @Test
+  void givenAClusterWithInvalidCoordinatorProfile_getRequiredResourcesShouldFail() {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
     mockPgConfig();
+    mockPoolConfig();
 
-    generator.getRequiredResources(cluster);
+    cluster.getSpec().getCoordinator().setSgInstanceProfile("test");
+    when(profileFinder.findByNameAndNamespace(
+        cluster.getSpec().getCoordinator().getSgInstanceProfile(),
+        clusterNamespace))
+        .thenReturn(Optional.empty());
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
-        clusterNamespace);
+    assertException("SGInstanceProfile test was not found");
   }
 
   @Test
-  void givenAClusterWithInvalidCoordinatorPgConfig_getRequiredResourcesShouldFail() {
+  void givenAClusterWithInvalidCoordinatorPostgresConfig_getRequiredResourcesShouldFail() {
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
+
+    mockProfile();
+    mockPoolConfig();
 
     cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
         .setSgPostgresConfig("test");
@@ -47,14 +59,26 @@ class ShardedClusterRequiredResourcesGeneratorTest
         clusterNamespace))
         .thenReturn(Optional.empty());
 
-    assertException("Coordinator of SGShardedCluster " + clusterNamespace + "." + clusterName
-        + " have a non existent SGPostgresConfig "
-        + cluster.getSpec().getCoordinator()
-        .getConfigurationsForCoordinator().getSgPostgresConfig());
+    assertException("SGPostgresConfig test was not found");
+  }
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
-        clusterNamespace);
+  @Test
+  void givenAClusterWithInvalidCoordinatorPoolingConfig_getRequiredResourcesShouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockProfile();
+    mockPgConfig();
+
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .setSgPoolingConfig("test");
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .getSgPoolingConfig(),
+        clusterNamespace))
+        .thenReturn(Optional.empty());
+
+    assertException("SGPoolingConfig test was not found");
   }
 
 }

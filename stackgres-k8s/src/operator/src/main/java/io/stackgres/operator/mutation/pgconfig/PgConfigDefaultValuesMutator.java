@@ -6,31 +6,40 @@
 package io.stackgres.operator.mutation.pgconfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.StackGresPostgresConfigReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
+@ApplicationScoped
 public class PgConfigDefaultValuesMutator
-    extends AbstractValuesMutator<StackGresPostgresConfig, StackGresPostgresConfigReview>
+    extends AbstractValuesMutator<StackGresPostgresConfig, StackGresPostgresConfigReview, StackGresCluster>
     implements PgConfigMutator {
-
-  public static PgConfigDefaultValuesMutator create(
-      DefaultCustomResourceFactory<StackGresPostgresConfig> factory,
-      ObjectMapper objectMapper) {
-    PgConfigDefaultValuesMutator mutator = new PgConfigDefaultValuesMutator(
-        factory, objectMapper);
-    mutator.init();
-    return mutator;
-  }
 
   private final PgConfigNormalizeValuesMutator normalizeValuesMutator;
 
   public PgConfigDefaultValuesMutator(
-      DefaultCustomResourceFactory<StackGresPostgresConfig> factory,
+      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> factory,
       ObjectMapper jsonMapper) {
     super(factory, jsonMapper);
     this.normalizeValuesMutator = new PgConfigNormalizeValuesMutator();
+  }
+
+  @Override
+  protected StackGresCluster createSourceResource(StackGresPostgresConfig resource) {
+    return new StackGresClusterBuilder()
+        .withNewMetadata()
+        .withName(resource.getMetadata().getName())
+        .endMetadata()
+        .withNewSpec()
+        .withNewPostgres()
+        .withVersion(resource.getSpec().getPostgresVersion())
+        .endPostgres()
+        .endSpec()
+        .build();
   }
 
   public StackGresPostgresConfig mutate(StackGresPostgresConfigReview review, StackGresPostgresConfig resource) {

@@ -5,6 +5,10 @@
 
 package io.stackgres.common.labels;
 
+import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -24,6 +28,13 @@ public class DistributedLogsLabelFactory
   @Override
   public DistributedLogsLabelMapper labelMapper() {
     return labelMapper;
+  }
+
+  @Override
+  public Map<String, String> defaultConfigLabels(StackGresDistributedLogs resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().defaultConfigKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
   }
 
 }

@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,8 @@ class ClusterPoolingConfigContextAppenderTest {
 
   private StackGresCluster cluster;
 
+  private DefaultPoolingConfigFactory defaultPoolingConfigFactory = new DefaultPoolingConfigFactory();
+
   @Spy
   private StackGresClusterContext.Builder contextBuilder;
 
@@ -43,7 +46,8 @@ class ClusterPoolingConfigContextAppenderTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterPoolingConfigContextAppender(
-        poolingConfigFinder);
+        poolingConfigFinder,
+        new DefaultPoolingConfigFactory());
   }
 
   @Test
@@ -63,12 +67,22 @@ class ClusterPoolingConfigContextAppenderTest {
         .thenReturn(Optional.empty());
     var ex =
         assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
-    assertEquals("SGCluster stackgres.stackgres have a non existent SGPoolingConfig pgbouncerconf", ex.getMessage());
+    assertEquals("SGPoolingConfig pgbouncerconf was not found", ex.getMessage());
   }
 
   @Test
   void givenClusterWithoutPoolingConfigAndPoolingDisabled_shouldPass() {
     cluster.getSpec().getPods().setDisableConnectionPooling(true);
+    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.empty());
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(contextBuilder).poolingConfig(Optional.empty());
+  }
+
+  @Test
+  void givenClusterWithoutDefaultPoolingConfig_shouldPass() {
+    cluster.getSpec().getConfigurations().setSgPoolingConfig(
+        defaultPoolingConfigFactory.getDefaultResourceName(cluster));
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder);

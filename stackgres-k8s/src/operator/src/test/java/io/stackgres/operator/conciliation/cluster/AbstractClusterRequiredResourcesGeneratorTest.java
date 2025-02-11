@@ -37,7 +37,7 @@ import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
-import io.stackgres.common.resource.ProfileConfigFinder;
+import io.stackgres.common.resource.ProfileFinder;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
@@ -60,7 +60,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
   PostgresConfigFinder postgresConfigFinder;
 
   @InjectMock
-  ProfileConfigFinder profileConfigFinder;
+  ProfileFinder profileFinder;
 
   @InjectMock
   PoolingConfigFinder poolingConfigFinder;
@@ -139,7 +139,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
   }
 
   protected void mockProfile() {
-    when(profileConfigFinder.findByNameAndNamespace(
+    when(profileFinder.findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(instanceProfile));

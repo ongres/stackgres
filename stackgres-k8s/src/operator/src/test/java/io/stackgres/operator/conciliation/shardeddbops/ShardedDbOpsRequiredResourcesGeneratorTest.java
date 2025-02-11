@@ -30,7 +30,7 @@ import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
-import io.stackgres.common.resource.ProfileConfigFinder;
+import io.stackgres.common.resource.ProfileFinder;
 import io.stackgres.common.resource.ShardedClusterFinder;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +49,7 @@ class ShardedDbOpsRequiredResourcesGeneratorTest {
   ClusterFinder clusterFinder;
 
   @InjectMock
-  ProfileConfigFinder profileFinder;
+  ProfileFinder profileFinder;
 
   @Inject
   ShardedDbOpsRequiredResourcesGenerator generator;

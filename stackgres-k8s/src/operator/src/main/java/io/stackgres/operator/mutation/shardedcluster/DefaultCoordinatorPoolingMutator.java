@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
@@ -20,12 +21,12 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class DefaultCoordinatorPoolingMutator
     extends AbstractDefaultResourceMutator<
-        StackGresPoolingConfig, StackGresShardedCluster, StackGresShardedClusterReview>
+        StackGresPoolingConfig, HasMetadata, StackGresShardedCluster, StackGresShardedClusterReview>
     implements ShardedClusterMutator {
 
   @Inject
   public DefaultCoordinatorPoolingMutator(
-      DefaultCustomResourceFactory<StackGresPoolingConfig> resourceFactory,
+      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> resourceFactory,
       CustomResourceFinder<StackGresPoolingConfig> finder,
       CustomResourceScheduler<StackGresPoolingConfig> scheduler) {
     super(resourceFactory, finder, scheduler);

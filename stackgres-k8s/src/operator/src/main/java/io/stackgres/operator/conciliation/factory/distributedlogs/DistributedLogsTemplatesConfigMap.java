@@ -21,7 +21,6 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -67,7 +66,7 @@ public class DistributedLogsTemplatesConfigMap
             .collect(Collectors.toMap(
                 c -> c.filename(),
                 c -> Unchecked.supplier(() -> Resources
-                    .asCharSource(ClusterDefaultScripts.class.getResource(
+                    .asCharSource(DistributedLogsTemplatesConfigMap.class.getResource(
                         "/templates/" + c.filename()),
                         StandardCharsets.UTF_8)
                     .read()).get()))))

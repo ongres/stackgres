@@ -36,12 +36,19 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder
 public class ClusterStatefulSetContainerProfileDecorator extends AbstractContainerProfileDecorator
     implements Decorator<StackGresClusterContext> {
+
+  private final DefaultProfileFactory defaultProfileFactory;
+
+  public ClusterStatefulSetContainerProfileDecorator(DefaultProfileFactory defaultProfileFactory) {
+    this.defaultProfileFactory = defaultProfileFactory;
+  }
 
   @Override
   protected StackGresGroupKind getKind() {
@@ -57,9 +64,12 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
       return resource;
     }
 
+    final StackGresProfile profile = context.getProfile()
+        .orElseGet(() -> defaultProfileFactory.buildResource(context.getSource()));
+
     if (resource instanceof StatefulSet statefulSet) {
       if (!context.calculateDisableClusterResourceRequirements()) {
-        setProfileContainers(context.getProfile(),
+        setProfileContainers(profile,
             () -> Optional.of(statefulSet)
             .map(StatefulSet::getSpec)
             .map(StatefulSetSpec::getTemplate)
@@ -69,7 +79,7 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
             .orElse(false));
       }
       if (!context.calculateDisablePatroniResourceRequirements()) {
-        setPatroniContainerResources(context, statefulSet);
+        setPatroniContainerResources(context, profile, statefulSet);
       }
     }
 
@@ -78,9 +88,8 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
 
   private void setPatroniContainerResources(
       StackGresClusterContext context,
+      StackGresProfile profile,
       StatefulSet statefulSet) {
-    final var profile = context.getProfile();
-
     final ResourceRequirements patroniResources = new ResourceRequirements();
     final Quantity cpuLimit = Optional.ofNullable(profile.getSpec().getCpu())
         .map(Quantity::new).orElse(null);

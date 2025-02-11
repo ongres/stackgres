@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -90,18 +91,33 @@ public class ClusterReplicateFromContextAppender
         .map(StackGresObjectStorage::getSpec)
         .stream()
         .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
-        .map(secretKeySelector -> secretKeySelector.getName())
-        .collect(Collectors.groupingBy(Function.identity()))
-        .keySet()
+        .collect(Collectors.groupingBy(Function.<SecretKeySelector>identity()
+            .andThen(SecretKeySelector::getName)))
+        .entrySet()
         .stream()
-        .map(name -> Tuple.tuple(
-            name,
+        .map(entry -> Tuple.tuple(
+            entry.getKey(),
             secretFinder
             .findByNameAndNamespace(
-                name,
+                entry.getKey(),
                 cluster.getMetadata().getNamespace())
             .orElseThrow(() -> new IllegalArgumentException(
-                "Secret " + name + " not found"))))
+                "Secret " + entry.getKey() + " not found for SGObjectStorage "
+                + replicateObjectStorage.orElseThrow().getMetadata().getName())),
+            entry))
+        .map(t -> {
+          t.v3.getValue()
+              .stream()
+              .map(SecretKeySelector::getKey)
+              .forEach(key -> {
+                if (!t.v2.getData().containsKey(key)) {
+                  throw new IllegalArgumentException(
+                      "Key " + key + " not found in Secret " + t.v1 + " for SGObjectStorage "
+                          + replicateObjectStorage.orElseThrow().getMetadata().getName());
+                }
+              });
+          return t.limit2();
+        })
         .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
     contextBuilder

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -22,6 +23,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,11 +40,12 @@ class PatroniEnvVarFactoryTest {
 
   private StackGresPostgresConfig postgresConfig;
 
-  private final PatroniEnvironmentVariables factory =
-      new PatroniEnvironmentVariables();
+  private PatroniEnvironmentVariables factory;
 
   @BeforeEach
   void setUp() {
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+    factory = new PatroniEnvironmentVariables(defaultPostgresConfigFactory);
     cluster = Fixtures.cluster().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
   }
@@ -267,7 +270,7 @@ class PatroniEnvVarFactoryTest {
 
   private EnvVar getEnvVar(String envVarName) {
     when(context.getSource()).thenReturn(cluster);
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     Stream<EnvVar> envVars = factory.getEnvVars(context).stream();
 
     var envVarFound = envVars.filter(envVar -> envVar.getName().equals(envVarName))
@@ -278,7 +281,7 @@ class PatroniEnvVarFactoryTest {
 
   private void assertNotPresent(String envVarName) {
     when(context.getSource()).thenReturn(cluster);
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     Stream<EnvVar> envVars = factory.getEnvVars(context).stream();
 
     var envVarFound = envVars.filter(envVar -> envVar.getName().equals(envVarName))
