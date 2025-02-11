@@ -61,7 +61,7 @@ class ClusterResourceGenerationDiscovererTest
 
   @Override
   protected StackGresClusterContext getResourceContext() {
-    return ImmutableStackGresClusterContext.builder()
+    return StackGresClusterContext.builder()
         .config(config)
         .source(resource)
         .postgresConfig(pgConfig)

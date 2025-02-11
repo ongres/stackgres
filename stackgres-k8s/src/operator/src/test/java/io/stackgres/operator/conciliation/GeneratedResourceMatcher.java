@@ -26,7 +26,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.testutil.GeneratorTestUtil;
 import org.opentest4j.AssertionFailedError;
@@ -66,7 +65,7 @@ public class GeneratedResourceMatcher {
   }
 
   private StackGresClusterContext buildContext() {
-    return ImmutableStackGresClusterContext.builder()
+    return StackGresClusterContext.builder()
         .source(cluster)
         .profile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)

@@ -26,7 +26,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.ClusterResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
@@ -78,7 +77,7 @@ public abstract class GeneratorTest {
   }
 
   private StackGresClusterContext buildContext() {
-    return ImmutableStackGresClusterContext.builder()
+    return StackGresClusterContext.builder()
         .source(cluster)
         .profile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)
