@@ -114,13 +114,13 @@ public class BackupRequiredResourcesGenerator
                 + " without an SGObjectStorage");
       }
 
-      sgObjectStorageName.ifPresent(osName -> contextBuilder.objectStorage(
-          objectStorageFinder.findByNameAndNamespace(osName, backupNamespace)
+      sgObjectStorageName.ifPresent(objectStorageName -> contextBuilder.objectStorage(
+          objectStorageFinder.findByNameAndNamespace(objectStorageName, backupNamespace)
               .orElseThrow(
                   () -> new IllegalArgumentException(
                       "SGBackup " + backupNamespace + "." + backupName
                           + " target SGCluster " + spec.getSgCluster()
-                          + " with a non existent SGObjectStorage " + osName))));
+                          + " with a non existent SGObjectStorage " + objectStorageName))));
     }
 
     return discoverer.generateResources(contextBuilder.build());
