@@ -6,30 +6,34 @@
 package io.stackgres.operator.mutation.pgbouncer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.StackGresPoolingConfigReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractValuesMutator;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PgBouncerDefaultValuesMutator
-    extends AbstractValuesMutator<StackGresPoolingConfig, StackGresPoolingConfigReview>
+    extends AbstractValuesMutator<StackGresPoolingConfig, StackGresPoolingConfigReview, HasMetadata>
     implements PgBouncerMutator {
 
   @Inject
   public PgBouncerDefaultValuesMutator(
-      DefaultCustomResourceFactory<StackGresPoolingConfig> factory,
+      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> factory,
       ObjectMapper jsonMapper) {
     super(factory, jsonMapper);
   }
 
-  @PostConstruct
   @Override
-  public void init() {
-    super.init();
+  protected HasMetadata createSourceResource(StackGresPoolingConfig resource) {
+    return new ConfigMapBuilder()
+        .withNewMetadata()
+        .withName(resource.getMetadata().getName())
+        .endMetadata()
+        .build();
   }
 
   @Override

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -17,14 +18,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class DefaultPoolingMutator
-    extends AbstractDefaultResourceMutator<StackGresPoolingConfig, StackGresCluster,
-        StackGresClusterReview>
+public class DefaultPoolingConfigMutator
+    extends AbstractDefaultResourceMutator<StackGresPoolingConfig, HasMetadata,
+        StackGresCluster, StackGresClusterReview>
     implements ClusterMutator {
 
   @Inject
-  public DefaultPoolingMutator(
-      DefaultCustomResourceFactory<StackGresPoolingConfig> resourceFactory,
+  public DefaultPoolingConfigMutator(
+      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> resourceFactory,
       CustomResourceFinder<StackGresPoolingConfig> finder,
       CustomResourceScheduler<StackGresPoolingConfig> scheduler) {
     super(resourceFactory, finder, scheduler);

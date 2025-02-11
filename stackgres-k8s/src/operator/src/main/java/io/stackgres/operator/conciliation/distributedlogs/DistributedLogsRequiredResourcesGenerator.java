@@ -14,12 +14,15 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.v14.DistributedLogsCredentials;
+import io.stackgres.operator.initialization.DefaultDistributedLogsPostgresConfigFactory;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +33,15 @@ public class DistributedLogsRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresConfig> configScanner;
 
+  private final CustomResourceFinder<StackGresProfile> profileFinder;
+
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
+
+  private final DefaultProfileFactory defaultProfileFactory;
+
+  private final DefaultDistributedLogsPostgresConfigFactory defaultPostgresConfigFactory;
 
   private final ConnectedClustersScanner connectedClustersScanner;
 
@@ -43,13 +52,19 @@ public class DistributedLogsRequiredResourcesGenerator
   @Inject
   public DistributedLogsRequiredResourcesGenerator(
       CustomResourceScanner<StackGresConfig> configScanner,
+      CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
+      DefaultProfileFactory defaultProfileFactory,
+      DefaultDistributedLogsPostgresConfigFactory defaultPostgresConfigFactory,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       ResourceGenerationDiscoverer<StackGresDistributedLogsContext> discoverer,
       ConnectedClustersScanner connectedClustersScanner,
       ResourceFinder<Secret> secretFinder) {
     this.configScanner = configScanner;
+    this.profileFinder = profileFinder;
     this.postgresConfigFinder = postgresConfigFinder;
+    this.defaultProfileFactory = defaultProfileFactory;
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
     this.clusterFinder = clusterFinder;
     this.discoverer = discoverer;
     this.connectedClustersScanner = connectedClustersScanner;
@@ -69,11 +84,25 @@ public class DistributedLogsRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig not found or more than one exists. Aborting reoconciliation!"));
 
-    final StackGresPostgresConfig postgresConfig = postgresConfigFinder.findByNameAndNamespace(
-        distributedLogs.getSpec().getConfigurations().getSgPostgresConfig(), namespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGPostgresConfig " + distributedLogs.getSpec().getConfigurations().getSgPostgresConfig()
-            + " not found"));
+    final Optional<StackGresProfile> profile = profileFinder.findByNameAndNamespace(
+        distributedLogs.getSpec().getSgInstanceProfile(), namespace);
+    if (!distributedLogs.getSpec().getSgInstanceProfile()
+        .equals(defaultProfileFactory.getDefaultResourceName(distributedLogs))
+        && profile.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresProfile.KIND + " " + distributedLogs.getSpec().getSgInstanceProfile()
+          + " was not found");
+    }
+
+    final Optional<StackGresPostgresConfig> postgresConfig = postgresConfigFinder.findByNameAndNamespace(
+        distributedLogs.getSpec().getConfigurations().getSgPostgresConfig(), namespace);
+    if (!distributedLogs.getSpec().getConfigurations().getSgPostgresConfig()
+        .equals(defaultPostgresConfigFactory.getDefaultResourceName(distributedLogs))
+        && postgresConfig.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresPostgresConfig.KIND + " " + distributedLogs.getSpec().getConfigurations().getSgPostgresConfig()
+          + " was not found");
+    }
 
     final Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
         distributedLogsName, namespace);
@@ -86,6 +115,7 @@ public class DistributedLogsRequiredResourcesGenerator
     StackGresDistributedLogsContext context = ImmutableStackGresDistributedLogsContext.builder()
         .config(config)
         .source(distributedLogs)
+        .profile(profile)
         .postgresConfig(postgresConfig)
         .cluster(cluster)
         .addAllConnectedClusters(getConnectedClusters(distributedLogs))

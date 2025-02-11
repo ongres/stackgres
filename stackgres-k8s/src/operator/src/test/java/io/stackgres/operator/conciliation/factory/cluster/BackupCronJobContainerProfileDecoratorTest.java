@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -29,6 +30,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,8 +42,7 @@ class BackupCronJobContainerProfileDecoratorTest extends AbstractProfileDecorato
 
   private static final StackGresGroupKind KIND = StackGresGroupKind.BACKUP;
 
-  private final BackupCronJobContainerProfileDecorator profileDecorator =
-      new BackupCronJobContainerProfileDecorator();
+  private BackupCronJobContainerProfileDecorator profileDecorator;
 
   @Mock
   private StackGresClusterContext context;
@@ -56,6 +57,8 @@ class BackupCronJobContainerProfileDecoratorTest extends AbstractProfileDecorato
 
   @BeforeEach
   void setUp() {
+    DefaultProfileFactory defaultProfileFactory = new DefaultProfileFactory();
+    profileDecorator = new BackupCronJobContainerProfileDecorator(defaultProfileFactory);
     cluster = Fixtures.cluster().loadDefault().get();
     profile = Fixtures.instanceProfile().loadSizeS().get();
 
@@ -120,7 +123,7 @@ class BackupCronJobContainerProfileDecoratorTest extends AbstractProfileDecorato
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
     lenient().when(context.getSource()).thenReturn(cluster);
-    lenient().when(context.getProfile()).thenReturn(profile);
+    lenient().when(context.getProfile()).thenReturn(Optional.of(profile));
   }
 
   @Override

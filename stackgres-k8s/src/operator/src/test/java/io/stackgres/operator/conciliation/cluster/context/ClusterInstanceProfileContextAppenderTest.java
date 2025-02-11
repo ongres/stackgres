@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ClusterInstanceProfileContextAppenderTest {
 
   private ClusterInstanceProfileContextAppender contextAppender;
+
+  private DefaultProfileFactory defaultProfileFactory = new DefaultProfileFactory();
 
   private StackGresCluster cluster;
 
@@ -43,18 +46,19 @@ class ClusterInstanceProfileContextAppenderTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterInstanceProfileContextAppender(
-        profileFinder);
+        profileFinder,
+        new DefaultProfileFactory());
   }
 
   @Test
   void givenClusterWithProfile_shouldPass() {
-    final StackGresProfile profile = new StackGresProfileBuilder()
+    final var profile = Optional.of(
+        new StackGresProfileBuilder()
         .withNewSpec()
         .endSpec()
-        .build();
+        .build());
     when(profileFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(
-            profile));
+        .thenReturn(profile);
     contextAppender.appendContext(cluster, contextBuilder);
     verify(contextBuilder).profile(profile);
   }
@@ -65,7 +69,16 @@ class ClusterInstanceProfileContextAppenderTest {
         .thenReturn(Optional.empty());
     var ex =
         assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
-    assertEquals("SGCluster stackgres.stackgres have a non existent SGInstanceProfile size-s", ex.getMessage());
+    assertEquals("SGInstanceProfile size-s was not found", ex.getMessage());
+  }
+
+  @Test
+  void givenClusterWithoutDefaultProfile_shouldPass() {
+    cluster.getSpec().setSgInstanceProfile(defaultProfileFactory.getDefaultResourceName(cluster));
+    when(profileFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.empty());
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(contextBuilder).profile(Optional.empty());
   }
 
 }

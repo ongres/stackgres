@@ -35,11 +35,18 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import jakarta.inject.Singleton;
 
 @Singleton
 public class PatroniEnvironmentVariables
     extends AbstractPatroniEnvironmentVariablesFactory<StackGresClusterContext> {
+
+  private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;
+
+  public PatroniEnvironmentVariables(DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory) {
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
+  }
 
   @Override
   public List<EnvVar> getEnvVars(StackGresClusterContext context) {
@@ -126,7 +133,8 @@ public class PatroniEnvironmentVariables
             .format(restoreToTimestamp)));
 
     appendEnvVarIfPresent("INITDB_AUTH_HOST",
-        Optional.of(context.getPostgresConfig()),
+        Optional.of(context.getPostgresConfig()
+            .orElseGet(() -> defaultPostgresConfigFactory.buildResource(cluster))),
         additionalEnvVars,
         Function.<StackGresPostgresConfig>identity()
         .andThen(StackGresPostgresConfig::getSpec)

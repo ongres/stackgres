@@ -39,6 +39,7 @@ import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.ModelTestUtil;
 import org.jboss.logmanager.Level;
@@ -63,15 +64,16 @@ class PatroniConfigMapTest {
 
   @BeforeEach
   void setUp() {
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
     var patroniConfigEndpoints = new PatroniConfigEndpoints(
-        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider());
+        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider(), defaultPostgresConfigFactory);
     generator = new PatroniConfigMap(
         labelFactory, patroniConfigEndpoints,
         JsonUtil.jsonMapper(), new YamlMapperProvider());
     cluster = Fixtures.cluster().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     when(context.getSource()).thenReturn(cluster);
-    lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    lenient().when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     cluster.getMetadata().getAnnotations()
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getConfigurations().setPatroni(new StackGresClusterPatroni());

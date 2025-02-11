@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.mutation;
 
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -16,27 +15,26 @@ import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 public abstract class DefaultValuesMutatorTest
-      <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
+      <R extends CustomResource<?, ?>, T extends AdmissionReview<R>, S extends HasMetadata> {
 
   protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
-  protected AbstractValuesMutator<R, T> mutator;
+  protected AbstractValuesMutator<R, T, S> mutator;
 
-  @Mock
-  protected DefaultCustomResourceFactory<R> factory;
+  protected DefaultCustomResourceFactory<R, S> factory;
 
   @BeforeEach
   void setUp() {
-    when(factory.buildResource()).thenReturn(getDefaultResource());
+    factory = createFactory();
     mutator = getMutatorInstance(factory, JSON_MAPPER);
-    mutator.init();
   }
 
-  protected abstract AbstractValuesMutator<R, T> getMutatorInstance(
-      DefaultCustomResourceFactory<R> factory,
+  protected abstract DefaultCustomResourceFactory<R, S> createFactory();
+
+  protected abstract AbstractValuesMutator<R, T, S> getMutatorInstance(
+      DefaultCustomResourceFactory<R, S> factory,
       JsonMapper jsonMapper);
 
   protected abstract T getEmptyReview();
@@ -62,6 +60,7 @@ public abstract class DefaultValuesMutatorTest
   @Test
   void givenAConfWithAllDefaultsValuesSettled_itShouldReturnTheSameObject() {
     T review = getDefaultReview();
+    review.getRequest().setObject(getDefaultResource());
 
     JsonNode expected = JsonUtil.toJson(review.getRequest().getObject().getSpec());
 

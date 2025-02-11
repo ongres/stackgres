@@ -12,13 +12,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ProfileConfigFinder extends AbstractCustomResourceFinder<StackGresProfile> {
+public class ProfileFinder extends AbstractCustomResourceFinder<StackGresProfile> {
 
   /**
    * Create a {@code ProfileConfigFinder} instance.
    */
   @Inject
-  public ProfileConfigFinder(KubernetesClient client) {
+  public ProfileFinder(KubernetesClient client) {
     super(client, StackGresProfile.class, StackGresProfileList.class);
   }
 
