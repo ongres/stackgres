@@ -20,7 +20,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
@@ -148,7 +148,7 @@ class PostgresExporterTest {
 
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
-        .clusterContext(ImmutableStackGresClusterContext.builder()
+        .clusterContext(StackGresClusterContext.builder()
             .config(getDefaultConfig())
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())
