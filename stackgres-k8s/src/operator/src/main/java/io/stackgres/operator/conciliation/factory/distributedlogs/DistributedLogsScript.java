@@ -36,7 +36,6 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
@@ -118,7 +117,7 @@ public class DistributedLogsScript
         .withRetryOnError(true)
         .withDatabase("postgres")
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(DistributedLogsScript.class.getResource(
                 "/distributed-logs/install-extensions.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
@@ -132,7 +131,7 @@ public class DistributedLogsScript
         .withRetryOnError(true)
         .withDatabase("postgres")
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(DistributedLogsScript.class.getResource(
                 "/distributed-logs/init.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
@@ -144,7 +143,7 @@ public class DistributedLogsScript
         .withRetryOnError(true)
         .withDatabase("postgres")
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(DistributedLogsScript.class.getResource(
                 "/distributed-logs/update-databases.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
@@ -156,7 +155,7 @@ public class DistributedLogsScript
         .withRetryOnError(true)
         .withDatabase("postgres")
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(DistributedLogsScript.class.getResource(
                 "/distributed-logs/reconcile-retention.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(

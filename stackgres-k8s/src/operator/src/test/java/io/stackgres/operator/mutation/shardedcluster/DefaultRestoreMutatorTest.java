@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.shardedcluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.lenient;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,15 +16,13 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatchException;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialDataBuilder;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.initialization.DefaultShardedClusterRestoreFactory;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,9 +33,6 @@ class DefaultRestoreMutatorTest {
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
   private StackGresShardedClusterReview review;
-
-  @Mock
-  private DefaultCustomResourceFactory<StackGresShardedClusterRestore> defaultRestoreFactory;
 
   private DefaultRestoreMutator mutator;
 
@@ -63,10 +57,7 @@ class DefaultRestoreMutatorTest {
       defaultRestoreValues.load(defaultPropertiesStream);
     }
 
-    StackGresShardedClusterRestore restore = PROPS_MAPPER
-        .readPropertiesAs(defaultRestoreValues, StackGresShardedClusterRestore.class);
-    lenient().when(defaultRestoreFactory.buildResource()).thenReturn(restore);
-
+    var defaultRestoreFactory = new DefaultShardedClusterRestoreFactory();
     mutator = new DefaultRestoreMutator(defaultRestoreFactory, JSON_MAPPER);
   }
 

@@ -28,6 +28,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -103,12 +107,16 @@ public class ShardedClusterDeployedResourceScanner
           Map.entry(Role.class, client -> client.rbac().roles()),
           Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
           Map.entry(CronJob.class, client -> client.batch().v1().cronjobs()),
-          Map.entry(StackGresCluster.class, client -> client
-              .resources(StackGresCluster.class, StackGresClusterList.class)),
+          Map.entry(StackGresProfile.class, client -> client
+              .resources(StackGresProfile.class, StackGresProfileList.class)),
           Map.entry(StackGresPostgresConfig.class, client -> client
               .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)),
+          Map.entry(StackGresPoolingConfig.class, client -> client
+              .resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)),
           Map.entry(StackGresScript.class, client -> client
               .resources(StackGresScript.class, StackGresScriptList.class)),
+          Map.entry(StackGresCluster.class, client -> client
+              .resources(StackGresCluster.class, StackGresClusterList.class)),
           Map.entry(ComputeNode.class, client -> client
               .resources(ComputeNode.class, ComputeNodeList.class))
           );

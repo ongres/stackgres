@@ -9,22 +9,58 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.common.io.Resources;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
+import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.ResourceGenerator;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @Singleton
-public class ClusterDefaultScripts {
+@OperatorVersionBinder
+public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterContext> {
 
-  public List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
+  private final LabelFactoryForCluster labelFactory;
+
+  @Inject
+  public ClusterDefaultScript(LabelFactoryForCluster labelFactory) {
+    this.labelFactory = labelFactory;
+  }
+
+  @Override
+  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+    return Stream.of(getDefaultScript(context.getSource()));
+  }
+
+  private StackGresScript getDefaultScript(StackGresCluster cluster) {
+    return new StackGresScriptBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(ManagedSqlUtil.defaultName(cluster))
+        .withLabels(labelFactory.genericLabels(cluster))
+        .endMetadata()
+        .withNewSpec()
+        .withScripts(getDefaultScripts(cluster))
+        .endSpec()
+        .build();
+  }
+
+  private List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
     return Seq.of(getPostgresExporterInitScript(0))
         .append(Seq.of(
             getBabelfishUserScript(cluster, 1),
@@ -42,7 +78,7 @@ public class ClusterDefaultScripts {
         .withName("prometheus-postgres-exporter-init")
         .withRetryOnError(true)
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(ClusterDefaultScript.class.getResource(
                 "/prometheus-postgres-exporter/init.sql"),
                 StandardCharsets.UTF_8)
             .read()).get())
@@ -94,7 +130,7 @@ public class ClusterDefaultScripts {
         .withName("babelfish-init")
         .withDatabase("babelfish")
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(ClusterDefaultScript.class.getResource(
                 "/babelfish/init.sql"),
                 StandardCharsets.UTF_8)
             .read()).get())

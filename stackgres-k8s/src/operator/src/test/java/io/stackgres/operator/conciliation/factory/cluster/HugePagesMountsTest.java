@@ -10,12 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +40,8 @@ class HugePagesMountsTest {
 
   @BeforeEach
   void setUp() {
-    hugePagesMounts = new HugePagesMounts();
+    DefaultProfileFactory defaultProfileFactory = new DefaultProfileFactory();
+    hugePagesMounts = new HugePagesMounts(defaultProfileFactory);
     profile = Fixtures.instanceProfile().loadSizeM().get();
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
   }
@@ -47,7 +51,7 @@ class HugePagesMountsTest {
     profile.getSpec().setHugePages(new StackGresProfileHugePages());
     profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
     profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
-    when(clusterContext.getProfile()).thenReturn(profile);
+    when(clusterContext.getProfile()).thenReturn(Optional.of(profile));
 
     var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
 
@@ -82,7 +86,7 @@ class HugePagesMountsTest {
 
   @Test
   void givenAClusterWithoutAProfileWithHugePages_itShouldNotCreateTheMountsWithHugePages() {
-    when(clusterContext.getProfile()).thenReturn(profile);
+    when(clusterContext.getProfile()).thenReturn(Optional.of(profile));
 
     var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
 

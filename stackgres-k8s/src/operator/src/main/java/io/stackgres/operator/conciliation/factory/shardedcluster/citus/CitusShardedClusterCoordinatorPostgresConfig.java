@@ -14,6 +14,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.operator.initialization.DefaultShardedClusterPostgresConfigFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
@@ -24,9 +25,14 @@ public class CitusShardedClusterCoordinatorPostgresConfig implements ResourceGen
 
   final LabelFactoryForShardedCluster labelFactory;
 
+  final DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory;
+
   @Inject
-  public CitusShardedClusterCoordinatorPostgresConfig(LabelFactoryForShardedCluster labelFactory) {
+  public CitusShardedClusterCoordinatorPostgresConfig(
+      LabelFactoryForShardedCluster labelFactory,
+      DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory) {
     this.labelFactory = labelFactory;
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
 
   @Override
@@ -35,7 +41,10 @@ public class CitusShardedClusterCoordinatorPostgresConfig implements ResourceGen
         .filter(ignore -> StackGresShardingType.CITUS.equals(
             StackGresShardingType.fromString(context.getShardedCluster().getSpec().getType())))
         .<HasMetadata>map(ignore -> StackGresShardedClusterForCitusUtil
-            .getCoordinatorPostgresConfig(context.getSource(), context.getCoordinatorConfig()))
+            .getCoordinatorPostgresConfig(
+                context.getSource(),
+                context.getCoordinatorPostgresConfig()
+                .orElse(defaultPostgresConfigFactory.buildResource(context.getResource()))))
         .map(config -> {
           config.getMetadata().setLabels(labelFactory.coordinatorLabels(context.getSource()));
           return config;

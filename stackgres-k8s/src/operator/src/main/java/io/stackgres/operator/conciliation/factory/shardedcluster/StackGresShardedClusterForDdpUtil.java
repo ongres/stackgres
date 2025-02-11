@@ -25,7 +25,6 @@ import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.impl.DSL;
@@ -134,7 +133,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .withName("ddp-create-database")
         .withRetryOnError(true)
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(StackGresShardedClusterForDdpUtil.class.getResource(
                 "/ddp/ddp-create-database.sql"),
                 StandardCharsets.UTF_8)
             .read()).get()
@@ -152,7 +151,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
         .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(ClusterDefaultScripts.class.getResource(
+            .asCharSource(StackGresShardedClusterForDdpUtil.class.getResource(
                 "/ddp/ddp--0.1.0.sql"),
                 StandardCharsets.UTF_8)
             .read()).get())
@@ -189,7 +188,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .endMetadata()
         .withData(ResourceUtil.encodeSecret(Map.of("ddp-update-shards.sql",
             Unchecked.supplier(() -> Resources
-                .asCharSource(ClusterDefaultScripts.class.getResource(
+                .asCharSource(StackGresShardedClusterForDdpUtil.class.getResource(
                     "/ddp/ddp-update-shards.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(

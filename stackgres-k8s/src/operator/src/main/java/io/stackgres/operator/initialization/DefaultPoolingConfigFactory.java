@@ -10,40 +10,36 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigBuilder;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class DefaultPoolingFactory
-    extends AbstractCustomResourceFactory<StackGresPoolingConfig> {
+public class DefaultPoolingConfigFactory
+    extends DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> {
 
-  @Inject
-  public DefaultPoolingFactory(StackGresPropertyContext<OperatorProperty> context) {
-    super(context);
-  }
-
-  @PostConstruct
   @Override
-  public void init() {
-    super.init();
+  protected String getDefaultPropertyResourceName(HasMetadata source) {
+    return "default";
   }
 
   @Override
-  StackGresPoolingConfig buildResource(String namespace) {
-    Map<String, String> defaultValues = getDefaultValues();
+  protected Properties loadDefaultProperties(String defaultPropertyResourceName) {
+    return PgBouncerDefaultValues.getProperties();
+  }
+
+  @Override
+  public StackGresPoolingConfig buildResource(HasMetadata resource) {
+    Map<String, String> defaultValues = getDefaultValues(resource);
     Set<String> blockedValues = PgBouncerBlocklist.getBlocklistParameters();
     return new StackGresPoolingConfigBuilder()
         .withMetadata(new ObjectMetaBuilder()
-            .withNamespace(namespace)
-            .withName(generateDefaultName())
+            .withNamespace(resource.getMetadata().getNamespace())
+            .withName(getDefaultResourceName(resource))
             .build())
         .withNewSpec()
         .withNewPgBouncer()
@@ -61,11 +57,6 @@ public class DefaultPoolingFactory
         .endPgBouncer()
         .endStatus()
         .build();
-  }
-
-  @Override
-  Properties getDefaultPropertiesFile() {
-    return PgBouncerDefaultValues.getProperties();
   }
 
 }

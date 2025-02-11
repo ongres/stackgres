@@ -11,6 +11,10 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 public interface LabelMapperForShardedCluster
     extends LabelMapper<StackGresShardedCluster> {
 
+  default String defaultConfigKey(StackGresShardedCluster resource) {
+    return getKeyPrefix(resource) + StackGresContext.SHARDED_CLUSTER_DEFAULT_CONFIG_KEY;
+  }
+
   default String coordinatorKey(StackGresShardedCluster resource) {
     return getKeyPrefix(resource) + StackGresContext.COORDINATOR_KEY;
   }

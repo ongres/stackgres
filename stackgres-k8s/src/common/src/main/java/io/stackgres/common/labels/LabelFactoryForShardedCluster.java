@@ -12,6 +12,8 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 public interface LabelFactoryForShardedCluster
     extends LabelFactory<StackGresShardedCluster> {
 
+  Map<String, String> defaultConfigLabels(StackGresShardedCluster resource);
+
   Map<String, String> coordinatorLabels(StackGresShardedCluster resource);
 
   Map<String, String> coordinatorLabelsWithoutUid(StackGresShardedCluster resource);

@@ -636,33 +636,27 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void givenBothRestoreBakcupNameAndUid_shouldFail() {
+  void givenRestoreBakcupUid_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getInitialData().getRestore().getFromBackup()
-        .setName("test");
     review.getRequest().getObject().getSpec().getInitialData().getRestore().getFromBackup()
         .setUid("test");
 
     checkErrorCause(StackGresClusterRestoreFromBackup.class,
-        "spec.initialData.restore.fromBackup.name",
-        "isNameNotNullOrUidNotNull",
+        "spec.initialData.restore.fromBackup.uid",
+        "isUidNull",
         review, AssertTrue.class,
-        "name cannot be null");
+        "uid is deprecated, use name instead!");
   }
 
   @Test
-  void givenMissingRestoreBakcupNameAndUid_shouldFail() {
+  void givenMissingRestoreBakcupName_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getInitialData().getRestore().getFromBackup()
         .setName(null);
-    review.getRequest().getObject().getSpec().getInitialData().getRestore().getFromBackup()
-        .setUid(null);
 
     checkErrorCause(StackGresClusterRestoreFromBackup.class,
         "spec.initialData.restore.fromBackup.name",
-        "isNameNotNullOrUidNotNull",
-        review, AssertTrue.class,
-        "name cannot be null");
+        review, NotNull.class, "name cannot be null");
   }
 
   @Test

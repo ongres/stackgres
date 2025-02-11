@@ -77,9 +77,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresObjectStorage> getReplicateObjectStorageConfig();
 
-  StackGresPostgresConfig getPostgresConfig();
+  Optional<StackGresPostgresConfig> getPostgresConfig();
 
-  StackGresProfile getProfile();
+  Optional<StackGresProfile> getProfile();
 
   Optional<StackGresPoolingConfig> getPoolingConfig();
 

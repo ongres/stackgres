@@ -19,7 +19,7 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import jakarta.inject.Inject;
+import io.stackgres.operator.initialization.DefaultDistributedLogsPostgresConfigFactory;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -30,14 +30,17 @@ public class DistributedLogsPostgresConfig
     implements ResourceGenerator<StackGresDistributedLogsContext> {
 
   private final LabelFactoryForDistributedLogs labelFactory;
+  private final DefaultDistributedLogsPostgresConfigFactory defaultPostgresConfigFactory;
 
   public static String configName(StackGresDistributedLogs distributedLogs) {
     return distributedLogs.getMetadata().getName() + "-logs";
   }
 
-  @Inject
-  public DistributedLogsPostgresConfig(LabelFactoryForDistributedLogs labelFactory) {
+  public DistributedLogsPostgresConfig(
+      LabelFactoryForDistributedLogs labelFactory,
+      DefaultDistributedLogsPostgresConfigFactory defaultPostgresConfigFactory) {
     this.labelFactory = labelFactory;
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
 
   @Override
@@ -46,8 +49,10 @@ public class DistributedLogsPostgresConfig
   }
   
   private StackGresPostgresConfig getPostgresConfig(StackGresDistributedLogsContext context) {
+    final StackGresPostgresConfig postgresConfig = context.getPostgresConfig()
+        .orElse(defaultPostgresConfigFactory.buildResource(context.getSource()));
     Map<String, String> postgresqlConf =
-        context.getPostgresConfig().getSpec().getPostgresqlConf();
+        postgresConfig.getSpec().getPostgresqlConf();
     Map<String, String> computedParameters = Map.of(
         "timescaledb.telemetry_level", "off",
         "shared_preload_libraries",
@@ -64,7 +69,7 @@ public class DistributedLogsPostgresConfig
             .withLabels(labelFactory.genericLabels(distributedLogs))
             .build())
         .editSpec()
-        .withPostgresVersion(context.getPostgresConfig().getSpec().getPostgresVersion())
+        .withPostgresVersion(postgresConfig.getSpec().getPostgresVersion())
         .withPostgresqlConf(Seq.seq(postgresqlConf)
             .filter(t -> !Objects.equals("shared_preload_libraries", t.v1))
             .append(Seq.seq(computedParameters)

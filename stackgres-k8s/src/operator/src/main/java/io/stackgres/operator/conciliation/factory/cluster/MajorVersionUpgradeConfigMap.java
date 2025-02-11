@@ -23,7 +23,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import jakarta.inject.Inject;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +31,15 @@ import org.jetbrains.annotations.NotNull;
 @OperatorVersionBinder
 public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClusterContext> {
 
-  private LabelFactoryForCluster labelFactory;
+  private final LabelFactoryForCluster labelFactory;
+  private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;
+
+  public MajorVersionUpgradeConfigMap(
+      LabelFactoryForCluster labelFactory,
+      DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory) {
+    this.labelFactory = labelFactory;
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
+  }
 
   public static String name(ClusterContext clusterContext) {
     return StackGresVolume.POSTGRES_CONFIG
@@ -64,6 +72,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
     data.put("postgresql.conf",
         StackGresUtil.toPlainPostgresConfig(
             context.getPostgresConfig()
+            .orElseGet(() -> defaultPostgresConfigFactory.buildResource(context.getSource()))
             .getSpec().getPostgresqlConf()));
 
     return new ConfigMapBuilder()
@@ -74,11 +83,6 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
-  }
-
-  @Inject
-  public void setLabelFactory(LabelFactoryForCluster labelFactory) {
-    this.labelFactory = labelFactory;
   }
 
 }

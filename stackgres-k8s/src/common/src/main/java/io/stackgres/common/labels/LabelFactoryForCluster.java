@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 public interface LabelFactoryForCluster
     extends LabelFactory<StackGresCluster> {
 
+  Map<String, String> defaultConfigLabels(StackGresCluster resource);
+
   Map<String, String> clusterLabels(StackGresCluster resource);
 
   Map<String, String> clusterLabelsWithoutUid(StackGresCluster resource);

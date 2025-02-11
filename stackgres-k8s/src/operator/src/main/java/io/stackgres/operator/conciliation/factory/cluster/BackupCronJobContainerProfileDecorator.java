@@ -20,12 +20,19 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder
 public class BackupCronJobContainerProfileDecorator extends AbstractContainerProfileDecorator
     implements Decorator<StackGresClusterContext> {
+
+  private DefaultProfileFactory defaultProfileFactory;
+
+  public BackupCronJobContainerProfileDecorator(DefaultProfileFactory defaultProfileFactory) {
+    this.defaultProfileFactory = defaultProfileFactory;
+  }
 
   @Override
   protected StackGresGroupKind getKind() {
@@ -41,7 +48,8 @@ public class BackupCronJobContainerProfileDecorator extends AbstractContainerPro
     }
 
     if (resource instanceof CronJob cronJob) {
-      setProfileContainers(context.getProfile(),
+      setProfileContainers(context.getProfile()
+          .orElseGet(() -> defaultProfileFactory.buildResource(context.getSource())),
           () -> Optional.of(cronJob)
           .map(CronJob::getSpec)
           .map(CronJobSpec::getJobTemplate)

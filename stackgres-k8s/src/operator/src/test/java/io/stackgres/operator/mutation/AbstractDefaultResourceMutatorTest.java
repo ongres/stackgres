@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -23,8 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class AbstractDefaultResourceMutatorTest<
-        C extends CustomResource<?, ?>, T extends CustomResource<?, ?>,
-        R extends AdmissionReview<T>, M extends AbstractDefaultResourceMutator<C, T, R>> {
+        C extends CustomResource<?, ?>, S extends HasMetadata, T extends S,
+        R extends AdmissionReview<T>, M extends AbstractDefaultResourceMutator<C, S, T, R>> {
 
   protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 

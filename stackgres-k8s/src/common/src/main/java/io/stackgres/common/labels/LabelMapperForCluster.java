@@ -13,6 +13,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 public interface LabelMapperForCluster
     extends LabelMapper<StackGresCluster> {
 
+  default String defaultConfigKey(StackGresCluster resource) {
+    return getKeyPrefix(resource) + StackGresContext.CLUSTER_DEFAULT_CONFIG_KEY;
+  }
+
   default String clusterKey(StackGresCluster resource) {
     return getKeyPrefix(resource) + StackGresContext.CLUSTER_KEY;
   }

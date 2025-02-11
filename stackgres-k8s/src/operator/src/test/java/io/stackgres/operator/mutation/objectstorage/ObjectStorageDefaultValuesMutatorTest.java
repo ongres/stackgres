@@ -8,14 +8,15 @@ package io.stackgres.operator.mutation.objectstorage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.BackupStorage;
-import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.AbstractValuesMutator;
+import io.stackgres.operator.initialization.DefaultObjectStorageFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
@@ -24,12 +25,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ObjectStorageDefaultValuesMutatorTest
-    extends DefaultValuesMutatorTest<StackGresObjectStorage, StackGresObjectStorageReview> {
+    extends DefaultValuesMutatorTest<StackGresObjectStorage, StackGresObjectStorageReview, HasMetadata> {
 
   @Override
-  protected AbstractValuesMutator<StackGresObjectStorage, StackGresObjectStorageReview> getMutatorInstance(
-      DefaultCustomResourceFactory<StackGresObjectStorage> factory, JsonMapper jsonMapper) {
+  protected ObjectStorageDefaultValuesMutator getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresObjectStorage, HasMetadata> factory, JsonMapper jsonMapper) {
     return new ObjectStorageDefaultValuesMutator(factory, jsonMapper);
+  }
+
+  @Override
+  protected DefaultCustomResourceFactory<StackGresObjectStorage, HasMetadata> createFactory() {
+    return new DefaultObjectStorageFactory();
   }
 
   @Override
@@ -46,7 +52,12 @@ class ObjectStorageDefaultValuesMutatorTest
 
   @Override
   protected StackGresObjectStorage getDefaultResource() {
-    return Fixtures.objectStorage().loadDefault().get();
+    return factory.buildResource(
+        new ConfigMapBuilder()
+        .withNewMetadata()
+        .withName("default")
+        .endMetadata()
+        .build());
   }
 
   @Test

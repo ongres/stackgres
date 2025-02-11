@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,8 @@ class ClusterPostgresConfigContextAppenderTest {
 
   private StackGresCluster cluster;
 
+  private DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+
   @Spy
   private StackGresClusterContext.Builder contextBuilder;
 
@@ -43,19 +46,20 @@ class ClusterPostgresConfigContextAppenderTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterPostgresConfigContextAppender(
-        postgresConfigFinder);
+        postgresConfigFinder,
+        new DefaultClusterPostgresConfigFactory());
   }
 
   @Test
   void givenClusterWithPostgresConfig_shouldPass() {
-    final StackGresPostgresConfig postgresConfig = new StackGresPostgresConfigBuilder()
+    final var postgresConfig = Optional.of(
+        new StackGresPostgresConfigBuilder()
         .withNewSpec()
         .withPostgresVersion(cluster.getSpec().getPostgres().getVersion().replaceAll("\\..*$", ""))
         .endSpec()
-        .build();
+        .build());
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(
-            postgresConfig));
+        .thenReturn(postgresConfig);
     contextAppender.appendContext(cluster, contextBuilder);
     verify(contextBuilder).postgresConfig(postgresConfig);
   }
@@ -66,7 +70,7 @@ class ClusterPostgresConfigContextAppenderTest {
         .thenReturn(Optional.empty());
     var ex =
         assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
-    assertEquals("SGCluster stackgres.stackgres have a non existent SGPostgresConfig postgresconf", ex.getMessage());
+    assertEquals("SGPostgresConfig postgresconf was not found", ex.getMessage());
   }
 
   @Test
@@ -81,6 +85,16 @@ class ClusterPostgresConfigContextAppenderTest {
     var ex =
         assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
     assertEquals("Invalid postgres version, must be 10 to use SGPostgresConfig postgresconf", ex.getMessage());
+  }
+
+  @Test
+  void givenClusterWithoutDefaultPostgresConfig_shouldPass() {
+    cluster.getSpec().getConfigurations().setSgPostgresConfig(
+        defaultPostgresConfigFactory.getDefaultResourceName(cluster));
+    when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.empty());
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(contextBuilder).postgresConfig(Optional.empty());
   }
 
 }

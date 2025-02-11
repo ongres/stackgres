@@ -25,6 +25,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +48,9 @@ class PatroniConfigEndpointsReplicationModeTest {
 
   @BeforeEach
   void setUp() {
-    generator = new PatroniConfigEndpoints(labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider());
+    DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory = new DefaultClusterPostgresConfigFactory();
+    generator = new PatroniConfigEndpoints(
+        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider(), defaultPostgresConfigFactory);
 
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations()
@@ -60,7 +63,7 @@ class PatroniConfigEndpointsReplicationModeTest {
     setDefaultParameters(postgresConfig);
 
     lenient().when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
-    lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    lenient().when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
   }
 
   private void setDefaultParameters(StackGresPostgresConfig postgresConfig) {
@@ -73,7 +76,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setDefaultReplicationMode_shouldNotSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
 
     PatroniConfig patroniConfig = generator.getPatroniConfig(context);
@@ -87,7 +90,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setSyncReplicationMode_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(2);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.SYNC.toString());
@@ -104,7 +107,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setStrictSyncReplicationMode_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(2);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.STRICT_SYNC.toString());
@@ -121,7 +124,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setSyncReplicationModeWith3Instances_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(3);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.SYNC.toString());
@@ -138,7 +141,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setStrictSyncReplicationModeWith3Instances_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(3);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.STRICT_SYNC.toString());
@@ -155,7 +158,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setSyncAllReplicationMode_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(2);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.SYNC_ALL.toString());
@@ -172,7 +175,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setStrictSyncAllReplicationMode_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(2);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.STRICT_SYNC_ALL.toString());
@@ -189,7 +192,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setSyncAllReplicationModeWith3Instances_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(3);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.SYNC_ALL.toString());
@@ -206,7 +209,7 @@ class PatroniConfigEndpointsReplicationModeTest {
   void setStrictSyncAllReplicationModeWith3Instances_shouldSetPatroniSynchronousMode() {
     when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getPostgresConfig()).thenReturn(Optional.of(postgresConfig));
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().setInstances(3);
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.STRICT_SYNC_ALL.toString());

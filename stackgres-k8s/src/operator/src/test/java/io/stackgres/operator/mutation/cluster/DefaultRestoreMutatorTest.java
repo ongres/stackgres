@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.lenient;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,12 +20,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.initialization.DefaultClusterRestoreFactory;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,9 +35,6 @@ class DefaultRestoreMutatorTest {
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
   private StackGresClusterReview review;
-
-  @Mock
-  private DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
 
   private DefaultRestoreMutator mutator;
 
@@ -57,10 +52,7 @@ class DefaultRestoreMutatorTest {
       defaultRestoreValues.load(defaultPropertiesStream);
     }
 
-    StackGresClusterRestore restore = PROPS_MAPPER
-        .readPropertiesAs(defaultRestoreValues, StackGresClusterRestore.class);
-    lenient().when(defaultRestoreFactory.buildResource()).thenReturn(restore);
-
+    DefaultClusterRestoreFactory defaultRestoreFactory = new DefaultClusterRestoreFactory();
     mutator = new DefaultRestoreMutator(defaultRestoreFactory, JSON_MAPPER);
   }
 

@@ -37,6 +37,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
@@ -61,6 +63,9 @@ import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForDdpUtil;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForShardingSphereUtil;
+import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
+import io.stackgres.operator.initialization.DefaultShardedClusterPostgresConfigFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -81,7 +86,17 @@ public class ShardedClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresConfig> configScanner;
 
+  private final CustomResourceFinder<StackGresProfile> profileFinder;
+
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
+
+  private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
+
+  private final DefaultProfileFactory defaultProfileFactory;
+
+  private final DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory;
+
+  private final DefaultPoolingConfigFactory defaultPoolingConfigFactory;
 
   private final CustomResourceFinder<StackGresShardedBackup> backupFinder;
 
@@ -97,7 +112,12 @@ public class ShardedClusterRequiredResourcesGenerator
   public ShardedClusterRequiredResourcesGenerator(
       Supplier<VersionInfo> kubernetesVersionSupplier,
       CustomResourceScanner<StackGresConfig> configScanner,
+      CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
+      CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
+      DefaultProfileFactory defaultProfileFactory,
+      DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory,
+      DefaultPoolingConfigFactory defaultPoolingConfigFactory,
       CustomResourceFinder<StackGresShardedBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<Endpoints> endpointsFinder,
@@ -105,7 +125,12 @@ public class ShardedClusterRequiredResourcesGenerator
       ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.configScanner = configScanner;
+    this.profileFinder = profileFinder;
     this.postgresConfigFinder = postgresConfigFinder;
+    this.poolingConfigFinder = poolingConfigFinder;
+    this.defaultProfileFactory = defaultProfileFactory;
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
+    this.defaultPoolingConfigFactory = defaultPoolingConfigFactory;
     this.backupFinder = backupFinder;
     this.secretFinder = secretFinder;
     this.endpointsFinder = endpointsFinder;
@@ -119,7 +144,7 @@ public class ShardedClusterRequiredResourcesGenerator
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
+    final VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
 
     final StackGresConfig config = configScanner.findResources()
         .stream()
@@ -129,18 +154,81 @@ public class ShardedClusterRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig not found or more than one exists. Aborting reoconciliation!"));
 
-    Optional<Secret> databaseSecret = secretFinder
+    final Optional<Secret> databaseSecret = secretFinder
         .findByNameAndNamespace(clusterName, clusterNamespace);
 
-    StackGresPostgresConfig coordinatorConfig = postgresConfigFinder.findByNameAndNamespace(
+    Optional<StackGresProfile> coordinatorProfile = profileFinder.findByNameAndNamespace(
+        cluster.getSpec().getCoordinator().getSgInstanceProfile(),
+        clusterNamespace);
+    if (!cluster.getSpec().getCoordinator().getSgInstanceProfile().equals(
+        defaultProfileFactory.getDefaultResourceName(cluster))
+        && coordinatorProfile.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresProfile.KIND
+          + " " + cluster.getSpec().getCoordinator().getSgInstanceProfile()
+          + " was not found");
+    }
+
+    Optional<StackGresPostgresConfig> coordinatorPostgresConfig = postgresConfigFinder.findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
-        clusterNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Coordinator of SGShardedCluster "
-                + clusterNamespace + "." + clusterName
-                + " have a non existent " + StackGresPostgresConfig.KIND
-                + " " + cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
-                .getSgPostgresConfig()));
+        clusterNamespace);
+    if (!cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig().equals(
+        defaultPostgresConfigFactory.getDefaultResourceName(cluster))
+        && coordinatorPostgresConfig.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresPostgresConfig.KIND
+          + " " + cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig()
+          + " was not found");
+    }
+
+    Optional<StackGresPoolingConfig> coordinatorPoolingConfig = poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPoolingConfig(),
+        clusterNamespace);
+    if (!cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPoolingConfig().equals(
+        defaultPoolingConfigFactory.getDefaultResourceName(cluster))
+        && coordinatorPoolingConfig.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresPoolingConfig.KIND
+          + " " + cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPoolingConfig()
+          + " was not found");
+    }
+
+    Optional<StackGresProfile> shardsProfile = profileFinder.findByNameAndNamespace(
+        cluster.getSpec().getShards().getSgInstanceProfile(),
+        clusterNamespace);
+    if (!cluster.getSpec().getShards().getSgInstanceProfile().equals(
+        defaultProfileFactory.getDefaultResourceName(cluster))
+        && coordinatorProfile.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresProfile.KIND
+          + " " + cluster.getSpec().getShards().getSgInstanceProfile()
+          + " was not found");
+    }
+
+    Optional<StackGresPostgresConfig> shardsPostgresConfig = postgresConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getShards().getConfigurations().getSgPostgresConfig(),
+        clusterNamespace);
+    if (!cluster.getSpec().getShards().getConfigurations().getSgPostgresConfig().equals(
+        defaultPostgresConfigFactory.getDefaultResourceName(cluster))
+        && coordinatorPostgresConfig.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresPostgresConfig.KIND
+          + " " + cluster.getSpec().getShards().getConfigurations().getSgPostgresConfig()
+          + " was not found");
+    }
+
+    Optional<StackGresPoolingConfig> shardsPoolingConfig = poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getShards().getConfigurations().getSgPoolingConfig(),
+        clusterNamespace);
+    if (!cluster.getSpec().getShards().getConfigurations().getSgPoolingConfig().equals(
+        defaultPoolingConfigFactory.getDefaultResourceName(cluster))
+        && coordinatorPoolingConfig.isEmpty()) {
+      throw new IllegalArgumentException(
+          StackGresPoolingConfig.KIND
+          + " " + cluster.getSpec().getShards().getConfigurations().getSgPoolingConfig()
+          + " was not found");
+    }
+
     if (Optional.of(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getInitialData)
         .map(StackGresShardedClusterInitialData::getRestore)
@@ -255,7 +343,12 @@ public class ShardedClusterRequiredResourcesGenerator
         .kubernetesVersion(kubernetesVersion)
         .config(config)
         .source(cluster)
-        .coordinatorConfig(coordinatorConfig)
+        .coordinatorProfile(coordinatorProfile)
+        .coordinatorPostgresConfig(coordinatorPostgresConfig)
+        .coordinatorPoolingConfig(coordinatorPoolingConfig)
+        .shardsProfile(shardsProfile)
+        .shardsPostgresConfig(shardsPostgresConfig)
+        .shardsPoolingConfig(shardsPoolingConfig)
         .coordinator(coordinator)
         .shards(shards)
         .coordinatorPrimaryEndpoints(coordinatorPrimaryEndpoints)

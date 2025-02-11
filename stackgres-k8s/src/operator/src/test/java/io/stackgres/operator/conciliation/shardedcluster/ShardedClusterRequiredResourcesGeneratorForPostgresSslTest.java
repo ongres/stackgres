@@ -29,77 +29,105 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   @Test
   void givenClusterWithPostgresSsl_shouldIgnoreMissingSecret() {
     mockPostgresSsl();
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPostgresSslWithPreviousSecret_shouldLookItUp() {
     mockPostgresSslWithPreviousGeneratedSecret();
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPostgresSslWithSecret_shouldLookItUp() {
     mockPostgresSslWithSecret();
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPostgresSslWithoutSecretForCertificate_shouldFail() {
     mockPostgresSslWithMissingSecret("certificate");
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Certificate secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPostgresSslWithoutSecretForPrivateKey_shouldFail() {
     mockPostgresSslWithMissingSecret("private-key");
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Private key secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPostgresSslWithoutKeyForCertificate_shouldFail() {
     mockPostgresSslWithMissingKey("certificate");
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Certificate key test-certificate was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
   void givenClusterWithPostgresSslWithoutKeyForPrivateKey_shouldFail() {
     mockPostgresSslWithMissingKey("private-key");
+    mockProfile();
     mockPgConfig();
+    mockPoolConfig();
 
     assertException("Private key key test-private-key was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 

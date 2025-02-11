@@ -14,9 +14,9 @@ e2e_test_install() {
   REUSED_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-reused")"
   NOSIDECARS_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-nosidecars")"
 
-  PGCONFIG_FIELDS=37
+  PGCONFIG_FIELDS=38
   LOGS_PGCONFIG_FIELDS=38
-  PGCONFIG_DEFAULTS_PARAMETERS=52
+  PGCONFIG_DEFAULTS_PARAMETERS=53
 
   PGBOUNCER_FIELDS=6
   PGBOUNCER_DEFAULTS_PARAMETERS=13
@@ -55,15 +55,17 @@ e2e_test() {
 
   run_test "Updating a cluster without annotations should trigger the creation of annotations" update_empty_cluster
 
-  run_test "Creating en empty cluster in the operator should not fail" create_empty_cluster_on_operator_namespace
-
   run_test "Creating an empty cluster with previous postgres version should not fail" create_cluster_with_previous_postgres_version
 
   run_test "Creating an empty distributed logs should trigger the creation of all default configurations" create_empty_distributedlogs
 
   run_test "Updating a distributed logs without annotations should trigger the creation of annotations" update_empty_distributedlogs
 
-  run_test "Creating en empty distributed logs in the operator should no fail" create_empty_distributedlogs_on_operator_namespace
+  run_test "Creating an empty sharded cluster should trigger the creation of all default configurations" create_empty_sharded_cluster
+
+  run_test "Updating a sharded cluster without annotations should trigger the creation of annotations" update_empty_sharded_cluster
+
+  run_test "Creating an empty sharded cluster with previous postgres version should not fail" create_sharded_cluster_with_previous_postgres_version
 }
 
 create_empty_sgpgconfig() {
@@ -75,7 +77,7 @@ metadata:
   name: $PGCONFIG
   namespace: $CLUSTER_NAMESPACE
 spec:
-  postgresVersion: "13"
+  postgresVersion: "${E2E_POSTGRES_VERSION%%.*}"
   postgresql.conf:
     custom.unsignificant: "true"
 EOF
@@ -120,7 +122,7 @@ metadata:
   name: $PGCONFIG
   namespace: $CLUSTER_NAMESPACE
 spec:
-  postgresVersion: "13"
+  postgresVersion: "${E2E_POSTGRES_VERSION%%.*}"
   postgresql.conf: {}
 EOF
   local PATCH
@@ -441,8 +443,7 @@ EOF
 
   local CREATED_PGBOUNCER
   CREATED_PGBOUNCER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPoolingConfig}')"
-
-  if kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
+  if wait_until kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
   then
     success "Default pgbouncer was created in the cluster namespace"
   else
@@ -549,7 +550,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: '13'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '512Mi'
@@ -563,7 +564,7 @@ EOF
   local CREATED_PGCONFIG
   CREATED_PGCONFIG="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
 
-  if kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
+  if wait_until kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
   then
     success "Default pgconfig was created in the cluster namespace"
   else
@@ -583,7 +584,7 @@ EOF
   local CREATED_PGBOUNCER
   CREATED_PGBOUNCER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPoolingConfig}')"
 
-  if kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
+  if wait_until kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
   then
     success "Default poolconfig was created in the cluster namespace"
   else
@@ -603,7 +604,7 @@ EOF
   local CREATED_PROFILE
   CREATED_PROFILE="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
 
-  if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
+  if wait_until kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
   then
     success "Default profile was created in the cluster namespace"
   else
@@ -633,20 +634,8 @@ EOF
   local INSTALLED_CONTAINERS
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
-  if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
-  then
-    success "Promethus postgres exporter was installed"
-  else
-    fail "Promethus postgres exporter was not installed"
-  fi
-
-  if echo "$INSTALLED_CONTAINERS" | grep "envoy" > /dev/null
-  then
-    success "Envoy was installed"
-  else
-    fail "Envoy was not installed"
-  fi
-
+  assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
+  assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
   assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
 
@@ -693,60 +682,12 @@ EOF
   local INSTALLED_CONTAINERS
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
-  if echo "$INSTALLED_CONTAINERS" | grep "prometheus-postgres-exporter" > /dev/null
-  then
-    success "Promethus postgres exporter was installed"
-  else
-    fail "Promethus postgres exporter was not installed"
-  fi
-
-  if echo "$INSTALLED_CONTAINERS" | grep "envoy" > /dev/null
-  then
-    success "Envoy was installed"
-  else
-    fail "Envoy was not installed"
-  fi
-
+  assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
+  assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
   assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
 
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-}
-
-create_empty_cluster_on_operator_namespace() {
-  cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGCluster
-metadata:
-  name: $CLUSTER_NAME
-  namespace: $OPERATOR_NAMESPACE
-spec:
-  instances: 1
-  postgres:
-    version: "$E2E_POSTGRES_VERSION"
-  configurations:
-    observability:
-      disableMetrics: true
-  pods:
-    persistentVolume:
-      size: '512Mi'
-    disableConnectionPooling: true
-    disablePostgresUtil: true
-    scheduling:
-      nodeSelector:
-        $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
-  nonProductionOptions:
-    disableClusterPodAntiAffinity: true
-EOF
-
-  if kubectl get sgclusters.stackgres.io -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
-  then
-    success "cluster was created on the operator namespace "
-  else
-    fail "cluster was not created on the operator namespace "
-  fi
-
-  kubectl delete sgcluster -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
 }
 
 create_cluster_with_previous_postgres_version() {
@@ -805,7 +746,7 @@ EOF
   local CREATED_PGCONFIG
   CREATED_PGCONFIG="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
 
-  if kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
+  if wait_until kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
   then
     success "Default pgconfig was created in the cluster namespace"
   else
@@ -825,7 +766,7 @@ EOF
   local CREATED_PROFILE
   CREATED_PROFILE="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
 
-  if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
+  if wait_until kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
   then
     success "Default profile was created in the distributed logs namespace"
   else
@@ -874,26 +815,240 @@ update_empty_distributedlogs() {
   kubectl delete sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
-create_empty_distributedlogs_on_operator_namespace() {
+create_empty_sharded_cluster() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGDistributedLogs
+apiVersion: stackgres.io/v1alpha1
+kind: SGShardedCluster
 metadata:
-  name: $DISTRIBUTEDLOGS_NAME
-  namespace: $OPERATOR_NAMESPACE
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
 spec:
-  persistentVolume:
-    size: 128Mi
+  type: citus
+  database: citus
+  postgres:
+    version: "$E2E_POSTGRES_VERSION"
+  coordinator:
+    instances: 1
+    pods:
+      persistentVolume:
+        size: '512Mi'
+      scheduling:
+        nodeSelector:
+          $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
+  shards:
+    clusters: 1
+    instancesPerCluster: 1
+    pods:
+      persistentVolume:
+        size: '512Mi'
+      scheduling:
+        nodeSelector:
+          $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
 
-  if kubectl get sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
+  local CREATED_PGCONFIG
+  CREATED_PGCONFIG="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.coordinator.configurations.sgPostgresConfig}')"
+
+  if wait_until kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
   then
-    success "distributed logs was created on the operator namespace"
+    success "Default pgconfig was created in the cluster namespace"
   else
-    fail "distributed logs was not created on the operator namespace"
+    fail "Default pgconfig was not created in the cluster namespace"
   fi
 
-  kubectl delete sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
+  local CREATED_PGCONFIG_FIELDS
+  CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+
+  if [ "$CREATED_PGCONFIG_FIELDS" = "$PGCONFIG_FIELDS" ]
+  then
+    success "Defaults pgconfig fields were created"
+  else
+    fail "Default pgconfig fields not created"
+  fi
+
+  local CREATED_PGBOUNCER
+  CREATED_PGBOUNCER="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.coordinator.configurations.sgPoolingConfig}')"
+
+  if wait_until kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
+  then
+    success "Default poolconfig was created in the cluster namespace"
+  else
+    fail "Default poolconfig was not created in the cluster namespace"
+  fi
+
+  local CREATED_PGBOUNCER_FIELDS
+  CREATED_PGBOUNCER_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+
+  if [ "$CREATED_PGBOUNCER_FIELDS" = "$PGBOUNCER_FIELDS" ]
+  then
+    success "Defaults poolconfig fields were created"
+  else
+    fail "Default poolconfig fields not created"
+  fi
+
+  local CREATED_PROFILE
+  CREATED_PROFILE="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.coordinator.sgInstanceProfile}')"
+
+  if wait_until kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
+  then
+    success "Default profile was created in the cluster namespace"
+  else
+    fail "Default profile was not created in the cluster namespace"
+  fi
+
+  local CREATED_PROFILE_FIELDS
+  CREATED_PROFILE_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')"
+  
+  if [ -z "$CREATED_PROFILE_FIELDS" || "$CREATED_PROFILE_FIELDS" = "null" ]
+  then
+    fail "Default profile fields were not created"
+  else
+    success "Defaults profile fields were created"
+  fi
+
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    fail "Default annotations not created"
+  else
+    success "Defaults annotations created"
+  fi
+
+  local INSTALLED_CONTAINERS
+  INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-coord -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+
+  assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
+  assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
+
+  INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-shard0 -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+
+  assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
+  assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
+
+  kubectl delete sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+}
+
+update_empty_sharded_cluster() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: SGShardedCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  type: citus
+  database: citus
+  postgres:
+    version: "$E2E_POSTGRES_VERSION"
+  coordinator:
+    instances: 1
+    pods:
+      persistentVolume:
+        size: '512Mi'
+      scheduling:
+        nodeSelector:
+          $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
+  shards:
+    clusters: 1
+    instancesPerCluster: 1
+    pods:
+      persistentVolume:
+        size: '512Mi'
+      scheduling:
+        nodeSelector:
+          $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+  local PATCH
+  PATCH="$(kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.generation)' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
+    | kubectl create -f - --dry-run=client -o yaml)"
+  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$PATCH"
+
+  local DEFAULT_ANNOTATION
+  DEFAULT_ANNOTATION="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+
+  if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
+  then
+    fail "Default annotations not created"
+  else
+    success "Defaults annotations created"
+  fi
+
+  local INSTALLED_CONTAINERS
+  INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-coord -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+
+  assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
+  assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
+
+  INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-shard0 -o=jsonpath='{.spec.template.spec.containers[*].name}')"
+
+  assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
+  assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
+  assert_string_contains "pgbouncer" "$INSTALLED_CONTAINERS"
+  assert_string_contains "postgres-util" "$INSTALLED_CONTAINERS"
+
+  kubectl delete sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+}
+
+create_sharded_cluster_with_previous_postgres_version() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1alpha1
+kind: SGShardedCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  type: citus
+  database: citus
+  postgres:
+    version: '13'
+  configurations:
+    observability:
+      disableMetrics: true
+  coordinator:
+    instances: 1
+    pods:
+      persistentVolume:
+        size: '128Mi'
+      disableConnectionPooling: true
+      disablePostgresUtil: true
+      scheduling:
+        nodeSelector:
+          $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
+  shards:
+    clusters: 1
+    instancesPerCluster: 1
+    pods:
+      persistentVolume:
+        size: '128Mi'
+      disableConnectionPooling: true
+      disablePostgresUtil: true
+      scheduling:
+        nodeSelector:
+          $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+
+  if kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+  then
+    success "cluster was created with previous postgres version"
+  else
+    fail "cluster was not created with previous postgres version"
+  fi
+
+  kubectl delete sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }

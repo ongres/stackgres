@@ -39,6 +39,13 @@ public class ClusterLabelFactory
   }
 
   @Override
+  public Map<String, String> defaultConfigLabels(StackGresCluster resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().defaultConfigKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
+  }
+
+  @Override
   public Map<String, String> clusterLabels(StackGresCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUid(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))

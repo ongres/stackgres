@@ -13,13 +13,16 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
-public class DefaultPostgresMutator
+@ApplicationScoped
+public class DefaultPostgresConfigMutator
     extends AbstractDefaultResourceMutator<StackGresPostgresConfig, StackGresCluster,
-        StackGresClusterReview> {
+        StackGresCluster, StackGresClusterReview>
+    implements ClusterMutator {
 
-  public DefaultPostgresMutator(
-      DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory,
+  public DefaultPostgresConfigMutator(
+      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> resourceFactory,
       CustomResourceFinder<StackGresPostgresConfig> finder,
       CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
     super(resourceFactory, finder, scheduler);

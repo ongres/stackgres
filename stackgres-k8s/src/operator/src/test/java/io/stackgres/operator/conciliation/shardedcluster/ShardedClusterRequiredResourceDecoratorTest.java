@@ -52,7 +52,7 @@ class ShardedClusterRequiredResourceDecoratorTest
     return ImmutableStackGresShardedClusterContext.builder()
         .config(config)
         .source(resource)
-        .coordinatorConfig(pgConfig)
+        .coordinatorPostgresConfig(pgConfig)
         .coordinator(getCoordinator())
         .shards(getShards())
         .build();

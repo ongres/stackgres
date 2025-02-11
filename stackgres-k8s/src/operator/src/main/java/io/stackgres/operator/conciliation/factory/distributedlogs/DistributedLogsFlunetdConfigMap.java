@@ -25,7 +25,6 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.FluentBit;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
@@ -80,7 +79,7 @@ public class DistributedLogsFlunetdConfigMap
         .withData(StackGresUtil.addMd5Sum(Map.of(
             "fluentd.conf", getFluentdConfig(context),
             ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename(), Unchecked.supplier(() -> Resources
-                .asCharSource(ClusterDefaultScripts.class.getResource(
+                .asCharSource(DistributedLogsFlunetdConfigMap.class.getResource(
                     "/templates/" + ClusterPath.LOCAL_BIN_START_FLUENTD_SH_PATH.filename()),
                     StandardCharsets.UTF_8)
                 .read()).get())))

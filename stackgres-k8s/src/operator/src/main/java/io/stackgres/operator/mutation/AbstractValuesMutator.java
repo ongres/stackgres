@@ -8,23 +8,21 @@ package io.stackgres.operator.mutation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public abstract class AbstractValuesMutator<R extends CustomResource<?, ?>,
-    T extends AdmissionReview<R>>
+public abstract class AbstractValuesMutator<R extends HasMetadata,
+    T extends AdmissionReview<R>, S extends HasMetadata>
     implements Mutator<R, T> {
 
-  private final DefaultCustomResourceFactory<R> factory;
+  private final DefaultCustomResourceFactory<R, S> factory;
   private final ObjectMapper jsonMapper;
 
-  protected R defaultValue;
-
-  protected AbstractValuesMutator(DefaultCustomResourceFactory<R> factory,
+  protected AbstractValuesMutator(DefaultCustomResourceFactory<R, S> factory,
       ObjectMapper jsonMapper) {
     this.factory = factory;
     this.jsonMapper = jsonMapper;
@@ -36,10 +34,6 @@ public abstract class AbstractValuesMutator<R extends CustomResource<?, ?>,
     this.jsonMapper = null;
   }
 
-  public void init() {
-    this.defaultValue = factory.buildResource();
-  }
-
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
       justification = "Wanted behavior")
   @Override
@@ -48,15 +42,24 @@ public abstract class AbstractValuesMutator<R extends CustomResource<?, ?>,
       return resource;
     }
     try {
+      R defaultValue = getDefaultValue(resource);
       return jsonMapper.treeToValue(
           jsonMapper
-          .readerForUpdating(jsonMapper.valueToTree(this.defaultValue))
+          .readerForUpdating(jsonMapper.valueToTree(defaultValue))
           .readValue(jsonMapper.valueToTree(resource).toString()),
           getResourceClass());
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
   }
+
+  protected R getDefaultValue(R resource) {
+    S sourceResource = createSourceResource(resource);
+    R defaultValue = factory.buildResource(sourceResource);
+    return defaultValue;
+  }
+
+  protected abstract S createSourceResource(R resource);
 
   protected abstract Class<R> getResourceClass();
 
