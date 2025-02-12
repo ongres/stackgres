@@ -4,7 +4,7 @@ describe('Create SGShardedCluster', () => {
     });
 
     const namespace = Cypress.env('k8s_namespace')
-    const postgresVersion = '15.2' // Set fixed postgres version
+    const postgresVersion = '16' // Set fixed postgres version
     let resourceName;
 
     before( () => {
@@ -122,6 +122,10 @@ describe('Create SGShardedCluster', () => {
 
         cy.deleteShardedCluster(namespace, 'basic-' + resourceName);
 
+        cy.deleteShardedCluster(namespace, 'ddp-' + resourceName);
+
+        cy.deleteShardedCluster(namespace, 'shardingsphere-' + resourceName);
+
         cy.deleteShardedCluster(namespace, 'babelfish-' + resourceName);
 
         cy.deleteShardedCluster(namespace, 'advanced-' + resourceName);
@@ -141,16 +145,20 @@ describe('Create SGShardedCluster', () => {
             .should('be.visible')
     });  
 
-    it('Creating a basic SGShardedCluster should be possible', () => {
+    it('Creating a basic SGShardedCluster with Citus should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .type('basic-' + resourceName)
         
-            // Test Cluster Database
+        // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .type('basic_' + resourceName)
 
-        // Temporary: choose postgres version since citus is not available yet for PG16
+        // Test sharding type
+        cy.get('[data-field="spec.type"]')
+            .select('citus')
+
+        // Test postgres version
         cy.get('ul[data-field="spec.postgres.version"] li').first()
             .click()
         cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + postgresVersion + '"]')
@@ -166,8 +174,132 @@ describe('Create SGShardedCluster', () => {
             })
 
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
-    }); 
+    });
 
+    it('Creating a basic SGShardedCluster with DDP should be possible', () => {
+        // Test Cluster Name
+        cy.get('[data-field="metadata.name"]')
+            .type('ddp-' + resourceName)
+        
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .type('ddp_' + resourceName)
+
+        // Test sharding type
+        cy.get('[data-field="spec.type"]')
+            .select('ddp')
+
+        // Test Submit form
+        cy.get('form#createShardedCluster button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('Cluster "ddp-' + resourceName + '" created successfully')
+            })
+
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
+    });
+    
+    it('Creating a basic SGShardedCluster with ShardingSphere should be possible', () => {
+        // Test Cluster Name
+        cy.get('[data-field="metadata.name"]')
+            .type('shardingsphere-' + resourceName)
+        
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .type('shardingsphere_' + resourceName)
+
+        // Test sharding type
+        cy.get('[data-field="spec.type"]')
+            .select('shardingsphere')
+
+        // Coordinator section
+        cy.get('form#createShardedCluster li.coordinator')
+            .click()
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.version"]')
+            .type('latest')
+
+        cy.get('a[data-field="spec.coordinator.configurations.shardingSphere.properties.add"]')
+            .click()
+            
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.properties[0].name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.properties[0].value"]')
+            .type('value')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.serviceAccount.name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.serviceAccount.namespace"]')
+            .type('namespace')
+
+        cy.get('select[data-field="spec.coordinator.configurations.shardingSphere.authority.privilege.type"]')
+            .select('DATABASE_PERMITTED')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings"]')
+            .type('sharding@%=*, test@%=test_db, test@%=sharding_db')
+
+        cy.get('a[data-field="sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.add"]')
+            .click()
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.authority.users[0].user.name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.authority.users[0].user.key"]')
+            .type('key')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.authority.users[0].password.name"]')
+            .type('password')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.authority.users[0].password.key"]')
+            .type('key')
+
+        cy.get('select[data-field="spec.coordinator.configurations.shardingSphere.mode.type"]')
+            .select('Cluster')
+
+        cy.get('a[data-field="sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.properties.add"]')
+            .click()
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.mode.properties[0].name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.mode.properties[0].value"]')
+            .type('value')
+
+        cy.get('select[data-field="spec.coordinator.configurations.shardingSphere.mode.repository.type"]')
+            .select('ZooKeeper')
+        
+        cy.get('a[data-field="spec.coordinator.configurations.shardingSphere.mode.repository.zooKeeper.serverList.add"]')
+            .click()
+        
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.mode.repository.zooKeeper.serverList[0]"]')
+            .type('server')
+
+        cy.get('a[data-field="coordinator.configurations.shardingSphere.mode.repository.properties.add"]')
+            .click()
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.mode.repository.properties[0].name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.coordinator.configurations.shardingSphere.mode.repository.properties[0].value"]')
+            .type('value')
+
+        // Test Submit form
+        cy.get('form#createShardedCluster button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('Cluster "shardingsphere-' + resourceName + '" created successfully')
+            })
+
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
+    });
+
+    // SGShardedClusters with Babelfish are not supported at the moment
     it.skip('Creating a SGShardedCluster with Babelfish should be possible', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
@@ -194,7 +326,7 @@ describe('Create SGShardedCluster', () => {
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
     });
 
-    it('Creating an advanced SGShardedCluster should be possible', () => {
+    it('Creating an advanced SGShardedCluster with Citus should be possible', () => {
         // Enable advanced options
         cy.get('form#createShardedCluster input#advancedMode')
             .click()
@@ -214,6 +346,10 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .type('advanced_' + resourceName)
+
+        // Test sharding type
+        cy.get('[data-field="spec.type"]')
+            .select('citus')
         
         // Test postgres version
         cy.get('ul[data-field="spec.postgres.version"] li').first()
@@ -2633,7 +2769,7 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
     });
     
-    it('Updating an advanced SGShardedCluster should be possible', () => {
+    it('Updating an advanced SGShardedCluster with Citus should be possible', () => {
         // Edit advanced cluster
         cy.visit(namespace + '/sgshardedcluster/advanced-' + resourceName + '/edit')
     
@@ -4430,6 +4566,10 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .type('repeater_' + resourceName)
+        
+        // Test sharding type
+        cy.get('[data-field="spec.type"]')
+            .select('citus')
 
         // Temporary: choose postgres version since citus is not available yet for PG16
         cy.get('ul[data-field="spec.postgres.version"] li').first()
