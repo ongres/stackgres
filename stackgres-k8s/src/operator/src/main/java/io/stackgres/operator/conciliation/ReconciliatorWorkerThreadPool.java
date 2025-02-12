@@ -139,7 +139,11 @@ public class ReconciliatorWorkerThreadPool {
 
     @Override
     public int compareTo(ReconciliationRunnable o) {
-      return o.priority.compareTo(priority);
+      int compare = o.priority.compareTo(priority);
+      if (compare == 0) {
+        compare = o.timestamp > timestamp ? -1 : (o.timestamp == timestamp ? 0 : 1);
+      }
+      return compare;
     }
 
     @Override
