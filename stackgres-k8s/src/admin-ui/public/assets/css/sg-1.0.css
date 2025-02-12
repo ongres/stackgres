@@ -605,6 +605,10 @@ form.form .helpTooltip {
     transform: translate(20px, -30px);
 }
 
+select.unit + span.helpTooltip {
+    transform: translate(20px, -50px);
+}
+
 .header.stickyHeader {
     margin-top: -15px;
     padding-top: 15px;

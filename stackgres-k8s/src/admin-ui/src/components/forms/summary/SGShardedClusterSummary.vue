@@ -46,10 +46,7 @@
                                     <strong class="label">Name</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.metadata.name')"></span>
                                     <span class="value"> :
-                                        <router-link :to="'/' + cluster.data.metadata.namespace + '/sgshardedcluster/' + cluster.data.metadata.name">
-                                            {{ cluster.data.metadata.name }}
-                                            <span class="eyeIcon"></span>
-                                        </router-link>
+                                        {{ cluster.data.metadata.name }}
                                     </span>
                                 </li>
                             </ul>
@@ -540,7 +537,7 @@
                                         </template>
                                     </span>
                                 </li>
-                                <li v-if="showDefaults || (cluster.data.spec.coordinator.pods.persistentVolume.size != '1Gi') || hasProp(cluster, 'data.spec.coordinator.pods.persistentVolume.storageClass')">
+                                <li v-if="showDefaults || (cluster.data.spec.coordinator.pods.hasOwnProperty('persistentVolume') && ((cluster.data.spec.coordinator.pods.persistentVolume.size != '1Gi') || hasProp(cluster, 'data.spec.coordinator.pods.persistentVolume.storageClass')) )">
                                     <button class="toggleSummary"></button>
                                     <strong class="label">Pods Storage</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods')"></span>
@@ -559,6 +556,194 @@
                                                     <strong class="label">Storage Class</strong>
                                                      <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.persistentVolume.storageClass')"></span>
                                                     <span class="value"> : {{ cluster.data.spec.coordinator.pods.persistentVolume.storageClass }}</span>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <ul class="section" v-if="(cluster.data.spec.type === 'shardingsphere')">
+                        <li>
+                            <button class="toggleSummary"></button>
+                            <strong class="sectionTitle">Sharding Sphere Configuration </strong>
+                            <ul>
+                                <li v-if="showDefaults || !isNull(cluster.data.spec.coordinator.configurations.shardingSphere.version)">
+                                    <strong class="label">Version</strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.version')"></span>
+                                    <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.version }}</span>
+                                </li>
+
+                                <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.properties') && !isNull(cluster.data.spec.coordinator.configurations.shardingSphere.properties)">
+                                    <button class="toggleSummary"></button>
+                                    <strong class="label">Properties </strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.properties')"></span>
+
+                                    <ul>
+                                        <template v-for="(value, prop) in cluster.data.spec.coordinator.configurations.shardingSphere.properties">
+                                            <li :key="'shardingSphere-properties-' + prop">
+                                                <strong class="label">{{ prop }}</strong>
+                                                <span class="value"> : {{ value }}</span>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </li>
+
+                                <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.serviceAccount')">
+                                    <button class="toggleSummary"></button>
+                                    <strong class="label">Service Account </strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.serviceAccount')"></span>
+
+                                    <ul>
+                                        <li>
+                                            <strong class="label">Name</strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.serviceAccount.name')"></span>
+                                            <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.serviceAccount.name }}</span>
+                                        </li>
+                                        <li>
+                                            <strong class="label">Namespace</strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.serviceAccount.namespace')"></span>
+                                            <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.serviceAccount.namespace }}</span>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.authority')">
+                                    <button class="toggleSummary"></button>
+                                    <strong class="label">Authority </strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority')"></span>
+
+                                    <ul>
+                                        <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.authority.privilege')">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Privilege </strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege')"></span>
+                                            
+                                            <ul>
+                                                <li>
+                                                    <strong class="label">Type</strong>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege.type')"></span>
+                                                    <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.authority.privilege.type }}</span>
+                                                </li>
+                                                <li v-if="!isNull(cluster.data.spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings)">
+                                                    <strong class="label">User Database Mappings</strong>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings')"></span>
+                                                    <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings }}</span>
+                                                </li>
+                                            </ul>
+                                        </li>
+
+                                        <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.authority.users') && !isNull(cluster.data.spec.coordinator.configurations.shardingSphere.authority.users)">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Users </strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users')"></span>
+                                            
+                                            <ul>
+                                                <template v-for="(user, index) in cluster.data.spec.coordinator.configurations.shardingSphere.authority.users">
+                                                    <li :key="'shardingSphere-user-' + index">
+                                                        <button class="toggleSummary"></button>
+                                                        <strong class="label">User #{{ index + 1}} </strong>
+
+                                                        <ul>
+                                                            <li>
+                                                                <strong class="label">User Name</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.user.properties.name')"></span>
+                                                                <span class="value"> : {{ user.user.name }}</span>
+                                                            </li>
+                                                            <li>
+                                                                <strong class="label">User Key</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.user.properties.key')"></span>
+                                                                <span class="value"> : {{ user.user.key }}</span>
+                                                            </li>
+                                                            <li>
+                                                                <strong class="label">Password Name</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.password.properties.name')"></span>
+                                                                <span class="value"> : {{ user.password.name }}</span>
+                                                            </li>
+                                                            <li>
+                                                                <strong class="label">Password Key</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.password.properties.key')"></span>
+                                                                <span class="value"> : {{ user.password.key }}</span>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.mode')">
+                                    <button class="toggleSummary"></button>
+                                    <strong class="label">Mode </strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode')"></span>
+
+                                    <ul>
+                                        <li>
+                                            <strong class="label">Type</strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.type')"></span>
+                                            <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.mode.type }}</span>
+                                        </li>
+
+                                        <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.mode.properties') && !isNull(cluster.data.spec.coordinator.configurations.shardingSphere.mode.properties)">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Properties </strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.properties')"></span>
+
+                                            <ul>
+                                                <template v-for="(value, prop) in cluster.data.spec.coordinator.configurations.shardingSphere.mode.properties">
+                                                    <li :key="'shardingSphere-mode-properties-' + prop">
+                                                        <strong class="label">{{ prop }}</strong>
+                                                        <span class="value"> : {{ value }}</span>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </li>
+
+                                        <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.mode.repository')">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Repository </strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository')"></span>
+
+                                            <ul>
+                                                <li>
+                                                    <strong class="label">Type</strong>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.type')"></span>
+                                                    <span class="value"> : {{ cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type }}</span>
+                                                </li>
+
+                                                <li v-if="
+                                                    hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.mode.repository.' + cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type + '.serverList') &&
+                                                    !isNull(cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository[cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type].serverList)
+                                                ">
+                                                    <button class="toggleSummary"></button>
+                                                    <strong class="label">{{ splitUppercase(cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type) }} Server List </strong>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.' + cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type + '.serverList')"></span>
+
+                                                    <ul>
+                                                        <template v-for="(server, index) in cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository[cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type].serverList">
+                                                            <li :key="'shardingSphere-mode-repository-' + cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.type + '-' + index">
+                                                                <span class="value">{{ server }}</span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </li>
+
+                                                <li v-if="hasProp(cluster, 'data.spec.coordinator.configurations.shardingSphere.mode.repository.properties') && !isNull(cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.properties)">
+                                                    <button class="toggleSummary"></button>
+                                                    <strong class="label">Properties </strong>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.properties')"></span>
+
+                                                    <ul>
+                                                        <template v-for="(value, prop) in cluster.data.spec.coordinator.configurations.shardingSphere.mode.repository.properties">
+                                                            <li :key="'shardingSphere-mode-repository-properties-' + prop">
+                                                                <strong class="label">{{ prop }}</strong>
+                                                                <span class="value"> : {{ value }}</span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
                                                 </li>
                                             </ul>
                                         </li>

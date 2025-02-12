@@ -136,9 +136,11 @@
 
                             <div class="col">
                                 <label for="spec.type">Type <span class="req">*</span></label>
-                                <select v-model="shardingType" disabled required data-field="spec.type">
+                                <select v-model="shardingType" required data-field="spec.type" @change="setShardingType()">
                                     <option :value="nullVal">Choose one...</option>
                                     <option value="citus">Citus</option>
+                                    <option value="ddp">DDP</option>
+                                    <option value="shardingsphere">ShardingSphere</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.type')"></span>
                             </div>
@@ -485,7 +487,7 @@
                                 </div>
                             </div>
 
-                             <div class="repeater">
+                            <div class="repeater">
                                 <fieldset data-field="spec.configurations.backups.paths">
                                     <div class="header" :class="(!backups[0].paths.length && 'noMargin')">
                                         <h3 for="spec.configurations.backups.paths">
@@ -935,40 +937,455 @@
                             </div>
                         </div>
 
+
                         <hr/>
 
-                        <div class="row-50">
-                            <h3>Pods Storage</h3>
+                        <template v-if="shardingType !== 'shardingsphere'">
+                            <div class="row-50">
+                                <h3>Pods Storage</h3>
 
-                            <div class="col">
-                                <div class="unit-select">
-                                    <label for="spec.coordinator.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
-                                    <input v-model="coordinator.pods.persistentVolume.size.size" class="size" required data-field="spec.coordinator.pods.persistentVolume.size" type="number">
-                                    <select v-model="coordinator.pods.persistentVolume.size.unit" class="unit" required data-field="spec.coordinator.pods.persistentVolume.size" >
-                                        <option disabled :value="''">Select Unit</option>
-                                        <option value="Mi">MiB</option>
-                                        <option value="Gi">GiB</option>
-                                        <option value="Ti">TiB</option>   
-                                    </select>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.persistentVolume.size')"></span>
+                                <div class="col">
+                                    <div class="unit-select">
+                                        <label for="spec.coordinator.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
+                                        <input v-model="coordinator.pods.persistentVolume.size.size" class="size" required data-field="spec.coordinator.pods.persistentVolume.size" type="number">
+                                        <select v-model="coordinator.pods.persistentVolume.size.unit" class="unit" required data-field="spec.coordinator.pods.persistentVolume.size" >
+                                            <option disabled :value="''">Select Unit</option>
+                                            <option value="Mi">MiB</option>
+                                            <option value="Gi">GiB</option>
+                                            <option value="Ti">TiB</option>   
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.persistentVolume.size')"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col">
+                                    <label for="spec.coordinator.pods.persistentVolume.storageClass">Storage Class</label>
+
+                                    <template v-if="storageClasses === null">
+                                        <input v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" autocomplete="off">
+                                    </template>
+                                    <template v-else>
+                                        <select v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                            <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                        </select>
+                                    </template>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.persistentVolume.storageClass')"></span>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <h3>
+                                Sharding Sphere
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere')"></span>
+                            </h3>
+                            <br/>
+
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.coordinator.configurations.shardingSphere.version">
+                                        Version
+                                    </label>
+                                    <input v-model="coordinator.configurations.shardingSphere.version" data-field="spec.coordinator.configurations.shardingSphere.version">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.version')"></span>
                                 </div>
                             </div>
 
-                            <div class="col">
-                                <label for="spec.coordinator.pods.persistentVolume.storageClass">Storage Class</label>
+                            <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.properties" class="noMargin">
+                                <div class="header" :class="!coordinator.configurations.shardingSphere.properties.length && 'noBorder'">
+                                    <h5 for="spec.coordinator.configurations.shardingSphere.properties">
+                                        Properties
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.properties')"></span> 
+                                    </h5>
+                                </div>
+                                <div class="repeater">
+                                    <div class="row" v-for="(property, index) in coordinator.configurations.shardingSphere.properties" data-field="spec.coordinator.configurations.shardingSphere.properties">
+                                        <label>Name</label>
+                                        <input :required="!isNull(property.value)" class="label" v-model="property.name" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.properties[' + index + '].name'">
 
-                                <template v-if="storageClasses === null">
-                                    <input v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" autocomplete="off">
-                                </template>
-                                <template v-else>
-                                    <select v-model="coordinator.pods.persistentVolume.storageClass" data-field="spec.coordinator.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                        <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                                    </select>
-                                </template>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.persistentVolume.storageClass')"></span>
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="labelValue" v-model="property.value" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.properties[' + index + '].value'">
+
+                                        <a class="addRow delete" @click="spliceArray(coordinator.configurations.shardingSphere.properties, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter marginBottom">
+                                <a
+                                    class="addRow"
+                                    data-field="spec.coordinator.configurations.shardingSphere.properties.add"
+                                    @click="coordinator.configurations.shardingSphere.properties.push({ name: null, value: null})"
+                                >
+                                    Add Property
+                                </a>
                             </div>
-                        </div>
+
+                            <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.serviceAccount">
+                                <div class="header">
+                                    <h4>
+                                        Service Account
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.serviceAccount')"></span>
+                                    </h4>
+                                </div>
+                                <div class="row-50">
+                                    <div class="col">
+                                        <label for="spec.coordinator.configurations.shardingSphere.serviceAccount.name">
+                                            Name
+                                            <template v-if="!isNull(coordinator.configurations.shardingSphere.serviceAccount.name) || !isNull(coordinator.configurations.shardingSphere.serviceAccount.namespace)">
+                                                <span class="req">
+                                                    *
+                                                </span>
+                                            </template>
+                                        </label>
+                                        <input
+                                            v-model="coordinator.configurations.shardingSphere.serviceAccount.name"
+                                            :required="!isNull(coordinator.configurations.shardingSphere.serviceAccount.namespace)"
+                                            data-field="spec.coordinator.configurations.shardingSphere.serviceAccount.name"
+                                        >
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.serviceAccount.name')"></span>
+                                    </div>
+
+                                    <div class="col">
+                                        <label for="spec.coordinator.configurations.shardingSphere.serviceAccount.namespace">
+                                            Namespace
+                                            <template v-if="!isNull(coordinator.configurations.shardingSphere.serviceAccount.name) || !isNull(coordinator.configurations.shardingSphere.serviceAccount.namespace)">
+                                                <span class="req">
+                                                    *
+                                                </span>
+                                            </template>
+                                        </label>
+                                        <input
+                                            v-model="coordinator.configurations.shardingSphere.serviceAccount.namespace"
+                                            :required="!isNull(coordinator.configurations.shardingSphere.serviceAccount.name)"
+                                            data-field="spec.coordinator.configurations.shardingSphere.serviceAccount.namespace"
+                                        >
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.serviceAccount.namespace')"></span>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            
+                            <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.authority">
+                                <div class="header">
+                                    <h4>
+                                        Authority
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority')"></span>
+                                    </h4>
+                                </div>
+
+                                <fieldset data-fieldset="sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege">
+                                    <div class="header">
+                                        <h5 for="spec.coordinator.configurations.shardingSphere.authority.privilege">
+                                            Privilege
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege')"></span>
+                                        </h5>
+                                    </div>
+                                    <div class="row-50">
+                                        <div class="col">
+                                            <label for="spec.coordinator.configurations.shardingSphere.authority.privilege.type">
+                                                Type
+                                                <span class="req">
+                                                    *
+                                                </span>
+                                            </label>
+                                            <select
+                                                required
+                                                v-model="coordinator.configurations.shardingSphere.authority.privilege.type"
+                                                data-field="spec.coordinator.configurations.shardingSphere.authority.privilege.type" 
+                                            >
+                                                <option :value="null">Choose one...</option>
+                                                <option value="ALL_PERMITTED">All Permitted</option>
+                                                <option value="DATABASE_PERMITTED">Database Permitted</option>
+                                            </select>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege.type')"></span>
+                                        </div>
+
+                                        <template v-if="coordinator.configurations.shardingSphere.authority.privilege.type === 'DATABASE_PERMITTED'">
+                                            <div class="col">
+                                                <label for="spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings">
+                                                    User Database Mappings
+                                                </label>                                            
+                                                <input
+                                                    v-model="coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings"
+                                                    data-field="spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings"
+                                                >
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.privilege.userDatabaseMappings')"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </fieldset>
+
+                                <div class="repeater">
+                                    <fieldset data-fieldset="sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users">
+                                        <div class="header" :class="(!coordinator.configurations.shardingSphere.authority.users.length && 'noMargin')">
+                                            <h5 for="spec.coordinator.configurations.shardingSphere.authority.users">
+                                                Users
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users')"></span>
+                                            </h5>
+                                        </div>
+                                        <template v-if="coordinator.configurations.shardingSphere.authority.users.length">
+                                            <div class="section" v-for="(user, index) in coordinator.configurations.shardingSphere.authority.users">
+                                                    <div class="header">
+                                                        <h6 :for="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + ']'">
+                                                            User #{{ index + 1}}
+                                                        </h6>
+                                                        <a class="addRow delete" @click="spliceArray(coordinator.configurations.shardingSphere.authority.users, index)">Delete</a>
+                                                    </div>
+                                                    <div class="row-50">
+                                                        <div class="col">
+                                                            <label :for="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].user.name'">
+                                                                User Name
+                                                                <span class="req">
+                                                                    *
+                                                                </span>
+                                                            </label>                                            
+                                                            <input
+                                                                required
+                                                                v-model="user.user.name"
+                                                                :data-field="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].user.name'"
+                                                            >
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.user.properties.name')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label :for="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].user.key'">
+                                                                User Key
+                                                                <span class="req">
+                                                                    *
+                                                                </span>
+                                                            </label>                                            
+                                                            <input
+                                                                required
+                                                                v-model="user.user.key"
+                                                                :data-field="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].user.key'"
+                                                            >
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.user.properties.key')"></span>
+                                                        </div>
+                                                        <div class="col noMargin">
+                                                            <label :for="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].password.name'">
+                                                                Password Name
+                                                                <span class="req">
+                                                                    *
+                                                                </span>
+                                                            </label>                                            
+                                                            <input
+                                                                required
+                                                                class="noMargin"
+                                                                v-model="user.password.name"
+                                                                :data-field="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].password.name'"
+                                                            >
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.password.properties.name')"></span>
+                                                        </div>
+                                                        <div class="col noMarginBottom">
+                                                            <label :for="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].password.nakeyme'">
+                                                                Password Key
+                                                                <span class="req">
+                                                                    *
+                                                                </span>
+                                                            </label>                                            
+                                                            <input
+                                                                required
+                                                                class="noMargin"
+                                                                v-model="user.password.key"
+                                                                :data-field="'spec.coordinator.configurations.shardingSphere.authority.users[' + index + '].password.key'"
+                                                            >
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.items.properties.password.properties.key')"></span>
+                                                        </div>
+                                                    </div>
+                                            </div>
+                                        </template>
+                                    </fieldset>
+                                    <div class="fieldsetFooter marginBottom">
+                                        <a
+                                            class="addRow"
+                                            data-field="sgshardedcluster.spec.coordinator.configurations.shardingSphere.authority.users.add"
+                                            @click="coordinator.configurations.shardingSphere.authority.users.push({user: {key: null, name: null}, password: {key: null, name: null}})"
+                                        >
+                                            Add User
+                                        </a>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.mode">
+                                <div class="header">
+                                    <h4>
+                                        Mode
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode')"></span>
+                                    </h4>
+                                </div>
+
+                                <div class="row-50">
+                                    <div class="col">
+                                        <label for="spec.coordinator.configurations.shardingSphere.mode.type">
+                                            Type
+                                            <span class="req">
+                                                *
+                                            </span>
+                                        </label>
+                                        <select
+                                            required
+                                            v-model="coordinator.configurations.shardingSphere.mode.type"
+                                            data-field="spec.coordinator.configurations.shardingSphere.mode.type"
+                                            @change="( (coordinator.configurations.shardingSphere.mode.type === 'Standalone') ? (coordinator.configurations.shardingSphere.mode.repository.type = 'Memory') : (coordinator.configurations.shardingSphere.mode.repository.type = null) )"
+                                        >
+                                            <option :value="null">Choose one...</option>
+                                            <option value="Standalone">Standalone</option>
+                                            <option value="Cluster">Cluster</option>
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.type')"></span>
+                                    </div>
+                                </div>
+
+                                <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.mode.properties" class="noMargin">
+                                    <div class="header" :class="!coordinator.configurations.shardingSphere.mode.properties.length && 'noBorder'">
+                                        <h5 for="spec.coordinator.configurations.shardingSphere.mode.properties">
+                                            Properties
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.properties')"></span> 
+                                        </h5>
+                                    </div>
+                                    <div class="repeater">
+                                        <div class="row" v-for="(property, index) in coordinator.configurations.shardingSphere.mode.properties" data-field="spec.coordinator.configurations.shardingSphere.mode.properties">
+                                            <label>Name</label>
+                                            <input :required="!isNull(property.value)" class="label" v-model="property.name" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.mode.properties[' + index + '].name'">
+
+                                            <span class="eqSign"></span>
+
+                                            <label>Value</label>
+                                            <input class="labelValue" v-model="property.value" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.mode.properties[' + index + '].value'">
+
+                                            <a class="addRow delete" @click="spliceArray(coordinator.configurations.shardingSphere.mode.properties, index)">Delete</a>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <div class="fieldsetFooter marginBottom">
+                                    <a
+                                        class="addRow"
+                                        data-field="sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.properties.add"
+                                        @click="coordinator.configurations.shardingSphere.mode.properties.push({ name: null, value: null})"
+                                    >
+                                        Add Property
+                                    </a>
+                                </div>
+
+                                <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.mode.repository">
+                                    <div class="header">
+                                        <h5>
+                                            Repository
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository')"></span>
+                                        </h5>
+                                    </div>
+
+                                    <div class="row-50">
+                                        <div class="col">
+                                            <label for="spec.coordinator.configurations.shardingSphere.mode.repository.type">
+                                                Type
+                                                <span class="req">
+                                                    *
+                                                </span>
+                                            </label>
+                                            <select
+                                                required
+                                                v-model="coordinator.configurations.shardingSphere.mode.repository.type"
+                                                data-field="spec.coordinator.configurations.shardingSphere.mode.repository.type"
+                                                @change="setupShardingSphereServerList()">
+                                                <option :value="null">Choose one...</option>
+                                                <option
+                                                    value="Memory"
+                                                    :disabled="(coordinator.configurations.shardingSphere.mode.type === 'Cluster')"
+                                                >
+                                                    Memory
+                                                </option>
+                                                <option
+                                                    value="ZooKeeper"
+                                                    :disabled="(coordinator.configurations.shardingSphere.mode.type === 'Standalone')"
+                                                >
+                                                    zooKeeper
+                                                </option>
+                                                <option
+                                                    value="Etcd"
+                                                    :disabled="(coordinator.configurations.shardingSphere.mode.type === 'Standalone')"
+                                                >
+                                                    etcd
+                                                </option>
+                                            </select>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.type')"></span>
+                                        </div>
+                                    </div>
+
+                                    <template
+                                        v-if="![null, 'Memory'].includes(coordinator.configurations.shardingSphere.mode.repository.type)"
+                                    >
+                                        <fieldset :data-fieldset="'spec.coordinator.configurations.shardingSphere.mode.repository.' + shardingSphereRepoType + '.serverList'" class="noMargin">
+                                            <div class="header" :class="!coordinator.configurations.shardingSphere.mode.repository[shardingSphereRepoType].serverList.length && 'noBorder'">
+                                                <h6>
+                                                    Server List
+
+                                                    <template v-if="coordinator.configurations.shardingSphere.mode.repository.type === 'Etcd'">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.etcd.serverList')"></span>
+                                                    </template>
+                                                    <template v-else>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.zooKeeper.serverList')"></span>
+                                                    </template>
+                                                </h6>
+                                            </div>
+
+                                            <div class="repeater">
+                                                <div class="row" v-for="(server, index) in coordinator.configurations.shardingSphere.mode.repository[shardingSphereRepoType].serverList" :data-field="'spec.coordinator.configurations.shardingSphere.mode.repository.' + shardingSphereRepoType + '.serverList'">
+                                                    <label>
+                                                        Server #{{ index + 1}}
+                                                        <a class="addRow delete floatRight" @click="spliceArray(coordinator.configurations.shardingSphere.mode.repository[shardingSphereRepoType].serverList, index)">
+                                                            Delete
+                                                        </a>
+                                                    </label>
+                                                    <input v-model="coordinator.configurations.shardingSphere.mode.repository[shardingSphereRepoType].serverList[index]" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.mode.repository.' + shardingSphereRepoType + '.serverList[' + index + ']'">
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <div class="fieldsetFooter marginBottom">
+                                            <a
+                                                class="addRow"
+                                                :data-field="'spec.coordinator.configurations.shardingSphere.mode.repository.' + shardingSphereRepoType + '.serverList.add'"
+                                                @click="coordinator.configurations.shardingSphere.mode.repository[shardingSphereRepoType].serverList.push(null)"
+                                            >
+                                                Add Server
+                                            </a>
+                                        </div>
+                                    </template>
+
+                                    <fieldset data-fieldset="spec.coordinator.configurations.shardingSphere.mode.repository.properties" class="noMargin">
+                                        <div class="header" :class="!coordinator.configurations.shardingSphere.mode.repository.properties.length && 'noBorder'">
+                                            <h5 for="spec.coordinator.configurations.shardingSphere.mode.repository.properties">
+                                                Properties
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.configurations.shardingSphere.mode.repository.properties')"></span> 
+                                            </h5>
+                                        </div>
+                                        <div class="repeater">
+                                            <div class="row" v-for="(property, index) in coordinator.configurations.shardingSphere.mode.repository.properties" data-field="spec.coordinator.configurations.shardingSphere.mode.repository.properties">
+                                                <label>Name</label>
+                                                <input :required="!isNull(property.value)" class="label" v-model="property.name" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.mode.repository.properties[' + index + '].name'">
+
+                                                <span class="eqSign"></span>
+
+                                                <label>Value</label>
+                                                <input class="labelValue" v-model="property.value" autocomplete="off" :data-field="'spec.coordinator.configurations.shardingSphere.mode.repository.properties[' + index + '].value'">
+
+                                                <a class="addRow delete" @click="spliceArray(coordinator.configurations.shardingSphere.mode.repository.properties, index)">Delete</a>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                    <div class="fieldsetFooter marginBottom">
+                                        <a
+                                            class="addRow"
+                                            data-field="coordinator.configurations.shardingSphere.mode.repository.properties.add"
+                                            @click="coordinator.configurations.shardingSphere.mode.repository.properties.push({ name: null, value: null})"
+                                        >
+                                            Add Property
+                                        </a>
+                                    </div>
+                                </fieldset>
+                            </fieldset>
+                        </template>
                     </div>
                 </fieldset>
 
@@ -7083,7 +7500,7 @@
                 clusterProfiles: ['production', 'testing', 'development'],
                 profile: 'production',
                 database: '',
-                shardingType: 'citus',
+                shardingType: null,
                 backups: [{
                     paths: [null],
                     compression: 'lz4',
@@ -7413,6 +7830,45 @@
                             }
                         });
 
+                        // If sharding type is ShardingSphere
+                        if(c.data.spec.type === 'shardingsphere') {
+                            vm.$set(vm.coordinator.configurations, 'shardingSphere', c.data.spec.coordinator.configurations.shardingSphere);
+
+                            if(!vm.hasProp(c.data, 'spec.coordinator.configurations.shardingSphere.serviceAccount')) {
+                                vm.$set(vm.coordinator.configurations.shardingSphere, 'serviceAccount', {
+                                    name: null,
+                                    namespace: null
+                                });
+                            }
+                            
+                            if(vm.hasProp(c.data, 'spec.coordinator.configurations.shardingSphere.properties')) {
+                                vm.$set(vm.coordinator.configurations.shardingSphere, 'properties', vm.unparseProps(c.data.spec.coordinator.configurations.shardingSphere.properties, 'name'));
+                            } else {
+                                vm.$set(vm.coordinator.configurations.shardingSphere, 'properties', []);
+                            }
+
+                            if(vm.hasProp(c.data, 'spec.coordinator.configurations.shardingSphere.mode.properties')) {
+                                vm.$set(vm.coordinator.configurations.shardingSphere.mode, 'properties', vm.unparseProps(c.data.spec.coordinator.configurations.shardingSphere.mode.properties, 'name'));
+                            } else {
+                                vm.$set(vm.coordinator.configurations.shardingSphere.mode, 'properties', []);
+                            }
+
+                            if(vm.hasProp(c.data, 'spec.coordinator.configurations.shardingSphere.mode.repository.properties')) {
+                                vm.$set(vm.coordinator.configurations.shardingSphere.mode.repository, 'properties', vm.unparseProps(c.data.spec.coordinator.configurations.shardingSphere.mode.repository.properties, 'name'));
+                            } else {
+                                vm.$set(vm.coordinator.configurations.shardingSphere.mode.repository, 'properties', []);
+                            }
+
+                            if (
+                                (c.data.spec.coordinator.configurations.shardingSphere.mode.repository.type !== 'Memory') &&
+                                (!vm.hasProp(c.data, 'spec.coordinator.configurations.shardingSphere.mode.repository.' + vm.shardingSphereRepoType + '.serverList')) 
+                            ) {
+                                vm.$set( vm.coordinator.configurations.shardingSphere.mode.repository, vm.shardingSphereRepoType, {
+                                    serverList: []
+                                });
+                            } 
+                        }
+
                         // Overrides
                         if(vm.hasProp(c, 'data.spec.shards.overrides')) {
 
@@ -7554,6 +8010,19 @@
                 }
             },
 
+            shardingSphereRepoType() {
+                let repoType = {
+                    ZooKeeper: 'zooKeeper',
+                    Etcd: 'etcd'
+                };
+
+                if(this.coordinator.configurations.shardingSphere.mode.repository.type !== 'Memory') {
+                    return repoType[this.coordinator.configurations.shardingSphere.mode.repository.type];
+                } else {
+                    return this.coordinator.configurations.shardingSphere.mode.repository.type
+                }
+            }
+
         },
 
         methods: {
@@ -7603,7 +8072,38 @@
                     shards: this.shards.hasOwnProperty('pods') ? vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.shards.pods)) : {},
                 };
 
-                var cluster = {
+                // Cleanup shardingSphere specs
+                let shardingSphere = null;
+                if(vc.shardingType === 'shardingsphere') {
+                    shardingSphere = JSON.parse(JSON.stringify(vc.coordinator.configurations.shardingSphere));
+
+                    if(vc.hasProp(shardingSphere, 'properties')) {
+                        shardingSphere.properties = 
+                            !$.isEmptyObject(vc.parseProps(shardingSphere.properties, 'name'))
+                                ? vc.parseProps(shardingSphere.properties, 'name')
+                                : null;
+                    }
+
+                    if(vc.hasProp(shardingSphere, 'mode.properties')) {
+                        shardingSphere.mode.properties = 
+                            !$.isEmptyObject(vc.parseProps(shardingSphere.mode.properties, 'name'))
+                                ? vc.parseProps(shardingSphere.mode.properties, 'name')
+                                : null;
+                    }
+
+                    if(vc.hasProp(shardingSphere, 'mode.repository.properties')) {
+                        shardingSphere.mode.repository.properties = 
+                            !$.isEmptyObject(vc.parseProps(shardingSphere.mode.repository.properties, 'name'))
+                                ? vc.parseProps(shardingSphere.mode.repository.properties, 'name')
+                                : null;
+                    }
+
+                    if(vc.isNull(shardingSphere.serviceAccount.name) && vc.isNull(shardingSphere.serviceAccount.namespace)) {
+                        delete shardingSphere.serviceAccount
+                    }
+                }
+
+                let cluster = {
                     "metadata": {
                         ...(this.hasProp(previous, 'metadata') && previous.metadata),
                         "name": this.name,
@@ -7742,7 +8242,7 @@
                             ...(this.coordinator.sgInstanceProfile.length && {
                                 "sgInstanceProfile": this.coordinator.sgInstanceProfile
                             }),
-                            ...( (this.hasProp(previous, 'spec.coordinator.configurations') || this.coordinator.configurations.sgPoolingConfig.length || this.coordinator.configurations.sgPostgresConfig.length) && ({
+                            ...( (this.hasProp(previous, 'spec.coordinator.configurations') || this.coordinator.configurations.hasOwnProperty('shardingSphere') || this.coordinator.configurations.sgPoolingConfig.length || this.coordinator.configurations.sgPostgresConfig.length) && ({
                                 "configurations": {
                                     ...(this.hasProp(previous, 'spec.coordinator.configurations') && previous.spec.coordinator.configurations),
                                     ...(this.coordinator.configurations.sgPoolingConfig.length && {
@@ -7750,6 +8250,9 @@
                                     }),
                                     ...(this.coordinator.configurations.sgPostgresConfig.length && {
                                         "sgPostgresConfig": this.coordinator.configurations.sgPostgresConfig
+                                    }),
+                                    ...((this.shardingType === 'shardingsphere') && {
+                                        "shardingSphere": shardingSphere
                                     }),
                                 }
                             }) ),
@@ -8387,6 +8890,72 @@
                 vc.spliceArray(vc.customVolumesType.overrides, index);
                 vc.spliceArray(vc.shards.overrides, index);
                 vc.currentStep.overrides = 'shards';
+            },
+
+            setShardingType() {
+                const vc = this;
+
+                if(vc.shardingType === 'shardingsphere') {
+                    vc.$set(vc.coordinator.configurations, 'shardingSphere', {
+                        authority: {
+                            privilege: {
+                                type: null,
+                                userDatabaseMappings: null
+                            },
+                            users: []
+                        },
+                        mode: {      
+                            properties: [],
+                            repository: {
+                                properties: [],
+                                type: null,
+                            },
+                            type: null
+                        },
+                        properties: [],
+                        serviceAccount: {
+                            name: null,
+                            namespace: null,
+                        },
+                        version: null
+                    })
+
+                } else {
+                    delete vc.coordinator.configurations.shardingSphere
+                }
+            },
+
+            pushShardingUser() {
+                vc.coordinator.configurations.authority.users.push(
+                    {
+                        password: {
+                            key: null,
+                            name: null,
+                        },
+                        user: {
+                            key: null,
+                            name: null,
+                        }
+                    }
+                )                
+            },
+
+            setupShardingSphereServerList() {
+                const vc = this;
+                if (vc.shardingSphereRepoType === 'Memory') {
+                    let oldRepoType = vc.coordinator.configurations.shardingSphere.mode.repository.hasOwnProperty('zooKeeper') ? 'zooKeeper' : 'etcd';
+                    delete vc.coordinator.configurations.shardingSphere.mode.repository[oldRepoType];
+                } else {
+                    if (vc.shardingSphereRepoType === 'etcd') {
+                        delete vc.coordinator.configurations.shardingSphere.mode.repository.zooKeeper;
+                    } else {
+                        delete vc.coordinator.configurations.shardingSphere.mode.repository.etcd;
+                    }
+                    
+                    vc.$set(vc.coordinator.configurations.shardingSphere.mode.repository, vc.shardingSphereRepoType, {
+                        'serverList': []
+                    });
+                }
             }
         },
     }

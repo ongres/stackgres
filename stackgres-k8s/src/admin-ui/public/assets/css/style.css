@@ -444,6 +444,10 @@ svg.background circle {
     margin: 0 !important;
 }
 
+.noMarginBottom {
+    margin-bottom: 0 !important;
+}
+
 .noBorder {
     border: 0 !important;
 }
@@ -818,7 +822,7 @@ form#login .warning {
     display: block;
     content: " ";
     position: fixed;
-    z-index: 2;
+    z-index: 999;
     top: 0;
     left: 350px;
     width: calc(100% - 350px);
@@ -881,7 +885,7 @@ aside {
     border-bottom: 1px solid var(--gray1);
     background: #f8f8f8;
     overflow: visible;
-    z-index: 11;
+    z-index: 9999;
 }
 
 #main {
@@ -2184,7 +2188,7 @@ td.timestamp, th.timestamp {
     margin-bottom: 20px;
 }
 
-.form .col input, .form .col select {
+.form .col > input, .form .col > select {
     margin-bottom: 0;
 }
 
