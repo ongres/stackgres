@@ -45,7 +45,9 @@ public enum OperatorProperty implements StackGresPropertyReader {
   CLUSTER_ROLE_DISABLED("stackgres.clusterRoleDisabled"),
   FORCE_UNLOCK_OPERATOR("stackgres.forceUnlockOperator"),
   STOP_AFTER_BOOTSTRAP("stackgres.stopAfterBootstrap"),
+  RECONCILIATION_ENABLE_THREAD_POOL("stackgres.reconciliationEnableThreadPool"),
   RECONCILIATION_THREADS("stackgres.reconciliationThreads"),
+  RECONCILIATION_PRIORITY_TIMEOUT("stackgres.reconciliationPriorityTimeout"),
   RECONCILIATION_INITIAL_BACKOFF("stackgres.reconciliationInitialBackoff"),
   RECONCILIATION_MAX_BACKOFF("stackgres.reconciliationMaxBackoff"),
   RECONCILIATION_BACKOFF_VARIATION("stackgres.reconciliationBackoffVariation");

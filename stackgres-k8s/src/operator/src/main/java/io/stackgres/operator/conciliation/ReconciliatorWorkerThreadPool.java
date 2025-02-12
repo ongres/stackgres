@@ -41,23 +41,46 @@ public class ReconciliatorWorkerThreadPool {
 
   private final AtomicInteger threadIndex = new AtomicInteger(0);
 
+  private final boolean enabled;
+
   @Inject
   public ReconciliatorWorkerThreadPool() {
+    this.enabled = OperatorProperty.RECONCILIATION_ENABLE_THREAD_POOL
+        .getBoolean();
     final Integer threads = OperatorProperty.RECONCILIATION_THREADS
         .get()
         .map(Integer::parseInt)
         .orElseGet(() -> (Runtime.getRuntime().availableProcessors() + 1) / 2);
-    this.executor = new ReconciliatorThreadPoolExecutor(
-        threads,
-        queue,
-        r -> new Thread(r, "ReconciliationWorker-" + threadIndex.getAndIncrement()));
+    final Long priorityTimeout = OperatorProperty.RECONCILIATION_PRIORITY_TIMEOUT
+        .get()
+        .map(Long::parseLong)
+        .orElse(null);
+    if (this.enabled) {
+      this.executor = new ReconciliatorThreadPoolExecutor(
+          threads,
+          priorityTimeout,
+          queue,
+          r -> new Thread(r, "ReconciliationWorker-" + threadIndex.getAndIncrement()));
+    } else {
+      this.executor = null;
+    }
   }
 
   void onStop(@Observes ShutdownEvent ev) {
-    executor.shutdown();
+    if (executor != null) {
+      executor.shutdown();
+    }
   }
 
-  public synchronized void scheduleReconciliation(Runnable runnable, String configId, boolean priority) {
+  public void scheduleReconciliation(Runnable runnable, String configId, boolean priority) {
+    if (!enabled) {
+      runnable.run();
+      return;
+    }
+    doScheduleReconciliation(runnable, configId, priority);
+  }
+
+  private synchronized void doScheduleReconciliation(Runnable runnable, String configId, boolean priority) {
     var prioritizedRunnable = new ReconciliationRunnable(
         executor, runnable, configId, priority);
     if (LOGGER.isTraceEnabled()) {
@@ -118,18 +141,30 @@ public class ReconciliatorWorkerThreadPool {
     final String configId;
     final Boolean priority;
     final ClassLoader contextClassLoader;
+    final long priorityTimeout;
 
     public ReconciliationRunnable(
         ReconciliatorThreadPoolExecutor executor,
         Runnable runnable,
         String configId,
         boolean priority) {
+      this(executor, runnable, configId, priority, System.currentTimeMillis());
+    }
+
+    public ReconciliationRunnable(
+        ReconciliatorThreadPoolExecutor executor,
+        Runnable runnable,
+        String configId,
+        boolean priority,
+        long timestamp) {
       this.executor = executor;
       this.runnable = runnable;
-      this.timestamp = System.currentTimeMillis();
+      this.timestamp = timestamp;
       this.configId = configId;
       this.priority = priority;
       this.contextClassLoader = Thread.currentThread().getContextClassLoader();
+      this.priorityTimeout = executor.getPriorityTimeout() != null
+          ? executor.getPriorityTimeout().longValue() : 0;
     }
 
     @Override
@@ -139,7 +174,16 @@ public class ReconciliatorWorkerThreadPool {
 
     @Override
     public int compareTo(ReconciliationRunnable o) {
-      int compare = o.priority.compareTo(priority);
+      int compare = 0;
+      if (priorityTimeout > 0) {
+        compare = o.timestamp - timestamp > priorityTimeout ? -1 : 0;
+        if (compare == 0) {
+          compare = timestamp - o.timestamp > priorityTimeout ? 1 : 0;
+        }
+      }
+      if (compare == 0) {
+        compare = o.priority.compareTo(priority);
+      }
       if (compare == 0) {
         compare = o.timestamp > timestamp ? -1 : (o.timestamp == timestamp ? 0 : 1);
       }
@@ -176,9 +220,11 @@ public class ReconciliatorWorkerThreadPool {
     final ThreadPoolExecutor threadPoolExecutor;
     final Map<ReconciliationRunnable, Long> executingReconciliations = Collections.synchronizedMap(new HashMap<>());
     final Set<ReconciliationRunnable> toExecuteReconciliations = Collections.synchronizedSet(new HashSet<>());
+    final Long priorityTimeout;
 
     public ReconciliatorThreadPoolExecutor(
         int threads,
+        Long priorityTimeout,
         BlockingQueue<Runnable> workQueue,
         ThreadFactory threadFactory) {
       this.threadPoolExecutor = new ThreadPoolExecutor(
@@ -188,6 +234,11 @@ public class ReconciliatorWorkerThreadPool {
           TimeUnit.MILLISECONDS,
           workQueue,
           threadFactory);
+      this.priorityTimeout = priorityTimeout;
+    }
+
+    public Long getPriorityTimeout() {
+      return priorityTimeout;
     }
 
     void executeReconciliation(ReconciliationRunnable r) {
