@@ -23,6 +23,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
@@ -55,6 +56,8 @@ class DistributedLogsReconciliatorTest {
   CustomResourceScheduler<StackGresDistributedLogs> distributedlogsScheduler;
   @Mock
   ConnectedClustersScanner connectedClustersScanner;
+  @Mock
+  Metrics metrics;
 
   private DistributedLogsReconciliator reconciliator;
 
@@ -70,6 +73,7 @@ class DistributedLogsReconciliatorTest {
     parameters.statusManager = statusManager;
     parameters.distributedLogsScheduler = distributedlogsScheduler;
     parameters.connectedClustersScanner = connectedClustersScanner;
+    parameters.metrics = metrics;
     reconciliator = new DistributedLogsReconciliator(parameters);
   }
 

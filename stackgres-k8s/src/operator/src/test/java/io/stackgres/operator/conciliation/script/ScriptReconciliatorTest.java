@@ -21,6 +21,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import org.jooq.lambda.tuple.Tuple;
@@ -47,6 +48,8 @@ class ScriptReconciliatorTest {
   EventEmitter<StackGresScript> eventController;
   @Mock
   CustomResourceScheduler<StackGresScript> scriptScheduler;
+  @Mock
+  Metrics metrics;
 
   private ScriptReconciliator reconciliator;
 
@@ -59,6 +62,7 @@ class ScriptReconciliatorTest {
     parameters.eventController = eventController;
     parameters.statusManager = statusManager;
     parameters.scriptScheduler = scriptScheduler;
+    parameters.metrics = metrics;
     reconciliator = new ScriptReconciliator(parameters);
   }
 

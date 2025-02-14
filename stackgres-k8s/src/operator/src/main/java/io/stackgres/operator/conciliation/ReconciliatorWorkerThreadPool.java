@@ -19,6 +19,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.stackgres.common.OperatorProperty;
@@ -35,35 +36,72 @@ public class ReconciliatorWorkerThreadPool {
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       ReconciliatorWorkerThreadPool.class.getName());
 
-  private final PriorityBlockingQueue<Runnable> queue = new PriorityBlockingQueue<>();
+  private final PriorityBlockingQueue<Runnable> queue;
+
+  private final PriorityBlockingQueue<Runnable> lowPriorityQueue;
 
   private final ReconciliatorThreadPoolExecutor executor;
+
+  private final ReconciliatorThreadPoolExecutor lowPriorityExecutor;
 
   private final AtomicInteger threadIndex = new AtomicInteger(0);
 
   private final boolean enabled;
 
+  private final Metrics metrics;
+
+  private final long metricsScrapeMinInterval;
+
+  private long lastMetricScrape = 0;
+
   @Inject
-  public ReconciliatorWorkerThreadPool() {
+  public ReconciliatorWorkerThreadPool(Metrics metrics) {
     this.enabled = OperatorProperty.RECONCILIATION_ENABLE_THREAD_POOL
         .getBoolean();
     final Integer threads = OperatorProperty.RECONCILIATION_THREADS
         .get()
         .map(Integer::parseInt)
+        .filter(n -> n > 0)
         .orElseGet(() -> (Runtime.getRuntime().availableProcessors() + 1) / 2);
+    final Integer lowPriorityThreads = OperatorProperty.RECONCILIATION_LOW_PRIORITY_THREADS
+        .get()
+        .map(Integer::parseInt)
+        .filter(n -> threads > n)
+        .orElse(0);
     final Long priorityTimeout = OperatorProperty.RECONCILIATION_PRIORITY_TIMEOUT
         .get()
         .map(Long::parseLong)
         .orElse(null);
     if (this.enabled) {
+      this.queue = new PriorityBlockingQueue<>();
       this.executor = new ReconciliatorThreadPoolExecutor(
-          threads,
+          threads - lowPriorityThreads,
           priorityTimeout,
           queue,
           r -> new Thread(r, "ReconciliationWorker-" + threadIndex.getAndIncrement()));
+      if (lowPriorityThreads > 0) {
+        this.lowPriorityQueue = new PriorityBlockingQueue<>();
+        this.lowPriorityExecutor = new ReconciliatorThreadPoolExecutor(
+            lowPriorityThreads,
+            priorityTimeout,
+            lowPriorityQueue,
+            r -> new Thread(r, "ReconciliationWorker-" + threadIndex.getAndIncrement()));
+      } else {
+        this.lowPriorityQueue = null;
+        this.lowPriorityExecutor = null;
+      }
     } else {
+      this.queue = null;
       this.executor = null;
+      this.lowPriorityQueue = null;
+      this.lowPriorityExecutor = null;
     }
+    this.metrics = metrics;
+    this.metricsScrapeMinInterval = OperatorProperty.RECONCILIATION_THREAD_POOL_METRICS_SCRAPE_INTERVAL
+        .get()
+        .map(Long::parseLong)
+        .filter(n -> n > 0L)
+        .orElse(10000L);
   }
 
   void onStop(@Observes ShutdownEvent ev) {
@@ -81,45 +119,34 @@ public class ReconciliatorWorkerThreadPool {
   }
 
   private synchronized void doScheduleReconciliation(Runnable runnable, String configId, boolean priority) {
+    final long currentTimestamp = System.currentTimeMillis();
+    final PriorityBlockingQueue<Runnable> queue;
+    final ReconciliatorThreadPoolExecutor executor;
+    if (lowPriorityExecutor != null && !priority && !this.queue.isEmpty()) {
+      queue = this.lowPriorityQueue;
+      executor = this.lowPriorityExecutor;
+    } else {
+      queue = this.queue;
+      executor = this.executor;
+    }
     var prioritizedRunnable = new ReconciliationRunnable(
-        executor, runnable, configId, priority);
+        executor, runnable, configId, priority ? 1 : 0);
     if (LOGGER.isTraceEnabled()) {
-      synchronized (executor.executingReconciliations) {
-        final long currentTimestamp = System.currentTimeMillis();
-        LOGGER.trace("{} will be scheduled, current state of the pool:\n\nqueue:\n\n{}\n\nexecuting:\n\n{}\n",
-            configId,
-            Seq.of(queue.toArray())
-            .map(ReconciliationRunnable.class::cast)
-            .groupBy(r -> r.priority)
-            .entrySet()
-            .stream()
-            .flatMap(group -> group.getValue().size() <= 10
-                ? Seq.<Object>seq(group.getValue())
-                    : Seq.<Object>seq(group.getValue()).limit(10)
-                    .append("...and other " + (group.getKey() ? "high" : "low")
-                        + " priority found: " + group.getValue().size()
-                        + " (max " + group.getValue().stream()
-                        .mapToLong(r -> r.timestamp)
-                        .map(t -> System.currentTimeMillis() - t)
-                        .max()
-                        .orElse(0) + "ms)"))
-            .map(Object::toString)
-            .collect(Collectors.joining("\n")),
-            executor.executingReconciliations.entrySet().stream()
-            .map(entry -> entry.getKey().toString() + " " + (currentTimestamp - entry.getValue()) + "ms")
-            .collect(Collectors.joining("\n")));
-      }
+      LOGGER.trace("{} will be scheduled, current state of the pool:\n\nqueue:\n\n{}\n\nexecuting:\n\n{}\n",
+          configId,
+          getQueueTrace(queue),
+          getExecutorTrace(executor, currentTimestamp));
     }
     var inversePrioritizedRunnable = new ReconciliationRunnable(
-        executor, runnable, configId, !priority);
+        executor, runnable, configId, !priority ? 1 : 0);
     if (priority) {
       final boolean removed = queue.remove(new ReconciliationRunnable(
-          executor, runnable, configId, false));
+          executor, runnable, configId, 0));
       if (removed) {
         LOGGER.trace("{} with low priority has been removed from the reconciliation queue", configId);
       }
     } else if (queue.contains(new ReconciliationRunnable(
-        executor, runnable, configId, true))) {
+        executor, runnable, configId, 1))) {
       LOGGER.trace("{} with high priority is already present in the reconciliation queue", configId);
       return;
     }
@@ -131,6 +158,55 @@ public class ReconciliatorWorkerThreadPool {
       LOGGER.trace("{} has been scheduled to be reconcilied", configId);
       executor.execute(prioritizedRunnable);
     }
+
+    if (currentTimestamp - lastMetricScrape > this.metricsScrapeMinInterval) {
+      final Object[] queueArray = this.queue.toArray();
+      metrics.gauge("reconciliation_pool_size",
+          this.executor.threadPoolExecutor.getPoolSize());
+      metrics.gauge("reconciliation_queue_size", queueArray.length);
+      metrics.gauge("reconciliation_queue_size_high_priority",
+          Stream.of(queueArray).map(ReconciliationRunnable.class::cast).filter(r -> r.priority % 2 != 0).count());
+      metrics.gauge("reconciliation_queue_size_low_priority",
+          Stream.of(queueArray).map(ReconciliationRunnable.class::cast).filter(r -> r.priority % 2 == 0).count());
+      if (this.lowPriorityExecutor != null) {
+        metrics.gauge("reconciliation_low_priority_pool_size",
+            this.lowPriorityExecutor.threadPoolExecutor.getPoolSize());
+        metrics.gauge("reconciliation_low_priority_queue_size",
+            this.lowPriorityQueue.size());
+      }
+      lastMetricScrape = currentTimestamp;
+    }
+  }
+
+  protected String getQueueTrace(
+      PriorityBlockingQueue<Runnable> queue) {
+    return Seq.of(queue.toArray())
+        .map(ReconciliationRunnable.class::cast)
+        .groupBy(r -> r.priority)
+        .entrySet()
+        .stream()
+        .flatMap(group -> group.getValue().size() <= 10
+            ? Seq.<Object>seq(group.getValue())
+                : Seq.<Object>seq(group.getValue()).limit(10)
+                .append("...and other " + (group.getKey() % 2 != 0 ? "high" : "low")
+                    + " priority found: " + group.getValue().size()
+                    + " (max " + group.getValue().stream()
+                    .mapToLong(r -> r.timestamp)
+                    .map(t -> System.currentTimeMillis() - t)
+                    .max()
+                    .orElse(0) + "ms)"))
+        .map(Object::toString)
+        .collect(Collectors.joining("\n"));
+  }
+
+  protected String getExecutorTrace(
+      ReconciliatorThreadPoolExecutor executor,
+      long currentTimestamp) {
+    synchronized (executor.executingReconciliations) {
+      return executor.executingReconciliations.entrySet().stream()
+          .map(entry -> entry.getKey().toString() + " " + (currentTimestamp - entry.getValue()) + "ms")
+          .collect(Collectors.joining("\n"));
+    }
   }
 
   static class ReconciliationRunnable implements Runnable, Comparable<ReconciliationRunnable> {
@@ -139,7 +215,7 @@ public class ReconciliatorWorkerThreadPool {
     final Runnable runnable;
     final long timestamp;
     final String configId;
-    final Boolean priority;
+    final int priority;
     final ClassLoader contextClassLoader;
     final long priorityTimeout;
 
@@ -147,7 +223,7 @@ public class ReconciliatorWorkerThreadPool {
         ReconciliatorThreadPoolExecutor executor,
         Runnable runnable,
         String configId,
-        boolean priority) {
+        int priority) {
       this(executor, runnable, configId, priority, System.currentTimeMillis());
     }
 
@@ -155,7 +231,7 @@ public class ReconciliatorWorkerThreadPool {
         ReconciliatorThreadPoolExecutor executor,
         Runnable runnable,
         String configId,
-        boolean priority,
+        int priority,
         long timestamp) {
       this.executor = executor;
       this.runnable = runnable;
@@ -182,7 +258,7 @@ public class ReconciliatorWorkerThreadPool {
         }
       }
       if (compare == 0) {
-        compare = o.priority.compareTo(priority);
+        compare = o.priority > priority ? 1 : (o.priority == priority ? 0 : -1);
       }
       if (compare == 0) {
         compare = o.timestamp > timestamp ? -1 : (o.timestamp == timestamp ? 0 : 1);
@@ -210,7 +286,7 @@ public class ReconciliatorWorkerThreadPool {
 
     @Override
     public String toString() {
-      return (priority ? "* " : "  ") + configId + " " + (System.currentTimeMillis() - timestamp) + "ms";
+      return (priority % 2 != 0 ? "* " : "  ") + configId + " " + (System.currentTimeMillis() - timestamp) + "ms";
     }
 
   }

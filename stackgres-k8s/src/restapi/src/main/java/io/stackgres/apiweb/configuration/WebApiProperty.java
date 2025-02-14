@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.config;
+package io.stackgres.apiweb.configuration;
 
 import java.util.Properties;
 
@@ -13,7 +13,8 @@ public enum WebApiProperty implements StackGresPropertyReader {
 
   RESTAPI_NAMESPACE("stackgres.restapiNamespace"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
-  EXTENSIONS_REPOSITORY_URLS("stackgres.extensionsRepositoryUrls");
+  EXTENSIONS_REPOSITORY_URLS("stackgres.extensionsRepositoryUrls"),
+  RESTAPI_JMX_COLLECTOR_YAML_CONFIG("stackgres.restapi.jmxCollectorYamlConfig");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(WebApiProperty.class);

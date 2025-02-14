@@ -7,7 +7,7 @@ package io.stackgres.jobs;
 
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.configuration.JobsProperty;
 import io.stackgres.jobs.dbops.DbOpsLauncher;
 import jakarta.inject.Inject;
 

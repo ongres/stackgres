@@ -60,6 +60,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       new AtomicReference<>(List.of());
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
   private final ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
+  private final Metrics metrics;
 
   private final int reconciliationInitialBackoff;
   private final int reconciliationMaxBackoff;
@@ -77,6 +78,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       KubernetesClient client,
       OperatorLockHolder operatorLockReconciliator,
       ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool,
+      Metrics metrics,
       String reconciliationName) {
     this.scanner = scanner;
     this.finder = finder;
@@ -91,6 +93,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
         r -> new Thread(r, reconciliationName + "-ReconciliationScheduler"));
     this.reconciliatorWorkerThreadPool = reconciliatorWorkerThreadPool;
+    this.metrics = metrics;
     this.reconciliationInitialBackoff = OperatorProperty.RECONCILIATION_INITIAL_BACKOFF
         .get()
         .map(Integer::parseInt)
@@ -119,6 +122,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.executorService = null;
     this.scheduledExecutorService = null;
     this.reconciliatorWorkerThreadPool = null;
+    this.metrics = null;
     this.reconciliationInitialBackoff = 0;
     this.reconciliationMaxBackoff = 0;
     this.reconciliationBackoffVariation = 0;
@@ -231,6 +235,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   }
 
   protected void reconciliationCycle(T configKey, int retry, boolean load) {
+    final long startTimestamp = System.currentTimeMillis();
     final ObjectMeta metadata = configKey.getMetadata();
     final String configId = configKey.getKind()
         + " " + metadata.getNamespace() + "." + metadata.getName();
@@ -340,7 +345,10 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       } catch (Exception onErrorEx) {
         LOGGER.error("Failed executing on error event of {}", configId, onErrorEx);
       }
+      metrics.incrementReconciliationTotalErrors(configKey.getClass());
     }
+    metrics.incrementReconciliationTotalPerformed(configKey.getClass());
+    metrics.setReconciliationLastDuration(configKey.getClass(), System.currentTimeMillis() - startTimestamp);
   }
 
   protected abstract void onPreReconciliation(T config);

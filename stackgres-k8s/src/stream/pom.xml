@@ -52,14 +52,6 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-client</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.prometheus.jmx</groupId>
-      <artifactId>collector</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>io.stackgres</groupId>

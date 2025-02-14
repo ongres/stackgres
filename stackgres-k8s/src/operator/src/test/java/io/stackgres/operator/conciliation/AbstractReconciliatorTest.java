@@ -61,8 +61,10 @@ class AbstractReconciliatorTest {
   @Mock
   private OperatorLockHolder operatorLockReconciliator;
 
-  private ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool =
-      new ReconciliatorWorkerThreadPool();
+  @Mock
+  private Metrics metrics;
+
+  private ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
 
   private TestResource customResource;
 
@@ -70,6 +72,7 @@ class AbstractReconciliatorTest {
 
   @BeforeEach
   void setUp() {
+    reconciliatorWorkerThreadPool = new ReconciliatorWorkerThreadPool(metrics);
     reconciliator = spy(buildConciliator());
     reconciliator.start();
     customResource = new TestResource();
@@ -365,7 +368,7 @@ class AbstractReconciliatorTest {
   private AbstractReconciliator<TestResource> buildConciliator() {
     final AbstractReconciliator<TestResource> reconciliator =
         new TestReconciliator(scanner, finder, conciliator, deployedResourcesCache,
-            handlerDelegator, null, operatorLockReconciliator, reconciliatorWorkerThreadPool);
+            handlerDelegator, null, operatorLockReconciliator, reconciliatorWorkerThreadPool, metrics);
     return reconciliator;
   }
 
@@ -380,10 +383,12 @@ class AbstractReconciliatorTest {
         HandlerDelegator<TestResource> handlerDelegator,
         KubernetesClient client,
         OperatorLockHolder operatorLockReconciliator,
-        ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool) {
+        ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool,
+        Metrics metrics) {
       super(scanner, finder, conciliator, deployedResourcesCache,
           handlerDelegator, client, operatorLockReconciliator,
           reconciliatorWorkerThreadPool,
+          metrics,
           "Test");
     }
 

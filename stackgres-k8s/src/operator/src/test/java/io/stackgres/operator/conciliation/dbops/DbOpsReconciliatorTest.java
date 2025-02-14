@@ -22,6 +22,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -51,6 +52,8 @@ class DbOpsReconciliatorTest {
   EventEmitter<StackGresDbOps> eventController;
   @Mock
   CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
+  @Mock
+  Metrics metrics;
 
   private DbOpsReconciliator reconciliator;
 
@@ -65,6 +68,7 @@ class DbOpsReconciliatorTest {
     parameters.statusManager = statusManager;
     parameters.dbOpsScheduler = dbOpsScheduler;
     parameters.objectMapper = JsonUtil.jsonMapper();
+    parameters.metrics = metrics;
     reconciliator = new DbOpsReconciliator(parameters);
   }
 
