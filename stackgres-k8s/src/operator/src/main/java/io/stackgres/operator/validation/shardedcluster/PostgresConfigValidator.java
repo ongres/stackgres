@@ -35,7 +35,7 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
-@ValidationType(ErrorType.INVALID_CR_REFERENCE)
+@ValidationType(ErrorType.FORBIDDEN_CLUSTER_CREATE)
 public class PostgresConfigValidator implements ShardedClusterValidator {
 
   private static final String PG_14_CREATE_CONCURRENT_INDEX_BUG =
@@ -66,7 +66,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
           orderedSupportedPostgresVersions) {
     this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
-    this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
+    this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CLUSTER_UPDATE);
   }
 
   @Override
@@ -114,7 +114,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
       case CREATE:
         if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH
             && BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
-          fail(errorForbiddenUpdateUri, "Do not use PostgreSQL " + givenPgVersion + ". "
+          fail("Do not use PostgreSQL " + givenPgVersion + ". "
               + BUGGY_PG_VERSIONS.get(givenPgVersion));
         }
         break;
