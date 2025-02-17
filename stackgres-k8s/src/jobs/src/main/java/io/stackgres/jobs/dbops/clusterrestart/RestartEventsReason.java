@@ -5,7 +5,7 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.configuration.JobsProperty;
 import io.stackgres.operatorframework.resource.EventReason;
 
 public enum RestartEventsReason implements EventReason {

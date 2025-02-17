@@ -7,8 +7,8 @@ package io.stackgres.apiweb.rest;
 
 import java.net.URI;
 
-import io.stackgres.apiweb.config.WebApiProperty;
-import io.stackgres.apiweb.config.WebApiPropertyContext;
+import io.stackgres.apiweb.configuration.WebApiProperty;
+import io.stackgres.apiweb.configuration.WebApiPropertyContext;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import jakarta.enterprise.context.ApplicationScoped;

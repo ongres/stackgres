@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.rbac.Subject;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.ValidationGroups;
-import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.dto.user.UserRoleRef;
 import io.stackgres.apiweb.exception.ErrorResponse;

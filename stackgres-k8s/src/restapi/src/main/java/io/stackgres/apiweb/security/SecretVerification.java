@@ -12,7 +12,7 @@ import java.util.Optional;
 import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;

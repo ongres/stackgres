@@ -25,7 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.StatefulSetFinder;
-import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.configuration.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
