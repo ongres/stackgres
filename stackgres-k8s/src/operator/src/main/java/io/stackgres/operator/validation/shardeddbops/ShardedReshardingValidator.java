@@ -21,7 +21,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@ValidationType(ErrorType.INVALID_CR_REFERENCE)
+@ValidationType(ErrorType.FORBIDDEN_CLUSTER_CREATE)
 public class ShardedReshardingValidator implements ShardedDbOpsValidator {
 
   private final CustomResourceFinder<StackGresShardedCluster> clusterFinder;

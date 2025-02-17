@@ -33,6 +33,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupCon
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
@@ -86,12 +87,12 @@ public class ShardedBackupRequiredResourcesGenerator
     final String clusterNamespace = StackGresUtil.getNamespaceFromRelativeId(
         spec.getSgShardedCluster(), backupNamespace);
 
-    final Optional<StackGresShardedCluster> cluster = shardedClusterFinder
+    final Optional<StackGresShardedCluster> foundCluster = shardedClusterFinder
         .findByNameAndNamespace(clusterName, clusterNamespace);
-    final Optional<StackGresCluster> coordinator = clusterFinder
+    final Optional<StackGresCluster> foundCoordinator = clusterFinder
         .findByNameAndNamespace(
             getCoordinatorClusterName(spec.getSgShardedCluster()), clusterNamespace);
-    final Optional<StackGresProfile> profile = cluster
+    final Optional<StackGresProfile> foundProfile = foundCluster
         .map(StackGresShardedCluster::getSpec)
         .map(StackGresShardedClusterSpec::getCoordinator)
         .map(StackGresShardedClusterCoordinator::getSgInstanceProfile)
@@ -102,15 +103,51 @@ public class ShardedBackupRequiredResourcesGenerator
 
     var contextBuilder = ImmutableStackGresShardedBackupContext.builder()
         .source(config)
-        .foundShardedCluster(cluster)
-        .foundCoordinator(coordinator)
-        .foundProfile(profile)
+        .foundShardedCluster(foundCluster)
+        .foundCoordinator(foundCoordinator)
+        .foundProfile(foundProfile)
         .clusterBackupNamespaces(clusterBackupNamespaces);
 
-    if (cluster.isPresent()
-        && isShardedBackupInTheSameSgClusterNamespace(config, clusterNamespace)
+    if (Objects.equals(backupNamespace, clusterNamespace)
         && !isShardedBackupFinished(config)) {
-      final var specConfiguration = cluster
+      if (foundCluster.isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresShardedCluster.KIND + " " + clusterName + " not found");
+      }
+      final StackGresShardedCluster cluster = foundCluster.get();
+      if (foundProfile.isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresProfile.KIND + " " + cluster.getSpec().getCoordinator().getSgInstanceProfile() + " not found");
+      }
+      if (foundCoordinator.isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresCluster.KIND + " " + getCoordinatorClusterName(spec.getSgShardedCluster()) + " not found");
+      }
+      
+      if (Optional.of(cluster)
+          .map(StackGresShardedCluster::getSpec)
+          .map(StackGresShardedClusterSpec::getType)
+          .map(StackGresShardingType.SHARDING_SPHERE.toString()::equals)
+          .orElse(false)) {
+        throw new IllegalArgumentException(
+            StackGresShardedCluster.KIND + " " + clusterName + " do not support sharded backups");       
+      }
+      
+      if (Optional.of(cluster)
+          .map(StackGresShardedCluster::getSpec)
+          .map(StackGresShardedClusterSpec::getConfigurations)
+          .map(StackGresShardedClusterConfigurations::getBackups)
+          .filter(Predicate.not(List::isEmpty))
+          .isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresShardedCluster.KIND + " " + clusterName + " has no backup configuration");
+      }
+    }
+
+    if (foundCluster.isPresent()
+        && Objects.equals(backupNamespace, clusterNamespace)
+        && !isShardedBackupFinished(config)) {
+      final var specConfiguration = foundCluster
           .map(StackGresShardedCluster::getSpec)
           .map(StackGresShardedClusterSpec::getConfigurations);
 
@@ -137,11 +174,6 @@ public class ShardedBackupRequiredResourcesGenerator
     }
 
     return discoverer.generateResources(contextBuilder.build());
-  }
-
-  private boolean isShardedBackupInTheSameSgClusterNamespace(
-      StackGresShardedBackup backup, String clusterNamespace) {
-    return Objects.equals(backup.getMetadata().getNamespace(), clusterNamespace);
   }
 
   private boolean isShardedBackupFinished(StackGresShardedBackup backup) {

@@ -21,12 +21,9 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import jakarta.inject.Singleton;
 
 @Singleton
-@ValidationType(ErrorType.INVALID_CR_REFERENCE)
+@ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
 public class RestoreConfigValidator
     implements ShardedClusterValidator {
-
-  private final String errorConstraintViolationUri = ErrorType
-      .getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
 
   @Override
   public void validate(StackGresShardedClusterReview review) throws ValidationFailed {
@@ -63,9 +60,9 @@ public class RestoreConfigValidator
             .map(StackGresShardedClusterInitialData::getRestore)
             .orElse(null);
 
-        final String message = "Cannot update SGShardedCluster's restore configuration";
+        final String message = "Cannot update restore configuration";
         if (!Objects.equals(restoreConfig, oldRestoreConfig)) {
-          fail(errorConstraintViolationUri, message);
+          fail(message);
         }
         break;
       default:
@@ -81,7 +78,7 @@ public class RestoreConfigValidator
           .map(StackGresShardedClusterInitialData::getRestore);
 
       if (initRestoreOpt.isEmpty() && oldRestoreOpt.isPresent()) {
-        fail(errorConstraintViolationUri, "Cannot update SGShardedCluster's restore configuration");
+        fail("Cannot update restore configuration");
       }
     }
   }
