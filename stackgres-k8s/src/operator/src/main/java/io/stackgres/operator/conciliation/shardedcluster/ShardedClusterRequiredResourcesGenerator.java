@@ -240,7 +240,7 @@ public class ShardedClusterRequiredResourcesGenerator
       StackGresShardedBackup restoreBackup = backupFinder
           .findByNameAndNamespace(backupName, clusterNamespace)
           .orElseThrow(() -> new IllegalArgumentException(
-              "SGShardedBackup " + backupName + " not found"));
+              StackGresShardedBackup.KIND + " " + backupName + " not found"));
 
       if (Optional.of(restoreBackup)
           .map(StackGresShardedBackup::getStatus)
@@ -249,7 +249,7 @@ public class ShardedClusterRequiredResourcesGenerator
           .map(ShardedBackupStatus.COMPLETED.status()::equals)
           .map(completed -> !completed)
           .orElse(true)) {
-        throw new IllegalArgumentException("Cannot restore from SGShardedBackup "
+        throw new IllegalArgumentException("Cannot restore from " + StackGresShardedBackup.KIND + " "
             + backupName + " because it's not Completed");
       }
 
@@ -262,7 +262,7 @@ public class ShardedClusterRequiredResourcesGenerator
           .map(list -> list.size() == clusters)
           .orElse(false)) {
         throw new IllegalArgumentException(
-            "In SGShardedBackup " + backupName
+            "In " + StackGresShardedBackup.KIND + " " + backupName
             + " sgBackups must be an array of size " + clusters
             + " (the coordinator plus the number of shards)"
             + " but was " + Optional.ofNullable(sgBackups)
@@ -280,7 +280,7 @@ public class ShardedClusterRequiredResourcesGenerator
 
       if (!backupMajorVersion.equals(givenMajorVersion)) {
         throw new IllegalArgumentException(
-            "Cannot restore from SGShardedBackup " + backupName
+            "Cannot restore from " + StackGresShardedBackup.KIND + " " + backupName
             + " because it has been created from a postgres instance"
             + " with version " + backupMajorVersion);
       }

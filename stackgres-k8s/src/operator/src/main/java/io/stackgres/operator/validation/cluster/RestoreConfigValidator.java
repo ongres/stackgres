@@ -21,7 +21,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import jakarta.inject.Singleton;
 
 @Singleton
-@ValidationType(ErrorType.INVALID_CR_REFERENCE)
+@ValidationType(ErrorType.CONSTRAINT_VIOLATION)
 public class RestoreConfigValidator
     implements ClusterValidator {
 

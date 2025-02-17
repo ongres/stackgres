@@ -47,7 +47,7 @@ class ClusterReferenceValidatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    validator = new ClusterValidator(clusterFinder);
+    validator = new ClusterValidator();
     cluster = Fixtures.cluster().loadDefault().get();
     backup = new StackGresClusterBackupConfiguration();
   }

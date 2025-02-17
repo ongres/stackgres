@@ -33,7 +33,7 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
-@ValidationType(ErrorType.INVALID_CR_REFERENCE)
+@ValidationType(ErrorType.CONSTRAINT_VIOLATION)
 public class PostgresConfigValidator
     implements ClusterValidator {
 

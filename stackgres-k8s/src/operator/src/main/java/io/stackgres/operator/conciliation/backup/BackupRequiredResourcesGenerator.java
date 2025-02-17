@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.backup;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -78,9 +77,10 @@ public class BackupRequiredResourcesGenerator
     final String clusterNamespace = StackGresUtil.getNamespaceFromRelativeId(
         spec.getSgCluster(), backupNamespace);
 
-    final Optional<StackGresCluster> cluster = clusterFinder
+    final Optional<StackGresCluster> foundCluster = clusterFinder
         .findByNameAndNamespace(clusterName, clusterNamespace);
-    final Optional<StackGresProfile> profile = cluster
+
+    final Optional<StackGresProfile> foundProfile = foundCluster
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getSgInstanceProfile)
         .flatMap(profileName -> profileFinder
@@ -90,18 +90,27 @@ public class BackupRequiredResourcesGenerator
 
     var contextBuilder = ImmutableStackGresBackupContext.builder()
         .source(config)
-        .foundCluster(cluster)
-        .foundProfile(profile)
+        .foundCluster(foundCluster)
+        .foundProfile(foundProfile)
         .clusterBackupNamespaces(clusterBackupNamespaces);
 
-    if (cluster.isPresent()
-        && isBackupInTheSameSgClusterNamespace(config, clusterNamespace)
+    if (clusterNamespace.equals(backupNamespace)
         && !isBackupFinished(config)) {
-      final var specConfiguration = cluster
+      if (foundCluster.isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresCluster.KIND + " " + clusterName + " was not found");
+      }
+
+      if (foundProfile.isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresProfile.KIND + " " + foundCluster.get().getSpec().getSgInstanceProfile() + " was not found");
+      }
+
+      final var specConfiguration = foundCluster
           .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getConfigurations);
 
-      final Optional<String> sgObjectStorageName = specConfiguration
+      final var sgObjectStorageName = specConfiguration
           .map(StackGresClusterConfigurations::getBackups)
           .map(Collection::stream)
           .flatMap(Stream::findFirst)
@@ -109,26 +118,21 @@ public class BackupRequiredResourcesGenerator
 
       if (sgObjectStorageName.isEmpty()) {
         throw new IllegalArgumentException(
-            "SGBackup " + backupNamespace + "." + backupName
-                + " target SGCluster " + spec.getSgCluster()
-                + " without an SGObjectStorage");
+            StackGresBackup.KIND + " " + backupNamespace + "." + backupName
+                + " target " + StackGresCluster.KIND + " " + spec.getSgCluster()
+                + " without an " + StackGresObjectStorage.KIND);
       }
 
       sgObjectStorageName.ifPresent(objectStorageName -> contextBuilder.objectStorage(
           objectStorageFinder.findByNameAndNamespace(objectStorageName, backupNamespace)
               .orElseThrow(
                   () -> new IllegalArgumentException(
-                      "SGBackup " + backupNamespace + "." + backupName
-                          + " target SGCluster " + spec.getSgCluster()
-                          + " with a non existent SGObjectStorage " + objectStorageName))));
+                      StackGresBackup.KIND + " " + backupNamespace + "." + backupName
+                          + " target " + StackGresBackup.KIND + " " + spec.getSgCluster()
+                          + " with a non existent " + StackGresObjectStorage.KIND + " " + objectStorageName))));
     }
 
     return discoverer.generateResources(contextBuilder.build());
-  }
-
-  private boolean isBackupInTheSameSgClusterNamespace(
-      StackGresBackup backup, String clusterNamespace) {
-    return Objects.equals(backup.getMetadata().getNamespace(), clusterNamespace);
   }
 
   private boolean isBackupFinished(StackGresBackup backup) {

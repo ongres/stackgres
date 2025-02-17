@@ -6,10 +6,15 @@
 package io.stackgres.operator.conciliation.stream;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgstream.StackGresStream;
+import io.stackgres.common.crd.sgstream.StreamSourceType;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -27,13 +32,17 @@ public class StreamRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresConfig> configScanner;
 
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
+
   private final ResourceGenerationDiscoverer<StackGresStreamContext> discoverer;
 
   @Inject
   public StreamRequiredResourcesGenerator(
       CustomResourceScanner<StackGresConfig> configScanner,
+      CustomResourceFinder<StackGresCluster> clusterFinder,
       ResourceGenerationDiscoverer<StackGresStreamContext> discoverer) {
     this.configScanner = configScanner;
+    this.clusterFinder = clusterFinder;
     this.discoverer = discoverer;
   }
 
@@ -46,6 +55,19 @@ public class StreamRequiredResourcesGenerator
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig not found or more than one exists. Aborting reoconciliation!"));
+
+    if (Objects.equals(
+            stream.getSpec().getSource().getType(),
+            StreamSourceType.SGCLUSTER.toString())) {
+      String clusterName = stream.getSpec().getSource().getSgCluster().getName();
+      String streamNamespace = stream.getMetadata().getNamespace();
+      Optional<StackGresCluster> foundCluster = clusterFinder
+          .findByNameAndNamespace(clusterName, streamNamespace);
+      if (foundCluster.isEmpty()) {
+        throw new IllegalArgumentException(
+            StackGresCluster.KIND + " " + clusterName + " not found");
+      }
+    }
 
     StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
         .config(config)

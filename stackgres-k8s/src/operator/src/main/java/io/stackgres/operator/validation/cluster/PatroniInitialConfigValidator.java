@@ -21,11 +21,8 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import jakarta.inject.Singleton;
 
 @Singleton
-@ValidationType(ErrorType.INVALID_CR_REFERENCE)
+@ValidationType(ErrorType.CONSTRAINT_VIOLATION)
 public class PatroniInitialConfigValidator implements ClusterValidator {
-
-  private final String errorCrReferencerUri = ErrorType
-      .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
@@ -105,7 +102,7 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
       }
 
       if (!Objects.equals(oldPatroniInitialConfig, patroniInitialConfig)) {
-        fail(errorCrReferencerUri, "Cannot update cluster's patroni initial configuration");
+        fail("Cannot update patroni initial configuration");
       }
     }
   }
