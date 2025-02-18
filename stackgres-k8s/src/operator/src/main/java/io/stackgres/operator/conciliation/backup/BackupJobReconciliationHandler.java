@@ -5,15 +5,11 @@
 
 package io.stackgres.operator.conciliation.backup;
 
-import java.util.Optional;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
-import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.FireAndForgetJobReconciliationHandler;
@@ -38,13 +34,7 @@ public class BackupJobReconciliationHandler
 
   @Override
   protected boolean canForget(StackGresBackup context, HasMetadata resource) {
-    return Optional.of(context)
-        .map(StackGresBackup::getStatus)
-        .map(StackGresBackupStatus::getProcess)
-        .map(StackGresBackupProcess::getStatus)
-        .filter(status -> BackupStatus.COMPLETED.status().equals(status)
-            || BackupStatus.FAILED.status().equals(status))
-        .isPresent();
+    return BackupStatus.isFinished(context);
   }
 
 }

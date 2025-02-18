@@ -35,7 +35,7 @@ class DefaultShardsPoolingConfigMutatorTest
   protected DefaultShardsPoolingConfigMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultPoolingConfigFactory();
     var mutator = new DefaultShardsPoolingConfigMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

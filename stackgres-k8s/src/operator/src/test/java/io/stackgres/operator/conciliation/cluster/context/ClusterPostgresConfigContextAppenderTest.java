@@ -47,7 +47,7 @@ class ClusterPostgresConfigContextAppenderTest {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new ClusterPostgresConfigContextAppender(
         postgresConfigFinder,
-        new DefaultClusterPostgresConfigFactory());
+        defaultPostgresConfigFactory);
   }
 
   @Test

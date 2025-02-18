@@ -59,4 +59,11 @@ public interface StackGresConfigContext extends GenerationContext<StackGresConfi
 
   List<PrometheusContext> getPrometheus();
 
+  public static class Builder extends ImmutableStackGresConfigContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
 }

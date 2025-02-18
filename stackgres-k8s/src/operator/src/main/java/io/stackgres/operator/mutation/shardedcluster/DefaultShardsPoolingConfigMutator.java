@@ -10,8 +10,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
@@ -26,10 +24,8 @@ public class DefaultShardsPoolingConfigMutator
 
   @Inject
   public DefaultShardsPoolingConfigMutator(
-      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> resourceFactory,
-      CustomResourceFinder<StackGresPoolingConfig> finder,
-      CustomResourceScheduler<StackGresPoolingConfig> scheduler) {
-    super(resourceFactory, finder, scheduler);
+      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> resourceFactory) {
+    super(resourceFactory);
   }
 
   @Override

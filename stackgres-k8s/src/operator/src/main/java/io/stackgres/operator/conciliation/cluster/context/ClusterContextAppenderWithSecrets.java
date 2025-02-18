@@ -14,11 +14,11 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public abstract class ClusterContextAppenderWithSecrets
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final ResourceFinder<Secret> secretFinder;
 

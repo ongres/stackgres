@@ -31,7 +31,6 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.operator.conciliation.config.ImmutableStackGresConfigContext;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operator.conciliation.factory.config.OperatorSecret;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -95,7 +94,7 @@ public class CertificateInstaller {
     }
     String certSecretName = OperatorSecret.name(config);
     var certSecretFound = secretFinder.findByNameAndNamespace(certSecretName, operatorNamespace);
-    StackGresConfigContext context = ImmutableStackGresConfigContext.builder()
+    StackGresConfigContext context = StackGresConfigContext.builder()
         .source(config)
         .operatorSecret(certSecretFound)
         .isGrafanaEmbedded(false)

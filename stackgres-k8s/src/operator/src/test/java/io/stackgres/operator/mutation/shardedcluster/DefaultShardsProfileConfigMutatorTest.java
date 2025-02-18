@@ -35,7 +35,7 @@ class DefaultShardsProfileConfigMutatorTest
   protected DefaultShardsProfileMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultProfileFactory();
     var mutator = new DefaultShardsProfileMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

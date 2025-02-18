@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,11 +96,7 @@ public class ClusterReplicationInitializationContextAppender {
     return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
-        .filter(backup -> Optional.ofNullable(backup.getStatus())
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getStatus)
-            .filter(BackupStatus.COMPLETED.toString()::equals)
-            .isPresent())
+        .filter(backup -> BackupStatus.isCompleted(backup))
         .filter(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getSgBackupConfig)
             .map(StackGresBackupConfigSpec::getStorage)
@@ -189,14 +184,7 @@ public class ClusterReplicationInitializationContextAppender {
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
         .filter(backup -> backup.getStatus() == null
-            || Optional.ofNullable(backup.getStatus())
-            .filter(status -> Optional.of(status)
-                .map(StackGresBackupStatus::getProcess)
-                .map(StackGresBackupProcess::getStatus)
-                .filter(Predicate.not(BackupStatus.COMPLETED.toString()::equals)
-                    .and(Predicate.not(BackupStatus.FAILED.toString()::equals)))
-                .isPresent())
-            .isPresent()
+            || BackupStatus.isFinished(backup)
             || Optional.ofNullable(backup.getStatus())
             .filter(status -> Optional.of(status)
                 .map(StackGresBackupStatus::getSgBackupConfig)
@@ -214,11 +202,7 @@ public class ClusterReplicationInitializationContextAppender {
                 .map(StackGresBackupInformation::getPostgresMajorVersion)
                 .filter(postgresMajorVersion::equals)
                 .isPresent())
-            .filter(status -> Optional.of(status)
-                .map(StackGresBackupStatus::getProcess)
-                .map(StackGresBackupProcess::getStatus)
-                .filter(BackupStatus.COMPLETED.toString()::equals)
-                .isPresent())
+            .filter(status -> BackupStatus.isCompleted(backup))
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getTiming)
             .map(StackGresBackupTiming::getEnd)

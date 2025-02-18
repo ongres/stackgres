@@ -11,14 +11,13 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.initialization.DefaultProfileFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterInstanceProfileContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
   private final DefaultProfileFactory defaultProfileFactory;
@@ -39,8 +38,7 @@ public class ClusterInstanceProfileContextAppender
     if (!cluster.getSpec().getSgInstanceProfile().equals(defaultProfileFactory.getDefaultResourceName(cluster))
         && profile.isEmpty()) {
       throw new IllegalArgumentException(
-          StackGresProfile.KIND + " " + cluster.getSpec().getSgInstanceProfile()
-          + " was not found");
+          StackGresProfile.KIND + " " + cluster.getSpec().getSgInstanceProfile() + " was not found");
     }
     contextBuilder.profile(profile);
   }

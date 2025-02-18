@@ -11,13 +11,12 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterConfigContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final CustomResourceScanner<StackGresConfig> configScanner;
 
@@ -33,7 +32,7 @@ public class ClusterConfigContextAppender
         .flatMap(List::stream)
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGConfig not found or more than one exists. Aborting reoconciliation!"));
+            StackGresConfig.KIND + " not found or more than one exists. Aborting reoconciliation!"));
     contextBuilder.config(config);
   }
 

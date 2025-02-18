@@ -11,15 +11,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,12 +31,6 @@ public abstract class AbstractDefaultResourceMutatorTest<
   protected R review;
 
   protected M mutator;
-
-  @Mock
-  protected CustomResourceFinder<C> finder;
-
-  @Mock
-  protected CustomResourceScheduler<C> scheduler;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {

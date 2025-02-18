@@ -46,9 +46,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodsSchedulingBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
-import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
-import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -121,8 +119,8 @@ public class ShardedBackupJob
   public static boolean skipBackupJobCreation(StackGresShardedBackupContext context) {
     return isBackupCopy(context)
         || isScheduledBackupJob(context)
-        || isBackupJobFinished(context)
-        || (!isBackupJobFinished(context)
+        || ShardedBackupStatus.isFinished(context.getSource())
+        || (!ShardedBackupStatus.isFinished(context.getSource())
             && isBackupConfigNotConfigured(context));
   }
 
@@ -133,15 +131,6 @@ public class ShardedBackupJob
 
   private static boolean isBackupConfigNotConfigured(StackGresShardedBackupContext context) {
     return context.getObjectStorage().isEmpty();
-  }
-
-  private static boolean isBackupJobFinished(StackGresShardedBackupContext context) {
-    return Optional.ofNullable(context.getSource().getStatus())
-        .map(StackGresShardedBackupStatus::getProcess)
-        .map(StackGresShardedBackupProcess::getStatus)
-        .filter(status -> status.equals(ShardedBackupStatus.COMPLETED.status())
-            || status.equals(ShardedBackupStatus.FAILED.status()))
-        .isPresent();
   }
 
   private static boolean isScheduledBackupJob(StackGresShardedBackupContext context) {
