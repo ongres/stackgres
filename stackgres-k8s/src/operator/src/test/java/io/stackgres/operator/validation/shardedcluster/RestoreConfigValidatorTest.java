@@ -84,7 +84,7 @@ class RestoreConfigValidatorTest {
     final StackGresShardedClusterReview review = getUpdateReview();
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        "Cannot update SGShardedCluster's restore configuration");
+        "Cannot update restore configuration");
   }
 
   private StackGresShardedClusterReview getCreationReview() {
