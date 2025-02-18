@@ -37,25 +37,14 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
   default StackGresCluster getCluster() {
     return getFoundCluster()
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGBackup " + getSource().getMetadata().getNamespace() + "."
-                + getSource().getMetadata().getName()
-                + " target a non existent SGCluster "
-                + getSource().getSpec().getSgCluster()));
+            StackGresCluster.KIND + " " + getSource().getSpec().getSgCluster() + " not found"));
   }
 
   @Value.Lazy
   default StackGresProfile getProfile() {
     return getFoundProfile()
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGBackup " + getSource().getMetadata().getNamespace() + "."
-                + getSource().getMetadata().getName()
-                + " target SGCluster "
-                + getSource().getSpec().getSgCluster()
-                + " with a non existent SGInstanceProfile "
-                + getFoundCluster()
-                    .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getSgInstanceProfile)
-                    .orElse("<unknown>")));
+            StackGresProfile.KIND + " " + getCluster().getSpec().getSgInstanceProfile() + " not found"));
   }
 
   Set<String> getClusterBackupNamespaces();
@@ -113,6 +102,13 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
   default BackupStorage getBackupStorage() {
     return getObjectStorage().map(CustomResource::getSpec)
         .orElseThrow();
+  }
+
+  public static class Builder extends ImmutableStackGresBackupContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 
 }

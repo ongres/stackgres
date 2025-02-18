@@ -71,7 +71,7 @@ class DbOpsResourceGenerationDiscovererTest
     status.setOpRetries(10);
     resource.setStatus(status);
     resource.getSpec().setMaxRetries(10);
-    return ImmutableStackGresDbOpsContext.builder()
+    return StackGresDbOpsContext.builder()
         .config(config)
         .source(resource)
         .foundCluster(cluster)

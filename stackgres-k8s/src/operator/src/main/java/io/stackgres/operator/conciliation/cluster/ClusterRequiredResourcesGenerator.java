@@ -11,7 +11,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.cluster.context.ClusterContextFactory;
+import io.stackgres.operator.conciliation.cluster.context.ClusterContextPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -24,15 +24,15 @@ public class ClusterRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ClusterRequiredResourcesGenerator.class);
 
-  private final ClusterContextFactory contextFactory;
+  private final ClusterContextPipeline contextPipeline;
 
   private final ResourceGenerationDiscoverer<StackGresClusterContext> discoverer;
 
   @Inject
   public ClusterRequiredResourcesGenerator(
-      ClusterContextFactory contextFactory,
+      ClusterContextPipeline contextPipeline,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
-    this.contextFactory = contextFactory;
+    this.contextPipeline = contextPipeline;
     this.discoverer = discoverer;
   }
 
@@ -40,7 +40,7 @@ public class ClusterRequiredResourcesGenerator
   public List<HasMetadata> getRequiredResources(StackGresCluster cluster) {
     final StackGresClusterContext.Builder contextBuilder = StackGresClusterContext.builder();
 
-    contextFactory.appendContext(cluster, contextBuilder);
+    contextPipeline.appendContext(cluster, contextBuilder);
 
     contextBuilder
         .source(cluster);

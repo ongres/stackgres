@@ -5,8 +5,10 @@
 
 package io.stackgres.common.crd.sgshardedbackup;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.jooq.lambda.Seq;
 
@@ -16,6 +18,8 @@ public enum ShardedBackupStatus {
   RUNNING,
   COMPLETED,
   FAILED;
+
+  private static final List<String> FINISHED_STATUSES = List.of(COMPLETED.status, FAILED.status);
 
   private final String status;
 
@@ -40,6 +44,24 @@ public enum ShardedBackupStatus {
         .orElseThrow(() -> new IllegalArgumentException(
             "Backup status " + status + " is not any of "
                 + Seq.of(values()).map(ShardedBackupStatus::status).toString(", ")));
+  }
+
+  public static boolean isFinished(StackGresShardedBackup backup) {
+    return Optional.of(backup)
+        .map(StackGresShardedBackup::getStatus)
+        .map(StackGresShardedBackupStatus::getProcess)
+        .map(StackGresShardedBackupProcess::getStatus)
+        .filter(FINISHED_STATUSES::contains)
+        .isPresent();
+  }
+
+  public static boolean isCompleted(StackGresShardedBackup backup) {
+    return Optional.of(backup)
+        .map(StackGresShardedBackup::getStatus)
+        .map(StackGresShardedBackupStatus::getProcess)
+        .map(StackGresShardedBackupProcess::getStatus)
+        .filter(COMPLETED.status::equals)
+        .isPresent();
   }
 
 }

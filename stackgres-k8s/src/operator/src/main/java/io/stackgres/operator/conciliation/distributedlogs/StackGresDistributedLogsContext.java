@@ -32,12 +32,19 @@ public interface StackGresDistributedLogsContext
 
   Optional<StackGresCluster> getCluster();
 
-  Optional<Secret> getDatabaseCredentials();
+  Optional<Secret> getDatabaseSecret();
 
   @Override
   @Value.Derived
   default StackGresVersion getVersion() {
     return StackGresVersion.getStackGresVersion(getSource());
+  }
+
+  public static class Builder extends ImmutableStackGresDistributedLogsContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 
 }

@@ -35,7 +35,7 @@ class DefaultCoordinatorProfileConfigMutatorTest
   protected DefaultCoordinatorProfileConfigMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultProfileFactory();
     var mutator = new DefaultCoordinatorProfileConfigMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

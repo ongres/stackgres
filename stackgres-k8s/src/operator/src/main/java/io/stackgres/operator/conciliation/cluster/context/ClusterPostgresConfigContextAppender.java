@@ -15,14 +15,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterPostgresConfigContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;

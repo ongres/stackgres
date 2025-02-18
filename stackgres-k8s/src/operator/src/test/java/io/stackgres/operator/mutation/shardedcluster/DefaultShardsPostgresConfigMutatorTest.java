@@ -35,7 +35,7 @@ class DefaultShardsPostgresConfigMutatorTest
   protected DefaultShardsPostgresConfigMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultShardedClusterPostgresConfigFactory();
     var mutator = new DefaultShardsPostgresConfigMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

@@ -7,6 +7,7 @@ package io.stackgres.operator.common;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Pod;
@@ -50,6 +51,23 @@ public class ObservedClusterContext {
         .toList());
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(cluster, pods);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ObservedClusterContext)) {
+      return false;
+    }
+    ObservedClusterContext other = (ObservedClusterContext) obj;
+    return Objects.equals(cluster, other.cluster) && Objects.equals(pods, other.pods);
+  }
+
   public static class CollectorPodContext {
     
     private final String namespace;
@@ -82,6 +100,24 @@ public class ObservedClusterContext {
 
     public String getIp() {
       return ip;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(creationTimestamp, ip, name, namespace);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof CollectorPodContext)) {
+        return false;
+      }
+      CollectorPodContext other = (CollectorPodContext) obj;
+      return Objects.equals(creationTimestamp, other.creationTimestamp) && Objects.equals(ip, other.ip)
+          && Objects.equals(name, other.name) && Objects.equals(namespace, other.namespace);
     }
   }
 

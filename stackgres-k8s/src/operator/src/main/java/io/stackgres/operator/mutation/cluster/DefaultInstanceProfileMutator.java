@@ -8,8 +8,6 @@ package io.stackgres.operator.mutation.cluster;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
@@ -24,10 +22,8 @@ public class DefaultInstanceProfileMutator
 
   @Inject
   public DefaultInstanceProfileMutator(
-      DefaultCustomResourceFactory<StackGresProfile, HasMetadata> resourceFactory,
-      CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler) {
-    super(resourceFactory, finder, scheduler);
+      DefaultCustomResourceFactory<StackGresProfile, HasMetadata> resourceFactory) {
+    super(resourceFactory);
   }
 
   @Override

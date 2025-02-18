@@ -34,7 +34,7 @@ class DefaultPostgresConfigMutatorTest
   protected DefaultPostgresConfigMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultClusterPostgresConfigFactory();
     var mutator = new DefaultPostgresConfigMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

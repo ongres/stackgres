@@ -372,8 +372,4 @@ public class DistributedLogsCluster
     return cluster;
   }
 
-  public static void main(String[] args) {
-    System.out.println(StackGresVolume.CUSTOM.getName(
-        StackGresVolume.FLUENTD_CONFIG.getName()));
-  }
 }

@@ -62,7 +62,7 @@ class StreamResourceGenerationDiscovererTest
     StackGresStreamStatus status = new StackGresStreamStatus();
     resource.setStatus(status);
     resource.getSpec().setMaxRetries(10);
-    return ImmutableStackGresStreamContext.builder()
+    return StackGresStreamContext.builder()
         .config(config)
         .source(resource)
         .build();

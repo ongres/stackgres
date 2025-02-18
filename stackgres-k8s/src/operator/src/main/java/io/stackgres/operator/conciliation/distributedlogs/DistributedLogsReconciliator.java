@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -33,7 +32,6 @@ import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.event.EventEmitter;
@@ -71,7 +69,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject DeployedResourcesCache deployedResourcesCache;
     @Inject HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
     @Inject KubernetesClient client;
-    @Inject ConnectedClustersScanner connectedClustersScanner;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
     @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
@@ -87,7 +84,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject ResourceWriter<Endpoints> endpointsWriter;
   }
 
-  private final ConnectedClustersScanner connectedClustersScanner;
   private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
   private final StatusManager<StackGresDistributedLogs, Condition> statusManager;
   private final EventEmitter<StackGresDistributedLogs> eventController;
@@ -108,7 +104,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
         parameters.operatorLockReconciliator,
         parameters.reconciliatorWorkerThreadPool,
         StackGresDistributedLogs.KIND);
-    this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
@@ -219,8 +214,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
       });
     }
 
-    refreshConnectedClusters(config);
-
     statusManager.refreshCondition(config);
     distributedLogsScheduler.update(config,
         (currentDistributedLogs) -> currentDistributedLogs.setStatus(config.getStatus()));
@@ -261,25 +254,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
       foundConfig.getSpec().getConfigurations().setSgPostgresConfig(
           cluster.getSpec().getConfigurations().getSgPostgresConfig());
     }
-  }
-
-  private void refreshConnectedClusters(StackGresDistributedLogs config) {
-    var clusters = connectedClustersScanner.getConnectedClusters(config);
-
-    config.setStatus(
-        Optional.ofNullable(config.getStatus())
-            .orElseGet(StackGresDistributedLogsStatus::new));
-    config.getStatus()
-        .setConnectedClusters(clusters.stream()
-            .map(cluster -> {
-              StackGresDistributedLogsStatusCluster connectedCluster =
-                  new StackGresDistributedLogsStatusCluster();
-              connectedCluster.setNamespace(cluster.getMetadata().getNamespace());
-              connectedCluster.setName(cluster.getMetadata().getName());
-              connectedCluster.setConfig(cluster.getSpec().getDistributedLogs());
-              return connectedCluster;
-            })
-            .collect(Collectors.toList()));
   }
 
   @Override

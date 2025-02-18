@@ -71,7 +71,7 @@ class ShardedDbOpsResourceGenerationDiscovererTest
     status.setOpRetries(10);
     resource.setStatus(status);
     resource.getSpec().setMaxRetries(10);
-    return ImmutableStackGresShardedDbOpsContext.builder()
+    return StackGresShardedDbOpsContext.builder()
         .config(config)
         .source(resource)
         .foundShardedCluster(cluster)

@@ -37,7 +37,7 @@ class DefaultInstanceProfileConfigMutatorTest
   protected DefaultInstanceProfileMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultProfileFactory();
     var mutator = new DefaultInstanceProfileMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

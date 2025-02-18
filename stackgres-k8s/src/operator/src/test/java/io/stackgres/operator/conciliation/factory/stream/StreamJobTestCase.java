@@ -15,7 +15,6 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.stream.ImmutableStackGresStreamContext;
 import io.stackgres.operator.conciliation.stream.StackGresStreamContext;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +45,7 @@ abstract class StreamJobTestCase {
 
   @Test
   void givenAContextWithAStream_itShouldGenerateADeployment() {
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
+    StackGresStreamContext context = StackGresStreamContext.builder()
         .config(config)
         .source(stream)
         .build();
@@ -61,7 +60,7 @@ abstract class StreamJobTestCase {
   @Test
   void givenAContextWithAStream_itShouldGenerateAJob() {
     stream.getSpec().setMaxRetries(1);
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
+    StackGresStreamContext context = StackGresStreamContext.builder()
         .config(config)
         .source(stream)
         .build();
@@ -77,7 +76,7 @@ abstract class StreamJobTestCase {
   void shouldGenerateDeploymentWithNodeSelector_onceSgStreamSchedulingHasNodeSelector() {
     setSgStreamScheduling();
 
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
+    StackGresStreamContext context = StackGresStreamContext.builder()
         .config(config)
         .source(stream)
         .build();
@@ -93,7 +92,7 @@ abstract class StreamJobTestCase {
     setSgStreamScheduling();
     stream.getSpec().setMaxRetries(1);
 
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
+    StackGresStreamContext context = StackGresStreamContext.builder()
         .config(config)
         .source(stream)
         .build();
@@ -108,7 +107,7 @@ abstract class StreamJobTestCase {
   void shouldGenerateDeploymentWithNodeAffinity_onceSgStreamSchedulingHasAffinity() {
     setSgStreamScheduling();
 
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
+    StackGresStreamContext context = StackGresStreamContext.builder()
         .config(config)
         .source(stream)
         .build();
@@ -128,7 +127,7 @@ abstract class StreamJobTestCase {
     setSgStreamScheduling();
     stream.getSpec().setMaxRetries(1);
 
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
+    StackGresStreamContext context = StackGresStreamContext.builder()
         .config(config)
         .source(stream)
         .build();

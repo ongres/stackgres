@@ -8,8 +8,6 @@ package io.stackgres.operator.mutation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -21,24 +19,14 @@ public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?,
 
   protected final DefaultCustomResourceFactory<C, S> resourceFactory;
 
-  protected final CustomResourceFinder<C> finder;
-
-  protected final CustomResourceScheduler<C> scheduler;
-
   protected AbstractDefaultResourceMutator(
-      DefaultCustomResourceFactory<C, S> resourceFactory,
-      CustomResourceFinder<C> finder,
-      CustomResourceScheduler<C> scheduler) {
+      DefaultCustomResourceFactory<C, S> resourceFactory) {
     this.resourceFactory = resourceFactory;
-    this.finder = finder;
-    this.scheduler = scheduler;
   }
 
   public AbstractDefaultResourceMutator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.resourceFactory = null;
-    this.finder = null;
-    this.scheduler = null;
   }
 
   @Override

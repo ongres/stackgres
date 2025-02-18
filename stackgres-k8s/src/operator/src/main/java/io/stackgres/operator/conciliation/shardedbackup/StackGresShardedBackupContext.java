@@ -39,38 +39,32 @@ public interface StackGresShardedBackupContext
   default StackGresShardedCluster getShardedCluster() {
     return getFoundShardedCluster()
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGShardedBackup " + getSource().getMetadata().getNamespace() + "."
-                + getSource().getMetadata().getName()
-                + " target a non existent SGShardedCluster "
-                + getSource().getSpec().getSgShardedCluster()));
+            StackGresShardedCluster.KIND + " "
+                + getSource().getSpec().getSgShardedCluster() + " not found"));
   }
 
   @Value.Lazy
   default StackGresCluster getCoordinatorCluster() {
     return getFoundCoordinator()
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGShardedBackup " + getSource().getMetadata().getNamespace() + "."
-                + getSource().getMetadata().getName()
-                + " target SGShardedCluster "
-                + getSource().getSpec().getSgShardedCluster()
-                + " with a non existent coordinator SGCluster "
-                + StackGresShardedClusterUtil.getCoordinatorClusterName(
-                    getSource().getSpec().getSgShardedCluster())));
+                StackGresCluster.KIND + " "
+                    + StackGresShardedClusterUtil.getCoordinatorClusterName(
+                        getSource().getSpec().getSgShardedCluster())
+                    + " not found for target " + StackGresShardedCluster.KIND + " "
+                    + getSource().getSpec().getSgShardedCluster()));
   }
 
   default StackGresProfile getProfile() {
     return getFoundProfile()
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGShardedBackup " + getSource().getMetadata().getNamespace() + "."
-                + getSource().getMetadata().getName()
-                + " target SGShardedCluster "
-                + getSource().getSpec().getSgShardedCluster()
-                + " with a non existent SGInstanceProfile "
-                + getFoundShardedCluster()
+            StackGresProfile.KIND + " "
+                + Optional.of(getShardedCluster())
                     .map(StackGresShardedCluster::getSpec)
                     .map(StackGresShardedClusterSpec::getCoordinator)
                     .map(StackGresShardedClusterCoordinator::getSgInstanceProfile)
-                    .orElse("<unknown>")));
+                    .orElse("<unknown>")
+                + " not found for target " + StackGresShardedCluster.KIND + " "
+                + getSource().getSpec().getSgShardedCluster()));
   }
 
   Set<String> getClusterBackupNamespaces();
@@ -112,6 +106,13 @@ public interface StackGresShardedBackupContext
             bc.getMaxRetries(),
             bc.getRetainWalsForUnmanagedLifecycle()))
         .orElseThrow();
+  }
+
+  public static class Builder extends ImmutableStackGresShardedBackupContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 
 }

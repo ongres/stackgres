@@ -6,7 +6,6 @@
 package io.stackgres.operator.initialization;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,21 +14,14 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
-import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
+import io.stackgres.operator.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
-import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsCluster;
 import jakarta.enterprise.context.Dependent;
 
 @Dependent
 public class DefaultDistributedLogsPostgresConfigFactory
     extends DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresDistributedLogs> {
-
-  private LabelFactoryForDistributedLogs labelFactory;
-
-  public DefaultDistributedLogsPostgresConfigFactory(LabelFactoryForDistributedLogs labelFactory) {
-    this.labelFactory = labelFactory;
-  }
 
   @Override
   protected String getDefaultPropertyResourceName(StackGresDistributedLogs source) {
@@ -71,10 +63,7 @@ public class DefaultDistributedLogsPostgresConfigFactory
   }
 
   private String getPostgresMajorVersion(StackGresDistributedLogs resource) {
-    String version = DistributedLogsCluster
-        .getCluster(
-            labelFactory, resource, Optional.empty())
-        .getSpec().getPostgres().getVersion();
+    String version = StackGresDistributedLogsUtil.getPostgresVersion(resource);
     return version.split("\\.")[0];
   }
 

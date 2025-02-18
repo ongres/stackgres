@@ -6,6 +6,7 @@
 package io.stackgres.operator.common;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -76,6 +77,24 @@ public class PrometheusContext {
         prometheus.getMetadata().getName(),
         matchLabels,
         monitor);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(matchLabels, monitor, name, namespace);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof PrometheusContext)) {
+      return false;
+    }
+    PrometheusContext other = (PrometheusContext) obj;
+    return Objects.equals(matchLabels, other.matchLabels) && Objects.equals(monitor, other.monitor)
+        && Objects.equals(name, other.name) && Objects.equals(namespace, other.namespace);
   }
 
 }

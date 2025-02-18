@@ -36,6 +36,11 @@ public class DbOpsFixture extends VersionedFixture<StackGresDbOps> {
     return this;
   }
 
+  public DbOpsFixture loadSampling() {
+    fixture = readFromJson(STACKGRES_DB_OPS_SAMPLING_JSON);
+    return this;
+  }
+
   public DbOpsFixture loadBenchmark() {
     fixture = readFromJson(STACKGRES_DB_OPS_BENCHMARK_JSON);
     return this;

@@ -8,8 +8,6 @@ package io.stackgres.operator.mutation.cluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
@@ -22,10 +20,8 @@ public class DefaultPostgresConfigMutator
     implements ClusterMutator {
 
   public DefaultPostgresConfigMutator(
-      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> resourceFactory,
-      CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
-    super(resourceFactory, finder, scheduler);
+      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresCluster> resourceFactory) {
+    super(resourceFactory);
   }
 
   @Override

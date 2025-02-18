@@ -5,8 +5,10 @@
 
 package io.stackgres.common.crd.sgbackup;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.jooq.lambda.Seq;
 
@@ -16,6 +18,8 @@ public enum BackupStatus {
   RUNNING,
   COMPLETED,
   FAILED;
+
+  private static final List<String> FINISHED_STATUSES = List.of(COMPLETED.status, FAILED.status);
 
   private final String status;
 
@@ -40,6 +44,33 @@ public enum BackupStatus {
         .orElseThrow(() -> new IllegalArgumentException(
             "Backup status " + status + " is not any of "
                 + Seq.of(values()).map(BackupStatus::status).toString(", ")));
+  }
+
+  public static boolean isCompleted(StackGresBackup backup) {
+    return Optional.of(backup)
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getStatus)
+        .filter(COMPLETED.status::equals)
+        .isPresent();
+  }
+
+  public static boolean isCompleted(Optional<StackGresBackup> backup) {
+    return backup
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getStatus)
+        .filter(COMPLETED.status::equals)
+        .isPresent();
+  }
+
+  public static boolean isFinished(StackGresBackup backup) {
+    return Optional.of(backup)
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getStatus)
+        .filter(FINISHED_STATUSES::contains)
+        .isPresent();
   }
 
 }

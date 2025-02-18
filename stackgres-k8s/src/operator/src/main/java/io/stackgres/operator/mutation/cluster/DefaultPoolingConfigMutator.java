@@ -9,8 +9,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
@@ -25,10 +23,8 @@ public class DefaultPoolingConfigMutator
 
   @Inject
   public DefaultPoolingConfigMutator(
-      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> resourceFactory,
-      CustomResourceFinder<StackGresPoolingConfig> finder,
-      CustomResourceScheduler<StackGresPoolingConfig> scheduler) {
-    super(resourceFactory, finder, scheduler);
+      DefaultCustomResourceFactory<StackGresPoolingConfig, HasMetadata> resourceFactory) {
+    super(resourceFactory);
   }
 
   @Override

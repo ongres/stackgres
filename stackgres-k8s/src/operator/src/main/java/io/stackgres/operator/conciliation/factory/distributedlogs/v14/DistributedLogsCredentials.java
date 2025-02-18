@@ -53,7 +53,7 @@ public class DistributedLogsCredentials
             .withName(secretName(distributedLogs))
             .withLabels(labelFactory.genericLabels(distributedLogs))
             .build())
-        .withData(context.getDatabaseCredentials()
+        .withData(context.getDatabaseSecret()
             .map(Secret::getData)
             .orElseThrow())
         .build();

@@ -123,4 +123,11 @@ public interface StackGresShardedClusterContext
 
   List<Tuple2<String, String>> getShardingSphereAuthorityUsers();
 
+  public static class Builder extends ImmutableStackGresShardedClusterContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
 }

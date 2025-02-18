@@ -13,7 +13,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -28,6 +27,8 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 
 public interface WebUtil {
+
+  int BAD_REQUEST_STATUS_CODE = Integer.valueOf(Response.Status.BAD_REQUEST.getStatusCode()).intValue();
 
   static boolean checkUri(String uri, Map<String, Object> headers) {
     try {
@@ -61,7 +62,7 @@ public interface WebUtil {
             .buildGet()
             .invoke();
         return Optional.of(response.getStatus())
-            .filter(Predicate.not(Integer.valueOf(Response.Status.OK.getStatusCode())::equals))
+            .filter(statusCode -> statusCode.intValue() < BAD_REQUEST_STATUS_CODE)
             .map(status -> new Exception("Invalid status code " + status));
       }
     } catch (IOException | IllegalArgumentException | ProcessingException

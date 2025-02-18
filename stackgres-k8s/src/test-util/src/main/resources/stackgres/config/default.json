@@ -2,7 +2,9 @@
   "apiVersion": "stackgres.io/v1",
   "kind": "SGConfig",
   "metadata": {
-    "name": "stackgres-operator"
+    "namespace": "stackgres",
+    "name": "stackgres-operator",
+    "uid": "657aadf5-c0fe-4ce2-a871-fccb8aeba846"
   },
   "spec": {
     "adminui": {
@@ -19,9 +21,6 @@
     "authentication": {
       "oidc": {},
       "resetPassword": false,
-      "secretRef": {
-        "name": ""
-      },
       "type": "jwt",
       "user": "admin"
     },
