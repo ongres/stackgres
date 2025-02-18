@@ -7,14 +7,13 @@ package io.stackgres.operator.conciliation.cluster.context;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.conciliation.factory.KubernetesVersionProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterKubernetesVersionContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final KubernetesVersionProvider kubernetesVersionSupplier;
 

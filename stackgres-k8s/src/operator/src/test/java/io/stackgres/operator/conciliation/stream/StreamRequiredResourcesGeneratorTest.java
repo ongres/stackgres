@@ -5,8 +5,7 @@
 
 package io.stackgres.operator.conciliation.stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -14,9 +13,11 @@ import java.util.Optional;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,32 +29,32 @@ class StreamRequiredResourcesGeneratorTest {
   @InjectMock
   ConfigScanner configScanner;
 
+  @InjectMock
+  ClusterFinder clusterFinder;
+
   @Inject
   StreamRequiredResourcesGenerator generator;
 
   private StackGresConfig config;
+  private StackGresCluster cluster;
   private StackGresStream stream;
 
   @BeforeEach
   void setUp() {
     config = Fixtures.config().loadDefault().get();
     stream = Fixtures.stream().loadSgClusterToCloudEvent().get();
-    config = Fixtures.config().loadDefault().get();
+    cluster = Fixtures.cluster().loadDefault().get();
   }
 
   @Test
-  void givenValidCluster_getRequiredResourcesShouldNotFail() {
+  void givenValidStream_getRequiredResourcesShouldNotFail() {
     when(configScanner.findResources())
         .thenReturn(Optional.of(List.of(config)));
 
-    generator.getRequiredResources(stream);
-  }
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(cluster));
 
-  @SuppressWarnings("unused")
-  private void assertException(String message) {
-    var ex =
-        assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(stream));
-    assertEquals(message, ex.getMessage());
+    generator.getRequiredResources(stream);
   }
 
 }

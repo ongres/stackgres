@@ -93,7 +93,7 @@ public class DistributedLogsCluster
     return Stream.of(cluster);
   }
 
-  public static StackGresCluster getCluster(
+  private StackGresCluster getCluster(
       final LabelFactoryForDistributedLogs labelFactory,
       final StackGresDistributedLogs distributedLogs,
       final Optional<StackGresCluster> previousCluster) {

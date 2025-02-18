@@ -18,7 +18,6 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.shardeddbops.ImmutableStackGresShardedDbOpsContext;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +61,7 @@ abstract class ShardedDbOpsJobTestCase {
 
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
-    StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+    StackGresShardedDbOpsContext context = StackGresShardedDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
@@ -80,7 +79,7 @@ abstract class ShardedDbOpsJobTestCase {
 
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
-    StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+    StackGresShardedDbOpsContext context = StackGresShardedDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
@@ -98,7 +97,7 @@ abstract class ShardedDbOpsJobTestCase {
 
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
-    StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+    StackGresShardedDbOpsContext context = StackGresShardedDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
@@ -119,7 +118,7 @@ abstract class ShardedDbOpsJobTestCase {
     dbOps.getSpec().setRunAt(null);
     setSgShardedDbOpsScheduling();
 
-    StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+    StackGresShardedDbOpsContext context = StackGresShardedDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)
@@ -139,7 +138,7 @@ abstract class ShardedDbOpsJobTestCase {
     dbOps.getSpec().setRunAt(null);
     setSgShardedDbOpsScheduling();
 
-    StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
+    StackGresShardedDbOpsContext context = StackGresShardedDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundShardedCluster(cluster)

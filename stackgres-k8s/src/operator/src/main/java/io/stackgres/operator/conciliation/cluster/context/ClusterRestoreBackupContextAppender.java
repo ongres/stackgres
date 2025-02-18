@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
@@ -26,7 +25,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,7 +33,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterRestoreBackupContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final ResourceFinder<Secret> secretFinder;
   private final CustomResourceFinder<StackGresBackup> backupFinder;
@@ -73,7 +71,7 @@ public class ClusterRestoreBackupContextAppender
                 entry.getKey(),
                 cluster.getMetadata().getName())
             .orElseThrow(() -> new IllegalArgumentException(
-                "Secret " + entry.getKey() + " not found for SGBackup "
+                "Secret " + entry.getKey() + " not found for " + StackGresBackup.KIND + " "
                     + restoreBackup.get().getMetadata().getName())),
             entry.getValue()))
         .map(t -> {
@@ -82,7 +80,7 @@ public class ClusterRestoreBackupContextAppender
               .forEach(key -> {
                 if (!t.v2.getData().containsKey(key)) {
                   throw new IllegalArgumentException(
-                      "Key " + key + " not found in Secret " + t.v1 + " for SGBackup "
+                      "Key " + key + " not found in Secret " + t.v1 + " for " + StackGresBackup.KIND + " "
                           + restoreBackup.get().getMetadata().getName());
                 }
               });
@@ -104,14 +102,8 @@ public class ClusterRestoreBackupContextAppender
         .map(StackGresClusterRestoreFromBackup::getName)
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
     if (restoreBackup.isPresent()) {
-      if (restoreBackup
-          .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getProcess)
-          .map(StackGresBackupProcess::getStatus)
-          .map(BackupStatus.COMPLETED.status()::equals)
-          .map(completed -> !completed)
-          .orElse(true)) {
-        throw new IllegalArgumentException("Cannot restore from SGBackup "
+      if (!BackupStatus.isCompleted(restoreBackup)) {
+        throw new IllegalArgumentException("Cannot restore from " + StackGresBackup.KIND + " "
             + restoreBackup.get().getMetadata().getName()
             + " because it's not Completed");
       }
@@ -128,7 +120,7 @@ public class ClusterRestoreBackupContextAppender
           .getMajorVersion(givenPgVersion);
 
       if (!backupMajorVersion.equals(givenMajorVersion)) {
-        throw new IllegalArgumentException("Cannot restore from SGBackup "
+        throw new IllegalArgumentException("Cannot restore from " + StackGresBackup.KIND + " "
             + restoreBackup.get().getMetadata().getName()
             + " because it has been created from a postgres instance"
             + " with version " + backupMajorVersion);

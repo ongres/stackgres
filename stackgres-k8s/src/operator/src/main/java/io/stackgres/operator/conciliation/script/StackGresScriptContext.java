@@ -19,4 +19,11 @@ public interface StackGresScriptContext extends GenerationContext<StackGresScrip
     return StackGresVersion.getStackGresVersion(getSource());
   }
 
+  public static class Builder extends ImmutableStackGresScriptContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
 }

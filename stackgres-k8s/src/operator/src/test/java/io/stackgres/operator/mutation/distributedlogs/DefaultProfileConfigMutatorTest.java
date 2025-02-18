@@ -33,7 +33,7 @@ class DefaultProfileConfigMutatorTest
   protected DefaultProfileMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultProfileFactory();
     var mutator = new DefaultProfileMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

@@ -20,7 +20,6 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -29,7 +28,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class ClusterObjectStorageContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
   private final ResourceFinder<Secret> secretFinder;

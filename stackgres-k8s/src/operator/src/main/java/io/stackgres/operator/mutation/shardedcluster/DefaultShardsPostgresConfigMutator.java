@@ -9,8 +9,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
@@ -23,10 +21,8 @@ public class DefaultShardsPostgresConfigMutator
     implements ShardedClusterMutator {
 
   public DefaultShardsPostgresConfigMutator(
-      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresShardedCluster> resourceFactory,
-      CustomResourceFinder<StackGresPostgresConfig> finder,
-      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
-    super(resourceFactory, finder, scheduler);
+      DefaultCustomResourceFactory<StackGresPostgresConfig, StackGresShardedCluster> resourceFactory) {
+    super(resourceFactory);
   }
 
   @Override

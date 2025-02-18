@@ -61,4 +61,11 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
     return StackGresVersion.getStackGresVersion(getSource());
   }
 
+  public static class Builder extends ImmutableStackGresDbOpsContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
 }

@@ -11,14 +11,13 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterPoolingConfigContextAppender
-    extends ContextAppender<StackGresCluster, StackGresClusterContext.Builder> {
+    extends ContextAppender<StackGresCluster, Builder> {
 
   private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
   private final DefaultPoolingConfigFactory defaultPoolingConfigFactory;

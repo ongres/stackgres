@@ -63,7 +63,7 @@ public class BackupResourceGenerationDiscovererTest
 
   @Override
   protected StackGresBackupContext getResourceContext() {
-    return ImmutableStackGresBackupContext.builder()
+    return StackGresBackupContext.builder()
         .source(resource)
         .foundCluster(cluster)
         .foundProfile(profile)

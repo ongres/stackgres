@@ -17,7 +17,6 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +53,7 @@ abstract class DbOpsJobTestCase {
 
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
-    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+    StackGresDbOpsContext context = StackGresDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -71,7 +70,7 @@ abstract class DbOpsJobTestCase {
 
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
-    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+    StackGresDbOpsContext context = StackGresDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -88,7 +87,7 @@ abstract class DbOpsJobTestCase {
 
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
-    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+    StackGresDbOpsContext context = StackGresDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -108,7 +107,7 @@ abstract class DbOpsJobTestCase {
     dbOps.getSpec().setRunAt(null);
     setSgDbOpsScheduling();
 
-    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+    StackGresDbOpsContext context = StackGresDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)
@@ -127,7 +126,7 @@ abstract class DbOpsJobTestCase {
     dbOps.getSpec().setRunAt(null);
     setSgDbOpsScheduling();
 
-    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+    StackGresDbOpsContext context = StackGresDbOpsContext.builder()
         .config(config)
         .source(dbOps)
         .foundCluster(cluster)

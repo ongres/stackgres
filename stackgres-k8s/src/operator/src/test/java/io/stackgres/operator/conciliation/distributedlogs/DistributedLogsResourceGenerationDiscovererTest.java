@@ -67,12 +67,12 @@ class DistributedLogsResourceGenerationDiscovererTest
 
   @Override
   protected StackGresDistributedLogsContext getResourceContext() throws IOException {
-    return ImmutableStackGresDistributedLogsContext.builder()
+    return StackGresDistributedLogsContext.builder()
         .config(config)
         .source(resource)
         .postgresConfig(postgresConfig)
         .addAllConnectedClusters(List.of(connectecCluster))
-        .databaseCredentials(secret)
+        .databaseSecret(secret)
         .build();
   }
 

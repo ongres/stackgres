@@ -1,0 +1,101 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.operator.conciliation.shardedcluster.context;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.operator.initialization.DefaultShardedClusterPostgresConfigFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class ShardedClusterCoordinatorPostgresConfigContextAppenderTest {
+
+  private ShardedClusterCoordinatorPostgresConfigContextAppender contextAppender;
+
+  private StackGresShardedCluster cluster;
+
+  @Spy
+  private StackGresShardedClusterContext.Builder contextBuilder;
+
+  private DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory =
+      new DefaultShardedClusterPostgresConfigFactory();
+
+  @Mock
+  private CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
+
+  @BeforeEach
+  void setUp() {
+    cluster = Fixtures.shardedCluster().loadDefault().get();
+    contextAppender = new ShardedClusterCoordinatorPostgresConfigContextAppender(
+        postgresConfigFinder,
+        defaultPostgresConfigFactory);
+  }
+
+  @Test
+  void givenClusterWithPostgresConfig_shouldPass() {
+    final var postgresConfig = Optional.of(
+        new StackGresPostgresConfigBuilder()
+        .withNewSpec()
+        .withPostgresVersion(cluster.getSpec().getPostgres().getVersion().replaceAll("\\..*$", ""))
+        .endSpec()
+        .build());
+    when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(postgresConfig);
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(contextBuilder).coordinatorPostgresConfig(postgresConfig);
+  }
+
+  @Test
+  void givenClusterWithoutPostgresConfig_shouldFail() {
+    when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.empty());
+    var ex =
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+    assertEquals("SGPostgresConfig postgresconf was not found", ex.getMessage());
+  }
+
+  @Test
+  void givenClusterWithPostgresConfigWithWrongVersion_shouldFail() {
+    when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(
+            new StackGresPostgresConfigBuilder()
+            .withNewSpec()
+            .withPostgresVersion("10")
+            .endSpec()
+            .build()));
+    var ex =
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+    assertEquals("Invalid postgres version, must be 10 to use SGPostgresConfig postgresconf", ex.getMessage());
+  }
+
+  @Test
+  void givenClusterWithoutDefaultPostgresConfig_shouldPass() {
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setSgPostgresConfig(
+        defaultPostgresConfigFactory.getDefaultResourceName(cluster));
+    when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.empty());
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(contextBuilder).coordinatorPostgresConfig(Optional.empty());
+  }
+
+}

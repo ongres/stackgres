@@ -35,7 +35,7 @@ class DefaultCoordinatorPoolingConfigMutatorTest
   protected DefaultCoordinatorPoolingMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultPoolingConfigFactory();
     var mutator = new DefaultCoordinatorPoolingMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

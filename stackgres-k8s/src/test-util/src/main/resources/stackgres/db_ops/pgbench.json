@@ -13,8 +13,13 @@
   },
   "spec": {
     "sgCluster": "stackgres",
-    "op": "pgbench",
-    "pgbench": {
+    "op": "benchmark",
+    "benchmark": {
+      "type": "pgbench",
+      "pgbench": {
+        "databaseSize": "1Gi",
+        "duration": "PT1H"
+      }
     }
   },
   "status": {

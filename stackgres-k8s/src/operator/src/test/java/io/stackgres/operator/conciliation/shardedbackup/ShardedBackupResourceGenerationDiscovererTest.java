@@ -82,7 +82,7 @@ public class ShardedBackupResourceGenerationDiscovererTest
 
   @Override
   protected StackGresShardedBackupContext getResourceContext() {
-    return ImmutableStackGresShardedBackupContext.builder()
+    return StackGresShardedBackupContext.builder()
         .source(backup)
         .foundShardedCluster(cluster)
         .foundProfile(profile)
