@@ -32,6 +32,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -62,6 +63,7 @@ public class ConfigReconciliator
     @Inject ObjectMapper objectMapper;
     @Inject OperatorLockHolder operatorLockReconciliator;
     @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
+    @Inject Metrics metrics;
   }
 
   private final StatusManager<StackGresConfig, Condition> statusManager;
@@ -80,6 +82,7 @@ public class ConfigReconciliator
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
         parameters.reconciliatorWorkerThreadPool,
+        parameters.metrics,
         StackGresConfig.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;

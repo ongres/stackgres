@@ -19,6 +19,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,6 +45,7 @@ public class ScriptReconciliator
     @Inject ScriptStatusManager statusManager;
     @Inject OperatorLockHolder operatorLockReconciliator;
     @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
+    @Inject Metrics metrics;
   }
 
   private final EventEmitter<StackGresScript> eventController;
@@ -57,6 +59,7 @@ public class ScriptReconciliator
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
         parameters.reconciliatorWorkerThreadPool,
+        parameters.metrics,
         StackGresScript.KIND);
     this.eventController = parameters.eventController;
     this.scriptScheduler = parameters.scriptScheduler;

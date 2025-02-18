@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;

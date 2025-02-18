@@ -48,6 +48,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -85,6 +86,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject ResourceFinder<Pod> podFinder;
     @Inject ResourceFinder<Endpoints> endpointsFinder;
     @Inject ResourceWriter<Endpoints> endpointsWriter;
+    @Inject Metrics metrics;
   }
 
   private final ConnectedClustersScanner connectedClustersScanner;
@@ -107,6 +109,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
         parameters.handlerDelegator, parameters.client,
         parameters.operatorLockReconciliator,
         parameters.reconciliatorWorkerThreadPool,
+        parameters.metrics,
         StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;

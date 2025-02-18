@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.app;
+package io.stackgres.jobs.configuration;
 
 import java.util.Properties;
 
@@ -20,7 +20,8 @@ public enum JobsProperty implements StackGresPropertyReader {
   SERVICE_ACCOUNT("stackgres.dbops.serviceAccount"),
   POD_NAME("stackgres.dbops.podName"),
   DBOPS_LOCK_POLL_INTERVAL("stackgres.dbops.lockPollInterval"),
-  DBOPS_LOCK_DURATION("stackgres.dbops.lockDuration");
+  DBOPS_LOCK_DURATION("stackgres.dbops.lockDuration"),
+  JOBS_JMX_COLLECTOR_YAML_CONFIG("stackgres.jobs.jmxCollectorYamlConfig");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(JobsProperty.class);

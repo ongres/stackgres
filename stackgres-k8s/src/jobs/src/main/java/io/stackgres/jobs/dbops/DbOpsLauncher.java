@@ -5,8 +5,8 @@
 
 package io.stackgres.jobs.dbops;
 
-import static io.stackgres.jobs.app.JobsProperty.DBOPS_LOCK_DURATION;
-import static io.stackgres.jobs.app.JobsProperty.DBOPS_LOCK_POLL_INTERVAL;
+import static io.stackgres.jobs.configuration.JobsProperty.DBOPS_LOCK_DURATION;
+import static io.stackgres.jobs.configuration.JobsProperty.DBOPS_LOCK_POLL_INTERVAL;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -23,7 +23,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.configuration.JobsProperty;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;

@@ -1,3 +1,53 @@
+# :rocket: Release 1.15.1 (2025-02-17)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.15.1 is out! :confetti_ball: :champagne: 
+
+This hotfix release solves a regression that may affect reconciliation of resources when a high number of CRs are present in the K8s cluster.
+
+Please, proceed to upgrade StackGres as soon as possible! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Disabled thread pool by default
+* Added priority timeout to thread pool
+* Improve thread pool to use also timestamps for priority
+* Added monitoring to all StackGres components (operator, restapi, controllers and some database operations)
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Major version upgrade rollback broken when sync or strict-sync replication mode is set
+* ConcurrentModificationException on ReconciliatorWorkerThreadPool
+* Metrics are not exported as expected in the prometheus endpoint for SGStreams
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.15.1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.15.1)
+
 # :rocket: Release 1.15.0 (2025-02-03)
 
 ## :notepad_spiral: NOTES

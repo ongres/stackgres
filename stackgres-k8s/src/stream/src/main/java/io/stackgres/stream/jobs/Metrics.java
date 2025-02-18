@@ -5,7 +5,9 @@
 
 package io.stackgres.stream.jobs;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,7 @@ public class Metrics {
   private long totalNumberOfEventsSent = 0L;
   private String lastErrorSeen;
   private long totalNumberOfErrorsSeen = 0L;
+  private Map<String, Number> gauges = new HashMap<>();
 
   @Inject
   public Metrics(MeterRegistry registry) {
@@ -36,9 +39,16 @@ public class Metrics {
     return lastEventWasSent;
   }
 
+  public double isLastEventWasSentAsDouble() {
+    return lastEventWasSent == null || lastEventWasSent ? 1 : 0;
+  }
+
   public void setLastEventWasSent(Boolean lastEventWasSent) {
-    registry.gauge(STREAM_METRIC_PREFIX + "last_event_was_sent", lastEventWasSent == null || lastEventWasSent ? 1 : 0);
     this.lastEventWasSent = lastEventWasSent;
+    registry.gauge(
+        STREAM_METRIC_PREFIX + "last_event_was_sent",
+        this,
+        Metrics::isLastEventWasSentAsDouble);
   }
 
   public String getLastEventSent() {
@@ -55,7 +65,10 @@ public class Metrics {
 
   public void incrementTotalNumberOfEventsSent(int size) {
     totalNumberOfEventsSent = totalNumberOfEventsSent + size;
-    registry.gauge(STREAM_METRIC_PREFIX + "total_number_of_events_sent", totalNumberOfEventsSent);
+    registry.gauge(
+        STREAM_METRIC_PREFIX + "total_number_of_events_sent",
+        this,
+        Metrics::getTotalNumberOfEventsSent);
   }
 
   public String getLastErrorSeen() {
@@ -72,7 +85,10 @@ public class Metrics {
 
   public void incrementTotalNumberOfErrorsSeen() {
     totalNumberOfErrorsSeen = totalNumberOfErrorsSeen + 1;
-    registry.gauge(STREAM_METRIC_PREFIX + "total_number_of_errors_seen", totalNumberOfErrorsSeen);
+    registry.gauge(
+        STREAM_METRIC_PREFIX + "total_number_of_errors_seen",
+        this,
+        Metrics::getTotalNumberOfErrorsSeen);
   }
 
   public void gauge(String attributeName, Number attributeValueNumber) {
@@ -83,7 +99,19 @@ public class Metrics {
         .map(t -> t.v1.equals(t.v2) ? t.v1 : "_" + t.v2)
         .collect(Collectors.joining())
         .replaceAll("^_", "");
-    registry.gauge(STREAM_METRIC_PREFIX + attributeNameNormalized, attributeValueNumber);
+    final String name = STREAM_METRIC_PREFIX + attributeNameNormalized;
+    this.gauges.put(name, attributeValueNumber);
+    registry.gauge(
+        name,
+        this,
+        metrics -> getGauge(name));
   }
 
+  public double getGauge(String key) {
+    Number gauge = this.gauges.get(key);
+    if (gauge == null) {
+      return Double.NaN;
+    }
+    return gauge.doubleValue();
+  }
 }
