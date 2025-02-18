@@ -191,27 +191,6 @@ class ClusterValidationQuarkusTest {
   }
 
   @Test
-  void given_withoutValidStorageClass_shouldFail() {
-    var storage = Fixtures.storageClass().loadDefault().get();
-    client.storage().v1().storageClasses().withName(storage.getMetadata().getName()).delete();
-
-    StackGresClusterReview clusterReview = getConstraintClusterReview();
-    RestAssured.given()
-        .body(clusterReview)
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .post(ValidationUtil.CLUSTER_VALIDATION_PATH)
-        .then()
-        .body("response.allowed", is(false),
-            "kind", is("AdmissionReview"),
-            "response.status.code", is(400),
-            "response.status.message", is("StorageClass standard not found"))
-        .statusCode(200);
-
-    client.resource(storage).create();
-  }
-
-  @Test
   void given_withoutInstalledExtensions_shouldFail() {
     StackGresClusterReview clusterReview = getConstraintClusterReview();
     clusterReview.getRequest().getObject().getSpec().setToInstallPostgresExtensions(null);

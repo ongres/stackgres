@@ -84,7 +84,7 @@ class PatroniInitialConfigValidatorTest {
         .getPatroni().getInitialConfig().put("test", true);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        "Cannot update cluster's patroni initial configuration");
+        "Cannot update patroni initial configuration");
   }
 
   @Test

@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.labels.DistributedLogsLabelFactory;
-import io.stackgres.common.labels.DistributedLogsLabelMapper;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultDistributedLogsPostgresConfigFactory;
@@ -30,9 +28,7 @@ class DefaultPostgresConfigMutatorTest
 
   @Override
   protected DefaultPostgresConfigMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultDistributedLogsPostgresConfigFactory(
-        new DistributedLogsLabelFactory(
-            new DistributedLogsLabelMapper()));
+    var resourceFactory = new DefaultDistributedLogsPostgresConfigFactory();
     var mutator = new DefaultPostgresConfigMutator(
         resourceFactory, finder, scheduler);
     return mutator;
