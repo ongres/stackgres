@@ -44,7 +44,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;

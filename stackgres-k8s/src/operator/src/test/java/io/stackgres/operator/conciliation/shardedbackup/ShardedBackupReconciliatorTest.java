@@ -24,6 +24,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -55,6 +56,8 @@ class ShardedBackupReconciliatorTest {
   CustomResourceFinder<StackGresShardedCluster> clusterFinder;
   @Mock
   ShardedBackupStatusManager statusManager;
+  @Mock
+  Metrics metrics;
 
   private ShardedBackupReconciliator reconciliator;
 
@@ -70,6 +73,7 @@ class ShardedBackupReconciliatorTest {
     parameters.backupScheduler = backupScheduler;
     parameters.objectMapper = JsonUtil.jsonMapper();
     parameters.statusManager = statusManager;
+    parameters.metrics = metrics;
     reconciliator = spy(new ShardedBackupReconciliator(parameters));
   }
 

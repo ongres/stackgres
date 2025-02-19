@@ -11,7 +11,7 @@ import static io.stackgres.common.StackGresShardedClusterUtil.getShardClusterNam
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatus;
