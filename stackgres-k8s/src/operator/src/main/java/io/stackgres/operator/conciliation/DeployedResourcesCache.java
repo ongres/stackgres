@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -104,10 +105,17 @@ public class DeployedResourcesCache {
   public DeployedResourcesSnapshot createDeployedResourcesSnapshot(
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources) {
+    var deployedResourcesKeys = deployedResources.stream()
+        .map(ResourceKey::create)
+        .collect(Collectors.toSet());
+    var originalDeployedResourcesMap = new HashMap<>(cache.asMap());
+    originalDeployedResourcesMap
+        .keySet()
+        .stream()
+        .filter(Predicate.not(deployedResourcesKeys::contains))
+        .forEach(((Consumer<ResourceKey>) this::invalidateKey));
     var deployedResourcesMap = new HashMap<>(cache.asMap());
-    deployedResources.stream()
-        .map(resource -> Tuple.tuple(resource, deployedResourcesMap))
-        .forEach(t -> putOrUpdateLatest(t.v1, t.v2));
+    deployedResources.forEach(resource -> putOrUpdateLatest(resource, deployedResourcesMap));
     putAll(deployedResourcesMap);
     return new DeployedResourcesSnapshot(
         ownedDeployedResources, deployedResources, deployedResourcesMap);
