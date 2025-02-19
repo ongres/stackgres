@@ -172,7 +172,9 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
                       .inNamespace(resource.getMetadata().getNamespace())
                       .withName(ownerReference.getName())
                       .get();
-                  return ownerResource.getMetadata().getUid().equals(ownerReference.getUid());
+                  return ownerResource != null
+                      && ownerResource.getMetadata() != null
+                      && Objects.equals(ownerResource.getMetadata().getUid(), ownerReference.getUid());
                 } catch (KubernetesClientException ex) {
                   if (ex.getCode() == Response.Status.NOT_FOUND.getStatusCode()) {
                     return false;
