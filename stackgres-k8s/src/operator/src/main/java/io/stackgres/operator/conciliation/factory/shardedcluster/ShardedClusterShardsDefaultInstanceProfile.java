@@ -6,6 +6,9 @@
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -38,6 +41,15 @@ public class ShardedClusterShardsDefaultInstanceProfile
         .of(true)
         .filter(ignored -> context.getShardsProfile().isEmpty()
             || context.getShardsProfile()
+            .filter(instanceProfile -> labelFactory.defaultConfigLabels(context.getSource())
+                .entrySet()
+                .stream()
+                .allMatch(label -> Optional
+                    .ofNullable(instanceProfile.getMetadata().getLabels())
+                    .stream()
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .anyMatch(label::equals)))
             .map(instanceProfile -> instanceProfile.getMetadata().getOwnerReferences())
             .stream()
             .flatMap(List::stream)

@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -43,6 +45,15 @@ public class ShardedClusterShardsPgBouncerDefaultPoolingConfig
         .filter(disabled -> !disabled)
         .filter(ignored -> context.getShardsPoolingConfig().isEmpty()
             || context.getShardsPoolingConfig()
+            .filter(poolingConfig -> labelFactory.defaultConfigLabels(context.getSource())
+                .entrySet()
+                .stream()
+                .allMatch(label -> Optional
+                    .ofNullable(poolingConfig.getMetadata().getLabels())
+                    .stream()
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .anyMatch(label::equals)))
             .map(postgresConfig -> postgresConfig.getMetadata().getOwnerReferences())
             .stream()
             .flatMap(List::stream)
