@@ -6,6 +6,9 @@
 package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -37,6 +40,15 @@ public class ClusterDefaultPostgresConfig implements ResourceGenerator<StackGres
         .of(true)
         .filter(ignored -> context.getPostgresConfig().isEmpty()
             || context.getPostgresConfig()
+            .filter(postgresConfig -> labelFactory.defaultConfigLabels(context.getSource())
+                .entrySet()
+                .stream()
+                .allMatch(label -> Optional
+                    .ofNullable(postgresConfig.getMetadata().getLabels())
+                    .stream()
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .anyMatch(label::equals)))
             .map(postgresConfig -> postgresConfig.getMetadata().getOwnerReferences())
             .stream()
             .flatMap(List::stream)

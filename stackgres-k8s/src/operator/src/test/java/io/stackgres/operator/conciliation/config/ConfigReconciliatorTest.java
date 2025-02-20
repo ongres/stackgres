@@ -22,6 +22,7 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
@@ -50,6 +51,8 @@ class ConfigReconciliatorTest {
   StatusManager<StackGresConfig, Condition> statusManager;
   @Mock
   EventEmitter<StackGresConfig> eventController;
+  @Mock
+  Metrics metrics;
 
   private ConfigReconciliator reconciliator;
 
@@ -63,6 +66,7 @@ class ConfigReconciliatorTest {
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
     parameters.statusManager = statusManager;
+    parameters.metrics = metrics;
     reconciliator = new ConfigReconciliator(parameters);
   }
 

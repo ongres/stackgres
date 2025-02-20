@@ -62,7 +62,7 @@ public interface WebUtil {
             .buildGet()
             .invoke();
         return Optional.of(response.getStatus())
-            .filter(statusCode -> statusCode.intValue() < BAD_REQUEST_STATUS_CODE)
+            .filter(statusCode -> statusCode.intValue() >= BAD_REQUEST_STATUS_CODE)
             .map(status -> new Exception("Invalid status code " + status));
       }
     } catch (IOException | IllegalArgumentException | ProcessingException

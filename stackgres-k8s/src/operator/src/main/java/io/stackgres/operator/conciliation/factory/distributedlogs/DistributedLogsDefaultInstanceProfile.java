@@ -6,6 +6,9 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -37,6 +40,15 @@ public class DistributedLogsDefaultInstanceProfile implements ResourceGenerator<
         .of(true)
         .filter(ignored -> context.getProfile().isEmpty()
             || context.getProfile()
+            .filter(instanceProfile -> labelFactory.defaultConfigLabels(context.getSource())
+                .entrySet()
+                .stream()
+                .allMatch(label -> Optional
+                    .ofNullable(instanceProfile.getMetadata().getLabels())
+                    .stream()
+                    .map(Map::entrySet)
+                    .flatMap(Set::stream)
+                    .anyMatch(label::equals)))
             .map(instanceProfile -> instanceProfile.getMetadata().getOwnerReferences())
             .stream()
             .flatMap(List::stream)
