@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.cluster.context;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -18,10 +19,12 @@ import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
@@ -53,6 +56,18 @@ public class ClusterRestoreBackupContextAppender
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(
         cluster,
         cluster.getMetadata().getNamespace());
+
+    if (Optional.of(cluster)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(ClusterStatusCondition.CLUSTER_BOOTSTRAPPED::isCondition)) {
+      contextBuilder
+          .restoreBackup(Optional.empty())
+          .restoreSecrets(Map.of());
+      return;
+    }
 
     final Map<String, Secret> restoreSecrets = restoreBackup
         .map(StackGresBackup::getStatus)
