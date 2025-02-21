@@ -93,7 +93,7 @@ public class DistributedLogsCluster
     return Stream.of(cluster);
   }
 
-  private StackGresCluster getCluster(
+  public static StackGresCluster getCluster(
       final LabelFactoryForDistributedLogs labelFactory,
       final StackGresDistributedLogs distributedLogs,
       final Optional<StackGresCluster> previousCluster) {
@@ -161,6 +161,8 @@ public class DistributedLogsCluster
             .toList())
         .endPostgres()
         .editConfigurations()
+        .withSgPostgresConfig(
+            DistributedLogsPostgresConfig.configName(distributedLogs))
         .withNewCredentials()
         .withNewUsers()
         .withNewSuperuser()
@@ -183,8 +185,6 @@ public class DistributedLogsCluster
         .endAuthenticator()
         .endUsers()
         .endCredentials()
-        .withSgPostgresConfig(
-            DistributedLogsPostgresConfig.configName(distributedLogs))
         .endConfigurations()
         .withPostgresServices(
             Optional.of(distributedLogs.getSpec())
@@ -380,8 +380,4 @@ public class DistributedLogsCluster
     return cluster;
   }
 
-  public static void main(String[] args) {
-    System.out.println(StackGresVolume.CUSTOM.getName(
-        StackGresVolume.FLUENTD_CONFIG.getName()));
-  }
 }

@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -50,7 +49,7 @@ public class DistributedLogsService
   public Stream<HasMetadata> generateResource(StackGresDistributedLogsContext context) {
     return Seq.of(getService(context));
   }
-  
+
   private Service getService(StackGresDistributedLogsContext context) {
     StackGresDistributedLogs distributedLogs = context.getSource();
     return new ServiceBuilder()
@@ -63,7 +62,7 @@ public class DistributedLogsService
         .withType("ExternalName")
         .withExternalName(
             PatroniUtil.readWriteName(DistributedLogsCluster.getCluster(
-                labelFactory, distributedLogs, Optional.empty()))
+                labelFactory, distributedLogs, context.getCluster()))
             + "." + distributedLogs.getMetadata().getNamespace()
             + StackGresUtil.domainSearchPath())
         .endSpec()

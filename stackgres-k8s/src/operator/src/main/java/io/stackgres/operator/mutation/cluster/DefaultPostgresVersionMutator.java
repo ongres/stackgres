@@ -8,8 +8,6 @@ package io.stackgres.operator.mutation.cluster;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavor;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
-import java.util.Objects;
-
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -25,28 +23,32 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
-    final String postgresVersion = resource.getSpec().getPostgres().getVersion();
-    final String postgresFlavor = resource.getSpec().getPostgres().getFlavor();
-
-    if (postgresVersion != null) {
-      final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
-          .get(resource).getVersion(postgresVersion);
-
-      if (!calculatedPostgresVersion.equals(postgresVersion)) {
-        resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
-      }
-    } else {
-      final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
-          .get(resource).getVersion(StackGresComponent.LATEST);
-      resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
-    }
-
-    if (!Objects.equals(postgresFlavor, getPostgresFlavor(resource).toString())) {
-      final String calculatedPostgresFlavor = getPostgresFlavor(resource).toString();
-      resource.getSpec().getPostgres().setFlavor(calculatedPostgresFlavor);
-    }
+    final String calculatedPostgresFlavor = calculatePostgresFlavor(resource);
+    resource.getSpec().getPostgres().setFlavor(calculatedPostgresFlavor);
+    final String calculatedPostgresVersion = calculatePostgresVersion(resource, calculatedPostgresFlavor);
+    resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
 
     return resource;
+  }
+
+  private String calculatePostgresVersion(StackGresCluster resource, final String calculatedPostgresFlavor) {
+    final String calculatedPostgresVersion;
+    final String postgresVersion = resource.getSpec().getPostgres().getVersion();
+    if (postgresVersion != null) {
+      calculatedPostgresVersion = getPostgresFlavorComponent(calculatedPostgresFlavor)
+          .get(resource).getVersion(postgresVersion);
+
+    } else {
+      calculatedPostgresVersion = getPostgresFlavorComponent(calculatedPostgresFlavor)
+          .get(resource).getVersion(StackGresComponent.LATEST);
+    }
+    return calculatedPostgresVersion;
+  }
+
+  private String calculatePostgresFlavor(StackGresCluster resource) {
+    final String postgresFlavor = resource.getSpec().getPostgres().getFlavor();
+    final String calculatedPostgresFlavor = getPostgresFlavor(postgresFlavor).toString();
+    return calculatedPostgresFlavor;
   }
 
 }

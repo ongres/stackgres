@@ -12,11 +12,11 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
+import io.stackgres.operator.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -66,15 +66,14 @@ public class DistributedLogsDefaultPostgresConfig implements ResourceGenerator<S
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
         .withNewSpec()
-        .withPostgresVersion(getPostgresMajorVersion(context))
+        .withPostgresVersion(
+            getPostgresMajorVersion(
+                StackGresDistributedLogsUtil.getPostgresVersion(cluster)))
         .endSpec()
         .build();
   }
 
-  private String getPostgresMajorVersion(StackGresDistributedLogsContext context) {
-    StackGresCluster cluster = DistributedLogsCluster.getCluster(
-        labelFactory, context.getSource(), context.getCluster());
-    String version = cluster.getSpec().getPostgres().getVersion();
+  private String getPostgresMajorVersion(String version) {
     return version.split("\\.")[0];
   }
 

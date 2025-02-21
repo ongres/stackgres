@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.initialization;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -62,7 +64,8 @@ public class DefaultShardedClusterPostgresConfigFactory
   }
 
   private String getPostgresMajorVersion(StackGresShardedCluster resource) {
-    String version = resource.getSpec().getPostgres().getVersion();
+    String version = getPostgresFlavorComponent(resource).get(resource)
+        .getVersion(resource.getSpec().getPostgres().getVersion());
     return version.split("\\.")[0];
   }
 

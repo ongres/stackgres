@@ -11,6 +11,7 @@ import io.stackgres.common.crd.Condition;
 
 public enum ClusterStatusCondition {
 
+  CLUSTER_BOOTSTRAPPED(Type.BOOTSTRAPPED, Status.TRUE, "ClusterBootstrapped"),
   POD_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PodRequiresRestart"),
   FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, "FalsePendingRestart"),
   CLUSTER_REQUIRES_UPGRADE(Type.PENDING_UPGRADE, Status.TRUE, "ClusterRequiresUpgrade"),
@@ -39,6 +40,7 @@ public enum ClusterStatusCondition {
   }
 
   public enum Type {
+    BOOTSTRAPPED("Bootstrapped"),
     PENDING_RESTART("PendingRestart"),
     PENDING_UPGRADE("PendingUpgrade"),
     FAILED("Failed");
