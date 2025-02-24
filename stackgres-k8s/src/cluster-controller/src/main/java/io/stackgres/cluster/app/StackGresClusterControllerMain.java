@@ -89,11 +89,14 @@ public class StackGresClusterControllerMain {
         System.setProperty(CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER.getPropertyName(), "false");
         System.setProperty(CLUSTER_CONTROLLER_RECONCILE_PATRONI.getPropertyName(), "false");
         System.setProperty(CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL.getPropertyName(), "false");
-  
+
         runSingleReconciliationCycle();
-  
+
         controllerProperties.entrySet().stream()
-            .forEach(entry -> System.setProperty(entry.getKey(), entry.getValue().orElse(null)));
+            .forEach(entry -> entry.getValue()
+                .ifPresentOrElse(
+                    value -> System.setProperty(entry.getKey(), value),
+                    () -> System.clearProperty(entry.getKey())));
       }
 
       LOGGER.info("Starting StackGres Cluster Controller...");
