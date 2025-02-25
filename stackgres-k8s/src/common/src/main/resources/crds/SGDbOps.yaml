@@ -759,12 +759,10 @@ spec:
                     properties:
                       scaleFactor:
                         type: number
-                        nullable: true
                         description: |
                           The scale factor used to run pgbench (`--scale`).
                       transactionsProcessed:
                         type: integer
-                        nullable: true
                         description: |
                           The number of transactions processed.
                       latency:
@@ -779,12 +777,10 @@ spec:
                             properties:
                               value: 
                                 type: number
-                                nullable: true
                                 description: |
                                   The latency average value
                               unit: 
                                 type: string
-                                nullable: false
                                 description: |
                                   The latency measure unit
                           standardDeviation:
@@ -794,12 +790,10 @@ spec:
                             properties:
                               value: 
                                 type: number
-                                nullable: true
                                 description: |
                                   The latency standard deviation value
                               unit: 
                                 type: string
-                                nullable: false
                                 description: |
                                   The latency measure unit
                       transactionsPerSecond:
@@ -827,12 +821,10 @@ spec:
                             properties:
                               value: 
                                 type: number
-                                nullable: true
                                 description: |
                                   The Transactions Per Second (tps) excluding connections establishing value
                               unit: 
                                 type: string
-                                nullable: false
                                 description: |
                                   Transactions Per Second (tps) measure unit
                           overTime:

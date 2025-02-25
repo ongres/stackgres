@@ -9,17 +9,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhook;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookBuilder;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookConfiguration;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookConfigurationBuilder;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.RuleWithOperationsBuilder;
+import io.fabric8.kubernetes.api.model.admissionregistration.v1.ValidatingWebhook;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.ValidatingWebhookBuilder;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.ValidatingWebhookConfiguration;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.ValidatingWebhookConfigurationBuilder;
@@ -125,24 +127,35 @@ public class CrdWebhookInstaller {
 
   protected void installMutatingWebhooks(
       String webhookCaCert, List<CustomResourceDefinition> crds) {
-    var mutatingWebhookFound = mutatingWebhookConfigurationFinder.findByName(operatorName);
-    var mutatingWebhook = mutatingWebhookFound
+    var mutatingWebhookConfigFound = mutatingWebhookConfigurationFinder.findByName(operatorName);
+    var mutatingWebhookConfig = mutatingWebhookConfigFound
         .orElseGet(() -> new MutatingWebhookConfigurationBuilder()
             .withNewMetadata()
             .withName(operatorName)
             .endMetadata()
             .build());
-    mutatingWebhook.setWebhooks(List.of());
-    crds.stream()
+    var existingMutatingWebhooks =
+        Optional.ofNullable(mutatingWebhookConfig.getWebhooks())
+        .stream()
+        .flatMap(List::stream)
+        .map(MutatingWebhook::getName)
+        .toList();
+    mutatingWebhookConfig.setWebhooks(
+        crds.stream()
         .filter(crd -> !Objects.equals(
             crd.getSpec().getNames().getKind(),
             StackGresConfig.KIND))
-        .forEach(crd -> installMutatingWebhookConfiguration(
-            crd, mutatingWebhook, webhookCaCert));
-    if (mutatingWebhookFound.isEmpty()) {
-      mutatingWebhookConfigurationWriter.create(mutatingWebhook);
+        .map(crd -> getMutatingWebhookConfiguration(
+            crd, webhookCaCert))
+        .sorted(Comparator.comparing(mutatingWebhook -> Optional
+            .of(existingMutatingWebhooks.indexOf(mutatingWebhook.getName()))
+            .filter(indexOf -> indexOf > -1)
+            .orElse(Integer.MAX_VALUE)))
+        .toList());
+    if (mutatingWebhookConfigFound.isEmpty()) {
+      mutatingWebhookConfigurationWriter.create(mutatingWebhookConfig);
     } else {
-      mutatingWebhookConfigurationWriter.update(mutatingWebhook);
+      mutatingWebhookConfigurationWriter.update(mutatingWebhookConfig);
     }
   }
 
@@ -171,89 +184,92 @@ public class CrdWebhookInstaller {
     crdWriter.update(customResourceDefinition);
   }
 
-  protected void installMutatingWebhookConfiguration(
+  protected MutatingWebhook getMutatingWebhookConfiguration(
       CustomResourceDefinition customResourceDefinition,
-      MutatingWebhookConfiguration mutatingWebhook,
       String webhookCaCert) {
-    mutatingWebhook.setWebhooks(Stream.concat(
-        mutatingWebhook.getWebhooks().stream(),
-        Stream.of(new MutatingWebhookBuilder()
-            .withName(customResourceDefinition.getSpec().getNames().getSingular()
-                + ".mutating-webhook." + customResourceDefinition.getSpec().getGroup())
-            .withSideEffects("None")
-            .withRules(List.of(new RuleWithOperationsBuilder()
-                .withOperations("CREATE", "UPDATE")
-                .withApiGroups(customResourceDefinition.getSpec().getGroup())
-                .withApiVersions("*")
-                .withResources(customResourceDefinition.getSpec().getNames().getPlural())
-                .build()))
-            .withFailurePolicy("Fail")
-            .withNewClientConfig()
-            .withNewService()
-            .withNamespace(operatorNamespace)
-            .withName(operatorName)
-            .withPath(MutationUtil.MUTATION_PATH
-                + "/" + customResourceDefinition.getSpec().getNames().getSingular())
-            .endService()
-            .withCaBundle(webhookCaCert)
-            .endClientConfig()
-            .withAdmissionReviewVersions("v1")
+    return new MutatingWebhookBuilder()
+        .withName(customResourceDefinition.getSpec().getNames().getSingular()
+            + ".mutating-webhook." + customResourceDefinition.getSpec().getGroup())
+        .withSideEffects("None")
+        .withRules(List.of(new RuleWithOperationsBuilder()
+            .withOperations("CREATE", "UPDATE")
+            .withApiGroups(customResourceDefinition.getSpec().getGroup())
+            .withApiVersions("*")
+            .withResources(customResourceDefinition.getSpec().getNames().getPlural())
             .build()))
-        .toList());
+        .withFailurePolicy("Fail")
+        .withNewClientConfig()
+        .withNewService()
+        .withNamespace(operatorNamespace)
+        .withName(operatorName)
+        .withPath(MutationUtil.MUTATION_PATH
+            + "/" + customResourceDefinition.getSpec().getNames().getSingular())
+        .endService()
+        .withCaBundle(webhookCaCert)
+        .endClientConfig()
+        .withAdmissionReviewVersions("v1")
+        .build();
   }
 
   protected void installValidatingWebhooks(
       String webhookCaCert, List<CustomResourceDefinition> crds) {
-    var validatingWebhookFound = validatingWebhookConfigurationFinder.findByName(operatorName);
-    var validatingWebhook = validatingWebhookFound
+    var validatingWebhookConfigFound = validatingWebhookConfigurationFinder.findByName(operatorName);
+    var validatingWebhookConfig = validatingWebhookConfigFound
         .orElseGet(() -> new ValidatingWebhookConfigurationBuilder()
             .withNewMetadata()
             .withName(operatorName)
             .endMetadata()
             .build());
-    validatingWebhook.setWebhooks(List.of());
-    crds.stream()
+    var existingValidatingWebhooks =
+        Optional.ofNullable(validatingWebhookConfig.getWebhooks())
+        .stream()
+        .flatMap(List::stream)
+        .map(ValidatingWebhook::getName)
+        .toList();
+    validatingWebhookConfig.setWebhooks(
+        crds.stream()
         .filter(crd -> !Objects.equals(
             crd.getSpec().getNames().getKind(),
             StackGresConfig.KIND))
-        .forEach(crd -> installValidatingWebhookConfiguration(
-            crd, validatingWebhook, webhookCaCert));
-    if (validatingWebhookFound.isEmpty()) {
-      validatingWebhookConfigurationWriter.create(validatingWebhook);
+        .map(crd -> getValidatingWebhookConfiguration(
+            crd, webhookCaCert))
+        .sorted(Comparator.comparing(validatingWebhook -> Optional
+            .of(existingValidatingWebhooks.indexOf(validatingWebhook.getName()))
+            .filter(indexOf -> indexOf > -1)
+            .orElse(Integer.MAX_VALUE)))
+        .toList());
+    if (validatingWebhookConfigFound.isEmpty()) {
+      validatingWebhookConfigurationWriter.create(validatingWebhookConfig);
     } else {
-      validatingWebhookConfigurationWriter.update(validatingWebhook);
+      validatingWebhookConfigurationWriter.update(validatingWebhookConfig);
     }
   }
 
-  protected void installValidatingWebhookConfiguration(
+  protected ValidatingWebhook getValidatingWebhookConfiguration(
       CustomResourceDefinition customResourceDefinition,
-      ValidatingWebhookConfiguration validatingWebhook,
       String webhookCaCert) {
-    validatingWebhook.setWebhooks(Stream.concat(
-        validatingWebhook.getWebhooks().stream(),
-        Stream.of(new ValidatingWebhookBuilder()
-            .withName(customResourceDefinition.getSpec().getNames().getSingular()
-                + ".validating-webhook." + customResourceDefinition.getSpec().getGroup())
-            .withSideEffects("None")
-            .withRules(List.of(new RuleWithOperationsBuilder()
-                .withOperations("CREATE", "UPDATE", "DELETE")
-                .withApiGroups(customResourceDefinition.getSpec().getGroup())
-                .withApiVersions("*")
-                .withResources(customResourceDefinition.getSpec().getNames().getPlural())
-                .build()))
-            .withFailurePolicy("Fail")
-            .withNewClientConfig()
-            .withNewService()
-            .withNamespace(operatorNamespace)
-            .withName(operatorName)
-            .withPath(ValidationUtil.VALIDATION_PATH
-                + "/" + customResourceDefinition.getSpec().getNames().getSingular())
-            .endService()
-            .withCaBundle(webhookCaCert)
-            .endClientConfig()
-            .withAdmissionReviewVersions("v1")
+    return new ValidatingWebhookBuilder()
+        .withName(customResourceDefinition.getSpec().getNames().getSingular()
+            + ".validating-webhook." + customResourceDefinition.getSpec().getGroup())
+        .withSideEffects("None")
+        .withRules(List.of(new RuleWithOperationsBuilder()
+            .withOperations("CREATE", "UPDATE", "DELETE")
+            .withApiGroups(customResourceDefinition.getSpec().getGroup())
+            .withApiVersions("*")
+            .withResources(customResourceDefinition.getSpec().getNames().getPlural())
             .build()))
-        .toList());
+        .withFailurePolicy("Fail")
+        .withNewClientConfig()
+        .withNewService()
+        .withNamespace(operatorNamespace)
+        .withName(operatorName)
+        .withPath(ValidationUtil.VALIDATION_PATH
+            + "/" + customResourceDefinition.getSpec().getNames().getSingular())
+        .endService()
+        .withCaBundle(webhookCaCert)
+        .endClientConfig()
+        .withAdmissionReviewVersions("v1")
+        .build();
   }
 
   protected Optional<String> getWebhookCaCert() {
