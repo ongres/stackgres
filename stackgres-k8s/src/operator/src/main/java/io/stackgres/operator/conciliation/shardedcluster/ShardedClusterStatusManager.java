@@ -60,8 +60,9 @@ public class ShardedClusterStatusManager
     }
     source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
     source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
-    if (isPendingRestart(source)) {
-      updateCondition(getClusterRequiresRestart(), source);
+    List<StackGresCluster> clusters = getClusters(source);
+    if (isPendingRestart(clusters)) {
+      updateCondition(getShardedClusterRequiresRestart(), source);
     } else {
       updateCondition(getFalsePendingRestart(), source);
     }
@@ -70,14 +71,16 @@ public class ShardedClusterStatusManager
     } else {
       updateCondition(getFalsePendingUpgrade(), source);
     }
+    if (isBootstrapped(clusters)) {
+      updateCondition(getShardedClusterBootstrapped(), source);
+    }
     return source;
   }
 
   /**
    * Check pending restart status condition.
    */
-  public boolean isPendingRestart(StackGresShardedCluster shardedCluster) {
-    List<StackGresCluster> clusters = getClusters(shardedCluster);
+  public boolean isPendingRestart(List<StackGresCluster> clusters) {
     return clusters.stream()
         .flatMap(cluster -> Optional.of(cluster)
             .map(StackGresCluster::getStatus)
@@ -104,6 +107,19 @@ public class ShardedClusterStatusManager
       return true;
     }
     return false;
+  }
+
+  /**
+   * Check bootstrapped status condition.
+   */
+  public boolean isBootstrapped(List<StackGresCluster> clusters) {
+    return clusters.stream()
+        .flatMap(cluster -> Optional.of(cluster)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getConditions)
+            .stream()
+            .flatMap(List::stream))
+        .allMatch(ClusterStatusCondition.CLUSTER_BOOTSTRAPPED::isCondition);
   }
 
   private List<StackGresCluster> getClusters(StackGresShardedCluster shardedCluster) {
@@ -144,8 +160,8 @@ public class ShardedClusterStatusManager
     return ShardedClusterStatusCondition.FALSE_PENDING_RESTART.getCondition();
   }
 
-  protected Condition getClusterRequiresRestart() {
-    return ShardedClusterStatusCondition.CLUSTER_REQUIRES_RESTART.getCondition();
+  protected Condition getShardedClusterRequiresRestart() {
+    return ShardedClusterStatusCondition.SHARDED_CLUSTER_REQUIRES_RESTART.getCondition();
   }
 
   protected Condition getFalsePendingUpgrade() {
@@ -154,5 +170,9 @@ public class ShardedClusterStatusManager
 
   protected Condition getShardedClusterRequiresUpgrade() {
     return ShardedClusterStatusCondition.SHARDED_CLUSTER_REQUIRES_UPGRADE.getCondition();
+  }
+
+  protected Condition getShardedClusterBootstrapped() {
+    return ShardedClusterStatusCondition.SHARDED_CLUSTER_BOOTSTRAPPED.getCondition();
   }
 }

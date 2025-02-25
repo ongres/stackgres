@@ -5,11 +5,14 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
+import java.util.Objects;
+
 import io.stackgres.common.crd.Condition;
 
 public enum ShardedClusterStatusCondition {
 
-  CLUSTER_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "ClusterRequiresRestart"),
+  SHARDED_CLUSTER_BOOTSTRAPPED(Type.BOOTSTRAPPED, Status.TRUE, "ShardedClusterBootstrapped"),
+  SHARDED_CLUSTER_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "ShardedClusterRequiresRestart"),
   FALSE_PENDING_RESTART(Type.PENDING_RESTART, Status.FALSE, "FalsePendingRestart"),
   SHARDED_CLUSTER_REQUIRES_UPGRADE(
       Type.PENDING_UPGRADE, Status.TRUE, "ShardedClusterRequiresUpgrade"),
@@ -31,8 +34,15 @@ public enum ShardedClusterStatusCondition {
     return new Condition(type, status, reason);
   }
 
+  public boolean isCondition(Condition condition) {
+    return Objects.equals(condition.getType(), type)
+        && Objects.equals(condition.getStatus(), status)
+        && Objects.equals(condition.getReason(), reason);
+  }
+
   public enum Type {
 
+    BOOTSTRAPPED("Bootstrapped"),
     PENDING_RESTART("PendingRestart"),
     PENDING_UPGRADE("PendingUpgrade"),
     FAILED("Failed");

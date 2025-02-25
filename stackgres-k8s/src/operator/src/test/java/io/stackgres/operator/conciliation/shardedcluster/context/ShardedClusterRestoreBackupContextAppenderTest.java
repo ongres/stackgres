@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -19,8 +20,10 @@ import java.util.Optional;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupBuilder;
+import io.stackgres.common.crd.sgshardedcluster.ShardedClusterStatusCondition;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialDataBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatusBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
@@ -28,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -63,6 +67,16 @@ class ShardedClusterRestoreBackupContextAppenderTest {
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder);
     assertNull(cluster.getStatus());
+  }
+
+  @Test
+  void givenBootstrappedCluster_shouldPass() {
+    cluster.setStatus(
+        new StackGresShardedClusterStatusBuilder()
+        .addToConditions(ShardedClusterStatusCondition.SHARDED_CLUSTER_BOOTSTRAPPED.getCondition())
+        .build());
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(backupFinder, Mockito.never()).findByNameAndNamespace(any(), any());
   }
 
   @Test
