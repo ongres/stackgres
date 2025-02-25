@@ -31,6 +31,7 @@ import io.debezium.pipeline.spi.Partition;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourceSgCluster;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetJdbcSinkDebeziumProperties;
@@ -38,6 +39,7 @@ import io.stackgres.common.crd.sgstream.StackGresStreamTargetSgCluster;
 import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.stream.jobs.DebeziumUtil;
@@ -66,6 +68,9 @@ import org.slf4j.LoggerFactory;
 public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgClusterStreamMigrationHandler.class);
+
+  @Inject
+  CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   ResourceFinder<Secret> secretFinder;
@@ -143,6 +148,9 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           StackGresStreamTargetJdbcSinkDebeziumProperties.class);
       final String clusterName = sgCluster.map(StackGresStreamTargetSgCluster::getName)
           .orElseThrow(() -> new IllegalArgumentException("The name of SGCluster is not specified"));
+      final StackGresCluster cluster = clusterFinder.findByNameAndNamespace(clusterName, namespace)
+          .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND + " " + clusterName + " not found"));
+      final String clusterServiceName = PatroniUtil.readWriteName(cluster);
       final String clusterPort = String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT);
       final String clusterDatabase = Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
           .map(StackGresStreamSourceSgCluster::getDatabase)
@@ -170,7 +178,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       props.setProperty("connection.password", password);
       props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
           .formatted(
-              clusterName,
+              clusterServiceName,
               clusterPort,
               clusterDatabase));
       final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(props
@@ -192,7 +200,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
       if (!Optional.ofNullable(stream.getSpec().getTarget()
           .getSgCluster().getSkipDdlImport()).orElse(false)) {
-        importDdl(props, namespace, clusterName, clusterPort, clusterDatabase);
+        importDdl(props, namespace, clusterServiceName, clusterPort, clusterDatabase);
       } else {
         LOGGER.info("Import of DDL has been skipped as required by configuration");
       }
@@ -336,14 +344,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       }
     }
 
-    private void importDdl(final Properties props, final String namespace, final String clusterName,
+    private void importDdl(final Properties props, final String namespace, final String clusterServiceName,
         final String clusterPort, final String clusterDatabase) {
       final String sourceType = stream.getSpec().getSource().getType();
       switch(StreamSourceType.fromString(sourceType)) {
         case SGCLUSTER:
           props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
               .formatted(
-                  clusterName,
+                  clusterServiceName,
                   clusterPort,
                   "postgres"));
           final JdbcSinkConnectorConfig importConfig = new JdbcSinkConnectorConfig(props
@@ -370,6 +378,9 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           .orElse("postgres");
       String sourceClusterName = sourceSgCluster.map(StackGresStreamSourceSgCluster::getName)
           .orElseThrow(() -> new IllegalArgumentException("The name of SGCluster is not specified"));
+      final StackGresCluster sourceCluster = clusterFinder.findByNameAndNamespace(sourceClusterName, namespace)
+          .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND + " " + sourceClusterName + " not found"));
+      final String sourceClusterServiceName = PatroniUtil.readWriteName(sourceCluster);
       String sourceUsernameSecretName = sourceSgCluster
           .map(StackGresStreamSourceSgCluster::getUsername)
           .map(SecretKeySelector::getName)
@@ -394,7 +405,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
       LOGGER.info("Importing DDL from source SGCluster {} for database {}", sourceClusterName, sourceClusterDatabase);
       executeCommand(session, SnapshotHelperQueries.IMPORT_DDL.readSql().formatted(
-              " host=" + sourceClusterName
+              " host=" + sourceClusterServiceName
               + " port=" + sourceClusterPort
               + " dbname=" + sourceClusterDatabase
               + " user=" + sourceUsername

@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.labels.LabelFactoryForStream;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -106,6 +107,11 @@ public class StreamRole implements ResourceGenerator<StackGresStreamContext> {
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresStream.class))
             .withVerbs("get", "list", "watch", "patch", "update")
+            .build())
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(CommonDefinition.GROUP)
+            .withResources(HasMetadata.getPlural(StackGresCluster.class))
+            .withVerbs("get")
             .build())
         .build();
   }
