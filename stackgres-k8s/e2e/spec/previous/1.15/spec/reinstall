@@ -56,7 +56,8 @@ EOF
   fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
-  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 check_cluster_clean(){

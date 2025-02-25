@@ -20,22 +20,22 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.sidecars.controller.InitReconciliationCycle;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.controller.SingleReconciliationCycle;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.RESET_PATRONI)
-public class PatroniResetInit implements ContainerFactory<ClusterContainerContext> {
+public class PatroniReset implements ContainerFactory<ClusterContainerContext> {
 
-  private final InitReconciliationCycle initReconciliationCycle;
+  private final SingleReconciliationCycle singleReconciliationCycle;
 
   @Inject
-  public PatroniResetInit(
+  public PatroniReset(
       @OperatorVersionBinder
-      InitReconciliationCycle initReconciliationCycle) {
-    this.initReconciliationCycle = initReconciliationCycle;
+      SingleReconciliationCycle singleReconciliationCycle) {
+    this.singleReconciliationCycle = singleReconciliationCycle;
   }
 
   @Override
@@ -45,13 +45,12 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
         .filter(status -> !Boolean.TRUE.equals(status.getCheck()))
-        .filter(status -> !Boolean.TRUE.equals(status.getRollback()))
         .isPresent();
   }
 
   @Override
   public Container getContainer(ClusterContainerContext context) {
-    return new ContainerBuilder(initReconciliationCycle.getContainer(context))
+    return new ContainerBuilder(singleReconciliationCycle.getContainer(context))
         .withName(StackGresInitContainer.RESET_PATRONI.getName())
         .addToEnv(
             new EnvVarBuilder()

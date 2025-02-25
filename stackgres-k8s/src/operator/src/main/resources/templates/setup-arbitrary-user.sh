@@ -2,10 +2,14 @@
 
 set -e
 
+
 USER_NAME=postgres
 USER_ID="$(id -u)"
 GROUP_ID="$(id -g)"
 USER_SHELL=/bin/sh
+
+echo "Setting arbitrary user $USER_NAME uid:$USER_ID gid:$GROUP_ID home:$PG_BASE_PATH shell:$USER_SHELL"
+
 cp "$TEMPLATES_PATH/passwd" /local/etc/.
 cp "$TEMPLATES_PATH/group" /local/etc/.
 cp "$TEMPLATES_PATH/shadow" /local/etc/.

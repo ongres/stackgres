@@ -23,8 +23,8 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -45,16 +45,18 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
+import io.stackgres.operator.conciliation.factory.cluster.BackupMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicateMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationMounts;
+import io.stackgres.operator.conciliation.factory.cluster.RestoreMounts;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -68,14 +70,16 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
   private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final PostgresEnvironmentVariables postgresEnvironmentVariables;
-  private final PostgresSocketMount postgresSocket;
+  private final PostgresSocketMounts postgresSocket;
   private final PostgresExtensionMounts postgresExtensions;
+  private final TemplatesMounts templateMounts;
+  private final UserOverrideMounts userOverrideMounts;
   private final LocalBinMounts localBinMounts;
-  private final RestoreVolumeMounts restoreMounts;
-  private final BackupVolumeMounts backupMounts;
-  private final ReplicationInitializationVolumeMounts replicationInitMounts;
-  private final ReplicateVolumeMounts replicateMounts;
-  private final PatroniVolumeMounts patroniMounts;
+  private final RestoreMounts restoreMounts;
+  private final BackupMounts backupMounts;
+  private final ReplicationInitializationMounts replicationInitMounts;
+  private final ReplicateMounts replicateMounts;
+  private final PatroniMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
   private final PatroniConfigMap patroniConfigMap;
 
@@ -89,14 +93,16 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   public Patroni(
       PatroniEnvironmentVariables patroniEnvironmentVariables,
       PostgresEnvironmentVariables postgresEnvironmentVariables,
-      PostgresSocketMount postgresSocket,
+      PostgresSocketMounts postgresSocket,
       PostgresExtensionMounts postgresExtensions,
+      TemplatesMounts templateMounts,
+      UserOverrideMounts userOverrideMounts,
       LocalBinMounts localBinMounts,
-      RestoreVolumeMounts restoreMounts,
-      BackupVolumeMounts backupMounts,
-      ReplicationInitializationVolumeMounts replicationInitMounts,
-      ReplicateVolumeMounts replicateMounts,
-      PatroniVolumeMounts patroniMounts,
+      RestoreMounts restoreMounts,
+      BackupMounts backupMounts,
+      ReplicationInitializationMounts replicationInitMounts,
+      ReplicateMounts replicateMounts,
+      PatroniMounts patroniMounts,
       HugePagesMounts hugePagesMounts,
       @OperatorVersionBinder
       PatroniConfigMap patroniConfigMap) {
@@ -105,6 +111,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     this.postgresEnvironmentVariables = postgresEnvironmentVariables;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
+    this.templateMounts = templateMounts;
+    this.userOverrideMounts = userOverrideMounts;
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
@@ -143,6 +151,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withName(StackGresVolume.LOG.getName())
             .withMountPath(ClusterPath.PG_LOG_PATH.path())
             .build())
+        .addAll(templateMounts.getVolumeMounts(context))
+        .addAll(userOverrideMounts.getVolumeMounts(context))
         .addAll(localBinMounts.getVolumeMounts(context))
         .addAll(patroniMounts.getVolumeMounts(context))
         .addAll(backupMounts.getVolumeMounts(context))
@@ -169,12 +179,14 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .map(StackGresClusterPods::getDisableEnvoy)
         .orElse(false);
     final int patroniPort = isEnvoyDisabled ? EnvoyUtil.PATRONI_PORT : EnvoyUtil.PATRONI_ENTRY_PORT;
+    final int controllerPort = 8080;
 
     return new ContainerBuilder()
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
-            ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
+            ClusterPath.TEMPLATES_PATH.path() + "/"
+                + ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withVolumeMounts(volumeMounts.build())
         .withEnv(getEnvVars(context))
@@ -194,25 +206,47 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
                 .map(data -> data.get(StackGresUtil.MD5SUM_2_KEY))
                 .orElseThrow())
             .build())
-        .withLivenessProbe(new ProbeBuilder()
-            .withHttpGet(new HTTPGetActionBuilder()
-                .withPath("/liveness")
-                .withPort(new IntOrString(patroniPort))
-                .withScheme("HTTP")
-                .build())
-            .withInitialDelaySeconds(15)
-            .withPeriodSeconds(20)
-            .withFailureThreshold(6)
+        .withReadinessProbe(new ProbeBuilder(cluster.getSpec().getPods().getReadinessProbe())
+            .withNewHttpGet()
+            .withPath("/readiness")
+            .withPort(new IntOrString(patroniPort))
+            .withScheme("HTTP")
+            .endHttpGet()
+            .withInitialDelaySeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getInitialDelaySeconds)
+                .orElse(0))
+            .withPeriodSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getPeriodSeconds)
+                .orElse(2))
+            .withTimeoutSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getTimeoutSeconds)
+                .orElse(1))
+            .withFailureThreshold(
+                Optional.ofNullable(cluster.getSpec().getPods().getReadinessProbe())
+                .map(Probe::getFailureThreshold)
+                .orElse(6))
             .build())
-        .withReadinessProbe(new ProbeBuilder()
-            .withHttpGet(new HTTPGetActionBuilder()
-                .withPath("/readiness")
-                .withPort(new IntOrString(patroniPort))
-                .withScheme("HTTP")
-                .build())
-            .withInitialDelaySeconds(0)
-            .withPeriodSeconds(2)
-            .withTimeoutSeconds(1)
+        .withLivenessProbe(new ProbeBuilder()
+            .withNewHttpGet()
+            .withPath("/controller/liveness")
+            .withPort(new IntOrString(controllerPort))
+            .withScheme("HTTP")
+            .endHttpGet()
+            .withInitialDelaySeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getInitialDelaySeconds)
+                .orElse(15))
+            .withPeriodSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getPeriodSeconds)
+                .orElse(20))
+            .withFailureThreshold(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getFailureThreshold)
+                .orElse(6))
             .build())
         .withPorts(getContainerPorts(cluster))
         .build();
@@ -299,6 +333,10 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     return ImmutableList.<EnvVar>builder()
         .addAll(patroniEnvironmentVariables.getEnvVars(clusterContext))
         .addAll(postgresEnvironmentVariables.getEnvVars(clusterContext))
+        .add(new EnvVarBuilder()
+            .withName(ClusterPath.TEMPLATES_PATH.name())
+            .withValue(ClusterPath.TEMPLATES_PATH.path())
+            .build())
         .addAll(localBinMounts.getDerivedEnvVars(context))
         .addAll(postgresExtensions.getDerivedEnvVars(context))
         .addAll(patroniMounts.getDerivedEnvVars(context))

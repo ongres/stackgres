@@ -24,6 +24,10 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresModules;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
@@ -37,7 +41,31 @@ import jakarta.inject.Singleton;
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.CLUSTER_RECONCILIATION_CYCLE)
-public class InitReconciliationCycle implements ContainerFactory<ClusterContainerContext> {
+public class SingleReconciliationCycle implements ContainerFactory<ClusterContainerContext> {
+
+  @Override
+  public boolean isActivated(ClusterContainerContext context) {
+    return Optional.of(context.getClusterContext().getSource())
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getDbOps)
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .isPresent()
+        && (Optional.of(context.getClusterContext().getSource())
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+            .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getSourcePostgresVersion)
+            .map(context.getClusterContext().getCluster()
+                .getSpec().getPostgres().getVersion()::equals)
+            .map(equals -> !equals)
+            .orElse(false)
+            || Optional.of(context.getClusterContext().getSource())
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+            .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getRollback)
+            .orElse(false));
+  }
 
   @Override
   public Container getContainer(ClusterContainerContext context) {
@@ -93,7 +121,7 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
             new EnvVarBuilder()
             .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
                 .getEnvironmentVariableName())
-            .withValue(Boolean.TRUE.toString())
+            .withValue(Boolean.FALSE.toString())
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_CONTROLLER_LOG_LEVEL")

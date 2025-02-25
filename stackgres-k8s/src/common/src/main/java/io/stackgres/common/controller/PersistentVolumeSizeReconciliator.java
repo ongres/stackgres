@@ -63,7 +63,7 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
 
   @Override
   public ReconciliationResult<Void> safeReconcile(KubernetesClient client, T context) throws Exception {
-    LOGGER.info("Reconciling persistent volume claim sizes");
+    LOGGER.debug("Reconciling persistent volume claim sizes");
 
     String namespace = context.getNamespace();
     String clusterName = context.getClusterName();

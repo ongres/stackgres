@@ -1,8 +1,24 @@
+#!/bin/sh
+
 export SHELL_XTRACE=$(! echo $- | grep -q x || printf %s -x)
 export HOME="$PG_BASE_PATH"
 export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
 export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
 export PATRONI_RESTAPI_CONNECT_ADDRESS="$(eval "echo $PATRONI_RESTAPI_CONNECT_ADDRESS")"
+
+echo "Setting up scripts..."
+sh -e $SHELL_XTRACE "$TEMPLATES_PATH/setup-scripts.sh"
+
+
+echo "Waiting for the controller to setup things..."
+(
+  START="$(date +%s)"
+  set +x
+  until [ "$(( $(date +%s -r "$PATRONI_START_FILE_PATH" 2>/dev/null || printf 0) - START ))" -ge 0 ]
+  do
+    sleep 1
+  done
+)
 
 ## Restore
 if [ -n "$RECOVERY_FROM_BACKUP" ]
@@ -160,7 +176,7 @@ fi
 ## Patroni configuration 
 echo "Creating patroni configuration"
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
-cat << EOF > "$PATRONI_CONFIG_FILE_PATH"
+cat << EOF > "$PATRONI_CONFIG_FILE_PATH".tmp
 
 # Custom initial config
 $(
@@ -353,7 +369,8 @@ watchdog:
 tags: {}
 EOF
 PATRONI_CONFIG_EOF
-chmod 600 "$PATRONI_CONFIG_FILE_PATH"
+chmod 600 "$PATRONI_CONFIG_FILE_PATH".tmp
+mv "$PATRONI_CONFIG_FILE_PATH".tmp "$PATRONI_CONFIG_FILE_PATH"
 
 cat << EOF > "${LOCAL_BIN_PATH}/postgres"
 #!/bin/sh

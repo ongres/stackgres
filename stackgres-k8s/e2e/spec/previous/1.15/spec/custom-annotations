@@ -4,6 +4,7 @@ e2e_test_install() {
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
 
+  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
   BACKUP_NAME="$(get_sgbackup_name "$CLUSTER_NAME")"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
@@ -127,13 +128,26 @@ helm_custom_annotations(){
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set cluster.metadata.annotations.clusterPods.test-annotation="$POD_RANDOM_VALUE" \
-    --set cluster.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE"
+    --set cluster.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE" \
+    --set distributedLogs.enabled=true \
+    --set cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
+    --set distributedLogs.metadata.annotations.clusterPods.test-annotation="$POD_RANDOM_VALUE" \
+    --set distributedLogs.metadata.annotations.services.service-annotation="$SERVICE_RANDOM_VALUE"
 
   wait_until check_sts_annotation "$POD_RANDOM_VALUE"
 
   wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
   wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
   wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+
+  (
+  CLUSTER_NAME="$DISTRIBUTEDLOGS_NAME"
+  wait_until check_sts_annotation "$POD_RANDOM_VALUE"
+
+  wait_until check_service_annotation "" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "primary" "$SERVICE_RANDOM_VALUE"
+  wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
+  )
 
   wait_until check_cronjob_annotation "$POD_RANDOM_VALUE"
 

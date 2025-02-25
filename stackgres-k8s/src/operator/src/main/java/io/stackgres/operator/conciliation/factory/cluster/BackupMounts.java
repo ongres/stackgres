@@ -18,7 +18,7 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class BackupVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
+public class BackupMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {

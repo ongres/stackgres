@@ -26,15 +26,17 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
-import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
+import io.stackgres.operator.conciliation.factory.cluster.BackupMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicateMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationMounts;
+import io.stackgres.operator.conciliation.factory.cluster.RestoreMounts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,21 +55,25 @@ class PatroniTest {
   @Mock
   PostgresEnvironmentVariables postgresEnvironmentVariables;
   @Mock
-  PostgresSocketMount postgresSocket;
+  PostgresSocketMounts postgresSocket;
   @Mock
   PostgresExtensionMounts postgresExtensions;
   @Mock
+  TemplatesMounts templateMounts;
+  @Mock
+  UserOverrideMounts userOverrideMounts;
+  @Mock
   LocalBinMounts localBinMounts;
   @Mock
-  RestoreVolumeMounts restoreMounts;
+  RestoreMounts restoreMounts;
   @Mock
-  BackupVolumeMounts backupMounts;
+  BackupMounts backupMounts;
   @Mock
-  ReplicationInitializationVolumeMounts replicationInitializationVolumeMounts;
+  ReplicationInitializationMounts replicationInitializationMounts;
   @Mock
-  ReplicateVolumeMounts replicateMounts;
+  ReplicateMounts replicateMounts;
   @Mock
-  PatroniVolumeMounts patroniMounts;
+  PatroniMounts patroniMounts;
   @Mock
   HugePagesMounts hugePagesMounts;
   @Mock
@@ -89,8 +95,8 @@ class PatroniTest {
   @BeforeEach
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables, postgresEnvironmentVariables,
-        postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
-        replicationInitializationVolumeMounts,
+        postgresSocket, postgresExtensions, templateMounts, userOverrideMounts, localBinMounts,
+        restoreMounts, backupMounts, replicationInitializationMounts,
         replicateMounts, patroniMounts, hugePagesMounts, patroniConfigMap);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);

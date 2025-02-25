@@ -138,6 +138,17 @@ public class WebClientFactory {
       });
     }
 
+    public void get(URI uri) {
+      doWithRetry(() -> {
+        final Builder request = client.target(targetUri(uri))
+            .request(MediaType.APPLICATION_JSON);
+        Seq.seq(extraHeaders).forEach(
+            extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
+        request.get();
+        return null;
+      });
+    }
+
     public InputStream getInputStream(URI uri) {
       return doWithRetry(() -> {
         final Builder request = client.target(targetUri(uri))

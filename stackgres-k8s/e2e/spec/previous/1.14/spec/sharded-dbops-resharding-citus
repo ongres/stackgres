@@ -16,7 +16,8 @@ e2e_test_install() {
     --set-string "configurations.postgresconfig.postgresql\.conf.citus\.desired_percent_disk_available_after_move=0"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 6
-  SWITCHOVER_TO_FIRST=true wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_sharded_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {

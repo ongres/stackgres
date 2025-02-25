@@ -74,5 +74,11 @@ else
   echo "$PG_EXTENSIONS_EXTENSION_PATH already relocated, skipping"
 fi
 
+for EXTRA_MOUNT in $EXTRA_MOUNTS
+do
+  echo "Creating extra mount folder $PG_EXTENSIONS_EXTENSION_PATH/$EXTRA_MOUNT"
+  mkdir -p "$PG_EXTENSIONS_EXTENSION_PATH/$EXTRA_MOUNT"
+done
+
 rm -f "$PG_RELOCATED_PATH/.source" "$PG_RELOCATED_PATH/.target" \
   "$PG_RELOCATED_PATH/.source-diff" "$PG_RELOCATED_PATH/.target-diff"

@@ -15,7 +15,7 @@ import io.stackgres.common.StackGresVolume;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ContainerUserOverrideMounts implements VolumeMountsProvider<ContainerContext> {
+public class UserOverrideMounts implements VolumeMountsProvider<ContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {

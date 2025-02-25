@@ -77,11 +77,21 @@ wait_cluster() {
     --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
     | wc -l)" -ge 1 ]'
 
+  wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
+}
+
+switch_cluster_to_first() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local LEADER
+
   wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
     --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   LEADER="$(kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
     --template="{{ .metadata.annotations.leader }}")"
-  if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
+  if [ "$LEADER" != "$RELEASE-0" ]
   then
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
@@ -97,10 +107,6 @@ wait_cluster() {
     wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
       --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   fi
-
-  wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-      psql -t -A -c "\du" \
-      | grep -q "^authenticator|"'
 }
 
 wait_cluster_external_dcs() {
@@ -338,9 +344,63 @@ wait_sharded_cluster() {
 
     wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
       --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
+
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+        psql -t -A -c "\du" \
+        | grep -q "^authenticator|"'
+
+    INDEX="$((INDEX + 1))"
+  done
+}
+
+switch_sharded_cluster_to_first() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local LEADER
+
+  wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
+    --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+    | wc -l)" -ge 1 ]'
+
+  local SHARDED_RELEASE="$RELEASE"
+  local INDEX=0
+  local ENDPOINTS
+  local CLUSTER_SCOPE
+  local PATRONICTL_OPTS=""
+  local SHARDING_TYPE
+  SHARDING_TYPE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.type }}')"
+  for RELEASE in \
+    $(
+    if [ "$SHARDING_TYPE" != shardingsphere ]
+    then
+      printf '%s-coord' "$SHARDED_RELEASE"
+    fi) \
+    $(
+      seq 0 "$(( -1 + $(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.shards.clusters }}') ))" \
+        | while read INDEX
+          do
+            printf '%s-shard%s ' "$SHARDED_RELEASE" "$INDEX"
+          done)
+  do
+    RELEASE="$RELEASE"
+    if [ "$SHARDING_TYPE" = citus ]
+    then
+      PATRONICTL_OPTS="--group $INDEX"
+      CLUSTER_SCOPE="$SHARDED_RELEASE"
+      ENDPOINTS="$SHARDED_RELEASE-$INDEX"
+    else
+      CLUSTER_SCOPE="$RELEASE"
+      ENDPOINTS="$RELEASE"
+    fi
+    wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
+      --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+      | wc -l)" -ge 1 ]'
+
+    wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
+      --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
     LEADER="$(kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
       --template="{{ .metadata.annotations.leader }}")"
-    if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
+    if [ "$LEADER" != "$RELEASE-0" ]
     then
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
@@ -357,10 +417,6 @@ wait_sharded_cluster() {
         --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
         | wc -l)" -ge 1 ]'
     fi
-
-    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-        psql -t -A -c "\du" \
-        | grep -q "^authenticator|"'
 
     INDEX="$((INDEX + 1))"
   done

@@ -8,6 +8,7 @@ package io.stackgres.common;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -32,10 +33,12 @@ public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterConte
   POSTGRES_POOL_PORT(String.valueOf(EnvoyUtil.PG_POOL_PORT)),
   POSTGRES_PORT(String.valueOf(EnvoyUtil.PG_PORT));
 
+  private final Supplier<String> value;
   private final String substVar;
   private final Function<StackGresCluster, EnvVar> getEnvVar;
 
   ClusterEnvVar(String value) {
+    this.value = () -> value;
     this.substVar = getSubstVar();
     EnvVar envVar = new EnvVarBuilder()
         .withName(name())
@@ -45,11 +48,19 @@ public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterConte
   }
 
   ClusterEnvVar(Function<StackGresCluster, String> getValue) {
+    this.value = () -> {
+      throw new IllegalArgumentException("EnvVarSource " + name() + " has no static value");
+    };
     this.substVar = getSubstVar();
     this.getEnvVar = context -> new EnvVarBuilder()
         .withName(name())
         .withValue(getValue.apply(context))
         .build();
+  }
+
+  @Override
+  public String value() {
+    return value.get();
   }
 
   @Override

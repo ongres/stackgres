@@ -41,15 +41,16 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -68,19 +69,20 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
     VolumeFactory<StackGresClusterContext> {
 
   private final LabelFactoryForCluster labelFactory;
-  private final ContainerUserOverrideMounts containerUserOverrideMounts;
-  private final PostgresSocketMount postgresSocket;
-  private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
+  private final UserOverrideMounts userOverrideMounts;
+  private final PostgresSocketMounts postgresSocketMounts;
+  private final TemplatesMounts templatesMounts;
 
   @Inject
-  protected PgBouncerPooling(LabelFactoryForCluster labelFactory,
-      ContainerUserOverrideMounts containerUserOverrideMounts,
-      PostgresSocketMount postgresSocket,
-      ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
+  protected PgBouncerPooling(
+      LabelFactoryForCluster labelFactory,
+      UserOverrideMounts userOverrideMounts,
+      PostgresSocketMounts postgresSocketMounts,
+      TemplatesMounts templatesMounts) {
     this.labelFactory = labelFactory;
-    this.containerUserOverrideMounts = containerUserOverrideMounts;
-    this.postgresSocket = postgresSocket;
-    this.scriptTemplatesVolumeMounts = scriptTemplatesVolumeMounts;
+    this.userOverrideMounts = userOverrideMounts;
+    this.postgresSocketMounts = postgresSocketMounts;
+    this.templatesMounts = templatesMounts;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -119,23 +121,32 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(
             ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
-            ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar())
+            ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar(),
+            ClusterPath.PGBOUNCER_AUTH_PATH.envVar(),
+            ClusterPath.PGBOUNCER_AUTH_FILE_PATH.envVar(),
+            ClusterPath.PGBOUNCER_AUTH_TEMPLATE_FILE_PATH.envVar())
         .withPorts(getContainerPorts(context.getClusterContext().getCluster()))
-        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
-        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
-        .addAllToVolumeMounts(scriptTemplatesVolumeMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresSocketMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(userOverrideMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(templatesMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
-                .withReadOnly(true)
-                .build(),
+            .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
+            .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
+            .withReadOnly(true)
+            .build(),
             new VolumeMountBuilder()
-                .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
-                .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.filename())
-                .withReadOnly(true)
-                .build())
+            .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
+            .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
+            .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.filename())
+            .withReadOnly(false)
+            .build(),
+            new VolumeMountBuilder()
+            .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
+            .withMountPath(ClusterPath.PGBOUNCER_AUTH_TEMPLATE_FILE_PATH.path())
+            .withSubPath(StackGresPasswordKeys.PGBOUNCER_USERS_KEY)
+            .withReadOnly(true)
+            .build())
         .build();
   }
 

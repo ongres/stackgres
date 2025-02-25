@@ -12,20 +12,7 @@ import java.util.function.Function;
 
 public enum StackGresInitContainer implements StackGresContainerProfile {
 
-  SETUP_ARBITRARY_USER(StackGresGroupKind.CLUSTER, "setup-arbitrary-user",
-      cpu -> cpu,
-      memory -> memory),
-  SETUP_SCRIPTS(StackGresGroupKind.CLUSTER, "setup-scripts",
-      cpu -> cpu,
-      memory -> memory),
-  RELOCATE_BINARIES(StackGresGroupKind.CLUSTER, "relocate-binaries",
-      cpu -> cpu,
-      memory -> memory),
-  PGBOUNCER_AUTH_FILE(StackGresGroupKind.CLUSTER, "pgbouncer-auth-file",
-      cpu -> cpu,
-      memory -> memory),
-  DISTRIBUTEDLOGS_RECONCILIATION_CYCLE(StackGresGroupKind.CLUSTER,
-      "distributedlogs-reconciliation-cycle",
+  SETUP_FILESYSTEM(StackGresGroupKind.CLUSTER, "setup-filesystem",
       cpu -> cpu,
       memory -> memory),
   CLUSTER_RECONCILIATION_CYCLE(StackGresGroupKind.CLUSTER, "cluster-reconciliation-cycle",

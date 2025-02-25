@@ -19,7 +19,7 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContex
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
+public class PatroniMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
@@ -49,7 +49,6 @@ public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContaine
   private List<EnvVar> getDerivedEnvVars(ClusterContext context) {
     return List.of(
         ClusterEnvVar.PATRONI_ENV.envVar(context),
-        ClusterPath.BASE_SECRET_PATH.envVar(context),
         ClusterPath.PATRONI_ENV_PATH.envVar(context),
         ClusterPath.PATRONI_SECRET_ENV_PATH.envVar(context),
         ClusterPath.PATRONI_CONFIG_PATH.envVar(context),

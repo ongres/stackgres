@@ -5,6 +5,7 @@
 
 package io.stackgres.cluster.controller;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
@@ -14,6 +15,7 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.ResourceFinder;
@@ -36,6 +38,7 @@ public class PatroniMajorVersionUpgradeReconciliator {
   private final PatroniCtl patroniCtl;
   private final ResourceFinder<Secret> secretFinder;
   private final boolean isReconcilePatroniAfterMajorVersionUpgrade;
+  private final String podName;
 
   @Dependent
   public static class Parameters {
@@ -53,6 +56,9 @@ public class PatroniMajorVersionUpgradeReconciliator {
     this.isReconcilePatroniAfterMajorVersionUpgrade = parameters.propertyContext
         .getBoolean(ClusterControllerProperty
             .CLUSTER_CONTROLLER_RECONCILE_PATRONI_AFTER_MAJOR_VERSION_UPGRADE);
+    this.podName = parameters.propertyContext
+        .getString(ClusterControllerProperty
+            .CLUSTER_CONTROLLER_POD_NAME);
   }
 
   public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
@@ -76,9 +82,15 @@ public class PatroniMajorVersionUpgradeReconciliator {
     return new ReconciliationResult<>();
   }
 
-  private void reconcilePatroniRemoveForMajorVersionUpgrade(ClusterContext context) {
+  private void reconcilePatroniRemoveForMajorVersionUpgrade(ClusterContext context) throws Exception {
+    final StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgrade =
+        context.getCluster().getStatus().getDbOps().getMajorVersionUpgrade();
+    if (!Objects.equals(majorVersionUpgrade.getPrimaryInstance(), podName)) {
+      LOGGER.info("Reset patroni state for major version upgrade skipped for non primary instance {}", podName);
+      return;
+    }
     var patroniCtl = this.patroniCtl.instanceFor(context.getCluster());
-    LOGGER.info("Reset patroni state for major version upgrade");
+    LOGGER.info("Reset patroni state for major version upgrade for primary instance {}", podName);
     String clusterName = context.getCluster().getMetadata().getName();
     var credentials = secretFinder.findByNameAndNamespace(
         PatroniUtil.secretName(context.getCluster().getMetadata().getName()),

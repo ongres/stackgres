@@ -30,7 +30,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.MajorVersionUpgradeMounts;
-import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.TemplatesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -38,15 +38,15 @@ import jakarta.inject.Singleton;
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.MAJOR_VERSION_UPGRADE)
-public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContainerContext> {
+public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerContext> {
 
   private final MajorVersionUpgradeMounts majorVersionUpgradeMounts;
-  private final ScriptTemplatesVolumeMounts templateMounts;
+  private final TemplatesMounts templateMounts;
 
   @Inject
-  public MajorVersionUpgradeInit(
+  public MajorVersionUpgrade(
       MajorVersionUpgradeMounts majorVersionUpgradeMounts,
-      ScriptTemplatesVolumeMounts templateMounts) {
+      TemplatesMounts templateMounts) {
     this.majorVersionUpgradeMounts = majorVersionUpgradeMounts;
     this.templateMounts = templateMounts;
   }

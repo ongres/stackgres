@@ -1,1 +1,12 @@
+#/bin/sh
+
+set -eu
+
+if ! [ -f "$PGBOUNCER_AUTH_FILE_PATH" ]
+then
+  mkdir -p "$PGBOUNCER_AUTH_PATH"
+  cp "$PGBOUNCER_AUTH_TEMPLATE_FILE_PATH" "$PGBOUNCER_AUTH_FILE_PATH".tmp
+  mv "$PGBOUNCER_AUTH_FILE_PATH".tmp "$PGBOUNCER_AUTH_FILE_PATH"
+fi
+
 exec /usr/local/bin/pgbouncer "$PGBOUNCER_CONFIG_FILE_PATH"

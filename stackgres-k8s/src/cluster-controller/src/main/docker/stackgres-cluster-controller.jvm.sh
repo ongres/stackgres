@@ -23,6 +23,8 @@ then
     -Djava.net.preferIPv4Stack=true \
     -Djava.awt.headless=true \
     -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
+    -Dstackgres.clusterName=default \
+    -Dstackgres.clusterNamespace=default \
     $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
     -Dquarkus.http.host=0.0.0.0 \
     $APP_OPTS &

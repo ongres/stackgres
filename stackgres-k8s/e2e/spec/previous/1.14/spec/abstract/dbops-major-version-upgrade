@@ -109,7 +109,8 @@ reset_cluster_internal() {
   fi
   
   wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
-  SWITCHOVER_TO_FIRST=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   if [ "$ONLY_PG_REPACK" != true ] && [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
   then

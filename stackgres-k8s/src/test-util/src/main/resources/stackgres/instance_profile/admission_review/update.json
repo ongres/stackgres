@@ -91,31 +91,15 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "distributedlogs-reconciliation-cycle": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "major-version-upgrade": {
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "pgbouncer-auth-file": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
-          "relocate-binaries": {
+          "setup-filesystem": {
             "cpu": "500m",
             "memory": "512Mi"
           },
           "reset-patroni": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
-          "setup-arbitrary-user": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
-          "setup-scripts": {
             "cpu": "500m",
             "memory": "512Mi"
           },
@@ -174,31 +158,15 @@
               "cpu": "500m",
               "memory": "512Mi"
             },
-            "distributedlogs-reconciliation-cycle": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
             "major-version-upgrade": {
               "cpu": "500m",
               "memory": "512Mi"
             },
-            "pgbouncer-auth-file": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "relocate-binaries": {
+            "setup-filesystem": {
               "cpu": "500m",
               "memory": "512Mi"
             },
             "reset-patroni": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "setup-arbitrary-user": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "setup-scripts": {
               "cpu": "500m",
               "memory": "512Mi"
             },
@@ -273,31 +241,15 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "distributedlogs-reconciliation-cycle": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "major-version-upgrade": {
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "pgbouncer-auth-file": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
-          "relocate-binaries": {
+          "setup-filesystem": {
             "cpu": "500m",
             "memory": "512Mi"
           },
           "reset-patroni": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
-          "setup-arbitrary-user": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
-          "setup-scripts": {
             "cpu": "500m",
             "memory": "512Mi"
           },
@@ -356,31 +308,15 @@
               "cpu": "500m",
               "memory": "512Mi"
             },
-            "distributedlogs-reconciliation-cycle": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
             "major-version-upgrade": {
               "cpu": "500m",
               "memory": "512Mi"
             },
-            "pgbouncer-auth-file": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "relocate-binaries": {
+            "setup-filesystem": {
               "cpu": "500m",
               "memory": "512Mi"
             },
             "reset-patroni": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "setup-arbitrary-user": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "setup-scripts": {
               "cpu": "500m",
               "memory": "512Mi"
             },

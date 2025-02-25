@@ -13,25 +13,26 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
-public class PostgresSocketMount implements VolumeMountsProvider<ContainerContext> {
+public class TemplatesMounts implements VolumeMountsProvider<ContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(StackGresVolume.POSTGRES_SOCKET.getName())
-            .withMountPath(ClusterPath.PG_RUN_PATH.path())
+            .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
+            .withMountPath(ClusterPath.TEMPLATES_PATH.path())
             .build()
     );
   }
 
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
-    return List.of(
-        ClusterPath.PG_RUN_PATH.envVar()
-    );
+    return Seq.of(ClusterPath.TEMPLATES_PATH.envVar())
+        .append(AbstractTemplatesConfigMap.CLUSTER_TEMPLATE_PATHS.stream()
+            .map(ClusterPath::envVar))
+        .toList();
   }
-
 }

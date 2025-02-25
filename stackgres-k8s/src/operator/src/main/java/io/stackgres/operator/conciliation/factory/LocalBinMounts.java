@@ -30,7 +30,9 @@ public class LocalBinMounts implements VolumeMountsProvider<ContainerContext> {
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
     return List.of(
-        ClusterPath.LOCAL_BIN_PATH.envVar()
+        ClusterPath.LOCAL_BIN_PATH.envVar(),
+        ClusterPath.BASE_ENV_PATH.envVar(),
+        ClusterPath.BASE_SECRET_PATH.envVar()
     );
   }
 }

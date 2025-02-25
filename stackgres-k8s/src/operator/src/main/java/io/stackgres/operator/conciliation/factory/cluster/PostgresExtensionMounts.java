@@ -6,7 +6,8 @@
 package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -15,8 +16,9 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterPath;
-import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
+import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -28,7 +30,7 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
   PostgresDataMounts postgresData;
 
   @Inject
-  ContainerUserOverrideMounts containerUserOverride;
+  UserOverrideMounts containerUserOverride;
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
@@ -36,7 +38,6 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
 
     return ImmutableList.<VolumeMount>builder()
         .addAll(postgresData.getVolumeMounts(context))
-        .addAll(containerUserOverride.getVolumeMounts(context))
         .add(
             volumeMountForSubPathFromPostgresData(context, clusterContext,
                 ClusterPath.PG_LIB64_PATH,
@@ -61,9 +62,9 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
                 ClusterPath.PG_EXTENSIONS_LIB64_PATH))
         .addAll(context.getInstalledExtensions()
             .stream()
-            .flatMap(ie -> Optional.ofNullable(ie.getExtraMounts())
-                .orElse(List.of())
-                .stream())
+            .map(StackGresClusterInstalledExtension::getExtraMounts)
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
             .distinct()
             .map(extraMount -> new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
@@ -94,7 +95,6 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
 
     return ImmutableList.<EnvVar>builder()
         .addAll(postgresData.getDerivedEnvVars(context))
-        .addAll(containerUserOverride.getDerivedEnvVars(context))
         .add(
             ClusterPath.PG_EXTENSIONS_BASE_PATH.envVar(clusterContext),
             ClusterPath.PG_EXTENSIONS_PATH.envVar(clusterContext),
@@ -122,21 +122,31 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
             ClusterPath.PG_RELOCATED_EXTENSION_PATH.envVar(clusterContext),
             ClusterPath.PG_UPGRADE_PATH.envVar(clusterContext),
             new EnvVarBuilder()
-                .withName("PATH")
-                .withValue(String.join(":",
-                    "/usr/local/sbin",
-                    "/usr/local/bin",
-                    ClusterPath.PG_BIN_PATH.path(clusterContext),
-                    ClusterPath.PG_EXTRA_BIN_PATH.path(clusterContext),
-                    "/usr/sbin",
-                    "/usr/bin",
-                    "/sbin",
-                    "/bin"))
-                .build(),
+            .withName("PATH")
+            .withValue(String.join(":",
+                "/usr/local/sbin",
+                "/usr/local/bin",
+                ClusterPath.PG_BIN_PATH.path(clusterContext),
+                ClusterPath.PG_EXTRA_BIN_PATH.path(clusterContext),
+                "/usr/sbin",
+                "/usr/bin",
+                "/sbin",
+                "/bin"))
+            .build(),
             new EnvVarBuilder()
-                .withName("LD_LIBRARY_PATH")
-                .withValue(ClusterPath.PG_EXTRA_LIB_PATH.path(clusterContext))
-                .build())
+            .withName("LD_LIBRARY_PATH")
+            .withValue(ClusterPath.PG_EXTRA_LIB_PATH.path(clusterContext))
+            .build(),
+            new EnvVarBuilder()
+            .withName("EXTRA_MOUNTS")
+            .withValue(context.getInstalledExtensions()
+                .stream()
+                .map(StackGresClusterInstalledExtension::getExtraMounts)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .distinct()
+                .collect(Collectors.joining(" ")))
+            .build())
         .build();
   }
 }
