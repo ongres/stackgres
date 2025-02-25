@@ -53,10 +53,6 @@ public class ClusterRestoreBackupContextAppender
 
   @Override
   public void appendContext(StackGresCluster cluster, Builder contextBuilder) {
-    final Optional<StackGresBackup> restoreBackup = findRestoreBackup(
-        cluster,
-        cluster.getMetadata().getNamespace());
-
     if (Optional.of(cluster)
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getConditions)
@@ -68,6 +64,10 @@ public class ClusterRestoreBackupContextAppender
           .restoreSecrets(Map.of());
       return;
     }
+
+    final Optional<StackGresBackup> restoreBackup = findRestoreBackup(
+        cluster,
+        cluster.getMetadata().getNamespace());
 
     final Map<String, Secret> restoreSecrets = restoreBackup
         .map(StackGresBackup::getStatus)
@@ -84,7 +84,7 @@ public class ClusterRestoreBackupContextAppender
             secretFinder
             .findByNameAndNamespace(
                 entry.getKey(),
-                cluster.getMetadata().getName())
+                cluster.getMetadata().getNamespace())
             .orElseThrow(() -> new IllegalArgumentException(
                 "Secret " + entry.getKey() + " not found for " + StackGresBackup.KIND + " "
                     + restoreBackup.get().getMetadata().getName())),

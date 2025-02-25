@@ -13,6 +13,7 @@ import java.util.Optional;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
+import io.stackgres.common.crd.sgshardedcluster.ShardedClusterStatusCondition;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialData;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
@@ -36,6 +37,15 @@ public class ShardedClusterRestoreBackupContextAppender
 
   @Override
   public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder) {
+    if (Optional.of(cluster)
+        .map(StackGresShardedCluster::getStatus)
+        .map(StackGresShardedClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(ShardedClusterStatusCondition.SHARDED_CLUSTER_BOOTSTRAPPED::isCondition)) {
+      return;
+    }
+
     findRestoreBackup(
         cluster,
         cluster.getMetadata().getNamespace());

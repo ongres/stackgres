@@ -20,7 +20,9 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatusBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -62,6 +65,18 @@ class ClusterRestoreBackupContextAppenderTest {
   void givenClusterWithoutBackup_shouldPass() {
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder);
+    verify(contextBuilder).restoreBackup(Optional.empty());
+    verify(contextBuilder).restoreSecrets(Map.of());
+  }
+
+  @Test
+  void givenBootstrappedCluster_shouldPass() {
+    cluster.setStatus(
+        new StackGresClusterStatusBuilder()
+        .addToConditions(ClusterStatusCondition.CLUSTER_BOOTSTRAPPED.getCondition())
+        .build());
+    contextAppender.appendContext(cluster, contextBuilder);
+    verify(backupFinder, Mockito.never()).findByNameAndNamespace(any(), any());
     verify(contextBuilder).restoreBackup(Optional.empty());
     verify(contextBuilder).restoreSecrets(Map.of());
   }
