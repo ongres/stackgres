@@ -1,10 +1,3 @@
-{{- $cert := "Cg==" }}
-{{- $certSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
-{{- if $certSecret }}
-{{- if (index $certSecret.data "tls.crt") }}
-{{- $cert = (index $certSecret.data "tls.crt") }}
-{{- end }}
-{{- end }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
@@ -32,7 +25,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgcluster'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -56,7 +48,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpgconfig'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -80,7 +71,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpoolconfig'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -104,7 +94,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sginstanceprofile'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -128,7 +117,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackupconfig'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -152,7 +140,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackup'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -176,7 +163,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdistributedlogs'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -200,7 +186,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdbops'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -224,7 +209,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgobjectstorage'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -235,7 +219,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgscripts.mutating-webhook.stackgres.io
+  - name: sgscript.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -248,7 +232,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgscript'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -259,7 +242,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgshardedclusters.mutating-webhook.stackgres.io
+  - name: sgshardedcluster.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -272,7 +255,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardedcluster'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -283,7 +265,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgshardedbackups.mutating-webhook.stackgres.io
+  - name: sgshardedbackup.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -296,7 +278,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardedbackup'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -320,7 +301,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardeddbops'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -331,7 +311,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgstreams.mutating-webhook.stackgres.io
+  - name: sgstream.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -343,8 +323,7 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/mutation/sgstreams'
-      caBundle: {{ $cert }}
+        path: '/stackgres/mutation/sgstream'
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
