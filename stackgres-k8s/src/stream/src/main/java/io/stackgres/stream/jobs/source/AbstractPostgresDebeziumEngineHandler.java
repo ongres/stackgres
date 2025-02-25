@@ -15,9 +15,11 @@ import java.util.concurrent.TimeUnit;
 
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.CompletionCallback;
+import io.debezium.engine.DebeziumEngine.ConnectorCallback;
 import io.debezium.engine.format.SerializationFormat;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.StreamPath;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamDebeziumEngineProperties;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgres;
@@ -43,6 +45,9 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEventHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPostgresDebeziumEngineHandler.class);
+
+  @Inject
+  CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   ResourceFinder<Secret> secretFinder;
@@ -117,6 +122,8 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
     try {
       engine = DebeziumEngine.create(format)
           .using(props)
+          .using(new ConnectorCallback() {
+          })
           .using(new CompletionCallback() {
             @Override
             public void handle(boolean success, String message, Throwable error) {
@@ -141,7 +148,7 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
     }
     try {
       TombstoneDebeziumSignalAction tombstoneSignalAction = new TombstoneDebeziumSignalAction(
-          stream, streamScheduler, secretFinder, engine, streamCompleted);
+          stream, streamScheduler, clusterFinder, secretFinder, engine, streamCompleted);
       StreamDebeziumSignalActionProvider.registerSignalAction(
           StreamDebeziumSignalActionProvider.TOMBSTONE_SIGNAL_TYPE, tombstoneSignalAction);
       executor.execute(engine);

@@ -57,7 +57,7 @@ spec:
                 
                 * `tombstone`: allow to stop completely Debezium streaming and the SGStream. This signal is useful to give an end to the streaming in a graceful way allowing for the removal of the logical slot created by Debezium.
                 * `command`: allow to execute any SQL command on the target database. Only available then the target type is `SGCluster`.
-            required: ["source", "target"]
+            required: ["source", "target", "pods"]
             properties:
               source:
                 type: object
