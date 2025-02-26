@@ -844,6 +844,12 @@ before_operator_install_or_upgrade() {
 after_operator_install_or_upgrade() {
   kubectl label namespace "$OPERATOR_NAMESPACE" --overwrite monitoring=true
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator$'
+  wait_until eval 'kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator -o json \
+    | jq ".webhooks|any(.clientConfig.caBundle == null)" \
+    | grep -qxF false'
+  wait_until eval 'kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator -o json \
+    | jq ".webhooks|any(.clientConfig.caBundle == null)" \
+    | grep -qxF false'
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
   wait_until eval 'kubectl get job -n "$OPERATOR_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
   if [ "$OPERATOR_FROM" != true ] && [ "$EXTENSIONS_CACHE_ENABLED" = true ]

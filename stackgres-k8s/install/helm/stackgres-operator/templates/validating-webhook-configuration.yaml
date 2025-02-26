@@ -104,29 +104,6 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgbackupconfig.validating-webhook.stackgres.io
-    sideEffects: None
-    rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
-        apiGroups: ["stackgres.io"]
-        apiVersions: ["*"]
-        resources: ["sgbackupconfigs"]
-    failurePolicy: Fail
-    clientConfig:
-      service:
-        namespace: {{ .Release.Namespace }}
-        name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgbackupconfig'
-    admissionReviewVersions: ["v1"]
-    {{- if .Values.allowedNamespaces }}
-    namespaceSelector:
-      matchLabels:
-        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
-    {{- else if .Values.allowedNamespaceLabelSelector }}
-    namespaceSelector:
-      matchLabels:
-        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
-    {{- end }}
   - name: sgbackup.validating-webhook.stackgres.io
     sideEffects: None
     rules:
