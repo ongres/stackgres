@@ -7626,7 +7626,7 @@
                             "distributedLogs": {
                                 ...(this.hasProp(previous, 'spec.distributedLogs') && previous.spec.distributedLogs),
                                 ...(( (typeof this.distributedLogs !== 'undefined') && this.distributedLogs.length ) && { "sgDistributedLogs": this.distributedLogs }),
-                                ...(this.retention.length && {
+                                ...(this.retention && this.retention.length && {
                                     "retention": this.retention
                                 })
                             }
@@ -7722,7 +7722,7 @@
                         "postgres": {
                             ...(this.hasProp(previous, 'spec.postgres') && previous.spec.postgres),
                             "version": this.postgresVersion,
-                            ...(this.selectedExtensions.length && {
+                            ...(this.selectedExtensions && this.selectedExtensions.length && {
                                 "extensions": this.selectedExtensions
                             } || {"extensions": null} ),
                             "flavor": this.flavor,
@@ -7739,16 +7739,16 @@
                         "coordinator": {
                             ...(this.hasProp(previous, 'spec.coordinator') && previous.spec.coordinator),
                             "instances": this.coordinator.instances,
-                            ...(this.coordinator.sgInstanceProfile.length && {
+                            ...(this.coordinator.sgInstanceProfile && this.coordinator.sgInstanceProfile.length && {
                                 "sgInstanceProfile": this.coordinator.sgInstanceProfile
                             }),
                             ...( (this.hasProp(previous, 'spec.coordinator.configurations') || this.coordinator.configurations.sgPoolingConfig.length || this.coordinator.configurations.sgPostgresConfig.length) && ({
                                 "configurations": {
                                     ...(this.hasProp(previous, 'spec.coordinator.configurations') && previous.spec.coordinator.configurations),
-                                    ...(this.coordinator.configurations.sgPoolingConfig.length && {
+                                    ...(this.coordinator.configurations.sgPoolingConfig && this.coordinator.configurations.sgPoolingConfig.length && {
                                         "sgPoolingConfig": this.coordinator.configurations.sgPoolingConfig
                                     }),
-                                    ...(this.coordinator.configurations.sgPostgresConfig.length && {
+                                    ...(this.coordinator.configurations.sgPostgresConfig && this.coordinator.configurations.sgPostgresConfig.length && {
                                         "sgPostgresConfig": this.coordinator.configurations.sgPostgresConfig
                                     }),
                                 }
@@ -7792,20 +7792,20 @@
                                     this.hasProp(previous, 'spec.coordinator.pods.scheduling') || 
                                     (this.hasProp(this.coordinator, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector)) || 
                                     (this.hasProp(this.coordinator, 'pods.scheduling.tolerations') && this.hasTolerations(this.coordinator.pods.scheduling.tolerations)) || 
-                                    requiredAffinity.coordinator.length || preferredAffinity.coordinator.length 
+                                    (requiredAffinity.coordinator && requiredAffinity.coordinator.length) || (preferredAffinity.coordinator && preferredAffinity.coordinator.length)
                                     ) && {
                                     "scheduling": {
                                         ...(this.hasProp(previous, 'spec.coordinator.pods.scheduling') && previous.spec.coordinator.pods.scheduling),
                                         ...( (this.hasProp(this.coordinator, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector)) && {"nodeSelector": this.parseProps(this.coordinator.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
                                         ...( (this.hasProp(this.coordinator, 'pods.scheduling.tolerations') && this.hasTolerations(this.coordinator.pods.scheduling.tolerations)) && {"tolerations": this.coordinator.pods.scheduling.tolerations} || {"tolerations": null} ),
-                                        ...(requiredAffinity.coordinator.length || preferredAffinity.coordinator.length ) && {
+                                        ...((requiredAffinity.coordinator && requiredAffinity.coordinator.length) || (preferredAffinity.coordinator && preferredAffinity.coordinator.length) ) && {
                                             "nodeAffinity": {
-                                                ...(requiredAffinity.coordinator.length && {
+                                                ...(requiredAffinity.coordinator && requiredAffinity.coordinator.length && {
                                                     "requiredDuringSchedulingIgnoredDuringExecution": {
                                                         "nodeSelectorTerms": requiredAffinity.coordinator
                                                     }
                                                 }),
-                                                ...(preferredAffinity.coordinator.length && {
+                                                ...(preferredAffinity.coordinator && preferredAffinity.coordinator.length && {
                                                     "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity.coordinator
                                                 })
                                             }
@@ -7861,16 +7861,16 @@
                             ...(this.hasProp(previous, 'spec.shards') && previous.spec.shards),
                             "clusters": this.shards.clusters,
                             "instancesPerCluster": this.shards.instancesPerCluster,
-                            ...(this.shards.sgInstanceProfile.length && {
+                            ...(this.shards.sgInstanceProfile && this.shards.sgInstanceProfile.length && {
                                 "sgInstanceProfile": this.shards.sgInstanceProfile
                             }),
                             ...( (this.hasProp(previous, 'spec.shards.configurations') || this.shards.configurations.sgPoolingConfig.length || this.shards.configurations.sgPostgresConfig.length) && ({
                                 "configurations": {
                                     ...(this.hasProp(previous, 'spec.shards.configurations') && previous.spec.shards.configurations),
-                                    ...(this.shards.configurations.sgPoolingConfig.length && {
+                                    ...(this.shards.configurations.sgPoolingConfig && this.shards.configurations.sgPoolingConfig.length && {
                                         "sgPoolingConfig": this.shards.configurations.sgPoolingConfig
                                     }),
-                                    ...(this.shards.configurations.sgPostgresConfig.length && {
+                                    ...(this.shards.configurations.sgPostgresConfig && this.shards.configurations.sgPostgresConfig.length && {
                                         "sgPostgresConfig": this.shards.configurations.sgPostgresConfig
                                     }),
                                 }
@@ -7914,20 +7914,20 @@
                                     this.hasProp(previous, 'spec.shards.pods.scheduling') || 
                                     (this.hasProp(this.shards, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector)) || 
                                     (this.hasProp(this.shards, 'pods.scheduling.tolerations') && this.hasTolerations(this.shards.pods.scheduling.tolerations)) || 
-                                    requiredAffinity.shards.length || preferredAffinity.shards.length 
+                                    (requiredAffinity.shards && requiredAffinity.shards.length) || (preferredAffinity.shards && preferredAffinity.shards.length) 
                                     ) && {
                                     "scheduling": {
                                         ...(this.hasProp(previous, 'spec.shards.pods.scheduling') && previous.spec.shards.pods.scheduling),
                                         ...( (this.hasProp(this.shards, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector)) && {"nodeSelector": this.parseProps(this.shards.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
                                         ...( (this.hasProp(this.shards, 'pods.scheduling.tolerations') && this.hasTolerations(this.shards.pods.scheduling.tolerations)) && {"tolerations": this.shards.pods.scheduling.tolerations} || {"tolerations": null} ),
-                                        ...(requiredAffinity.shards.length || preferredAffinity.shards.length ) && {
+                                        ...((requiredAffinity.shards && requiredAffinity.shards.length) || (preferredAffinity.shards && preferredAffinity.shards.length) ) && {
                                             "nodeAffinity": {
-                                                ...(requiredAffinity.shards.length && {
+                                                ...(requiredAffinity.shards && requiredAffinity.shards.length && {
                                                     "requiredDuringSchedulingIgnoredDuringExecution": {
                                                         "nodeSelectorTerms": requiredAffinity.shards
                                                     }
                                                 }),
-                                                ...(preferredAffinity.shards.length && {
+                                                ...(preferredAffinity.shards && preferredAffinity.shards.length && {
                                                     "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity.shards
                                                 })
                                             }
@@ -8288,7 +8288,7 @@
                     override.pods.scheduling = ( 
                             (this.hasProp(override, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(override.pods.scheduling.nodeSelector)) || 
                             (this.hasProp(override, 'pods.scheduling.tolerations') && this.hasTolerations(override.pods.scheduling.tolerations)) || 
-                            requiredAffinity.length || preferredAffinity.length 
+                            (requiredAffinity && requiredAffinity.length) || (preferredAffinity && preferredAffinity.length) 
                         )
                             ? {
                                 ...( (this.hasProp(override, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(override.pods.scheduling.nodeSelector)) && {
@@ -8297,14 +8297,14 @@
                                 ...( (this.hasProp(override, 'pods.scheduling.tolerations') && this.hasTolerations(override.pods.scheduling.tolerations)) && {
                                     "tolerations": override.pods.scheduling.tolerations
                                 } || {"tolerations": null} ),
-                                ...(requiredAffinity.length || preferredAffinity.length ) && {
+                                ...((requiredAffinity && requiredAffinity.length) || (preferredAffinity && preferredAffinity.length) ) && {
                                     "nodeAffinity": {
-                                        ...(requiredAffinity.length && {
+                                        ...(requiredAffinity && requiredAffinity.length && {
                                             "requiredDuringSchedulingIgnoredDuringExecution": {
                                                 "nodeSelectorTerms": requiredAffinity
                                             }
                                         }),
-                                        ...(preferredAffinity.length && {
+                                        ...(preferredAffinity && preferredAffinity.length && {
                                             "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity
                                         })
                                     }
