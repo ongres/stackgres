@@ -13,7 +13,7 @@ knative_url() {
 
 uninstall_knative() {
   sed 's/namespace: knative-operator/namespace: $(knative_namespace)/g' \
-    "$E2E_PATH/knative-operator-v1.14.1.yaml" | kubectl delete --ignore-not-found -f -
+    "$E2E_PATH/knative-v1.17.0.yaml" | kubectl delete --ignore-not-found -f -
 }
 
 install_knative() {
@@ -47,7 +47,7 @@ install_knative() {
   fi
   kubectl create ns "$(knative_namespace)"
   sed "s/ namespace: .*$/ namespace: $(knative_namespace)/g" \
-    "$E2E_PATH/resources/knative-v1.14.1.yaml" \
+    "$E2E_PATH/resources/knative-v1.17.0.yaml" \
     | sed "s/address: \"net-kourier-controller.knative-serving\"/address: \"net-kourier-controller.$(knative_namespace)\"/" \
     | yq "
       select(.kind != \"Namespace\")

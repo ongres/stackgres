@@ -1,10 +1,3 @@
-{{- $cert := "Cg==" }}
-{{- $certSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
-{{- if $certSecret }}
-{{- if (index ($certSecret.data) "tls.crt") }}
-{{- $cert = (index $certSecret.data "tls.crt") }}
-{{- end }}
-{{- end }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -32,7 +25,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgcluster'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -56,7 +48,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpgconfig'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -80,7 +71,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpoolconfig'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -104,31 +94,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sginstanceprofile'
-      caBundle: {{ $cert }}
-    admissionReviewVersions: ["v1"]
-    {{- if .Values.allowedNamespaces }}
-    namespaceSelector:
-      matchLabels:
-        stackgres.io/scope: {{ .Release.Namespace }}.{{ .Release.Name }}
-    {{- else if .Values.allowedNamespaceLabelSelector }}
-    namespaceSelector:
-      matchLabels:
-        {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
-    {{- end }}
-  - name: sgbackupconfig.validating-webhook.stackgres.io
-    sideEffects: None
-    rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
-        apiGroups: ["stackgres.io"]
-        apiVersions: ["*"]
-        resources: ["sgbackupconfigs"]
-    failurePolicy: Fail
-    clientConfig:
-      service:
-        namespace: {{ .Release.Namespace }}
-        name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgbackupconfig'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -152,7 +117,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackup'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -176,7 +140,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdistributedlogs'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -200,7 +163,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdbops'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -224,7 +186,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgobjectstorage'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -235,7 +196,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgscripts.validating-webhook.stackgres.io
+  - name: sgscript.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -248,7 +209,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgscript'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -259,7 +219,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgshardedclusters.validating-webhook.stackgres.io
+  - name: sgshardedcluster.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -272,7 +232,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardedcluster'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -283,7 +242,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgshardedbackups.validating-webhook.stackgres.io
+  - name: sgshardedbackup.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -296,7 +255,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardedbackup'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -320,7 +278,6 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardeddbops'
-      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -331,7 +288,7 @@ webhooks:
       matchLabels:
         {{ toYaml .Values.allowedNamespaceLabelSelector | nindent 8 }}
     {{- end }}
-  - name: sgstreams.validating-webhook.stackgres.io
+  - name: sgstream.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -343,8 +300,7 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgstreams'
-      caBundle: {{ $cert }}
+        path: '/stackgres/validation/sgstream'
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
