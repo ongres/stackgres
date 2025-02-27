@@ -15,7 +15,7 @@ spec:
   ports:
     - name: https
       protocol: TCP
-      port: {{ .Values.operator.servicePort }}
+      port: {{ .Values.operator.servicePort | default 443 }}
       targetPort: https
 {{ else }}
 apiVersion: v1
@@ -25,7 +25,7 @@ metadata:
   name: {{ .Release.Name }}
 spec:
   ports:
-   - port: {{ .Values.operator.servicePort }}
+   - port: {{ .Values.operator.servicePort | default 443 }}
      targetPort: {{ .Values.developer.externalOperatorPort }}
 ---
 kind: Endpoints

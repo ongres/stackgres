@@ -25,7 +25,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgcluster'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -49,7 +49,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpgconfig'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -73,7 +73,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpoolconfig'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -97,7 +97,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sginstanceprofile'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -121,7 +121,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackup'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -145,7 +145,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdistributedlogs'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -169,7 +169,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdbops'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -193,7 +193,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgobjectstorage'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -217,7 +217,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgscript'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -241,7 +241,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardedcluster'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -265,7 +265,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardedbackup'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -289,7 +289,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardeddbops'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
@@ -313,7 +313,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgstream'
-        port: {{ .Values.operator.servicePort }}
+        port: {{ .Values.operator.servicePort | default 443 }}
     admissionReviewVersions: ["v1"]
     {{- if .Values.allowedNamespaces }}
     namespaceSelector:
