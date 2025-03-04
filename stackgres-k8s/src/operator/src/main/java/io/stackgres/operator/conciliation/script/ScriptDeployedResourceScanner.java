@@ -39,7 +39,7 @@ public class ScriptDeployedResourceScanner
   @Override
   public DeployedResourcesSnapshot getDeployedResources(
       StackGresScript config, List<HasMetadata> requiredResources) {
-    return DeployedResourcesSnapshot.emptySnapshot();
+    return DeployedResourcesSnapshot.emptySnapshot(config);
   }
 
   @Override

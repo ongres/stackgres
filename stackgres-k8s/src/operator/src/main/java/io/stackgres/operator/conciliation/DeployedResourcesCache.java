@@ -60,8 +60,11 @@ public class DeployedResourcesCache {
     this.objectMapper = objectMapper;
   }
 
-  public void put(HasMetadata requiredResource, HasMetadata deployedResource) {
-    final ResourceKey key = ResourceKey.create(requiredResource);
+  public void put(
+      HasMetadata generator,
+      HasMetadata requiredResource,
+      HasMetadata deployedResource) {
+    final ResourceKey key = ResourceKey.create(generator, requiredResource);
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("{} required resource {} {}.{}",
           cache.getIfPresent(key) == null ? "Put new" : "Update existing",
@@ -81,8 +84,10 @@ public class DeployedResourcesCache {
             toComparableDeployedNode(requiredResource, deployedResource)));
   }
 
-  public void remove(HasMetadata deletedResource) {
-    final ResourceKey key = ResourceKey.create(deletedResource);
+  public void remove(
+      HasMetadata generator,
+      HasMetadata deletedResource) {
+    final ResourceKey key = ResourceKey.create(generator, deletedResource);
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Remove {} required resource {} {}.{}",
           cache.getIfPresent(key) == null ? "new" : "existing",
@@ -93,8 +98,17 @@ public class DeployedResourcesCache {
     cache.invalidate(key);
   }
 
-  public DeployedResource get(HasMetadata requiredResource) {
-    return cache.getIfPresent(ResourceKey.create(requiredResource));
+  public void removeAll(
+      HasMetadata generator) {
+    cache.asMap().keySet().stream()
+        .filter(key -> key.isGeneratedBy(generator))
+        .forEach(cache::invalidate);
+  }
+
+  public DeployedResource get(
+      HasMetadata generator,
+      HasMetadata requiredResource) {
+    return cache.getIfPresent(ResourceKey.create(generator, requiredResource));
   }
 
   public Stream<DeployedResource> stream() {
@@ -102,21 +116,22 @@ public class DeployedResourcesCache {
   }
 
   public DeployedResourcesSnapshot createDeployedResourcesSnapshot(
+      HasMetadata generator,
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources) {
     var deployedResourcesMap = new HashMap<>(cache.asMap());
     deployedResources.stream()
-        .map(resource -> Tuple.tuple(resource, deployedResourcesMap))
-        .forEach(t -> putOrUpdateLatest(t.v1, t.v2));
+        .forEach(resource -> putOrUpdateLatest(generator, resource, deployedResourcesMap));
     putAll(deployedResourcesMap);
     return new DeployedResourcesSnapshot(
-        ownedDeployedResources, deployedResources, deployedResourcesMap);
+        generator, ownedDeployedResources, deployedResources, deployedResourcesMap);
   }
 
   private void putOrUpdateLatest(
+      HasMetadata generator,
       HasMetadata foundDeployedResource,
       Map<ResourceKey, DeployedResource> deployedResourceMap) {
-    ResourceKey key = ResourceKey.create(foundDeployedResource);
+    ResourceKey key = ResourceKey.create(generator, foundDeployedResource);
     DeployedResource deployedResource = deployedResourceMap.get(key);
     if (deployedResource != null) {
       if (Objects.equals(
@@ -172,11 +187,12 @@ public class DeployedResourcesCache {
   }
 
   public void removeWithLabelsNotIn(
+      HasMetadata generator,
       Map<String, String> genericLabels,
       List<HasMetadata> deployedResources) {
     Set<ResourceKey> deployedKeys = deployedResources
         .stream()
-        .map(ResourceKey::create)
+        .map(resource -> ResourceKey.create(generator, resource))
         .collect(Collectors.toSet());
     cache.asMap().entrySet().stream()
         .map(e -> Tuple.tuple(

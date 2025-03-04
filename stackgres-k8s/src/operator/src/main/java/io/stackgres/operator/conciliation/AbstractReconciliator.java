@@ -270,7 +270,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                     resource.getMetadata().getNamespace(),
                     resource.getMetadata().getName());
                 var created = handlerDelegator.create(config, resource);
-                deployedResourcesCache.put(resource, created);
+                deployedResourcesCache.put(config, resource, created);
               } catch (Exception ex) {
                 if (resource instanceof Role
                     || resource instanceof RoleBinding) {
@@ -294,7 +294,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                     resource.v2.getMetadata().getNamespace(),
                     resource.v2.getMetadata().getName());
                 var patched = handlerDelegator.patch(config, resource.v1, resource.v2);
-                deployedResourcesCache.put(resource.v1, patched);
+                deployedResourcesCache.put(config, resource.v1, patched);
               } catch (Exception ex) {
                 exceptions.add(ex);
               }
@@ -310,7 +310,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                   resource.getMetadata().getName(),
                   resource.getKind());
               try {
-                deployedResourcesCache.remove(resource);
+                deployedResourcesCache.remove(config, resource);
                 handlerDelegator.delete(config, resource);
               } catch (Exception ex) {
                 exceptions.add(ex);

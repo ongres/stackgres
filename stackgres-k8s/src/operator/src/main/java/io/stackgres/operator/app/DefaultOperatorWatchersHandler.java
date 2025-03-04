@@ -32,6 +32,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigList;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -46,6 +48,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -57,6 +61,7 @@ import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsList;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamList;
 import io.stackgres.operator.common.ResourceWatcherFactory;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.backup.BackupReconciliator;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
 import io.stackgres.operator.conciliation.config.ConfigReconciliator;
@@ -107,6 +112,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
       Collections.synchronizedMap(new HashMap<>());
   private final Map<String, StackGresStream> streams =
       Collections.synchronizedMap(new HashMap<>());
+  private final DeployedResourcesCache deployedResourcesCache;
 
   @Inject
   public DefaultOperatorWatchersHandler(
@@ -120,8 +126,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
       ShardedBackupReconciliator shardedBackupReconciliatorCycle,
       ShardedDbOpsReconciliator shardedDbOpsReconciliatorCycle,
       StreamReconciliator streamReconciliatorCycle,
-      ResourceWatcherFactory watcherFactory) {
-    super();
+      ResourceWatcherFactory watcherFactory,
+      DeployedResourcesCache deployedResourcesCache) {
     this.client = client;
     this.configReconciliatorCycle = configReconciliatorCycle;
     this.clusterReconciliatorCycle = clusterReconciliatorCycle;
@@ -133,6 +139,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     this.shardedDbOpsReconciliatorCycle = shardedDbOpsReconciliatorCycle;
     this.streamReconciliatorCycle = streamReconciliatorCycle;
     this.watcherFactory = watcherFactory;
+    this.deployedResourcesCache = deployedResourcesCache;
   }
 
   @Override
@@ -140,16 +147,20 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     monitors.addAll(createCustomResourceWatchers(
         StackGresConfig.class,
         StackGresConfigList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             reconcileConfig()
-            .andThen(putConfig()))));
+            .andThen(putConfig()),
+            invalidateConfig()
+            .andThen(removeConfig()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresCluster.class,
         StackGresClusterList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putCluster()
-            .andThen(reconcileCluster()))));
+            .andThen(reconcileCluster()),
+            invalidateCluster()
+            .andThen(removeCluster()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresProfile.class,
@@ -181,53 +192,74 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .andThen(reconcileObjectStorageShardedClusters()))));
 
     monitors.addAll(createCustomResourceWatchers(
+        StackGresScript.class,
+        StackGresScriptList.class,
+        onCreateOrUpdate(
+            reconcileScriptClusters()
+            .andThen(reconcileScriptShardedClusters()))));
+
+    monitors.addAll(createCustomResourceWatchers(
         StackGresBackup.class,
         StackGresBackupList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putBackup()
-            .andThen(reconcileBackup()))));
+            .andThen(reconcileBackup()),
+            invalidateBackup()
+            .andThen(removeBackup()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresDbOps.class,
         StackGresDbOpsList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putDbOps()
-            .andThen(reconcileDbOps()))));
+            .andThen(reconcileDbOps()),
+            invalidateDbOps()
+            .andThen(removeDbOps()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putDistributedLogs()
-            .andThen(reconcileDistributedLogs()))));
+            .andThen(reconcileDistributedLogs()),
+            invalidateDistributedLogs()
+            .andThen(removeDistributedLogs()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresShardedCluster.class,
         StackGresShardedClusterList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putShardedCluster()
-            .andThen(reconcileShardedCluster()))));
+            .andThen(reconcileShardedCluster()),
+            invalidateShardedCluster()
+            .andThen(removeShardedCluster()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresShardedBackup.class,
         StackGresShardedBackupList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putShardedBackup()
-            .andThen(reconcileShardedBackup()))));
+            .andThen(reconcileShardedBackup()),
+            invalidateShardedBackup()
+            .andThen(removeShardedBackup()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresShardedDbOps.class,
         StackGresShardedDbOpsList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putShardedDbOps()
-            .andThen(reconcileShardedDbOps()))));
+            .andThen(reconcileShardedDbOps()),
+            invalidateShardedDbOps()
+            .andThen(removeShardedDbOps()))));
 
     monitors.addAll(createCustomResourceWatchers(
         StackGresStream.class,
         StackGresStreamList.class,
-        onCreateOrUpdate(
+        onCreateOrUpdateAndOnDelete(
             putStream()
-            .andThen(reconcileStream()))));
+            .andThen(reconcileStream()),
+            invalidateStream()
+            .andThen(removeStream()))));
 
     monitors.addAll(createWatchers(
         Endpoints.class,
@@ -300,6 +332,19 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     };
   }
 
+  private <T> BiConsumer<Action, T> onCreateOrUpdateAndOnDelete(
+      BiConsumer<Action, T> consumerOnCreateOrUpdate,
+      BiConsumer<Action, T> consumerOnDelete) {
+    return (action, resource) -> {
+      if (action == Action.ADDED || action == Action.MODIFIED) {
+        consumerOnCreateOrUpdate.accept(action, resource);
+      }
+      if (action == Action.DELETED) {
+        consumerOnDelete.accept(action, resource);
+      }
+    };
+  }
+
   private <T> BiConsumer<Action, T> onCreateOrUpdateOrDelete(BiConsumer<Action, T> consumer) {
     return (action, resource) -> {
       if (action == Action.ADDED || action == Action.MODIFIED || action == Action.DELETED) {
@@ -347,6 +392,43 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private BiConsumer<Action, StackGresStream> putStream() {
     return (action, stream) -> this.streams.put(resourceId(stream), stream);
+  }
+
+  private BiConsumer<Action, StackGresConfig> removeConfig() {
+    return (action, config) -> configs.remove(resourceId(config));
+  }
+
+  private BiConsumer<Action, StackGresCluster> removeCluster() {
+    return (action, cluster) -> clusters.remove(resourceId(cluster));
+  }
+
+  private BiConsumer<Action, StackGresDistributedLogs> removeDistributedLogs() {
+    return (action, distributedLogs) -> this.distributedLogs
+        .remove(resourceId(distributedLogs));
+  }
+
+  private BiConsumer<Action, StackGresBackup> removeBackup() {
+    return (action, backup) -> backups.remove(resourceId(backup));
+  }
+
+  private BiConsumer<Action, StackGresDbOps> removeDbOps() {
+    return (action, dbOps) -> this.dbOps.remove(resourceId(dbOps));
+  }
+
+  private BiConsumer<Action, StackGresShardedCluster> removeShardedCluster() {
+    return (action, cluster) -> shardedClusters.remove(resourceId(cluster));
+  }
+
+  private BiConsumer<Action, StackGresShardedBackup> removeShardedBackup() {
+    return (action, backup) -> shardedBackups.remove(resourceId(backup));
+  }
+
+  private BiConsumer<Action, StackGresShardedDbOps> removeShardedDbOps() {
+    return (action, dbOps) -> shardedDbOps.remove(resourceId(dbOps));
+  }
+
+  private BiConsumer<Action, StackGresStream> removeStream() {
+    return (action, stream) -> this.streams.remove(resourceId(stream));
   }
 
   private BiConsumer<Action, StackGresConfig> reconcileConfig() {
@@ -442,6 +524,21 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .stream().findFirst().map(StackGresClusterBackupConfiguration::getSgObjectStorage)
             .orElse(null),
             objectStorage.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
+  }
+
+  private BiConsumer<Action, StackGresScript> reconcileScriptClusters() {
+    return (action, script) -> synchronizedCopyOfValues(clusters)
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getMetadata().getNamespace(),
+            script.getMetadata().getNamespace()))
+        .filter(cluster -> Optional.ofNullable(cluster.getSpec().getManagedSql())
+            .map(StackGresClusterManagedSql::getScripts)
+            .stream()
+            .flatMap(List::stream)
+            .map(StackGresClusterManagedScriptEntry::getSgScript)
+            .anyMatch(script.getMetadata().getName()::equals))
         .forEach(cluster -> reconcileCluster().accept(action, cluster));
   }
 
@@ -557,6 +654,36 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .orElse(null),
             objectStorage.getMetadata().getName()))
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, StackGresScript> reconcileScriptShardedClusters() {
+    return (action, script) -> synchronizedCopyOfValues(shardedClusters)
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getMetadata().getNamespace(),
+            script.getMetadata().getNamespace()))
+        .filter(cluster -> Optional.ofNullable(cluster.getSpec().getCoordinator().getManagedSql())
+            .map(StackGresClusterManagedSql::getScripts)
+            .stream()
+            .flatMap(List::stream)
+            .map(StackGresClusterManagedScriptEntry::getSgScript)
+            .anyMatch(script.getMetadata().getName()::equals)
+            || Optional.ofNullable(cluster.getSpec().getShards().getManagedSql())
+            .map(StackGresClusterManagedSql::getScripts)
+            .stream()
+            .flatMap(List::stream)
+            .map(StackGresClusterManagedScriptEntry::getSgScript)
+            .anyMatch(script.getMetadata().getName()::equals)
+            || Optional.ofNullable(cluster.getSpec().getShards().getOverrides())
+            .stream()
+            .flatMap(List::stream)
+            .flatMap(override -> Optional.ofNullable(override.getManagedSql())
+                .map(StackGresClusterManagedSql::getScripts)
+                .stream())
+            .flatMap(List::stream)
+            .map(StackGresClusterManagedScriptEntry::getSgScript)
+            .anyMatch(script.getMetadata().getName()::equals))
+        .forEach(cluster -> reconcileShardedCluster().accept(action, cluster));
   }
 
   private BiConsumer<Action, Endpoints> reconcileEndpointsShardedClusters() {
@@ -709,6 +836,42 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             pod.getMetadata().getLabels().get(streamNameKey),
             stream.getMetadata().getName()))
         .forEach(stream -> reconcileStream().accept(action, stream));
+  }
+
+  private BiConsumer<Action, StackGresConfig> invalidateConfig() {
+    return (action, config) ->  deployedResourcesCache.removeAll(config);
+  }
+
+  private BiConsumer<Action, StackGresCluster> invalidateCluster() {
+    return (action, cluster) -> deployedResourcesCache.removeAll(cluster);
+  }
+
+  private BiConsumer<Action, StackGresDistributedLogs> invalidateDistributedLogs() {
+    return (action, distributedlogs) -> deployedResourcesCache.removeAll(distributedlogs);
+  }
+
+  private BiConsumer<Action, StackGresShardedCluster> invalidateShardedCluster() {
+    return (action, shardedCluster) -> deployedResourcesCache.removeAll(shardedCluster);
+  }
+
+  private BiConsumer<Action, StackGresDbOps> invalidateDbOps() {
+    return (action, dbops) -> deployedResourcesCache.removeAll(dbops);
+  }
+
+  private BiConsumer<Action, StackGresBackup> invalidateBackup() {
+    return (action, backup) -> deployedResourcesCache.removeAll(backup);
+  }
+
+  private BiConsumer<Action, StackGresShardedBackup> invalidateShardedBackup() {
+    return (action, backup) -> deployedResourcesCache.removeAll(backup);
+  }
+
+  private BiConsumer<Action, StackGresShardedDbOps> invalidateShardedDbOps() {
+    return (action, dbOps) -> deployedResourcesCache.removeAll(dbOps);
+  }
+
+  private BiConsumer<Action, StackGresStream> invalidateStream() {
+    return (action, stream) -> deployedResourcesCache.removeAll(stream);
   }
 
   @Override

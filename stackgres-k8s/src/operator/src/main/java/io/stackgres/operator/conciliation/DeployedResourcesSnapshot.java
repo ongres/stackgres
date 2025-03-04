@@ -21,14 +21,17 @@ public class DeployedResourcesSnapshot {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesSnapshot.class);
 
+  private final HasMetadata generator;
   private final List<HasMetadata> ownedDeployedResources;
   private final List<HasMetadata> deployedResources;
   private final Map<ResourceKey, DeployedResource> map;
 
   DeployedResourcesSnapshot(
+      HasMetadata generator,
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources,
       Map<ResourceKey, DeployedResource> map) {
+    this.generator = generator;
     this.ownedDeployedResources = ownedDeployedResources;
     this.deployedResources = deployedResources;
     this.map = map;
@@ -47,7 +50,7 @@ public class DeployedResourcesSnapshot {
   }
 
   public DeployedResource get(HasMetadata requiredResource) {
-    return map.get(ResourceKey.create(requiredResource));
+    return map.get(ResourceKey.create(generator, requiredResource));
   }
 
   public Stream<DeployedResource> stream() {
@@ -55,12 +58,12 @@ public class DeployedResourcesSnapshot {
   }
 
   public boolean isDeployed(HasMetadata requiredResource) {
-    return map.containsKey(ResourceKey.create(requiredResource));
+    return map.containsKey(ResourceKey.create(generator, requiredResource));
   }
 
   public boolean isRequiredChanged(HasMetadata requiredResource) {
     boolean result = Optional
-        .ofNullable(map.get(ResourceKey.create(requiredResource)))
+        .ofNullable(map.get(ResourceKey.create(generator, requiredResource)))
         .map(DeployedResource::required)
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -104,8 +107,8 @@ public class DeployedResourcesSnapshot {
     return result;
   }
 
-  public static DeployedResourcesSnapshot emptySnapshot() {
-    return new DeployedResourcesSnapshot(List.of(), List.of(), Map.of());
+  public static DeployedResourcesSnapshot emptySnapshot(HasMetadata generator) {
+    return new DeployedResourcesSnapshot(generator, List.of(), List.of(), Map.of());
   }
 
 }

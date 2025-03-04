@@ -127,10 +127,10 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .filter(resource -> checkOwnerReference(config, kind, resource))
         .toList();
 
-    deployedResourcesCache.removeWithLabelsNotIn(genericLabels, deployedResources);
+    deployedResourcesCache.removeWithLabelsNotIn(config, genericLabels, deployedResources);
     final DeployedResourcesSnapshot deployedResourcesSnapshot =
         deployedResourcesCache.createDeployedResourcesSnapshot(
-            ownedDeployedResources, deployedResources);
+            config, ownedDeployedResources, deployedResources);
 
     return deployedResourcesSnapshot;
   }
