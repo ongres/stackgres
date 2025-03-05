@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
-import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -52,7 +51,7 @@ public class BackupRole implements ResourceGenerator<StackGresBackupContext> {
   @Override
   public Stream<HasMetadata> generateResource(StackGresBackupContext context) {
     if (isNotBackupCopy(context)
-        || BackupStatus.isFinished(context.getSource())) {
+        || context.getFoundCluster().isEmpty()) {
       return Stream.of();
     }
     return Stream.of(
