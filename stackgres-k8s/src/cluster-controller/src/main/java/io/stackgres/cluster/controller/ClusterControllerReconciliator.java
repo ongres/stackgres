@@ -46,7 +46,7 @@ public class ClusterControllerReconciliator
   private final PatroniBackupFailoverRestartReconciliator patroniBackupFailoverRestartReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
   private final String podName;
-  private final String nodeName;
+  private final Optional<String> nodeName;
 
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
@@ -66,7 +66,7 @@ public class ClusterControllerReconciliator
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.nodeName = parameters.propertyContext
-        .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_NODE_NAME);
+        .get(ClusterControllerProperty.CLUSTER_CONTROLLER_NODE_NAME);
   }
 
   public ClusterControllerReconciliator() {
@@ -104,6 +104,7 @@ public class ClusterControllerReconciliator
         .findFirst();
     final boolean nodeNameChanged;
     if (foundPodStatus.isPresent()) {
+      String nodeName = this.nodeName.orElseGet(foundPodStatus.get()::getNodeName);
       nodeNameChanged = Objects.equals(foundPodStatus.get().getNodeName(), nodeName);
       foundPodStatus.get().setNodeName(nodeName);
     } else {
@@ -116,7 +117,7 @@ public class ClusterControllerReconciliator
       }
       StackGresClusterPodStatus podStatus = new StackGresClusterPodStatus();
       podStatus.setName(podName);
-      podStatus.setNodeName(nodeName);
+      nodeName.ifPresent(podStatus::setNodeName);
       podStatus.setPrimary(false);
       podStatus.setPendingRestart(false);
       cluster.getStatus().getPodStatuses().add(podStatus);
