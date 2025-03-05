@@ -19,6 +19,7 @@ import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -29,10 +30,14 @@ public class ShardedClusterShardsDefaultInstanceProfile
     implements ResourceGenerator<StackGresShardedClusterContext> {
 
   private final LabelFactoryForShardedCluster labelFactory;
+  private final DefaultProfileFactory defaultProfileFactory;
 
   @Inject
-  public ShardedClusterShardsDefaultInstanceProfile(LabelFactoryForShardedCluster labelFactory) {
+  public ShardedClusterShardsDefaultInstanceProfile(
+      LabelFactoryForShardedCluster labelFactory,
+      DefaultProfileFactory defaultProfileFactory) {
     this.labelFactory = labelFactory;
+    this.defaultProfileFactory = defaultProfileFactory;
   }
 
   @Override
@@ -66,8 +71,7 @@ public class ShardedClusterShardsDefaultInstanceProfile
         .withName(cluster.getSpec().getShards().getSgInstanceProfile())
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
-        .withNewSpec()
-        .endSpec()
+        .withSpec(defaultProfileFactory.buildResource(cluster).getSpec())
         .build();
   }
 

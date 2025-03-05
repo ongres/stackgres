@@ -16,10 +16,10 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
-import io.stackgres.operator.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.initialization.DefaultDistributedLogsPostgresConfigFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -29,10 +29,14 @@ import jakarta.inject.Singleton;
 public class DistributedLogsDefaultPostgresConfig implements ResourceGenerator<StackGresDistributedLogsContext> {
 
   private final LabelFactoryForDistributedLogs labelFactory;
+  private final DefaultDistributedLogsPostgresConfigFactory defaultDistributedLogsPostgresConfigFactory;
 
   @Inject
-  public DistributedLogsDefaultPostgresConfig(LabelFactoryForDistributedLogs labelFactory) {
+  public DistributedLogsDefaultPostgresConfig(
+      LabelFactoryForDistributedLogs labelFactory,
+      DefaultDistributedLogsPostgresConfigFactory defaultDistributedLogsPostgresConfigFactory) {
     this.labelFactory = labelFactory;
+    this.defaultDistributedLogsPostgresConfigFactory = defaultDistributedLogsPostgresConfigFactory;
   }
 
   @Override
@@ -65,16 +69,8 @@ public class DistributedLogsDefaultPostgresConfig implements ResourceGenerator<S
         .withName(cluster.getSpec().getConfigurations().getSgPostgresConfig())
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
-        .withNewSpec()
-        .withPostgresVersion(
-            getPostgresMajorVersion(
-                StackGresDistributedLogsUtil.getPostgresVersion(cluster)))
-        .endSpec()
+        .withSpec(defaultDistributedLogsPostgresConfigFactory.buildResource(cluster).getSpec())
         .build();
-  }
-
-  private String getPostgresMajorVersion(String version) {
-    return version.split("\\.")[0];
   }
 
 }

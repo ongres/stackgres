@@ -20,6 +20,7 @@ import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -30,10 +31,14 @@ public class ShardedClusterShardsPgBouncerDefaultPoolingConfig
     implements ResourceGenerator<StackGresShardedClusterContext> {
 
   private final LabelFactoryForShardedCluster labelFactory;
+  private final DefaultPoolingConfigFactory defaultPoolingConfigFactory;
 
   @Inject
-  public ShardedClusterShardsPgBouncerDefaultPoolingConfig(LabelFactoryForShardedCluster labelFactory) {
+  public ShardedClusterShardsPgBouncerDefaultPoolingConfig(
+      LabelFactoryForShardedCluster labelFactory,
+      DefaultPoolingConfigFactory defaultPoolingConfigFactory) {
     this.labelFactory = labelFactory;
+    this.defaultPoolingConfigFactory = defaultPoolingConfigFactory;
   }
 
   @Override
@@ -71,12 +76,7 @@ public class ShardedClusterShardsPgBouncerDefaultPoolingConfig
         .withName(cluster.getSpec().getShards().getConfigurations().getSgPoolingConfig())
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
-        .withNewSpec()
-        .withNewPgBouncer()
-        .withNewPgbouncerIni()
-        .endPgbouncerIni()
-        .endPgBouncer()
-        .endSpec()
+        .withSpec(defaultPoolingConfigFactory.buildResource(cluster).getSpec())
         .build();
   }
 

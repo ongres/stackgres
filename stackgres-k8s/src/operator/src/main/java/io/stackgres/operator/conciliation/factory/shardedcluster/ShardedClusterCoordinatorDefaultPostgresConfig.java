@@ -19,6 +19,7 @@ import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.operator.initialization.DefaultShardedClusterPostgresConfigFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -29,10 +30,14 @@ public class ShardedClusterCoordinatorDefaultPostgresConfig
     implements ResourceGenerator<StackGresShardedClusterContext> {
 
   private final LabelFactoryForShardedCluster labelFactory;
+  private final DefaultShardedClusterPostgresConfigFactory defaultShardedClusterPostgresConfigFactory;
 
   @Inject
-  public ShardedClusterCoordinatorDefaultPostgresConfig(LabelFactoryForShardedCluster labelFactory) {
+  public ShardedClusterCoordinatorDefaultPostgresConfig(
+      LabelFactoryForShardedCluster labelFactory,
+      DefaultShardedClusterPostgresConfigFactory defaultShardedClusterPostgresConfigFactory) {
     this.labelFactory = labelFactory;
+    this.defaultShardedClusterPostgresConfigFactory = defaultShardedClusterPostgresConfigFactory;
   }
 
   @Override
@@ -64,15 +69,8 @@ public class ShardedClusterCoordinatorDefaultPostgresConfig
         .withName(cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig())
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
-        .withNewSpec()
-        .withPostgresVersion(getPostgresMajorVersion(cluster))
-        .endSpec()
+        .withSpec(defaultShardedClusterPostgresConfigFactory.buildResource(cluster).getSpec())
         .build();
-  }
-
-  private String getPostgresMajorVersion(StackGresShardedCluster cluster) {
-    String version = cluster.getSpec().getPostgres().getVersion();
-    return version.split("\\.")[0];
   }
 
 }

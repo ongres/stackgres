@@ -20,6 +20,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -29,10 +30,14 @@ import jakarta.inject.Singleton;
 public class PgBouncerDefaultPoolingConfig implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster labelFactory;
+  private final DefaultPoolingConfigFactory defaultPoolingConfigFactory;
 
   @Inject
-  public PgBouncerDefaultPoolingConfig(LabelFactoryForCluster labelFactory) {
+  public PgBouncerDefaultPoolingConfig(
+      LabelFactoryForCluster labelFactory,
+      DefaultPoolingConfigFactory defaultPoolingConfigFactory) {
     this.labelFactory = labelFactory;
+    this.defaultPoolingConfigFactory = defaultPoolingConfigFactory;
   }
 
   @Override
@@ -67,12 +72,7 @@ public class PgBouncerDefaultPoolingConfig implements ResourceGenerator<StackGre
         .withName(cluster.getSpec().getConfigurations().getSgPoolingConfig())
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
-        .withNewSpec()
-        .withNewPgBouncer()
-        .withNewPgbouncerIni()
-        .endPgbouncerIni()
-        .endPgBouncer()
-        .endSpec()
+        .withSpec(defaultPoolingConfigFactory.buildResource(cluster).getSpec())
         .build();
   }
 

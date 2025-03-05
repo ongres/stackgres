@@ -19,6 +19,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -28,10 +29,14 @@ import jakarta.inject.Singleton;
 public class ClusterDefaultInstanceProfile implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster labelFactory;
+  private final DefaultProfileFactory defaultProfileFactory;
 
   @Inject
-  public ClusterDefaultInstanceProfile(LabelFactoryForCluster labelFactory) {
+  public ClusterDefaultInstanceProfile(
+      LabelFactoryForCluster labelFactory,
+      DefaultProfileFactory defaultProfileFactory) {
     this.labelFactory = labelFactory;
+    this.defaultProfileFactory = defaultProfileFactory;
   }
 
   @Override
@@ -63,8 +68,7 @@ public class ClusterDefaultInstanceProfile implements ResourceGenerator<StackGre
         .withName(cluster.getSpec().getSgInstanceProfile())
         .withLabels(labelFactory.defaultConfigLabels(cluster))
         .endMetadata()
-        .withNewSpec()
-        .endSpec()
+        .withSpec(defaultProfileFactory.buildResource(cluster).getSpec())
         .build();
   }
 

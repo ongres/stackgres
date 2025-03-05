@@ -34,10 +34,7 @@ public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?,
     if (review.getRequest().getOperation() != Operation.CREATE) {
       return resource;
     }
-    C defaultResource = resourceFactory.buildResource((S) resource);
-
-    String defaultResourceName = defaultResource.getMetadata().getName();
-
+    String defaultResourceName = resourceFactory.getDefaultResourceName(resource);
     setValueSection(resource);
     if (isTargetPropertyEmpty(resource)) {
       setTargetProperty(resource, defaultResourceName);
