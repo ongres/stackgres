@@ -17,10 +17,17 @@ import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerContext> {
+
+  private final DefaultProfileFactory defaultProfileFactory;
+
+  public HugePagesMounts(DefaultProfileFactory defaultProfileFactory) {
+    this.defaultProfileFactory = defaultProfileFactory;
+  }
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
@@ -28,8 +35,10 @@ public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerCon
       return List.of();
     }
 
+    var profile = context.getClusterContext().getProfile()
+        .orElseGet(() -> defaultProfileFactory.buildResource(context.getClusterContext().getSource()));
     return Stream.concat(
-        Optional.of(context.getClusterContext().getProfile().getSpec())
+        Optional.of(profile.getSpec())
             .map(StackGresProfileSpec::getHugePages)
             .map(StackGresProfileHugePages::getHugepages2Mi)
             .map(quantity -> new VolumeMountBuilder()
@@ -37,7 +46,7 @@ public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerCon
                 .withMountPath(ClusterPath.HUGEPAGES_2M_PATH.path())
                 .build())
             .stream(),
-        Optional.of(context.getClusterContext().getProfile().getSpec())
+        Optional.of(profile.getSpec())
             .map(StackGresProfileSpec::getHugePages)
             .map(StackGresProfileHugePages::getHugepages1Gi)
             .map(quantity -> new VolumeMountBuilder()

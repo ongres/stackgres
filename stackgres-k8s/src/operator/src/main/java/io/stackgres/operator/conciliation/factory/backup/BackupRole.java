@@ -50,7 +50,8 @@ public class BackupRole implements ResourceGenerator<StackGresBackupContext> {
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresBackupContext context) {
-    if (isNotBackupCopy(context)) {
+    if (isNotBackupCopy(context)
+        || context.getFoundCluster().isEmpty()) {
       return Stream.of();
     }
     return Stream.of(

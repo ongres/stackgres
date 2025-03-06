@@ -7,11 +7,11 @@ package io.stackgres.operator.mutation.distributedlogs;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.initialization.DefaultProfileFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutatorTest;
 import org.junit.jupiter.api.Disabled;
@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultProfileConfigMutatorTest
-    extends AbstractDefaultResourceMutatorTest<StackGresProfile, StackGresDistributedLogs,
+    extends AbstractDefaultResourceMutatorTest<StackGresProfile, HasMetadata, StackGresDistributedLogs,
         StackGresDistributedLogsReview, DefaultProfileMutator> {
 
   @Override
@@ -31,10 +31,9 @@ class DefaultProfileConfigMutatorTest
 
   @Override
   protected DefaultProfileMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultProfileFactory(new OperatorPropertyContext());
-    resourceFactory.init();
+    var resourceFactory = new DefaultProfileFactory();
     var mutator = new DefaultProfileMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

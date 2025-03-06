@@ -19,6 +19,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.initialization.DefaultProfileFactory;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,13 +27,20 @@ import org.jetbrains.annotations.NotNull;
 @OperatorVersionBinder
 public class PatroniHugePages1Gi implements VolumeFactory<StackGresClusterContext> {
 
+  private final DefaultProfileFactory defaultProfileFactory;
+
+  public PatroniHugePages1Gi(DefaultProfileFactory defaultProfileFactory) {
+    this.defaultProfileFactory = defaultProfileFactory;
+  }
+
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     if (context.calculateDisablePatroniResourceRequirements()) {
       return Stream.of();
     }
 
-    final var profile = context.getProfile();
+    final var profile = context.getProfile()
+        .orElseGet(() -> defaultProfileFactory.buildResource(context.getSource()));
 
     return Stream.<VolumePair>of(
         ImmutableVolumePair.builder()

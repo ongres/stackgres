@@ -57,6 +57,7 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContex
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
+import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -72,17 +73,20 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   private final UserOverrideMounts userOverrideMounts;
   private final PostgresSocketMounts postgresSocketMounts;
   private final TemplatesMounts templatesMounts;
+  private final DefaultPoolingConfigFactory defaultPoolingConfigFactory;
 
   @Inject
   protected PgBouncerPooling(
       LabelFactoryForCluster labelFactory,
       UserOverrideMounts userOverrideMounts,
       PostgresSocketMounts postgresSocketMounts,
-      TemplatesMounts templatesMounts) {
+      TemplatesMounts templatesMounts,
+      DefaultPoolingConfigFactory defaultPoolingConfigFactory) {
     this.labelFactory = labelFactory;
     this.userOverrideMounts = userOverrideMounts;
     this.postgresSocketMounts = postgresSocketMounts;
     this.templatesMounts = templatesMounts;
+    this.defaultPoolingConfigFactory = defaultPoolingConfigFactory;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -242,14 +246,18 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   }
 
   private String getConfigFile(StackGresClusterContext context) {
+    StackGresPoolingConfig poolingConfig = context.getPoolingConfig()
+        .orElseGet(() -> defaultPoolingConfigFactory.buildResource(context.getSource()));
     return ""
-        + getDatabaseSection(context)
-        + getUserSection(context)
-        + getPgBouncerSection(context);
+        + getDatabaseSection(context, poolingConfig)
+        + getUserSection(context, poolingConfig)
+        + getPgBouncerSection(context, poolingConfig);
   }
 
-  private String getPgBouncerSection(StackGresClusterContext context) {
-    var newParams = context.getPoolingConfig()
+  private String getPgBouncerSection(
+      StackGresClusterContext context,
+      StackGresPoolingConfig poolingConfig) {
+    var newParams = Optional.of(poolingConfig)
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
@@ -281,8 +289,10 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
     return "[pgbouncer]\n" + pgBouncerConfig + "\n";
   }
 
-  private String getUserSection(StackGresClusterContext context) {
-    var users = context.getPoolingConfig()
+  private String getUserSection(
+      StackGresClusterContext context,
+      StackGresPoolingConfig poolingConfig) {
+    var users = Optional.of(poolingConfig)
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
@@ -294,8 +304,10 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         : "";
   }
 
-  private String getDatabaseSection(StackGresClusterContext context) {
-    var databases = context.getPoolingConfig()
+  private String getDatabaseSection(
+      StackGresClusterContext context,
+      StackGresPoolingConfig poolingConfig) {
+    var databases = Optional.of(poolingConfig)
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)

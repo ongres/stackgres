@@ -696,8 +696,8 @@ class ClusterConciliatorTest {
     deployed.stream()
         .filter(this::hasControllerOwnerReference)
         .forEach(resource -> deployedResourcesCache
-            .put(lastRequired.stream()
-                .filter(r -> ResourceKey.same(r, resource))
+            .put(cluster, lastRequired.stream()
+                .filter(r -> ResourceKey.same(cluster, r, resource))
                 .findFirst()
                 .orElse(resource),
                 resource));
@@ -707,7 +707,7 @@ class ClusterConciliatorTest {
     foundDeployed.stream()
         .forEach(resource -> resource.getMetadata().setResourceVersion("changed"));
     DeployedResourcesSnapshot deplyedResourcesSnapshot =
-        deployedResourcesCache.createDeployedResourcesSnapshot(ownedLastDeployed, foundDeployed);
+        deployedResourcesCache.createDeployedResourcesSnapshot(cluster, ownedLastDeployed, foundDeployed);
 
     when(finder.findByNameAndNamespace(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(cluster));

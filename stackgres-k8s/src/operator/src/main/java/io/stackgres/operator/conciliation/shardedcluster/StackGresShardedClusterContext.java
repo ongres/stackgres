@@ -18,6 +18,8 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
@@ -42,7 +44,17 @@ public interface StackGresShardedClusterContext
 
   StackGresCluster getCoordinator();
 
-  StackGresPostgresConfig getCoordinatorConfig();
+  Optional<StackGresProfile> getCoordinatorProfile();
+
+  Optional<StackGresPostgresConfig> getCoordinatorPostgresConfig();
+
+  Optional<StackGresPoolingConfig> getCoordinatorPoolingConfig();
+
+  Optional<StackGresProfile> getShardsProfile();
+
+  Optional<StackGresPostgresConfig> getShardsPostgresConfig();
+
+  Optional<StackGresPoolingConfig> getShardsPoolingConfig();
 
   List<StackGresCluster> getShards();
 
@@ -110,5 +122,12 @@ public interface StackGresShardedClusterContext
   Optional<String> getPostgresSslPrivateKey();
 
   List<Tuple2<String, String>> getShardingSphereAuthorityUsers();
+
+  public static class Builder extends ImmutableStackGresShardedClusterContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
 
 }

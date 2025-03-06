@@ -244,6 +244,34 @@ spec:
                           Section to configure Operator Service annotations
 
                           > This value can only be set in operator helm chart.
+                  port:
+                    type: integer
+                    description: |
+                      The port that will be exposed by the operator Service for HTTPS
+
+                      > This value can only be set in operator helm chart.
+                    default: 443
+                  internalHttpPort:
+                    type: integer
+                    description: |
+                      The port that the operator will use to listen for HTTP
+                      
+                      > This value can only be set in operator helm chart or with the environment variable `OPERATOR_HTTP_PORT`.
+                    default: 8080
+                  internalHttpsPort:
+                    type: integer
+                    description: |
+                      The port that the operator will use to listen for HTTPS
+
+                      > This value can only be set in operator helm chart or with the environment variable `OPERATOR_HTTPS_PORT`.
+                    default: 8443
+                  hostNetwork:
+                    type: boolean
+                    description: |
+                      Host networking requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified. Default to false.
+
+                      > This value can only be set in operator helm chart.
+                    default: false
               restapi:
                 type: object
                 description: Section to configure REST API Pod
@@ -386,6 +414,13 @@ spec:
                   
                   See receivers section to scale this architecture to a set of OpenTelemetry Collectors.
                 default:
+                  resources:
+                    limits:
+                      memory: "4Gi"
+                      cpu: "1"
+                    requests:
+                      memory: "1Gi"
+                      cpu: "250m"
                   service:
                     spec:
                       type: ClusterIP
@@ -408,6 +443,11 @@ spec:
                               ca_file: "/etc/operator/certs/tls.crt"
                               cert_file: "/etc/operator/certs/tls.crt"
                               key_file: "/etc/operator/certs/tls.key"
+                    processors:
+                      memory_limiter: # soft limit should be less than hard limit so we never reach the 4GiB
+                        check_interval: 1s
+                        limit_percentage: 80
+                        spike_limit_percentage: 15
                     exporters:
                       prometheus:
                         endpoint: "0.0.0.0:9464"
@@ -417,7 +457,7 @@ spec:
                           key_file: "/etc/operator/certs/tls.key"
                           reload_interval: 10m
                         send_timestamps: true
-                        metric_expiration: 180m
+                        metric_expiration: 5m
                         enable_open_metrics: false
                         resource_to_telemetry_conversion:
                           enabled: false
@@ -430,6 +470,8 @@ spec:
                         metrics:
                           receivers:
                           - prometheus
+                          processors:
+                          - memory_limiter
                           exporters:
                           - prometheus
                   prometheusOperator:

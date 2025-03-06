@@ -336,7 +336,6 @@ test_api_delete_pgpooling_is_invible() {
 }
 
 test_dependency_api_error(){
-
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
@@ -344,17 +343,7 @@ test_dependency_api_error(){
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
-  assert_string_equal "409" "$HTTP_STATUS"
-
-  ERROR_RESPONSE="$(run_curl -r "stackgres/sgpoolconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-pgpooling.json" -e '-X DELETE')"
-
-  EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
-  EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
-  EXPECTED_ERROR_DETAIL="Can't delete sgpoolconfigs.stackgres.io $PGPOOLING"
-  EXPECTED_ERROR_FIELD=""
-
-  assert_api_error "$ERROR_RESPONSE"
-
+  assert_string_equal "204" "$HTTP_STATUS"
 }
 
 test_authentication_api_error() {

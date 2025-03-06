@@ -6,25 +6,136 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.BackupFinder;
+import io.stackgres.common.resource.ClusterFinder;
+import io.stackgres.common.resource.ConfigScanner;
+import io.stackgres.common.resource.ObjectStorageFinder;
+import io.stackgres.common.resource.PoolingConfigFinder;
+import io.stackgres.common.resource.PostgresConfigFinder;
+import io.stackgres.common.resource.ProfileFinder;
+import io.stackgres.common.resource.SecretFinder;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
+import io.stackgres.operator.resource.PrometheusScanner;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResourcesGeneratorTest {
+class ClusterRequiredResourcesGeneratorTest {
+
+  @InjectMock
+  ConfigScanner configScanner;
+
+  @InjectMock
+  ClusterFinder clusterFinder;
+
+  @InjectMock
+  ObjectStorageFinder objectStorageFinder;
+
+  @InjectMock
+  PostgresConfigFinder postgresConfigFinder;
+
+  @InjectMock
+  ProfileFinder profileFinder;
+
+  @InjectMock
+  PoolingConfigFinder poolingConfigFinder;
+
+  @InjectMock
+  BackupFinder backupFinder;
+
+  @InjectMock
+  PrometheusScanner prometheusScanner;
+
+  @InjectMock
+  SecretFinder secretFinder;
+
+  @Inject
+  ClusterRequiredResourcesGenerator generator;
+
+  StackGresConfig config;
+  StackGresCluster cluster;
+  StackGresObjectStorage objectStorage;
+  StackGresPostgresConfig postgresConfig;
+  StackGresPoolingConfig poolingConfig;
+  StackGresProfile instanceProfile;
+  StackGresBackup backup;
+  Secret minioSecret;
+
+  @BeforeEach
+  void setUp() {
+    config = Fixtures.config().loadDefault().get();
+    cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
+        .getLatest().streamOrderedVersions()
+        .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+    final String namespace = cluster.getMetadata().getNamespace();
+    objectStorage = Fixtures.objectStorage().loadDefault().get();
+    setNamespace(objectStorage);
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
+    postgresConfig.getSpec()
+        .setPostgresVersion(StackGresComponent.POSTGRESQL
+            .getLatest().streamOrderedMajorVersions()
+            .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
+    setNamespace(postgresConfig);
+    postgresConfig.setStatus(new StackGresPostgresConfigStatus());
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    postgresConfig.getStatus()
+        .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
+    poolingConfig = Fixtures.poolingConfig().loadDefault().get();
+    setNamespace(poolingConfig);
+    poolingConfig.setStatus(new StackGresPoolingConfigStatus());
+    poolingConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
+    poolingConfig.getStatus().getPgBouncer()
+        .setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
+    instanceProfile = Fixtures.instanceProfile().loadSizeM().get();
+    instanceProfile.getMetadata().setNamespace(namespace);
+    setNamespace(instanceProfile);
+    backup = Fixtures.backup().loadDefault().get();
+    setNamespace(backup);
+    backup.getStatus().getProcess().setStatus(BackupStatus.COMPLETED.status());
+    backup.getStatus().setInternalName("test");
+    backup.getStatus().setBackupInformation(new StackGresBackupInformation());
+    backup.getStatus().getBackupInformation().setPostgresVersion(
+        cluster.getSpec().getPostgres().getVersion());
+    minioSecret = Fixtures.secret().loadMinio().get();
+    when(configScanner.findResources()).thenReturn(Optional.of(List.of(config)));
+  }
+
+  private void setNamespace(HasMetadata resource) {
+    resource.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
+  }
 
   @Test
-  void givenValidCluster_getRequiredResourcesShouldNotFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
+  void givenValidCluster_shouldPass() {
     mockBackupConfig();
     mockPgConfig();
     mockPoolingConfig();
@@ -34,235 +145,41 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
     mockSecrets();
 
     generator.getRequiredResources(cluster);
-
-    verify(objectStorageFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
-        clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(backupFinder).findByNameAndNamespace(any(), any());
   }
 
-  @Test
-  void givenValidClusterWithoutBackupConfig_getRequiredResourcesShouldNotFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
-    mockPgConfig();
-    mockPoolingConfig();
-    mockProfile();
-    unmockBackupConfig();
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(backup));
-    mockSecrets();
-
-    generator.getRequiredResources(cluster);
-
-    verify(objectStorageFinder, never()).findByNameAndNamespace(any(), any());
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(backupFinder).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenValidClusterWithNoPoolingConfig_getRequiredResourcesShouldNotFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
-    cluster.getSpec().getConfigurations().setSgPoolingConfig(null);
-
-    mockBackupConfig();
-    mockPgConfig();
-    mockProfile();
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(backup));
-    mockSecrets();
-
-    generator.getRequiredResources(cluster);
-
-    verify(objectStorageFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
-        clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(backupFinder).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenValidClusterWithoutRestoreData_getRequiredResourcesShouldNotScanForBackups() {
-
-    cluster.getSpec().getInitialData().setRestore(null);
-
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
-    mockBackupConfig();
-    mockPgConfig();
-    mockPoolingConfig();
-    final String resourceProfile = cluster.getSpec().getSgInstanceProfile();
-    when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
+  private void mockProfile() {
+    when(profileFinder.findByNameAndNamespace(
+        cluster.getSpec().getSgInstanceProfile(),
+        cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(instanceProfile));
-    mockSecrets();
-
-    generator.getRequiredResources(cluster);
-
-    verify(objectStorageFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
-        clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupFinder, never()).findByNameAndNamespace(any(), any());
   }
 
-  @Test
-  void givenAClusterWithMissingRestoreBackup_getRequiredResourcesShouldNotFail() {
-
-    cluster.getSpec().getInitialData().getRestore()
-        .setFromBackup(new StackGresClusterRestoreFromBackup());
-    cluster.getSpec().getInitialData().getRestore().getFromBackup()
-        .setName(backup.getMetadata().getName());
-
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
-    mockBackupConfig();
-    mockPgConfig();
-    mockPoolingConfig();
-    final String resourceProfile = cluster.getSpec().getSgInstanceProfile();
-    when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
-        .thenReturn(Optional.of(instanceProfile));
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    mockSecrets();
-
-    generator.getRequiredResources(cluster);
-
-    verify(objectStorageFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
-        clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupFinder).findByNameAndNamespace(any(), any());
+  private void mockPoolingConfig() {
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getSgPoolingConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(poolingConfig));
   }
 
-  @Test
-  void givenAClusterWithInvalidPgConfig_getRequiredResourcesShouldFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
-    final String clusterNamespace = metadata.getNamespace();
-
+  private void mockPgConfig() {
     when(postgresConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace))
-        .thenReturn(Optional.empty());
-
-    assertException("SGCluster " + clusterNamespace + "." + clusterName
-        + " have a non existent SGPostgresConfig "
-        + cluster.getSpec().getConfigurations().getSgPostgresConfig());
-
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(profileConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(objectStorageFinder, never()).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(backupFinder, never()).findByNameAndNamespace(any(), any());
+        cluster.getSpec().getConfigurations().getSgPostgresConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.postgresConfig));
   }
 
-  @Test
-  void givenAClusterWithoutInstanceProfile_shouldFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
-    final String clusterNamespace = metadata.getNamespace();
-
-    mockPgConfig();
-    final String resourceProfile = cluster.getSpec().getSgInstanceProfile();
-    when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
-        .thenReturn(Optional.empty());
-
-    assertException("SGCluster " + clusterNamespace + "."
-        + clusterName + " have a non existent SGInstanceProfile " + resourceProfile);
-
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(objectStorageFinder, never()).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(backupFinder, never()).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenClusterWithNoBackupConfig_shouldFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
+  private void mockBackupConfig() {
     when(objectStorageFinder.findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
-        clusterNamespace))
-        .thenReturn(Optional.empty());
-    mockPgConfig();
-    mockPoolingConfig();
-    mockProfile();
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(backup));
-    mockSecrets();
-
-    assertException("SGObjectStorage "
-        + cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage()
-        + " not found");
-
-    verify(objectStorageFinder).findByNameAndNamespace(any(), any());
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder, never()).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(backupFinder, never()).findByNameAndNamespace(any(), any());
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.objectStorage));
   }
 
-  @Test
-  void givenClusterWithNoPoolingConfig_shouldNotFail() {
-    final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterNamespace = metadata.getNamespace();
-
-    mockBackupConfig();
-    mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace))
-        .thenReturn(Optional.empty());
-    mockProfile();
-    when(backupFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(backup));
-    mockSecrets();
-
-    generator.getRequiredResources(cluster);
-
-    verify(objectStorageFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
-        clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
-    verify(profileConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(backupFinder).findByNameAndNamespace(any(), any());
+  private void mockSecrets() {
+    when(secretFinder.findByNameAndNamespace(
+        "minio",
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(minioSecret));
   }
 
 }

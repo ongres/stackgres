@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgres;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourceSgCluster;
@@ -33,6 +34,7 @@ import io.stackgres.common.crd.sgstream.StreamStatusCondition;
 import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -51,6 +53,7 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
 
   final StackGresStream stream;
   final CustomResourceScheduler<StackGresStream> streamScheduler;
+  final CustomResourceFinder<StackGresCluster> clusterFinder;
   final ResourceFinder<Secret> secretFinder;
   final DebeziumEngine<?> engine;
   final CompletableFuture<Void> streamCompleted;
@@ -59,11 +62,13 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
   public TombstoneDebeziumSignalAction(
       StackGresStream stream,
       CustomResourceScheduler<StackGresStream> streamScheduler,
+      CustomResourceFinder<StackGresCluster> clusterFinder,
       ResourceFinder<Secret> secretFinder,
       DebeziumEngine<?> engine,
       CompletableFuture<Void> streamCompleted) {
     this.stream = stream;
     this.streamScheduler = streamScheduler;
+    this.clusterFinder = clusterFinder;
     this.secretFinder = secretFinder;
     this.engine = engine;
     this.streamCompleted = streamCompleted;
@@ -133,6 +138,9 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
       final String namespace = stream.getMetadata().getNamespace();
       final String clusterName = sgCluster.map(StackGresStreamTargetSgCluster::getName)
           .orElseThrow(() -> new IllegalArgumentException("The name of SGCluster is not specified"));
+      final StackGresCluster cluster = clusterFinder.findByNameAndNamespace(clusterName, namespace)
+          .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND + " " + clusterName + " not found"));
+      final String clusterServiceName = PatroniUtil.readWriteName(cluster);
       final String clusterPort = String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT);
       final String clusterDatabase = Optional.ofNullable(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getDatabase)
@@ -160,7 +168,7 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
       props.setProperty("connection.password", password);
       props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
           .formatted(
-              clusterName,
+              clusterServiceName,
               clusterPort,
               clusterDatabase));
       final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(props
@@ -248,6 +256,9 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
     final String namespace = stream.getMetadata().getNamespace();
     final String clusterName = sgCluster.map(StackGresStreamSourceSgCluster::getName)
         .orElseThrow(() -> new IllegalArgumentException("The name of SGCluster is not specified"));
+    final StackGresCluster cluster = clusterFinder.findByNameAndNamespace(clusterName, namespace)
+        .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND + " " + clusterName + " not found"));
+    final String clusterServiceName = PatroniUtil.readWriteName(cluster);
     final String clusterPort = String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT);
     final String clusterDatabase = Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
         .map(StackGresStreamSourceSgCluster::getDatabase)
@@ -275,7 +286,7 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
     props.setProperty("connection.password", password);
     props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
         .formatted(
-            clusterName,
+            clusterServiceName,
             clusterPort,
             clusterDatabase));
     return props;

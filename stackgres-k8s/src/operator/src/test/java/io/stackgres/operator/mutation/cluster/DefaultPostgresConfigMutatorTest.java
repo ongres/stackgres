@@ -12,16 +12,15 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
-import io.stackgres.operator.initialization.DefaultPostgresFactory;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultPostgresConfigMutatorTest
-    extends AbstractDefaultResourceMutatorTest<StackGresPostgresConfig, StackGresCluster,
-        StackGresClusterReview, DefaultPostgresMutator> {
+    extends AbstractDefaultResourceMutatorTest<StackGresPostgresConfig, StackGresCluster, StackGresCluster,
+        StackGresClusterReview, DefaultPostgresConfigMutator> {
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
@@ -32,11 +31,10 @@ class DefaultPostgresConfigMutatorTest
   }
 
   @Override
-  protected DefaultPostgresMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultPostgresFactory(new OperatorPropertyContext());
-    resourceFactory.init();
-    var mutator = new DefaultPostgresMutator(
-        resourceFactory, finder, scheduler);
+  protected DefaultPostgresConfigMutator getDefaultConfigMutator() {
+    var resourceFactory = new DefaultClusterPostgresConfigFactory();
+    var mutator = new DefaultPostgresConfigMutator(
+        resourceFactory);
     return mutator;
   }
 

@@ -340,6 +340,8 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_DB_OPS_RESTART_JSON = "stackgres/db_ops/restart.json";
 
+  String STACKGRES_DB_OPS_SAMPLING_JSON = "stackgres/db_ops/sampling.json";
+
   String STACKGRES_DB_OPS_SCHEDULING_JSON = "stackgres/db_ops/scheduling.json";
 
   String STACKGRES_DB_OPS_SECURITY_UPGRADE_JSON = "stackgres/db_ops/security_upgrade.json";

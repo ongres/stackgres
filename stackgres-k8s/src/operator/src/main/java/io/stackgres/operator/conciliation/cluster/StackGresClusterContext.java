@@ -48,6 +48,13 @@ import org.jetbrains.annotations.NotNull;
 public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
     ClusterContext {
 
+  public static class Builder extends ImmutableStackGresClusterContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
   StackGresConfig getConfig();
 
   Optional<VersionInfo> getKubernetesVersion();
@@ -70,9 +77,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresObjectStorage> getReplicateObjectStorageConfig();
 
-  StackGresPostgresConfig getPostgresConfig();
+  Optional<StackGresPostgresConfig> getPostgresConfig();
 
-  StackGresProfile getProfile();
+  Optional<StackGresProfile> getProfile();
 
   Optional<StackGresPoolingConfig> getPoolingConfig();
 

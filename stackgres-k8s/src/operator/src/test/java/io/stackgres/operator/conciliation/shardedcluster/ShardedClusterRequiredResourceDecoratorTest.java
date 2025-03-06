@@ -49,10 +49,10 @@ class ShardedClusterRequiredResourceDecoratorTest
 
   @Override
   protected StackGresShardedClusterContext getResourceContext() {
-    return ImmutableStackGresShardedClusterContext.builder()
+    return StackGresShardedClusterContext.builder()
         .config(config)
         .source(resource)
-        .coordinatorConfig(pgConfig)
+        .coordinatorPostgresConfig(pgConfig)
         .coordinator(getCoordinator())
         .shards(getShards())
         .build();

@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.mutation.distributedlogs;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
@@ -18,16 +17,14 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DefaultProfileMutator
-    extends AbstractDefaultResourceMutator<StackGresProfile,
+    extends AbstractDefaultResourceMutator<StackGresProfile, HasMetadata,
         StackGresDistributedLogs, StackGresDistributedLogsReview>
     implements DistributedLogsMutator {
 
   @Inject
   public DefaultProfileMutator(
-      DefaultCustomResourceFactory<StackGresProfile> resourceFactory,
-      CustomResourceFinder<StackGresProfile> finder,
-      CustomResourceScheduler<StackGresProfile> scheduler) {
-    super(resourceFactory, finder, scheduler);
+      DefaultCustomResourceFactory<StackGresProfile, HasMetadata> resourceFactory) {
+    super(resourceFactory);
   }
 
   public DefaultProfileMutator() {

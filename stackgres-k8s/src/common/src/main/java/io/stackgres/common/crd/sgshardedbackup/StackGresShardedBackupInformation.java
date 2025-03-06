@@ -6,7 +6,9 @@
 package io.stackgres.common.crd.sgshardedbackup;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -26,6 +28,13 @@ public class StackGresShardedBackupInformation {
 
   @Valid
   private StackGresShardedBackupSize size;
+
+  @JsonIgnore
+  public String getPostgresMajorVersion() {
+    return Optional.ofNullable(postgresVersion)
+        .map(version -> version.substring(0, 2))
+        .orElse(null);
+  }
 
   public String getPostgresVersion() {
     return postgresVersion;

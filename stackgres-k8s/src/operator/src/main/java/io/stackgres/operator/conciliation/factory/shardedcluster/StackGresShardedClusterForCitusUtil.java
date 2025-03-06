@@ -35,7 +35,6 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.impl.DSL;
@@ -235,7 +234,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .endMetadata()
         .withData(ResourceUtil.encodeSecret(Map.of("citus-update-shards.sql",
             Unchecked.supplier(() -> Resources
-                .asCharSource(ClusterDefaultScripts.class.getResource(
+                .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
                     "/citus/citus-update-shards.sql"),
                     StandardCharsets.UTF_8)
                 .read()).get().formatted(

@@ -79,6 +79,11 @@ public class ClusterStatusManager
     }
     if (source.getStatus() != null
         && source.getStatus().getArch() != null
+        && source.getStatus().getOs() != null) {
+      updateCondition(getClusterBootstrapped(), source);
+    }
+    if (source.getStatus() != null
+        && source.getStatus().getArch() != null
         && source.getStatus().getOs() != null
         && source.getStatus().getPodStatuses() != null
         && source.getSpec().getToInstallPostgresExtensions() != null) {
@@ -223,6 +228,10 @@ public class ClusterStatusManager
 
   protected Condition getClusterRequiresUpgrade() {
     return ClusterStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition();
+  }
+
+  protected Condition getClusterBootstrapped() {
+    return ClusterStatusCondition.CLUSTER_BOOTSTRAPPED.getCondition();
   }
 
   record StatusContext(

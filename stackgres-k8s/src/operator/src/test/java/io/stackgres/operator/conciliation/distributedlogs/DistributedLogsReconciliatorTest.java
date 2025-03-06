@@ -55,8 +55,6 @@ class DistributedLogsReconciliatorTest {
   @Mock
   CustomResourceScheduler<StackGresDistributedLogs> distributedlogsScheduler;
   @Mock
-  ConnectedClustersScanner connectedClustersScanner;
-  @Mock
   Metrics metrics;
 
   private DistributedLogsReconciliator reconciliator;
@@ -72,7 +70,6 @@ class DistributedLogsReconciliatorTest {
     parameters.eventController = eventController;
     parameters.statusManager = statusManager;
     parameters.distributedLogsScheduler = distributedlogsScheduler;
-    parameters.connectedClustersScanner = connectedClustersScanner;
     parameters.metrics = metrics;
     reconciliator = new DistributedLogsReconciliator(parameters);
   }

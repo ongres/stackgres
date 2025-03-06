@@ -54,6 +54,9 @@ spec:
         fsGroup: 1000
         {{- end }}
         {{- end }}
+      {{- with .Values.operator.hostNetwork }}
+      hostNetwork: {{ . }}
+      {{- end }}
       containers:
       {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
       - name: {{ .Release.Name }}
@@ -143,6 +146,14 @@ spec:
           {{- if .Values.developer.enableJvmDebugSuspend }}
           - name: DEBUG_OPERATOR_SUSPEND
             value: "{{ .Values.developer.enableJvmDebugSuspend }}"
+          {{- end }}
+          {{- with .Values.operator.listenHttpPort }}
+          - name: OPERATOR_HTTP_PORT
+            value: {{ . }}
+          {{- end }}
+          {{- with .Values.operator.listenHttpsPort }}
+          - name: OPERATOR_HTTPS_PORT
+            value: {{ . }}
           {{- end }}
           - name: OPERATOR_SERVICE_ACCOUNT
             valueFrom:

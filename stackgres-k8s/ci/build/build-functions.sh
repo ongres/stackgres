@@ -634,6 +634,8 @@ show_image_hashes() {
 }
 
 find_image_digests() {
+  (! ls stackgres-k8s/ci/build/target/image-digests.* > /dev/null 2>&1 \
+    || rm -rf stackgres-k8s/ci/build/target/image-digests.*)
   sort "$1" | uniq \
     | xargs -I @ -P 16 sh $(! echo $- | grep -q x || printf %s "-x") \
       stackgres-k8s/ci/build/build-functions.sh find_image_digest @

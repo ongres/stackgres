@@ -5,12 +5,7 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -26,7 +21,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
-import io.stackgres.common.resource.ProfileConfigFinder;
+import io.stackgres.common.resource.ProfileFinder;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +36,7 @@ class DbOpsRequiredResourcesGeneratorTest {
   ClusterFinder clusterFinder;
 
   @InjectMock
-  ProfileConfigFinder profileFinder;
+  ProfileFinder profileFinder;
 
   @Inject
   DbOpsRequiredResourcesGenerator generator;
@@ -55,7 +50,6 @@ class DbOpsRequiredResourcesGeneratorTest {
   void setUp() {
     config = Fixtures.config().loadDefault().get();
     dbOps = Fixtures.dbOps().loadRestart().get();
-    config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().getLatestVersion());
@@ -65,11 +59,7 @@ class DbOpsRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenValidCluster_getRequiredResourcesShouldNotFail() {
-    final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
-    final String clusterName = dbOps.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getSgInstanceProfile();
-
+  void givenValidDbOps_shouldPass() {
     when(configScanner.findResources())
         .thenReturn(Optional.of(List.of(config)));
 
@@ -80,60 +70,6 @@ class DbOpsRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(profile));
 
     generator.getRequiredResources(dbOps);
-
-    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
-    verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(dbOpsNamespace));
-  }
-
-  @Test
-  void givenADbOpsInvalidCluster_getRequiredResourcesShouldFail() {
-    final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
-    final String dbOpsName = dbOps.getMetadata().getName();
-    final String clusterName = dbOps.getSpec().getSgCluster();
-
-    when(configScanner.findResources())
-        .thenReturn(Optional.of(List.of(config)));
-
-    when(clusterFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-
-    assertException("SGDbOps " + dbOpsNamespace + "." + dbOpsName
-        + " have a non existent SGCluster " + clusterName);
-
-    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
-    verify(profileFinder, times(0)).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenClusterWithoutProfile_getRequiredResourcesShouldFail() {
-    final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
-    final String dbOpsName = dbOps.getMetadata().getName();
-    final String clusterName = dbOps.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getSgInstanceProfile();
-
-    when(configScanner.findResources())
-        .thenReturn(Optional.of(List.of(config)));
-
-    when(clusterFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(cluster));
-
-    assertException("SGDbOps " + dbOpsNamespace + "." + dbOpsName
-        + " target SGCluster " + clusterName
-        + " with a non existent SGInstanceProfile " + profileName);
-
-    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
-    verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(dbOpsNamespace));
-  }
-
-  private void assertException(String message) {
-    var ex =
-        assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(dbOps));
-    assertEquals(message, ex.getMessage());
   }
 
 }

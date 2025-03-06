@@ -7,20 +7,20 @@ package io.stackgres.operator.mutation.shardedcluster;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
-import io.stackgres.operator.initialization.DefaultPoolingFactory;
+import io.stackgres.operator.initialization.DefaultPoolingConfigFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultCoordinatorPoolingConfigMutatorTest
-    extends AbstractDefaultResourceMutatorTest<StackGresPoolingConfig, StackGresShardedCluster,
+    extends AbstractDefaultResourceMutatorTest<StackGresPoolingConfig, HasMetadata, StackGresShardedCluster,
         StackGresShardedClusterReview, DefaultCoordinatorPoolingMutator> {
 
   private static final String POSTGRES_VERSION =
@@ -33,10 +33,9 @@ class DefaultCoordinatorPoolingConfigMutatorTest
 
   @Override
   protected DefaultCoordinatorPoolingMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultPoolingFactory(new OperatorPropertyContext());
-    resourceFactory.init();
+    var resourceFactory = new DefaultPoolingConfigFactory();
     var mutator = new DefaultCoordinatorPoolingMutator(
-        resourceFactory, finder, scheduler);
+        resourceFactory);
     return mutator;
   }
 

@@ -8,11 +8,10 @@ package io.stackgres.operator.conciliation.stream;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgstream.StackGresStream;
-import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
+import io.stackgres.operator.conciliation.stream.context.StreamContextPipeline;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -25,34 +24,26 @@ public class StreamRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(StreamRequiredResourcesGenerator.class);
 
-  private final CustomResourceScanner<StackGresConfig> configScanner;
+  private final StreamContextPipeline contextPipeline;
 
   private final ResourceGenerationDiscoverer<StackGresStreamContext> discoverer;
 
   @Inject
   public StreamRequiredResourcesGenerator(
-      CustomResourceScanner<StackGresConfig> configScanner,
+      StreamContextPipeline contextPipeline,
       ResourceGenerationDiscoverer<StackGresStreamContext> discoverer) {
-    this.configScanner = configScanner;
+    this.contextPipeline = contextPipeline;
     this.discoverer = discoverer;
   }
 
   @Override
   public List<HasMetadata> getRequiredResources(StackGresStream stream) {
-    final StackGresConfig config = configScanner.findResources()
-        .stream()
-        .filter(list -> list.size() == 1)
-        .flatMap(List::stream)
-        .findAny()
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGConfig not found or more than one exists. Aborting reoconciliation!"));
+    StackGresStreamContext.Builder contextBuilder = StackGresStreamContext.builder()
+        .source(stream);
 
-    StackGresStreamContext context = ImmutableStackGresStreamContext.builder()
-        .config(config)
-        .source(stream)
-        .build();
+    contextPipeline.appendContext(stream, contextBuilder);
 
-    return discoverer.generateResources(context);
+    return discoverer.generateResources(contextBuilder.build());
   }
 
 }

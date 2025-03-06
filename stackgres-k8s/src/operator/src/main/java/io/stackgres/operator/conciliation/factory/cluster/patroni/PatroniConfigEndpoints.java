@@ -53,6 +53,7 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
@@ -66,15 +67,18 @@ public class PatroniConfigEndpoints
   private final LabelFactoryForCluster labelFactory;
   private final ObjectMapper objectMapper;
   private final YAMLMapper yamlMapper;
+  private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;
 
   @Inject
   public PatroniConfigEndpoints(
       LabelFactoryForCluster labelFactory,
       ObjectMapper objectMapper,
-      YamlMapperProvider yamlMapperProvider) {
+      YamlMapperProvider yamlMapperProvider,
+      DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory) {
     this.labelFactory = labelFactory;
     this.objectMapper = objectMapper;
     this.yamlMapper = yamlMapperProvider.get();
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
 
   @Override
@@ -105,7 +109,8 @@ public class PatroniConfigEndpoints
 
   PatroniConfig getPatroniConfig(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getCluster();
-    final StackGresPostgresConfig pgConfig = context.getPostgresConfig();
+    final StackGresPostgresConfig pgConfig = context.getPostgresConfig()
+        .orElseGet(() -> defaultPostgresConfigFactory.buildResource(cluster));
     final boolean isBackupConfigurationPresent = context.getBackupStorage().isPresent();
     final boolean isReplicateFromPresent = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplicateFrom)

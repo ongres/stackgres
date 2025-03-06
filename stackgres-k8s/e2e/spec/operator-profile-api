@@ -281,7 +281,6 @@ test_api_delete_profile_is_invible() {
 }
 
 test_constraint_violation_api_error() {
-
   PROFILE="$(get_updated_profile  'memory' '""')"
 
   echo "$PROFILE" > "$LOG_PATH/invalid-profile.json"
@@ -304,11 +303,9 @@ test_constraint_violation_api_error() {
   EXPECTED_ERROR_FIELD="memory"
 
   assert_api_error "$ERROR_RESPONSE"
-
 }
 
 test_dependency_api_error(){
-
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
@@ -316,17 +313,7 @@ test_dependency_api_error(){
 
   HTTP_STATUS="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE -w %{http_code} -o /dev/null')"
 
-  assert_string_equal "409" "$HTTP_STATUS"
-
-  ERROR_RESPONSE="$(run_curl -r "stackgres/sginstanceprofiles" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/default-profile.json" -e '-X DELETE')"
-
-  EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
-  EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
-  EXPECTED_ERROR_DETAIL="Can't delete sginstanceprofiles.stackgres.io size-s"
-  EXPECTED_ERROR_FIELD=""
-
-  assert_api_error "$ERROR_RESPONSE"
-
+  assert_string_equal "204" "$HTTP_STATUS"
 }
 
 test_authentication_api_error() {

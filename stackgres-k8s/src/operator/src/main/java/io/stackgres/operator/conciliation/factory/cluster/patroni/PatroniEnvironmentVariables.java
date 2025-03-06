@@ -37,10 +37,17 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.EnvVarProvider;
+import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import jakarta.inject.Singleton;
 
 @Singleton
 public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClusterContext> {
+
+  private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;
+
+  public PatroniEnvironmentVariables(DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory) {
+    this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
+  }
 
   @Override
   public List<EnvVar> getEnvVars(StackGresClusterContext context) {
@@ -140,9 +147,9 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
             .withZone(ZoneId.from(ZoneOffset.UTC))
             .format(restoreToTimestamp)));
 
-    appendEnvVarIfPresent(
-        "INITDB_AUTH_HOST",
-        Optional.of(context.getPostgresConfig()),
+    appendEnvVarIfPresent("INITDB_AUTH_HOST",
+        context.getPostgresConfig()
+            .or(() -> Optional.of(defaultPostgresConfigFactory.buildResource(cluster))),
         additionalEnvVars,
         Function.<StackGresPostgresConfig>identity()
         .andThen(StackGresPostgresConfig::getSpec)

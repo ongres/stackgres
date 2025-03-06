@@ -22,4 +22,11 @@ public interface StackGresStreamContext extends GenerationContext<StackGresStrea
     return StackGresVersion.getStackGresVersion(getSource());
   }
 
+  public static class Builder extends ImmutableStackGresStreamContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
 }

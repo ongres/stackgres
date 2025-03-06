@@ -11,8 +11,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
-import io.stackgres.operator.initialization.DefaultPostgresFactory;
+import io.stackgres.operator.initialization.DefaultDistributedLogsPostgresConfigFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultPostgresConfigMutatorTest
     extends AbstractDefaultResourceMutatorTest<StackGresPostgresConfig, StackGresDistributedLogs,
-        StackGresDistributedLogsReview, DefaultPostgresMutator> {
+        StackGresDistributedLogs, StackGresDistributedLogsReview, DefaultPostgresConfigMutator> {
 
   @Override
   protected StackGresDistributedLogsReview getAdmissionReview() {
@@ -28,11 +27,10 @@ class DefaultPostgresConfigMutatorTest
   }
 
   @Override
-  protected DefaultPostgresMutator getDefaultConfigMutator() {
-    var resourceFactory = new DefaultPostgresFactory(new OperatorPropertyContext());
-    resourceFactory.init();
-    var mutator = new DefaultPostgresMutator(
-        resourceFactory, finder, scheduler);
+  protected DefaultPostgresConfigMutator getDefaultConfigMutator() {
+    var resourceFactory = new DefaultDistributedLogsPostgresConfigFactory();
+    var mutator = new DefaultPostgresConfigMutator(
+        resourceFactory);
     return mutator;
   }
 

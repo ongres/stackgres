@@ -7,30 +7,15 @@ package io.stackgres.operator.initialization;
 
 import java.util.Properties;
 
-import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DefaultClusterRestoreFactory
-    extends AbstractCustomResourceFactory<StackGresClusterRestore> {
+    extends DefaultLoaderFactory<StackGresClusterRestore> {
 
   private static final String DEFAULT_RESTORE_VALUES_FILE = "/restore-default-values.properties";
-
-  @Inject
-  public DefaultClusterRestoreFactory(StackGresPropertyContext<OperatorProperty> context) {
-    super(context);
-  }
-
-  @PostConstruct
-  @Override
-  public void init() {
-    super.init();
-  }
 
   @Override
   Properties getDefaultPropertiesFile() {
@@ -38,7 +23,7 @@ public class DefaultClusterRestoreFactory
   }
 
   @Override
-  StackGresClusterRestore buildResource(String namespace) {
+  public StackGresClusterRestore buildResource() {
     return buildFromDefaults(StackGresClusterRestore.class);
   }
 

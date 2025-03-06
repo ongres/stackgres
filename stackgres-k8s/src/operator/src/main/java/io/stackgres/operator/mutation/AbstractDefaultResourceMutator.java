@@ -5,41 +5,28 @@
 
 package io.stackgres.operator.mutation;
 
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
 public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?, ?>,
-        T extends CustomResource<?, ?>, R extends AdmissionReview<T>>
+        S extends HasMetadata, T extends S, R extends AdmissionReview<T>>
     implements Mutator<T, R> {
 
-  protected final DefaultCustomResourceFactory<C> resourceFactory;
-
-  protected final CustomResourceFinder<C> finder;
-
-  protected final CustomResourceScheduler<C> scheduler;
+  protected final DefaultCustomResourceFactory<C, S> resourceFactory;
 
   protected AbstractDefaultResourceMutator(
-      DefaultCustomResourceFactory<C> resourceFactory,
-      CustomResourceFinder<C> finder,
-      CustomResourceScheduler<C> scheduler) {
+      DefaultCustomResourceFactory<C, S> resourceFactory) {
     this.resourceFactory = resourceFactory;
-    this.finder = finder;
-    this.scheduler = scheduler;
   }
 
   public AbstractDefaultResourceMutator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.resourceFactory = null;
-    this.finder = null;
-    this.scheduler = null;
   }
 
   @Override
@@ -47,19 +34,9 @@ public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?,
     if (review.getRequest().getOperation() != Operation.CREATE) {
       return resource;
     }
-    C defaultResource = resourceFactory.buildResource();
-
-    String targetNamespace = resource.getMetadata().getNamespace();
-    String defaultResourceName = defaultResource.getMetadata().getName();
-
+    String defaultResourceName = resourceFactory.getDefaultResourceName(resource);
     setValueSection(resource);
     if (isTargetPropertyEmpty(resource)) {
-      if (!Optional.ofNullable(review.getRequest().getDryRun()).orElse(false)
-          && finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isEmpty()) {
-        defaultResource.getMetadata().setNamespace(targetNamespace);
-        scheduler.create(defaultResource);
-      }
-
       setTargetProperty(resource, defaultResourceName);
     }
 

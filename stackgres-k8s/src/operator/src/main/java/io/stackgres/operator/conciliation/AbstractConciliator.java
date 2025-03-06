@@ -102,12 +102,12 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     var deployedOtherOwnerRequiredResources = deployedResourcesSnapshot.deployedResources().stream()
         .filter(deployedResource -> deployedResource.getMetadata().getOwnerReferences() != null
             && !deployedResource.getMetadata().getOwnerReferences().isEmpty())
-        .map(ResourceKey::create)
+        .map(deployedResource -> ResourceKey.create(config, deployedResource))
         .filter(deployedResourceKey -> deployedResourcesSnapshot.ownedDeployedResources().stream()
-            .map(ResourceKey::create)
+            .map(ownedDeployedResource -> ResourceKey.create(config, ownedDeployedResource))
             .noneMatch(deployedResourceKey::equals))
         .filter(deployedResourceKey -> requiredResources.stream()
-            .map(ResourceKey::create)
+            .map(requiredResource -> ResourceKey.create(config, requiredResource))
             .anyMatch(deployedResourceKey::equals))
         .toList();
     if (!deployedOtherOwnerRequiredResources.isEmpty()) {
@@ -122,7 +122,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
       }
       // Workaround for https://github.com/kubernetes/kubernetes/issues/120960
       cleanupNonGarbageCollectedResources(
-          deployedResourcesSnapshot, deployedOtherOwnerRequiredResources);
+          config, deployedResourcesSnapshot, deployedOtherOwnerRequiredResources);
       return new ReconciliationResult(
           List.of(),
           List.of(),
@@ -150,13 +150,14 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
   }
 
   private void cleanupNonGarbageCollectedResources(
+      HasMetadata generator,
       DeployedResourcesSnapshot deployedResourcesSnapshot,
       List<ResourceKey> deployedNonOwnedRequiredResources) {
     deployedNonOwnedRequiredResources.stream()
         .filter(resourceKey -> resourceKey.kind().equals(
             HasMetadata.getKind(ServiceAccount.class)))
         .map(resourceKey -> deployedResourcesSnapshot.deployedResources().stream()
-            .filter(deployedResource -> ResourceKey.create(deployedResource).equals(resourceKey))
+            .filter(deployedResource -> ResourceKey.create(generator, deployedResource).equals(resourceKey))
             .findFirst()
             .orElseThrow())
         .filter(resource -> resource.getMetadata().getOwnerReferences() != null
@@ -172,7 +173,9 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
                       .inNamespace(resource.getMetadata().getNamespace())
                       .withName(ownerReference.getName())
                       .get();
-                  return ownerResource.getMetadata().getUid().equals(ownerReference.getUid());
+                  return ownerResource != null
+                      && ownerResource.getMetadata() != null
+                      && Objects.equals(ownerResource.getMetadata().getUid(), ownerReference.getUid());
                 } catch (KubernetesClientException ex) {
                   if (ex.getCode() == Response.Status.NOT_FOUND.getStatusCode()) {
                     return false;
@@ -245,7 +248,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
 
     private boolean requireDeletion(HasMetadata foundDeployedResource) {
       boolean result = requiredResources.stream()
-          .noneMatch(required -> ResourceKey.same(required, foundDeployedResource));
+          .noneMatch(required -> ResourceKey.same(config, required, foundDeployedResource));
       if (result && LOGGER.isTraceEnabled()) {
         LOGGER.trace("Detected deletion for resource {} {}.{}",
             foundDeployedResource.getKind(),

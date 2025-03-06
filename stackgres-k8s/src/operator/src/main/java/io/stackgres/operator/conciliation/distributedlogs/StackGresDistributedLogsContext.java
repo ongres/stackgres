@@ -14,6 +14,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
@@ -25,16 +26,25 @@ public interface StackGresDistributedLogsContext
 
   List<StackGresCluster> getConnectedClusters();
 
-  StackGresPostgresConfig getPostgresConfig();
+  Optional<StackGresProfile> getProfile();
+
+  Optional<StackGresPostgresConfig> getPostgresConfig();
 
   Optional<StackGresCluster> getCluster();
 
-  Optional<Secret> getDatabaseCredentials();
+  Optional<Secret> getDatabaseSecret();
 
   @Override
   @Value.Derived
   default StackGresVersion getVersion() {
     return StackGresVersion.getStackGresVersion(getSource());
+  }
+
+  public static class Builder extends ImmutableStackGresDistributedLogsContext.Builder {
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 
 }
