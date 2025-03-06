@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.backup.context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,6 +72,19 @@ class BackupClusterContextAppenderTest {
   }
 
   @Test
+  void givenBackupCopyWithCluster_shouldPass() {
+    backup.getSpec().setSgCluster("test.test");
+    when(clusterFinder.findByNameAndNamespace(
+        "test",
+        "test"))
+        .thenReturn(Optional.of(cluster));
+    contextAppender.appendContext(backup, contextBuilder);
+    verify(contextBuilder).foundCluster(Optional.of(cluster));
+    verify(backupClusterInstanceProfileContextAppender).appendContext(cluster, contextBuilder);
+    verify(backupClusterObjectStorageContextAppender).appendContext(cluster, contextBuilder);
+  }
+
+  @Test
   void givenBackupWithoutCluster_shouldFail() {
     when(clusterFinder.findByNameAndNamespace(
         backup.getSpec().getSgCluster(),
@@ -79,6 +93,17 @@ class BackupClusterContextAppenderTest {
     var ex =
         assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(backup, contextBuilder));
     assertEquals("SGCluster backup-with-default-storage was not found", ex.getMessage());
+  }
+
+  @Test
+  void givenBackupCopyWithoutCluster_shouldPass() {
+    backup.getSpec().setSgCluster("test.test");
+    when(clusterFinder.findByNameAndNamespace("test", "test"))
+        .thenReturn(Optional.empty());
+    contextAppender.appendContext(backup, contextBuilder);
+    verify(contextBuilder).foundCluster(Optional.empty());
+    verify(backupClusterInstanceProfileContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
+    verify(backupClusterObjectStorageContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
   }
 
   @Test
@@ -94,15 +119,6 @@ class BackupClusterContextAppenderTest {
     verify(clusterFinder, Mockito.never()).findByNameAndNamespace(
         backup.getSpec().getSgCluster(),
         backup.getMetadata().getNamespace());
-    verify(backupClusterInstanceProfileContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
-    verify(backupClusterObjectStorageContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
-  }
-
-  @Test
-  void givenBackupInAnotherNamespaceWithoutCluster_shouldPass() {
-    backup.getSpec().setSgCluster("test.test");
-    contextAppender.appendContext(backup, contextBuilder);
-    verify(contextBuilder).foundCluster(Optional.empty());
     verify(backupClusterInstanceProfileContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
     verify(backupClusterObjectStorageContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
   }

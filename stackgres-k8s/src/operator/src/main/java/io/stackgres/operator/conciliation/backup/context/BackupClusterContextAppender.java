@@ -37,26 +37,27 @@ public class BackupClusterContextAppender
   public void appendContext(StackGresBackup backup, Builder contextBuilder) {
     final String clusterNamespace = StackGresUtil.getNamespaceFromRelativeId(
         backup.getSpec().getSgCluster(), backup.getMetadata().getNamespace());
-    if (!clusterNamespace.equals(backup.getMetadata().getNamespace())) {
-      contextBuilder.foundCluster(Optional.empty());
-      return;
-    }
-
-    if (BackupStatus.isFinished(backup)) {
+    final String clusterName = StackGresUtil.getNameFromRelativeId(
+        backup.getSpec().getSgCluster());
+    if (BackupStatus.isFinished(backup)
+        && !StackGresUtil.isRelativeIdNotInSameNamespace(backup.getSpec().getSgCluster())) {
       contextBuilder.foundCluster(Optional.empty());
       return;
     }
 
     final Optional<StackGresCluster> foundCluster = clusterFinder
         .findByNameAndNamespace(
-            backup.getSpec().getSgCluster(),
-            backup.getMetadata().getNamespace());
+            clusterName,
+            clusterNamespace);
 
     contextBuilder.foundCluster(foundCluster);
 
     if (foundCluster.isEmpty()) {
+      if (StackGresUtil.isRelativeIdNotInSameNamespace(backup.getSpec().getSgCluster())) {
+        return;
+      }
       throw new IllegalArgumentException(
-          StackGresCluster.KIND + " " + backup.getSpec().getSgCluster() + " was not found");
+          StackGresCluster.KIND + " " + clusterName + " was not found");
     }
     final StackGresCluster cluster = foundCluster.get();
     backupClusterInstanceProfileContextAppender.appendContext(cluster, contextBuilder);
