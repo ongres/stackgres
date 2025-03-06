@@ -51,7 +51,7 @@ class ClusterAnnotationDecoratorTest {
   void setUp() {
     defaultCluster = Fixtures.cluster().loadDefault().get();
 
-    when(context.getCluster()).thenReturn(defaultCluster);
+    when(context.getSource()).thenReturn(defaultCluster);
 
     final ObjectMeta metadata = defaultCluster.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
