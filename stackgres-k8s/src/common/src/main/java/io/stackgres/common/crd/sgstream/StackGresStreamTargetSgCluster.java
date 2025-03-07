@@ -39,6 +39,10 @@ public class StackGresStreamTargetSgCluster {
 
   private String ddlImportRoleSkipFilter;
 
+  private Boolean skipDropIndexesAndConstraints;
+
+  private Boolean skipRestoreIndexesAfterSnapshot;
+
   @Valid
   private StackGresStreamTargetJdbcSinkDebeziumProperties debeziumProperties;
 
@@ -90,6 +94,22 @@ public class StackGresStreamTargetSgCluster {
     this.ddlImportRoleSkipFilter = ddlImportRoleSkipFilter;
   }
 
+  public Boolean getSkipDropIndexesAndConstraints() {
+    return skipDropIndexesAndConstraints;
+  }
+
+  public void setSkipDropIndexesAndConstraints(Boolean skipDropIndexesAndConstraints) {
+    this.skipDropIndexesAndConstraints = skipDropIndexesAndConstraints;
+  }
+
+  public Boolean getSkipRestoreIndexesAfterSnapshot() {
+    return skipRestoreIndexesAfterSnapshot;
+  }
+
+  public void setSkipRestoreIndexesAfterSnapshot(Boolean skipRestoreIndexesAfterSnapshot) {
+    this.skipRestoreIndexesAfterSnapshot = skipRestoreIndexesAfterSnapshot;
+  }
+
   public StackGresStreamTargetJdbcSinkDebeziumProperties getDebeziumProperties() {
     return debeziumProperties;
   }
@@ -102,7 +122,7 @@ public class StackGresStreamTargetSgCluster {
   @Override
   public int hashCode() {
     return Objects.hash(database, ddlImportRoleSkipFilter, debeziumProperties, name, password,
-        skipDdlImport, username);
+        skipDdlImport, skipDropIndexesAndConstraints, skipRestoreIndexesAfterSnapshot, username);
   }
 
   @Override
@@ -119,6 +139,8 @@ public class StackGresStreamTargetSgCluster {
         && Objects.equals(debeziumProperties, other.debeziumProperties)
         && Objects.equals(name, other.name) && Objects.equals(password, other.password)
         && Objects.equals(skipDdlImport, other.skipDdlImport)
+        && Objects.equals(skipDropIndexesAndConstraints, other.skipDropIndexesAndConstraints)
+        && Objects.equals(skipRestoreIndexesAfterSnapshot, other.skipRestoreIndexesAfterSnapshot)
         && Objects.equals(username, other.username);
   }
 

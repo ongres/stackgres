@@ -109,6 +109,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
   class JdbcHandler implements TargetEventConsumer<SourceRecord>, SignalAction<Partition> {
 
     final StackGresStream stream;
+    final boolean skipRestoreIndexes;
 
     boolean started = false;
     boolean snapshot = true;
@@ -121,6 +122,17 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     JdbcHandler(StackGresStream stream) {
       this.stream = stream;
+      this.skipRestoreIndexes = !Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
+          .orElse(false)
+          && !Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipRestoreIndexesAfterSnapshot)
+          .orElse(false);
+      if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
+          .orElse(false)) {
+        snapshot = false;
+      }
     }
 
     public void start() {
@@ -205,7 +217,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         LOGGER.info("Import of DDL has been skipped as required by configuration");
       }
 
-      storeAndDropConstraintsAndIndexes();
+      if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
+          .orElse(false)) {
+        storeAndDropConstraintsAndIndexes();
+        LOGGER.info("Storing and removing constraints and indexes for target database");
+      } else {
+        LOGGER.info("Skipping storing and removing constraints and indexes for target database");
+      }
     }
 
     @Override
@@ -267,7 +286,12 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
             }
             sinkRecords.clear();
             committedChangeEvents.clear();
-            restoreIndexes();
+            if (skipRestoreIndexes) {
+              LOGGER.info("Restoring indexes for target database");
+              restoreIndexes();
+            } else {
+              LOGGER.info("Skipping restoring indexes for target database");
+            }
           }
           String sourceOffset = sourceRecord.sourceOffset()
               .entrySet()

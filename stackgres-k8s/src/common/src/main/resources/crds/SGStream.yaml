@@ -891,6 +891,14 @@ spec:
                           Allow to set a [SIMILAR TO regular expression](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-SIMILARTO-REGEXP) to match the names of the roles to skip during import of DDL.
                           
                           When not set and source is an SGCluster will match the superuser, replicator and authenticator usernames.
+                      skipDropIndexesAndConstraints:
+                        type: boolean
+                        description: |
+                          When `true` disable drop of indexes and constraints that improve snapshotting performance.
+                      skipRestoreIndexesAfterSnapshot:
+                        type: boolean
+                        description: |
+                          When `true` disable restore of indexes on the first non-snapshot event. This option is required when using incremental snapshotting. This option is ignored when `skipDropIndexesAndConstraints` is set to `true`.
                       debeziumProperties: &target-jdbc-debeziumProperties
                         type: object
                         description: |

@@ -133,6 +133,12 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
 
   private void restoreTargetConstraints() {
     if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
+      if (Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
+          .orElse(false)) {
+        LOGGER.info("Skipping restoring constraints and indexes for target database on tombstone signal");
+        return;
+      }
       final Properties props = new Properties();
       final var sgCluster = Optional.of(stream.getSpec().getTarget().getSgCluster());
       final String namespace = stream.getMetadata().getNamespace();
