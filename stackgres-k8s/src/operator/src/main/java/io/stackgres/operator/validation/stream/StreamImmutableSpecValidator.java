@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.stream;
 
+import java.util.Optional;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgstream.StackGresStream;
@@ -26,8 +28,10 @@ public class StreamImmutableSpecValidator implements StreamValidator {
       case UPDATE:
         StackGresStream stream = review.getRequest().getObject();
         StackGresStream oldStream = review.getRequest().getOldObject();
-        if (!stream.getSpec().equals(oldStream.getSpec())) {
-          fail("spec can not be updated");
+        if (Optional.ofNullable(stream.getSpec().getMaxRetries()).orElse(-1) >= 0) {
+          if (!stream.getSpec().equals(oldStream.getSpec())) {
+            fail("spec can not be updated when maxRetries is greater than -1");
+          }
         }
         break;
       default:
