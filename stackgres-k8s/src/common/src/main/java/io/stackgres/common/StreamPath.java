@@ -22,7 +22,8 @@ public enum StreamPath implements EnvVarPathSource<StackGresCluster> {
   LOCAL_BIN_PATH("/usr/local/bin"),
   DEBEZIUM_BASE_PATH("/var/lib/debezium"),
   DEBEZIUM_OFFSET_STORAGE_PATH(DEBEZIUM_BASE_PATH, "offsets.dat"),
-  DEBEZIUM_DATABASE_HISTORY_PATH(DEBEZIUM_BASE_PATH, "dbhistory.dat");
+  DEBEZIUM_DATABASE_HISTORY_PATH(DEBEZIUM_BASE_PATH, "dbhistory.dat"),
+  DEBEZIUM_ANNOTATION_SIGNAL_PATH(DEBEZIUM_BASE_PATH, "annotation-signal.properties");
 
   private final String path;
 

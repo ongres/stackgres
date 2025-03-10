@@ -5,8 +5,16 @@
 
 package io.stackgres.stream.jobs.source;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 
 import io.debezium.config.CommonConnectorConfig;
@@ -15,6 +23,7 @@ import io.debezium.pipeline.signal.channels.SignalChannelReader;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StreamPath;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.stream.app.StreamProperty;
@@ -32,6 +41,7 @@ public class DebeziumAnnotationSignalChannelReader implements SignalChannelReade
 
   String streamName;
   String streamNamespace;
+  Path annotationSignalPropertiesPath;
 
   @Override
   public String name() {
@@ -42,17 +52,46 @@ public class DebeziumAnnotationSignalChannelReader implements SignalChannelReade
   public void init(CommonConnectorConfig connectorConfig) {
     this.streamName = StreamProperty.STREAM_NAME.getString();
     this.streamNamespace = StreamProperty.STREAM_NAMESPACE.getString();
+    this.annotationSignalPropertiesPath = Paths.get(StreamPath.DEBEZIUM_DATABASE_HISTORY_PATH.path());
   }
 
   @Override
   public List<SignalRecord> read() {
-    return streamFinder.findByNameAndNamespace(streamName, streamNamespace)
+    Properties annotationSignalProperties = new Properties();
+    if (Files.exists(annotationSignalPropertiesPath)) {
+      try (InputStream inputStream = Files.newInputStream(annotationSignalPropertiesPath)) {
+        annotationSignalProperties.load(inputStream);
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+    final var streamSignalAnnotations =
+        streamFinder.findByNameAndNamespace(streamName, streamNamespace)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
         .stream()
         .map(Map::entrySet)
         .flatMap(Set::stream)
         .filter(annotation -> annotation.getKey().startsWith(STACKGRES_IO_DEBEZIUM_SIGNAL_KEY_PREFIX))
+        .filter(annotation -> Optional
+            .ofNullable(annotationSignalProperties.getProperty(annotation.getKey()))
+            .map(value -> !annotation.getValue().equals(value))
+            .orElse(true));
+    streamSignalAnnotations.forEach(annotation -> annotationSignalProperties
+        .setProperty(annotation.getKey(), annotation.getValue()));
+    if (!Files.exists(annotationSignalPropertiesPath)) {
+      try {
+        Files.createFile(annotationSignalPropertiesPath);
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+    try (OutputStream outputStream = Files.newOutputStream(annotationSignalPropertiesPath)) {
+      annotationSignalProperties.store(outputStream, null);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
+    return streamSignalAnnotations
         .map(annotation -> new SignalRecord(
             annotation.getKey(),
             extractType(annotation.getKey()),
