@@ -40,6 +40,16 @@ public class StackGresStreamDebeziumEngineProperties {
   @DebeziumMapOptions(generateSummary = true)
   private Map<String, Map<String, String>> predicates;
 
+  private Integer recordProcessingThreads;
+
+  private Integer recordProcessingShutdownTimeoutMs;
+
+  private String recordProcessingOrder;
+
+  private Boolean recordProcessingWithSerialConsumer;
+
+  private Integer taskManagementTimeoutMs;
+
   public String getOffsetCommitPolicy() {
     return offsetCommitPolicy;
   }
@@ -104,10 +114,52 @@ public class StackGresStreamDebeziumEngineProperties {
     this.predicates = predicates;
   }
 
+  public Integer getRecordProcessingThreads() {
+    return recordProcessingThreads;
+  }
+
+  public void setRecordProcessingThreads(Integer recordProcessingThreads) {
+    this.recordProcessingThreads = recordProcessingThreads;
+  }
+
+  public Integer getRecordProcessingShutdownTimeoutMs() {
+    return recordProcessingShutdownTimeoutMs;
+  }
+
+  public void setRecordProcessingShutdownTimeoutMs(Integer recordProcessingShutdownTimeoutMs) {
+    this.recordProcessingShutdownTimeoutMs = recordProcessingShutdownTimeoutMs;
+  }
+
+  public String getRecordProcessingOrder() {
+    return recordProcessingOrder;
+  }
+
+  public void setRecordProcessingOrder(String recordProcessingOrder) {
+    this.recordProcessingOrder = recordProcessingOrder;
+  }
+
+  public Boolean getRecordProcessingWithSerialConsumer() {
+    return recordProcessingWithSerialConsumer;
+  }
+
+  public void setRecordProcessingWithSerialConsumer(Boolean recordProcessingWithSerialConsumer) {
+    this.recordProcessingWithSerialConsumer = recordProcessingWithSerialConsumer;
+  }
+
+  public Integer getTaskManagementTimeoutMs() {
+    return taskManagementTimeoutMs;
+  }
+
+  public void setTaskManagementTimeoutMs(Integer taskManagementTimeoutMs) {
+    this.taskManagementTimeoutMs = taskManagementTimeoutMs;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(errorsMaxRetries, errorsRetryDelayInitialMs, errorsRetryDelayMaxMs,
-        offsetCommitPolicy, offsetFlushIntervalMs, offsetFlushTimeoutMs, predicates, transforms);
+        offsetCommitPolicy, offsetFlushIntervalMs, offsetFlushTimeoutMs, predicates,
+        recordProcessingOrder, recordProcessingShutdownTimeoutMs, recordProcessingThreads,
+        recordProcessingWithSerialConsumer, taskManagementTimeoutMs, transforms);
   }
 
   @Override
@@ -126,6 +178,13 @@ public class StackGresStreamDebeziumEngineProperties {
         && Objects.equals(offsetFlushIntervalMs, other.offsetFlushIntervalMs)
         && Objects.equals(offsetFlushTimeoutMs, other.offsetFlushTimeoutMs)
         && Objects.equals(predicates, other.predicates)
+        && Objects.equals(recordProcessingOrder, other.recordProcessingOrder)
+        && Objects.equals(recordProcessingShutdownTimeoutMs,
+            other.recordProcessingShutdownTimeoutMs)
+        && Objects.equals(recordProcessingThreads, other.recordProcessingThreads)
+        && Objects.equals(recordProcessingWithSerialConsumer,
+            other.recordProcessingWithSerialConsumer)
+        && Objects.equals(taskManagementTimeoutMs, other.taskManagementTimeoutMs)
         && Objects.equals(transforms, other.transforms);
   }
 

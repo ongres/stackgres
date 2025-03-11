@@ -31,6 +31,16 @@ public class StreamDebeziumEngineProperties {
 
   private Map<String, Map<String, String>> predicates;
 
+  private Integer recordProcessingThreads;
+
+  private Integer recordProcessingShutdownTimeoutMs;
+
+  private String recordProcessingOrder;
+
+  private Boolean recordProcessingWithSerialConsumer;
+
+  private Integer taskManagementTimeoutMs;
+
   public String getOffsetCommitPolicy() {
     return offsetCommitPolicy;
   }
@@ -93,6 +103,46 @@ public class StreamDebeziumEngineProperties {
 
   public void setPredicates(Map<String, Map<String, String>> predicates) {
     this.predicates = predicates;
+  }
+
+  public Integer getRecordProcessingThreads() {
+    return recordProcessingThreads;
+  }
+
+  public void setRecordProcessingThreads(Integer recordProcessingThreads) {
+    this.recordProcessingThreads = recordProcessingThreads;
+  }
+
+  public Integer getRecordProcessingShutdownTimeoutMs() {
+    return recordProcessingShutdownTimeoutMs;
+  }
+
+  public void setRecordProcessingShutdownTimeoutMs(Integer recordProcessingShutdownTimeoutMs) {
+    this.recordProcessingShutdownTimeoutMs = recordProcessingShutdownTimeoutMs;
+  }
+
+  public String getRecordProcessingOrder() {
+    return recordProcessingOrder;
+  }
+
+  public void setRecordProcessingOrder(String recordProcessingOrder) {
+    this.recordProcessingOrder = recordProcessingOrder;
+  }
+
+  public Boolean getRecordProcessingWithSerialConsumer() {
+    return recordProcessingWithSerialConsumer;
+  }
+
+  public void setRecordProcessingWithSerialConsumer(Boolean recordProcessingWithSerialConsumer) {
+    this.recordProcessingWithSerialConsumer = recordProcessingWithSerialConsumer;
+  }
+
+  public Integer getTaskManagementTimeoutMs() {
+    return taskManagementTimeoutMs;
+  }
+
+  public void setTaskManagementTimeoutMs(Integer taskManagementTimeoutMs) {
+    this.taskManagementTimeoutMs = taskManagementTimeoutMs;
   }
 
   @Override

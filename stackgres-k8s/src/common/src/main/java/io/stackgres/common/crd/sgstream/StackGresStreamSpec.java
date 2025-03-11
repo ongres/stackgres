@@ -41,6 +41,8 @@ public class StackGresStreamSpec {
   @Valid
   private StackGresStreamDebeziumEngineProperties debeziumEngineProperties;
 
+  private Boolean useDebeziumAsyncEngine;
+
   public StackGresStreamSource getSource() {
     return source;
   }
@@ -82,9 +84,18 @@ public class StackGresStreamSpec {
     this.debeziumEngineProperties = debeziumEngineProperties;
   }
 
+  public Boolean getUseDebeziumAsyncEngine() {
+    return useDebeziumAsyncEngine;
+  }
+
+  public void setUseDebeziumAsyncEngine(Boolean useDebeziumAsyncEngine) {
+    this.useDebeziumAsyncEngine = useDebeziumAsyncEngine;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(debeziumEngineProperties, maxRetries, pods, source, target);
+    return Objects.hash(debeziumEngineProperties, maxRetries, pods, source, target,
+        useDebeziumAsyncEngine);
   }
 
   @Override
@@ -98,7 +109,8 @@ public class StackGresStreamSpec {
     StackGresStreamSpec other = (StackGresStreamSpec) obj;
     return Objects.equals(debeziumEngineProperties, other.debeziumEngineProperties)
         && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(pods, other.pods)
-        && Objects.equals(source, other.source) && Objects.equals(target, other.target);
+        && Objects.equals(source, other.source) && Objects.equals(target, other.target)
+        && Objects.equals(useDebeziumAsyncEngine, other.useDebeziumAsyncEngine);
   }
 
   @Override
