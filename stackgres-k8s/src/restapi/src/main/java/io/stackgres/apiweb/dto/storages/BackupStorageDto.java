@@ -23,6 +23,8 @@ public class BackupStorageDto {
 
   private AzureBlobStorageDto azureBlob;
 
+  private StorageEncryptionDto encryption;
+
   public String getType() {
     return type;
   }
@@ -61,6 +63,14 @@ public class BackupStorageDto {
 
   public void setAzureBlob(AzureBlobStorageDto azureBlob) {
     this.azureBlob = azureBlob;
+  }
+
+  public StorageEncryptionDto getEncryption() {
+    return encryption;
+  }
+
+  public void setEncryption(StorageEncryptionDto encryption) {
+    this.encryption = encryption;
   }
 
   @Override
