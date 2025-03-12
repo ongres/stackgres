@@ -20,8 +20,10 @@ public class StreamMigrationTableNamingStrategy extends DefaultTableNamingStrate
   @Override
   public String resolveTableName(JdbcSinkConnectorConfig config, SinkRecord record) {
     String table = super.resolveTableName(config, record);
-    final String originalName = record.topic().substring(StreamMigrationTableNamingStrategy.topicPrefix.length());
-    table = table.replace("${original}", originalName);
+    if (record.topic().startsWith(StreamMigrationTableNamingStrategy.topicPrefix)) {
+      final String originalName = record.topic().substring(StreamMigrationTableNamingStrategy.topicPrefix.length());
+      table = table.replace("${original}", originalName);
+    }
     return table;
   }
 
