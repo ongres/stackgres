@@ -42,6 +42,8 @@ public class StackGresStreamSourcePostgres {
 
   private List<String> excludes;
 
+  private Boolean skipDropReplicationSlotAndPublicationOnTombstone;
+
   @Valid
   private StackGresStreamSourcePostgresDebeziumProperties debeziumProperties;
 
@@ -101,6 +103,15 @@ public class StackGresStreamSourcePostgres {
     this.excludes = excludes;
   }
 
+  public Boolean getSkipDropReplicationSlotAndPublicationOnTombstone() {
+    return skipDropReplicationSlotAndPublicationOnTombstone;
+  }
+
+  public void setSkipDropReplicationSlotAndPublicationOnTombstone(
+      Boolean skipDropReplicationSlotAndPublicationOnTombstone) {
+    this.skipDropReplicationSlotAndPublicationOnTombstone = skipDropReplicationSlotAndPublicationOnTombstone;
+  }
+
   public StackGresStreamSourcePostgresDebeziumProperties getDebeziumProperties() {
     return debeziumProperties;
   }
@@ -112,8 +123,8 @@ public class StackGresStreamSourcePostgres {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, debeziumProperties, excludes, host, includes, password,
-        port, username);
+    return Objects.hash(database, debeziumProperties, excludes, host, includes, password, port,
+        skipDropReplicationSlotAndPublicationOnTombstone, username);
   }
 
   @Override
@@ -129,7 +140,10 @@ public class StackGresStreamSourcePostgres {
         && Objects.equals(debeziumProperties, other.debeziumProperties)
         && Objects.equals(excludes, other.excludes) && Objects.equals(host, other.host)
         && Objects.equals(includes, other.includes) && Objects.equals(password, other.password)
-        && Objects.equals(port, other.port) && Objects.equals(username, other.username);
+        && Objects.equals(port, other.port)
+        && Objects.equals(skipDropReplicationSlotAndPublicationOnTombstone,
+            other.skipDropReplicationSlotAndPublicationOnTombstone)
+        && Objects.equals(username, other.username);
   }
 
   @Override

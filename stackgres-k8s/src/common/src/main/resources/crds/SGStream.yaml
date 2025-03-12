@@ -140,6 +140,9 @@ spec:
                           type: string
                           description: |
                             A regular expressions that allow to match one or more `<schema>.<table>.<column>` entries to be filtered out before sending to the target.
+                      skipDropReplicationSlotAndPublicationOnTombstone:
+                        type: boolean
+                        description: When set to `true` replication slot and publication will not be dropped after receiving the tombstone signal.
                       debeziumProperties: &source-postgres-debeziumProperties
                         type: object
                         description: |

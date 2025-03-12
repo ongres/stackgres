@@ -85,6 +85,10 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
     return false;
   }
 
+  public synchronized boolean hasTombstoneBeenReceived() {
+    return tombstoneCompleted != null;
+  }
+
   public synchronized CompletableFuture<Void> getTombstoneCompleted() {
     return tombstoneCompleted != null ? tombstoneCompleted : CompletableFuture.completedFuture(null);
   }
@@ -95,6 +99,7 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
           "Tombsone singal can not be handled when stream is already closed or closing");
     }
     tombstoneCompleted = new CompletableFuture<>();
+    LOGGER.info("Tombsone singal received");
     CompletableFuture
         .runAsync(Unchecked.runnable(engine::close))
         .handleAsync(Unchecked.biFunction((ignore, ex) -> {
@@ -139,6 +144,7 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
         LOGGER.info("Skipping restoring constraints and indexes for target database on tombstone signal");
         return;
       }
+      LOGGER.info("Restoring constraints and indexes for target database on tombstone signal");
       final Properties props = new Properties();
       final var sgCluster = Optional.of(stream.getSpec().getTarget().getSgCluster());
       final String namespace = stream.getMetadata().getNamespace();
@@ -182,7 +188,6 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
           .stream()
           .map(e -> Map.entry(e.getKey().toString(), e.getValue().toString()))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-      LOGGER.info("Restoring constraints and indexes for target database on tombstone signal");
       try (
           SessionFactory sessionFactory = config.getHibernateConfiguration().buildSessionFactory();
           StatelessSession session = sessionFactory.openStatelessSession();
@@ -212,6 +217,18 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
   private void cleanupSource() {
     if (Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.SGCLUSTER.toString())
         || Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.POSTGRES.toString())) {
+      if (Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.SGCLUSTER.toString())
+          && Optional.of(stream.getSpec().getSource().getSgCluster())
+          .map(StackGresStreamSourceSgCluster::getSkipDropReplicationSlotAndPublicationOnTombstone)
+          .orElse(false)
+          || Objects.equals(stream.getSpec().getSource().getType(), StreamSourceType.POSTGRES.toString())
+          && Optional.of(stream.getSpec().getSource().getPostgres())
+          .map(StackGresStreamSourcePostgres::getSkipDropReplicationSlotAndPublicationOnTombstone)
+          .orElse(false)) {
+        LOGGER.info("Skipping dropping replication slot and publication for source database on tombstone signal");
+        return;
+      }
+      LOGGER.info("Dropping replication slot and publication, if exists, for source database on tombstone signal");
       final String slotName = SgClusterDebeziumEngineHandler.slotName(stream);
       final String publicationName = SgClusterDebeziumEngineHandler.publicationName(stream);
       final Properties props;
@@ -225,7 +242,6 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
           .stream()
           .map(e -> Map.entry(e.getKey().toString(), e.getValue().toString()))
           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-      LOGGER.info("Dropping replication slot and publication, if exists, on tombstone signal");
       try (
           SessionFactory sessionFactory = config.getHibernateConfiguration().buildSessionFactory();
           StatelessSession session = sessionFactory.openStatelessSession();

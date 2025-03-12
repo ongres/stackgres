@@ -170,8 +170,10 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
             try {
               LOGGER.info("Shutting down Event Handler");
               eventConsumer.close();
-              LOGGER.info("Shutting down Debezium Engine");
-              engine.close();
+              if (!tombstoneSignalAction.hasTombstoneBeenReceived()) {
+                LOGGER.info("Shutting down Debezium Engine");
+                engine.close();
+              }
               executor.shutdown();
               executor.awaitTermination(60, TimeUnit.SECONDS);
             } catch (Exception shutdownEx) {

@@ -40,6 +40,8 @@ public class StackGresStreamSourceSgCluster {
 
   private List<String> excludes;
 
+  private Boolean skipDropReplicationSlotAndPublicationOnTombstone;
+
   @Valid
   private StackGresStreamSourcePostgresDebeziumProperties debeziumProperties;
 
@@ -91,6 +93,15 @@ public class StackGresStreamSourceSgCluster {
     this.excludes = excludes;
   }
 
+  public Boolean getSkipDropReplicationSlotAndPublicationOnTombstone() {
+    return skipDropReplicationSlotAndPublicationOnTombstone;
+  }
+
+  public void setSkipDropReplicationSlotAndPublicationOnTombstone(
+      Boolean skipDropReplicationSlotAndPublicationOnTombstone) {
+    this.skipDropReplicationSlotAndPublicationOnTombstone = skipDropReplicationSlotAndPublicationOnTombstone;
+  }
+
   public StackGresStreamSourcePostgresDebeziumProperties getDebeziumProperties() {
     return debeziumProperties;
   }
@@ -103,7 +114,7 @@ public class StackGresStreamSourceSgCluster {
   @Override
   public int hashCode() {
     return Objects.hash(database, debeziumProperties, excludes, includes, name, password,
-        username);
+        skipDropReplicationSlotAndPublicationOnTombstone, username);
   }
 
   @Override
@@ -119,6 +130,8 @@ public class StackGresStreamSourceSgCluster {
         && Objects.equals(debeziumProperties, other.debeziumProperties)
         && Objects.equals(excludes, other.excludes) && Objects.equals(includes, other.includes)
         && Objects.equals(name, other.name) && Objects.equals(password, other.password)
+        && Objects.equals(skipDropReplicationSlotAndPublicationOnTombstone,
+            other.skipDropReplicationSlotAndPublicationOnTombstone)
         && Objects.equals(username, other.username);
   }
 
