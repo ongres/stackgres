@@ -132,7 +132,7 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
     try {
       engine = DebeziumEngine
           .create(
-              KeyValueHeaderChangeEventFormat.of(format, format, format),
+              KeyValueHeaderChangeEventFormat.of(format, format, null),
               engineBuilderFactory)
           .using(props)
           .using(new ConnectorCallback() {
