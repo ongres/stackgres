@@ -12,6 +12,10 @@ metadata:
     app.kubernetes.io/managed-by: "Helm"
   {{- end }}
 spec:
+  {{- with .Values.configurations.objectstorage.encryption }}
+  encryption:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- if not (or .Values.configurations.objectstorage.s3 .Values.configurations.objectstorage.s3Compatible .Values.configurations.objectstorage.gcs .Values.configurations.objectstorage.azureBlob) }}
   type: s3Compatible
   s3Compatible:

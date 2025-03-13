@@ -335,13 +335,83 @@ spec:
                         compression:
                           type: string
                           description: |
-                            Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
-                          enum: [ lz4, lzma, brotli ]
+                            Select the backup compression algorithm. Possible options are: lz4, lzma, zstd, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
+                          enum: [ lz4, lzma, zstd, brotli ]
                     storage:
                       type: object
                       description: |
                         Object Storage configuration
                       properties:
+                        encryption:
+                          type: object
+                          description: |
+                            Section to configure object storage encryption of stored files.
+                          properties:
+                            method:
+                              type: string
+                              description: |
+                                Select the storage encryption method.
+
+                                Possible options are:
+
+                                * `sodium`: will use libsodium to encrypt the files stored.
+                                * `openpgp`: will use OpenPGP standard to encrypt the files stored.
+
+                                When not set no encryption will be applied to stored files.
+                            sodium:
+                              type: object
+                              description: libsodium encryption configuration.
+                              properties:
+                                key:
+                                  type: object
+                                  description: |
+                                    To configure encryption and decryption with libsodium an algorithm that only requires
+                                     a secret key is used. libsodium keys are fixed-size keys of 32 bytes. For optimal
+                                     cryptographic security, it is recommened to use a random 32 byte key. To generate a
+                                     random key, you can something like `openssl rand -hex 32` (set `keyTransform` to `hex`)
+                                     or `openssl rand -base64 32` (set `keyTransform` to `base64`).
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    key:
+                                      type: string
+                                      description: The key of the secret to select from. Must be a valid secret key.
+                                keyTransform:
+                                  type: string
+                                  description: |
+                                    The transform that will be applied to the `key` to get the required 32 byte key.
+                                     Supported transformations are `base64`, `hex` or `none` (default). The option
+                                     none exists for backwards compatbility, the user input will be converted to 32
+                                     byte either via truncation or by zero-padding.
+                                  default: none
+                            openpgp:
+                              type: object
+                              description: OpenPGP encryption configuration.
+                              properties:
+                                key:
+                                  type: object
+                                  description: |
+                                    To configure encryption and decryption with OpenPGP standard. You can join multiline
+                                     key using `\n` symbols into one line (mostly used in case of daemontools and envdir).
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    key:
+                                      type: string
+                                      description: The key of the secret to select from. Must be a valid secret key.
+                                keyPassphrase:
+                                  type: object
+                                  description: |
+                                    If your private key is encrypted with a passphrase, you should set passphrase for decrypt.
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                    key:
+                                      type: string
+                                      description: The key of the secret to select from. Must be a valid secret key.
                         type:
                           type: string
                           enum: ["s3", "s3Compatible", "gcs", "azureBlob"]

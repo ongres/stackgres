@@ -40,6 +40,9 @@ public class BackupStorage {
   @Valid
   private AzureBlobStorage azureBlob;
 
+  @Valid
+  private StorageEncryption encryption;
+
   public String getType() {
     return type;
   }
@@ -100,9 +103,17 @@ public class BackupStorage {
     return Optional.ofNullable(azureBlob);
   }
 
+  public StorageEncryption getEncryption() {
+    return encryption;
+  }
+
+  public void setEncryption(StorageEncryption encryption) {
+    this.encryption = encryption;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(azureBlob, gcs, s3, s3Compatible, type);
+    return Objects.hash(azureBlob, encryption, gcs, s3, s3Compatible, type);
   }
 
   @Override
@@ -114,7 +125,8 @@ public class BackupStorage {
       return false;
     }
     BackupStorage other = (BackupStorage) obj;
-    return Objects.equals(azureBlob, other.azureBlob) && Objects.equals(gcs, other.gcs)
+    return Objects.equals(azureBlob, other.azureBlob)
+        && Objects.equals(encryption, other.encryption) && Objects.equals(gcs, other.gcs)
         && Objects.equals(s3, other.s3) && Objects.equals(s3Compatible, other.s3Compatible)
         && Objects.equals(type, other.type);
   }

@@ -1111,8 +1111,8 @@ spec:
                         compression:
                           type: string
                           description: |
-                            Specifies the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
-                          enum: [ "lz4", "lzma", "brotli" ]
+                            Specifies the backup compression algorithm. Possible options are: lz4, lzma, zstd, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
+                          enum: [ "lz4", "lzma", "zstd", "brotli" ]
                         cronSchedule:
                           type: string
                           description: |

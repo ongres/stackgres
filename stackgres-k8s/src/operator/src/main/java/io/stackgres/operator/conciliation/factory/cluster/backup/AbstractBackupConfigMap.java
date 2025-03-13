@@ -30,6 +30,8 @@ import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
+import io.stackgres.common.crd.storages.SodiumStorageEncryption;
+import io.stackgres.common.crd.storages.StorageEncryption;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -97,10 +99,10 @@ public abstract class AbstractBackupConfigMap {
       String path,
       StackGresBackupConfigSpec backupConfig) {
     Map<String, String> result = new HashMap<>(
-        getBackupEnvVars(context,
+        getBackupEnvVars(
+            context,
             path,
-            backupConfig.getStorage())
-    );
+            backupConfig.getStorage()));
     if (backupConfig.getBaseBackups() != null) {
       result.putAll(
           getBackupEnvVars(
@@ -150,10 +152,26 @@ public abstract class AbstractBackupConfigMap {
     return Map.copyOf(result);
   }
 
-  protected Map<String, String> getBackupEnvVars(ClusterContext context,
+  protected Map<String, String> getBackupEnvVars(
+      ClusterContext context,
       String path,
       BackupStorage storage) {
+    Map<String, String> backupEnvVars = new HashMap<>();
 
+    backupEnvVars.putAll(getStorageBackupEnvVars(context, path, storage));
+
+    Optional.of(storage)
+        .map(BackupStorage::getEncryption)
+        .map(StorageEncryption::getSodium)
+        .map(SodiumStorageEncryption::getKeyTransform)
+        .ifPresent(keyTransform -> backupEnvVars.put("WALG_LIBSODIUM_KEY_TRANSFORM", keyTransform));
+    return backupEnvVars;
+  }
+
+  private Map<String, String> getStorageBackupEnvVars(
+      ClusterContext context,
+      String path,
+      BackupStorage storage) {
     Optional<AwsS3Storage> storageForS3 = storage.getS3Opt();
     if (storageForS3.isPresent()) {
       return getS3StorageEnvVars(path, storageForS3.get());
@@ -174,13 +192,11 @@ public abstract class AbstractBackupConfigMap {
     return storageForAzureBlob.map(
         azureBlobStorage -> getAzureBlobStorageEnvVars(path, azureBlobStorage))
         .orElseGet(Map::of);
-
   }
 
   private Map<String, String> getS3StorageEnvVars(
       String path,
       AwsS3Storage storageForS3) {
-
     return Map.of(
         "WALG_S3_PREFIX", BackupStorageUtil.getPrefixForS3(path, storageForS3),
         "AWS_REGION", BackupStorageUtil.getFromS3(

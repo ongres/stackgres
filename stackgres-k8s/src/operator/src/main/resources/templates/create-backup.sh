@@ -632,11 +632,11 @@ cat << 'INNER_EOF' > /tmp/${CURRENT_BACKUP_NAME}_files_metadata.json
 {"Files":{}}
 INNER_EOF
 exec-with-env "$BACKUP_ENV" \
-  -- $(get_timeout_command BACKUP) wal-g st put --no-compress "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" "basebackups_005/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
+  -- $(get_timeout_command BACKUP) wal-g st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" "basebackups_005/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
 exec-with-env "$BACKUP_ENV" \
-  -- $(get_timeout_command BACKUP) wal-g st put --no-compress "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/metadata.json"
+  -- $(get_timeout_command BACKUP) wal-g st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/metadata.json"
 exec-with-env "$BACKUP_ENV" \
-  -- $(get_timeout_command BACKUP) wal-g st put --no-compress "/tmp/${CURRENT_BACKUP_NAME}_files_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/files_metadata.json"
+  -- $(get_timeout_command BACKUP) wal-g st put --no-encrypt --no-compress "/tmp/${CURRENT_BACKUP_NAME}_files_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/files_metadata.json"
 rm \
   "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" \
   "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" \
