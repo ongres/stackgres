@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -697,6 +698,20 @@ public interface StackGresUtil {
     return IMAGE_NAME_WITH_REGISTRY_PATTERN.matcher(imageName).matches()
         ? imageName + ":" + imageTag
             : containerRegistry + "/" + imageName + ":" + imageTag;
+  }
+
+  static String sortableVersion(String version) {
+    final String[] versionParts = version.split("\\.", -1);
+    return IntStream.range(0, 5)
+        .mapToObj(i -> zeroPad(i < versionParts.length ? versionParts[i] : "", 10))
+        .collect(Collectors.joining());
+  }
+
+  static String zeroPad(String string, int totalLength) {
+    string = string.substring(0, Math.min(string.length(), 10));
+    return IntStream.range(0, totalLength - string.length())
+        .mapToObj(i -> "0")
+        .collect(Collectors.joining()) + string;
   }
 
 }

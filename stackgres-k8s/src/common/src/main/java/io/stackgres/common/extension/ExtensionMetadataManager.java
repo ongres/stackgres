@@ -17,9 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -90,7 +92,7 @@ public abstract class ExtensionMetadataManager {
         .ofNullable(getExtensionsMetadata().indexSameMajorBuilds
             .get(StackGresExtensionIndexSameMajorBuild
                 .fromClusterExtension(cluster, extension, detectOs)))
-        .map(this::extractLatestVersions)
+        .map(this::extractLatestBuildVersions)
         .orElse(List.of());
   }
 
@@ -106,11 +108,19 @@ public abstract class ExtensionMetadataManager {
         .ofNullable(getExtensionsMetadata().indexAnyVersions
             .get(StackGresExtensionIndexAnyVersion
                 .fromClusterExtension(cluster, extension, detectOs)))
-        .map(this::extractLatestVersions)
-        .orElse(List.of());
+        .map(this::extractLatestBuildVersions)
+        .stream()
+        .flatMap(List::stream)
+        .sorted(Comparator.comparing(
+            Function.<StackGresExtensionMetadata>identity()
+            .andThen(StackGresExtensionMetadata::getVersion)
+            .andThen(StackGresExtensionVersion::getVersion)
+            .andThen(StackGresUtil::sortableVersion))
+            .reversed())
+        .toList();
   }
 
-  private List<StackGresExtensionMetadata> extractLatestVersions(
+  private List<StackGresExtensionMetadata> extractLatestBuildVersions(
       List<StackGresExtensionMetadata> list) {
     return Seq.seq(list)
         .map(e -> Tuple.tuple(e.getVersion().getVersion(), e.getMajorBuild(), e))

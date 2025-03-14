@@ -204,7 +204,7 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
         .or(() -> Optional.of(getExtensionMetadataManager()
             .getExtensionsAnyVersion(cluster, extension, false))
             .stream()
-            .filter(list -> list.size() == 1)
+            .filter(list -> list.size() >= 1)
             .flatMap(List::stream)
             .filter(foundExtension -> foundExtension
                 .getTarget().getPostgresVersion().contains("."))
