@@ -153,6 +153,7 @@ public class StreamLauncher {
               .invoke(() -> {
                 LOGGER.info("Operation completed for SGStream {}", streamName);
                 if (Optional.ofNullable(stream.getSpec().getMaxRetries()).orElse(-1) < 0) {
+                  updateToCompletedConditions(streamName, namespace);
                   LOGGER.info("SGStream completed, waiting for user to delete the SGStream");
                   while (true) {
                     Unchecked.runnable(() -> Thread.sleep(1000)).run();
@@ -197,6 +198,10 @@ public class StreamLauncher {
     updateToConditions(streamName, namespace, getTimeoutConditions());
   }
 
+  private void updateToCompletedConditions(String streamName, String namespace) {
+    updateToConditions(streamName, namespace, getCompletedConditions());
+  }
+
   public List<Condition> getStartingConditions() {
     final List<Condition> conditions = List.of(
         StreamStatusCondition.STREAM_RUNNING.getCondition(),
@@ -222,6 +227,16 @@ public class StreamLauncher {
         StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
         StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition(),
         StreamStatusCondition.STREAM_TIMED_OUT.getCondition()
+    );
+    Condition.setTransitionTimes(conditions);
+    return conditions;
+  }
+
+  public List<Condition> getCompletedConditions() {
+    final List<Condition> conditions = List.of(
+        StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
+        StreamStatusCondition.STREAM_COMPLETED.getCondition(),
+        StreamStatusCondition.STREAM_FALSE_FAILED.getCondition()
     );
     Condition.setTransitionTimes(conditions);
     return conditions;

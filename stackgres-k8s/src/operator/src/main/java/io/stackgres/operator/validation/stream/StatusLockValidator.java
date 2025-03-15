@@ -25,13 +25,13 @@ import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_STREAM_UPDATE)
-public class LockValidator implements StreamValidator {
+public class StatusLockValidator implements StreamValidator {
 
   final ObjectMapper objectMapper;
   final int duration;
 
   @Inject
-  public LockValidator(OperatorPropertyContext operatorPropertyContext,
+  public StatusLockValidator(OperatorPropertyContext operatorPropertyContext,
       ObjectMapper objectMapper) {
     this.duration = operatorPropertyContext.getInt(OperatorProperty.LOCK_DURATION);
     this.objectMapper = objectMapper;
@@ -45,8 +45,8 @@ public class LockValidator implements StreamValidator {
       case UPDATE: {
         StackGresStream stream = review.getRequest().getObject();
         StackGresStream oldStream = review.getRequest().getOldObject();
-        if (Objects.equals(objectMapper.valueToTree(stream.getSpec()),
-            objectMapper.valueToTree(oldStream.getSpec()))) {
+        if (Objects.equals(objectMapper.valueToTree(stream.getStatus()),
+            objectMapper.valueToTree(oldStream.getStatus()))) {
           return;
         }
         String username = review.getRequest().getUserInfo().getUsername();
@@ -59,7 +59,7 @@ public class LockValidator implements StreamValidator {
                     getServiceAccountFromUsername(username))
                 )
             ) {
-          fail("SGStream update is forbidden. It is locked by the SGStream"
+          fail("SGStream status update is forbidden. It is locked by the SGStream"
               + " that is currently running. Please, wait for the operation to finish,"
               + " stop the operation by deleting it or wait for the lock duration of "
               + duration + " seconds to expire.");

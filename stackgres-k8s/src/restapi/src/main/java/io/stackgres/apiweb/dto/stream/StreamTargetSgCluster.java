@@ -30,6 +30,10 @@ public class StreamTargetSgCluster {
 
   private String ddlImportRoleSkipFilter;
 
+  private Boolean skipDropIndexesAndConstraints;
+
+  private Boolean skipRestoreIndexesAfterSnapshot;
+
   private StreamTargetJdbcSinkDebeziumProperties debeziumProperties;
 
   public String getName() {
@@ -94,6 +98,22 @@ public class StreamTargetSgCluster {
 
   public void setDdlImportRoleSkipFilter(String ddlImportRoleSkipFilter) {
     this.ddlImportRoleSkipFilter = ddlImportRoleSkipFilter;
+  }
+
+  public Boolean getSkipDropIndexesAndConstraints() {
+    return skipDropIndexesAndConstraints;
+  }
+
+  public void setSkipDropIndexesAndConstraints(Boolean skipDropIndexesAndConstraints) {
+    this.skipDropIndexesAndConstraints = skipDropIndexesAndConstraints;
+  }
+
+  public Boolean getSkipRestoreIndexesAfterSnapshot() {
+    return skipRestoreIndexesAfterSnapshot;
+  }
+
+  public void setSkipRestoreIndexesAfterSnapshot(Boolean skipRestoreIndexesAfterSnapshot) {
+    this.skipRestoreIndexesAfterSnapshot = skipRestoreIndexesAfterSnapshot;
   }
 
   public StreamTargetJdbcSinkDebeziumProperties getDebeziumProperties() {

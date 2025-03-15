@@ -30,6 +30,8 @@ public class StreamSourcePostgres {
 
   private List<String> excludes;
 
+  private Boolean skipDropReplicationSlotAndPublicationOnTombstone;
+
   private StreamSourcePostgresDebeziumProperties debeziumProperties;
 
   private String usernameValue;
@@ -90,6 +92,15 @@ public class StreamSourcePostgres {
 
   public void setExcludes(List<String> excludes) {
     this.excludes = excludes;
+  }
+
+  public Boolean getSkipDropReplicationSlotAndPublicationOnTombstone() {
+    return skipDropReplicationSlotAndPublicationOnTombstone;
+  }
+
+  public void setSkipDropReplicationSlotAndPublicationOnTombstone(
+      Boolean skipDropReplicationSlotAndPublicationOnTombstone) {
+    this.skipDropReplicationSlotAndPublicationOnTombstone = skipDropReplicationSlotAndPublicationOnTombstone;
   }
 
   public StreamSourcePostgresDebeziumProperties getDebeziumProperties() {

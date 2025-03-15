@@ -13,9 +13,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import io.debezium.embedded.ConvertingEngineBuilderFactory;
+import io.debezium.embedded.async.ConvertingAsyncEngineBuilderFactory;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.CompletionCallback;
 import io.debezium.engine.DebeziumEngine.ConnectorCallback;
+import io.debezium.engine.format.KeyValueHeaderChangeEventFormat;
 import io.debezium.engine.format.SerializationFormat;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.StreamPath;
@@ -118,9 +121,19 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
     setSourceProperties(stream, props);
 
     final CompletableFuture<Void> streamCompleted = new CompletableFuture<>();
+    final String engineBuilderFactory;
+    if (Optional.ofNullable(stream.getSpec().getUseDebeziumAsyncEngine())
+        .orElse(true)) {
+      engineBuilderFactory = ConvertingAsyncEngineBuilderFactory.class.getName();
+    } else {
+      engineBuilderFactory = ConvertingEngineBuilderFactory.class.getName();
+    }
     final DebeziumEngine<?> engine;
     try {
-      engine = DebeziumEngine.create(format)
+      engine = DebeziumEngine
+          .create(
+              KeyValueHeaderChangeEventFormat.of(format, format, null),
+              engineBuilderFactory)
           .using(props)
           .using(new ConnectorCallback() {
           })
@@ -157,8 +170,10 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
             try {
               LOGGER.info("Shutting down Event Handler");
               eventConsumer.close();
-              LOGGER.info("Shutting down Debezium Engine");
-              engine.close();
+              if (!tombstoneSignalAction.hasTombstoneBeenReceived()) {
+                LOGGER.info("Shutting down Debezium Engine");
+                engine.close();
+              }
               executor.shutdown();
               executor.awaitTermination(60, TimeUnit.SECONDS);
             } catch (Exception shutdownEx) {

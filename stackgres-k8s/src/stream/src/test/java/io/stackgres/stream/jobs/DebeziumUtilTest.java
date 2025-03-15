@@ -128,11 +128,31 @@ class DebeziumUtilTest {
             streamProperties.getTransforms()
             .values().stream().toList().get(1)
             .values().stream().toList().get(1))),
+        assertEntryInProperties(
+            props, Map.entry(
+                "record.processing.threads",
+                streamProperties.getRecordProcessingThreads())),
+        assertEntryInProperties(
+            props, Map.entry(
+                "record.processing.with.serial.consumer",
+                streamProperties.getRecordProcessingWithSerialConsumer())),
+        assertEntryInProperties(
+            props, Map.entry(
+                "record.processing.order",
+                streamProperties.getRecordProcessingOrder())),
+        assertEntryInProperties(
+            props, Map.entry(
+                "record.processing.shutdown.timeout.ms",
+                streamProperties.getRecordProcessingShutdownTimeoutMs())),
+        assertEntryInProperties(
+            props, Map.entry(
+                "task.management.timeout.ms",
+                streamProperties.getTaskManagementTimeoutMs())),
         // Leave this so we can order all the properties correctly without bothering for the latest `,`
         Map.entry("|", streamProperties)
         ));
     props.forEach((key, value) -> {
-      Assertions.assertTrue(expectedProperties.containsKey(key));
+      Assertions.assertTrue(expectedProperties.containsKey(key), "expected not found for property " + key);
     });
   }
 

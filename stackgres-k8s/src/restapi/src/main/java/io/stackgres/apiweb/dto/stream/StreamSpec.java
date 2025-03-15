@@ -23,6 +23,8 @@ public class StreamSpec {
 
   private StreamDebeziumEngineProperties debeziumEngineProperties;
 
+  private Boolean useDebeziumAsyncEngine;
+
   public StreamSource getSource() {
     return source;
   }
@@ -62,6 +64,14 @@ public class StreamSpec {
   public void setDebeziumEngineProperties(
       StreamDebeziumEngineProperties debeziumEngineProperties) {
     this.debeziumEngineProperties = debeziumEngineProperties;
+  }
+
+  public Boolean getUseDebeziumAsyncEngine() {
+    return useDebeziumAsyncEngine;
+  }
+
+  public void setUseDebeziumAsyncEngine(Boolean useDebeziumAsyncEngine) {
+    this.useDebeziumAsyncEngine = useDebeziumAsyncEngine;
   }
 
   @Override
