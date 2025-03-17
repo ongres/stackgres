@@ -7,6 +7,7 @@ package io.stackgres.operator.validation;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -17,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.ExtensionTuple;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
@@ -164,8 +166,12 @@ public abstract class AbstractExtensionsValidator<
       Map<String, List<String>> candidateExtensionVersions) {
     return Seq.seq(missingExtensions)
         .map(missingExtension -> {
-          final Set<String> availableVersions =
-              Set.copyOf(candidateExtensionVersions.get(missingExtension.extensionName()));
+          final List<String> availableVersions =
+              Set.copyOf(candidateExtensionVersions.get(missingExtension.extensionName()))
+              .stream()
+              .sorted(Comparator.comparing(StackGresUtil::sortableVersion)
+                  .reversed())
+              .toList();
           if (!availableVersions.isEmpty()) {
             return missingExtension.extensionName()
                 + missingExtension.extensionVersion().map(v -> " " + v).orElse("")

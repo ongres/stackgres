@@ -204,7 +204,7 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
         .or(() -> Optional.of(getExtensionMetadataManager()
             .getExtensionsAnyVersion(cluster, extension, false))
             .stream()
-            .filter(list -> list.size() == 1)
+            .filter(list -> list.size() >= 1)
             .flatMap(List::stream)
             .filter(foundExtension -> foundExtension
                 .getTarget().getPostgresVersion().contains("."))
@@ -218,7 +218,7 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
                 .groupBy(Function.<StackGresExtensionMetadata>identity()
                     .andThen(StackGresExtensionMetadata::getVersion)
                     .andThen(StackGresExtensionVersion::getVersion))
-                .size() == 1)
+                .size() >= 1)
             .map(List::stream)
             .flatMap(Stream::findFirst))
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
