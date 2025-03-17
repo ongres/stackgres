@@ -54,7 +54,7 @@ install_prometheus_operator_for_version() {
     --set coreDns.enabled=false \
     --set kubeControllerManager.enabled=false \
     --set kubeEtcd.enabled=false \
-    --set-string grafana.image.tag="${E2E_GRAFANA_VERSION:-9.1.6}" \
+    --set-string grafana.image.tag="${E2E_GRAFANA_VERSION:-11.5.2}" \
     --set-string prometheus.prometheusSpec.podMonitorNamespaceSelector.matchLabels.monitoring=true \
     "$@"
 
