@@ -1080,6 +1080,19 @@ spec:
                       If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
 
                       **Changing this field may require a restart.**
+                  postgresExporter:
+                    type: object
+                    description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
+                    properties:
+                      queries:
+                        type: object
+                        description: |
+                          Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) queries.yaml configuration.
+                          
+                          The queries defined here will overwrite those created by the operator.
+                          
+                          **WARNING**: Changing this may beak some of the functionality that depend on the query overwritten.
+                        "x-kubernetes-preserve-unknown-fields": true
                   observability:
                     type: object
                     description: Allow to specify Observability configuration (related to logs, metrics and traces)

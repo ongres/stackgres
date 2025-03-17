@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +31,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporterQueries;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackupBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitrBuilder;
@@ -181,6 +184,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     setPostgresSsl(cluster, spec);
     setPostgresExtensions(cluster, spec);
     setConfigurationsObservability(cluster, spec);
+    setConfigurationsPostgresExporter(cluster, spec);
     setConfigurationsBackups(cluster, spec, index);
     setConfigurationsCredentials(cluster, spec);
     setMetadata(cluster, spec, index);
@@ -251,6 +255,32 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             spec.setConfigurations(new StackGresClusterConfigurations());
           }
           spec.getConfigurations().setObservability(observability);
+        });
+  }
+
+  void setConfigurationsPostgresExporter(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    Optional.ofNullable(cluster.getSpec())
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getPostgresExporter)
+        .ifPresent(postgresExporter -> {
+          if (spec.getConfigurations() == null) {
+            spec.setConfigurations(new StackGresClusterConfigurations());
+          }
+          var queriesFound = Optional.ofNullable(spec.getConfigurations())
+              .map(StackGresClusterConfigurations::getPostgresExporter)
+              .map(StackGresClusterPostgresExporter::getQueries);
+          spec.getConfigurations().setPostgresExporter(postgresExporter);
+          spec.getConfigurations().getPostgresExporter().setQueries(
+              Optional.of(spec.getConfigurations().getPostgresExporter())
+              .map(StackGresClusterPostgresExporter::getQueries)
+              .map(queries -> queriesFound
+                  .map(q -> mergeMap(queries, q))
+                  .orElse(queries))
+              .or(() -> queriesFound)
+              .map(StackGresClusterPostgresExporterQueries::new)
+              .orElse(null));
+          spec.getConfigurations().setPostgresExporter(postgresExporter);
         });
   }
 
@@ -441,6 +471,22 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         spec.getConfigurations().setSgPoolingConfig(
             specOverride.getConfigurationsForShards().getSgPoolingConfig());
       }
+      if (specOverride.getConfigurationsForShards().getPostgresExporter() != null) {
+        var queriesFound = Optional.ofNullable(spec.getConfigurations())
+            .map(StackGresClusterConfigurations::getPostgresExporter)
+            .map(StackGresClusterPostgresExporter::getQueries);
+        spec.getConfigurations().setPostgresExporter(
+            specOverride.getConfigurationsForShards().getPostgresExporter());
+        spec.getConfigurations().getPostgresExporter().setQueries(
+            Optional.of(spec.getConfigurations().getPostgresExporter())
+            .map(StackGresClusterPostgresExporter::getQueries)
+            .map(queries -> queriesFound
+                .map(q -> mergeMap(q, queries))
+                .orElse(queries))
+            .or(() -> queriesFound)
+            .map(StackGresClusterPostgresExporterQueries::new)
+            .orElse(null));
+      }
     }
     if (specOverride.getInstancesPerCluster() != null) {
       spec.setInstances(specOverride.getInstancesPerCluster());
@@ -559,4 +605,9 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     }
   }
 
+  protected final <K, V> Map<K, V> mergeMap(Map<K, V> initial, Map<K, V> override) {
+    var map = new HashMap<K, V>(initial);
+    map.putAll(override);
+    return map;
+  }
 }

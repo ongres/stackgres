@@ -14,6 +14,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterObservability;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
@@ -37,6 +38,9 @@ public class StackGresShardedClusterConfigurations {
 
   @Valid
   private StackGresClusterObservability observability;
+
+  @Valid
+  private StackGresClusterPostgresExporter postgresExporter;
 
   public List<StackGresShardedClusterBackupConfiguration> getBackups() {
     return backups;
@@ -70,9 +74,17 @@ public class StackGresShardedClusterConfigurations {
     this.observability = observability;
   }
 
+  public StackGresClusterPostgresExporter getPostgresExporter() {
+    return postgresExporter;
+  }
+
+  public void setPostgresExporter(StackGresClusterPostgresExporter postgresExporter) {
+    this.postgresExporter = postgresExporter;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backups, binding, credentials, observability);
+    return Objects.hash(backups, binding, credentials, observability, postgresExporter);
   }
 
   @Override
@@ -86,7 +98,8 @@ public class StackGresShardedClusterConfigurations {
     StackGresShardedClusterConfigurations other = (StackGresShardedClusterConfigurations) obj;
     return Objects.equals(backups, other.backups) && Objects.equals(binding, other.binding)
         && Objects.equals(credentials, other.credentials)
-        && Objects.equals(observability, other.observability);
+        && Objects.equals(observability, other.observability)
+        && Objects.equals(postgresExporter, other.postgresExporter);
   }
 
   @Override
