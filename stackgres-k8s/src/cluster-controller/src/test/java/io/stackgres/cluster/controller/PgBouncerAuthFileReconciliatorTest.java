@@ -104,7 +104,7 @@ public class PgBouncerAuthFileReconciliatorTest {
         .thenReturn(Optional.of(poolingConfig));
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
-    when(postgresConnectionManager.getConnection(any(), anyInt(), any(), any(), any()))
+    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.prepareStatement(any()))
         .thenReturn(preparedStatement);
@@ -124,7 +124,7 @@ public class PgBouncerAuthFileReconciliatorTest {
     reconciliator.updatePgbouncerUsersInAuthFile(context);
     verify(fileSystemHandler, times(1)).copyOrReplace(any(Path.class), any());
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class), any());
-    verify(postgresConnectionManager, times(1)).getConnection(any(), anyInt(), any(), any(), any());
+    verify(postgresConnectionManager, times(1)).getUnixConnection(any(), anyInt(), any(), any(), any());
     verify(resultSet, times(1)).next();
     assertEquals("user0\n\n\n", authFileContent.join());
   }
@@ -152,7 +152,7 @@ public class PgBouncerAuthFileReconciliatorTest {
         .thenReturn(Optional.of(poolingConfig));
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
-    when(postgresConnectionManager.getConnection(any(), anyInt(), any(), any(), any()))
+    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.prepareStatement(any()))
         .thenReturn(preparedStatement);
@@ -176,7 +176,7 @@ public class PgBouncerAuthFileReconciliatorTest {
     reconciliator.updatePgbouncerUsersInAuthFile(context);
     verify(fileSystemHandler, times(1)).copyOrReplace(any(Path.class), any());
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class), any());
-    verify(postgresConnectionManager, times(1)).getConnection(any(), anyInt(), any(), any(), any());
+    verify(postgresConnectionManager, times(1)).getUnixConnection(any(), anyInt(), any(), any(), any());
     verify(resultSet, times(3)).next();
     verify(resultSet, times(2)).getString(eq(1));
     assertEquals("user0\n\nuser1\nuser2\n", authFileContent.join());
