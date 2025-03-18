@@ -377,7 +377,8 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         && initialData.getRestore().getFromBackup().getName() != null
         && cluster.getStatus() != null
         && cluster.getStatus().getSgBackups() != null
-        && !cluster.getStatus().getSgBackups().isEmpty()) {
+        && !cluster.getStatus().getSgBackups().isEmpty()
+        && index < cluster.getStatus().getSgBackups().size()) {
       var fromBackup = initialData
           .getRestore().getFromBackup();
       var restoreFromBackupBuilder = new StackGresClusterRestoreFromBackupBuilder()

@@ -98,7 +98,7 @@ public class PgBouncerAuthFileReconciliator {
     Collection<String> users = getPoolingConfigUserNames(context);
     var postgresCredentials = PostgresUtil.getPostgresCredentials(context, secretFinder);
     final String usersSection = extractAuthFileSectionForUsers(
-        postgresCredentials.username(), postgresCredentials.password(), users);
+        postgresCredentials.username(), users);
     try (
         InputStream originalInputStream = fileSystemHandler.newInputStream(
             ORIGINAL_AUTH_FILE_PATH);
@@ -128,15 +128,14 @@ public class PgBouncerAuthFileReconciliator {
   @SuppressWarnings("null")
   private String extractAuthFileSectionForUsers(
       String postgresUser,
-      String postgresPassword,
       Collection<String> users)
       throws SQLException {
     List<String> authFileUsersLines = new ArrayList<>();
-    try (Connection connection = postgresConnectionManager.getConnection(
-        "localhost", EnvoyUtil.PG_PORT,
+    try (Connection connection = postgresConnectionManager.getUnixConnection(
+        ClusterPath.PG_RUN_PATH.path(), EnvoyUtil.PG_PORT,
         SUPERUSER_DATABASE,
         postgresUser,
-        postgresPassword);
+        "");
         PreparedStatement statement = connection.prepareStatement(
             SELECT_PGBOUNCER_USERS_FROM_PG_SHADOW)) {
       statement.setArray(1, connection.createArrayOf(
