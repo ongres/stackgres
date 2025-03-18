@@ -29,6 +29,8 @@ public class ClusterConfigurations {
 
   private ClusterObservability observability;
 
+  private ClusterPostgresExporter postgresExporter;
+
   public String getSgPostgresConfig() {
     return sgPostgresConfig;
   }
@@ -83,6 +85,14 @@ public class ClusterConfigurations {
 
   public void setObservability(ClusterObservability observability) {
     this.observability = observability;
+  }
+
+  public ClusterPostgresExporter getPostgresExporter() {
+    return postgresExporter;
+  }
+
+  public void setPostgresExporter(ClusterPostgresExporter postgresExporter) {
+    this.postgresExporter = postgresExporter;
   }
 
   @Override

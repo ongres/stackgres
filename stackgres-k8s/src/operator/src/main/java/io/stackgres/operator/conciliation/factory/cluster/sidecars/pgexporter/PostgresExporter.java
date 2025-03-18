@@ -7,14 +7,12 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.io.Resources;
@@ -37,7 +35,9 @@ import io.stackgres.common.crd.Volume;
 import io.stackgres.common.crd.VolumeBuilder;
 import io.stackgres.common.crd.VolumeMountBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.common.Sidecar;
@@ -218,33 +218,6 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
             .map(StackGresClusterPods::getDisableConnectionPooling)
             .orElse(false);
 
-    if (pgBouncerIsDisabled) {
-      final YAMLMapper yamlMapper = yamlMapperProvider.get();
-      final ObjectNode queries;
-      final String data;
-      try {
-        queries = (ObjectNode) yamlMapper
-                .readTree(PostgresExporter.class.getResource("/prometheus-postgres-exporter/queries.yaml"));
-
-        var fieldNames = Seq.seq(queries.fieldNames()).toList();
-        for (var fieldName : fieldNames) {
-          if (fieldName.startsWith(POSTGRES_EXPORTER_PGBOUNCER_QUERIES_PREFIX)) {
-            queries.remove(fieldName);
-          }
-        }
-
-        data = yamlMapper.writeValueAsString(queries);
-
-        builder.withData(Map.of(QUERIES_YAML, data));
-
-        return builder.build();
-      } catch (JsonProcessingException e) {
-        throw new RuntimeException("couldn't serialize prometheus postgres exporter queries to a string", e);
-      } catch (IOException e) {
-        throw new RuntimeException("couldn't read prometheus postgres exporter queries file", e);
-      }
-    }
-
     final String queriesResourcePath;
 
     final long versionAsNumber = StackGresVersion.getStackGresVersionAsNumber(context.getCluster());
@@ -254,13 +227,47 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
       queriesResourcePath = "/prometheus-postgres-exporter/queries.yaml";
     }
 
+    final YAMLMapper yamlMapper = yamlMapperProvider.get();
+    final ObjectNode queries;
+    final String data;
+    try {
+      queries = (ObjectNode) yamlMapper
+          .readTree(Unchecked.supplier(
+              () -> Resources.asCharSource(
+                  Objects.requireNonNull(PostgresExporter.class.getResource(queriesResourcePath)),
+                  StandardCharsets.UTF_8)
+              .read()).get());
+    } catch (Exception ex) {
+      throw new RuntimeException("Error while deserializing " + queriesResourcePath, ex);
+    }
+
+    var fieldNames = Seq.seq(queries.fieldNames()).toList();
+    if (pgBouncerIsDisabled) {
+      for (var fieldName : fieldNames) {
+        if (fieldName.startsWith(POSTGRES_EXPORTER_PGBOUNCER_QUERIES_PREFIX)) {
+          queries.remove(fieldName);
+        }
+      }
+    }
+
+    Optional<ObjectNode> customQueriesFound = Optional.of(context.getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPostgresExporter)
+        .map(StackGresClusterPostgresExporter::getQueries)
+        .map(yamlMapper::valueToTree);
+
+    customQueriesFound.ifPresent(customQueries -> Seq.seq(customQueries.fields())
+        .forEach(customQuery -> queries.set(customQuery.getKey(), customQuery.getValue())));
+
+    try {
+      data = yamlMapper.writeValueAsString(queries);
+    } catch (Exception ex) {
+      throw new RuntimeException("Error while serializing queries", ex);
+    }
+
     return builder
-        .withData(Map.of(QUERIES_YAML,
-            Unchecked.supplier(() ->
-            Resources
-            .asCharSource(
-                Objects.requireNonNull(PostgresExporter.class.getResource(queriesResourcePath)),
-                StandardCharsets.UTF_8).read()).get()))
+        .withData(Map.of(QUERIES_YAML, data))
         .build();
   }
 

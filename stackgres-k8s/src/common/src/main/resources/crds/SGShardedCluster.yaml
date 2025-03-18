@@ -563,6 +563,19 @@ spec:
                       - sgObjectStorage: 'backupconf'
                   ```
                 properties:
+                  postgresExporter:
+                    type: object
+                    description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
+                    properties:
+                      queries:
+                        type: object
+                        description: |
+                          Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) queries.yaml configuration.
+                          
+                          The queries defined here will overwrite those created by the operator.
+                          
+                          **WARNING**: Changing this may beak some of the functionality that depend on the query overwritten.
+                        "x-kubernetes-preserve-unknown-fields": true
                   observability:
                     type: object
                     description: Allow to specify Observability configuration (related to logs, metrics and traces)
@@ -1443,6 +1456,19 @@ spec:
                           If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
+                      postgresExporter:
+                        type: object
+                        description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
+                        properties:
+                          queries:
+                            type: object
+                            description: |
+                              Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) queries.yaml configuration.
+                              
+                              The queries defined here will overwrite those created by the operator.
+                              
+                              **WARNING**: Changing this may beak some of the functionality that depend on the query overwritten.
+                            "x-kubernetes-preserve-unknown-fields": true
                       patroni: &patroni
                         type: object
                         description: |
@@ -2086,6 +2112,19 @@ spec:
                           If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
 
                           **Changing this field may require a restart.**
+                      postgresExporter:
+                        type: object
+                        description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
+                        properties:
+                          queries:
+                            type: object
+                            description: |
+                              Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) queries.yaml configuration.
+                              
+                              The queries defined here will overwrite those created by the operator.
+                              
+                              **WARNING**: Changing this may beak some of the functionality that depend on the query overwritten.
+                            "x-kubernetes-preserve-unknown-fields": true
                       patroni: *patroni
                   replication: *replication
                   metadata:
@@ -2384,6 +2423,19 @@ spec:
                                 Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
         
                                 If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
+                            postgresExporter:
+                              type: object
+                              description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
+                              properties:
+                                queries:
+                                  type: object
+                                  description: |
+                                    Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) queries.yaml configuration.
+                                    
+                                    The queries defined here will overwrite those created by the operator.
+                                    
+                                    **WARNING**: Changing this may beak some of the functionality that depend on the query overwritten.
+                                  "x-kubernetes-preserve-unknown-fields": true
                         replication: *replication
                         metadata:
                           type: object
