@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,6 +45,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.patroni.PostgreSql;
@@ -296,6 +298,14 @@ public class PatroniConfigEndpoints
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(
         StackGresVersion.getStackGresVersion(cluster), version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
+
+    Optional.ofNullable(cluster.getSpec().getConfigurations().getPostgres())
+        .map(StackGresPostgresConfigSpec::getPostgresqlConf)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .forEach(entry -> userParams.put(entry.getKey(), entry.getValue()));
+
     PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
     params.putAll(userParams);
 

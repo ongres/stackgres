@@ -15,11 +15,15 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatusGrafana;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ConfigGrafanaIntegrationChecker {
+
+  private static final int MULTIPLE_CHOICES_STATUS_CODE =
+      Integer.valueOf(Response.Status.MULTIPLE_CHOICES.getStatusCode()).intValue();
 
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ConfigGrafanaIntegrationChecker.class);
@@ -61,8 +65,11 @@ public class ConfigGrafanaIntegrationChecker {
   }
 
   protected Optional<Exception> checkUnsecureUri(StackGresConfigStatusGrafana grafana, String url) {
-    return WebUtil.checkUnsecureUri(url.substring(url.indexOf(":") + 1),
-        Map.of("Authorization", "Bearer " + grafana.getToken()));
+    return WebUtil.checkUnsecureUri(
+        url.substring(url.indexOf(":") + 1),
+        Map.of("Authorization", "Bearer " + grafana.getToken()),
+        response -> response.getStatus() >= MULTIPLE_CHOICES_STATUS_CODE,
+        response -> new Exception("Invalid status code " + response.getStatus()));
   }
 
 }

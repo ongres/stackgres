@@ -123,6 +123,7 @@ class BackupCronJobContainerProfileDecoratorTest extends AbstractProfileDecorato
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
     lenient().when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(Optional.of(profile));
   }
 

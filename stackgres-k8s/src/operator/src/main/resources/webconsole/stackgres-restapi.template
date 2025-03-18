@@ -16,51 +16,8 @@ server {
   root   /opt/app-root/src;
   index index.html;
 
-  location /admin/ {
+  location ~ ^(/|/admin|/admin/.*)\$ {
     try_files \$uri \$uri/index.html /admin/index.html;
-  }
-
-  location ~ ^(/|/admin|/admin/)\$ {
-    return 302 "\$scheme://\$http_host/admin/index.html";
-  }
-
-  location /grafana-list {
-    if (\$grafana_embedded != true) {
-      return 404;
-    }
-    add_header Content-Type text/plain;
-    return 200 "[$(
-  FIRST=true
-  for GRAFANA_DASHBOARD_URL in $GRAFANA_DASHBOARD_URLS
-  do
-    if [ "$FIRST" != true ]
-    then
-      printf ,
-    fi
-    printf '{\\"name\\": \\"%s\\", \\"url\\": \\"$scheme://$http_host%s\\"}' \
-      "${GRAFANA_DASHBOARD_URL%%:*}" \
-      "${GRAFANA_DASHBOARD_URL#*:}"
-    FIRST=false
-  done
-)]";
-  }
-
-  location /grafana {
-    if (\$grafana_embedded != true) {
-      return 404;
-    }
-    add_header Content-Type text/plain;
-    return 200 "$(
-  for GRAFANA_DASHBOARD_URL in $GRAFANA_DASHBOARD_URLS
-  do
-    if [ "${GRAFANA_DASHBOARD_URL%%:*}" = current-activity ]
-    then
-      printf '$scheme://$http_host%s' \
-        "${GRAFANA_DASHBOARD_URL#*:}"
-      break
-    fi
-  done
-)";
   }
 
   location ~ ^(/|/stackgres|/stackgres/)\$ {
@@ -83,10 +40,51 @@ server {
     proxy_pass http://localhost:8080;
   }
 
-  location / {
+  location ~ ^/grafana-list\$ {
     if (\$grafana_embedded != true) {
       return 404;
     }
+    add_header Content-Type text/plain;
+    return 200 "[$(
+  FIRST=true
+  for GRAFANA_DASHBOARD_URL in $GRAFANA_DASHBOARD_URLS
+  do
+    if [ "$FIRST" != true ]
+    then
+      printf ,
+    fi
+    printf '{\\"name\\": \\"%s\\", \\"url\\": \\"$scheme://$http_host%s\\"}' \
+      "${GRAFANA_DASHBOARD_URL%%:*}" \
+      "${GRAFANA_DASHBOARD_URL#*:}"
+    FIRST=false
+  done
+)]";
+  }
+
+  location ~ ^/grafana\$ {
+    if (\$grafana_embedded != true) {
+      return 404;
+    }
+    add_header Content-Type text/plain;
+    return 200 "$(
+  for GRAFANA_DASHBOARD_URL in $GRAFANA_DASHBOARD_URLS
+  do
+    if [ "${GRAFANA_DASHBOARD_URL%%:*}" = current-activity ]
+    then
+      printf '$scheme://$http_host%s' \
+        "${GRAFANA_DASHBOARD_URL#*:}"
+      break
+    fi
+  done
+)";
+  }
+
+  location ~ ^(/.*|/grafana/.*)\$ {
+    if (\$grafana_embedded != true) {
+      return 404;
+    }
+    rewrite  ^/grafana/(.*)  /\$1 break;
+    proxy_redirect / /grafana/;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header X-Forwarded-Host \$host;

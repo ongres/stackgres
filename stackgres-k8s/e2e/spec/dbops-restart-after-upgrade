@@ -61,9 +61,13 @@ e2e_test_install() {
   PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
   VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
   VERSION_AS_NUMBER_1_3_3="$(get_version_as_number 1.3.3)"
-  if [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_3_3" ]
+  VERSION_AS_NUMBER_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_15_0" ]
   then
     install_prometheus_operator
+  elif [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_3_3" ]
+  then
+    E2E_GRAFANA_VERSION=9.5.21 install_prometheus_operator
   elif [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_0_9_5" ]
   then
     E2E_GRAFANA_VERSION=8.5.13 install_prometheus_operator

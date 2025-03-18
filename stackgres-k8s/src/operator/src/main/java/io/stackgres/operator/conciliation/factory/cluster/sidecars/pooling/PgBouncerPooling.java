@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -262,7 +263,17 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
         .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getPgbouncer)
+        .map(HashMap::new)
         .orElseGet(HashMap::new);
+
+    Optional.ofNullable(context.getCluster().getSpec().getConfigurations().getPooling())
+        .map(StackGresPoolingConfigSpec::getPgBouncer)
+        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getPgbouncer)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .forEach(entry -> newParams.put(entry.getKey(), entry.getValue()));
 
     // Blocklist removal
     PgBouncerBlocklist.getBlocklistParameters().forEach(newParams::remove);
@@ -297,7 +308,17 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
         .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getUsers)
+        .map(HashMap::new)
         .orElseGet(HashMap::new);
+
+    Optional.ofNullable(context.getCluster().getSpec().getConfigurations().getPooling())
+        .map(StackGresPoolingConfigSpec::getPgBouncer)
+        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getUsers)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .forEach(entry -> users.put(entry.getKey(), entry.getValue()));
 
     return !users.isEmpty()
         ? "[users]\n" + getSections(users) + "\n\n"
@@ -312,7 +333,17 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
         .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getDatabases)
+        .map(HashMap::new)
         .orElseGet(HashMap::new);
+
+    Optional.ofNullable(context.getCluster().getSpec().getConfigurations().getPooling())
+        .map(StackGresPoolingConfigSpec::getPgBouncer)
+        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getDatabases)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .forEach(entry -> databases.put(entry.getKey(), entry.getValue()));
 
     return "[databases]\n\n"
         + (!databases.isEmpty() ? getSections(databases) + "\n\n" : "")

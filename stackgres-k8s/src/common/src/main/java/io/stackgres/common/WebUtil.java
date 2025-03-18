@@ -13,6 +13,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -27,8 +29,6 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.Response;
 
 public interface WebUtil {
-
-  int BAD_REQUEST_STATUS_CODE = Integer.valueOf(Response.Status.BAD_REQUEST.getStatusCode()).intValue();
 
   static boolean checkUri(String uri, Map<String, Object> headers) {
     try {
@@ -48,7 +48,11 @@ public interface WebUtil {
     }
   }
 
-  static Optional<Exception> checkUnsecureUri(String uri, Map<String, Object> headers) {
+  static Optional<Exception> checkUnsecureUri(
+      String uri,
+      Map<String, Object> headers,
+      Predicate<Response> predicate,
+      Function<Response, Exception> errorMapper) {
     try {
       ClientBuilder clientBuilder = ClientBuilder.newBuilder();
       try (Closer closer = Closer.create()) {
@@ -61,9 +65,9 @@ public interface WebUtil {
             .headers(new MultivaluedHashMap<>(headers))
             .buildGet()
             .invoke();
-        return Optional.of(response.getStatus())
-            .filter(statusCode -> statusCode.intValue() >= BAD_REQUEST_STATUS_CODE)
-            .map(status -> new Exception("Invalid status code " + status));
+        return Optional.of(response)
+            .filter(predicate)
+            .map(errorMapper);
       }
     } catch (IOException | IllegalArgumentException | ProcessingException
         | KeyManagementException | NoSuchAlgorithmException ex) {

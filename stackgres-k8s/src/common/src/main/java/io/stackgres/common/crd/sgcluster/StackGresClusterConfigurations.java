@@ -13,6 +13,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
@@ -30,6 +32,10 @@ public class StackGresClusterConfigurations {
   private String sgPostgresConfig;
 
   private String sgPoolingConfig;
+
+  private StackGresPostgresConfigSpec postgres;
+
+  private StackGresPoolingConfigSpec pooling;
 
   @Valid
   private List<StackGresClusterBackupConfiguration> backups;
@@ -74,6 +80,22 @@ public class StackGresClusterConfigurations {
 
   public void setSgPoolingConfig(String sgPoolingConfig) {
     this.sgPoolingConfig = sgPoolingConfig;
+  }
+
+  public StackGresPostgresConfigSpec getPostgres() {
+    return postgres;
+  }
+
+  public void setPostgres(StackGresPostgresConfigSpec postgres) {
+    this.postgres = postgres;
+  }
+
+  public StackGresPoolingConfigSpec getPooling() {
+    return pooling;
+  }
+
+  public void setPooling(StackGresPoolingConfigSpec pooling) {
+    this.pooling = pooling;
   }
 
   public List<StackGresClusterBackupConfiguration> getBackups() {
@@ -127,8 +149,8 @@ public class StackGresClusterConfigurations {
 
   @Override
   public int hashCode() {
-    return Objects.hash(backups, binding, credentials, observability, patroni, postgresExporter,
-        sgPoolingConfig, sgPostgresConfig);
+    return Objects.hash(backups, binding, credentials, observability, patroni, pooling, postgres,
+        postgresExporter, sgPoolingConfig, sgPostgresConfig);
   }
 
   @Override
@@ -143,7 +165,8 @@ public class StackGresClusterConfigurations {
     return Objects.equals(backups, other.backups) && Objects.equals(binding, other.binding)
         && Objects.equals(credentials, other.credentials)
         && Objects.equals(observability, other.observability)
-        && Objects.equals(patroni, other.patroni)
+        && Objects.equals(patroni, other.patroni) && Objects.equals(pooling, other.pooling)
+        && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresExporter, other.postgresExporter)
         && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);

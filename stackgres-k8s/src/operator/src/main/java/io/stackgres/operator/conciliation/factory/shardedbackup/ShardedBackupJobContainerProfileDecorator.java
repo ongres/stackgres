@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.stackgres.common.StackGresGroupKind;
-import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
@@ -40,15 +39,13 @@ public class ShardedBackupJobContainerProfileDecorator extends AbstractContainer
     }
 
     if (resource instanceof Job job) {
-      setProfileContainers(context.getProfile(),
-          () -> Optional.of(job)
+      setProfileContainers(
+          context.getProfile(),
+          Optional.ofNullable(context.getShardedCluster().getSpec().getCoordinator().getPods().getResources()),
+          Optional.of(job)
           .map(Job::getSpec)
           .map(JobSpec::getTemplate)
-          .map(PodTemplateSpec::getSpec),
-          Optional.ofNullable(context.getShardedCluster().getSpec()
-              .getCoordinator().getPods().getResources())
-          .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
-          .orElse(false));
+          .map(PodTemplateSpec::getSpec));
     }
 
     return resource;

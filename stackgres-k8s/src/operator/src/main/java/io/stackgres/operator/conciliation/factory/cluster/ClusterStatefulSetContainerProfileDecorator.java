@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.Set;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Container;
@@ -24,9 +24,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresGroupKind;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
@@ -69,17 +67,19 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
 
     if (resource instanceof StatefulSet statefulSet) {
       if (!context.calculateDisableClusterResourceRequirements()) {
-        setProfileContainers(profile,
-            () -> Optional.of(statefulSet)
+        setProfileContainers(
+            profile,
+            Optional.ofNullable(context.getCluster().getSpec().getPods().getResources()),
+            Optional.of(statefulSet)
             .map(StatefulSet::getSpec)
             .map(StatefulSetSpec::getTemplate)
-            .map(PodTemplateSpec::getSpec),
-            Optional.ofNullable(context.getSource().getSpec().getPods().getResources())
-            .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
-            .orElse(false));
+            .map(PodTemplateSpec::getSpec));
       }
       if (!context.calculateDisablePatroniResourceRequirements()) {
-        setPatroniContainerResources(context, profile, statefulSet);
+        setPatroniContainerResources(
+            profile,
+            Optional.ofNullable(context.getCluster().getSpec().getPods().getResources()),
+            statefulSet);
       }
     }
 
@@ -87,31 +87,50 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
   }
 
   private void setPatroniContainerResources(
-      StackGresClusterContext context,
       StackGresProfile profile,
+      Optional<StackGresClusterResources> resources,
       StatefulSet statefulSet) {
-    final ResourceRequirements patroniResources = new ResourceRequirements();
-    final Quantity cpuLimit = Optional.ofNullable(profile.getSpec().getCpu())
-        .map(Quantity::new).orElse(null);
-    final Quantity memoryLimit = Optional.ofNullable(profile.getSpec().getMemory())
-        .map(Quantity::new).orElse(null);
-    final var limits = new HashMap<String, Quantity>();
-    if (cpuLimit != null) {
+    final Optional<ResourceRequirements> containerRequestRequirements =
+        resources
+        .map(StackGresClusterResources::getContainers)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .filter(containerRequest -> getKind().hasPrefix(containerRequest.getKey()))
+        .filter(containerRequest -> Objects.equals(
+            getKind().getName(containerRequest.getKey()), StackGresContainer.PATRONI.getName()))
+        .findFirst()
+        .map(Map.Entry::getValue);
+    final ResourceRequirements patroniResources =
+        containerRequestRequirements
+        .orElseGet(ResourceRequirements::new);
+    final Quantity cpuLimit =
+        Optional.ofNullable(profile.getSpec().getCpu())
+        .map(Quantity::new)
+        .orElse(null);
+    final Quantity memoryLimit =
+        Optional.ofNullable(profile.getSpec().getMemory())
+        .map(Quantity::new)
+        .orElse(null);
+    final HashMap<String, Quantity> limits =
+        Optional.of(patroniResources)
+        .map(ResourceRequirements::getRequests)
+        .map(HashMap::new)
+        .orElseGet(HashMap::new);
+    if (cpuLimit != null
+        && !limits.containsKey("cpu")) {
       limits.put("cpu", cpuLimit);
     }
-    if (memoryLimit != null) {
+    if (memoryLimit != null
+        && !limits.containsKey("memory")) {
       limits.put("memory", memoryLimit);
     }
     final boolean disableResourcesRequestsSplitFromTotal =
-        Optional.of(context.getCluster().getSpec())
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getResources)
+        resources
         .map(StackGresClusterResources::getDisableResourcesRequestsSplitFromTotal)
         .orElse(false);
     final boolean failWhenTotalIsHigher =
-        Optional.of(context.getCluster().getSpec())
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getResources)
+        resources
         .map(StackGresClusterResources::getFailWhenTotalIsHigher)
         .orElse(false);
     final Quantity cpuRequest = Optional.of(profile.getSpec())
@@ -166,8 +185,13 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
         .map(ResourceUtil::toMemoryValue)
         .map(Quantity::new)
         .orElse(null);
-    final var requests = new HashMap<String, Quantity>();
-    if (cpuRequest != null) {
+    final HashMap<String, Quantity> requests =
+        Optional.of(patroniResources)
+        .map(ResourceRequirements::getRequests)
+        .map(HashMap::new)
+        .orElseGet(HashMap::new);
+    if (cpuRequest != null
+        && !requests.containsKey("cpu")) {
       if (cpuRequest.getNumericalAmount().compareTo(BigDecimal.ZERO) < 0) {
         if (failWhenTotalIsHigher) {
           throw new IllegalArgumentException(
@@ -180,7 +204,8 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
         requests.put("cpu", cpuRequest);
       }
     }
-    if (memoryRequest != null) {
+    if (memoryRequest != null
+        && !requests.containsKey("memory")) {
       if (memoryRequest.getNumericalAmount().compareTo(BigDecimal.ZERO) < 0) {
         if (failWhenTotalIsHigher) {
           throw new IllegalArgumentException(
@@ -210,48 +235,61 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
         .ifPresent(patroniContainer -> patroniContainer.setResources(patroniResources));
   }
 
-  private void setHugePages2Mi(StackGresProfile profile,
-      final HashMap<String, Quantity> requests, final HashMap<String, Quantity> limits) {
+  private void setHugePages2Mi(
+      StackGresProfile profile,
+      final HashMap<String, Quantity> requests,
+      final HashMap<String, Quantity> limits) {
     Optional.of(profile.getSpec())
         .map(StackGresProfileSpec::getHugePages)
         .map(StackGresProfileHugePages::getHugepages2Mi)
         .map(Quantity::new)
         .ifPresent(quantity -> {
-          requests.put("hugepages-2Mi", quantity);
-          limits.put("hugepages-2Mi", quantity);
+          if (!requests.containsKey("hugepages-2Mi")) {
+            requests.put("hugepages-2Mi", quantity);
+          }
+          if (!limits.containsKey("hugepages-2Mi")) {
+            limits.put("hugepages-2Mi", quantity);
+          }
         });
   }
 
-  private void setHugePages1Gi(StackGresProfile profile,
-      final HashMap<String, Quantity> requests, final HashMap<String, Quantity> limits) {
+  private void setHugePages1Gi(
+      StackGresProfile profile,
+      final HashMap<String, Quantity> requests,
+      final HashMap<String, Quantity> limits) {
     Optional.of(profile.getSpec())
         .map(StackGresProfileSpec::getHugePages)
         .map(StackGresProfileHugePages::getHugepages1Gi)
         .map(Quantity::new)
         .ifPresent(quantity -> {
-          requests.put("hugepages-1Gi", quantity);
-          limits.put("hugepages-1Gi", quantity);
+          if (!requests.containsKey("hugepages-1Gi")) {
+            requests.put("hugepages-1Gi", quantity);
+          }
+          if (!limits.containsKey("hugepages-1Gi")) {
+            limits.put("hugepages-1Gi", quantity);
+          }
         });
   }
 
   @Override
-  protected void setProfileContainers(StackGresProfile profile,
-      Supplier<Optional<PodSpec>> podSpecSupplier,
-      boolean enableCpuAndMemoryLimits) {
-    podSpecSupplier.get()
+  protected void setProfileContainers(
+      StackGresProfile profile,
+      Optional<StackGresClusterResources> resources,
+      Optional<PodSpec> podSpec) {
+    podSpec
         .map(PodSpec::getContainers)
         .stream()
         .flatMap(List::stream)
         .filter(container -> !Objects.equals(
             container.getName(), StackGresContainer.PATRONI.getName()))
-        .forEach(container -> setProfileForContainer(profile, podSpecSupplier, container,
-            enableCpuAndMemoryLimits));
-    podSpecSupplier.get()
+        .forEach(container -> setProfileForContainer(
+            profile, resources, podSpec, container));
+    podSpec
         .map(PodSpec::getInitContainers)
         .stream()
         .flatMap(List::stream)
-        .forEach(container -> setProfileForInitContainer(profile, podSpecSupplier, container,
-            enableCpuAndMemoryLimits));
+        .forEach(container -> setProfileForInitContainer(
+            profile, resources, podSpec, container));
   }
 
 }
