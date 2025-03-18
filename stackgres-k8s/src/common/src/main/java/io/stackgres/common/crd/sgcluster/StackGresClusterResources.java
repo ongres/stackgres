@@ -5,10 +5,12 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -21,11 +23,31 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterResources {
 
+  private Map<String, ResourceRequirements> containers;
+
+  private Map<String, ResourceRequirements> initContainers;
+
   private Boolean enableClusterLimitsRequirements;
 
   private Boolean disableResourcesRequestsSplitFromTotal;
 
   private Boolean failWhenTotalIsHigher;
+
+  public Map<String, ResourceRequirements> getContainers() {
+    return containers;
+  }
+
+  public void setContainers(Map<String, ResourceRequirements> containers) {
+    this.containers = containers;
+  }
+
+  public Map<String, ResourceRequirements> getInitContainers() {
+    return initContainers;
+  }
+
+  public void setInitContainers(Map<String, ResourceRequirements> initContainers) {
+    this.initContainers = initContainers;
+  }
 
   public Boolean getEnableClusterLimitsRequirements() {
     return enableClusterLimitsRequirements;
@@ -54,8 +76,8 @@ public class StackGresClusterResources {
 
   @Override
   public int hashCode() {
-    return Objects.hash(disableResourcesRequestsSplitFromTotal, enableClusterLimitsRequirements,
-        failWhenTotalIsHigher);
+    return Objects.hash(containers, disableResourcesRequestsSplitFromTotal,
+        enableClusterLimitsRequirements, failWhenTotalIsHigher, initContainers);
   }
 
   @Override
@@ -67,10 +89,12 @@ public class StackGresClusterResources {
       return false;
     }
     StackGresClusterResources other = (StackGresClusterResources) obj;
-    return Objects.equals(disableResourcesRequestsSplitFromTotal,
-        other.disableResourcesRequestsSplitFromTotal)
+    return Objects.equals(containers, other.containers)
+        && Objects.equals(disableResourcesRequestsSplitFromTotal,
+            other.disableResourcesRequestsSplitFromTotal)
         && Objects.equals(enableClusterLimitsRequirements, other.enableClusterLimitsRequirements)
-        && Objects.equals(failWhenTotalIsHigher, other.failWhenTotalIsHigher);
+        && Objects.equals(failWhenTotalIsHigher, other.failWhenTotalIsHigher)
+        && Objects.equals(initContainers, other.initContainers);
   }
 
   @Override

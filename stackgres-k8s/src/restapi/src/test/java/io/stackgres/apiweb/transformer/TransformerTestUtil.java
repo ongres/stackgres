@@ -159,9 +159,7 @@ public class TransformerTestUtil {
       Class<K1> targetKeyType,
       Class<V1> targetValueType,
       Class<K2> sourceKeyType,
-      Class<V2> sourceValueType,
-      Type targetGenericValueType,
-      Type sourceGenericValueType) {
+      Class<V2> sourceValueType) {
 
     int desiredMapSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
 

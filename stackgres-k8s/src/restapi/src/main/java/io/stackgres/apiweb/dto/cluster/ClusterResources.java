@@ -5,8 +5,11 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -15,11 +18,31 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterResources {
 
+  private Map<String, ResourceRequirements> containers;
+
+  private Map<String, ResourceRequirements> initContainers;
+
   private Boolean enableClusterLimitsRequirements;
 
   private Boolean disableResourcesRequestsSplitFromTotal;
 
   private Boolean failWhenTotalIsHigher;
+
+  public Map<String, ResourceRequirements> getContainers() {
+    return containers;
+  }
+
+  public void setContainers(Map<String, ResourceRequirements> containers) {
+    this.containers = containers;
+  }
+
+  public Map<String, ResourceRequirements> getInitContainers() {
+    return initContainers;
+  }
+
+  public void setInitContainers(Map<String, ResourceRequirements> initContainers) {
+    this.initContainers = initContainers;
+  }
 
   public Boolean getEnableClusterLimitsRequirements() {
     return enableClusterLimitsRequirements;

@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.StackGresGroupKind;
-import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
@@ -48,17 +47,16 @@ public class BackupCronJobContainerProfileDecorator extends AbstractContainerPro
     }
 
     if (resource instanceof CronJob cronJob) {
-      setProfileContainers(context.getProfile()
+      setProfileContainers(
+          context.getProfile()
           .orElseGet(() -> defaultProfileFactory.buildResource(context.getSource())),
-          () -> Optional.of(cronJob)
+          Optional.ofNullable(context.getCluster().getSpec().getPods().getResources()),
+          Optional.of(cronJob)
           .map(CronJob::getSpec)
           .map(CronJobSpec::getJobTemplate)
           .map(JobTemplateSpec::getSpec)
           .map(JobSpec::getTemplate)
-          .map(PodTemplateSpec::getSpec),
-          Optional.ofNullable(context.getSource().getSpec().getPods().getResources())
-          .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
-          .orElse(false));
+          .map(PodTemplateSpec::getSpec));
     }
 
     return resource;

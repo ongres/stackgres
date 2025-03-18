@@ -19,6 +19,10 @@ public class ClusterConfigurations {
 
   private String sgPoolingConfig;
 
+  private PostgresConfigSpec postgres;
+
+  private PoolingConfigSpec pooling;
+
   private List<ClusterBackupConfiguration> backups;
 
   private ClusterPatroni patroni;
@@ -45,6 +49,22 @@ public class ClusterConfigurations {
 
   public void setSgPoolingConfig(String sgPoolingConfig) {
     this.sgPoolingConfig = sgPoolingConfig;
+  }
+
+  public PostgresConfigSpec getPostgres() {
+    return postgres;
+  }
+
+  public void setPostgres(PostgresConfigSpec postgres) {
+    this.postgres = postgres;
+  }
+
+  public PoolingConfigSpec getPooling() {
+    return pooling;
+  }
+
+  public void setPooling(PoolingConfigSpec pooling) {
+    this.pooling = pooling;
   }
 
   public List<ClusterBackupConfiguration> getBackups() {
