@@ -15,3 +15,13 @@ FROM "$BASE_IMAGE"
   
   COPY 'src/main/docker/pglambda/javascript/index.js' ./
 
+  ARG STACKGRES_VERSION
+  ARG BUILD_HASH
+  LABEL name=stackgres/pglambda
+  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
+  LABEL vendor="OnGres Inc."
+  LABEL version="$STACKGRES_VERSION"
+  LABEL release="$BUILD_HASH"
+  LABEL summary="StackGres PgLambda JavaScript"
+  LABEL description="StackGres PgLambda JavaScript"
+
