@@ -45,6 +45,7 @@ e2e_test_install() {
   DBOPS_3_NAME="$(get_sgdbops_name "security-upgrade-3")"
 
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
+  PREVIOUS_PATRONI_IMAGE="$(printf %s "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
   then
     PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
@@ -68,17 +69,18 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
+  PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   OLDEST_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION-")"
   OLDEST_PATRONI_IMAGE="$(printf '%s' "$OLDEST_PATRONI_IMAGE" | tail -n 1)"
   SHARDED_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION-")"
   SHARDED_PATRONI_IMAGE="$(printf '%s' "$SHARDED_PATRONI_IMAGE" | tail -n 1)"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
   then
-    DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
+    DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION%.*}"'\.')"
   else
     DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
   fi
-  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION-")"
+  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION%.*}\.${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION#*.}-")"
   DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
   PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
@@ -417,7 +419,12 @@ check_before_operator_upgrade() {
       echo "sgcluster/$CLUSTER_3_NAME-shard0"
       echo "sgcluster/$CLUSTER_3_NAME-shard1"
     fi
-    echo "sgdistributedlogs/$DISTRIBUTEDLOGS_NAME"
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
+    then
+      echo "sgcluster/$DISTRIBUTEDLOGS_NAME"
+    else
+      echo "sgdistributedlogs/$DISTRIBUTEDLOGS_NAME"
+    fi
     )
   do
     if wait_until eval 'kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" \
