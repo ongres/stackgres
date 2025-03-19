@@ -467,7 +467,7 @@ EOF
         || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.31 ] \
         || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.32 ]
       then
-        CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.28"
+        CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.30"
       fi
       cat << 'EOF' > "$CSI_DRIVER_HOST_PATH_PATH/kubectlw"
 set -e
