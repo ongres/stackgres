@@ -56,4 +56,13 @@ FROM "$BASE_IMAGE"
 
   RUN if uname -m | grep -q x86_64; then JAVA_CDS_GENERATION=true /app/stackgres-restapi.sh; fi
 
+  ARG BUILD_HASH
+  LABEL name=stackgres/restapi
+  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
+  LABEL vendor="OnGres Inc."
+  LABEL version="$STACKGRES_VERSION"
+  LABEL release="$BUILD_HASH"
+  LABEL summary="StackGres REST API"
+  LABEL description="StackGres REST API"
+
   CMD '/app/stackgres-restapi.sh'

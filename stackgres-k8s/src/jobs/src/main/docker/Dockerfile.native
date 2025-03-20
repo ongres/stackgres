@@ -56,5 +56,14 @@ FROM "$BASE_IMAGE"
   LABEL io.stackgres.version="$STACKGRES_VERSION"
   ENV STACKGRES_VERSION=$STACKGRES_VERSION
   ENV OPERATOR_VERSION=$STACKGRES_VERSION
+  
+  ARG BUILD_HASH
+  LABEL name=stackgres/jobs
+  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
+  LABEL vendor="OnGres Inc."
+  LABEL version="$STACKGRES_VERSION"
+  LABEL release="$BUILD_HASH"
+  LABEL summary="StackGres Jobs"
+  LABEL description="StackGres Jobs"
 
   CMD '/app/stackgres-jobs.sh'

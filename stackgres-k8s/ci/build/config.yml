@@ -1,12 +1,12 @@
 .images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.31
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.9
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.21-3
-  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.10-20.1739286373
-  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.5-1739420147
-  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-72.1739758168
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-38.1739758148
-  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-136.1739758167
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.21-3.1741781261
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro:8.10-22
+  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal:9.5-1741850109
+  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-73
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-39
+  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-137
 platforms:
   - linux/x86_64
   - linux/aarch64
@@ -277,6 +277,7 @@ modules:
       args: &jvm-image-args
         BASE_IMAGE: $TARGET_IMAGE_NAME
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh operator)
+        BUILD_HASH: $MODULE_HASH
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts: &operator-jvm-image-artifacts
@@ -292,6 +293,7 @@ modules:
       args:
         <<: *jvm-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh restapi)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &restapi-jvm-image-artifacts
       0: stackgres-k8s/src/restapi/src/main/docker/LICENCE
       1: stackgres-k8s/src/restapi/src/main/docker/stackgres-restapi.jvm.sh
@@ -305,6 +307,7 @@ modules:
       args:
         <<: *jvm-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh jobs)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &jobs-jvm-image-artifacts
       0: stackgres-k8s/src/jobs/src/main/docker/LICENCE
       1: stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.jvm.sh
@@ -318,6 +321,7 @@ modules:
       args:
         <<: *jvm-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh stream)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &stream-jvm-image-artifacts
       0: stackgres-k8s/src/stream/src/main/docker/LICENCE
       1: stackgres-k8s/src/stream/src/main/docker/stackgres-stream.jvm.sh
@@ -331,6 +335,7 @@ modules:
       args:
         <<: *jvm-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh cluster-controller)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &cluster-controller-jvm-image-artifacts
       0: stackgres-k8s/src/cluster-controller/src/main/docker/LICENCE
       1: stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.jvm.sh
@@ -345,6 +350,7 @@ modules:
       args:
         BASE_IMAGE: $TARGET_IMAGE_NAME
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh)
+        BUILD_HASH: $MODULE_HASH
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts: &admin-ui-image-artifacts
@@ -360,6 +366,7 @@ modules:
       args: &native-image-args
         BASE_IMAGE: $TARGET_IMAGE_NAME
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh operator)
+        BUILD_HASH: $MODULE_HASH
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts: &operator-native-image-artifacts
@@ -375,6 +382,7 @@ modules:
       args:
         <<: *native-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh restapi)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &restapi-native-image-artifacts
       0: stackgres-k8s/src/restapi/src/main/docker/LICENCE
       1: stackgres-k8s/src/restapi/target/stackgres-restapi-runner
@@ -388,6 +396,7 @@ modules:
       args:
         <<: *native-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh jobs)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &jobs-native-image-artifacts
       0: stackgres-k8s/src/jobs/src/main/docker/LICENCE
       1: stackgres-k8s/src/jobs/target/stackgres-jobs-runner
@@ -401,6 +410,7 @@ modules:
       args:
         <<: *native-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh stream)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &stream-native-image-artifacts
       0: stackgres-k8s/src/stream/src/main/docker/LICENCE
       1: stackgres-k8s/src/stream/target/stackgres-stream-runner
@@ -414,6 +424,7 @@ modules:
       args:
         <<: *native-image-args
         STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh cluster-controller)
+        BUILD_HASH: $MODULE_HASH
     artifacts: &cluster-controller-native-image-artifacts
       0: stackgres-k8s/src/cluster-controller/src/main/docker/LICENCE
       1: stackgres-k8s/src/cluster-controller/target/stackgres-cluster-controller-runner
@@ -649,6 +660,8 @@ modules:
       path: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/Dockerfile
       args:
         BASE_IMAGE: $TARGET_IMAGE_NAME
+        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh stream)
+        BUILD_HASH: $MODULE_HASH
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:

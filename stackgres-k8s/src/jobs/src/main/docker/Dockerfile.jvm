@@ -55,5 +55,14 @@ FROM "$BASE_IMAGE"
   ENV OPERATOR_VERSION=$STACKGRES_VERSION
 
   RUN if uname -m | grep -q x86_64; then JAVA_CDS_GENERATION=true /app/stackgres-jobs.sh; fi
+  
+  ARG BUILD_HASH
+  LABEL name=stackgres/jobs
+  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
+  LABEL vendor="OnGres Inc."
+  LABEL version="$STACKGRES_VERSION"
+  LABEL release="$BUILD_HASH"
+  LABEL summary="StackGres Jobs"
+  LABEL description="StackGres Jobs"
 
   CMD '/app/stackgres-jobs.sh'
