@@ -26,6 +26,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_10_0="$(get_version_as_number 1.10.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_13_0="$(get_version_as_number 1.13.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_16_0="$(get_version_as_number 1.16.0-SNAPSHOT)"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 
@@ -89,7 +90,7 @@ e2e_test_install() {
 
   e2e_load_images
 
-  if [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_15_0" ]
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_16_0" ]
   then
     install_prometheus_operator
   elif [ "$PREVIOUS_VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_3_3" ]
