@@ -1,7 +1,6 @@
 #!/bin/sh
 
 e2e_test_install() {
-  DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
 
@@ -14,7 +13,7 @@ e2e_test_install() {
     --set-string "cluster.pods.scheduling.tolerations[0].operator=Equal" \
     --set-string "cluster.pods.scheduling.tolerations[0].value=$NODE_LABEL_VALUE" \
     --set "cluster.pods.scheduling.tolerations[0].tolerationSeconds=1" \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTEDLOGS_NAME" \
+    --set-string cluster.distributedLogs.sgDistributedLogs=distributedlogs \
     --set distributedLogs.enabled=true \
     --set-string "distributedLogs.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set-string "distributedLogs.scheduling.tolerations[0].effect=NoExecute" \
@@ -22,8 +21,7 @@ e2e_test_install() {
     --set-string "distributedLogs.scheduling.tolerations[0].operator=Equal" \
     --set-string "distributedLogs.scheduling.tolerations[0].value=$NODE_LABEL_VALUE" \
     --set "distributedLogs.scheduling.tolerations[0].tolerationSeconds=1"
-  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
-    --from-literal=superuser-password="$RANDOM"
+
 }
 
 e2e_test_uninstall() {

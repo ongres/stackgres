@@ -14,8 +14,6 @@ e2e_test_install() {
     --set distributedLogs.create=create \
     --set distributedLogs.persistentVolume.size="$LOW_PV_SIZE" \
     --set distributedLogs.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
-  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
-    --from-literal=superuser-password="$RANDOM"
     
   wait_pods_running "$CLUSTER_NAMESPACE" "3"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  

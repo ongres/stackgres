@@ -19,6 +19,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -63,15 +64,17 @@ provided_ssl_check() {
 ssl_check() {
   local RETRY=3
   local EXIT_CODE RESULT
-  until [ "$RETRY" -gt 0 ]
+  while [ "$RETRY" -gt 0 ]
   do
     if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
     then
       echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-      kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
-        sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
+      kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
+      wait_pods_running "$CLUSTER_NAMESPACE" 2
+      wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+      switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
     fi
-    try_function run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
+    try_function wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
     if "$RESULT"
     then
       break
@@ -85,15 +88,17 @@ ssl_check() {
   then
     local RETRY=3
     local EXIT_CODE RESULT
-    until [ "$RETRY" -gt 0 ]
+    while [ "$RETRY" -gt 0 ]
     do
       if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
       then
         echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-        kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c postgres-util -- \
-          sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
+        kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+        wait_pods_running "$CLUSTER_NAMESPACE" 2
+        wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+        switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
       fi
-      try_function run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
+      try_function wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
       if "$RESULT"
       then
         break

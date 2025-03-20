@@ -19,6 +19,11 @@ e2e_test_install() {
     return
   fi
 
+  if ! docker manifest inspect "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME" > /dev/null 2>&1
+  then
+    docker push "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
+  fi
+
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
