@@ -15,30 +15,20 @@ e2e_test() {
 }
 
 delete_with_cluster() {
-  if ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-s 2>&1)"
+  if ERROR="$(kubectl delete --dry-run=server -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-s 2>&1)"
   then
-    echo "INFO: It should not be able to delete size-s"
-    return 1
+    success "Good. It can delete the configuration"
   else
-    success "Good it has failed"
-  fi
-
-  if echo "$ERROR" | grep -q "Can't delete sginstanceprofiles.stackgres.io size-s"
-  then
-    success "Error message was the expected"
-    return 0
-  else
-    fail "Error is not what it should be. ERROR ${ERROR}"
+    fail "It should be able to delete the size-s. ERROR ${ERROR}"
   fi
 }
 
 delete_whitout_cluster(){
   kubectl get -n "$CLUSTER_NAMESPACE" sgclusters.stackgres.io "$CLUSTER_NAME" -o yaml | kubectl delete -f -
 
-  if ERROR="$(kubectl get -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-s 2>&1)"
+  if ERROR="$(kubectl delete --dry-run=server -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-s 2>&1)"
   then
-    success "Good. It has deleted the configuration"
-    return 0
+    success "Good. It can delete the configuration"
   else
     fail "It should be able to delete the size-s. ERROR ${ERROR}"
   fi

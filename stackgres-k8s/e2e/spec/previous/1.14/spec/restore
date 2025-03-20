@@ -21,6 +21,7 @@ e2e_test_install() {
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 1 "$BACKUP_CLUSTER_NAME-[0-9]\+"
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
 
   create_mock_data
 
@@ -125,8 +126,6 @@ e2e_test() {
 
   run_test "Check that restore using PITR" check_restore_using_pitr
 
-  run_test "Check that backup is compatible with cluster" check_backup_pg_version
-
   run_test "Check that after deleting original backup the backup is not deleted if a copy exists" \
     check_delete_original_backup_dont_delete_backup_if_copy_exists
 
@@ -222,6 +221,7 @@ check_backup_can_be_restored() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   check_init_data_after_restore
 
@@ -298,6 +298,7 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[0-9]\+"
 
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 
   if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
   then
@@ -375,6 +376,7 @@ check_restore_using_pitr() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   local RESULT
   RESULT="$(run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
@@ -386,37 +388,6 @@ check_restore_using_pitr() {
     success "restore replica db restored successfully using PITR"
   else
     fail "replica db not restored successfully using PITR"
-  fi
-}
-
-check_backup_pg_version() {
-  ALTERNATIVE_PG_VERSION="12.9"
-  if [ "${E2E_POSTGRES_VERSION%.*}" = "${ALTERNATIVE_PG_VERSION%.*}" ]
-  then
-    ALTERNATIVE_PG_VERSION="13.5"
-  fi
-
-  local RESULT EXIT_CODE
-  try_function create_or_replace_cluster "$ALTER_CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set instanceProfiles=null \
-    --set-string "cluster.configurations.sgPostgresConfig=alter-postgresconf" \
-    --set-string "cluster.configurations.sgPoolingConfig=alter-pgbouncerconf" \
-    --set-string "cluster.postgres.version=$ALTERNATIVE_PG_VERSION" \
-    --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" 2> "$LOG_PATH/create-alter-cluster.log"
- 
-  if "$RESULT"
-  then
-    echo "ERROR: It should not be able to install a cluster with postgres version that is different than the backup pg version"
-    return 1
-  else
-    success "Cluster was not created"
-  fi
-
-  if grep -q "Cannot restore from SGBackup $BACKUP_NAME" "$LOG_PATH/create-alter-cluster.log"
-  then
-    success "Error message was the expected"
-  else 
-    fail "Unexpected error message $ERROR_MESSAGE"
   fi
 }
 

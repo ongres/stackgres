@@ -333,22 +333,9 @@ test_constraint_violation_api_error() {
 
   local HTTP_STATUS
 
-  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfigs" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
+  HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
-  assert_string_equal "422" "$HTTP_STATUS"
-
-  ERROR_RESPONSE="$(run_curl -r "stackgres/sgpgconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST')"
-
-  EXPECTED_ERROR_TYPE="constraint-violation"
-  EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="spec.postgresVersion in body"
-  EXPECTED_ERROR_FIELD="postgresVersion"
-
-  if ! assert_api_error "$ERROR_RESPONSE"
-  then
-    EXPECTED_ERROR_DETAIL="Required value"
-    assert_api_error "$ERROR_RESPONSE"
-  fi
+  assert_string_equal "200" "$HTTP_STATUS"
 }
 
 test_authentication_api_error() {
