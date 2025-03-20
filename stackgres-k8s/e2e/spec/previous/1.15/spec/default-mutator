@@ -70,7 +70,7 @@ e2e_test() {
 
 create_empty_sgpgconfig() {
   kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-sgpgconfig.yaml"
 apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
@@ -81,6 +81,8 @@ spec:
   postgresql.conf:
     custom.unsignificant: "true"
 EOF
+
+  kubectl create -f "$LOG_PATH/create-empty-sgpgconfig.yaml"
 
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
@@ -115,7 +117,7 @@ EOF
 
 update_empty_sgpgconfig() {
   kubectl delete sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/update-empty-sgpgconfig.yaml"
 apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:
@@ -125,12 +127,14 @@ spec:
   postgresVersion: "${E2E_POSTGRES_VERSION%%.*}"
   postgresql.conf: {}
 EOF
-  local PATCH
-  PATCH="$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
+
+  kubectl create -f "$LOG_PATH/update-empty-sgpgconfig.yaml"
+
+  kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec["postgresql.conf"]["custom.unsignificant"] = "true"' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-empty-sgpgconfig.yaml"
+  kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" "$PGCONFIG" --type merge --patch-file="$LOG_PATH/patch-empty-sgpgconfig.yaml"
 
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
@@ -165,7 +169,7 @@ EOF
 
 create_empty_sgpoolconfig() {
   kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-sgpoolconfig.yaml"
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
@@ -177,6 +181,8 @@ spec:
       pgbouncer:
         unsignificant: "true"
 EOF
+
+  kubectl create -f "$LOG_PATH/create-empty-sgpoolconfig.yaml"
 
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
@@ -211,7 +217,7 @@ EOF
 
 update_empty_sgpoolconfig() {
   kubectl delete sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/update-empty-sgpoolconfig.yaml"
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:
@@ -219,12 +225,14 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
-  local PATCH
-  PATCH="$(kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
+
+  kubectl create -f "$LOG_PATH/update-empty-sgpoolconfig.yaml"
+
+  kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.pgBouncer["pgbouncer.ini"].pgbouncer.unsignificant = "true"' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-empty-sgpoolconfig.yaml"
+  kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" --type merge --patch-file="$LOG_PATH/patch-empty-sgpoolconfig.yaml"
 
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
@@ -262,7 +270,7 @@ create_empty_sgobjectstorage() {
      --from-literal=accesskey=test --from-literal=secretkey=test
      
   kubectl delete sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
-  cat << EOF | kubectl create --validate=false -f -
+  cat << EOF > "$LOG_PATH/create-empty-sgobjectstorage.yaml"
 apiVersion: stackgres.io/v1beta1
 kind: SGObjectStorage
 metadata:
@@ -282,10 +290,12 @@ spec:
           key: secretkey
 EOF
 
-  local CREATED_FIELDS
-  CREATED_FIELDS="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  kubectl create -f "$LOG_PATH/create-empty-sgobjectstorage.yaml"
 
-  if [ -z "$CREATED_FIELDS" ] || [ "$CREATED_FIELDS" = "null" ]
+  kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' > "$LOG_PATH/created-fields-empty-sgobjectstorage.yaml"
+
+  if ! grep -q . "$LOG_PATH/created-fields-empty-sgobjectstorage.yaml" \
+    || grep -qxF null "$LOG_PATH/created-fields-empty-sgobjectstorage.yaml"
   then
     fail "Spec fields not filled"
   else
@@ -305,7 +315,7 @@ EOF
 
 update_empty_sgobjectstorage() {
   kubectl delete sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
-  cat << EOF | kubectl create --validate=false -f -
+  cat << EOF > "$LOG_PATH/update-empty-sgobjectstorage.yaml"
 apiVersion: stackgres.io/v1beta1
 kind: SGObjectStorage
 metadata:
@@ -313,20 +323,20 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
-  
-  local PREVIOUS_FIELDS
-  PREVIOUS_FIELDS="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' )"
-  local PATCH
-  PATCH="$(kubectl get sgobjectstorages -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
+
+  kubectl create -f "$LOG_PATH/update-empty-sgobjectstorage.yaml"
+
+  kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' > "$LOG_PATH/previous-fields-empty-sgobjectstorage.yaml"
+
+  kubectl get sgobjectstorages -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgobjectstorages -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-empty-sgobjectstorage.yaml"
+  kubectl patch sgobjectstorages -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --type merge --patch-file="$LOG_PATH/patch-empty-sgobjectstorage.yaml"
 
-  local UPDATED_FIELDS
-  UPDATED_FIELDS="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' > "$LOG_PATH/updated-fields-empty-sgobjectstorage.yaml"
 
-  if [ "$UPDATED_FIELDS" = "$PREVIOUS_FIELDS" ]
+  if diff "$LOG_PATH/previous-fields-empty-sgobjectstorage.yaml" "$LOG_PATH/updated-fields-empty-sgobjectstorage.yaml"
   then
     success "Defaults fields filled"
   else
@@ -346,7 +356,7 @@ EOF
 
 create_sginstanceprofile() {
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
-  cat << EOF | kubectl create --validate=false -f -
+  cat << EOF > "$LOG_PATH/create-sginstanceprofile.yaml"
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
@@ -357,9 +367,11 @@ spec:
   memory: '2Gi'
 EOF
 
-  local CREATED_FIELDS
-  CREATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
-  if [ -z "$CREATED_FIELDS" ] || [ "$CREATED_FIELDS" = "null" ]
+  kubectl create -f "$LOG_PATH/create-sginstanceprofile.yaml"
+
+  kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec' > "$LOG_PATH/created-fields-sginstanceprofile.yaml"
+  if ! grep -q . "$LOG_PATH/created-fields-sginstanceprofile.yaml" \
+    || grep -qxF null "$LOG_PATH/created-fields-sginstanceprofile.yaml"
   then
     fail "Default fields not filled"
   else
@@ -379,7 +391,7 @@ EOF
 
 update_sginstanceprofile() {
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
-  cat << EOF | kubectl create --validate=false -f -
+  cat << EOF > "$LOG_PATH/update-sginstanceprofile.yaml"
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
@@ -389,19 +401,20 @@ spec:
   cpu: '1'
   memory: '2Gi'
 EOF
-  local PREVIOUS_FIELDS
-  PREVIOUS_FIELDS="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec.memory = "1Gi" | del(.spec.initContainers) | .spec')"
-  local PATCH
-  PATCH="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
+
+  kubectl create -f "$LOG_PATH/update-sginstanceprofile.yaml"
+
+  kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec.memory = "1Gi" | del(.spec.initContainers) | .spec' > "$LOG_PATH/previous-fields-sginstanceprofile.yaml"
+
+  kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.memory = "1Gi"' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-sginstanceprofile.yaml"
+  kubectl patch sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --type merge --patch-file="$LOG_PATH/patch-sginstanceprofile.yaml"
 
-  local UPDATED_FIELDS
-  UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq 'del(.spec.initContainers) | .spec')"
+  kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq 'del(.spec.initContainers) | .spec' > "$LOG_PATH/updated-fields-sginstanceprofile.yaml"
 
-  if [ "$UPDATED_FIELDS" = "$PREVIOUS_FIELDS" ]
+  if diff "$LOG_PATH/previous-fields-sginstanceprofile.yaml" "$LOG_PATH/updated-fields-sginstanceprofile.yaml"
   then
     success "Defaults fields filled"
   else
@@ -421,7 +434,7 @@ EOF
 
 create_empty_cluster_with_default_pgbouncer() {
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME" --ignore-not-found
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-cluster-with-default-pgbouncer.yaml"
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -441,6 +454,8 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
+  kubectl create -f "$LOG_PATH/create-empty-cluster-with-default-pgbouncer.yaml"
+
   local CREATED_PGBOUNCER
   CREATED_PGBOUNCER="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPoolingConfig}')"
   if wait_until kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGBOUNCER"
@@ -452,7 +467,7 @@ EOF
 
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME"
 
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-reused-empty-cluster-with-default-pgbouncer.yaml"
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -477,6 +492,8 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
+  kubectl create -f "$LOG_PATH/create-reused-empty-cluster-with-default-pgbouncer.yaml"
+
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$REUSED_CLUSTER_NAME"
   then
     echo "Cluster with defaul configuration already created. Succeed"
@@ -489,7 +506,7 @@ EOF
 }
 
 create_empty_cluster_with_no_sidecars() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-cluster-with-no-sidecars.yaml"
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -513,6 +530,8 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
+
+  kubectl create -f "$LOG_PATH/create-empty-cluster-with-no-sidecars.yaml"
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME"
   then
@@ -541,7 +560,7 @@ EOF
 }
 
 create_empty_cluster() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-cluster.yaml"
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -560,6 +579,8 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
+
+  kubectl create -f "$LOG_PATH/create-empty-cluster.yaml"
 
   local CREATED_PGCONFIG
   CREATED_PGCONFIG="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
@@ -643,7 +664,7 @@ EOF
 }
 
 update_empty_cluster() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/update-empty-cluster.yaml"
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -662,12 +683,14 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
-  local PATCH
-  PATCH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+
+  kubectl create -f "$LOG_PATH/update-empty-cluster.yaml"
+
+  kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.generation)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-empty-cluster.yaml"
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge --patch-file="$LOG_PATH/patch-empty-cluster.yaml"
 
   local DEFAULT_ANNOTATION
   DEFAULT_ANNOTATION="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
@@ -691,7 +714,7 @@ EOF
 }
 
 create_cluster_with_previous_postgres_version() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-cluster-with-previous-postgres-version.yaml"
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -716,6 +739,8 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
+  kubectl create -f "$LOG_PATH/create-cluster-with-previous-postgres-version.yaml"
+
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
     success "cluster was created with previous postgres version"
@@ -727,7 +752,7 @@ EOF
 }
 
 create_empty_distributedlogs() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-distributedlogs.yaml"
 apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
@@ -742,6 +767,8 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
+
+  kubectl create -f "$LOG_PATH/create-empty-distributedlogs.yaml"
 
   local CREATED_PGCONFIG
   CREATED_PGCONFIG="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
@@ -795,12 +822,11 @@ EOF
 }
 
 update_empty_distributedlogs() {
-  local PATCH
-  PATCH="$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json \
+  kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-empty_distributedlogs.yaml"
+  kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" --type merge --patch-file="$LOG_PATH/patch-empty_distributedlogs.yaml"
 
   local DEFAULT_ANNOTATION
   DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
@@ -816,7 +842,7 @@ update_empty_distributedlogs() {
 }
 
 create_empty_sharded_cluster() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-empty-sharded-cluster.yaml"
 apiVersion: stackgres.io/v1alpha1
 kind: SGShardedCluster
 metadata:
@@ -826,7 +852,7 @@ spec:
   type: citus
   database: citus
   postgres:
-    version: "$E2E_POSTGRES_VERSION"
+    version: "$E2E_CITUS_POSTGRES_VERSION"
   coordinator:
     instances: 1
     pods:
@@ -848,6 +874,7 @@ spec:
     disableClusterPodAntiAffinity: true
 EOF
 
+  kubectl create -f "$LOG_PATH/create-empty-sharded-cluster.yaml"
   local CREATED_PGCONFIG
   CREATED_PGCONFIG="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.coordinator.configurations.sgPostgresConfig}')"
 
@@ -937,7 +964,7 @@ EOF
 }
 
 update_empty_sharded_cluster() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/update-empty-sharded-cluster.yaml"
 apiVersion: stackgres.io/v1alpha1
 kind: SGShardedCluster
 metadata:
@@ -947,7 +974,7 @@ spec:
   type: citus
   database: citus
   postgres:
-    version: "$E2E_POSTGRES_VERSION"
+    version: "$E2E_CITUS_POSTGRES_VERSION"
   coordinator:
     instances: 1
     pods:
@@ -968,12 +995,14 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
-  local PATCH
-  PATCH="$(kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+
+  kubectl create -f "$LOG_PATH/update-empty-sharded-cluster.yaml"
+
+  kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.generation)' \
     | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
-    | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$PATCH"
+    | kubectl create -f - --dry-run=client -o yaml > "$LOG_PATH/patch-empty-sharded-cluster.yaml"
+  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge --patch-file="$LOG_PATH/patch-empty-sharded-cluster.yaml"
 
   local DEFAULT_ANNOTATION
   DEFAULT_ANNOTATION="$(kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
@@ -1004,7 +1033,7 @@ EOF
 }
 
 create_sharded_cluster_with_previous_postgres_version() {
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH/create-sharded-cluster-with-previous-postgres-version.yaml"
 apiVersion: stackgres.io/v1alpha1
 kind: SGShardedCluster
 metadata:
@@ -1042,6 +1071,8 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
+
+  kubectl create -f "$LOG_PATH/create-sharded-cluster-with-previous-postgres-version.yaml"
 
   if kubectl get sgshardedclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
   then
