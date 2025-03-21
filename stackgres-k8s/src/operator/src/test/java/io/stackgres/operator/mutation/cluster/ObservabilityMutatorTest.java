@@ -47,7 +47,6 @@ class ObservabilityMutatorTest {
         .loadCreate().get();
     review.getRequest().getObject().getSpec().getConfigurations().setObservability(null);
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(true);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(true);
 
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -72,13 +71,11 @@ class ObservabilityMutatorTest {
     review.getRequest().getObject().getSpec().getConfigurations().getObservability().setDisableMetrics(true);
     review.getRequest().getObject().getSpec().getConfigurations().getObservability().setPrometheusAutobind(true);
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(false);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(false);
 
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(true);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(true);
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
     JsonUtil.assertJsonEquals(
@@ -106,7 +103,6 @@ class ObservabilityMutatorTest {
     StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadUpdate().get();
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(true);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(true);
 
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -133,7 +129,6 @@ class ObservabilityMutatorTest {
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(true);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(true);
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
     JsonUtil.assertJsonEquals(
@@ -148,13 +143,11 @@ class ObservabilityMutatorTest {
     review.getRequest().getObject().getSpec().getConfigurations().getObservability().setDisableMetrics(true);
     review.getRequest().getObject().getSpec().getConfigurations().getObservability().setPrometheusAutobind(true);
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(null);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(false);
 
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     review.getRequest().getObject().getSpec().getPods().setDisableMetricsExporter(true);
-    review.getRequest().getObject().getSpec().setPrometheusAutobind(true);
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
     JsonUtil.assertJsonEquals(

@@ -2004,10 +2004,6 @@ spec:
                               key:
                                 type: string
                                 description: The key of the secret to select from. Must be a valid secret key.
-              prometheusAutobind:
-                type: boolean
-                description: |
-                  **Deprecated** use instead .spec.configurations.observability.prometheusAutobind.
               nonProductionOptions:
                 type: object
                 properties:

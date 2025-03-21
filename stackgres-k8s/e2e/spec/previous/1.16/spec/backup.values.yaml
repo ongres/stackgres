@@ -4,6 +4,12 @@ configurations:
       shared_buffers: '32MB'
   objectstorage:
     create: true
+    encryption:
+      method: sodium
+      sodium:
+        key:
+          name: backup-minio
+          key: secretkey
 cluster:
   pods:
     persistentVolume:

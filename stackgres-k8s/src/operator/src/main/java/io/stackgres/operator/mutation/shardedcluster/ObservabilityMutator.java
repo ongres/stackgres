@@ -92,32 +92,6 @@ public class ObservabilityMutator implements ShardedClusterMutator {
             .ifPresent(pods -> pods.setDisableMetricsExporter(
                 resource.getSpec().getConfigurations().getObservability().getDisableMetrics())));
 
-    if (oldObservability
-        .map(StackGresClusterObservability::getPrometheusAutobind)
-        .map(prometheusAutobind -> prometheusAutobind.equals(
-            resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind()))
-        .orElse(resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind() == null)) {
-      resource.getSpec().getConfigurations().getObservability()
-          .setPrometheusAutobind(resource.getSpec().getPrometheusAutobind());
-    }
-    resource.getSpec().setPrometheusAutobind(
-        resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind());
-    Optional.of(resource.getSpec())
-        .map(StackGresShardedClusterSpec::getCoordinator)
-        .ifPresent(spec -> spec.setPrometheusAutobind(
-            resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind()));
-    Optional.of(resource.getSpec())
-        .map(StackGresShardedClusterSpec::getShards)
-        .ifPresent(spec -> spec.setPrometheusAutobind(
-            resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind()));
-    Optional.of(resource.getSpec())
-        .map(StackGresShardedClusterSpec::getShards)
-        .map(StackGresShardedClusterShards::getOverrides)
-        .stream()
-        .flatMap(List::stream)
-        .forEach(override -> Optional.of(override)
-            .ifPresent(spec -> spec.setPrometheusAutobind(
-                resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind())));
     return resource;
   }
 

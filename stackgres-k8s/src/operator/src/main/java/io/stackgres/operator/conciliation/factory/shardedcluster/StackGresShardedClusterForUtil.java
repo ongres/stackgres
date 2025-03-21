@@ -191,7 +191,6 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     setInitialData(cluster, spec, index);
     setManagedSql(cluster, spec, index);
     spec.setDistributedLogs(cluster.getSpec().getDistributedLogs());
-    spec.setPrometheusAutobind(cluster.getSpec().getPrometheusAutobind());
     spec.setNonProductionOptions(cluster.getSpec().getNonProductionOptions());
   }
 

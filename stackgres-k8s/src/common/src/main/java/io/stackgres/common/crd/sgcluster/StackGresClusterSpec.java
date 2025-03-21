@@ -15,8 +15,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.DeprecatedVersionPlaceholder;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -70,9 +68,6 @@ public class StackGresClusterSpec {
 
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
-
-  @DeprecatedVersionPlaceholder(StackGresVersion.V_1_14)
-  private Boolean prometheusAutobind;
 
   @Valid
   private StackGresClusterNonProduction nonProductionOptions;
@@ -333,14 +328,6 @@ public class StackGresClusterSpec {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
-  public Boolean getPrometheusAutobind() {
-    return prometheusAutobind;
-  }
-
-  public void setPrometheusAutobind(Boolean prometheusAutobind) {
-    this.prometheusAutobind = prometheusAutobind;
-  }
-
   public StackGresClusterNonProduction getNonProductionOptions() {
     return nonProductionOptions;
   }
@@ -367,9 +354,9 @@ public class StackGresClusterSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(autoscaling, configurations, distributedLogs, initialData, instances, managedSql, metadata,
-        nonProductionOptions, pods, postgres, postgresServices, profile, prometheusAutobind, replicateFrom, replication,
-        sgInstanceProfile, toInstallPostgresExtensions);
+    return Objects.hash(autoscaling, configurations, distributedLogs, initialData, instances,
+        managedSql, metadata, nonProductionOptions, pods, postgres, postgresServices, profile,
+        replicateFrom, replication, sgInstanceProfile, toInstallPostgresExtensions);
   }
 
   @Override
@@ -381,14 +368,18 @@ public class StackGresClusterSpec {
       return false;
     }
     StackGresClusterSpec other = (StackGresClusterSpec) obj;
-    return Objects.equals(autoscaling, other.autoscaling) && Objects.equals(configurations, other.configurations)
-        && Objects.equals(distributedLogs, other.distributedLogs) && Objects.equals(initialData, other.initialData)
-        && Objects.equals(instances, other.instances) && Objects.equals(managedSql, other.managedSql)
-        && Objects.equals(metadata, other.metadata) && Objects.equals(nonProductionOptions, other.nonProductionOptions)
+    return Objects.equals(autoscaling, other.autoscaling)
+        && Objects.equals(configurations, other.configurations)
+        && Objects.equals(distributedLogs, other.distributedLogs)
+        && Objects.equals(initialData, other.initialData)
+        && Objects.equals(instances, other.instances)
+        && Objects.equals(managedSql, other.managedSql) && Objects.equals(metadata, other.metadata)
+        && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(pods, other.pods) && Objects.equals(postgres, other.postgres)
-        && Objects.equals(postgresServices, other.postgresServices) && Objects.equals(profile, other.profile)
-        && Objects.equals(prometheusAutobind, other.prometheusAutobind)
-        && Objects.equals(replicateFrom, other.replicateFrom) && Objects.equals(replication, other.replication)
+        && Objects.equals(postgresServices, other.postgresServices)
+        && Objects.equals(profile, other.profile)
+        && Objects.equals(replicateFrom, other.replicateFrom)
+        && Objects.equals(replication, other.replication)
         && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

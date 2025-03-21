@@ -18,7 +18,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.v14.DistributedLogsCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,10 +76,6 @@ class DistributedLogsDatabaseSecretContextAppenderTest {
         distributedLogs.getMetadata().getName(),
         distributedLogs.getMetadata().getNamespace()))
         .thenReturn(Optional.empty());
-    when(secretFinder.findByNameAndNamespace(
-        DistributedLogsCredentials.secretName(distributedLogs),
-        distributedLogs.getMetadata().getNamespace()))
-        .thenReturn(databaseSecret);
     contextAppender.appendContext(distributedLogs, contextBuilder);
 
     verify(contextBuilder).databaseSecret(databaseSecret);

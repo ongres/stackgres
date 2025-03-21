@@ -57,7 +57,6 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.v14.DistributedLogsCredentials;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
@@ -174,7 +173,6 @@ public class DistributedLogsCluster
                 .map(StackGresClusterUsersCredentials::getSuperuser)
                 .map(StackGresClusterUserSecretKeyRef::getPassword)
                 .map(SecretKeySelector::getName)
-                .filter(DistributedLogsCredentials.secretName(distributedLogs)::equals)
                 .isEmpty())
             .orElse(null))
         .endConfigurations()

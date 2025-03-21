@@ -5,25 +5,17 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -32,7 +24,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.event.EventEmitter;
@@ -40,8 +31,6 @@ import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -51,7 +40,6 @@ import io.stackgres.operator.conciliation.Metrics;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -79,11 +67,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject LabelFactoryForDistributedLogs labelFactory;
     @Inject CustomResourceScanner<StackGresCluster> clusterScanner;
     @Inject CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
-    @Inject ResourceFinder<ConfigMap> configMapFinder;
-    @Inject ResourceWriter<ConfigMap> configMapWriter;
-    @Inject ResourceFinder<Pod> podFinder;
-    @Inject ResourceFinder<Endpoints> endpointsFinder;
-    @Inject ResourceWriter<Endpoints> endpointsWriter;
     @Inject Metrics metrics;
   }
 
@@ -93,11 +76,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   private final LabelFactoryForDistributedLogs labelFactory;
   private final CustomResourceScanner<StackGresCluster> clusterScanner;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
-  private final ResourceFinder<ConfigMap> configMapFinder;
-  private final ResourceWriter<ConfigMap> configMapWriter;
-  private final ResourceFinder<Pod> podFinder;
-  private final ResourceFinder<Endpoints> endpointsFinder;
-  private final ResourceWriter<Endpoints> endpointsWriter;
 
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
@@ -114,11 +92,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     this.labelFactory = parameters.labelFactory;
     this.clusterScanner = parameters.clusterScanner;
     this.postgresConfigFinder = parameters.postgresConfigFinder;
-    this.configMapFinder = parameters.configMapFinder;
-    this.configMapWriter = parameters.configMapWriter;
-    this.podFinder = parameters.podFinder;
-    this.endpointsFinder = parameters.endpointsFinder;
-    this.endpointsWriter = parameters.endpointsWriter;
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -164,67 +137,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
           setVersionFromCluster(cluster, foundConfig);
           setClusterConfigurationIfMajorVersionMismatch(foundPostgresConfig, cluster, foundConfig);
         }));
-
-    if (StackGresVersion.getStackGresVersionAsNumber(config) <= StackGresVersion.V_1_14.getVersionAsNumber()) {
-      if (!Optional.of(config)
-          .map(StackGresDistributedLogs::getStatus)
-          .map(StackGresDistributedLogsStatus::getOldConfigMapRemoved)
-          .orElse(false)) {
-        configMapFinder.findByNameAndNamespace(
-            config.getMetadata().getName(),
-            config.getMetadata().getNamespace())
-            .ifPresent(resource -> {
-              if (resource.getMetadata().getOwnerReferences().stream()
-                  .anyMatch(ResourceUtil.getControllerOwnerReference(config)::equals)) {
-                configMapWriter.delete(resource);
-              }
-              if (config.getStatus() == null) {
-                config.setStatus(new StackGresDistributedLogsStatus());
-              }
-              config.getStatus().setOldConfigMapRemoved(true);
-            });
-      }
-      var foundEndpoints = endpointsFinder.findByNameAndNamespace(
-          PatroniUtil.readWriteNameForDistributedLogs(config.getMetadata().getName()),
-          config.getMetadata().getNamespace());
-      foundEndpoints.ifPresent(endpoints -> {
-        var foundPod = podFinder.findByNameAndNamespace(
-            config.getMetadata().getName() + "-0",
-            config.getMetadata().getNamespace());
-        foundPod.ifPresent(pod -> {
-          try {
-            endpointsWriter.update(endpoints, currentEndpoints -> {
-              currentEndpoints.setSubsets(List.of(
-                  new EndpointSubsetBuilder()
-                  .addNewAddress()
-                  .withHostname(pod.getMetadata().getName())
-                  .withIp(pod.getStatus().getPodIP())
-                  .withNodeName(pod.getSpec().getNodeName())
-                  .withNewTargetRef()
-                  .withKind(pod.getKind())
-                  .withName(pod.getMetadata().getName())
-                  .withNamespace(pod.getMetadata().getNamespace())
-                  .withUid(pod.getMetadata().getUid())
-                  .endTargetRef()
-                  .endAddress()
-                  .addNewPort()
-                  .withProtocol("TCP")
-                  .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-                  .withPort(EnvoyUtil.PG_PORT)
-                  .endPort()
-                  .addNewPort()
-                  .withProtocol("TCP")
-                  .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-                  .withPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
-                  .endPort()
-                  .build()));
-            });
-          } catch (Exception ex) {
-            LOGGER.error("Error while updating SGDistributedLogs endpoints", ex);
-          }
-        });
-      });
-    }
 
     statusManager.refreshCondition(config);
     distributedLogsScheduler.update(config,

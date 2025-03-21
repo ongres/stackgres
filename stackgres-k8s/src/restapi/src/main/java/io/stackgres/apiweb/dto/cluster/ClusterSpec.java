@@ -41,8 +41,6 @@ public class ClusterSpec {
 
   private ClusterPods pods;
 
-  private Boolean prometheusAutobind;
-
   private ClusterNonProductionOptions nonProductionOptions;
 
   private ClusterPostgresServices postgresServices;
@@ -103,14 +101,6 @@ public class ClusterSpec {
 
   public void setSgInstanceProfile(String sgInstanceProfile) {
     this.sgInstanceProfile = sgInstanceProfile;
-  }
-
-  public Boolean getPrometheusAutobind() {
-    return prometheusAutobind;
-  }
-
-  public void setPrometheusAutobind(Boolean prometheusAutobind) {
-    this.prometheusAutobind = prometheusAutobind;
   }
 
   public ClusterNonProductionOptions getNonProductionOptions() {
