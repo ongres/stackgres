@@ -18,12 +18,10 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.v14.DistributedLogsCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -50,7 +48,7 @@ class DistributedLogsDatabaseSecretContextAppenderTest {
   void givenDistributedLogsWithoutDatabaseSecret_shouldPass() {
     contextAppender.appendContext(distributedLogs, contextBuilder);
 
-    verify(secretFinder, Mockito.times(2)).findByNameAndNamespace(any(), any());
+    verify(secretFinder).findByNameAndNamespace(any(), any());
     verify(contextBuilder).databaseSecret(Optional.empty());
   }
 
@@ -61,24 +59,6 @@ class DistributedLogsDatabaseSecretContextAppenderTest {
         .build());
     when(secretFinder.findByNameAndNamespace(
         distributedLogs.getMetadata().getName(),
-        distributedLogs.getMetadata().getNamespace()))
-        .thenReturn(databaseSecret);
-    contextAppender.appendContext(distributedLogs, contextBuilder);
-
-    verify(contextBuilder).databaseSecret(databaseSecret);
-  }
-
-  @Test
-  void givenDistributedLogsWithOldDatabaseSecret_shouldRetrieveItAndPass() {
-    final Optional<Secret> databaseSecret = Optional.of(new SecretBuilder()
-        .withData(Map.of())
-        .build());
-    when(secretFinder.findByNameAndNamespace(
-        distributedLogs.getMetadata().getName(),
-        distributedLogs.getMetadata().getNamespace()))
-        .thenReturn(Optional.empty());
-    when(secretFinder.findByNameAndNamespace(
-        DistributedLogsCredentials.secretName(distributedLogs),
         distributedLogs.getMetadata().getNamespace()))
         .thenReturn(databaseSecret);
     contextAppender.appendContext(distributedLogs, contextBuilder);

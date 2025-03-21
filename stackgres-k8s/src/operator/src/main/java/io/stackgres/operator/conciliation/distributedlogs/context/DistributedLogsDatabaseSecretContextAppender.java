@@ -12,7 +12,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext.Builder;
-import io.stackgres.operator.conciliation.factory.distributedlogs.v14.DistributedLogsCredentials;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -30,10 +29,7 @@ public class DistributedLogsDatabaseSecretContextAppender
     final Optional<Secret> databaseCredentials =
         secretFinder.findByNameAndNamespace(
             distributedLogs.getMetadata().getName(),
-            distributedLogs.getMetadata().getNamespace())
-        .or(() -> secretFinder.findByNameAndNamespace(
-            DistributedLogsCredentials.secretName(distributedLogs),
-            distributedLogs.getMetadata().getNamespace()));
+            distributedLogs.getMetadata().getNamespace());
 
     contextBuilder.databaseSecret(databaseCredentials);
   }

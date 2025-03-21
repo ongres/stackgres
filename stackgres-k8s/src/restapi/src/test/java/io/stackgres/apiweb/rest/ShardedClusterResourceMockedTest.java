@@ -782,7 +782,6 @@ class ShardedClusterResourceMockedTest extends
 
     if (dtoSpec != null) {
       assertNotNull(resourceSpec);
-      assertEquals(dtoSpec.getPrometheusAutobind(), resourceSpec.getPrometheusAutobind());
       assertEquals(dtoSpec.getCoordinator().getInstances(),
           resourceSpec.getCoordinator().getInstances());
       assertEquals(dtoSpec.getPostgres().getVersion(), resourceSpec.getPostgres().getVersion());

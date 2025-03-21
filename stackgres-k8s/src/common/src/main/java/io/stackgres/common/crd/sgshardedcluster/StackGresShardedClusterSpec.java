@@ -14,8 +14,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.DeprecatedVersionPlaceholder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
@@ -76,9 +74,6 @@ public class StackGresShardedClusterSpec {
   @NotNull(message = "shards is required")
   @Valid
   private StackGresShardedClusterShards shards;
-
-  @DeprecatedVersionPlaceholder(StackGresVersion.V_1_14)
-  private Boolean prometheusAutobind;
 
   @Valid
   private StackGresShardedClusterInitialData initialData;
@@ -241,14 +236,6 @@ public class StackGresShardedClusterSpec {
     this.shards = shards;
   }
 
-  public Boolean getPrometheusAutobind() {
-    return prometheusAutobind;
-  }
-
-  public void setPrometheusAutobind(Boolean prometheusAutobind) {
-    this.prometheusAutobind = prometheusAutobind;
-  }
-
   public StackGresShardedClusterInitialData getInitialData() {
     return initialData;
   }
@@ -268,8 +255,8 @@ public class StackGresShardedClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configurations, coordinator, database, distributedLogs, initialData,
-        metadata, nonProductionOptions, postgres, postgresServices, profile, prometheusAutobind,
-        replication, shards, type);
+        metadata, nonProductionOptions, postgres, postgresServices, profile, replication, shards,
+        type);
   }
 
   @Override
@@ -290,11 +277,8 @@ public class StackGresShardedClusterSpec {
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(profile, other.profile)
-        && Objects.equals(prometheusAutobind, other.prometheusAutobind)
-        && Objects.equals(replication, other.replication)
-        && Objects.equals(shards, other.shards)
-        && Objects.equals(type, other.type);
+        && Objects.equals(profile, other.profile) && Objects.equals(replication, other.replication)
+        && Objects.equals(shards, other.shards) && Objects.equals(type, other.type);
   }
 
   @Override

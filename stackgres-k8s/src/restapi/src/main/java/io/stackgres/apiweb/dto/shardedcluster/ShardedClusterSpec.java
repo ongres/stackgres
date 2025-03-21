@@ -39,8 +39,6 @@ public class ShardedClusterSpec {
 
   private ShardedClusterShards shards;
 
-  private Boolean prometheusAutobind;
-
   private ShardedClusterInitalData initialData;
 
   private ClusterNonProductionOptions nonProductionOptions;
@@ -107,14 +105,6 @@ public class ShardedClusterSpec {
 
   public void setConfigurations(ShardedClusterConfigurations configurations) {
     this.configurations = configurations;
-  }
-
-  public Boolean getPrometheusAutobind() {
-    return prometheusAutobind;
-  }
-
-  public void setPrometheusAutobind(Boolean prometheusAutobind) {
-    this.prometheusAutobind = prometheusAutobind;
   }
 
   public ClusterNonProductionOptions getNonProductionOptions() {

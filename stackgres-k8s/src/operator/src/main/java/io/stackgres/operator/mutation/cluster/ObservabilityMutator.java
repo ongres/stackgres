@@ -49,17 +49,6 @@ public class ObservabilityMutator implements ClusterMutator {
     resource.getSpec().getPods().setDisableMetricsExporter(
         resource.getSpec().getConfigurations().getObservability().getDisableMetrics());
 
-    if (oldObservability
-        .map(StackGresClusterObservability::getPrometheusAutobind)
-        .map(prometheusAutobind -> prometheusAutobind.equals(
-            resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind()))
-        .orElse(resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind() == null)) {
-      resource.getSpec().getConfigurations().getObservability()
-          .setPrometheusAutobind(resource.getSpec().getPrometheusAutobind());
-    }
-    resource.getSpec().setPrometheusAutobind(
-        resource.getSpec().getConfigurations().getObservability().getPrometheusAutobind());
-
     return resource;
   }
 

@@ -874,7 +874,6 @@ class ClusterResourceMockedTest extends
 
     if (dtoSpec != null) {
       assertNotNull(resourceSpec);
-      assertEquals(dtoSpec.getPrometheusAutobind(), resourceSpec.getPrometheusAutobind());
       assertEquals(dtoSpec.getInstances(), resourceSpec.getInstances());
       assertEquals(dtoSpec.getPostgres().getVersion(), resourceSpec.getPostgres().getVersion());
       assertEquals(dtoSpec.getSgInstanceProfile(), resourceSpec.getSgInstanceProfile());
