@@ -135,6 +135,13 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
                 .orElse("false"))
             .build(),
             new EnvVarBuilder()
+            .withName("MAX_ERRORS_AFTER_UPGRADE")
+            .withValue(Optional.ofNullable(majorVersionUpgrade)
+                .map(StackGresDbOpsMajorVersionUpgrade::getMaxErrorsAfterUpgrade)
+                .map(String::valueOf)
+                .orElse("false"))
+            .build(),
+            new EnvVarBuilder()
             .withName("CRD_GROUP")
             .withValue(CommonDefinition.GROUP)
             .build(),

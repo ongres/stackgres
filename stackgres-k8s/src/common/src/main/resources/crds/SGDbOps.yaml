@@ -597,6 +597,7 @@ spec:
                       **This section is filled by the operator.**
                     items:
                       type: object
+                      required: ["name", "publisher", "version", "repository", "postgresVersion"]
                       properties:
                         name:
                           type: string
@@ -622,7 +623,13 @@ spec:
                           items:
                             type: string
                             description: The extra mount of the installed extension.
-                      required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  maxErrorsAfterUpgrade:
+                    type: integer
+                    default: 6
+                    description: |
+                      Indicates the number of errors that the operation can tolerate after the upgrade
+                       is performed in order to wait for the Pod to become ready and set the operation
+                       as completed.
               restart:
                 type: object
                 description: |
