@@ -1,5 +1,8 @@
 #!/bin/sh
 
+export E2E_CITUS_POSTGRES_VERSION="${E2E_CITUS_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
+
+
 e2e_test_install() {
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
