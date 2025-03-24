@@ -122,6 +122,7 @@ spec:
                         *  `azureBlob`: Microsoft Azure Blob Storage.
               s3:
                 type: object
+                required: ["bucket", "awsCredentials"]
                 description: |
                   Amazon Web Services S3 configuration.
                 properties:
@@ -140,16 +141,19 @@ spec:
                       The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                   awsCredentials:
                     type: object
+                    required: ["secretKeySelectors"]
                     description: |
                       The credentials to access AWS S3 for writing and reading.
                     properties:
                       secretKeySelectors:
                         type: object
+                        required: ["accessKeyId", "secretAccessKey"]
                         description: |
                           Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core)(s) to reference the Secrets that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                         properties:
                           accessKeyId:
                             type: object
+                            required: ["key", "name"]
                             description: |
                               AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
                             properties:
@@ -161,9 +165,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: ["key", "name"]
                           secretAccessKey:
                             type: object
+                            required: ["key", "name"]
                             description: |
                               AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
                             properties:
@@ -175,12 +179,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: ["key", "name"]
-                        required: ["accessKeyId", "secretAccessKey"]
-                    required: ["secretKeySelectors"]
-                required: ["bucket", "awsCredentials"]
               s3Compatible:
                 type: object
+                required: ["bucket", "awsCredentials"]
                 description: "AWS S3-Compatible API configuration"
                 properties:
                   bucket:
@@ -209,16 +210,19 @@ spec:
                       The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                   awsCredentials:
                     type: object
+                    required: ["secretKeySelectors"]
                     description: |
                       The credentials to access AWS S3 for writing and reading.
                     properties:
                       secretKeySelectors:
                         type: object
+                        required: ["accessKeyId", "secretAccessKey"]
                         description: |
                           Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                         properties:
                           accessKeyId:
                             type: object
+                            required: ["key", "name"]
                             description: |
                               AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
                             properties:
@@ -230,9 +234,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: ["key", "name"]
                           secretAccessKey:
                             type: object
+                            required: ["key", "name"]
                             description: |
                               AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
                             properties:
@@ -244,9 +248,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: ["key", "name"]
                           caCertificate:
                             type: object
+                            required: ["key", "name"]
                             description: |
                               CA Certificate file to be used when connecting to the S3 Compatible Service.
                             properties:
@@ -258,12 +262,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: ["key", "name"]
-                        required: ["accessKeyId", "secretAccessKey"]
-                    required: ["secretKeySelectors"]
-                required: ["bucket", "awsCredentials"]
               gcs:
                 type: object
+                required: [ "bucket", "gcpCredentials" ]
                 description: |
                   Google Cloud Storage configuration.
                 properties:
@@ -285,11 +286,13 @@ spec:
                           This is useful when running StackGres inside a GKE cluster using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
                       secretKeySelectors:
                         type: object
+                        required: [ "serviceAccountJSON" ]
                         description: |
                           A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
                         properties:
                           serviceAccountJSON:
                             type: object
+                            required: [ "key", "name" ]
                             description: |
                               A service account key from GCP. In JSON format, as downloaded from the GCP Console.
                             properties:
@@ -301,11 +304,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: [ "key", "name" ]
-                        required: [ "serviceAccountJSON" ]
-                required: [ "bucket", "gcpCredentials" ]
               azureBlob:
                 type: object
+                required: [ "bucket", "azureCredentials" ]
                 description: |
                   Azure Blob Storage configuration.
                 properties:
@@ -321,11 +322,13 @@ spec:
                     properties:
                       secretKeySelectors:
                         type: object
+                        required: [ "storageAccount", "accessKey" ]
                         description: |
                           Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `azureCredentials`. . Note that you may use the same or different Secrets for the `storageAccount` and the `accessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                         properties:
                           storageAccount:
                             type: object
+                            required: [ "key", "name" ]
                             description: |
                               The [Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview?toc=/azure/storage/blobs/toc.json) that contains the Blob bucket to be used.
                             properties:
@@ -337,9 +340,9 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: [ "key", "name" ]
                           accessKey:
                             type: object
+                            required: [ "key", "name" ]
                             description: |
                               The [storage account access key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal).
                             properties:
@@ -351,7 +354,3 @@ spec:
                                 type: string
                                 description: |
                                   Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                            required: [ "key", "name" ]
-                        required: [ "storageAccount", "accessKey" ]
-                required: [ "bucket", "azureCredentials" ]
-            required: [ "type" ]
