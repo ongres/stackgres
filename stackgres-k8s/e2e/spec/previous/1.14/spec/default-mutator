@@ -852,7 +852,7 @@ spec:
   type: citus
   database: citus
   postgres:
-    version: "$E2E_CITUS_POSTGRES_VERSION"
+    version: "${E2E_CITUS_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
   coordinator:
     instances: 1
     pods:
@@ -974,7 +974,7 @@ spec:
   type: citus
   database: citus
   postgres:
-    version: "$E2E_CITUS_POSTGRES_VERSION"
+    version: "${E2E_CITUS_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
   coordinator:
     instances: 1
     pods:
