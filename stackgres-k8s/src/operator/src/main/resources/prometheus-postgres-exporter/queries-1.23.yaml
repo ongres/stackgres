@@ -240,7 +240,7 @@ pg_total_relation_size:
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, _.* FROM databases,
+    SELECT datname, _.* FROM databases, (SELECT true WHERE NOT pg_is_in_recovery()) AS pg_is_not_in_recovery,
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT relnamespace::regnamespace as schemaname, relname as relname, pg_total_relation_size(oid) bytes FROM pg_catalog.pg_class WHERE relkind = ''r''')
@@ -784,7 +784,7 @@ pg_vaccuum_wraparound:
     SELECT datname FROM pg_database
     WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, _.* FROM databases,
+    SELECT datname, _.* FROM databases, (SELECT true WHERE NOT pg_is_in_recovery()) AS pg_is_not_in_recovery
     LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '
