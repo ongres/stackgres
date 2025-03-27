@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -21,8 +20,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-@SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
-    justification = "Also hardcoded in generated image that use this code")
 public class PatroniCtl {
 
   final KubernetesClient client;

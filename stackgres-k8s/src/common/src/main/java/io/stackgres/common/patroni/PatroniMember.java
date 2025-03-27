@@ -28,6 +28,7 @@ public class PatroniMember {
 
   public static final String LEADER = "Leader";
   public static final String MASTER = "Master";
+  public static final String PRIMARY = "Primary";
   public static final String STANDBY_LEADER = "Standby Leader";
   public static final String SYNC_STANDBY = "Sync Standby";
   public static final String REPLICA = "Replica";
@@ -270,8 +271,16 @@ public class PatroniMember {
         return MemberRole.UNKNOWN;
       }
       return switch (role) {
-        case PatroniMember.LEADER, PatroniMember.MASTER, PatroniMember.STANDBY_LEADER -> MemberRole.LEADER;
-        case PatroniMember.REPLICA, PatroniMember.SYNC_STANDBY -> MemberRole.REPLICA;
+        case
+            PatroniMember.LEADER,
+            PatroniMember.MASTER,
+            PatroniMember.PRIMARY,
+            PatroniMember.STANDBY_LEADER
+            -> MemberRole.LEADER;
+        case
+            PatroniMember.REPLICA,
+            PatroniMember.SYNC_STANDBY
+            -> MemberRole.REPLICA;
         default -> MemberRole.UNKNOWN;
       };
     }

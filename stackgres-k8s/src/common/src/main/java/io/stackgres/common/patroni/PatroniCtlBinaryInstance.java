@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.ongres.process.FluentProcess;
 import com.ongres.process.FluentProcessBuilder;
 import com.ongres.process.Output;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -49,6 +50,8 @@ import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
+    justification = "Also hardcoded in generated image that use this code")
 public class PatroniCtlBinaryInstance implements PatroniCtlInstance {
 
   private static final String BIN_PATH = "/bin";

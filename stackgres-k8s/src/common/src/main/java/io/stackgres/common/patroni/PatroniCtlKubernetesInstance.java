@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -42,12 +41,10 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
 
   final StackGresCluster cluster;
   final String namespace;
-  final String name;
   final String scope;
   final Integer group;
   final String primaryName;
   final String configName;
-  final int patroniMajorVersion;
 
   protected PatroniCtlKubernetesInstance(
       KubernetesClient client,
@@ -61,7 +58,6 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
     this.clusterLabelFactory = clusterLabelFactory;
     this.patroniCtlBinaryInstance = patroniCtlBinaryInstance;
     this.namespace = cluster.getMetadata().getNamespace();
-    this.name = cluster.getMetadata().getName();
     this.scope = PatroniUtil.clusterScope(cluster);
     this.group = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getConfigurations)
@@ -71,9 +67,6 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
         .orElse(null);
     this.primaryName = Optional.ofNullable(group).map(group -> scope + "-" + group).orElse(scope);
     this.configName = Optional.ofNullable(group).map(group -> scope + "-" + group).orElse(scope) + "-config";
-    final String patroniVersion = StackGresUtil.getPatroniVersion(cluster);
-    int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
-    this.patroniMajorVersion = patroniMajorVersion;
   }
 
   @Override
@@ -190,57 +183,55 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
 
   @Override
   public void remove(String username, String password) {
-    Optional
-        .ofNullable(client.endpoints()
-            .inNamespace(namespace)
-            .withName(configName)
-            .edit(endpoints -> endpoints
-                .edit()
-                .editMetadata()
-                .withAnnotations(Optional.of(endpoints)
-                    .map(Endpoints::getMetadata)
-                    .map(ObjectMeta::getAnnotations)
-                    .map(annotations -> annotations.entrySet()
-                        .stream()
-                        .reduce(
-                            new HashMap<String, String>(),
-                            (map, entry) -> {
-                              if (entry.getKey().equals("config")) {
-                                map.put(entry.getKey(), entry.getValue());
-                              } else if (entry.getKey().equals("history")) {
-                                map.put(entry.getKey(), "[]");
-                              } else {
-                                map.put(entry.getKey(), "");
-                              }
-                              return map;
-                            },
-                            (u, v) -> u))
-                    .orElse(null))
-                .endMetadata()
-                .build()));
-    Optional
-        .ofNullable(client.endpoints()
-            .inNamespace(namespace)
-            .withName(primaryName)
-            .edit(endpoints -> endpoints
-                .edit()
-                .editMetadata()
-                .withAnnotations(Optional.of(endpoints)
-                    .map(Endpoints::getMetadata)
-                    .map(ObjectMeta::getAnnotations)
-                    .map(annotations -> annotations.entrySet()
-                        .stream()
-                        .map(Map.Entry::getKey)
-                        .reduce(
-                            new HashMap<String, String>(),
-                            (map, key) -> {
-                              map.put(key, "");
-                              return map;
-                            },
-                            (u, v) -> u))
-                    .orElse(null))
-                .endMetadata()
-                .build()));
+    client.endpoints()
+        .inNamespace(namespace)
+        .withName(configName)
+        .edit(endpoints -> endpoints
+            .edit()
+            .editMetadata()
+            .withAnnotations(Optional.of(endpoints)
+                .map(Endpoints::getMetadata)
+                .map(ObjectMeta::getAnnotations)
+                .map(annotations -> annotations.entrySet()
+                    .stream()
+                    .reduce(
+                        new HashMap<String, String>(),
+                        (map, entry) -> {
+                          if (entry.getKey().equals("config")) {
+                            map.put(entry.getKey(), entry.getValue());
+                          } else if (entry.getKey().equals("history")) {
+                            map.put(entry.getKey(), "[]");
+                          } else {
+                            map.put(entry.getKey(), "");
+                          }
+                          return map;
+                        },
+                        (u, v) -> u))
+                .orElse(null))
+            .endMetadata()
+            .build());
+    client.endpoints()
+        .inNamespace(namespace)
+        .withName(primaryName)
+        .edit(endpoints -> endpoints
+            .edit()
+            .editMetadata()
+            .withAnnotations(Optional.of(endpoints)
+                .map(Endpoints::getMetadata)
+                .map(ObjectMeta::getAnnotations)
+                .map(annotations -> annotations.entrySet()
+                    .stream()
+                    .map(Map.Entry::getKey)
+                    .reduce(
+                        new HashMap<String, String>(),
+                        (map, key) -> {
+                          map.put(key, "");
+                          return map;
+                        },
+                        (u, v) -> u))
+                .orElse(null))
+            .endMetadata()
+            .build());
   }
 
   @Override
