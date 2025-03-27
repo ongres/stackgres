@@ -71,7 +71,7 @@ public class ShardedClusterStatusManager
     } else {
       updateCondition(getFalsePendingUpgrade(), source);
     }
-    if (isBootstrapped(clusters)) {
+    if (isBootstrapped(source, clusters)) {
       updateCondition(getShardedClusterBootstrapped(), source);
     }
     return source;
@@ -112,7 +112,18 @@ public class ShardedClusterStatusManager
   /**
    * Check bootstrapped status condition.
    */
-  public boolean isBootstrapped(List<StackGresCluster> clusters) {
+  public boolean isBootstrapped(
+      StackGresShardedCluster source,
+      List<StackGresCluster> clusters) {
+    if (Optional.ofNullable(source.getStatus())
+        .map(StackGresShardedClusterStatus::getSgBackups)
+        .map(List::size)
+        .map(size -> size > clusters.size())
+        .orElse(false)) {
+      return false;
+    } else  if (source.getSpec().getShards().getClusters() + 1 != clusters.size()) {
+      return false;
+    }
     return clusters.stream()
         .flatMap(cluster -> Optional.of(cluster)
             .map(StackGresCluster::getStatus)

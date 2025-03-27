@@ -7614,12 +7614,12 @@
                         "profile": this.profile,
                         "database": this.database,
                         "type": this.shardingType,
-                        ...( (this.hasProp(previous, 'spec.configurations') || this.managedBackups ) && ({
+                        ...( (this.hasProp(previous, 'spec.configurations') || this.managedBackups || !this.isNull(this.prometheusAutobind)) && ({
                             "configurations": {
                                 ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
                                 ...{ "observability": {
                                     ...(this.hasProp(previous, 'spec.configurations.observability') && previous.spec.configurations.observability),
-                                    ...((this.prometheusAutobind || this.editMode) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
+                                    ...(!this.isNull(this.prometheusAutobind) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                                     }
                                 },
                                 ...(this.managedBackups && {

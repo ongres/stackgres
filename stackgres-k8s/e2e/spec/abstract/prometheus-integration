@@ -40,10 +40,10 @@ check_grafana_secret() {
 check_exporter_queries() {
   local METRIC
   local QUERIES_FILE=queries.yaml
-  local VERSION_AS_NUMBER VERSION_1_14_0
+  local VERSION_AS_NUMBER VERSION_1_15_0
   VERSION_AS_NUMBER="$(get_version_as_number "${STACKGRES_TARGET_VERSION:-$STACKGRES_VERSION}")"
-  VERSION_1_14_0="$(get_version_as_number 1.14.0)"
-  if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_14_0" ]
+  VERSION_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_15_0" ]
   then
     QUERIES_FILE=queries-1.23.yaml
   fi

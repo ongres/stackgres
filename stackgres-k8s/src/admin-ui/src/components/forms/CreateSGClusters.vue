@@ -1625,7 +1625,7 @@
                             <label for="spec.configurations.observability.prometheusAutobind">Prometheus Autobind</label>  
                             <label for="prometheusAutobind" class="switch yes-no">
                                 Enable
-                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.prometheusAutobind" @change="checkPrometheusAutobind()">
+                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.configurations.observability.prometheusAutobind" @change="checkPrometheusAutobind()">
                             </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.observability.prometheusAutobind')"></span>
                         </div>
@@ -3969,12 +3969,12 @@
                                 } || { "customContainers": null }
                             )),
                         },
-                        ...( (this.hasProp(previous, 'spec.configurations') || !this.isNull(this.pgConfig) || this.managedBackups || !this.isNull(this.connectionPoolingConfig) ) && ({
+                        ...( (this.hasProp(previous, 'spec.configurations') || !this.isNull(this.pgConfig) || this.managedBackups || !this.isNull(this.connectionPoolingConfig) || !this.isNull(this.prometheusAutobind) ) && ({
                             "configurations": {
                                 ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
                                 ...{ "observability": {
                                     ...(this.hasProp(previous, 'spec.configurations.observability') && previous.spec.configurations.observability),
-                                    ...((this.prometheusAutobind || this.editMode) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
+                                    ...(!this.isNull(this.prometheusAutobind) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                                     }
                                 },
                                 ...(!this.isNull(this.pgConfig) && {"sgPostgresConfig": this.pgConfig } || {"sgPostgresConfig": null} ),

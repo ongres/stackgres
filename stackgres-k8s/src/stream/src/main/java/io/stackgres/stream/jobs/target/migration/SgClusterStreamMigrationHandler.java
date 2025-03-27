@@ -164,8 +164,8 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND + " " + clusterName + " not found"));
       final String clusterServiceName = PatroniUtil.readWriteName(cluster);
       final String clusterPort = String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT);
-      final String clusterDatabase = Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
-          .map(StackGresStreamSourceSgCluster::getDatabase)
+      final String clusterDatabase = Optional.ofNullable(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getDatabase)
           .orElse("postgres");
       final String usernameSecretName = sgCluster
           .map(StackGresStreamTargetSgCluster::getUsername)
@@ -368,8 +368,12 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       }
     }
 
-    private void importDdl(final Properties props, final String namespace, final String clusterServiceName,
-        final String clusterPort, final String clusterDatabase) {
+    private void importDdl(
+        final Properties props,
+        final String namespace,
+        final String clusterServiceName,
+        final String clusterPort,
+        final String clusterDatabase) {
       final String sourceType = stream.getSpec().getSource().getType();
       switch(StreamSourceType.fromString(sourceType)) {
         case SGCLUSTER:

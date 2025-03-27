@@ -529,10 +529,10 @@ wait_for_major_version_upgrade() {
   done
   until kubectl wait pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
   do
-    POD_INIT_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
+    POD_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
       | jq '.status.containerStatuses + .status.initContainerStatuses + [] | map(select(.restartCount > 0)) | length' \
       || printf 0)"
-    if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ]
+    if [ "$POD_CONTAINER_FAILURES" -gt "${MAX_ERRORS_AFTER_UPGRADE:-0}" ]
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo
@@ -561,13 +561,13 @@ wait_for_major_version_upgrade_check() {
     MAJOR_VERSION_UPGRADE_LOGS="$(
       kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$MAJOR_VERSION_UPGRADE_CONTAINER_NAME" 2>/dev/null \
         | grep "^Major version upgrade check " || true)"
-    POD_INIT_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
+    POD_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
       | jq '.status.containerStatuses + .status.initContainerStatuses + [] | map(select(.restartCount > 0)) | length' \
       || printf 0)"
-    if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ] \
+    if [ "$POD_CONTAINER_FAILURES" -gt "${MAX_ERRORS_AFTER_UPGRADE:-0}" ] \
       || echo "$MAJOR_VERSION_UPGRADE_LOGS" | grep -qxF "Major version upgrade check performed"
     then
-      if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ]
+      if [ "$POD_CONTAINER_FAILURES" -gt "${MAX_ERRORS_AFTER_UPGRADE:-0}" ]
       then
         echo "Major version upgrade check failed"
         echo
@@ -590,7 +590,7 @@ wait_for_major_version_upgrade_check() {
         echo
       fi
       rollback_major_version_upgrade "$PRIMARY_INSTANCE"
-      if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ] \
+      if [ "$POD_CONTAINER_FAILURES" -gt "${MAX_ERRORS_AFTER_UPGRADE:-0}" ] \
         || echo "$MAJOR_VERSION_UPGRADE_LOGS" | grep -qxF "Major version upgrade check failed"
       then
         return 1

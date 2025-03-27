@@ -360,15 +360,15 @@ image_name() {
   local MODULE_PLATFORM="$2"
   local IMAGE_NAME
   local MODULE_PLATFORM_DEPENDENT
+  local TAG_MODULE_PLATFORM
   BUILD_HASH="$(cat stackgres-k8s/ci/build/target/build_hash)"
   MODULE_PLATFORM_DEPENDENT="$(jq -r ".modules[\"$MODULE\"].platform_dependent | . != null and ." stackgres-k8s/ci/build/target/config.json)"
   if [ "$MODULE_PLATFORM_DEPENDENT" = true ]
   then
-    MODULE_PLATFORM="${MODULE_PLATFORM:-$(get_platform)}"
+    TAG_MODULE_PLATFORM="-$(printf %s "${MODULE_PLATFORM:-$(get_platform)}" | tr '/' '-')"
   else
-    MODULE_PLATFORM=
+    TAG_MODULE_PLATFORM=
   fi
-  TAG_MODULE_PLATFORM="$(printf %s "$MODULE_PLATFORM" | tr '/' '-')"
   IMAGE_NAME="$(grep "^$MODULE=.*$TAG_MODULE_PLATFORM$" "stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH")" \
     || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes.$BUILD_HASH" 1
   IMAGE_NAME="$(printf %s "$IMAGE_NAME"| cut -d = -f 2-)"
@@ -753,6 +753,27 @@ get_platform() {
 
 get_platform_tag_suffix() {
   get_platform | tr '/' '-'
+}
+
+get_module_hash() {
+  local MODULE="$1"
+  local MODULE_PLATFORM="$2"
+  local IMAGE_HASHES_FILE="stackgres-k8s/ci/build/target/image-hashes.$(cat stackgres-k8s/ci/build/target/build_hash)"
+  local MODULE_PLATFORM_DEPENDENT
+  local TAG_MODULE_PLATFORM
+  if ! grep -q "^${MODULE}=" "$IMAGE_HASHES_FILE"
+  then
+    >&2 echo "Module $MODULE not found"
+    return 1
+  fi
+  MODULE_PLATFORM_DEPENDENT="$(jq -r ".modules[\"$MODULE\"].platform_dependent | . != null and ." stackgres-k8s/ci/build/target/config.json)"
+  if [ "$MODULE_PLATFORM_DEPENDENT" = true ]
+  then
+    TAG_MODULE_PLATFORM="-$(printf %s "${MODULE_PLATFORM:-$(get_platform)}" | tr '/' '-')"
+  else
+    TAG_MODULE_PLATFORM=
+  fi
+  sed -n "s/^${MODULE}=.*:hash-\([^:]\+\)$TAG_MODULE_PLATFORM$/\1/p" "$IMAGE_HASHES_FILE"
 }
 
 project_hash() {
