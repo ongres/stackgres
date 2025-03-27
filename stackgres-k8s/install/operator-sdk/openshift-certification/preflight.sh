@@ -32,7 +32,7 @@ do
   rm -rf preflight.log artifacts/
   preflight check container \
     --platform "$PLATFORM" \
-    --certification-project-id="$PROJECT_ID" \
+    --certification-component-id="$PROJECT_ID" \
     --submit \
     --docker-config "$TARGET"/auth.json \
     --pyxis-api-token "$PYXIS_API_TOKEN" \
