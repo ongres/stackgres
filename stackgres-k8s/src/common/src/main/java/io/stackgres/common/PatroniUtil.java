@@ -34,7 +34,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.operatorframework.resource.ResourceUtil;

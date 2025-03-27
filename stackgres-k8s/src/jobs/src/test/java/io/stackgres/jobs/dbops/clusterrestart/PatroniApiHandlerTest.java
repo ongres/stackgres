@@ -12,7 +12,7 @@ import java.time.Duration;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;

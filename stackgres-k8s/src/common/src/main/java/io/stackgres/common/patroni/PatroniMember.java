@@ -5,8 +5,11 @@
 
 package io.stackgres.common.patroni;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -140,12 +143,28 @@ public class PatroniMember {
     this.role = role;
   }
 
+  @JsonIgnore
+  public void setRoleFromLabel(String role) {
+    this.role = Arrays.asList(role.split("_"))
+        .stream()
+        .map(rolePart -> rolePart.substring(0, 1).toUpperCase(Locale.US) + rolePart.substring(1))
+        .collect(Collectors.joining(" "));
+  }
+
   public String getState() {
     return state;
   }
 
   public void setState(String state) {
     this.state = state;
+  }
+
+  @JsonIgnore
+  public void setStateFromLabel(String state) {
+    this.state = Arrays.asList(state.split("_"))
+        .stream()
+        .map(rolePart -> rolePart.substring(0, 1).toUpperCase(Locale.US) + rolePart.substring(1))
+        .collect(Collectors.joining(" "));
   }
 
   public String getTimeline() {

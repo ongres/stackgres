@@ -55,8 +55,8 @@ public class ClusterSwitchoverHandler {
         .filter(member -> Optional.ofNullable(member.getTags())
             .filter(tags -> tags.entrySet().stream().anyMatch(
                 tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)
-                && tag.getValue() != null
-                && Objects.equals(tag.getValue().getValue(), Boolean.TRUE)))
+                && tag.getValue() != null && tag.getValue().getValue() != null
+                && Objects.equals(tag.getValue().getValue().toString(), Boolean.TRUE.toString())))
             .isEmpty())
         .min((m1, m2) -> {
           var l1 = Optional.ofNullable(m1.getLagInMb())
