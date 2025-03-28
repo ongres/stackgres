@@ -162,10 +162,7 @@ public class PatroniMember {
 
   @JsonIgnore
   public void setStateFromLabel(String state) {
-    this.state = Arrays.asList(state.split("_"))
-        .stream()
-        .map(rolePart -> rolePart.substring(0, 1).toUpperCase(Locale.US) + rolePart.substring(1))
-        .collect(Collectors.joining(" "));
+    this.state = state;
   }
 
   public String getTimeline() {

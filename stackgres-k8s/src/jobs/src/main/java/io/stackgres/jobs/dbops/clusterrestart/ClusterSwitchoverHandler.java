@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.patroni.PatroniMember;
-import io.stackgres.common.patroni.PatroniMember.MemberRole;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -77,12 +76,12 @@ public class ClusterSwitchoverHandler {
     if (candidate.isEmpty()) {
       LOGGER.info("No candidate primary found. Skipping switchover");
       return Uni.createFrom().voidItem();
-    } else if (MemberRole.LEADER.equals(candidate.get().getMemberRole())) {
+    } else if (candidate.get().isPrimary()) {
       LOGGER.info("Candidate is already primary. Skipping switchover");
       return Uni.createFrom().voidItem();
     } else {
       Optional<PatroniMember> leader = members.stream()
-          .filter(member -> MemberRole.LEADER.equals(member.getMemberRole()))
+          .filter(member -> member.isPrimary())
           .findFirst();
 
       if (leader.isPresent()) {
