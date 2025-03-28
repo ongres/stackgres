@@ -33,6 +33,8 @@ public class DbOpsMajorVersionUpgrade {
 
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
+  private Integer maxErrorsAfterUpgrade;
+
   public String getPostgresVersion() {
     return postgresVersion;
   }
@@ -96,6 +98,14 @@ public class DbOpsMajorVersionUpgrade {
   public void setToInstallPostgresExtensions(
       List<ClusterInstalledExtension> toInstallPostgresExtensions) {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  }
+
+  public Integer getMaxErrorsAfterUpgrade() {
+    return maxErrorsAfterUpgrade;
+  }
+
+  public void setMaxErrorsAfterUpgrade(Integer maxErrorsAfterUpgrade) {
+    this.maxErrorsAfterUpgrade = maxErrorsAfterUpgrade;
   }
 
   @Override

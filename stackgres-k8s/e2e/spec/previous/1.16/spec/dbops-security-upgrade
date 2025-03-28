@@ -1125,14 +1125,14 @@ check_backups_path_mutation() {
 
 check_profile_mutation() {
   if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-s" --template '{{ .spec.containers | len }}')" \
-    -gt "0" ]
+    = "11" ]
   then
     success "Containers section was added to instance profiles after operator upgrade"
   else
     fail "Containers section was NOT added to instance profiles after operator upgrade"
   fi
   if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-s" --template '{{ .spec.initContainers | len }}')" \
-    -gt "0" ]
+    = "10" ]
   then
     success "Init containers section was added to instance profiles after operator upgrade"
   else

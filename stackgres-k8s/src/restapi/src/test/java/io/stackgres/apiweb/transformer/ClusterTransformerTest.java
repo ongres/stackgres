@@ -132,10 +132,6 @@ class ClusterTransformerTest {
     source.setDistributedLogs(distributedLogs.source());
     target.setDistributedLogs(distributedLogs.target());
 
-    var prometheusAutobind = TransformerTestUtil.RANDOM.nextBoolean();
-    source.setPrometheusAutobind(prometheusAutobind);
-    target.setPrometheusAutobind(prometheusAutobind);
-
     var nonProductions = createNonProductionOptions();
     source.setNonProductionOptions(nonProductions.source());
     target.setNonProductionOptions(nonProductions.target());

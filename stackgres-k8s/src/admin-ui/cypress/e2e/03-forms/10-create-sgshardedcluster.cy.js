@@ -319,7 +319,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
             .click()
 
-        cy.get('input[data-field="spec.prometheusAutobind"]')
+        cy.get('input[data-field="spec.configurations.observability.prometheusAutobind"]')
             .click()
 
         // Test Replication
@@ -2208,7 +2208,7 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"volumeSnapshotClass": "snapshot"})
             .and('nested.include', {"fastVolumeSnapshot": true})
         cy.get('@postCluster')
-            .its('request.body.spec.prometheusAutobind')
+            .its('request.body.spec.configurations.observability.prometheusAutobind')
             .should('eq', true)
         cy.get('@postCluster')
             .its('request.body.spec.profile')
@@ -2764,7 +2764,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
             .click()
 
-        cy.get('input[data-field="spec.prometheusAutobind"]')
+        cy.get('input[data-field="spec.configurations.observability.prometheusAutobind"]')
             .should('be.checked')
             .click()
 
@@ -4142,7 +4142,7 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"volumeSnapshotClass": "class"})
             .and('nested.include', {"fastVolumeSnapshot": false})
         cy.get('@putCluster')
-            .its('request.body.spec.prometheusAutobind')
+            .its('request.body.spec.configurations.observability.prometheusAutobind')
             .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.profile')

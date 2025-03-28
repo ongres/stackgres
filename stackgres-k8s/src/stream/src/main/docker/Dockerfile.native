@@ -57,4 +57,13 @@ FROM "$BASE_IMAGE"
   ENV STACKGRES_VERSION=$STACKGRES_VERSION
   ENV OPERATOR_VERSION=$STACKGRES_VERSION
 
+  ARG BUILD_HASH
+  LABEL name=stackgres/stream
+  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
+  LABEL vendor="OnGres Inc."
+  LABEL version="$STACKGRES_VERSION"
+  LABEL release="$BUILD_HASH"
+  LABEL summary="StackGres Stream"
+  LABEL description="StackGres Stream"
+
   CMD '/app/stackgres-stream.sh'

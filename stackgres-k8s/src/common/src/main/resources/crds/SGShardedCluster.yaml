@@ -2540,10 +2540,6 @@ spec:
                                   description: Labels to attach to Services and Endpoints created or managed by StackGres.
                                   additionalProperties:
                                     type: string 
-              prometheusAutobind:
-                type: boolean
-                description: |
-                  **Deprecated** use instead .spec.configurations.observability.prometheusAutobind.
               distributedLogs:
                 type: object
                 description: |

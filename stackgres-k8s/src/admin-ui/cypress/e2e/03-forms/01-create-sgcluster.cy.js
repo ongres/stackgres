@@ -215,7 +215,7 @@ describe('Create SGCluster', () => {
             .should('nested.include', {"flavor": "vanilla"})
             .and('nested.include', {"version": "latest"})
         cy.get('@postCluster')
-            .its('request.body.spec.prometheusAutobind')
+            .its('request.body.spec.configurations.observability.prometheusAutobind')
             .should('eq', true)
         cy.get('@postCluster')
             .its('request.body.spec.distributedLogs')
@@ -285,7 +285,7 @@ describe('Create SGCluster', () => {
             .should('nested.include', {"flavor": "vanilla"})
             .and('nested.include', {"version": "latest"})
         cy.get('@postCluster')
-            .its('request.body.spec.prometheusAutobind')
+            .its('request.body.spec.configurations.observability.prometheusAutobind')
             .should('eq', true)
         cy.get('@postCluster')
             .its('request.body.spec.distributedLogs')
@@ -632,7 +632,7 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="sidecars"]')
             .click()
 
-        cy.get('input[data-field="spec.prometheusAutobind"]')
+        cy.get('input[data-field="spec.configurations.observability.prometheusAutobind"]')
             .click()
 
         // Test User-Supplied Pods Sidecars
@@ -1378,7 +1378,7 @@ describe('Create SGCluster', () => {
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": '' + resourceName})
             .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
         cy.get('@postCluster')
-            .its('request.body.spec.prometheusAutobind')
+            .its('request.body.spec.configurations.observability.prometheusAutobind')
             .should('eq', true)
         cy.get('@postCluster')
             .its('request.body.spec.pods')
@@ -2085,7 +2085,7 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="sidecars"]')
             .click()
 
-        cy.get('input[data-field="spec.prometheusAutobind"]')
+        cy.get('input[data-field="spec.configurations.observability.prometheusAutobind"]')
             .should('be.enabled')
             .click()
 
@@ -2567,7 +2567,7 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test2-' + resourceName})
             .and('nested.include', {"scripts[3].scriptSpec.scripts[0].script": 'test3-' + resourceName})
         cy.get('@putCluster')
-            .its('request.body.spec.prometheusAutobind')
+            .its('request.body.spec.configurations.observability.prometheusAutobind')
             .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.replication')

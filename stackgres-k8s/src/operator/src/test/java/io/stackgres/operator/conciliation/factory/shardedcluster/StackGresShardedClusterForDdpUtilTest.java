@@ -433,9 +433,6 @@ class StackGresShardedClusterForDdpUtilTest {
       StackGresShardedCluster shardedCluster,
       StackGresCluster cluster,
       int index) {
-    Assertions.assertEquals(
-        shardedCluster.getSpec().getPrometheusAutobind(),
-        cluster.getSpec().getPrometheusAutobind());
     if (shardedCluster.getSpec().getConfigurations() != null
         && shardedCluster.getSpec().getConfigurations().getBackups() != null) {
       Assertions.assertEquals(

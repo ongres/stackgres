@@ -1622,12 +1622,12 @@
                         </div>
 
                         <div class="col">
-                            <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
+                            <label for="spec.configurations.observability.prometheusAutobind">Prometheus Autobind</label>  
                             <label for="prometheusAutobind" class="switch yes-no">
                                 Enable
-                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.prometheusAutobind" @change="checkPrometheusAutobind()">
+                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.configurations.observability.prometheusAutobind" @change="checkPrometheusAutobind()">
                             </label>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.observability.prometheusAutobind')"></span>
                         </div>
                     </div>
 
@@ -3661,12 +3661,12 @@
                             vm.replicateFrom = vm.hasProp(c, 'data.spec.replicateFrom') ? c.data.spec.replicateFrom : {};
                             vm.replicateFromSource = vm.getReplicationSource(c);
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
-                            vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
+                            vm.prometheusAutobind =  (typeof c.data.spec.configurations.observability.prometheusAutobind !== 'undefined') ? c.data.spec.configurations.observability.prometheusAutobind : false;
                             vm.clusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : null;
                             vm.patroniResourceRequirements = vm.hasProp(c, 'data.spec.nonProductionOptions.disablePatroniResourceRequirements') ? c.data.spec.nonProductionOptions.disablePatroniResourceRequirements : null;
                             vm.clusterResourceRequirements = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterResourceRequirements') ? c.data.spec.nonProductionOptions.disableClusterResourceRequirements : null;
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
-                            vm.enableMonitoring = ( (!vm.hasProp(c, 'data.spec.pods.disableMetricsExporter')) && (typeof c.data.spec.prometheusAutobind !== 'undefined') ) ? true : false;
+                            vm.enableMonitoring = ( (!vm.hasProp(c, 'data.spec.pods.disableMetricsExporter')) && (typeof c.data.spec.configurations.observability.prometheusAutobind !== 'undefined') ) ? true : false;
                             vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
                             vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
                             vm.nodeSelector = vm.hasProp(c, 'data.spec.pods.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.pods.scheduling.nodeSelector, 'label') : [];
@@ -3969,9 +3969,14 @@
                                 } || { "customContainers": null }
                             )),
                         },
-                        ...( (this.hasProp(previous, 'spec.configurations') || !this.isNull(this.pgConfig) || this.managedBackups || !this.isNull(this.connectionPoolingConfig) ) && ({
+                        ...( (this.hasProp(previous, 'spec.configurations') || !this.isNull(this.pgConfig) || this.managedBackups || !this.isNull(this.connectionPoolingConfig) || !this.isNull(this.prometheusAutobind) ) && ({
                             "configurations": {
                                 ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
+                                ...{ "observability": {
+                                    ...(this.hasProp(previous, 'spec.configurations.observability') && previous.spec.configurations.observability),
+                                    ...(!this.isNull(this.prometheusAutobind) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
+                                    }
+                                },
                                 ...(!this.isNull(this.pgConfig) && {"sgPostgresConfig": this.pgConfig } || {"sgPostgresConfig": null} ),
                                 ...(this.managedBackups && {
                                     "backups": this.backups
@@ -4032,7 +4037,6 @@
                                 "groups": (this.replication.groups.filter( g => (g.instances > 0) ))
                             }) )
                         },
-                        ...((this.prometheusAutobind || this.editMode) && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                         ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null) || (this.patroniResourceRequirements != null) || (this.clusterResourceRequirements != null) || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                             "nonProductionOptions": { 
                                 ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),

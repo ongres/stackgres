@@ -51,6 +51,8 @@ public class StackGresDbOpsMajorVersionUpgrade {
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
+  private Integer maxErrorsAfterUpgrade;
+
   @ReferencedField("backupPath")
   interface BackupPath extends FieldReference { }
 
@@ -140,10 +142,18 @@ public class StackGresDbOpsMajorVersionUpgrade {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
+  public Integer getMaxErrorsAfterUpgrade() {
+    return maxErrorsAfterUpgrade;
+  }
+
+  public void setMaxErrorsAfterUpgrade(Integer maxErrorsAfterUpgrade) {
+    this.maxErrorsAfterUpgrade = maxErrorsAfterUpgrade;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backupPath, check, clone, postgresExtensions, link, postgresVersion,
-        sgPostgresConfig, toInstallPostgresExtensions);
+    return Objects.hash(backupPath, check, clone, link, maxErrorsAfterUpgrade, postgresExtensions,
+        postgresVersion, sgPostgresConfig, toInstallPostgresExtensions);
   }
 
   @Override
@@ -155,11 +165,10 @@ public class StackGresDbOpsMajorVersionUpgrade {
       return false;
     }
     StackGresDbOpsMajorVersionUpgrade other = (StackGresDbOpsMajorVersionUpgrade) obj;
-    return Objects.equals(backupPath, other.backupPath)
-        && Objects.equals(check, other.check)
-        && Objects.equals(clone, other.clone)
+    return Objects.equals(backupPath, other.backupPath) && Objects.equals(check, other.check)
+        && Objects.equals(clone, other.clone) && Objects.equals(link, other.link)
+        && Objects.equals(maxErrorsAfterUpgrade, other.maxErrorsAfterUpgrade)
         && Objects.equals(postgresExtensions, other.postgresExtensions)
-        && Objects.equals(link, other.link)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);

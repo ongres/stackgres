@@ -10,7 +10,8 @@ e2e_test_extra_hash() {
 e2e_test_install() {
   install_minio
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    $([ "$E2E_SKIP_BACKUP_ENCRYPTION" != true ] || printf %s '--set configurations.objectstorage.encryption=null')
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -57,7 +58,8 @@ check_backup_using_volume_snapshot_is_working() {
   disable_cluster_cron_schedule
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set cluster.configurations.backups.useVolumeSnapshot=true
+    --set cluster.configurations.backups.useVolumeSnapshot=true \
+    $([ "$E2E_SKIP_BACKUP_ENCRYPTION" != true ] || printf %s '--set configurations.objectstorage.encryption=null')
 
   # Avoid backups before waiting for pods (since backup pods could biase the wait)
   enable_cluster_cron_schedule
