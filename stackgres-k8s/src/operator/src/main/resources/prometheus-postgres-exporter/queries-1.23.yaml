@@ -478,7 +478,6 @@ pg_wal_position:
         usage: "COUNTER"
         description: "Postgres LSN (log sequence number) being generated on primary or replayed on replica (truncated to low 52 bits)"
 
-
 pg_replication_slots_stats:
   master: true
   query: |
@@ -784,7 +783,7 @@ pg_vaccuum_wraparound:
     SELECT datname FROM pg_database
     WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, _.* FROM databases, (SELECT true WHERE NOT pg_is_in_recovery()) AS pg_is_not_in_recovery
+    SELECT datname, _.* FROM databases, (SELECT true WHERE NOT pg_is_in_recovery()) AS pg_is_not_in_recovery,
     LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '
