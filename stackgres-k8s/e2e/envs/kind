@@ -111,6 +111,25 @@ update_k8s_config() {
   # fix for Unable to connect to the server: x509: certificate is valid for <ips>, not <ip>
   kubectl config set "clusters.kind-$KIND_NAME.insecure-skip-tls-verify" --set-raw-bytes true
   kubectl config unset "clusters.kind-$KIND_NAME.certificate-authority-data"
+
+  screen -ls 2>/dev/null | grep '\.kind-daemon' \
+    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+    | xargs -r -I % kill % || true
+  E2E_ENV=kind screen -dmS kind-daemon -L -Logfile "$HOME/.kind-daemon.log" "$SHELL" stackgres-k8s/e2e/e2e properly_tag_not_found_import_images
+}
+
+properly_tag_not_found_import_images() {
+  echo "Looking for import-* images to tag properly"
+  event_watch  --follow \
+    | stdbuf -o0 grep '\simage "\(.*library/import-[^@]\+@sha256:[^"]\+\)": not found' \
+    | stdbuf -o0 sed 's#^.*\simage "\(.*library/import-[^@]\+@sha256:[^"]\+\)": not found.*$#\1#' \
+    | (
+      while read IMAGE_NAME
+      do
+        echo "Detected import-* image $IMAGE_NAME to tag properly into k8s env $E2E_ENV"
+        tag_image_k8s "${IMAGE_NAME#*library/}" "$IMAGE_NAME"
+      done
+      )
 }
 
 reuse_k8s() {
@@ -573,6 +592,10 @@ delete_k8s() {
 
     echo "...done"
   fi
+
+  screen -ls 2>/dev/null | grep '\.kind-daemon' \
+    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+    | xargs -r -I % kill % || true
 }
 
 has_image_k8s() {

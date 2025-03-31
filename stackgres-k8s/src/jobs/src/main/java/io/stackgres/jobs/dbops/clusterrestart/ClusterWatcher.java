@@ -17,8 +17,6 @@ import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniMember;
-import io.stackgres.common.patroni.PatroniMember.MemberRole;
-import io.stackgres.common.patroni.PatroniMember.MemberState;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
@@ -52,8 +50,8 @@ public class ClusterWatcher {
   }
 
   private static boolean isPrimaryReady(PatroniMember member) {
-    if (MemberRole.LEADER.equals(member.getMemberRole())) {
-      final boolean ready = MemberState.RUNNING.equals(member.getMemberState())
+    if (member.isPrimary()) {
+      final boolean ready = member.isRunning()
           && member.getTimeline() != null
           && member.getHost() != null;
       if (!ready) {
@@ -61,7 +59,7 @@ public class ClusterWatcher {
       }
       return ready;
     } else {
-      final boolean ready = MemberState.RUNNING.equals(member.getMemberState())
+      final boolean ready = member.isRunning()
           && member.getTimeline() != null
           && member.getHost() != null
           && member.getLagInMb() != null;
@@ -151,8 +149,7 @@ public class ClusterWatcher {
             .filter(m -> failure == null)
             .stream()
             .flatMap(List::stream)
-            .filter(member -> MemberRole.LEADER.equals(member.getMemberRole())
-                && MemberState.RUNNING.equals(member.getMemberState()))
+            .filter(member -> member.isPrimary() && member.isRunning())
             .map(PatroniMember::getMember)
             .findAny());
   }
