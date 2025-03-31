@@ -114,7 +114,7 @@ update_k8s_config() {
 
   screen -ls 2>/dev/null | grep '\.kind-daemon' \
     | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
-    | xargs -r -I % kill %
+    | xargs -r -I % kill % || true
   E2E_ENV=kind screen -dmS kind-daemon -L -Logfile "$HOME/.kind-daemon.log" "$SHELL" stackgres-k8s/e2e/e2e properly_tag_not_found_import_images
 }
 
@@ -595,7 +595,7 @@ delete_k8s() {
 
   screen -ls 2>/dev/null | grep '\.kind-daemon' \
     | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
-    | xargs -r -I % kill %
+    | xargs -r -I % kill % || true
 }
 
 has_image_k8s() {
