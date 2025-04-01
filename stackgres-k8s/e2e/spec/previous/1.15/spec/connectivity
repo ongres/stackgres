@@ -115,7 +115,7 @@ service_check() {
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
-    RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
+    RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME"-replicas -i 0 -p 5432)"
     if [ "$RESPONSE_REPLICA" = "1" ]
     then
       success "Connections are possible using services"
