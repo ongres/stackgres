@@ -102,6 +102,12 @@ reset_cluster_internal() {
       "$@"
   fi
 
+  if [ -n "$DISTRIBUTEDLOGS_NAME" ]
+  then
+    kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
+      --from-literal=superuser-password="$RANDOM"
+  fi
+  
   wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
