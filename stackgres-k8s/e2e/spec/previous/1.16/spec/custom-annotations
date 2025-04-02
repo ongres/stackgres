@@ -124,6 +124,8 @@ helm_custom_annotations(){
 
   kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-minio" \
      --from-literal=accesskey=test --from-literal=secretkey=test
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
+    --from-literal=superuser-password="$RANDOM"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \

@@ -229,7 +229,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
                 .map(Probe::getFailureThreshold)
                 .orElse(6))
             .build())
-        .withLivenessProbe(new ProbeBuilder()
+        .withLivenessProbe(new ProbeBuilder(cluster.getSpec().getPods().getLivenessProbe())
             .withNewHttpGet()
             .withPath("/controller/liveness")
             .withPort(new IntOrString(controllerPort))

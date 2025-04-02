@@ -62,7 +62,7 @@ e2e_test() {
 }
 
 check_replication_is_working() {
-  wait_until check_connectivity -i 0
+  check_connectivity -i 0
 
   local SYNCHRONOUS_STANDBY_NAMES
   SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
@@ -83,7 +83,7 @@ check_replication_is_working() {
     fail "It should be possible to create a database in the primary node" 
   fi
 
-  wait_until check_connectivity -i 1
+  check_service_connectivity -i 0 -h "$CLUSTER_NAME-replicas"
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test > "${LOG_PATH}/test1.log"
   if "$RESULT"
   then

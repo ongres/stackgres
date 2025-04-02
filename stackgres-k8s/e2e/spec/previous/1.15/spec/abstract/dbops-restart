@@ -32,7 +32,7 @@ reset_cluster() {
   check_mock_data_samehost "$CLUSTER_NAME"
   if [ "$PODS_COUNT" -gt 1 ]
   then
-    check_mock_data_replication "$CLUSTER_NAME"
+    wait_until check_mock_data_replication "$CLUSTER_NAME"
   fi
 }
 
@@ -146,7 +146,7 @@ check_restart() {
     check_mock_data_samehost "$CLUSTER_NAME"
     if [ "$INITIAL_INSTANCES" -ge 2 ]
     then
-      check_mock_data_replication "$CLUSTER_NAME"
+      wait_until check_mock_data_replication "$CLUSTER_NAME"
     fi
   fi
 }

@@ -88,7 +88,6 @@ check_outer_replica_connections(){
 
 check_cluster_replication(){
   generate_mock_data
-  check_mock_data
-  check_mock_data_replication
-
+  check_mock_data_samehost "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
 }

@@ -51,6 +51,7 @@ import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.ResourceFinder;
@@ -97,7 +98,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   private PatroniCtl patroniCtl;
 
   @Mock
-  private PatroniCtl.PatroniCtlInstance patroniCtlInstance;
+  private PatroniCtlInstance patroniCtlInstance;
 
   @Mock
   private ClusterDefaultReconciliationHandler defaultHandler;

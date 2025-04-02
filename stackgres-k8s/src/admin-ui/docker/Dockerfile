@@ -1,30 +1,40 @@
 ARG BASE_IMAGE
 
-FROM "$BASE_IMAGE"
-  USER root:root
-
+FROM scratch AS copy
+  USER 1001
+  WORKDIR /opt/app-root/src/
+  USER 0
   COPY 'docker/LICENCE' '/licenses/stackgres'
-  RUN cp '/usr/share/licenses/nginx/LICENSE' '/licenses/nginx'
 
   # Copying admin static resources to ngnix
   COPY 'target/public/' '/opt/app-root/src/admin/'
-  RUN chown nginx:nginx '/opt/app-root/src' -R
+
+FROM "$BASE_IMAGE"
+  COPY --from=copy / /
+
+  USER root:root
+
+  RUN cp '/usr/share/licenses/nginx/LICENSE' '/licenses/nginx' && \
+    chown nginx:nginx '/opt/app-root/src' -R
+
+  USER nginx:nginx
+
+  ARG STACKGRES_VERSION BUILD_HASH
+
+  RUN [ -n "$STACKGRES_VERSION" ] && \
+    echo "{\"version\":\"$STACKGRES_VERSION\"}" > /opt/app-root/src/admin/info/sg-info.json
 
   #Expose port, set version and default user
   EXPOSE 8080
 
-  ARG STACKGRES_VERSION
-  ENV STACKGRES_VERSION=$STACKGRES_VERSION
-  RUN [ -n "$STACKGRES_VERSION" ]
-  RUN echo "{\"version\":\"$STACKGRES_VERSION\"}" > /opt/app-root/src/admin/info/sg-info.json
-  
-  ARG BUILD_HASH
-  LABEL name=stackgres/admin-ui
-  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
-  LABEL vendor="OnGres Inc."
-  LABEL version="$STACKGRES_VERSION"
-  LABEL release="$BUILD_HASH"
-  LABEL summary="StackGres Nginx"
-  LABEL description="StackGres Nginx"
+  ENV \
+    STACKGRES_VERSION=$STACKGRES_VERSION
 
-  USER nginx:nginx
+  LABEL \
+    name=stackgres/admin-ui \
+    maintainer="OnGres Team <stackgres@ongres.com>" \
+    vendor="OnGres Inc." \
+    version="$STACKGRES_VERSION" \
+    release="$BUILD_HASH" \
+    summary="StackGres Nginx" \
+    description="StackGres Nginx" \

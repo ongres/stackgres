@@ -5,65 +5,70 @@ FROM quay.io/ongres/patroni:v3.2.2-pg16.2-build-6.30 AS patroni_3_2_2
 FROM quay.io/ongres/patroni:v3.3.3-pg16.4-build-6.37 AS patroni_3_3_3
 FROM quay.io/ongres/patroni:v4.0.4-pg17.2-build-6.38 AS patroni_4_0_4
 
+FROM scratch AS copy
+    COPY --from=patroni_3_0_2 /usr/bin/patronictl /usr/bin/patronictl-3.0.2
+    COPY --from=patroni_3_0_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.0.2
+    COPY --from=patroni_3_0_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.0.2
+
+    COPY --from=patroni_3_2_2 /usr/bin/patronictl /usr/bin/patronictl-3.2.2
+    COPY --from=patroni_3_2_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.2.2
+    COPY --from=patroni_3_2_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.2.2
+
+    COPY --from=patroni_3_3_3 /usr/bin/patronictl /usr/bin/patronictl-3.3.3
+    COPY --from=patroni_3_3_3 /usr/lib64/python3.11/site-packages /usr/lib/patroni-3.3.3
+    COPY --from=patroni_3_3_3 /usr/lib/python3.11/site-packages /usr/lib/patroni-3.3.3
+
+    COPY --from=patroni_4_0_4 /usr/bin/patronictl /usr/bin/patronictl-4.0.4
+    COPY --from=patroni_4_0_4 /usr/lib64/python3.11/site-packages /usr/lib/patroni-4.0.4
+    COPY --from=patroni_4_0_4 /usr/lib/python3.11/site-packages /usr/lib/patroni-4.0.4
+
+    COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
+
+    COPY 'target/*.so' '/app/'
+    COPY 'target/stackgres-jobs-runner' '/app/stackgres-jobs'
+
+    COPY 'src/main/docker/stackgres-jobs.native.sh' '/app/stackgres-jobs.sh'
+
 FROM "$BASE_IMAGE"
-  USER root:root
-
-  RUN microdnf install -y python3.9 python3.11 libpq
-  COPY --from=patroni_3_0_2 /usr/bin/patronictl /usr/bin/patronictl-3.0.2
-  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.0.2')" /usr/bin/patronictl-3.0.2
-  COPY --from=patroni_3_0_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.0.2
-  COPY --from=patroni_3_0_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.0.2
-
-  COPY --from=patroni_3_2_2 /usr/bin/patronictl /usr/bin/patronictl-3.2.2
-  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.2.2')" /usr/bin/patronictl-3.2.2
-  COPY --from=patroni_3_2_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.2.2
-  COPY --from=patroni_3_2_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.2.2
-
-  COPY --from=patroni_3_3_3 /usr/bin/patronictl /usr/bin/patronictl-3.3.3
-  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.3.3')" /usr/bin/patronictl-3.3.3
-  COPY --from=patroni_3_3_3 /usr/lib64/python3.11/site-packages /usr/lib/patroni-3.3.3
-  COPY --from=patroni_3_3_3 /usr/lib/python3.11/site-packages /usr/lib/patroni-3.3.3
-
-  COPY --from=patroni_4_0_4 /usr/bin/patronictl /usr/bin/patronictl-4.0.4
-  RUN sed -i "5i sys.path.append('/usr/lib/patroni-4.0.4')" /usr/bin/patronictl-4.0.4
-  COPY --from=patroni_4_0_4 /usr/lib64/python3.11/site-packages /usr/lib/patroni-4.0.4
-  COPY --from=patroni_4_0_4 /usr/lib/python3.11/site-packages /usr/lib/patroni-4.0.4
+  COPY --from=copy / /
 
   WORKDIR '/app/'
 
-  COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
+  USER root:root
 
-  RUN echo 'jboss:x:1000:' >> /etc/group && \
+  RUN microdnf install -y python3.9 python3.11 libpq && \
+    sed -i "5i sys.path.append('/usr/lib/patroni-3.0.2')" /usr/bin/patronictl-3.0.2 && \
+    sed -i "5i sys.path.append('/usr/lib/patroni-3.2.2')" /usr/bin/patronictl-3.2.2 && \
+    sed -i "5i sys.path.append('/usr/lib/patroni-3.3.3')" /usr/bin/patronictl-3.3.3 && \
+    sed -i "5i sys.path.append('/usr/lib/patroni-4.0.4')" /usr/bin/patronictl-4.0.4 && \
+    echo 'jboss:x:1000:' >> /etc/group && \
     echo 'jboss:!::' >> /etc/gshadow && \
     echo 'jboss:x:1000:1000::/app:/bin/bash' >> /etc/passwd && \
     echo 'jboss:!!:18655:0:99999:7:::' >> /etc/shadow && \
-    echo 'jboss:100000:65536' >> /etc/subgid
+    echo 'jboss:100000:65536' >> /etc/subgid && \
+    chown -R jboss:jboss '/app' && \
+    chmod 755 '/app' && \
+    chmod 755 '/app/stackgres-jobs.sh'
 
-  COPY 'target/*.so' '/app/'
-  COPY 'src/main/docker/stackgres-jobs.native.sh' '/app/stackgres-jobs.sh'
-  COPY 'target/stackgres-jobs-runner' '/app/stackgres-jobs'
-
-  RUN chown -R jboss:jboss '/app'
-  RUN chmod 755 '/app'
-  RUN chmod 755 '/app/stackgres-jobs.sh'
-
-  ENV HOME=/app LANG=C.utf8
   USER jboss:jboss
-  EXPOSE 8080
-  EXPOSE 8443
 
-  ARG STACKGRES_VERSION
-  LABEL io.stackgres.version="$STACKGRES_VERSION"
-  ENV STACKGRES_VERSION=$STACKGRES_VERSION
-  ENV OPERATOR_VERSION=$STACKGRES_VERSION
-  
-  ARG BUILD_HASH
-  LABEL name=stackgres/jobs
-  LABEL maintainer="OnGres Team <stackgres@ongres.com>"
-  LABEL vendor="OnGres Inc."
-  LABEL version="$STACKGRES_VERSION"
-  LABEL release="$BUILD_HASH"
-  LABEL summary="StackGres Jobs"
-  LABEL description="StackGres Jobs"
+  EXPOSE 8080 8443
 
   CMD '/app/stackgres-jobs.sh'
+
+  ARG STACKGRES_VERSION BUILD_HASH
+  ENV \
+    STACKGRES_VERSION=$STACKGRES_VERSION \
+    OPERATOR_VERSION=$STACKGRES_VERSION \
+    HOME=/app \
+    LANG=C.utf8
+
+  LABEL \
+    io.stackgres.version="$STACKGRES_VERSION" \
+    name=stackgres/jobs \
+    maintainer="OnGres Team <stackgres@ongres.com>" \
+    vendor="OnGres Inc." \
+    version="$STACKGRES_VERSION" \
+    release="$BUILD_HASH" \
+    summary="StackGres Jobs" \
+    description="StackGres Jobs"

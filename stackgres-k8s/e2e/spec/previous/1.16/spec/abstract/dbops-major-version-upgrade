@@ -102,6 +102,12 @@ reset_cluster_internal() {
       "$@"
   fi
 
+  if [ -n "$DISTRIBUTEDLOGS_NAME" ]
+  then
+    kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" \
+      --from-literal=superuser-password="$RANDOM"
+  fi
+  
   wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -212,10 +218,8 @@ check_major_version_upgrade() {
     fail "cluster postgres version has not been updated."
   fi
 
-  wait_until run_query -i 0 -q "SELECT 1;"
   check_mock_data_samehost "$CLUSTER_NAME"
-  wait_until run_query -i 1 -q "SELECT 1;"
-  check_mock_data_replication "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
 }
 
 check_major_version_upgrade_check() {
@@ -251,10 +255,8 @@ check_major_version_upgrade_check() {
     fail "cluster postgres version has been updated."
   fi
 
-  wait_until run_query -i 0 -q "SELECT 1;"
   check_mock_data_samehost "$CLUSTER_NAME"
-  wait_until run_query -i 1 -q "SELECT 1;"
-  check_mock_data_replication "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
   if kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- psql -q -w -h localhost -p 5432 -c 'SELECT 1'
   then
     fail "was possible to connect to the cluster without password"

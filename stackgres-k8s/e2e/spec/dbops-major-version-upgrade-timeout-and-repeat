@@ -65,7 +65,7 @@ EOF
   fi
 
   check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
 }
 
 check_major_version_upgrade_repeat() {
