@@ -5,8 +5,11 @@
 
 package io.stackgres.common.patroni;
 
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,6 +28,7 @@ public class PatroniMember {
 
   public static final String LEADER = "Leader";
   public static final String MASTER = "Master";
+  public static final String PRIMARY = "Primary";
   public static final String STANDBY_LEADER = "Standby Leader";
   public static final String SYNC_STANDBY = "Sync Standby";
   public static final String REPLICA = "Replica";
@@ -140,11 +144,24 @@ public class PatroniMember {
     this.role = role;
   }
 
+  @JsonIgnore
+  public void setRoleFromLabel(String role) {
+    this.role = Arrays.asList(role.split("_"))
+        .stream()
+        .map(rolePart -> rolePart.substring(0, 1).toUpperCase(Locale.US) + rolePart.substring(1))
+        .collect(Collectors.joining(" "));
+  }
+
   public String getState() {
     return state;
   }
 
   public void setState(String state) {
+    this.state = state;
+  }
+
+  @JsonIgnore
+  public void setStateFromLabel(String state) {
     this.state = state;
   }
 
@@ -251,8 +268,16 @@ public class PatroniMember {
         return MemberRole.UNKNOWN;
       }
       return switch (role) {
-        case PatroniMember.LEADER, PatroniMember.MASTER, PatroniMember.STANDBY_LEADER -> MemberRole.LEADER;
-        case PatroniMember.REPLICA, PatroniMember.SYNC_STANDBY -> MemberRole.REPLICA;
+        case
+            PatroniMember.LEADER,
+            PatroniMember.MASTER,
+            PatroniMember.PRIMARY,
+            PatroniMember.STANDBY_LEADER
+            -> MemberRole.LEADER;
+        case
+            PatroniMember.REPLICA,
+            PatroniMember.SYNC_STANDBY
+            -> MemberRole.REPLICA;
         default -> MemberRole.UNKNOWN;
       };
     }

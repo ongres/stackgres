@@ -43,7 +43,7 @@ e2e_test_install() {
   wait_pods_running "$CLUSTER_NAMESPACE" 1
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  wait_until check_connectivity -i 0
+  check_connectivity -i 0
   create_mock_data
 
   BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-0-$(shuf -i 0-65535 -n 1)")"

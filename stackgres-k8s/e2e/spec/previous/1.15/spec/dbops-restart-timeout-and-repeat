@@ -64,7 +64,7 @@ EOF
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
 }
 
 check_restart_repeat() {

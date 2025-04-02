@@ -43,6 +43,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.patroni.StandbyCluster;
@@ -71,7 +72,7 @@ public class ManagedSqlReconciliatorTest {
   @Mock
   PatroniCtl patroniCtl;
   @Mock
-  PatroniCtl.PatroniCtlInstance patroniCtlInstance;
+  PatroniCtlInstance patroniCtlInstance;
   @Mock
   CustomResourceFinder<StackGresScript> scriptFinder;
   @Mock

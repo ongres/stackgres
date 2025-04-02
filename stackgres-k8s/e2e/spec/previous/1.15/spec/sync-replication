@@ -58,7 +58,7 @@ e2e_test() {
 }
 
 check_sync_replication_is_working() {
-  wait_until check_connectivity -i 0
+  check_connectivity -i 0
 
   if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
     psql -q -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
@@ -77,13 +77,13 @@ check_sync_replication_is_working() {
     fail "It should be possible to create a database in the primary node" 
   fi
 
-  wait_until check_connectivity -i 1
+  check_service_connectivity -i 0 -h "$CLUSTER_NAME-replicas"
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test > "${LOG_PATH}/test1.log"
   if "$RESULT"
   then
     fail "It's possible to create a table in the replica node"
   else
-    success "It's not be possible to create a table in the replica node" 
+    success "It's not possible to create a table in the replica node" 
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
@@ -270,7 +270,7 @@ check_sync_all_replication_is_working() {
     --set cluster.replication.groups[0].instances=2 \
     --set cluster.replication.groups[0].role=readonly \
     --set cluster.pods.scheduling.nodeSelector=null
-  wait_until check_connectivity -i 0
+  check_connectivity -i 0
 
   if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
     psql -q -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
@@ -289,13 +289,13 @@ check_sync_all_replication_is_working() {
     fail "It should be possible to create a database in the primary node" 
   fi
 
-  wait_until check_connectivity -i 1
+  check_service_connectivity -i 0 -h "$CLUSTER_NAME-replicas"
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test_all > "${LOG_PATH}/test_all1.log"
   if "$RESULT"
   then
     fail "It's possible to create a table in the replica node"
   else
-    success "It's not be possible to create a table in the replica node" 
+    success "It's not possible to create a table in the replica node" 
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test_all

@@ -1,12 +1,11 @@
 #!/bin/sh
 
 check_connectivity(){
+  RESPONSE_5432="$(wait_until run_query -p 5432 "$@")"
+  RESPONSE_6432="$(wait_until run_query -p 6432 "$@")"
 
-  RESPONSE_5432="$(run_query -p 5432 "$@")"
-  RESPONSE_6432="$(run_query -p 6432 "$@")"
-
-  RESPONSE_7432="$(run_query -p 7432 "$@")"
-  RESPONSE_7433="$(run_query -p 7433 "$@")"
+  RESPONSE_7432="$(wait_until run_query -p 7432 "$@")"
+  RESPONSE_7433="$(wait_until run_query -p 7433 "$@")"
   
   if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
   then
@@ -14,13 +13,11 @@ check_connectivity(){
   else 
     return 1
   fi
-
 }
 
 check_service_connectivity(){
-
-  RESPONSE_5432="$(run_query -p 5432 "$@")"
-  RESPONSE_5433="$(run_query -p 5433 "$@")"
+  RESPONSE_5432="$(wait_until run_query -p 5432 "$@")"
+  RESPONSE_5433="$(wait_until run_query -p 5433 "$@")"
   
   if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_5433" = "1" ]
   then
@@ -28,5 +25,4 @@ check_service_connectivity(){
   else 
     return 1
   fi
-
 }

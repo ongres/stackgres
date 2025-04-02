@@ -40,7 +40,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;

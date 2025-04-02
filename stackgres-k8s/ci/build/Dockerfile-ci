@@ -116,14 +116,17 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   CMD []
 
   # StackGres CI Tools
-  RUN microdnf install -y gnupg openssl jq curl bash zsh sed
+  RUN microdnf install -y gnupg openssl jq curl bash zsh sed git xz python39-pip findutils make procps diffutils ncurses-devel gcc make
+  
+  RUN wget https://ftp.gnu.org/gnu/screen/screen-5.0.0.tar.gz -O - | tar xz -C /tmp && \
+    cd /tmp/screen-* && \
+    ./configure --disable-pam --prefix=/usr && \
+    make && \
+    make install
   RUN if uname -m | grep -qxF x86_64; then \
     wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.1/yajsv.linux.amd64 && chmod a+x /bin/yajsv; fi
-  RUN microdnf install -y python39-pip
   RUN pip3 install yamllint yq
   RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
-  RUN microdnf install -y git
-  RUN microdnf install -y xz
   RUN mkdir -p ~/.docker/cli-plugins
   RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
   RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.31.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
@@ -142,7 +145,6 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   RUN chmod a+x /bin/operator-sdk
   RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.47.0/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
   RUN chmod a+x /bin/opm
-  RUN microdnf install -y findutils make procps diffutils
   RUN wget https://github.com/norwoodj/helm-docs/releases/download/v1.12.0/helm-docs_1.12.0_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - helm-docs
   RUN wget https://github.com/gohugoio/hugo/releases/download/v0.81.0/hugo_0.81.0_Linux-$(uname -m | grep -qxF aarch64 && echo ARM64 || echo 64bit).tar.gz -O -|tar xz -C /bin -f - hugo
   RUN wget https://github.com/fybrik/crdoc/releases/download/v0.6.3/crdoc_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - crdoc
