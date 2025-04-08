@@ -68,22 +68,26 @@ public class ReconciliatorWorkerThreadPool {
         .map(Integer::parseInt)
         .filter(n -> threads > n)
         .orElse(0);
-    final Long priorityTimeout = OperatorProperty.RECONCILIATION_PRIORITY_TIMEOUT
+    final boolean useFairness = !OperatorProperty.RECONCILIATION_DISABLE_FAIRNESS_QUEUE
+        .getBoolean();
+    final long fairnessWindow = OperatorProperty.RECONCILIATION_FAIRNESS_WINDOW
         .get()
         .map(Long::parseLong)
-        .orElse(null);
+        .orElse(0L);
     if (this.enabled) {
       this.queue = new PriorityBlockingQueue<>();
       this.executor = new ReconciliatorThreadPoolExecutor(
           threads - lowPriorityThreads,
-          priorityTimeout,
+          useFairness,
+          fairnessWindow,
           queue,
           r -> new Thread(r, "ReconciliationWorker-" + threadIndex.getAndIncrement()));
       if (lowPriorityThreads > 0) {
         this.lowPriorityQueue = new PriorityBlockingQueue<>();
         this.lowPriorityExecutor = new ReconciliatorThreadPoolExecutor(
             lowPriorityThreads,
-            priorityTimeout,
+            useFairness,
+            fairnessWindow,
             lowPriorityQueue,
             r -> new Thread(r, "ReconciliationWorker-" + threadIndex.getAndIncrement()));
       } else {
@@ -217,7 +221,6 @@ public class ReconciliatorWorkerThreadPool {
     final String configId;
     final int priority;
     final ClassLoader contextClassLoader;
-    final long priorityTimeout;
 
     public ReconciliationRunnable(
         ReconciliatorThreadPoolExecutor executor,
@@ -239,8 +242,6 @@ public class ReconciliatorWorkerThreadPool {
       this.configId = configId;
       this.priority = priority;
       this.contextClassLoader = Thread.currentThread().getContextClassLoader();
-      this.priorityTimeout = executor.getPriorityTimeout() != null
-          ? executor.getPriorityTimeout().longValue() : 0;
     }
 
     @Override
@@ -251,11 +252,8 @@ public class ReconciliatorWorkerThreadPool {
     @Override
     public int compareTo(ReconciliationRunnable o) {
       int compare = 0;
-      if (priorityTimeout > 0) {
-        compare = o.timestamp - timestamp > priorityTimeout ? -1 : 0;
-        if (compare == 0) {
-          compare = timestamp - o.timestamp > priorityTimeout ? 1 : 0;
-        }
+      if (executor.getUseFairness()) {
+        compare = lastExecution().compareTo(o.lastExecution());
       }
       if (compare == 0) {
         compare = o.priority > priority ? 1 : (o.priority == priority ? 0 : -1);
@@ -264,6 +262,11 @@ public class ReconciliatorWorkerThreadPool {
         compare = o.timestamp > timestamp ? -1 : (o.timestamp == timestamp ? 0 : 1);
       }
       return compare;
+    }
+
+    private Long lastExecution() {
+      Long lastExecution = executor.getLastExecution(configId);
+      return lastExecution != null ? lastExecution : 0L;
     }
 
     @Override
@@ -296,11 +299,14 @@ public class ReconciliatorWorkerThreadPool {
     final ThreadPoolExecutor threadPoolExecutor;
     final Map<ReconciliationRunnable, Long> executingReconciliations = Collections.synchronizedMap(new HashMap<>());
     final Set<ReconciliationRunnable> toExecuteReconciliations = Collections.synchronizedSet(new HashSet<>());
-    final Long priorityTimeout;
+    final Map<String, Long> lastExecutions = Collections.synchronizedMap(new HashMap<>());
+    final boolean useFairness;
+    final long fairnessWindow;
 
     public ReconciliatorThreadPoolExecutor(
         int threads,
-        Long priorityTimeout,
+        boolean useFairness,
+        long fairnessWindow,
         BlockingQueue<Runnable> workQueue,
         ThreadFactory threadFactory) {
       this.threadPoolExecutor = new ThreadPoolExecutor(
@@ -310,11 +316,16 @@ public class ReconciliatorWorkerThreadPool {
           TimeUnit.MILLISECONDS,
           workQueue,
           threadFactory);
-      this.priorityTimeout = priorityTimeout;
+      this.useFairness = useFairness;
+      this.fairnessWindow = fairnessWindow;
     }
 
-    public Long getPriorityTimeout() {
-      return priorityTimeout;
+    public boolean getUseFairness() {
+      return useFairness;
+    }
+
+    public Long getLastExecution(String configId) {
+      return lastExecutions.get(configId);
     }
 
     void executeReconciliation(ReconciliationRunnable r) {
@@ -329,11 +340,13 @@ public class ReconciliatorWorkerThreadPool {
         r.runnable.run();
       } finally {
         Thread.currentThread().setContextClassLoader(contextClassLoader);
+        final long end = System.currentTimeMillis();
+        lastExecutions.put(r.configId, fairnessWindow > 0 ? end / fairnessWindow : end);
         if (LOGGER.isTraceEnabled()) {
           LOGGER.trace("{} finished executing after {}ms",
               r,
               Optional.ofNullable(executingReconciliations.get(r))
-              .map(start -> System.currentTimeMillis() - start)
+              .map(start -> end - start)
               .map(Object::toString)
               .orElse("?"));
         }
