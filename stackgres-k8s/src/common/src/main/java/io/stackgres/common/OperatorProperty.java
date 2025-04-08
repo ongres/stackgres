@@ -49,10 +49,11 @@ public enum OperatorProperty implements StackGresPropertyReader {
   RECONCILIATION_THREAD_POOL_METRICS_SCRAPE_INTERVAL("stackgres.reconciliationThreadPoolMetricsScrapeInterval"),
   RECONCILIATION_THREADS("stackgres.reconciliationThreads"),
   RECONCILIATION_LOW_PRIORITY_THREADS("stackgres.reconciliationLowPriorityThreads"),
-  RECONCILIATION_PRIORITY_TIMEOUT("stackgres.reconciliationPriorityTimeout"),
   RECONCILIATION_INITIAL_BACKOFF("stackgres.reconciliationInitialBackoff"),
   RECONCILIATION_MAX_BACKOFF("stackgres.reconciliationMaxBackoff"),
   RECONCILIATION_BACKOFF_VARIATION("stackgres.reconciliationBackoffVariation"),
+  RECONCILIATION_DISABLE_FAIRNESS_QUEUE("stackgres.reconciliationDisableFairnessQueue"),
+  RECONCILIATION_FAIRNESS_WINDOW("stackgres.reconciliationFairnessWindow"),
   JMX_COLLECTOR_YAML_CONFIG("stackgres.jmxCollectorYamlConfig");
 
   private static final Properties APPLICATION_PROPERTIES =
