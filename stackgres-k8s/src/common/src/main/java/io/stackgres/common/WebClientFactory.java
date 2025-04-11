@@ -33,6 +33,7 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation.Builder;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
 import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
@@ -138,14 +139,13 @@ public class WebClientFactory {
       });
     }
 
-    public void get(URI uri) {
-      doWithRetry(() -> {
+    public Response get(URI uri) {
+      return doWithRetry(() -> {
         final Builder request = client.target(targetUri(uri))
             .request(MediaType.APPLICATION_JSON);
         Seq.seq(extraHeaders).forEach(
             extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
-        request.get();
-        return null;
+        return request.get();
       });
     }
 

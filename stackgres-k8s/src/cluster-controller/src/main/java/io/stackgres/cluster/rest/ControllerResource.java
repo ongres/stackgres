@@ -14,6 +14,7 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -35,13 +36,13 @@ public class ControllerResource {
   @Operation(summary = "Check if live", description = "Check if live")
   @GET
   @Path("liveness")
-  public void liveness() {
+  public Response liveness() {
     if (!patroniReconciliator.isStartup()) {
-      return;
+      return Response.ok().build();
     }
     final URI uri = URI.create("http://localhost:" + EnvoyUtil.PATRONI_PORT + "/liveness");
     try {
-      webClientFactory.create(uri).get(uri);
+      return webClientFactory.create(uri).get(uri);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
