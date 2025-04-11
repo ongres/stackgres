@@ -5,10 +5,14 @@
 
 package io.stackgres.common;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryStatus;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple3;
@@ -82,6 +86,40 @@ public interface ManagedSqlUtil {
 
   static String initialDataName(StackGresCluster object) {
     return object.getMetadata().getName() + "-inital-data";
+  }
+
+  static boolean isScriptEntryUpToDate(
+      StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryStatus managedScriptStatus) {
+    return Optional.of(managedScriptStatus)
+        .map(StackGresClusterManagedScriptEntryStatus::getScripts)
+        .stream().flatMap(List::stream)
+        .filter(anScriptEntryStatus -> Objects.equals(
+            scriptEntry.getId(), anScriptEntryStatus.getId()))
+        .anyMatch(scriptEntryStatus -> isScriptEntryUpToDate(scriptEntry, scriptEntryStatus));
+  }
+
+  static boolean isScriptEntryUpToDate(
+      StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
+    return mangedScriptEntryStatus.getIntents() == null
+        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+  }
+
+  static boolean isScriptEntryExecutionHang(
+      StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
+    return mangedScriptEntryStatus.getIntents() != null
+        && mangedScriptEntryStatus.getFailureCode() == null
+        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+  }
+
+  static boolean isScriptEntryFailed(
+      StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
+    return mangedScriptEntryStatus.getIntents() != null
+        && mangedScriptEntryStatus.getFailureCode() != null
+        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
   }
 
 }

@@ -20,7 +20,7 @@ e2e_test_install() {
     --set configurations.create=false \
     --set instanceProfiles=null \
     --set-string cluster.replicateFrom.instance.sgCluster="$PRIMARY_CLUSTER_NAME"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  WAIT_CLUSTER_BOOTSTRAP_ONLY=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

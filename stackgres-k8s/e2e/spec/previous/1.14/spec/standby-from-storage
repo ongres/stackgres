@@ -70,7 +70,7 @@ EOF
     --set-string cluster.replicateFrom.users.authenticator.password.key="PATRONI_authenticator_PASSWORD"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  WAIT_CLUSTER_BOOTSTRAP_ONLY=true wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
