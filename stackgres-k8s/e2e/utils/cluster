@@ -77,9 +77,7 @@ wait_cluster() {
     --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
     | wc -l)" -ge 1 ]'
 
-  wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-      psql -t -A -c "\du" \
-      | grep -q "^authenticator|"'
+  wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=InitialScriptsApplied --timeout=0s
 }
 
 switch_cluster_to_first() {
