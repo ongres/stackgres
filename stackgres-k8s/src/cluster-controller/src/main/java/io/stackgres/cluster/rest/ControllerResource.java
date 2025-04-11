@@ -32,7 +32,6 @@ public class ControllerResource {
   WebClientFactory webClientFactory;
 
   @APIResponse(responseCode = "200", description = "When live")
-  @APIResponse(responseCode = "404", description = "When not live")
   @Operation(summary = "Check if live", description = "Check if live")
   @GET
   @Path("liveness")
