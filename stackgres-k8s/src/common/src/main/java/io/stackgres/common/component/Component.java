@@ -563,6 +563,10 @@ public class Component {
     return streamOrderedComposedVersions()
         .map(ComposedVersion::getVersion)
         .grouped(Function.identity())
+        .sorted(Comparator.comparing(
+            (Function<Tuple2<ImageVersion, Seq<ImageVersion>>, Integer>) t -> t.v1.buildMajor)
+            .thenComparing(Comparator.comparing(t -> t.v1.buildMinor))
+            .reversed())
         .map(t -> t.v1);
   }
 

@@ -243,16 +243,16 @@ EOF
     wait_pods_running "$CLUSTER_NAMESPACE" 4
   fi
 
-  wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   switch_cluster_to_first "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
-    wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
+    WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
     switch_cluster_to_first "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
     wait_sharded_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   switch_sharded_cluster_to_first "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   fi
-  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
+  WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
   switch_cluster_to_first "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$DISTRIBUTEDLOGS_NAME"
