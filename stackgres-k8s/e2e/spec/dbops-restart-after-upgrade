@@ -165,8 +165,8 @@ EOF
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 
-  wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
-  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
+  WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_1_NAME"
 
