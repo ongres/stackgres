@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -51,28 +52,38 @@ class ReconciliatorWorkerThreadPoolTest {
 
   @Test
   public void checkReconciliationRunnableNaturalOrderWithTimeout() {
-    Mockito.when(executor.getPriorityTimeout()).thenReturn(1000L);
+    final ReconciliationRunnable[] unorderedReconciliationRunnables = new ReconciliationRunnable[] {
+        new ReconciliationRunnable(executor, runnable, "-1", 1, 5L),
+        new ReconciliationRunnable(executor, runnable, "0", 0, 0L),
+        new ReconciliationRunnable(executor, runnable, "1", 0, 2100L),
+        new ReconciliationRunnable(executor, runnable, "2", 0, 2050L),
+        new ReconciliationRunnable(executor, runnable, "3", 0, 2020L),
+        new ReconciliationRunnable(executor, runnable, "4", 0, 2010L),
+        new ReconciliationRunnable(executor, runnable, "5", 1, 2000L),
+        new ReconciliationRunnable(executor, runnable, "6", 1, 2020L),
+    };
+    Mockito.when(executor.getUseFairness()).thenReturn(true);
+    Mockito.when(executor.getLastExecution(Mockito.any())).then(
+        invocation -> {
+          return Arrays.asList(unorderedReconciliationRunnables)
+              .stream()
+              .filter(r -> r.configId.equals(invocation.getArguments()[0]))
+              .map(r -> r.timestamp)
+              .findFirst()
+              .orElseThrow();
+        });
     assertEquals(
         List.of(new ReconciliationRunnable[] {
-            new ReconciliationRunnable(executor, runnable, "-1", 1, 5L),
             new ReconciliationRunnable(executor, runnable, "0", 0, 0L),
+            new ReconciliationRunnable(executor, runnable, "-1", 1, 5L),
             new ReconciliationRunnable(executor, runnable, "5", 1, 2000L),
-            new ReconciliationRunnable(executor, runnable, "6", 1, 2020L),
             new ReconciliationRunnable(executor, runnable, "4", 0, 2010L),
+            new ReconciliationRunnable(executor, runnable, "6", 1, 2020L),
             new ReconciliationRunnable(executor, runnable, "3", 0, 2020L),
             new ReconciliationRunnable(executor, runnable, "2", 0, 2050L),
             new ReconciliationRunnable(executor, runnable, "1", 0, 2100L),
         }),
-        Stream.of(new ReconciliationRunnable[] {
-            new ReconciliationRunnable(executor, runnable, "-1", 1, 5L),
-            new ReconciliationRunnable(executor, runnable, "0", 0, 0L),
-            new ReconciliationRunnable(executor, runnable, "1", 0, 2100L),
-            new ReconciliationRunnable(executor, runnable, "2", 0, 2050L),
-            new ReconciliationRunnable(executor, runnable, "3", 0, 2020L),
-            new ReconciliationRunnable(executor, runnable, "4", 0, 2010L),
-            new ReconciliationRunnable(executor, runnable, "5", 1, 2000L),
-            new ReconciliationRunnable(executor, runnable, "6", 1, 2020L),
-        })
+        Stream.of(unorderedReconciliationRunnables)
         .sorted()
         .toList());
   }

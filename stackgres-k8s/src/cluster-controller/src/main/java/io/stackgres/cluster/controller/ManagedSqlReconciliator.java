@@ -19,6 +19,7 @@ import io.stackgres.cluster.common.ClusterManagedSqlEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
@@ -316,34 +317,28 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
     }
   }
 
-  protected boolean isScriptEntryUpToDate(StackGresScriptEntry scriptEntry,
+  protected boolean isScriptEntryUpToDate(
+      StackGresScriptEntry scriptEntry,
       StackGresClusterManagedScriptEntryStatus managedScriptStatus) {
-    return Optional.of(managedScriptStatus)
-        .map(StackGresClusterManagedScriptEntryStatus::getScripts)
-        .stream().flatMap(List::stream)
-        .filter(anScriptEntryStatus -> Objects.equals(
-            scriptEntry.getId(), anScriptEntryStatus.getId()))
-        .anyMatch(scriptEntryStatus -> isScriptEntryUpToDate(scriptEntry, scriptEntryStatus));
+    return ManagedSqlUtil.isScriptEntryUpToDate(scriptEntry, managedScriptStatus);
   }
 
-  protected boolean isScriptEntryUpToDate(StackGresScriptEntry scriptEntry,
-      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
-    return mangedScriptEntryStatus.getIntents() == null
-        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+  protected boolean isScriptEntryUpToDate(
+      StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus) {
+    return ManagedSqlUtil.isScriptEntryUpToDate(scriptEntry, managedScriptEntryStatus);
   }
 
-  protected boolean isScriptEntryExecutionHang(StackGresScriptEntry scriptEntry,
+  protected boolean isScriptEntryExecutionHang(
+      StackGresScriptEntry scriptEntry,
       StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
-    return mangedScriptEntryStatus.getIntents() != null
-        && mangedScriptEntryStatus.getFailureCode() == null
-        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+    return ManagedSqlUtil.isScriptEntryExecutionHang(scriptEntry, mangedScriptEntryStatus);
   }
 
-  protected boolean isScriptEntryFailed(StackGresScriptEntry scriptEntry,
+  protected boolean isScriptEntryFailed(
+      StackGresScriptEntry scriptEntry,
       StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
-    return mangedScriptEntryStatus.getIntents() != null
-        && mangedScriptEntryStatus.getFailureCode() != null
-        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+    return ManagedSqlUtil.isScriptEntryFailed(scriptEntry, mangedScriptEntryStatus);
   }
 
   private String getManagedScriptEntryDescription(StackGresClusterManagedScriptEntry managedScript,

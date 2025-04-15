@@ -1,3 +1,93 @@
+# :rocket: Release 1.16.0 (2025-04-14)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.16.0 reached GA! :muscle_tone1: :rocket: :rainbow: :sunny:
+
+Less containers is better. Now you can reduce your SGCluster's Pod to only 2 containers (and just 1 init container) if you want leaner (but with less functionalities) Pods. :muscle:
+
+A long waited functionality that removes the validation of referenced resources in Webhooks. You will no more receive messages about missing resources opening the door to a much more pleasant DevOps experience. We also tried to reduce the friction with tools like ArgoCD (still not officially supported though, please, be patient :sweat_smile:) by avoiding setting the infamous caBundle and other small changes that should improve the situation. Last but not least the creation of default resources is now handled by the operator reconciliation cycle and will not be created in the Webhook as we did before.
+
+Setting a configuration parameter without having to create a separate SGPostgresConfig now is possible, and not only for Postgres configuration, we included setting directly Pod's resources, pooling and, now, you have the ability to modify postgres_exporter queries!
+
+Improvements on SGStream should allow to fix some issues and make this component more useful for CDC use cases. We wait for your feedback!
+
+Also much more functionalities and fixes where added to this release that comes strong, hoping you will enjoy it.
+
+So, what you are waiting for? Try this release and have a look at the future of StackGres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Envoy 1.33.2
+* FluentBit 4.0.0
+* OTEL Collector 0.123.1
+* Bebelfish Compass 2025.04
+* Added condition to check when initial scripts are applied
+* Generate default configs using reconciliation cycle
+* Removed reference validation on webhook calls
+* Allow to override SGInstanceProfile, SGPostgresConfig and SGPoolingConfig
+* Support for Grafana v10 and v11
+* Support to overwrite and add postgres exporter queries
+* Allow to encrypt stored object with libsodium or OpenPGP
+* If possible choose the latest version of the extension when multiple versions are available and version is not set
+* Support for Debezium asyncronous engine in SGStream
+* Store the status of annotation signal in the PersistentVolume for SGStream
+* Set the SGStream as Completed when running with a Deployment
+* Support to update SGStream spec when locked or when maxRetries is not set (when using a Deployment).
+* Support for skipping drop of replication slot and publication on tombstone for SGStream
+* Include the node name of each Pod in the SGCluster status
+* Allow to change the operator listening port, Service port and to set hostNetwork
+* Added memory limiter and set resources for OTEL collector
+* Avoid setting caBundle in webhooks
+* Follow webhooks original ordering
+* Avoid usage of nullable in CRDs
+* Removed pgbouncer auth, setup-scripts and cluster controller init containers and merged remaining init containers
+* Improved performance when using Kubernetes DCS for Patroni
+* Removed priorityTimeout in favor of last execution fairness policy for reconciliation thread pool
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Extension installation permission issue
+* Patroni reset is not skipped for replicas after major version upgrade
+* Major version upgrade SGDbOps store wrong source backup path
+* Wrong original SGStream service path in webhooks
+* Separate resources cache by resource that generates them to avoid stale resources
+* Failure to apply default naming strategy when topic has not the expected prefix in SGStream
+* Can not change the shards clusters count if restored from a backup
+* Controller fails with error when pgbouncer instance is not configured properly or unavailable
+* NullPointerException in cleanupNonGarbageCollectedResources
+* SGStream uses wrong SGCluster service name
+* Prevent pg_total_relation_size from blocking WAL fetching for replicas
+* Major version upgrade fail on any error
+* SGStream source database used instead of target database
+
+## Web Console
+
+* Some properties are not checked for undefined
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.16.0-rc2/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.16.0)
+
 # :rocket: Release 1.16.0-rc3 (2025-04-02)
 
 ## :notepad_spiral: NOTES

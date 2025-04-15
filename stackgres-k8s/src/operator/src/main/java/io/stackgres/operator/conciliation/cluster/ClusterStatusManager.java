@@ -19,15 +19,23 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBindingStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.ServiceBindingSecret;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
@@ -46,12 +54,17 @@ public class ClusterStatusManager
 
   private final LabelFactoryForCluster labelFactory;
 
+  private final CustomResourceFinder<StackGresScript> scriptFinder;
+
   private final KubernetesClient client;
 
   @Inject
-  public ClusterStatusManager(LabelFactoryForCluster labelFactory,
+  public ClusterStatusManager(
+      LabelFactoryForCluster labelFactory,
+      CustomResourceFinder<StackGresScript> scriptFinder,
       KubernetesClient client) {
     this.labelFactory = labelFactory;
+    this.scriptFinder = scriptFinder;
     this.client = client;
   }
 
@@ -77,10 +90,66 @@ public class ClusterStatusManager
     } else {
       updateCondition(getFalsePendingUpgrade(), source);
     }
-    if (source.getStatus() != null
-        && source.getStatus().getArch() != null
-        && source.getStatus().getOs() != null) {
-      updateCondition(getClusterBootstrapped(), source);
+    if (Optional.of(source)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .noneMatch(ClusterStatusCondition.CLUSTER_BOOTSTRAPPED::isCondition)) {
+      boolean isPlatformSet = source.getStatus() != null
+          && source.getStatus().getArch() != null
+          && source.getStatus().getOs() != null;
+      if (isPlatformSet) {
+        updateCondition(getClusterBootstrapped(), source);
+      }
+    }
+    if (Optional.of(source)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .noneMatch(ClusterStatusCondition.CLUSTER_INITIAL_SCRIPTS_APPLIED::isCondition)) {
+      boolean isInitialScriptApplied = Optional.of(source)
+          .map(StackGresCluster::getSpec)
+          .map(StackGresClusterSpec::getManagedSql)
+          .map(StackGresClusterManagedSql::getScripts)
+          .stream()
+          .flatMap(List::stream)
+          .map(script -> Tuple.tuple(
+              script,
+              scriptFinder.findByNameAndNamespace(
+                  script.getSgScript(), source.getMetadata().getNamespace()),
+              Optional.of(source)
+              .map(StackGresCluster::getStatus)
+              .map(StackGresClusterStatus::getManagedSql)
+              .map(StackGresClusterManagedSqlStatus::getScripts)
+              .stream()
+              .flatMap(List::stream)
+              .filter(scriptStatus -> Objects.equals(
+                  script.getId(),
+                  scriptStatus.getId()))
+              .findFirst()))
+          .allMatch(script -> script.v2.isPresent()
+              && script.v3.isPresent()
+              && script.v2
+              .map(StackGresScript::getSpec)
+              .map(StackGresScriptSpec::getScripts)
+              .stream()
+              .flatMap(List::stream)
+              .allMatch(scriptEntry -> script.v3
+                  .map(StackGresClusterManagedScriptEntryStatus::getScripts)
+                  .stream()
+                  .flatMap(List::stream)
+                  .filter(scriptEntryStatus -> Objects.equals(
+                      scriptEntry.getId(),
+                      scriptEntryStatus.getId()))
+                  .filter(scriptEntryStatus -> ManagedSqlUtil
+                      .isScriptEntryUpToDate(scriptEntry, scriptEntryStatus))
+                  .findFirst()
+                  .isPresent()));
+      if (isInitialScriptApplied) {
+        updateCondition(getClusterInitialScriptApplied(), source);
+      }
     }
     if (source.getStatus() != null
         && source.getStatus().getArch() != null
@@ -232,6 +301,10 @@ public class ClusterStatusManager
 
   protected Condition getClusterBootstrapped() {
     return ClusterStatusCondition.CLUSTER_BOOTSTRAPPED.getCondition();
+  }
+
+  protected Condition getClusterInitialScriptApplied() {
+    return ClusterStatusCondition.CLUSTER_INITIAL_SCRIPTS_APPLIED.getCondition();
   }
 
   record StatusContext(
