@@ -165,6 +165,10 @@ wait_cluster_external_dcs() {
         | wc -l)" -ge 1 ]'
     fi
   fi
+
+  wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
 }
 
 has_cluster_generated_resources() {

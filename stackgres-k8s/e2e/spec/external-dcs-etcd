@@ -112,7 +112,7 @@ check_external_dcs_two_clusters_is_working() {
   wait_pods_running "$CLUSTER_FAR_NAMESPACE" 2
   wait_cluster_external_dcs "$CLUSTER_FAR_NAME" "$CLUSTER_FAR_NAMESPACE" test false
 
-  CLUSTER_NAMESPACE="$CLUSTER_FAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_FAR_NAME" CLUSTER_HOST="$CLUSTER_FAR_NAME-replicas" try_function check_mock_data_samehost "$CLUSTER_FAR_NAME"
+  CLUSTER_NAMESPACE="$CLUSTER_FAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_FAR_NAME" CLUSTER_HOST="$CLUSTER_FAR_NAME-replicas" try_function wait_until check_mock_data_samehost "$CLUSTER_FAR_NAME"
   if "$RESULT"
   then
     success "Cluster using external DCS is replicating from cluster using same DCS and scope and was able to read some data from replicas service"
