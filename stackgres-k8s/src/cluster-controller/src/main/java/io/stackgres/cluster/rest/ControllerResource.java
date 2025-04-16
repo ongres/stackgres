@@ -40,8 +40,8 @@ public class ControllerResource {
       return Response.ok().build();
     }
     final URI uri = URI.create("http://localhost:" + EnvoyUtil.PATRONI_PORT + "/liveness");
-    try {
-      return webClientFactory.create(uri).get(uri);
+    try (var webClient = webClientFactory.create(uri)) {
+      return webClient.get(uri);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
