@@ -41,7 +41,7 @@ public class ControllerResource {
     }
     final URI uri = URI.create("http://localhost:" + EnvoyUtil.PATRONI_PORT + "/liveness");
     try (var webClient = webClientFactory.create(uri)) {
-      return webClient.get(uri);
+      return Response.status(webClient.get(uri).getStatus()).build();
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
