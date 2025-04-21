@@ -122,38 +122,38 @@ check_cluster_directly() {
   fi
 }
 
+get_named_query_results() {
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/query?named=$1" \
+    | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+    | grep -qxF "true"
+}
+
 test_named_queries_endpoints() {
   # top_pg_stat_statements query
-  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/query?named=top_pg_stat_statements" \
-      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
-      | grep -qxF "true"
-    then
-      echo "Named query top_pg_stat_statements worked"
-    else
-      echo "Named query top_pg_stat_statements didn't worked"
-      return 1
+  if wait_until get_named_query_results top_pg_stat_statements
+  then
+    echo "Named query top_pg_stat_statements worked"
+  else
+    echo "Named query top_pg_stat_statements didn't worked"
+    return 1
   fi
 
   # top_pg_stat_activity query
-  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/query?named=top_pg_stat_activity" \
-      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
-      | grep -qxF "true"
-    then
-      echo "Named query top_pg_stat_activity worked"
-    else
-      echo "Named query top_pg_stat_activity didn't worked"
-      return 1
+  if wait_until get_named_query_results top_pg_stat_activity
+  then
+    echo "Named query top_pg_stat_activity worked"
+  else
+    echo "Named query top_pg_stat_activity didn't worked"
+    return 1
   fi
 
   # top_pg_locks query
-  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME/query?named=top_pg_locks" \
-      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
-      | grep -qxF "true"
-    then
-      echo "Named query top_pg_locks worked"
-    else
-      echo "Named query top_pg_locks didn't worked"
-      return 1
+  if wait_until get_named_query_results top_pg_locks
+  then
+    echo "Named query top_pg_locks worked"
+  else
+    echo "Named query top_pg_locks didn't worked"
+    return 1
   fi
 }
 

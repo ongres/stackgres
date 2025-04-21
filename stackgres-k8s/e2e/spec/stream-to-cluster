@@ -56,6 +56,7 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 4
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$TARGET_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
