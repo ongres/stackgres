@@ -54,7 +54,7 @@ public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
   @Override
   protected List<EnvVar> getRunEnvVars(StackGresShardedDbOpsContext context) {
     StackGresShardedDbOps dbOps = context.getSource();
-    StackGresShardedDbOpsResharding resharding = dbOps.getSpec().getResharding();
+    var resharding = Optional.ofNullable(dbOps.getSpec().getResharding());
     List<EnvVar> runEnvVars = ImmutableList.<EnvVar>builder()
         .add(
             new EnvVarBuilder()
@@ -94,31 +94,32 @@ public class ShardedDbOpsReshardingJob extends AbstractShardedDbOpsJob {
             .withName("PATRONI_CONTAINER_NAME")
             .withValue(StackGresContainer.PATRONI.getName())
             .build())
-        .addAll(getReshardingConfigEnvVar(resharding.getCitus()))
+        .addAll(getReshardingConfigEnvVar(resharding
+            .map(StackGresShardedDbOpsResharding::getCitus)))
         .build();
     return runEnvVars;
   }
 
   private ImmutableList<EnvVar> getReshardingConfigEnvVar(
-      StackGresShardedDbOpsReshardingCitus reshardingConfig) {
+      Optional<StackGresShardedDbOpsReshardingCitus> reshardingConfig) {
     return ImmutableList.of(
         new EnvVarBuilder()
             .withName("THRESHOLD")
-            .withValue(Optional.ofNullable(reshardingConfig)
+            .withValue(reshardingConfig
                 .map(StackGresShardedDbOpsReshardingCitus::getThreshold)
                 .map(String::valueOf)
                 .orElse(""))
             .build(),
         new EnvVarBuilder()
             .withName("DRAIN_ONLY")
-            .withValue(Optional.ofNullable(reshardingConfig)
+            .withValue(reshardingConfig
                 .map(StackGresShardedDbOpsReshardingCitus::getDrainOnly)
                 .map(String::valueOf)
                 .orElse("false"))
             .build(),
         new EnvVarBuilder()
             .withName("REBALANCE_STRATEGY")
-            .withValue(Optional.ofNullable(reshardingConfig)
+            .withValue(reshardingConfig
                 .map(StackGresShardedDbOpsReshardingCitus::getRebalanceStrategy)
                 .map(rebalanceStrategy -> "'" + rebalanceStrategy + "'")
                 .orElse(""))
