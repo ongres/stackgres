@@ -47,7 +47,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
   Util UTIL = new Util();
 
   class Util extends StackGresShardedClusterForUtil {
-    
+
     @Override
     void updateCoordinatorSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec) {
       if (spec.getConfigurations() != null) {

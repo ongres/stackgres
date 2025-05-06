@@ -75,15 +75,16 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         StackGresShardedClusterUtil.getCoordinatorClusterName(cluster));
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresPostgresServicesBuilder()
-        .withPrimary(Optional.ofNullable(postgresServices)
-            .map(StackGresShardedClusterPostgresServices::getCoordinator)
-            .map(StackGresShardedClusterPostgresCoordinatorServices::getPrimary)
-            .orElseGet(StackGresPostgresService::new))
-        .editPrimary()
+        .withNewPrimary()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
             .map(StackGresShardedClusterPostgresCoordinatorServices::getPrimary)
+            .map(StackGresPostgresService::getEnabled)
+            .orElse(true)
+            || Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getCoordinator)
+            .map(StackGresShardedClusterPostgresCoordinatorServices::getAny)
             .map(StackGresPostgresService::getEnabled)
             .orElse(true))
         .withCustomPorts(
@@ -92,11 +93,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
             .orElse(null))
         .endPrimary()
-        .withReplicas(Optional.ofNullable(postgresServices)
-            .map(StackGresShardedClusterPostgresServices::getCoordinator)
-            .map(StackGresShardedClusterPostgresCoordinatorServices::getAny)
-            .orElseGet(StackGresPostgresService::new))
-        .editReplicas()
+        .withNewReplicas()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
@@ -147,11 +144,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         StackGresShardedClusterUtil.getShardClusterName(cluster, index));
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresPostgresServicesBuilder()
-        .withPrimary(Optional.ofNullable(postgresServices)
-            .map(StackGresShardedClusterPostgresServices::getShards)
-            .map(StackGresShardedClusterPostgresShardsServices::getPrimaries)
-            .orElseGet(StackGresPostgresService::new))
-        .editPrimary()
+        .withNewPrimary()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getShards)

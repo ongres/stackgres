@@ -36,7 +36,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   Util UTIL = new Util();
 
   class Util extends StackGresShardedClusterForUtil {
-    
+
     @Override
     void updateCoordinatorSpec(
         StackGresShardedCluster cluster,
