@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.crd.CustomServicePortBuilder;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServicesBuilder;
@@ -91,6 +92,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
             .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
+            .map(customPorts -> customPorts
+                .stream()
+                .map(customPort -> new CustomServicePortBuilder(customPort)
+                    .withNodePort(null)
+                    .build())
+                .toList())
             .orElse(null))
         .endPrimary()
         .withNewReplicas()
@@ -104,6 +111,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
             .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
+            .map(customPorts -> customPorts
+                .stream()
+                .map(customPort -> new CustomServicePortBuilder(customPort)
+                    .withNodePort(null)
+                    .build())
+                .toList())
             .orElse(null))
         .endReplicas()
         .build());
@@ -155,6 +168,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getShards)
             .map(StackGresShardedClusterPostgresShardsServices::getCustomPorts)
+            .map(customPorts -> customPorts
+                .stream()
+                .map(customPort -> new CustomServicePortBuilder(customPort)
+                    .withNodePort(null)
+                    .build())
+                .toList())
             .orElse(null))
         .endPrimary()
         .withNewReplicas()
