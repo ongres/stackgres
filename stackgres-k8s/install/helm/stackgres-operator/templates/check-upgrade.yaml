@@ -23,7 +23,7 @@
         {{ if (index $shardedcluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ $version := (index $shardedcluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ if (not (regexMatch "^(1\\.14|1\\.15|1\\.16)\\." $version)) }}
-            {{ if not .Values.forceUpgradeFromUnsupportedVersion }}
+            {{ if not $.Values.forceUpgradeFromUnsupportedVersion }}
               {{ fail (print "Can not upgrade due to some SGShardedCluster still at version " $version ". You have to run a SGShardedDbOps of type securityUpgrade on those SGShardedClusters first.") }}
             {{ end }}
           {{ end }}
@@ -40,7 +40,7 @@
         {{ if (index $cluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ $version := (index $cluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ if (not (regexMatch "^(1\\.14|1\\.15|1\\.16)\\." $version)) }}
-            {{ if not .Values.forceUpgradeFromUnsupportedVersion }}
+            {{ if not $.Values.forceUpgradeFromUnsupportedVersion }}
               {{ fail (print "Can not upgrade due to some SGCluster still at version " $version ". You have to run a SGDbOps of type securityUpgrade on those SGClusters first.") }}
             {{ end }}
           {{ end }}
