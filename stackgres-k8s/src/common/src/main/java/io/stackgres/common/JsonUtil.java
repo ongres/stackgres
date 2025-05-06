@@ -49,7 +49,8 @@ public class JsonUtil {
       while (!nodesToFilterOut.isEmpty()) {
         nodesToFilterOut
             .forEach(nodeTuple -> Seq.seq(nodeTuple.v1.fieldNames())
-               .filter(Predicate.not(field -> nodeTuple.v2.get(field) instanceof ObjectNode))
+               .filter(Predicate.not(field -> nodeTuple.v2.get(field) instanceof ObjectNode objectNode
+                   && !objectNode.isEmpty()))
                .forEach(nodeTuple.v2::remove));
         nodesToFilterOut = Seq.seq(nodesToFilterOut)
             .flatMap(nodeTuple -> Seq.seq(nodeTuple.v1.fieldNames())
