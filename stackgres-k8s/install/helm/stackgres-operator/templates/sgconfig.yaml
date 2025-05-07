@@ -22,18 +22,17 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "9"
 data:
-  sgconfig.yaml: |
+  sgconfig.json: |
     apiVersion: stackgres.io/v1
     kind: SGConfig
     metadata:
       name: {{ .Release.Name }}
       namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
-    spec:
       {{- $spec := dict }}
       {{- range .Values.specFields }}
       {{- $spec := set $spec . (index $.Values .) }}
       {{- end }}
-      {{ regexReplaceAll "[^ ]+: null" (toYaml $spec | nindent 6) "" }}
+    spec: {{ toJson $spec }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -89,7 +88,7 @@ spec:
             RETRY=10
             while true
             do
-              if kubectl apply -f /sgconfig.yaml
+              if kubectl apply -f /sgconfig.json
               then
                 break
               else
@@ -106,8 +105,8 @@ spec:
           mountPath: /SGConfig.yaml
           subPath: SGConfig.yaml
         - name: sgconfig
-          mountPath: /sgconfig.yaml
-          subPath: sgconfig.yaml
+          mountPath: /sgconfig.json
+          subPath: sgconfig.json
       volumes:
       - name: sgconfig-crd
         configMap:

@@ -49,11 +49,11 @@ test_yamls() {
     | sed "${OPERATOR_JVM_IMAGE_VERSION_LN}s/value: .*$/value: '${IMAGE_TAG%-jvm}-jvm'/" \
     | sed "${OPERATOR_NATIVE_IMAGE_VERSION_LN}s/value: .*$/value: '${IMAGE_TAG%-jvm}'/" \
     | sed "s|imagePullPolicy:.*[a-zA-Z].*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
-    | sed "${OPERATOR_IMAGE_TAG_LN}s/tag: .*$/tag: '$IMAGE_TAG'/" \
-    | sed "${RESTAPI_IMAGE_TAG_LN}s/tag: .*$/tag: '$IMAGE_TAG'/" \
-    | sed "${JOBS_IMAGE_TAG_LN}s/tag: .*$/tag: '$IMAGE_TAG'/" \
-    | sed "${ADMINUI_IMAGE_TAG_LN}s/tag: .*$/tag: '$ADMINUI_IMAGE_TAG'/" \
-    | sed "s|pullPolicy:.*[a-zA-Z].*$|pullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
+    | sed "s/{\(\"name\":\"stackgres\/operator\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$IMAGE_TAG\"}/" \
+    | sed "s/{\(\"name\":\"stackgres\/restapi\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$IMAGE_TAG\"}/" \
+    | sed "s/{\(\"name\":\"stackgres\/jobs\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$IMAGE_TAG\"}/" \
+    | sed "s/{\(\"name\":\"stackgres\/admin-ui\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$ADMINUI_IMAGE_TAG\"}/" \
+    | sed "s/\"pullPolicy\":\"[^\"]\+\"/\"pullPolicy\":\"$E2E_OPERATOR_PULL_POLICY\"/g" \
     | sed '/image: \([^/]\+\/\)\?ongres\/.*$/{$!{N;s/image: \([^/]\+\/\)\?\(ongres\/.*\)\n\( *\)imagePullPolicy: .*$/image: \2\n\3imagePullPolicy: IfNotPresent/;ty;P;D;:y}}' \
     | if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
       then
@@ -75,12 +75,12 @@ test_yamls() {
   grep -qF "imagePullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
   if [ "$IMAGE_TAG" != "$ADMINUI_IMAGE_TAG" ]
   then
-    grep -c "tag: '$IMAGE_TAG'$" "${LOG_PATH}/stackgres-operator-demo.yml" | grep -qxF 3
-    grep -c "tag: '$ADMINUI_IMAGE_TAG'$" "${LOG_PATH}/stackgres-operator-demo.yml" | grep -qxF 1
+    grep -o -i "\"tag\":\"$IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 3
+    grep -o -i "\"tag\":\"$ADMINUI_IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 1
   else
-    grep -c "tag: '$IMAGE_TAG'$" "${LOG_PATH}/stackgres-operator-demo.yml" | grep -qxF 4
+    grep -o -i "\"tag\":\"$IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 4
   fi
-  grep -qF "pullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -qF "\"pullPolicy\":\"$E2E_OPERATOR_PULL_POLICY\"" "${LOG_PATH}/stackgres-operator-demo.yml"
   if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
   then
     grep -qF "value: \"$EXTENSIONS_REPOSITORY_URL$(
