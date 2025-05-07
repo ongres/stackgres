@@ -230,9 +230,6 @@ class JsonUtilTest {
         value, otherValue, Model.class);
     assertEquals("""
             ---
-            ve:
-              ka: 1
-              kb: 2
             vf:
               vm: "m"
               vi: "a"
@@ -254,6 +251,9 @@ class JsonUtilTest {
             - 1
             - 2
             - 3
+            ve:
+              ka: 1
+              kb: 2
             vg:
             - vi: "d"
               vj: "e"
@@ -291,6 +291,8 @@ class JsonUtilTest {
   void testMergeJsonObjectsFilteringByModelPatroniConfig2() throws Exception {
     ObjectNode value = (ObjectNode) io.stackgres.testutil.JsonUtil.yamlMapper()
         .readTree("""
+            check_timeline: true
+            loop_wait: 10
             postgresql:
               parameters:
                 archive_command: /bin/true
@@ -340,9 +342,6 @@ class JsonUtilTest {
                 random_page_cost: '1.5'
                 shared_buffers: 32MB
                 shared_preload_libraries: pg_stat_statements, auto_explain
-                ssl: 'on'
-                ssl_cert_file: /etc/ssl/tls.crt
-                ssl_key_file: /etc/ssl/tls.key
                 superuser_reserved_connections: '8'
                 track_activity_query_size: 4kB
                 track_commit_timestamp: 'on'
@@ -353,17 +352,30 @@ class JsonUtilTest {
                 wal_level: logical
                 wal_log_hints: 'on'
                 work_mem: 10MB
-              use_slots: true
+              pg_hba:
+                - local all all trust
+                - host all all 127.0.0.1/32 md5
+                - host all all ::1/128 md5
+                - local replication all trust
+                - host all all 0.0.0.0/0 md5
+                - host replication replicator 0.0.0.0/0 md5
               use_pg_rewind: true
-            ttl: 30
-            loop_wait: 10
+              use_slots: true
             retry_timeout: 10
+            standby_cluster:
+              create_replica_methods:
+                - basebackup
+              host: primary-standby-from-cluster
+              port: '5433'
+              restore_command: exec-with-env replicate -- wal-g wal-fetch %f %p
             synchronous_mode: false
             synchronous_mode_strict: false
-            check_timeline: true
+            ttl: 30
             """);
     ObjectNode otherValue = (ObjectNode) io.stackgres.testutil.JsonUtil.yamlMapper()
         .readTree("""
+            check_timeline: true
+            loop_wait: 10
             postgresql:
               parameters:
                 archive_command: /bin/true
@@ -413,9 +425,6 @@ class JsonUtilTest {
                 random_page_cost: '1.5'
                 shared_buffers: 32MB
                 shared_preload_libraries: pg_stat_statements, auto_explain
-                ssl: 'on'
-                ssl_cert_file: /etc/ssl/tls.crt
-                ssl_key_file: /etc/ssl/tls.key
                 superuser_reserved_connections: '8'
                 track_activity_query_size: 4kB
                 track_commit_timestamp: 'on'
@@ -426,19 +435,30 @@ class JsonUtilTest {
                 wal_level: logical
                 wal_log_hints: 'on'
                 work_mem: 10MB
-              use_slots: true
+              pg_hba:
+                - local all all trust
+                - host all all 127.0.0.1/32 md5
+                - host all all ::1/128 md5
+                - local replication all trust
+                - host all all 0.0.0.0/0 md5
+                - host replication replicator 0.0.0.0/0 md5
               use_pg_rewind: true
-            ttl: 30
-            loop_wait: 10
+              use_slots: true
             retry_timeout: 10
+            slots: {}
+            standby_cluster: {}
             synchronous_mode: false
             synchronous_mode_strict: false
-            check_timeline: true
+            ttl: 30
+            pause: true
             """);
     var result = JsonUtil.mergeJsonObjectsFilteringByModel(
         value, otherValue, PatroniConfig.class);
     assertEquals("""
             ---
+            pause: true
+            check_timeline: true
+            loop_wait: 10
             postgresql:
               parameters:
                 archive_command: "/bin/true"
@@ -488,9 +508,6 @@ class JsonUtilTest {
                 random_page_cost: "1.5"
                 shared_buffers: "32MB"
                 shared_preload_libraries: "pg_stat_statements, auto_explain"
-                ssl: "on"
-                ssl_cert_file: "/etc/ssl/tls.crt"
-                ssl_key_file: "/etc/ssl/tls.key"
                 superuser_reserved_connections: "8"
                 track_activity_query_size: "4kB"
                 track_commit_timestamp: "on"
@@ -501,14 +518,25 @@ class JsonUtilTest {
                 wal_level: "logical"
                 wal_log_hints: "on"
                 work_mem: "10MB"
-              use_slots: true
+              pg_hba:
+              - "local all all trust"
+              - "host all all 127.0.0.1/32 md5"
+              - "host all all ::1/128 md5"
+              - "local replication all trust"
+              - "host all all 0.0.0.0/0 md5"
+              - "host replication replicator 0.0.0.0/0 md5"
               use_pg_rewind: true
-            ttl: 30
-            loop_wait: 10
+              use_slots: true
             retry_timeout: 10
+            standby_cluster:
+              create_replica_methods:
+              - "basebackup"
+              host: "primary-standby-from-cluster"
+              port: "5433"
+              restore_command: "exec-with-env replicate -- wal-g wal-fetch %f %p"
             synchronous_mode: false
             synchronous_mode_strict: false
-            check_timeline: true
+            ttl: 30
             """,
             io.stackgres.testutil.JsonUtil.yamlMapper().writeValueAsString(result));
   }
