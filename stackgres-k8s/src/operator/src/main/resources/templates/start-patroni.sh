@@ -374,7 +374,7 @@ mv "$PATRONI_CONFIG_FILE_PATH".tmp "$PATRONI_CONFIG_FILE_PATH"
 
 cat << EOF > "${LOCAL_BIN_PATH}/postgres"
 #!/bin/sh
-chmod 700 "$PG_DATA_PATH"
+chmod -R 700 "$PG_DATA_PATH"
 exec "$PG_BIN_PATH/postgres" "\$@"
 EOF
 chmod 755 "${LOCAL_BIN_PATH}/postgres"
