@@ -77,6 +77,10 @@
       <artifactId>vertx-junit5</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-client</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

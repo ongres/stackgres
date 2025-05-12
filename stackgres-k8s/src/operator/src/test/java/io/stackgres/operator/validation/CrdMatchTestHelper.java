@@ -35,7 +35,7 @@ public class CrdMatchTestHelper {
     Reflections reflections = new Reflections(new ConfigurationBuilder()
         .forPackage("io.stackgres.common.crd")
         .setScanners(Scanners.SubTypes));
-    return Set.copyOf(reflections.getSubTypesOf(CustomResource.class));
+    return Set.copyOf((Set<Class<? extends CustomResource>>) reflections.getSubTypesOf(CustomResource.class));
   }
 
   public static int getMaxLengthResourceNameFrom(String kind)

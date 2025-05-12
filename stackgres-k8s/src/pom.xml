@@ -108,7 +108,7 @@
     <bouncycastle.version>1.70</bouncycastle.version>
     <debezium.version>3.0.7.Final</debezium.version>
     <kafka-clients.version>3.9.0</kafka-clients.version>
-    <jmx-prometheus-collector.version>1.1.0</jmx-prometheus-collector.version>
+    <jmx-prometheus-collector.version>1.2.0</jmx-prometheus-collector.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <jar-plugin.version>3.4.2</jar-plugin.version>

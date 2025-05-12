@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.fabric8.mockwebserver.dsl.MockServerExpectation;
-import okhttp3.mockwebserver.RecordedRequest;
+import io.fabric8.mockwebserver.http.RecordedRequest;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
@@ -36,7 +36,6 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
     return server;
   }
 
-  @SuppressWarnings("deprecation")
   static class WrappedKubernetesServer extends KubernetesServer {
     final KubernetesServer server;
     final NamespacedKubernetesClient client;
@@ -77,26 +76,6 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
     @Override
     public MockServerExpectation expect() {
       return server.expect();
-    }
-
-    @Override
-    public <T> void expectAndReturnAsJson(String path, int code, T body) {
-      server.expectAndReturnAsJson(path, code, body);
-    }
-
-    @Override
-    public <T> void expectAndReturnAsJson(String method, String path, int code, T body) {
-      server.expectAndReturnAsJson(method, path, code, body);
-    }
-
-    @Override
-    public void expectAndReturnAsString(String path, int code, String body) {
-      server.expectAndReturnAsString(path, code, body);
-    }
-
-    @Override
-    public void expectAndReturnAsString(String method, String path, int code, String body) {
-      server.expectAndReturnAsString(method, path, code, body);
     }
 
     @Override

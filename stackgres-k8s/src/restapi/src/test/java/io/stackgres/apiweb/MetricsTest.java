@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation;
+package io.stackgres.apiweb;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.metrics.AbstractMetricsTest;

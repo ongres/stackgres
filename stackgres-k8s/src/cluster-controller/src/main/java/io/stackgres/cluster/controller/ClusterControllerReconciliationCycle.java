@@ -45,6 +45,8 @@ public class ClusterControllerReconciliationCycle
   private final EventController eventController;
   private final LabelFactoryForCluster labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final Metrics metrics;
+  private long reconciliationStart;
 
   @Dependent
   public static class Parameters {
@@ -62,6 +64,8 @@ public class ClusterControllerReconciliationCycle
     LabelFactoryForCluster labelFactory;
     @Inject
     CustomResourceFinder<StackGresCluster> clusterFinder;
+    @Inject
+    Metrics metrics;
   }
 
   /**
@@ -76,6 +80,7 @@ public class ClusterControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
+    this.metrics = parameters.metrics;
   }
 
   public ClusterControllerReconciliationCycle() {
@@ -85,6 +90,7 @@ public class ClusterControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.clusterFinder = null;
+    this.metrics = null;
   }
 
   public static ClusterControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -101,7 +107,21 @@ public class ClusterControllerReconciliationCycle
   }
 
   @Override
+  protected void onPreReconciliation(StackGresClusterContext context) {
+    reconciliationStart = System.currentTimeMillis();
+  }
+
+  @Override
+  protected void onPostReconciliation(StackGresClusterContext context) {
+    metrics.setReconciliationLastDuration(
+        StackGresCluster.class,
+        System.currentTimeMillis() - reconciliationStart);
+    metrics.incrementReconciliationTotalPerformed(StackGresCluster.class);
+  }
+
+  @Override
   protected void onError(Exception ex) {
+    metrics.incrementReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster reconciliation cycle failed",
         new String[] {

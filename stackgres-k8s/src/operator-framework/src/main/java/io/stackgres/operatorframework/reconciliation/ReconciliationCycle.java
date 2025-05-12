@@ -273,6 +273,12 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     }
   }
 
+  protected void onPreReconciliation(T context) {
+  }
+
+  protected void onPostReconciliation(T context) {
+  }
+
   protected abstract void onError(Exception ex);
 
   protected abstract void onConfigError(T context,

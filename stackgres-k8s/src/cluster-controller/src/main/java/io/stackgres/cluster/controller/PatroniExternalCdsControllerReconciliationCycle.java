@@ -45,6 +45,8 @@ public class PatroniExternalCdsControllerReconciliationCycle
   private final EventController eventController;
   private final LabelFactoryForCluster labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final Metrics metrics;
+  private long reconciliationStart;
 
   @Dependent
   public static class Parameters {
@@ -62,6 +64,8 @@ public class PatroniExternalCdsControllerReconciliationCycle
     LabelFactoryForCluster labelFactory;
     @Inject
     CustomResourceFinder<StackGresCluster> clusterFinder;
+    @Inject
+    Metrics metrics;
   }
 
   @Inject
@@ -73,6 +77,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
     this.eventController = parameters.eventController;
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
+    this.metrics = parameters.metrics;
   }
 
   public PatroniExternalCdsControllerReconciliationCycle() {
@@ -82,6 +87,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
     this.eventController = null;
     this.labelFactory = null;
     this.clusterFinder = null;
+    this.metrics = null;
   }
 
   public static PatroniExternalCdsControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -98,7 +104,21 @@ public class PatroniExternalCdsControllerReconciliationCycle
   }
 
   @Override
+  protected void onPreReconciliation(StackGresClusterContext context) {
+    reconciliationStart = System.currentTimeMillis();
+  }
+
+  @Override
+  protected void onPostReconciliation(StackGresClusterContext context) {
+    metrics.setPatroniReconciliationLastDuration(
+        StackGresCluster.class,
+        System.currentTimeMillis() - reconciliationStart);
+    metrics.incrementPatroniReconciliationTotalPerformed(StackGresCluster.class);
+  }
+
+  @Override
   protected void onError(Exception ex) {
+    metrics.incrementPatroniReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster reconciliation cycle failed",
         new String[] {
