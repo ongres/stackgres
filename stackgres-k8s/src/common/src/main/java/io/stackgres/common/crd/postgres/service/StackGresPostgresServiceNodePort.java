@@ -27,9 +27,10 @@ public class StackGresPostgresServiceNodePort {
 
   protected Integer babelfish;
 
-  public StackGresPostgresServiceNodePort(final Integer pgport,
-                                          final Integer replicationport,
-                                          final Integer babelfish) {
+  public StackGresPostgresServiceNodePort(
+      final Integer pgport,
+      final Integer replicationport,
+      final Integer babelfish) {
     this.pgport = pgport;
     this.replicationport = replicationport;
     this.babelfish = babelfish;
@@ -76,8 +77,8 @@ public class StackGresPostgresServiceNodePort {
     }
 
     return Objects.equals(pgport, nodePort.pgport)
-      && Objects.equals(replicationport, nodePort.replicationport)
-      && Objects.equals(babelfish, nodePort.babelfish);
+        && Objects.equals(replicationport, nodePort.replicationport)
+        && Objects.equals(babelfish, nodePort.babelfish);
   }
 
   @Override

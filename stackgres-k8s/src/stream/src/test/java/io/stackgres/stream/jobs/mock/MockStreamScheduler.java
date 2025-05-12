@@ -3,58 +3,54 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.stream.jobs.lock;
+package io.stackgres.stream.jobs.mock;
 
 import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
-@Mock
-public class FakeStreamScheduler implements CustomResourceScheduler<StackGresStream> {
+public class MockStreamScheduler implements CustomResourceScheduler<StackGresStream> {
+  final MockKubeDb mockKubeDb;
 
-  private final MockKubeDb kubeDb;
-
-  @Inject
-  public FakeStreamScheduler(MockKubeDb kubeDb) {
-    this.kubeDb = kubeDb;
+  public MockStreamScheduler(MockKubeDb mockKubeDb) {
+    this.mockKubeDb = mockKubeDb;
   }
 
   @Override
   public StackGresStream create(@NotNull StackGresStream resource, boolean dryRun) {
-    return kubeDb.addOrReplaceStream(resource);
+    return mockKubeDb.addOrReplaceStream(resource);
   }
 
   @Override
   public void delete(@NotNull StackGresStream resource, boolean dryRun) {
-    kubeDb.delete(resource);
+    mockKubeDb.delete(resource);
   }
 
   @Override
   public StackGresStream update(@NotNull StackGresStream resource, boolean dryRun) {
-    return kubeDb.addOrReplaceStream(resource);
+    return mockKubeDb.addOrReplaceStream(resource);
   }
 
   @Override
-  public StackGresStream update(@NotNull StackGresStream resource,
+  public StackGresStream update(
+      @NotNull StackGresStream resource,
       @NotNull Consumer<StackGresStream> setter) {
     final ObjectMeta metadata = resource.getMetadata();
-    var dbOps = kubeDb.getStream(metadata.getName(), metadata.getNamespace());
-    setter.accept(dbOps);
-    return kubeDb.addOrReplaceStream(dbOps);
+    var cluster = mockKubeDb.getStream(metadata.getName(), metadata.getNamespace());
+    setter.accept(cluster);
+    return mockKubeDb.addOrReplaceStream(cluster);
   }
 
   @Override
-  public <S> StackGresStream updateStatus(@NotNull StackGresStream resource,
+  public StackGresStream updateStatus(
+      @NotNull StackGresStream resource,
       @NotNull Consumer<StackGresStream> setter) {
     final ObjectMeta metadata = resource.getMetadata();
-    var dbOps = kubeDb.getStream(metadata.getName(), metadata.getNamespace());
-    setter.accept(dbOps);
-    return kubeDb.addOrReplaceStream(dbOps);
+    var cluster = mockKubeDb.getStream(metadata.getName(), metadata.getNamespace());
+    setter.accept(cluster);
+    return mockKubeDb.addOrReplaceStream(cluster);
   }
-
 }

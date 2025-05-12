@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -60,8 +59,6 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   public void validate(StackGresDbOpsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE:

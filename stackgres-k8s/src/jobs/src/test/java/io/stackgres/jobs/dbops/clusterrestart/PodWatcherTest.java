@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import io.vertx.junit5.Timeout;
 import jakarta.inject.Inject;
@@ -31,9 +32,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@QuarkusTest
 @WithKubernetesTestServer
-class PodWatcherTest {
+@QuarkusTest
+class PodWatcherTest extends MockKubeDbTest {
 
   @Inject
   PodWatcher podWatcher;
@@ -177,8 +178,8 @@ class PodWatcherTest {
         .assertCompleted().getItem();
 
     assertEquals(podName, returnedPod.getMetadata().getName());
-    assertNotEquals(pod.getMetadata().getCreationTimestamp(),
-        returnedPod.getMetadata().getCreationTimestamp());
+    assertNotEquals(pod.getMetadata().getUid(),
+        returnedPod.getMetadata().getUid());
   }
 
   @Test
@@ -209,8 +210,8 @@ class PodWatcherTest {
     Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
     assertEquals(podName, pod.getMetadata().getName());
-    assertNotEquals(pod.getMetadata().getCreationTimestamp(),
-        returnedPod.getMetadata().getCreationTimestamp());
+    assertNotEquals(pod.getMetadata().getUid(),
+        returnedPod.getMetadata().getUid());
   }
 
   @Test

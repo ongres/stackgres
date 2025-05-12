@@ -9,7 +9,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
@@ -33,8 +32,6 @@ public class ShardedDbOpsSecurityUpgradeValidator implements ShardedDbOpsValidat
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   public void validate(StackGresShardedDbOpsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE:

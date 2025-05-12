@@ -13,8 +13,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.cluster.common.ExtensionEventReason;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

@@ -23,7 +23,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.config.ConfigDto;
 import io.stackgres.apiweb.transformer.ConfigTransformerTest;
-import io.stackgres.common.StackGresKubernetesMockServerSetup;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.resource.ConfigFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -33,8 +33,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
-@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ConfigResourceTest implements AuthenticatedResourceTest {
 
   @InjectMock

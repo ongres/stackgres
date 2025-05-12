@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -77,8 +76,6 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   }
 
   @Override
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   protected boolean forceChange(HasMetadata requiredResource, StackGresCluster config) {
     if (requiredResource instanceof StatefulSet requiredStatefulSet
         && requiredStatefulSet.getMetadata().getName().equals(
@@ -129,8 +126,6 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
     return false;
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   private boolean isPrimaryPod(
       HasMetadata foundDeployedResource,
       Map<String, String> primaryLabels) {
@@ -143,8 +138,6 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         .isPresent();
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   private boolean isPodWithWrongOrMissingRole(
       StackGresCluster config,
       HasMetadata foundDeployedResource,

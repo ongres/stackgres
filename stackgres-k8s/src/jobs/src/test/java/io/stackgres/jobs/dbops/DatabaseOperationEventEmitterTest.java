@@ -18,7 +18,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.jobs.dbops.lock.MockKubeDb;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,10 +28,8 @@ import org.opentest4j.AssertionFailedError;
 
 @WithKubernetesTestServer
 @QuarkusTest
-class DatabaseOperationEventEmitterTest {
+class DatabaseOperationEventEmitterTest extends MockKubeDbTest {
 
-  @Inject
-  public MockKubeDb kubeDb;
   public String namespace = StringUtils.getRandomNamespace();
   public String dbOpsName = StringUtils.getRandomResourceName();
   public String clusterName = StringUtils.getRandomResourceName();
@@ -43,7 +41,6 @@ class DatabaseOperationEventEmitterTest {
 
   @BeforeEach
   void setUp() {
-
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomResourceName();
 

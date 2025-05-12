@@ -11,7 +11,6 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAcco
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
@@ -38,8 +37,6 @@ public class StatusLockValidator implements StreamValidator {
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   public void validate(StackGresStreamReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case UPDATE: {

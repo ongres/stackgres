@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.exception;
 
 import com.google.common.base.Throwables;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.apiweb.rest.utils.StatusParser;
 import io.stackgres.apiweb.rest.utils.StatusParserProvider;
@@ -22,8 +21,6 @@ public class ApplicationExceptionMapper
   private StatusParserProvider statusParserProvider;
 
   @Override
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   public Response toResponse(ApplicationException e) {
 
     Throwable cause = Throwables.getRootCause(e);

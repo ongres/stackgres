@@ -10,12 +10,15 @@ import java.util.List;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class SgPostgresConfigConversionPipelineTest {
 

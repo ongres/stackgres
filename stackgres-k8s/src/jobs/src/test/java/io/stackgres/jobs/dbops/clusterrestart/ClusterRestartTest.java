@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.AssertSubscriber;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
@@ -34,14 +35,16 @@ import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class ClusterRestartTest {
+class ClusterRestartTest extends MockKubeDbTest {
 
   private static final String NAMESPACE = "test";
   private static final String DBOPS_NAME = "test-dbops";

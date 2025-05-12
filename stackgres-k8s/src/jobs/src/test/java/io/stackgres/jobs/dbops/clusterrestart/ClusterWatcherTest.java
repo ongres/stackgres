@@ -27,7 +27,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniMember;
-import io.stackgres.jobs.dbops.lock.MockKubeDb;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,16 +35,13 @@ import org.junit.jupiter.api.Test;
 
 @WithKubernetesTestServer
 @QuarkusTest
-class ClusterWatcherTest {
+class ClusterWatcherTest extends MockKubeDbTest {
 
   @Inject
   PodTestUtil podTestUtil;
 
   @Inject
   ClusterWatcher clusterWatcher;
-
-  @Inject
-  MockKubeDb kubeDb;
 
   @InjectMock
   PatroniApiHandler patroniApiHandler;

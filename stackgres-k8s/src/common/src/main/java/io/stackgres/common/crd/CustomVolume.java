@@ -6,7 +6,6 @@
 package io.stackgres.common.crd;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.AWSElasticBlockStoreVolumeSource;
 import io.fabric8.kubernetes.api.model.AzureDiskVolumeSource;
 import io.fabric8.kubernetes.api.model.AzureFileVolumeSource;
@@ -25,6 +24,7 @@ import io.fabric8.kubernetes.api.model.GitRepoVolumeSource;
 import io.fabric8.kubernetes.api.model.GlusterfsVolumeSource;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSource;
 import io.fabric8.kubernetes.api.model.ISCSIVolumeSource;
+import io.fabric8.kubernetes.api.model.ImageVolumeSource;
 import io.fabric8.kubernetes.api.model.NFSVolumeSource;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.PhotonPersistentDiskVolumeSource;
@@ -64,6 +64,7 @@ import io.sundr.builder.annotations.BuildableReference;
       @BuildableReference(io.fabric8.kubernetes.api.model.GitRepoVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.GlusterfsVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.HostPathVolumeSource.class),
+      @BuildableReference(io.fabric8.kubernetes.api.model.ImageVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.ISCSIVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.NFSVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource.class),
@@ -77,8 +78,6 @@ import io.sundr.builder.annotations.BuildableReference;
       @BuildableReference(io.fabric8.kubernetes.api.model.StorageOSVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.VsphereVirtualDiskVolumeSource.class),
     })
-@SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
-    justification = "Intentional name shadowing")
 public class CustomVolume extends io.fabric8.kubernetes.api.model.Volume {
 
   private static final long serialVersionUID = 1L;
@@ -95,16 +94,16 @@ public class CustomVolume extends io.fabric8.kubernetes.api.model.Volume {
       EphemeralVolumeSource ephemeral, FCVolumeSource fc, FlexVolumeSource flexVolume,
       FlockerVolumeSource flocker, GCEPersistentDiskVolumeSource gcePersistentDisk,
       GitRepoVolumeSource gitRepo, GlusterfsVolumeSource glusterfs, HostPathVolumeSource hostPath,
-      ISCSIVolumeSource iscsi, String name, NFSVolumeSource nfs,
+      ImageVolumeSource image, ISCSIVolumeSource iscsi, String name, NFSVolumeSource nfs,
       PersistentVolumeClaimVolumeSource persistentVolumeClaim,
       PhotonPersistentDiskVolumeSource photonPersistentDisk, PortworxVolumeSource portworxVolume,
       ProjectedVolumeSource projected, QuobyteVolumeSource quobyte, RBDVolumeSource rbd,
       ScaleIOVolumeSource scaleIO, SecretVolumeSource secret, StorageOSVolumeSource storageos,
       VsphereVirtualDiskVolumeSource vsphereVolume) {
     super(awsElasticBlockStore, azureDisk, azureFile, cephfs, cinder, configMap, csi, downwardAPI,
-        emptyDir, ephemeral, fc, flexVolume, flocker, gcePersistentDisk, gitRepo, glusterfs,
-        hostPath, iscsi, name, nfs, persistentVolumeClaim, photonPersistentDisk, portworxVolume,
-        projected, quobyte, rbd, scaleIO, secret, storageos, vsphereVolume);
+        emptyDir, ephemeral, fc, flexVolume, flocker, gcePersistentDisk, gitRepo, glusterfs, hostPath,
+        image, iscsi, name, nfs, persistentVolumeClaim, photonPersistentDisk, portworxVolume, projected,
+        quobyte, rbd, scaleIO, secret, storageos, vsphereVolume);
   }
 
   @Override
@@ -275,6 +274,16 @@ public class CustomVolume extends io.fabric8.kubernetes.api.model.Volume {
   @Override
   public void setHostPath(HostPathVolumeSource hostPath) {
     super.setHostPath(hostPath);
+  }
+
+  @Override
+  public ImageVolumeSource getImage() {
+    return super.getImage();
+  }
+
+  @Override
+  public void setImage(ImageVolumeSource iscsi) {
+    super.setImage(iscsi);
   }
 
   @Override

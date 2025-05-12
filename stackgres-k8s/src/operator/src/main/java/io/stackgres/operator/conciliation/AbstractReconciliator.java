@@ -31,6 +31,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operator.common.Metrics;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

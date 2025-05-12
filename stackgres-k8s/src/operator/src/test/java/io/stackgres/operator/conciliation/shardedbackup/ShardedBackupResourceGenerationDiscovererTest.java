@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -25,6 +27,7 @@ import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 public class ShardedBackupResourceGenerationDiscovererTest
     extends AbstractRequiredResourceGeneratorTest<StackGresShardedBackupContext> {

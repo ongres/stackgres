@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.operator.common.Metrics;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;

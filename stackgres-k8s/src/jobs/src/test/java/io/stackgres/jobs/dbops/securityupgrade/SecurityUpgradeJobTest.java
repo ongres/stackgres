@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -28,23 +29,22 @@ import io.stackgres.common.resource.StatefulSetFinder;
 import io.stackgres.jobs.configuration.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.StateHandler;
-import io.stackgres.jobs.dbops.lock.MockKubeDb;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class SecurityUpgradeJobTest {
+class SecurityUpgradeJobTest extends MockKubeDbTest {
 
   private static final String PREVIOUS_OPERATOR_VERSION = "0.9.4";
   private final AtomicInteger clusterNr = new AtomicInteger(0);
   @Inject
   @DatabaseOperation("securityUpgrade")
   SecurityUpgradeJob securityUpgradeJob;
-  @Inject
-  MockKubeDb kubeDb;
 
   @InjectMock
   @StateHandler("securityUpgrade")

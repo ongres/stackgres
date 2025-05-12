@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import junit.framework.AssertionFailedError;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.opentest4j.AssertionFailedError;
 
 public class JsonUtil {
 

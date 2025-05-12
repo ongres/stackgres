@@ -14,8 +14,10 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationUtil;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 @TestInstance(Lifecycle.PER_CLASS)
 class ScriptValidationQuarkusTest {

@@ -8,9 +8,11 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatus;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
@@ -19,6 +21,7 @@ import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class ShardedClusterTransformerTest {
 

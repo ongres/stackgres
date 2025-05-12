@@ -111,7 +111,7 @@ public class StackGresShardedDbOpsSpec {
             && majorVersionUpgrade == null && minorVersionUpgrade == null;
       case MAJOR_VERSION_UPGRADE:
         return resharding == null && restart == null
-          && securityUpgrade == null && minorVersionUpgrade == null;
+            && securityUpgrade == null && minorVersionUpgrade == null;
       case MINOR_VERSION_UPGRADE:
         return resharding == null && restart == null
             && majorVersionUpgrade == null && securityUpgrade == null;

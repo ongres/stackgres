@@ -6,15 +6,18 @@
 package io.stackgres.apiweb.transformer;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsDto;
 import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsSpec;
 import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsStatus;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSpec;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsStatus;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class ShardedDbOpsTransformerTest {
 

@@ -132,7 +132,7 @@ public class PodWatcher {
   }
 
   public Uni<Pod> waitUntilIsReplaced(Pod pod) {
-    String oldCreationTimestamp = pod.getMetadata().getCreationTimestamp();
+    String oldUid = pod.getMetadata().getUid();
     String name = pod.getMetadata().getName();
     String namespace = pod.getMetadata().getNamespace();
     return findPod(name, namespace)
@@ -141,8 +141,8 @@ public class PodWatcher {
             .orElseThrow(() -> new RuntimeException("Pod " + name + " not found")))
         .onItem()
         .transform(newPod -> {
-          String newCreationTimestamp = newPod.getMetadata().getCreationTimestamp();
-          if (Objects.equals(oldCreationTimestamp, newCreationTimestamp)) {
+          String newUid = newPod.getMetadata().getUid();
+          if (Objects.equals(oldUid, newUid)) {
             throw new RuntimeException("Pod " + name + " not replaced");
           } else {
             return newPod;

@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.factory.shardedbackup;
 
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -30,8 +29,6 @@ public class ShardedBackupJobContainerProfileDecorator extends AbstractContainer
   }
 
   @Override
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   public HasMetadata decorate(StackGresShardedBackupContext context, HasMetadata resource) {
     if (ShardedBackupJob.skipBackupJobCreation(context)
         || context.calculateDisableClusterResourceRequirements()) {

@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.WebClientFactory;
@@ -142,8 +141,6 @@ public abstract class ExtensionMetadataManager {
     return getExtensionsMetadata().index.values();
   }
 
-  @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
-      justification = "False positive")
   synchronized ExtensionMetadataCache getExtensionsMetadata() {
     boolean updated = false;
     for (URI extensionsRepositoryUri : extensionsRepositoryUris) {

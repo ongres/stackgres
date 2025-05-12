@@ -77,6 +77,8 @@
     <stackgres.lockPollInterval>5</stackgres.lockPollInterval>
     <stackgres.lockDuration>60</stackgres.lockDuration>
     <stackgres.prometheus.allowAutobind>false</stackgres.prometheus.allowAutobind>
+    <stackgres.authentication.secretName>stackgres-api-admin</stackgres.authentication.secretName>
+    <stackgres.restapiNamespace>stackgres</stackgres.restapiNamespace>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Java compilation -->
@@ -85,42 +87,45 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>3.22.2</quarkus.version>
+    <quarkus.version>3.23.0</quarkus.version>
+    <hibernate.version>6.6.15.Final</hibernate.version>
     <jool.version>0.9.15</jool.version>
     <immutables.version>2.10.1</immutables.version>
-    <checkstyle.version>10.18.1</checkstyle.version>
-    <spotbugs.version>4.8.6</spotbugs.version>
-    <pmd.version>6.55.0</pmd.version>
+    <checkstyle.version>10.25.0</checkstyle.version>
+    <spotbugs.version>4.9.3</spotbugs.version>
+    <pmd.version>7.14.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <fluent-process.version>1.0.1</fluent-process.version>
-    <quarkus-jooq.version>2.0.1</quarkus-jooq.version>
+    <jooq.version>3.20.4</jooq.version>
     <mockito.version>3.0.0</mockito.version>
-    <sundrio.version>0.200.0</sundrio.version>
+    <sundrio.version>0.200.4</sundrio.version>
     <reflections.version>0.10.2</reflections.version>
-    <truth.version>1.1.5</truth.version>
+    <truth.version>1.4.4</truth.version>
     <jsonassert.version>1.5.3</jsonassert.version>
-    <commons-configuration2.version>2.11.0</commons-configuration2.version>
+    <commons-configuration2.version>2.12.0</commons-configuration2.version>
     <org.tukaani.xz.version>1.10</org.tukaani.xz.version>
     <pgconfig-validator.version>1.6.0</pgconfig-validator.version>
     <auto-service.version>1.1.1</auto-service.version>
     <javapoet.version>1.13.0</javapoet.version>
     <compile-testing.version>0.21.0</compile-testing.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <debezium.version>3.0.7.Final</debezium.version>
-    <kafka-clients.version>3.9.0</kafka-clients.version>
-    <jmx-prometheus-collector.version>1.1.0</jmx-prometheus-collector.version>
+    <debezium.version>3.1.2.Final</debezium.version>
+    <kafka-clients.version>3.9.1</kafka-clients.version>
+    <jmx-prometheus-collector.version>1.3.0</jmx-prometheus-collector.version>
+    <asm.version>9.8</asm.version>
+    <prometheus-metrics-exposition-formats.version>1.3.8</prometheus-metrics-exposition-formats.version>
     <!-- Plugins versions -->
-    <compiler-plugin.version>3.13.0</compiler-plugin.version>
+    <compiler-plugin.version>3.14.0</compiler-plugin.version>
     <jar-plugin.version>3.4.2</jar-plugin.version>
-    <clean-plugin.version>3.4.0</clean-plugin.version>
+    <clean-plugin.version>3.5.0</clean-plugin.version>
     <resources-plugin.version>3.1.0</resources-plugin.version>
+    <dependency-plugin.version>3.5.0</dependency-plugin.version>
     <surefire-plugin.version>3.5.0</surefire-plugin.version>
-    <failsafe-plugin.version>3.5.0</failsafe-plugin.version>
-    <checkstyle-plugin.version>3.5.0</checkstyle-plugin.version>
+    <failsafe-plugin.version>3.5.3</failsafe-plugin.version>
+    <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
     <spotbugs-plugin.version>4.8.6.3</spotbugs-plugin.version>
-    <pmd-plugin.version>3.21.2</pmd-plugin.version>
+    <pmd-plugin.version>3.26.0</pmd-plugin.version>
     <enforcer-plugin.version>3.5.0</enforcer-plugin.version>
-    <dependency-plugin.version>3.1.1</dependency-plugin.version>
     <docker-maven-plugin.version>0.43.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>3.2.2</jandex-maven-plugin.version>
     <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
@@ -146,15 +151,20 @@
         <scope>import</scope>
       </dependency>
       <dependency>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-c3p0</artifactId>
+        <version>${hibernate.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.ongres</groupId>
         <artifactId>docker-junit-extension</artifactId>
         <version>${docker-junit-extension.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>io.quarkiverse.jooq</groupId>
-        <artifactId>quarkus-jooq</artifactId>
-        <version>${quarkus-jooq.version}</version>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq</artifactId>
+        <version>${jooq.version}</version>
       </dependency>
       <dependency>
         <groupId>io.sundr</groupId>
@@ -165,7 +175,7 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>9.6</version>
+        <version>${asm.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -229,6 +239,11 @@
         <groupId>io.prometheus.jmx</groupId>
         <artifactId>collector</artifactId>
         <version>${jmx-prometheus-collector.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-exposition-formats</artifactId>
+        <version>${prometheus-metrics-exposition-formats.version}</version>
       </dependency>
 
       <dependency>

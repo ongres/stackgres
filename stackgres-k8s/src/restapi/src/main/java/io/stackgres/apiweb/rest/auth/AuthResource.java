@@ -42,20 +42,20 @@ import org.slf4j.LoggerFactory;
 @Tag(name = "auth")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class AuthResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthResource.class);
@@ -76,8 +76,8 @@ public class AuthResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = TokenResponse.class,
+            mediaType = "application/json",
+            schema = @Schema(implementation = TokenResponse.class,
               description = "The JWT bearer token that is needed to authenticate a user request."))})
   @Operation(summary = "Login", description = """
       Log in a user and returns a JWT token.

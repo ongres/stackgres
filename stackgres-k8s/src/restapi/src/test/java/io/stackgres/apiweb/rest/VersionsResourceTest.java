@@ -8,10 +8,13 @@ package io.stackgres.apiweb.rest;
 import static io.restassured.RestAssured.given;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresComponent;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class VersionsResourceTest implements AuthenticatedResourceTest {
 

@@ -99,8 +99,8 @@ public class StackGresClusterServiceBinding {
     StackGresClusterServiceBinding other =
         (StackGresClusterServiceBinding) obj;
     return Objects.equals(provider, other.provider)
-      && Objects.equals(database, other.database) && Objects.equals(username, other.username)
-      && Objects.equals(password, other.password);
+        && Objects.equals(database, other.database) && Objects.equals(username, other.username)
+        && Objects.equals(password, other.password);
   }
 
   @Override

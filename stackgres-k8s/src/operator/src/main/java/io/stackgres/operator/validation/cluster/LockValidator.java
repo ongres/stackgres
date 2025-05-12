@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
@@ -45,8 +44,6 @@ public class LockValidator implements ClusterValidator {
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   public void validate(StackGresClusterReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case UPDATE: {

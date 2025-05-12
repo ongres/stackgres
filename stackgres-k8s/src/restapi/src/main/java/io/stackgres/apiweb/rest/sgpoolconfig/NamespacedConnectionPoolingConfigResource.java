@@ -27,20 +27,20 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgpoolconfig")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedConnectionPoolingConfigResource
     extends AbstractNamespacedRestServiceDependency<PoolingConfigDto, StackGresPoolingConfig> {
 
@@ -54,8 +54,8 @@ public class NamespacedConnectionPoolingConfigResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PoolingConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PoolingConfigDto.class))})
   @Operation(summary = "Get a sgpoolconfig", description = """
       Get a sgpoolconfig.
 

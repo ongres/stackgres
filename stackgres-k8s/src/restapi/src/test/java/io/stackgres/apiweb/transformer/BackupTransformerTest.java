@@ -6,15 +6,18 @@
 package io.stackgres.apiweb.transformer;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.dto.backup.BackupSpec;
 import io.stackgres.apiweb.dto.backup.BackupStatus;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class BackupTransformerTest {
 

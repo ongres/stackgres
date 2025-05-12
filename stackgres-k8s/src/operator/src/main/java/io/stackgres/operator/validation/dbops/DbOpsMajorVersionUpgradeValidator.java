@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.validation.dbops;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -19,8 +18,6 @@ import jakarta.inject.Singleton;
 public class DbOpsMajorVersionUpgradeValidator implements DbOpsValidator {
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   public void validate(StackGresDbOpsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE:

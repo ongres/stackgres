@@ -31,27 +31,27 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "role")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class RoleResource
     extends AbstractResourceService<RoleDto, Role> {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = RoleDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = RoleDto.class))})
   @Operation(summary = "List roles", description = """
       List roles.
 
@@ -71,8 +71,8 @@ public class RoleResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = RoleDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = RoleDto.class))})
   @Operation(summary = "Create a role", description = """
       Create a role.
 
@@ -100,8 +100,8 @@ public class RoleResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = RoleDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = RoleDto.class))})
   @Operation(summary = "Update a role", description = """
       Update a role.
 

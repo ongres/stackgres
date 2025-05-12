@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -54,8 +53,6 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
   }
 
   @Override
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   public HasMetadata decorate(StackGresClusterContext context, HasMetadata resource) {
     if (context.calculateDisableClusterResourceRequirements()
         && context.calculateDisablePatroniResourceRequirements()) {

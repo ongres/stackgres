@@ -10,6 +10,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -22,8 +23,8 @@ import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
-@WithKubernetesTestServer
 class ShardedClusterRequiredResourceDecoratorTest
     extends AbstractRequiredResourceGeneratorTest<StackGresShardedClusterContext> {
 

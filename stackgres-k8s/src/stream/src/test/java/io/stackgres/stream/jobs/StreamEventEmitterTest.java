@@ -16,7 +16,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamStatus;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.stream.jobs.lock.MockKubeDb;
+import io.stackgres.stream.jobs.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,10 +26,8 @@ import org.opentest4j.AssertionFailedError;
 
 @WithKubernetesTestServer
 @QuarkusTest
-class StreamEventEmitterTest {
+class StreamEventEmitterTest extends MockKubeDbTest {
 
-  @Inject
-  public MockKubeDb kubeDb;
   public String namespace = StringUtils.getRandomNamespace();
   public String streamName = StringUtils.getRandomResourceName();
   public String clusterName = StringUtils.getRandomResourceName();
@@ -41,7 +39,6 @@ class StreamEventEmitterTest {
 
   @BeforeEach
   void setUp() {
-
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomResourceName();
 

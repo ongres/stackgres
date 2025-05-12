@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.Subject;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.security.Authenticated;
-import io.stackgres.apiweb.ValidationGroups;
+import io.stackgres.apiweb.common.ValidationGroups;
 import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.dto.user.UserRoleRef;
@@ -59,20 +59,20 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "user")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class UserResource {
 
   private String namespace;
@@ -120,8 +120,8 @@ public class UserResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = UserDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = UserDto.class))})
   @Operation(summary = "List users", description = """
       List users.
 
@@ -148,8 +148,8 @@ public class UserResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = UserDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = UserDto.class))})
   @Operation(summary = "Create a user", description = """
       Create a user.
 
@@ -236,8 +236,8 @@ public class UserResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = UserDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = UserDto.class))})
   @Operation(summary = "Update a user", description = """
       Update a user.
 

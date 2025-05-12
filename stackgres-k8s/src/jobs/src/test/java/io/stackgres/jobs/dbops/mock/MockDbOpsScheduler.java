@@ -3,58 +3,54 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.dbops.lock;
+package io.stackgres.jobs.dbops.mock;
 
 import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
-@Mock
-public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOps> {
+public class MockDbOpsScheduler implements CustomResourceScheduler<StackGresDbOps> {
+  final MockKubeDb mockKubeDb;
 
-  private final MockKubeDb kubeDb;
-
-  @Inject
-  public FakeDbOpsScheduler(MockKubeDb kubeDb) {
-    this.kubeDb = kubeDb;
+  public MockDbOpsScheduler(MockKubeDb mockKubeDb) {
+    this.mockKubeDb = mockKubeDb;
   }
 
   @Override
   public StackGresDbOps create(@NotNull StackGresDbOps resource, boolean dryRun) {
-    return kubeDb.addOrReplaceDbOps(resource);
+    return mockKubeDb.addOrReplaceDbOps(resource);
   }
 
   @Override
   public void delete(@NotNull StackGresDbOps resource, boolean dryRun) {
-    kubeDb.delete(resource);
+    mockKubeDb.delete(resource);
   }
 
   @Override
   public StackGresDbOps update(@NotNull StackGresDbOps resource, boolean dryRun) {
-    return kubeDb.addOrReplaceDbOps(resource);
+    return mockKubeDb.addOrReplaceDbOps(resource);
   }
 
   @Override
-  public StackGresDbOps update(@NotNull StackGresDbOps resource,
+  public StackGresDbOps update(
+      @NotNull StackGresDbOps resource,
       @NotNull Consumer<StackGresDbOps> setter) {
     final ObjectMeta metadata = resource.getMetadata();
-    var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
-    setter.accept(dbOps);
-    return kubeDb.addOrReplaceDbOps(dbOps);
+    var cluster = mockKubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
+    setter.accept(cluster);
+    return mockKubeDb.addOrReplaceDbOps(cluster);
   }
 
   @Override
-  public <S> StackGresDbOps updateStatus(@NotNull StackGresDbOps resource,
+  public StackGresDbOps updateStatus(
+      @NotNull StackGresDbOps resource,
       @NotNull Consumer<StackGresDbOps> setter) {
     final ObjectMeta metadata = resource.getMetadata();
-    var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
-    setter.accept(dbOps);
-    return kubeDb.addOrReplaceDbOps(dbOps);
+    var cluster = mockKubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
+    setter.accept(cluster);
+    return mockKubeDb.addOrReplaceDbOps(cluster);
   }
-
 }

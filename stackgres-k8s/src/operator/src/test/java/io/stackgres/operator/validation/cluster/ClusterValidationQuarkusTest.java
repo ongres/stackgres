@@ -14,8 +14,10 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.storage.StorageClassList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -39,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 @TestInstance(Lifecycle.PER_CLASS)
 class ClusterValidationQuarkusTest {

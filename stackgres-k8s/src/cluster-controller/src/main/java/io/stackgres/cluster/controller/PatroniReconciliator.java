@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.ongres.process.FluentProcess;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
@@ -59,8 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-@SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
-    justification = "This is not a bug if working with containers")
 public class PatroniReconciliator extends SafeReconciliator<StackGresClusterContext, Boolean> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
@@ -297,8 +294,6 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
         .results().findFirst().orElseThrow().group(1));
   }
 
-  @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES",
-      justification = "False positive")
   private Map<String, String> getPatroniTagsForReplicationRole(
       final StackGresReplicationRole podReplicationRole) {
     switch (podReplicationRole) {

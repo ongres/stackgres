@@ -5,7 +5,6 @@
 
 package io.stackgres.cluster.controller;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.common.CdiUtil;
@@ -35,8 +34,6 @@ public class PatroniExternalCdsControllerReconciliator
     this.patroniLabelsReconciliator = null;
   }
 
-  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
-      justification = "False positives")
   @Override
   public ReconciliationResult<?> reconcile(KubernetesClient client,
       StackGresClusterContext context) throws Exception {

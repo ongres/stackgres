@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.app.OperatorLockHolder;
+import io.stackgres.operator.common.Metrics;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;

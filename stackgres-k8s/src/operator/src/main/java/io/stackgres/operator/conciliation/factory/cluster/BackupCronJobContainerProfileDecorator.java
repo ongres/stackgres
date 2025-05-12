@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
@@ -27,7 +26,7 @@ import jakarta.inject.Singleton;
 public class BackupCronJobContainerProfileDecorator extends AbstractContainerProfileDecorator
     implements Decorator<StackGresClusterContext> {
 
-  private DefaultProfileFactory defaultProfileFactory;
+  private final DefaultProfileFactory defaultProfileFactory;
 
   public BackupCronJobContainerProfileDecorator(DefaultProfileFactory defaultProfileFactory) {
     this.defaultProfileFactory = defaultProfileFactory;
@@ -39,8 +38,6 @@ public class BackupCronJobContainerProfileDecorator extends AbstractContainerPro
   }
 
   @Override
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   public HasMetadata decorate(StackGresClusterContext context, HasMetadata resource) {
     if (context.calculateDisableClusterResourceRequirements()) {
       return resource;

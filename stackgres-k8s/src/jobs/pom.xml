@@ -34,13 +34,12 @@
       <artifactId>quarkus-vertx-http</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.smallrye.reactive</groupId>
-      <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.java-json-tools</groupId>
-      <artifactId>json-patch</artifactId>
-      <version>1.13</version>
+      <groupId>io.smallrye.reactive</groupId>
+      <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
     </dependency>
 
     <dependency>
@@ -75,6 +74,11 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-test-kubernetes-client</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -112,9 +116,6 @@
 
   <profiles>
     <profile>
-      <id>safer</id>
-    </profile>
-    <profile>
       <id>native</id>
       <activation>
         <property>
@@ -148,298 +149,6 @@
         <quarkus.native.enabled>true</quarkus.native.enabled>
         <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
       </properties>
-    </profile>
-    <profile>
-      <id>build-image-jvm</id>
-      <properties>
-        <docker.removeVolumes>true</docker.removeVolumes>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>${docker-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>build-image</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>stop</goal>
-                  <goal>build</goal>
-                  <goal>start</goal>
-                  <goal>stop</goal>
-                </goals>
-                <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
-                  <images>
-                    <image>
-                      <alias>ongres-jvm-builder</alias>
-                      <name>ongres-jvm-builder</name>
-                      <build>
-                        <cleanup>remove</cleanup>
-                        <from>${docker.image}</from>
-                        <assembly>
-                          <targetDir>/jobs</targetDir>
-                          <inline>
-                            <fileSets>
-                              <fileSet>
-                                <directory>${project.basedir}</directory>
-                                <outputDirectory>/</outputDirectory>
-                                <excludes>
-                                  <exclude>target/docker/**</exclude>
-                                </excludes>
-                              </fileSet>
-                            </fileSets>
-                          </inline>
-                        </assembly>
-                      </build>
-                      <run>
-                        <privileged>true</privileged>
-                        <workingDir>/</workingDir>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-ex</arg>
-                          <arg>/jobs/src/main/docker/build-image-jvm.sh</arg>
-                        </entrypoint>
-                        <wait>
-                          <time>600000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>image-builder|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <JOBS_IMAGE_NAME>${env.JOBS_IMAGE_NAME}</JOBS_IMAGE_NAME>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/lib/containers</volume>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                          </bind>
-                        </volumes>
-                      </run>
-                    </image>
-                  </images>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>build-image-native</id>
-      <properties>
-        <docker.removeVolumes>true</docker.removeVolumes>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>${docker-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>build-image</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>stop</goal>
-                  <goal>build</goal>
-                  <goal>start</goal>
-                  <goal>stop</goal>
-                </goals>
-                <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
-                  <images>
-                    <image>
-                      <alias>jobs-native-builder</alias>
-                      <name>jobs-native-builder</name>
-                      <build>
-                        <cleanup>remove</cleanup>
-                        <from>${docker.image}</from>
-                        <assembly>
-                          <targetDir>/jobs</targetDir>
-                          <inline>
-                            <fileSets>
-                              <fileSet>
-                                <directory>${project.basedir}</directory>
-                                <outputDirectory>/</outputDirectory>
-                                <excludes>
-                                  <exclude>target/docker/**</exclude>
-                                </excludes>
-                              </fileSet>
-                            </fileSets>
-                          </inline>
-                        </assembly>
-                      </build>
-                      <run>
-                        <privileged>true</privileged>
-                        <workingDir>/</workingDir>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-ex</arg>
-                          <arg>/jobs/src/main/docker/build-image-native.sh</arg>
-                        </entrypoint>
-                        <wait>
-                          <time>600000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>image-builder|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <JOBS_IMAGE_NAME>${env.JOBS_IMAGE_NAME}</JOBS_IMAGE_NAME>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/lib/containers</volume>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                          </bind>
-                        </volumes>
-                      </run>
-                    </image>
-                  </images>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>kind-load-image-jvm</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>${docker-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>kind-load-image</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>stop</goal>
-                  <goal>start</goal>
-                  <goal>stop</goal>
-                </goals>
-                <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
-                  <images>
-                    <image>
-                      <alias>kind-load</alias>
-                      <name>${ci.image}</name>
-                      <run>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-exc</arg>
-                          <arg>
-                            JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:main-jvm"}"
-                            CONTAINER_NAME="$(docker inspect -f
-                            '{{.Name}}'
-                            "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                            kind load docker-image --name
-                            "$CONTAINER_NAME"
-                            "$JOBS_IMAGE_NAME" || true
-                          </arg>
-                        </entrypoint>
-                        <wait>
-                          <time>300000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>kind-load|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <JOBS_IMAGE_NAME>${env.JOBS_IMAGE_NAME}</JOBS_IMAGE_NAME>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                            <volume>/var/lib/docker:/var/lib/docker:ro</volume>
-                          </bind>
-                        </volumes>
-                      </run>
-                    </image>
-                  </images>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>kind-load-image-native</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>${docker-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>kind-load-image</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>stop</goal>
-                  <goal>start</goal>
-                  <goal>stop</goal>
-                </goals>
-                <configuration>
-                  <containerNamePattern>%a</containerNamePattern>
-                  <images>
-                    <image>
-                      <alias>kind-load</alias>
-                      <name>${ci.image}</name>
-                      <run>
-                        <entrypoint>
-                          <arg>/bin/sh</arg>
-                          <arg>-exc</arg>
-                          <arg>
-                            JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:main"}"
-                            CONTAINER_NAME="$(docker inspect -f
-                            '{{.Name}}'
-                            "$(hostname)"|cut -d '/' -f 2|sed 's/^kind-load/kind/')"
-                            kind load docker-image --name
-                            "$CONTAINER_NAME"
-                            "$JOBS_IMAGE_NAME" || true
-                          </arg>
-                        </entrypoint>
-                        <wait>
-                          <time>300000</time>
-                          <exit>0</exit>
-                        </wait>
-                        <log>
-                          <prefix>kind-load|</prefix>
-                          <date>default</date>
-                        </log>
-                        <env>
-                          <JOBS_IMAGE_NAME>${env.JOBS_IMAGE_NAME}</JOBS_IMAGE_NAME>
-                          <DOCKER_HOST>${env.DOCKER_HOST}</DOCKER_HOST>
-                        </env>
-                        <volumes>
-                          <bind>
-                            <volume>/var/run/docker.sock:/var/run/docker.sock</volume>
-                            <volume>/var/lib/docker:/var/lib/docker:ro</volume>
-                          </bind>
-                        </volumes>
-                      </run>
-                    </image>
-                  </images>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 

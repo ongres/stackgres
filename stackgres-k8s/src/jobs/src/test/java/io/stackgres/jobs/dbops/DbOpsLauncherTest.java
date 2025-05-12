@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
@@ -45,7 +46,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
-import io.stackgres.jobs.dbops.lock.MockKubeDb;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
@@ -56,8 +57,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.stubbing.Answer;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class DbOpsLauncherTest {
+class DbOpsLauncherTest extends MockKubeDbTest {
 
   @InjectMock
   @DatabaseOperation("securityUpgrade")
@@ -65,9 +67,6 @@ class DbOpsLauncherTest {
 
   @Inject
   DbOpsLauncher dbOpLauncher;
-
-  @Inject
-  MockKubeDb mockKubeDb;
 
   @InjectSpy
   LockAcquirer lockAcquirer;
@@ -96,11 +95,11 @@ class DbOpsLauncherTest {
     dbOps.getMetadata().setNamespace(namespace);
     dbOps.getMetadata().setName(randomDbOpsName);
     dbOps.getSpec().setSgCluster(randomClusterName);
-    dbOps = mockKubeDb.addOrReplaceDbOps(dbOps);
+    dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
     cluster.getMetadata().setNamespace(namespace);
     cluster.getMetadata().setName(randomClusterName);
-    cluster = mockKubeDb.addOrReplaceCluster(cluster);
+    cluster = kubeDb.addOrReplaceCluster(cluster);
 
     doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
     doNothing().when(databaseOperationEventEmitter).operationFailed(randomDbOpsName, namespace);
@@ -195,7 +194,7 @@ class DbOpsLauncherTest {
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 
-    var persistedDbOps = mockKubeDb.getDbOps(randomDbOpsName, namespace);
+    var persistedDbOps = kubeDb.getDbOps(randomDbOpsName, namespace);
     assertNotNull(persistedDbOps.getStatus(), "DbOpLaucher should initialize the DbOps status");
     assertTrue(persistedDbOps.getStatus().isOpStartedValid(), "opStarted should be a valid date");
     assertTrue(() -> {
@@ -234,7 +233,7 @@ class DbOpsLauncherTest {
     String op = StringUtils.getRandomString();
     dbOps.getSpec().setOp(op);
 
-    dbOps = mockKubeDb.addOrReplaceDbOps(dbOps);
+    dbOps = kubeDb.addOrReplaceDbOps(dbOps);
     var ex = assertThrows(IllegalStateException.class, () -> dbOpLauncher
         .launchDbOp(randomDbOpsName, namespace));
 
@@ -283,7 +282,7 @@ class DbOpsLauncherTest {
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 
-    var storedDbOp = mockKubeDb.getDbOps(randomDbOpsName, namespace);
+    var storedDbOp = kubeDb.getDbOps(randomDbOpsName, namespace);
     assertNotNull(storedDbOp.getStatus().getOpStarted());
     assertTrue(Instant.parse(storedDbOp.getStatus().getOpStarted()).isBefore(Instant.now()));
     assertNull(storedDbOp.getStatus().getOpRetries());
@@ -310,7 +309,7 @@ class DbOpsLauncherTest {
 
     assertThrows(RuntimeException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
 
-    var storedDbOp = mockKubeDb.getDbOps(randomDbOpsName, namespace);
+    var storedDbOp = kubeDb.getDbOps(randomDbOpsName, namespace);
     assertNotNull(storedDbOp.getStatus().getOpStarted());
     assertTrue(Instant.parse(storedDbOp.getStatus().getOpStarted()).isBefore(Instant.now()));
     assertNull(storedDbOp.getStatus().getOpRetries());
@@ -348,7 +347,7 @@ class DbOpsLauncherTest {
         .map(DbOpsStatusCondition::getCondition)
         .peek(condition -> condition.setLastTransitionTime(previousOpStarted.toString()))
         .toList());
-    mockKubeDb.addOrReplaceDbOps(dbOps);
+    kubeDb.addOrReplaceDbOps(dbOps);
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 

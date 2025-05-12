@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.fabric8.kubernetes.client.dsl.Replaceable;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
@@ -35,8 +35,8 @@ import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.rest.user.UserResource;
 import io.stackgres.apiweb.security.TokenUtils;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresKubernetesMockServerSetup;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -45,8 +45,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
-@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class UserResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @KubernetesTestServer

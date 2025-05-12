@@ -6,6 +6,8 @@
 package io.stackgres.operator.validation.shardedbackup;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.operator.common.StackGresShardedBackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -13,6 +15,7 @@ import io.stackgres.operator.validation.ValidationPipelineTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 @EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
 public class ShardedBackupValidationPipelineTest
