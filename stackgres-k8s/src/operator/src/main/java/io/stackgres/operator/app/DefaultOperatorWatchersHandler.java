@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -278,6 +280,12 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .andThen(reconcilePodShardedBackups())
             .andThen(reconcilePodShardedDbOps())
             .andThen(reconcilePodStreams()))));
+
+    monitors.addAll(createWatchers(
+        PersistentVolumeClaim.class,
+        PersistentVolumeClaimList.class,
+        onCreateOrUpdateOrDelete(
+            reconcilePvcClusters())));
   }
 
   private <T extends CustomResource<?, ?>,
@@ -836,6 +844,21 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             pod.getMetadata().getLabels().get(streamNameKey),
             stream.getMetadata().getName()))
         .forEach(stream -> reconcileStream().accept(action, stream));
+  }
+
+  private BiConsumer<Action, PersistentVolumeClaim> reconcilePvcClusters() {
+    String clusterNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+    return (action, pod) -> synchronizedCopyOfValues(clusters)
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getMetadata().getNamespace(),
+            pod.getMetadata().getNamespace()))
+        .filter(cluster -> pod.getMetadata().getLabels() != null)
+        .filter(cluster -> Objects.equals(
+            pod.getMetadata().getLabels().get(clusterNameKey),
+            cluster.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
   }
 
   private BiConsumer<Action, StackGresConfig> invalidateConfig() {

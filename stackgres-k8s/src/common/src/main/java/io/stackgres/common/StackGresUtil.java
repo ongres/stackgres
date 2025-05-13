@@ -398,11 +398,22 @@ public interface StackGresUtil {
         .map(Tuple2::v2)
         .findAny()
         .get();
+    long pg17Index = pgComponent
+        .streamOrderedMajorVersions()
+        .zipWithIndex()
+        .filter(t -> t.v1.equals("17"))
+        .map(Tuple2::v2)
+        .findAny()
+        .get();
     return List.of(
-        pgMajorVersionIndex <= pg14Index
-        ? new ExtensionTuple("citus", "12.1-1")
-            : new ExtensionTuple("citus", "11.3-1"),
-        new ExtensionTuple("citus_columnar", "11.3-1"));
+        pgMajorVersionIndex <= pg17Index
+        ? new ExtensionTuple("citus", "13.0.1")
+            : pgMajorVersionIndex <= pg14Index
+            ? new ExtensionTuple("citus", "12.1-1")
+                : new ExtensionTuple("citus", "11.3-1"),
+        pgMajorVersionIndex <= pg17Index
+        ? new ExtensionTuple("citus_columnar", "13.0.1")
+            : new ExtensionTuple("citus_columnar", "11.3-1"));
   }
 
   static List<ExtensionTuple> getDefaultDdpShardedClusterExtensions(StackGresShardedCluster cluster) {

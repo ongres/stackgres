@@ -129,7 +129,13 @@ public abstract class ExtensionMetadataManager {
             .map(Tuple3::v3)
             .max(Comparator.comparing(StackGresExtensionMetadata::getBuild))
             .orElseThrow())
-        .toUnmodifiableList();
+        .sorted(Comparator.comparing(
+            Function.<StackGresExtensionMetadata>identity()
+            .andThen(StackGresExtensionMetadata::getVersion)
+            .andThen(StackGresExtensionVersion::getVersion)
+            .andThen(StackGresUtil::sortableVersion))
+            .reversed())
+        .toList();
   }
 
   public Collection<StackGresExtensionMetadata> getExtensions() {

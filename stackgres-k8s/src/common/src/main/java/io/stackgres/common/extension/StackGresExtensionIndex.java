@@ -28,13 +28,16 @@ public class StackGresExtensionIndex {
   private final Optional<String> arch;
   private final Optional<String> os;
 
-  public static StackGresExtensionIndex fromClusterInstalledExtension(StackGresCluster cluster,
-      StackGresClusterInstalledExtension installedExtension, boolean detectOs) {
+  public static StackGresExtensionIndex fromClusterInstalledExtension(
+      StackGresCluster cluster,
+      StackGresClusterInstalledExtension installedExtension,
+      boolean detectOs) {
     return new StackGresExtensionIndex(cluster, installedExtension,
         Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
   }
 
-  private StackGresExtensionIndex(StackGresCluster cluster,
+  private StackGresExtensionIndex(
+      StackGresCluster cluster,
       StackGresClusterInstalledExtension installedExtension,
       Optional<ExtensionUtil.OsDetector> osDetector) {
     this.name = installedExtension.getName();
@@ -49,7 +52,9 @@ public class StackGresExtensionIndex {
     this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }
 
-  public StackGresExtensionIndex(StackGresExtension extension, StackGresExtensionVersion version,
+  public StackGresExtensionIndex(
+      StackGresExtension extension,
+      StackGresExtensionVersion version,
       StackGresExtensionVersionTarget target) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
@@ -98,7 +103,8 @@ public class StackGresExtensionIndex {
     return false;
   }
 
-  private boolean equalsBothFromIndex(StackGresExtensionIndex self,
+  private boolean equalsBothFromIndex(
+      StackGresExtensionIndex self,
       StackGresExtensionIndex other) {
     return Objects.equals(self.channels, other.channels)
         && Objects.equals(self.version, other.version)
@@ -107,7 +113,8 @@ public class StackGresExtensionIndex {
         && Objects.equals(self.build, other.build);
   }
 
-  private boolean equalsWithFromIndex(StackGresExtensionIndex other,
+  private boolean equalsWithFromIndex(
+      StackGresExtensionIndex other,
       StackGresExtensionIndex fromIndex) {
     return (fromIndex.version.equals(other.version)
         || fromIndex.channels.stream().anyMatch(other.version::equals))
