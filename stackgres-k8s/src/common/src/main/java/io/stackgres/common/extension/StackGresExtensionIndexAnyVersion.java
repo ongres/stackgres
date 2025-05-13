@@ -24,9 +24,10 @@ public class StackGresExtensionIndexAnyVersion {
   private final Optional<String> arch;
   private final Optional<String> os;
 
-  private StackGresExtensionIndexAnyVersion(StackGresCluster cluster,
-                                            StackGresClusterExtension extension,
-                                            Optional<ExtensionUtil.OsDetector> osDetector) {
+  private StackGresExtensionIndexAnyVersion(
+      StackGresCluster cluster,
+      StackGresClusterExtension extension,
+      Optional<ExtensionUtil.OsDetector> osDetector) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
@@ -41,8 +42,9 @@ public class StackGresExtensionIndexAnyVersion {
     this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }
 
-  public StackGresExtensionIndexAnyVersion(StackGresExtension extension,
-                                           StackGresExtensionVersionTarget target) {
+  public StackGresExtensionIndexAnyVersion(
+      StackGresExtension extension,
+      StackGresExtensionVersionTarget target) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.flavor = target.getFlavorOrDefault();
@@ -89,8 +91,9 @@ public class StackGresExtensionIndexAnyVersion {
     return false;
   }
 
-  private boolean equalsBothFromIndex(StackGresExtensionIndexAnyVersion self,
-                                      StackGresExtensionIndexAnyVersion other) {
+  private boolean equalsBothFromIndex(
+      StackGresExtensionIndexAnyVersion self,
+      StackGresExtensionIndexAnyVersion other) {
     return Objects.equals(self.arch, other.arch)
         && Objects.equals(self.os, other.os)
         && Objects.equals(self.build, other.build)
@@ -98,8 +101,9 @@ public class StackGresExtensionIndexAnyVersion {
         && Objects.equals(self.postgresVersion, other.postgresVersion);
   }
 
-  private boolean equalsWithFromIndex(StackGresExtensionIndexAnyVersion other,
-                                      StackGresExtensionIndexAnyVersion fromIndex) {
+  private boolean equalsWithFromIndex(
+      StackGresExtensionIndexAnyVersion other,
+      StackGresExtensionIndexAnyVersion fromIndex) {
     return Objects.equals(fromIndex.flavor, other.flavor)
         && (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
         || Objects.equals(fromIndex.postgresVersion, other.postgresExactVersion)) // NOPMD

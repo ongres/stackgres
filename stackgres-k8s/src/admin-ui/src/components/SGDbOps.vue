@@ -477,8 +477,8 @@
                                             type="line" 
                                             :options="{
                                                 chart: {
-                                                    type: 'bar',
-                                                    id: '-tpsOverTimeGraph',
+                                                    type: 'line',
+                                                    id: 'tpsOverTimeGraph',
                                                     height: '350px',
                                                     animations: {
                                                         enabled: false
@@ -513,7 +513,7 @@
                                             }"
                                             :series="[{
                                                 name: 'TPS',
-                                                data: op.data.status.benchmark.pgbench.transactionsPerSecond.overTime.values
+                                                data: getDataFromDeltaEnconding(op.data.status.benchmark.pgbench.transactionsPerSecond.overTime.values)
                                             }]">
                                         </apexchart>
                                     </div>
@@ -949,22 +949,21 @@
 						break;
 
 				}
-				
 			},
 
-            getPodConnections(podName, connections) {
-                const vc = this;
+      getPodConnections(podName, connections) {
+          const vc = this;
 
-                if(vc.podConnections.hasOwnProperty(podName)) {
-                    vc.podConnections[podName].push(connections);
-                } else {
-                    vc.podConnections[podName] = [];
-                }
-                
-                return connections
-            },
+          if(vc.podConnections.hasOwnProperty(podName)) {
+              vc.podConnections[podName].push(connections);
+          } else {
+              vc.podConnections[podName] = [];
+          }
+          
+          return connections
+      },
 
-            getOpEvents() {
+      getOpEvents() {
 				const vc = this;
 
                 sgApi
@@ -990,29 +989,37 @@
 				});
 			},
 
-            getStatementsYAxis(statements) {
-                return statements.map( (s) => (s.command) );
-            },
+      getStatementsYAxis(statements) {
+          return statements.map( (s) => (s.command) );
+      },
 
-            getStatementsXAxis(statements) {
-                return statements.map( (s) => (s.latency) );
-            },
+      getStatementsXAxis(statements) {
+          return statements.map( (s) => (s.latency) );
+      },
 
-            getHdrHistogram(histogramData) {
-                /* const opHistogram = hdr.decodeFromCompressedBase64(histogramData);
-                console.log(histogramData);
-                console.log(opHistogram); */
+      getHdrHistogram(histogramData) {
+          /* const opHistogram = hdr.decodeFromCompressedBase64(histogramData);
+          console.log(histogramData);
+          console.log(opHistogram); */
 
-                const opHistogram = {
-                    percentiles: histogramData
-                }
-                HdrHistogramWidget.display(
-                    opHistogram,
-                    'milliseconds',                   // default is milliseconds
-                    document.getElementById("hdrHistogram")  // default is document.body
-                );
-            }
-        },
+          const opHistogram = {
+              percentiles: histogramData
+          }
+          HdrHistogramWidget.display(
+              opHistogram,
+              'milliseconds',                   // default is milliseconds
+              document.getElementById("hdrHistogram")  // default is document.body
+          );
+      },
+
+      getDataFromDeltaEnconding(data) {
+        const decodedData = [...data];
+        for (var i = 1; i < decodedData.length; i++) {
+          decodedData[i] += decodedData[i - 1];
+        }
+        return decodedData;
+      }
+    },
         
         computed: {
 

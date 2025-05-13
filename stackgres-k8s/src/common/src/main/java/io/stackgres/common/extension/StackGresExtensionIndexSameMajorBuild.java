@@ -31,14 +31,17 @@ public class StackGresExtensionIndexSameMajorBuild {
   private final Optional<String> arch;
   private final Optional<String> os;
 
-  public static StackGresExtensionIndexSameMajorBuild fromClusterExtension(StackGresCluster cluster,
+  public static StackGresExtensionIndexSameMajorBuild fromClusterExtension(
+      StackGresCluster cluster,
       StackGresClusterExtension extension, boolean detectOs) {
     return new StackGresExtensionIndexSameMajorBuild(cluster, extension,
         Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
   }
 
-  private StackGresExtensionIndexSameMajorBuild(StackGresCluster cluster,
-      StackGresClusterExtension extension, Optional<ExtensionUtil.OsDetector> osDetector) {
+  private StackGresExtensionIndexSameMajorBuild(
+      StackGresCluster cluster,
+      StackGresClusterExtension extension,
+      Optional<ExtensionUtil.OsDetector> osDetector) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = extension.getVersionOrDefaultChannel();
@@ -55,8 +58,10 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }
 
-  public StackGresExtensionIndexSameMajorBuild(StackGresExtension extension,
-      StackGresExtensionVersion version, StackGresExtensionVersionTarget target) {
+  public StackGresExtensionIndexSameMajorBuild(
+      StackGresExtension extension,
+      StackGresExtensionVersion version,
+      StackGresExtensionVersionTarget target) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = version.getVersion();
@@ -103,7 +108,8 @@ public class StackGresExtensionIndexSameMajorBuild {
     return false;
   }
 
-  private boolean equalsBothFromIndex(StackGresExtensionIndexSameMajorBuild self,
+  private boolean equalsBothFromIndex(
+      StackGresExtensionIndexSameMajorBuild self,
       StackGresExtensionIndexSameMajorBuild other) {
     return Objects.equals(self.channels, other.channels)
         && Objects.equals(self.version, other.version)
@@ -114,7 +120,8 @@ public class StackGresExtensionIndexSameMajorBuild {
         && Objects.equals(self.postgresVersion, other.postgresVersion);
   }
 
-  private boolean equalsWithFromIndex(StackGresExtensionIndexSameMajorBuild other,
+  private boolean equalsWithFromIndex(
+      StackGresExtensionIndexSameMajorBuild other,
       StackGresExtensionIndexSameMajorBuild fromIndex) {
     return (fromIndex.version.equals(other.version)
         || fromIndex.channels.stream().anyMatch(other.version::equals))
