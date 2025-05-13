@@ -40,7 +40,7 @@ install_prometheus_operator_for_version() {
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
   fi
 
-  helm install prometheus "$E2E_PATH/helm/kube-prometheus-stack-$KUBE_PROMETHEUS_STACK_VERSION.tgz" \
+  helm upgrade --install prometheus "$E2E_PATH/helm/kube-prometheus-stack-$KUBE_PROMETHEUS_STACK_VERSION.tgz" \
     --create-namespace \
     --namespace "$(prometheus_namespace)" \
     --disable-openapi-validation \
@@ -58,7 +58,10 @@ install_prometheus_operator_for_version() {
     --set-string prometheus.prometheusSpec.podMonitorNamespaceSelector.matchLabels.monitoring=true \
     "$@"
 
-  wait_pods_running "$(prometheus_namespace)" 3
+  if [ "${WAIT_PROMETHEUS_OPERATOR:-true}" = true ]
+  then
+    wait_pods_running "$(prometheus_namespace)" 3
+  fi
 }
 
 uninstall_prometheus_operator() {

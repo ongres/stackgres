@@ -8,11 +8,9 @@ package io.stackgres.operator.conciliation;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.diff.JsonDiff;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,16 +23,19 @@ public class DeployedResourcesSnapshot {
   private final List<HasMetadata> ownedDeployedResources;
   private final List<HasMetadata> deployedResources;
   private final Map<ResourceKey, DeployedResource> map;
+  private final ObjectMapper objectMapper;
 
   DeployedResourcesSnapshot(
       HasMetadata generator,
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources,
-      Map<ResourceKey, DeployedResource> map) {
+      Map<ResourceKey, DeployedResource> map,
+      ObjectMapper objectMapper) {
     this.generator = generator;
     this.ownedDeployedResources = ownedDeployedResources;
     this.deployedResources = deployedResources;
     this.map = map;
+    this.objectMapper = objectMapper;
   }
 
   public List<HasMetadata> ownedDeployedResources() {
@@ -64,10 +65,7 @@ public class DeployedResourcesSnapshot {
   public boolean isRequiredChanged(HasMetadata requiredResource) {
     boolean result = Optional
         .ofNullable(map.get(ResourceKey.create(generator, requiredResource)))
-        .map(DeployedResource::required)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .filter(Predicate.not(requiredResource::equals))
+        .filter(deployedResource -> deployedResource.isRequiredChanged(objectMapper, requiredResource))
         .isPresent();
     if (result && LOGGER.isTraceEnabled()) {
       LOGGER.trace("Detected change for required resource {} {}.{}",
@@ -79,36 +77,15 @@ public class DeployedResourcesSnapshot {
   }
 
   public boolean isDeployedChanged(DeployedResource deployedResourceValue) {
-    boolean result = deployedResourceValue.deployedNode() == null
-        || deployedResourceValue.foundDeployedNode() == null
-        || !deployedResourceValue.deployedNode()
-          .equals(deployedResourceValue.foundDeployedNode());
+    boolean result = deployedResourceValue.isDeployedChanged();
     if (result && LOGGER.isTraceEnabled()) {
-      HasMetadata foundDeployed = deployedResourceValue.foundDeployed();
-      LOGGER.trace("Detected change for deployed resource {} {}.{}",
-          foundDeployed.getKind(),
-          foundDeployed.getMetadata().getNamespace(),
-          foundDeployed.getMetadata().getName());
-      if (deployedResourceValue.deployedNode() != null
-          && deployedResourceValue.foundDeployedNode() != null) {
-        try {
-          JsonNode diffs = JsonDiff.asJson(
-              deployedResourceValue.deployedNode(),
-              deployedResourceValue.foundDeployedNode());
-          LOGGER.trace("Diff {}", diffs);
-        } catch (Exception ex) {
-          LOGGER.warn("Diff failed for {} and {}",
-              deployedResourceValue.deployedNode(),
-              deployedResourceValue.foundDeployedNode(),
-              ex);
-        }
-      }
+      deployedResourceValue.traceDeployedChanged(LOGGER);
     }
     return result;
   }
 
   public static DeployedResourcesSnapshot emptySnapshot(HasMetadata generator) {
-    return new DeployedResourcesSnapshot(generator, List.of(), List.of(), Map.of());
+    return new DeployedResourcesSnapshot(generator, List.of(), List.of(), Map.of(), null);
   }
 
 }

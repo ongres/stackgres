@@ -12,6 +12,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResource;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -31,8 +32,9 @@ public class DbOpsConciliator extends AbstractConciliator<StackGresDbOps> {
   }
 
   @Override
-  protected boolean skipDeletion(HasMetadata requiredResource, StackGresDbOps config) {
-    return requiredResource instanceof Job;
+  protected boolean skipDeletion(DeployedResource deployedResource, StackGresDbOps config) {
+    return deployedResource.apiVersion().equals(HasMetadata.getApiVersion(Job.class))
+        && deployedResource.kind().equals(HasMetadata.getKind(Job.class));
   }
 
 }

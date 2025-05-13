@@ -41,9 +41,45 @@ public record ResourceKey(
 
   public static boolean same(
       HasMetadata generator,
-      HasMetadata resource1,
-      HasMetadata resource2) {
-    return ResourceKey.create(generator, resource1).equals(ResourceKey.create(generator, resource2));
+      HasMetadata resource,
+      DeployedResource deployedResource) {
+    if ((generator == null || resource == null)
+        && (deployedResource == null || deployedResource.resourceKey() == null)) {
+      return true;
+    }
+    if (generator == null || resource == null) {
+      return false;
+    }
+    if (deployedResource == null || deployedResource.resourceKey() == null) {
+      return false;
+    }
+    var deployedResourceKey = deployedResource.resourceKey();
+    return Objects.equals(generator.getApiVersion(), deployedResourceKey.generatorApiVersion)
+        && Objects.equals(generator.getKind(), deployedResourceKey.generatorKind)
+        && Objects.equals(generator.getMetadata().getNamespace(), deployedResourceKey.generatorNamespace)
+        && Objects.equals(generator.getMetadata().getName(), deployedResourceKey.generatorName)
+        && Objects.equals(resource.getApiVersion(), deployedResourceKey.apiVersion)
+        && Objects.equals(resource.getKind(), deployedResourceKey.kind)
+        && Objects.equals(resource.getMetadata().getNamespace(), deployedResourceKey.namespace)
+        && Objects.equals(resource.getMetadata().getName(), deployedResourceKey.name);
+  }
+
+  public static boolean same(
+      HasMetadata resource,
+      HasMetadata deployed) {
+    if (resource == null && deployed == null) {
+      return true;
+    }
+    if (resource == null) {
+      return false;
+    }
+    if (deployed == null) {
+      return false;
+    }
+    return Objects.equals(resource.getApiVersion(), deployed.getApiVersion())
+        && Objects.equals(resource.getKind(), deployed.getKind())
+        && Objects.equals(resource.getMetadata().getNamespace(), deployed.getMetadata().getNamespace())
+        && Objects.equals(resource.getMetadata().getName(), deployed.getMetadata().getName());
   }
 
 }

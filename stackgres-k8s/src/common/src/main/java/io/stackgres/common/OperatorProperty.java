@@ -29,6 +29,7 @@ public enum OperatorProperty implements StackGresPropertyReader {
   LOCK_DURATION("stackgres.lockDuration"),
   RECONCILIATION_CACHE_EXPIRATION("stackgres.reconciliationCacheExpitarion"),
   RECONCILIATION_CACHE_SIZE("stackgres.reconciliationCacheSize"),
+  RECONCILIATION_CACHE_ENABLE_HASH("stackgres.reconciliationCacheEnableHash"),
   SGCONFIG("stackgres.sgconfig"),
   SGCONFIG_NAMESPACE("stackgres.sgconfigNamespace"),
   INSTALL_CONFIG("stackgres.installConfig"),

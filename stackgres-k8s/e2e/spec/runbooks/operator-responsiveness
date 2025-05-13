@@ -2,7 +2,35 @@
 
 E2E_RESPOSIVENESS_CARDINALITY="${E2E_RESPOSIVENESS_CARDINALITY:-2000}"
 
+e2e_exclusive_lock() {
+  true
+}
+
+metric_server_namespace() {
+  echo "$OPERATOR_NAMESPACE"
+}
+
+prometheus_namespace() {
+  echo "$OPERATOR_NAMESPACE"
+}
+
 e2e_test_install() {
+  if [ "$E2E_INITIAL_REUSE_OPERATOR_PODS" != true ]
+  then
+    k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+    k8s_async_cleanup
+
+    kubectl create namespace "$OPERATOR_NAMESPACE"
+
+    install_operator_only \
+      --set-string developer.extraEnv.RECONCILIATION_CACHE_ENABLE_HASH="${E2E_RECONCILIATION_CACHE_ENABLE_HASH:-false}"
+  fi
+
+  WAIT_METRIC_SERVER=false install_metric_server
+  WAIT_PROMETHEUS_OPERATOR=false install_prometheus_operator \
+    --set kubeStateMetrics.enabled=true \
+    --set nodeExporter.enabled=true
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
   seq 1 "$E2E_RESPOSIVENESS_CARDINALITY" \
     | xargs_parallel_shell @ \
