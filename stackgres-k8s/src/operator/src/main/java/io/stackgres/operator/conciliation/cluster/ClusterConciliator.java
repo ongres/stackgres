@@ -7,12 +7,10 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -57,20 +55,20 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   }
 
   @Override
-  protected boolean skipDeletion(HasMetadata foundDeployedResource, StackGresCluster config) {
-    if (foundDeployedResource instanceof Pod foundDeployedResourcePod
-        && foundDeployedResourcePod.getMetadata().getName().startsWith(
+  protected boolean skipDeletion(DeployedResource deployedResource, StackGresCluster config) {
+    if (deployedResource.apiVersion().equals(HasMetadata.getApiVersion(Pod.class))
+        && deployedResource.kind().equals(HasMetadata.getKind(Pod.class))
+        && deployedResource.name().startsWith(
             config.getMetadata().getName() + "-")) {
       return true;
     }
-    if (foundDeployedResource instanceof StackGresBackup foundDeployedResourceBackup
-        && Optional.of(foundDeployedResourceBackup.getMetadata())
-        .map(ObjectMeta::getLabels)
-        .map(labels -> labels.get(
-            StackGresContext.STACKGRES_KEY_PREFIX
-            + StackGresContext.RECONCILIATION_INITIALIZATION_BACKUP_KEY))
-        .filter(StackGresContext.RIGHT_VALUE::equals)
-        .isEmpty()) {
+    if (deployedResource.apiVersion().equals(HasMetadata.getApiVersion(StackGresBackup.class))
+        && deployedResource.kind().equals(HasMetadata.getKind(StackGresBackup.class))
+        && !deployedResource.hasDeployedLabels(
+            Map.of(
+                StackGresContext.STACKGRES_KEY_PREFIX
+                + StackGresContext.RECONCILIATION_INITIALIZATION_BACKUP_KEY,
+                StackGresContext.RIGHT_VALUE))) {
       return true;
     }
     return false;
@@ -99,8 +97,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
                   && !member.getMember().startsWith(config.getMetadata().getName() + "-")))
           && deployedResourcesCache
           .stream()
-          .map(DeployedResource::foundDeployed)
-          .noneMatch(foundDeployedResource -> isPrimaryPod(foundDeployedResource, primaryLabels));
+          .noneMatch(deployedResource -> isPrimaryPod(deployedResource, primaryLabels));
       if (noPrimaryPod && LOGGER.isDebugEnabled()) {
         LOGGER.debug("Will force StatefulSet reconciliation since no primary pod with labels {} was"
             + " found for SGCluster {}.{}",
@@ -113,8 +110,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         var members = patroniCtl.list();
         anyPodWithWrongOrMissingRole = deployedResourcesCache
             .stream()
-            .map(DeployedResource::foundDeployed)
-            .anyMatch(foundDeployedResource -> isPodWithWrongOrMissingRole(config, foundDeployedResource, members));
+            .anyMatch(deployedResource -> isPodWithWrongOrMissingRole(config, deployedResource, members));
       } else {
         anyPodWithWrongOrMissingRole = false;
       }
@@ -132,37 +128,32 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
       justification = "False positive")
   private boolean isPrimaryPod(
-      HasMetadata foundDeployedResource,
+      DeployedResource deployedResource,
       Map<String, String> primaryLabels) {
-    return foundDeployedResource instanceof Pod foundDeployedPod
-        && Optional.of(foundDeployedPod.getMetadata())
-        .map(ObjectMeta::getLabels)
-        .filter(labels -> primaryLabels.entrySet().stream()
-            .allMatch(primaryLabel -> labels.entrySet().stream()
-                .anyMatch(primaryLabel::equals)))
-        .isPresent();
+    return deployedResource.apiVersion().equals(HasMetadata.getApiVersion(Pod.class))
+        && deployedResource.kind().equals(HasMetadata.getKind(Pod.class))
+        && deployedResource.hasDeployedLabels(primaryLabels);
   }
 
   @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
       justification = "False positive")
   private boolean isPodWithWrongOrMissingRole(
       StackGresCluster config,
-      HasMetadata foundDeployedResource,
+      DeployedResource deployedResource,
       List<PatroniMember> members) {
     final String patroniVersion = StackGresUtil.getPatroniVersion(config);
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
-    return foundDeployedResource instanceof Pod foundDeployedPod
-        && !Optional.of(foundDeployedPod.getMetadata())
-        .map(ObjectMeta::getLabels)
-        .filter(labels -> Objects.equals(
-            members.stream()
-            .filter(member -> foundDeployedPod.getMetadata().getName().equals(member.getMember())
-                && member.getLabelRole(patroniMajorVersion) != null)
-            .map(member -> member.getLabelRole(patroniMajorVersion))
-            .findFirst()
-            .orElse(null),
-            labels.get(PatroniUtil.ROLE_KEY)))
-        .isPresent();
+    return deployedResource.apiVersion().equals(HasMetadata.getApiVersion(Pod.class))
+        && deployedResource.kind().equals(HasMetadata.getKind(Pod.class))
+        && !deployedResource.hasDeployedLabels(
+            Map.of(
+                PatroniUtil.ROLE_KEY,
+                members.stream()
+                .filter(member -> deployedResource.name().equals(member.getMember())
+                    && member.getLabelRole(patroniMajorVersion) != null)
+                .map(member -> member.getLabelRole(patroniMajorVersion))
+                .findFirst()
+                .orElse(null)));
   }
 
 }

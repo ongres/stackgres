@@ -23,13 +23,16 @@ install_metric_server() {
     oc adm policy add-scc-to-user anyuid -n "$(metric_server_namespace)" -z default
   fi
 
-  helm install metrics-server "$E2E_PATH/helm/metrics-server-3.12.0.tgz" \
+  helm upgrade --install metrics-server "$E2E_PATH/helm/metrics-server-3.12.0.tgz" \
     --create-namespace \
     --namespace "$(metric_server_namespace)" \
     --set-string args[0]=--kubelet-insecure-tls \
     "$@"
 
-  wait_pods_running "$(metric_server_namespace)" 1
+  if [ "${WAIT_METRIC_SERVER:-true}" = true ]
+  then
+    wait_pods_running "$(metric_server_namespace)" 1
+  fi
 }
 
 uninstall_metric_server() {

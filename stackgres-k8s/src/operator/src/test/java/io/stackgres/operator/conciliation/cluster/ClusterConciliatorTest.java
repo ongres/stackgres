@@ -697,7 +697,7 @@ class ClusterConciliatorTest {
         .filter(this::hasControllerOwnerReference)
         .forEach(resource -> deployedResourcesCache
             .put(cluster, lastRequired.stream()
-                .filter(r -> ResourceKey.same(cluster, r, resource))
+                .filter(r -> ResourceKey.same(r, resource))
                 .findFirst()
                 .orElse(resource),
                 resource));

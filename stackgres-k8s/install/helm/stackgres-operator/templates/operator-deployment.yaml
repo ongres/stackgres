@@ -186,7 +186,7 @@ spec:
           {{- if .Values.developer.extraEnv }}
           {{- range $name,$value := .Values.developer.extraEnv }}
           - name: {{ $name }}
-            value: {{ $value }}
+            value: {{ $value | quote }}
           {{- end }}
           {{- end }}
           {{- with .Values.developer.version }}

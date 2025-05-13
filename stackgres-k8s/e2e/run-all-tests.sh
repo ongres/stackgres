@@ -246,6 +246,7 @@ fi
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
 export K8S_REUSE=true
+export E2E_INITIAL_REUSE_OPERATOR_PODS="$E2E_REUSE_OPERATOR_PODS"
 export E2E_REUSE_OPERATOR_PODS=true
 export E2E_SKIP_SETUP=false
 
