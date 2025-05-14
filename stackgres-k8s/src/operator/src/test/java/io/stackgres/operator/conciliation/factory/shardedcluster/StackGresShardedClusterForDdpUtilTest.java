@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.crd.CustomServicePortBuilder;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -111,12 +112,48 @@ class StackGresShardedClusterForDdpUtilTest {
         0);
     Assertions.assertEquals(
         new StackGresPostgresServiceBuilder()
-        .withEnabled(false)
+        .withEnabled(true)
         .build(),
         cluster.getSpec().getPostgresServices().getPrimary());
     Assertions.assertEquals(
         new StackGresPostgresServiceBuilder()
         .withEnabled(true)
+        .build(),
+        cluster.getSpec().getPostgresServices().getReplicas());
+  }
+
+  @Test
+  void givedMinimalShardedClusterPrimaryDisabledAndAnyDisabled_shouldGenerateCoordinatorCluster() {
+    var shardedCluster = getMinimalShardedCluster();
+    shardedCluster.getSpec().setPostgresServices(
+        new StackGresShardedClusterPostgresServicesBuilder()
+        .withNewCoordinator()
+        .withNewPrimary()
+        .withEnabled(false)
+        .endPrimary()
+        .withNewAny()
+        .withEnabled(false)
+        .endAny()
+        .endCoordinator()
+        .build());
+    var coordinatorPrimary =
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary();
+    coordinatorPrimary.setEnabled(false);
+    var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
+    checkClusterWithGlobalSettings(
+        shardedCluster,
+        shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
+        cluster,
+        0);
+    Assertions.assertEquals(
+        new StackGresPostgresServiceBuilder()
+        .withEnabled(false)
+        .build(),
+        cluster.getSpec().getPostgresServices().getPrimary());
+    Assertions.assertEquals(
+        new StackGresPostgresServiceBuilder()
+        .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
   }
@@ -240,11 +277,28 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         0);
     Assertions.assertEquals(
-        shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary(),
-        cluster.getSpec().getPostgresServices().getPrimary());
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary().getEnabled()
+        || shardedCluster.getSpec().getPostgresServices().getCoordinator().getAny().getEnabled(),
+        cluster.getSpec().getPostgresServices().getPrimary().getEnabled());
     Assertions.assertEquals(
-        shardedCluster.getSpec().getPostgresServices().getCoordinator().getAny(),
-        cluster.getSpec().getPostgresServices().getReplicas());
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getCustomPorts()
+        .stream()
+        .map(customPort -> new CustomServicePortBuilder(customPort)
+            .withNodePort(null)
+            .build())
+        .toList(),
+        cluster.getSpec().getPostgresServices().getPrimary().getCustomPorts());
+    Assertions.assertEquals(
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getAny().getEnabled(),
+        cluster.getSpec().getPostgresServices().getReplicas().getEnabled());
+    Assertions.assertEquals(
+        shardedCluster.getSpec().getPostgresServices().getCoordinator().getCustomPorts()
+        .stream()
+        .map(customPort -> new CustomServicePortBuilder(customPort)
+            .withNodePort(null)
+            .build())
+        .toList(),
+        cluster.getSpec().getPostgresServices().getReplicas().getCustomPorts());
   }
 
   @Test
@@ -267,8 +321,16 @@ class StackGresShardedClusterForDdpUtilTest {
         cluster,
         1);
     Assertions.assertEquals(
-        shardedCluster.getSpec().getPostgresServices().getShards().getPrimaries(),
-        cluster.getSpec().getPostgresServices().getPrimary());
+        shardedCluster.getSpec().getPostgresServices().getShards().getPrimaries().getEnabled(),
+        cluster.getSpec().getPostgresServices().getPrimary().getEnabled());
+    Assertions.assertEquals(
+        shardedCluster.getSpec().getPostgresServices().getShards().getCustomPorts()
+        .stream()
+        .map(customPort -> new CustomServicePortBuilder(customPort)
+            .withNodePort(null)
+            .build())
+        .toList(),
+        cluster.getSpec().getPostgresServices().getPrimary().getCustomPorts());
     Assertions.assertEquals(
         new StackGresPostgresServiceBuilder()
         .withEnabled(false)

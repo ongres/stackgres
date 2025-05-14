@@ -530,7 +530,7 @@ wait_for_major_version_upgrade() {
   until kubectl wait pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
   do
     POD_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
-      | jq '.status.containerStatuses + .status.initContainerStatuses + [] | map(select(.restartCount > 0)) | length' \
+      | jq '.status.containerStatuses + .status.initContainerStatuses + [{restartCount: 0}] | map(.restartCount) | add' \
       || printf 0)"
     if [ "$POD_CONTAINER_FAILURES" -gt "${MAX_ERRORS_AFTER_UPGRADE:-0}" ]
     then
@@ -562,7 +562,7 @@ wait_for_major_version_upgrade_check() {
       kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$MAJOR_VERSION_UPGRADE_CONTAINER_NAME" 2>/dev/null \
         | grep "^Major version upgrade check " || true)"
     POD_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
-      | jq '.status.containerStatuses + .status.initContainerStatuses + [] | map(select(.restartCount > 0)) | length' \
+      | jq '.status.containerStatuses + .status.initContainerStatuses + [{restartCount: 0}] | map(.restartCount) | add' \
       || printf 0)"
     if [ "$POD_CONTAINER_FAILURES" -gt "${MAX_ERRORS_AFTER_UPGRADE:-0}" ] \
       || echo "$MAJOR_VERSION_UPGRADE_LOGS" | grep -qxF "Major version upgrade check performed"

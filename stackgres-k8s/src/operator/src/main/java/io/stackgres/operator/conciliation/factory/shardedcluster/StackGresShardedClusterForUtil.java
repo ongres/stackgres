@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.crd.CustomServicePortBuilder;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServicesBuilder;
@@ -75,28 +76,31 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         StackGresShardedClusterUtil.getCoordinatorClusterName(cluster));
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresPostgresServicesBuilder()
-        .withPrimary(Optional.ofNullable(postgresServices)
-            .map(StackGresShardedClusterPostgresServices::getCoordinator)
-            .map(StackGresShardedClusterPostgresCoordinatorServices::getPrimary)
-            .orElseGet(StackGresPostgresService::new))
-        .editPrimary()
+        .withNewPrimary()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
             .map(StackGresShardedClusterPostgresCoordinatorServices::getPrimary)
+            .map(StackGresPostgresService::getEnabled)
+            .orElse(true)
+            || Optional.ofNullable(postgresServices)
+            .map(StackGresShardedClusterPostgresServices::getCoordinator)
+            .map(StackGresShardedClusterPostgresCoordinatorServices::getAny)
             .map(StackGresPostgresService::getEnabled)
             .orElse(true))
         .withCustomPorts(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
             .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
+            .map(customPorts -> customPorts
+                .stream()
+                .map(customPort -> new CustomServicePortBuilder(customPort)
+                    .withNodePort(null)
+                    .build())
+                .toList())
             .orElse(null))
         .endPrimary()
-        .withReplicas(Optional.ofNullable(postgresServices)
-            .map(StackGresShardedClusterPostgresServices::getCoordinator)
-            .map(StackGresShardedClusterPostgresCoordinatorServices::getAny)
-            .orElseGet(StackGresPostgresService::new))
-        .editReplicas()
+        .withNewReplicas()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
@@ -107,6 +111,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getCoordinator)
             .map(StackGresShardedClusterPostgresCoordinatorServices::getCustomPorts)
+            .map(customPorts -> customPorts
+                .stream()
+                .map(customPort -> new CustomServicePortBuilder(customPort)
+                    .withNodePort(null)
+                    .build())
+                .toList())
             .orElse(null))
         .endReplicas()
         .build());
@@ -147,11 +157,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         StackGresShardedClusterUtil.getShardClusterName(cluster, index));
     var postgresServices = cluster.getSpec().getPostgresServices();
     spec.setPostgresServices(new StackGresPostgresServicesBuilder()
-        .withPrimary(Optional.ofNullable(postgresServices)
-            .map(StackGresShardedClusterPostgresServices::getShards)
-            .map(StackGresShardedClusterPostgresShardsServices::getPrimaries)
-            .orElseGet(StackGresPostgresService::new))
-        .editPrimary()
+        .withNewPrimary()
         .withEnabled(
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getShards)
@@ -162,6 +168,12 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             Optional.ofNullable(postgresServices)
             .map(StackGresShardedClusterPostgresServices::getShards)
             .map(StackGresShardedClusterPostgresShardsServices::getCustomPorts)
+            .map(customPorts -> customPorts
+                .stream()
+                .map(customPort -> new CustomServicePortBuilder(customPort)
+                    .withNodePort(null)
+                    .build())
+                .toList())
             .orElse(null))
         .endPrimary()
         .withNewReplicas()

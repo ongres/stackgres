@@ -195,6 +195,7 @@ public class DeployedResourcesCache {
         .map(resource -> ResourceKey.create(generator, resource))
         .collect(Collectors.toSet());
     cache.asMap().entrySet().stream()
+        .filter(e -> e.getKey().isGeneratedBy(generator))
         .map(e -> Tuple.tuple(
             e.getKey(),
             Optional.ofNullable(e.getValue().foundDeployed().getMetadata().getLabels())

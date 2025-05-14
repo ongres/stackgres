@@ -6,6 +6,7 @@
 package io.stackgres.common;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -45,19 +46,26 @@ public class JsonUtil {
       ObjectNode otherValueFilteredByModel = JSON_MAPPER.valueToTree(
           JSON_MAPPER.readValue(otherValue.toString(), modelClass));
       List<Tuple2<ObjectNode, ObjectNode>> nodesToFilterOut =
-          List.of(Tuple.tuple(otherValueFilteredByModel, otherValue));
-      while (!nodesToFilterOut.isEmpty()) {
-        nodesToFilterOut
-            .forEach(nodeTuple -> Seq.seq(nodeTuple.v1.fieldNames())
-               .filter(Predicate.not(field -> nodeTuple.v2.get(field) instanceof ObjectNode))
-               .forEach(nodeTuple.v2::remove));
-        nodesToFilterOut = Seq.seq(nodesToFilterOut)
+          new ArrayList<>(List.of(Tuple.tuple(otherValueFilteredByModel, otherValue)));
+      List<Tuple2<ObjectNode, ObjectNode>> nextNodesToFilterOut = nodesToFilterOut;
+      while (true) {
+        nextNodesToFilterOut =
+            Seq.seq(nextNodesToFilterOut)
             .flatMap(nodeTuple -> Seq.seq(nodeTuple.v1.fieldNames())
                 .map(field -> Tuple.tuple(nodeTuple.v1.get(field), nodeTuple.v2.get(field))))
-            .filter(nodeTuple -> ObjectNode.class.isInstance(nodeTuple.v1))
+            .filter(nodeTuple -> ObjectNode.class.isInstance(nodeTuple.v1) && nodeTuple.v2 != null)
             .map(nodeTuple -> nodeTuple.map1(ObjectNode.class::cast).map2(ObjectNode.class::cast))
             .toList();
+        if (nextNodesToFilterOut.isEmpty()) {
+          break;
+        }
+        nodesToFilterOut.addAll(0, nextNodesToFilterOut);
       }
+      nodesToFilterOut
+          .forEach(nodeTuple -> Seq.seq(nodeTuple.v1.fieldNames())
+             .filter(Predicate.not(field -> nodeTuple.v2.get(field) instanceof ObjectNode objectNode
+                 && !objectNode.isEmpty()))
+             .forEach(nodeTuple.v2::remove));
       JsonNode updatedValue = JSON_MAPPER.readerForUpdating(otherValue)
           .readTree(JSON_MAPPER.writeValueAsString(value));
       return (ObjectNode) updatedValue;
