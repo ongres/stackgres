@@ -18,10 +18,12 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniMember;
@@ -79,26 +81,33 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       justification = "False positive")
   protected boolean forceChange(HasMetadata requiredResource, StackGresCluster config) {
     if (requiredResource instanceof StatefulSet requiredStatefulSet
-        && requiredStatefulSet.getMetadata().getName().equals(
-            config.getMetadata().getName())) {
+        && requiredStatefulSet.getMetadata().getName().equals(config.getMetadata().getName())) {
       var patroniCtl = this.patroniCtl.instanceFor(config);
-      final Boolean isPatroniOnKubernetes = Optional.ofNullable(config.getSpec().getConfigurations())
+      final boolean clusterHasPods = config.getSpec().getInstances() > 0;
+      final boolean isPatroniOnKubernetes = Optional.ofNullable(config.getSpec().getConfigurations())
           .map(StackGresClusterConfigurations::getPatroni)
           .map(StackGresClusterPatroni::getInitialConfig)
           .map(StackGresClusterPatroniConfig::isPatroniOnKubernetes)
           .orElse(true);
-      Map<String, String> primaryLabels =
+      final Map<String, String> primaryLabels =
           labelFactory.clusterPrimaryLabelsWithoutUidAndScope(config);
+      final var members = patroniCtl.list();
+      final boolean clusterBootstrapped = Optional.of(config)
+          .map(StackGresCluster::getStatus)
+          .map(StackGresClusterStatus::getConditions)
+          .stream()
+          .flatMap(List::stream)
+          .anyMatch(ClusterStatusCondition.CLUSTER_BOOTSTRAPPED::isCondition);
       final boolean noPrimaryPod =
           (isPatroniOnKubernetes
-              || patroniCtl.list()
+              || members
               .stream()
               .noneMatch(member -> member.isPrimary()
                   && !member.getMember().startsWith(config.getMetadata().getName() + "-")))
           && deployedResourcesCache
           .stream()
-          .noneMatch(deployedResource -> isPrimaryPod(deployedResource, primaryLabels));
-      if (noPrimaryPod && LOGGER.isDebugEnabled()) {
+          .noneMatch(deployedResource -> isPrimaryPod(config, deployedResource, primaryLabels));
+      if (clusterBootstrapped && clusterHasPods && noPrimaryPod && LOGGER.isDebugEnabled()) {
         LOGGER.debug("Will force StatefulSet reconciliation since no primary pod with labels {} was"
             + " found for SGCluster {}.{}",
             primaryLabels,
@@ -107,36 +116,33 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       }
       final boolean anyPodWithWrongOrMissingRole;
       if (!isPatroniOnKubernetes) {
-        var members = patroniCtl.list();
         anyPodWithWrongOrMissingRole = deployedResourcesCache
             .stream()
             .anyMatch(deployedResource -> isPodWithWrongOrMissingRole(config, deployedResource, members));
       } else {
         anyPodWithWrongOrMissingRole = false;
       }
-      if (anyPodWithWrongOrMissingRole && LOGGER.isDebugEnabled()) {
+      if (clusterBootstrapped && clusterHasPods && anyPodWithWrongOrMissingRole && LOGGER.isDebugEnabled()) {
         LOGGER.debug("Will force StatefulSet reconciliation since some pod with wrong or missing role label was"
             + " found for SGCluster {}.{}",
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
       }
-      return noPrimaryPod || anyPodWithWrongOrMissingRole;
+      return clusterBootstrapped && clusterHasPods && (noPrimaryPod || anyPodWithWrongOrMissingRole);
     }
     return false;
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   private boolean isPrimaryPod(
+      StackGresCluster config,
       DeployedResource deployedResource,
       Map<String, String> primaryLabels) {
     return deployedResource.apiVersion().equals(HasMetadata.getApiVersion(Pod.class))
         && deployedResource.kind().equals(HasMetadata.getKind(Pod.class))
+        && deployedResource.namespace().equals(config.getMetadata().getNamespace())
         && deployedResource.hasDeployedLabels(primaryLabels);
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   private boolean isPodWithWrongOrMissingRole(
       StackGresCluster config,
       DeployedResource deployedResource,
@@ -145,6 +151,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
     final int patroniMajorVersion = StackGresUtil.getPatroniMajorVersion(patroniVersion);
     return deployedResource.apiVersion().equals(HasMetadata.getApiVersion(Pod.class))
         && deployedResource.kind().equals(HasMetadata.getKind(Pod.class))
+        && deployedResource.namespace().equals(config.getMetadata().getNamespace())
         && !deployedResource.hasDeployedLabels(
             Map.of(
                 PatroniUtil.ROLE_KEY,
