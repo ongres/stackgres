@@ -90,12 +90,11 @@ spec:
               metadata:
                 name: {{ .Release.Name }}
                 namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
-              spec:
                 {{- $spec := dict }}
                 {{- range .Values.specFields }}
                 {{- $spec := set $spec . (index $.Values .) }}
                 {{- end }}
-                {{ regexReplaceAll "[^ ]+: null" (toYaml $spec | nindent 16) "" }}
+              spec: {{ toJson $spec }}
           {{- end }}
 
           - name: INSTALL_CRDS
