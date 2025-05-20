@@ -34,6 +34,7 @@ public record DeployedResourceHashed(
     String[] requiredAnnotations,
     String[] requiredLabels,
     boolean hasRequiredEndpointsWithEmptySubsets,
+    String[][] deployedAnnotations,
     String[][] deployedLabels) implements DeployedResource {
 
   @Override
@@ -54,13 +55,22 @@ public record DeployedResourceHashed(
   @Override
   public boolean isRequiredChanged(ObjectMapper objectMapper, HasMetadata requiredResource) {
     return required
-        .filter(Predicate.not(requiredResource::equals))
+        .filter(Predicate.not(hashOf(objectMapper, requiredResource)::equals))
         .isPresent();
   }
 
   @Override
   public boolean hasRequired() {
     return required.isPresent();
+  }
+
+  @Override
+  public boolean hasDeployedAnnotations(Map<String, String> annotations) {
+    return annotations.entrySet()
+        .stream()
+        .allMatch(annotation -> Arrays.asList(deployedAnnotations).stream()
+            .map(deployedAnnotation -> Map.entry(deployedAnnotation[0], deployedAnnotation[1]))
+            .anyMatch(annotation::equals));
   }
 
   @Override
@@ -111,6 +121,10 @@ public record DeployedResourceHashed(
           .filter(endpoints -> endpoints.getSubsets() == null
               || endpoints.getSubsets().isEmpty())
           .isPresent(),
+          Optional.ofNullable(deployed.getMetadata().getAnnotations())
+          .stream().map(Map::entrySet).flatMap(Set::stream)
+          .map(entry -> new String[] { entry.getKey(), entry.getValue() })
+          .toArray(String[][]::new),
           Optional.ofNullable(deployed.getMetadata().getLabels())
           .stream().map(Map::entrySet).flatMap(Set::stream)
           .map(entry -> new String[] { entry.getKey(), entry.getValue() })
@@ -137,6 +151,10 @@ public record DeployedResourceHashed(
           Optional.ofNullable(deployed.getMetadata().getLabels())
           .stream().map(Map::keySet).flatMap(Set::stream).toArray(String[]::new),
           false,
+          Optional.ofNullable(deployed.getMetadata().getAnnotations())
+          .stream().map(Map::entrySet).flatMap(Set::stream)
+          .map(entry -> new String[] { entry.getKey(), entry.getValue() })
+          .toArray(String[][]::new),
           Optional.ofNullable(deployed.getMetadata().getLabels())
           .stream().map(Map::entrySet).flatMap(Set::stream)
           .map(entry -> new String[] { entry.getKey(), entry.getValue() })
@@ -175,6 +193,10 @@ public record DeployedResourceHashed(
           .filter(endpoints -> endpoints.getSubsets() == null
               || endpoints.getSubsets().isEmpty())
           .isPresent(),
+          Optional.ofNullable(foundDeployed.getMetadata().getAnnotations())
+          .stream().map(Map::entrySet).flatMap(Set::stream)
+          .map(entry -> new String[] { entry.getKey(), entry.getValue() })
+          .toArray(String[][]::new),
           Optional.ofNullable(foundDeployed.getMetadata().getLabels())
           .stream().map(Map::entrySet).flatMap(Set::stream)
           .map(entry -> new String[] { entry.getKey(), entry.getValue() })
@@ -202,6 +224,10 @@ public record DeployedResourceHashed(
           Optional.ofNullable(foundDeployed.getMetadata().getLabels())
           .stream().map(Map::keySet).flatMap(Set::stream).toArray(String[]::new),
           false,
+          Optional.ofNullable(foundDeployed.getMetadata().getAnnotations())
+          .stream().map(Map::entrySet).flatMap(Set::stream)
+          .map(entry -> new String[] { entry.getKey(), entry.getValue() })
+          .toArray(String[][]::new),
           Optional.ofNullable(foundDeployed.getMetadata().getLabels())
           .stream().map(Map::entrySet).flatMap(Set::stream)
           .map(entry -> new String[] { entry.getKey(), entry.getValue() })
@@ -209,14 +235,22 @@ public record DeployedResourceHashed(
     }
 
     private String hashOf(HasMetadata resource) {
-      return StackGresUtil.getMd5Sum(
-          Unchecked.supplier(() -> objectMapper.writeValueAsString(resource)).get());
+      return DeployedResourceHashed.hashOf(objectMapper, resource);
     }
 
     private String hashOf(ObjectNode resourceNode) {
-      return StackGresUtil.getMd5Sum(
-          Unchecked.supplier(() -> objectMapper.writeValueAsString(resourceNode)).get());
+      return DeployedResourceHashed.hashOf(objectMapper, resourceNode);
     }
+  }
+
+  private static String hashOf(ObjectMapper objectMapper, HasMetadata resource) {
+    return StackGresUtil.getMd5Sum(
+        Unchecked.supplier(() -> objectMapper.writeValueAsString(resource)).get());
+  }
+
+  private static String hashOf(ObjectMapper objectMapper, ObjectNode resourceNode) {
+    return StackGresUtil.getMd5Sum(
+        Unchecked.supplier(() -> objectMapper.writeValueAsString(resourceNode)).get());
   }
 
 }

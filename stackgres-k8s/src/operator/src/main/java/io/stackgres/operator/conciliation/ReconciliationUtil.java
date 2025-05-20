@@ -12,7 +12,7 @@ import io.stackgres.common.StackGresContext;
 public class ReconciliationUtil {
 
   public static boolean isResourceReconciliationNotPaused(DeployedResource deployedResource) {
-    return !deployedResource.hasDeployedLabels(
+    return !deployedResource.hasDeployedAnnotations(
         Map.of(StackGresContext.RECONCILIATION_PAUSE_KEY, StackGresContext.RIGHT_VALUE));
   }
 }

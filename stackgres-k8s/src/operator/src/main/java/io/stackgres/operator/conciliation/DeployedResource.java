@@ -49,6 +49,8 @@ public interface DeployedResource {
 
   boolean hasRequired();
 
+  boolean hasDeployedAnnotations(Map<String, String> annotations);
+
   boolean hasDeployedLabels(Map<String, String> labels);
 
   public abstract static class DeployedResourceBuilder {

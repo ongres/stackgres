@@ -7,13 +7,13 @@ package io.stackgres.operator.conciliation;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -110,8 +110,8 @@ public class DeployedResourcesCache {
     return cache.getIfPresent(ResourceKey.create(generator, requiredResource));
   }
 
-  public Stream<DeployedResource> stream() {
-    return cache.asMap().values().stream();
+  public Set<DeployedResource> values() {
+    return new HashSet<>(cache.asMap().values());
   }
 
   public DeployedResourcesSnapshot createDeployedResourcesSnapshot(

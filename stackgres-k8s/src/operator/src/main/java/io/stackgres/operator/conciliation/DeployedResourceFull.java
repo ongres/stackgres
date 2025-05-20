@@ -108,6 +108,16 @@ public record DeployedResourceFull(
   }
 
   @Override
+  public boolean hasDeployedAnnotations(Map<String, String> annotations) {
+    Map<String, String> deployedAnnotations = Optional
+        .ofNullable(foundDeployed().getMetadata().getAnnotations())
+        .orElse(Map.of());
+    return annotations.entrySet()
+        .stream()
+        .allMatch(annotation-> deployedAnnotations.entrySet().stream().anyMatch(annotation::equals));
+  }
+
+  @Override
   public boolean hasDeployedLabels(Map<String, String> labels) {
     Map<String, String> deployedLabels = Optional
         .ofNullable(foundDeployed().getMetadata().getLabels())

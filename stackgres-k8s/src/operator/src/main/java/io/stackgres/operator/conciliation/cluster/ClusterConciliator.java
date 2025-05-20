@@ -105,6 +105,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
               .noneMatch(member -> member.isPrimary()
                   && !member.getMember().startsWith(config.getMetadata().getName() + "-")))
           && deployedResourcesCache
+          .values()
           .stream()
           .noneMatch(deployedResource -> isPrimaryPod(config, deployedResource, primaryLabels));
       if (clusterBootstrapped && clusterHasPods && noPrimaryPod && LOGGER.isDebugEnabled()) {
@@ -117,6 +118,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       final boolean anyPodWithWrongOrMissingRole;
       if (!isPatroniOnKubernetes) {
         anyPodWithWrongOrMissingRole = deployedResourcesCache
+            .values()
             .stream()
             .anyMatch(deployedResource -> isPodWithWrongOrMissingRole(config, deployedResource, members));
       } else {

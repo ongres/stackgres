@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.ServiceStatusBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatusBuilder;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
@@ -51,6 +52,8 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +62,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterConciliatorTest {
+class ClusterConciliatorWithHashedCacheTest {
 
   private StackGresCluster cluster;
 
@@ -79,6 +82,16 @@ class ClusterConciliatorTest {
   private PatroniCtlInstance patroniCtlInstance;
 
   private DeployedResourcesCache deployedResourcesCache;
+
+  @BeforeAll
+  static void enableHashedCache() {
+    System.setProperty(OperatorProperty.RECONCILIATION_CACHE_ENABLE_HASH.getPropertyName(), "true");
+  }
+
+  @AfterAll
+  static void disableHashedCache() {
+    System.setProperty(OperatorProperty.RECONCILIATION_CACHE_ENABLE_HASH.getPropertyName(), "false");
+  }
 
   @BeforeEach
   void setUp() {
