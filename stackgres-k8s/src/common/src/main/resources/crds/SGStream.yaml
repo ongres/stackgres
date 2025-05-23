@@ -35,17 +35,22 @@ spec:
             description: |
               Specification of the desired behavior of a StackGres stream.
               
-              A stream represent the process of performing a change data capture (CDC) operation on a data source that generates a stream of event containing information about the changes happening (or happened) to the database in real time (or from the beginning).
+              A stream represents a pipeline for data that comes from a source and goes to a target.
               
-              The stream allow to specify different types for the target of the CDC operation. See `SGStream.spec.target.type`.
+              The input of a stream are change events from a data source through a method called change data capture (CDC) that generates a stream of events containing information about the changes happening (or happened) to the data in real time (or from the beginning). See `SGStream.spec.source.type` for the available types.
               
-              The stream perform two distinct operation to generate data source changes for the target:
+              The output of a stream can be a database or an event receiver and depends on the type of the target choosen. See `SGStream.spec.target.type` for the available types.
               
-              * Snapshotting: allows to capture the content of the data source in a specific point in time and stream it as if they were changes, thus providing a stream of events as they were an aggregate from the beginning of the existence of the data source.
-              * Streaming: allows to capture the changes that are happening in real time in the data source and stream them as changes continuously.
+              The stream perform two distinct operation to collect data changes from the data source:
+              
+              * Snapshotting: allows to capture the content of the data source in a specific point in time aligned with the streaming and stream it as if they were changes, thus providing a stream of events as they were an aggregate from the beginning of the existence of the data source.
+              * Streaming: allows to capture the data changes that are happening in real time in the data source and stream them as changes continuously.
 
-              The CDC is performed using [Debezium Engine](https://debezium.io/documentation/reference/stable/development/engine.html). SGStream extends functionality of Debezium by providing a [custom signaling channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-custom-signaling-channel) that allow to send signals by simply adding annotation to the SGStream resources.
-              To send a signal simply create an annotation with the following formar:
+              The CDC is performed using [Debezium Engine](https://debezium.io/documentation/reference/stable/development/engine.html).
+              
+              SGStream extends functionality of Debezium by providing a [custom signaling channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-custom-signaling-channel) that allow to send signals by simply adding annotation to the SGStream resources.
+              
+              To send a signal simply create an annotation with the following format:
               
               ```
               metadata:
@@ -53,10 +58,10 @@ spec:
                   debezium-signal.stackgres.io/<signal type>: <signal data>
               ```
               
-              Also, SGStream provide the following custom singals implementations:
+              Also, SGStream provides the following custom signals implementations:
                 
                 * `tombstone`: allow to stop completely Debezium streaming and the SGStream. This signal is useful to give an end to the streaming in a graceful way allowing for the removal of the logical slot created by Debezium.
-                * `command`: allow to execute any SQL command on the target database. Only available then the target type is `SGCluster`.
+                * `command`: allow to execute any SQL command on the target database. Only available when the target type is `SGCluster`.
             required: ["source", "target", "pods"]
             properties:
               source:
