@@ -198,19 +198,21 @@ public abstract class ExtensionManager {
     }
 
     public void createExtensionLinks() throws Exception {
-      fileSystemHandler
-          .list(Paths.get(ClusterPath.PG_EXTENSIONS_LIB_PATH.path(context)))
-          .map(libFile -> Tuple.tuple(libFile,
-              Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
-                  .resolve(libFile.getFileName())))
-          .forEach(
-              Unchecked.consumer(t -> {
-                Path targetParent = t.v2.getParent();
-                if (targetParent != null) {
-                  fileSystemHandler.createDirectories(targetParent);
-                }
-                fileSystemHandler.createOrReplaceSymbolicLink(t.v2, t.v1);
-              }));
+      try (var list = fileSystemHandler
+          .list(Paths.get(ClusterPath.PG_EXTENSIONS_LIB_PATH.path(context)))) {
+        list
+            .map(libFile -> Tuple.tuple(libFile,
+                Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
+                    .resolve(libFile.getFileName())))
+            .forEach(
+                Unchecked.consumer(t -> {
+                  Path targetParent = t.v2.getParent();
+                  if (targetParent != null) {
+                    fileSystemHandler.createDirectories(targetParent);
+                  }
+                  fileSystemHandler.createOrReplaceSymbolicLink(t.v2, t.v1);
+                }));
+      }
       fileSystemHandler.createOrReplaceFile(
           Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
