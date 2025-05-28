@@ -43,7 +43,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="adminui--image--tag">adminui.image.tag</td>
 			<td>string</td>
-			<td>`"main-1.15"`</td>
+			<td>`"1.16.3"`</td>
 			<td>Web Console image tag</td>
       </tr>
       <tr>
@@ -301,7 +301,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="collector--config--exporters--prometheus--metric_expiration">collector.config.exporters.prometheus.metric_expiration</td>
 			<td>string</td>
-			<td>`"180m"`</td>
+			<td>`"5m"`</td>
 			<td></td>
       </tr>
       <tr>
@@ -341,9 +341,21 @@ Workaround for hugo bug not rendering first table row
 			<td></td>
       </tr>
       <tr>
-			<td id="collector--config--processors">collector.config.processors</td>
-			<td>object</td>
-			<td>`{}`</td>
+			<td id="collector--config--processors--memory_limiter--check_interval">collector.config.processors.memory_limiter.check_interval</td>
+			<td>string</td>
+			<td>`"1s"`</td>
+			<td></td>
+      </tr>
+      <tr>
+			<td id="collector--config--processors--memory_limiter--limit_percentage">collector.config.processors.memory_limiter.limit_percentage</td>
+			<td>int</td>
+			<td>`80`</td>
+			<td></td>
+      </tr>
+      <tr>
+			<td id="collector--config--processors--memory_limiter--spike_limit_percentage">collector.config.processors.memory_limiter.spike_limit_percentage</td>
+			<td>int</td>
+			<td>`15`</td>
 			<td></td>
       </tr>
       <tr>
@@ -383,9 +395,9 @@ Workaround for hugo bug not rendering first table row
 			<td></td>
       </tr>
       <tr>
-			<td id="collector--config--service--pipelines--metrics--processors">collector.config.service.pipelines.metrics.processors</td>
-			<td>list</td>
-			<td>`[]`</td>
+			<td id="collector--config--service--pipelines--metrics--processors[0]">collector.config.service.pipelines.metrics.processors[0]</td>
+			<td>string</td>
+			<td>`"memory_limiter"`</td>
 			<td></td>
       </tr>
       <tr>
@@ -457,7 +469,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="collector--resources">collector.resources</td>
 			<td>object</td>
-			<td>`{}`</td>
+			<td>`{"limits":{"cpu":"1","memory":"4Gi"},"requests":{"cpu":"250m","memory":"1Gi"}}`</td>
 			<td>OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core</td>
       </tr>
       <tr>
@@ -659,6 +671,18 @@ Workaround for hugo bug not rendering first table row
 			<td>Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core</td>
       </tr>
       <tr>
+			<td id="developer--patches--stream--volumeMounts">developer.patches.stream.volumeMounts</td>
+			<td>list</td>
+			<td>`[]`</td>
+			<td>Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core</td>
+      </tr>
+      <tr>
+			<td id="developer--patches--stream--volumes">developer.patches.stream.volumes</td>
+			<td>list</td>
+			<td>`[]`</td>
+			<td>Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core</td>
+      </tr>
+      <tr>
 			<td id="developer--showDebug">developer.showDebug</td>
 			<td>bool</td>
 			<td>`false`</td>
@@ -823,7 +847,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="jobs--image--tag">jobs.image.tag</td>
 			<td>string</td>
-			<td>`"main-1.15-jvm"`</td>
+			<td>`"1.16.3"`</td>
 			<td>Operator Installation Jobs image tag</td>
       </tr>
       <tr>
@@ -871,7 +895,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="operator--image--tag">operator.image.tag</td>
 			<td>string</td>
-			<td>`"main-1.15-jvm"`</td>
+			<td>`"1.16.3"`</td>
 			<td>Operator image tag</td>
       </tr>
       <tr>
@@ -943,7 +967,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="restapi--image--tag">restapi.image.tag</td>
 			<td>string</td>
-			<td>`"main-1.15-jvm"`</td>
+			<td>`"1.16.3"`</td>
 			<td>REST API image tag</td>
       </tr>
       <tr>
