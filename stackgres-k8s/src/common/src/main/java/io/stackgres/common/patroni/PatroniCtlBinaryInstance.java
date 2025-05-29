@@ -132,13 +132,14 @@ public class PatroniCtlBinaryInstance implements PatroniCtlInstance {
       patroniMajorVersion = 3;
     }
     final String patroniVersionPrefix = PATRONICTL_BINARY_PREFIX_PATH + patroniMajorVersion + ".";
-    var pathFound = Unchecked.supplier(() -> Files.list(Paths.get(BIN_PATH)))
-        .get()
-        .filter(path -> path.getFileName().toString().startsWith(patroniVersionPrefix))
-        .sorted(new PatroniCtlPathComparator().reversed())
-        .findFirst();
-    if (pathFound.isPresent()) {
-      return pathFound.get().toAbsolutePath().toString();
+    try (var list = Unchecked.supplier(() -> Files.list(Paths.get(BIN_PATH))).get()) {
+      var pathFound = list
+          .filter(path -> path.getFileName().toString().startsWith(patroniVersionPrefix))
+          .sorted(new PatroniCtlPathComparator().reversed())
+          .findFirst();
+      if (pathFound.isPresent()) {
+        return pathFound.get().toAbsolutePath().toString();
+      }
     }
     throw new RuntimeException("No patronictl binary found for version " + version);
   }
