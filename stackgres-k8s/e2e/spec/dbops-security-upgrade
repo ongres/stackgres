@@ -37,6 +37,7 @@ e2e_test_install() {
 
   RANDOM_VALUE="$(random_string)"
   DISTRIBUTEDLOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
+  CLUSTER_OLD_NAME="$(get_sgcluster_name "$CLUSTER_NAME-old")"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
   CLUSTER_3_NAME="$(get_sgcluster_name "$CLUSTER_NAME-3")"
@@ -56,7 +57,8 @@ e2e_test_install() {
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
-  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg' | grep -v '.-pg17\.')"
+  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
+  PREVIOUS_OLD_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg' | grep -v '.-pg17\.')"
   PREVIOUS_OLDEST_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | head -n 1)"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE##*-pg}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
@@ -69,6 +71,10 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
+  PREVIOUS_OLD_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_OLD_PATRONI_IMAGE" | tail -n 1)"
+  PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLD_PATRONI_IMAGE##*-pg}"
+  PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
   PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   OLDEST_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION-")"
@@ -109,6 +115,14 @@ e2e_test_install() {
 
   install_minio
 
+  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_OLD_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set-string cluster.postgres.version="$PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION" \
+    --set instanceProfiles=null \
+    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+    --set configurations.poolingconfig.create=false \
+    --set configurations.objectstorage.create=false
+
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
@@ -132,8 +146,8 @@ e2e_test_install() {
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
-    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
-    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
+    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+    --set-string cluster.postgres.version="$PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
@@ -191,7 +205,7 @@ e2e_test_install() {
   BACKUP_NAME="$(get_sgbackup_name "$CLUSTER_NAME-backup-1")"
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/$(kubectl get crd sgbackups.stackgres.io --template '{{ (index .spec.versions 0).name }}')
+apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
   namespace: "$CLUSTER_NAMESPACE"
@@ -212,8 +226,8 @@ EOF
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.sgInstanceProfile=size-s \
-    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
-    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
+    --set-string cluster.configurations.sgPostgresConfig=postgresconf-"${PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION%.*}" \
+    --set-string cluster.postgres.version="$PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set cluster.configurations.observability.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
@@ -250,7 +264,7 @@ EOF
     WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
     switch_cluster_to_first "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
     wait_sharded_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
-  switch_sharded_cluster_to_first "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
+    switch_sharded_cluster_to_first "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   fi
   WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
   switch_cluster_to_first "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
@@ -262,6 +276,29 @@ EOF
     generate_mock_data "$CLUSTER_2_NAME"
     generate_mock_data "$CLUSTER_3_NAME-coord"
   fi
+
+  DBOPS_NAME="$(get_sgdbops_name "$CLUSTER_NAME-major-upgrade-1")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$DBOPS_NAME"
+spec:
+  sgCluster: "$CLUSTER_1_NAME"
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION"
+    sgPostgresConfig: "postgresconf-${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION%.*}"
+EOF
+
+  kubectl --timeout "${E2E_TIMEOUT}s" wait -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" --for=condition=Completed
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_1_NAME"
+
+  WAIT_CLUSTER_AUTHENTICATOR_ONLY=true wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
 
   PREVIOUS_PATRONI_DISTRIBUTEDLOGS_CONFIG_PATH="$LOG_PATH/previous-patroni-logs-config.json"
   kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME-config" \
@@ -1102,9 +1139,9 @@ check_backups_path_mutation() {
     PREVIOUS_BACKUP_PATH="$CLUSTER_NAMESPACE/$CLUSTER_1_NAME"
   elif [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_10_0" ]
   then
-    PREVIOUS_BACKUP_PATH="^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION$"
+    PREVIOUS_BACKUP_PATH="^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION$"
   else
-    PREVIOUS_BACKUP_PATH="^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/[^/]\+/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION$"
+    PREVIOUS_BACKUP_PATH="^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/[^/]\+/$PREVIOUS_OLD_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION$"
   fi
 
   if kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }' \
