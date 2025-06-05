@@ -20,17 +20,20 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import io.stackgres.common.resource.PodWriter;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class PodRestartTest {
+class PodRestartTest extends MockKubeDbTest {
 
   private static final int MAX_RETRY_ATTEMPTS = 11;
 

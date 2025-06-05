@@ -7,7 +7,6 @@ package io.stackgres.operator.mutation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
@@ -34,8 +33,6 @@ public abstract class AbstractValuesMutator<R extends HasMetadata,
     this.jsonMapper = null;
   }
 
-  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
-      justification = "Wanted behavior")
   @Override
   public R mutate(T review, R resource) {
     if (review.getRequest().getOperation() != Operation.CREATE) {

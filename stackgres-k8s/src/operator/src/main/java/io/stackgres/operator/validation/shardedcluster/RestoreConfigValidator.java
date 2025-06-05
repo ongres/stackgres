@@ -8,7 +8,6 @@ package io.stackgres.operator.validation.shardedcluster;
 import java.util.Objects;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialData;
@@ -42,8 +41,6 @@ public class RestoreConfigValidator
     }
   }
 
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   private void checkBackup(
       StackGresShardedClusterReview review,
       StackGresShardedClusterRestore restoreConfig) throws ValidationFailed {

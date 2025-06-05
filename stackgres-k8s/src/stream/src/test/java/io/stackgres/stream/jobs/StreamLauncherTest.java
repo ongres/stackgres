@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
@@ -35,7 +36,7 @@ import io.stackgres.common.crd.sgstream.StreamTargetType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.stream.jobs.lock.LockAcquirer;
 import io.stackgres.stream.jobs.lock.LockRequest;
-import io.stackgres.stream.jobs.lock.MockKubeDb;
+import io.stackgres.stream.jobs.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
@@ -45,8 +46,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.stubbing.Answer;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class StreamLauncherTest {
+class StreamLauncherTest extends MockKubeDbTest {
 
   @InjectMock
   @StreamTargetOperation(StreamTargetType.CLOUD_EVENT)
@@ -58,9 +60,6 @@ class StreamLauncherTest {
 
   @Inject
   StreamLauncher streamLauncher;
-
-  @Inject
-  MockKubeDb mockKubeDb;
 
   @InjectSpy
   LockAcquirer lockAcquirer;
@@ -90,11 +89,11 @@ class StreamLauncherTest {
     stream.getMetadata().setNamespace(namespace);
     stream.getMetadata().setName(randomStreamName);
     stream.getSpec().getSource().getSgCluster().setName(randomClusterName);
-    stream = mockKubeDb.addOrReplaceStream(stream);
+    stream = kubeDb.addOrReplaceStream(stream);
 
     cluster.getMetadata().setNamespace(namespace);
     cluster.getMetadata().setName(randomClusterName);
-    cluster = mockKubeDb.addOrReplaceCluster(cluster);
+    cluster = kubeDb.addOrReplaceCluster(cluster);
 
     doNothing().when(streamEventEmitter).streamStarted(randomStreamName, namespace);
     doNothing().when(streamEventEmitter).streamFailed(randomStreamName, namespace);
@@ -153,7 +152,7 @@ class StreamLauncherTest {
 
     streamLauncher.launchStream(randomStreamName, namespace);
 
-    var persistedStream = mockKubeDb.getStream(randomStreamName, namespace);
+    var persistedStream = kubeDb.getStream(randomStreamName, namespace);
     assertNotNull(persistedStream.getStatus(), "DbOpLaucher should initialize the Stream status");
     verify(streamEventEmitter, times(1)).streamStarted(randomStreamName, namespace);
     verify(streamEventEmitter, times(1)).streamCompleted(randomStreamName, namespace);
@@ -185,7 +184,7 @@ class StreamLauncherTest {
     String targetType = StringUtils.getRandomString();
     stream.getSpec().getTarget().setType(targetType);
 
-    stream = mockKubeDb.addOrReplaceStream(stream);
+    stream = kubeDb.addOrReplaceStream(stream);
     var ex = assertThrows(IllegalArgumentException.class, () -> streamLauncher
         .launchStream(randomStreamName, namespace));
 
@@ -205,7 +204,7 @@ class StreamLauncherTest {
     String sourceType = StringUtils.getRandomString();
     stream.getSpec().getSource().setType(sourceType);
 
-    stream = mockKubeDb.addOrReplaceStream(stream);
+    stream = kubeDb.addOrReplaceStream(stream);
     var ex = assertThrows(IllegalArgumentException.class, () -> streamLauncher
         .launchStream(randomStreamName, namespace));
 
@@ -252,7 +251,7 @@ class StreamLauncherTest {
 
     streamLauncher.launchStream(randomStreamName, namespace);
 
-    var storedDbOp = mockKubeDb.getStream(randomStreamName, namespace);
+    var storedDbOp = kubeDb.getStream(randomStreamName, namespace);
     var conditions = storedDbOp.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -276,7 +275,7 @@ class StreamLauncherTest {
 
     assertThrows(RuntimeException.class, () -> streamLauncher.launchStream(randomStreamName, namespace));
 
-    var storedDbOp = mockKubeDb.getStream(randomStreamName, namespace);
+    var storedDbOp = kubeDb.getStream(randomStreamName, namespace);
     var conditions = storedDbOp.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -309,7 +308,7 @@ class StreamLauncherTest {
         .map(StreamStatusCondition::getCondition)
         .peek(condition -> condition.setLastTransitionTime(previousOpStarted.toString()))
         .toList());
-    mockKubeDb.addOrReplaceStream(stream);
+    kubeDb.addOrReplaceStream(stream);
 
     streamLauncher.launchStream(randomStreamName, namespace);
 

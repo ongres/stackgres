@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -89,8 +88,6 @@ public class ClusterControllerReconciliator
     this.nodeName = null;
   }
 
-  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
-      justification = "False positives")
   @Override
   public ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresClusterContext context) throws Exception {

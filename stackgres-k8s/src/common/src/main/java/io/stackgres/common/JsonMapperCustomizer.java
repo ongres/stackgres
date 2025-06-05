@@ -9,13 +9,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.jackson.ObjectMapperCustomizer;
 import jakarta.inject.Singleton;
 
 @Singleton
-@SuppressFBWarnings(value = "EQ_COMPARETO_USE_OBJECT_EQUALS",
-    justification = "Not required")
 public class JsonMapperCustomizer implements ObjectMapperCustomizer {
 
   /**

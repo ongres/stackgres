@@ -72,20 +72,20 @@ import org.slf4j.LoggerFactory;
 @Tag(name = "auth")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class RbacResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RbacResource.class);
@@ -110,8 +110,8 @@ public class RbacResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
   @Operation(summary = "Can-i <verb> over <resource>", description = """
       Check if an user can do specified `<verb>` on specified `<resource>`.
 
@@ -162,8 +162,8 @@ public class RbacResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PermissionsListDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PermissionsListDto.class))})
   @Operation(summary = "Can-i list", description = """
       Return a list of namespaced and unnamespaced permissions a user has granted.
 

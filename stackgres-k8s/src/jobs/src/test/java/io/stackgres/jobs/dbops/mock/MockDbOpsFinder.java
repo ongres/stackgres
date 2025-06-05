@@ -3,28 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.dbops.lock;
+package io.stackgres.jobs.dbops.mock;
 
 import java.util.Optional;
 
-import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
-import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
-@Mock
-public class FakeDbOpsFinder implements CustomResourceFinder<StackGresDbOps> {
+public class MockDbOpsFinder implements CustomResourceFinder<StackGresDbOps> {
+  final MockKubeDb mockKubeDb;
 
-  private final MockKubeDb kubeDb;
-
-  @Inject
-  public FakeDbOpsFinder(MockKubeDb kubeDb) {
-    this.kubeDb = kubeDb;
+  public MockDbOpsFinder(MockKubeDb mockKubeDb) {
+    this.mockKubeDb = mockKubeDb;
   }
 
   @Override
   public @NotNull Optional<StackGresDbOps> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(kubeDb.getDbOps(name, namespace));
+    return Optional.ofNullable(mockKubeDb.getDbOps(name, namespace));
   }
 }

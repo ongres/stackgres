@@ -26,7 +26,7 @@ public interface CustomResourceScheduler<T extends CustomResource<?, ?>> {
 
   T update(@NotNull T resource, @NotNull Consumer<T> setter);
 
-  <S> T updateStatus(@NotNull T resource, @NotNull Consumer<T> setter);
+  T updateStatus(@NotNull T resource, @NotNull Consumer<T> setter);
 
   default void delete(@NotNull T resource) {
     delete(resource, false);

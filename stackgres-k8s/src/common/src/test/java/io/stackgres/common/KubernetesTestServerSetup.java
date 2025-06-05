@@ -7,14 +7,14 @@ package io.stackgres.common;
 
 import java.util.function.Consumer;
 
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.test.kubernetes.client.KubernetesServer;
 
-public final class StackGresKubernetesMockServerSetup implements Consumer<KubernetesServer> {
+public class KubernetesTestServerSetup implements Consumer<KubernetesServer> {
 
   @Override
   public void accept(KubernetesServer server) {
-    final var client = server.getClient();
-
+    final KubernetesClient client = server.getClient();
     for (var crd : new CrdLoader(new YamlMapperProvider().get()).scanCrds()) {
       client.apiextensions().v1()
           .customResourceDefinitions()

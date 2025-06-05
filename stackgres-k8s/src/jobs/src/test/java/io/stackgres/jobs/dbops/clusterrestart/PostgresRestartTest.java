@@ -17,15 +17,18 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class PostgresRestartTest {
+class PostgresRestartTest extends MockKubeDbTest {
 
   @Inject
   PostgresRestart postgresRestart;

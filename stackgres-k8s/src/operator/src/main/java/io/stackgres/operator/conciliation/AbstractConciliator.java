@@ -13,7 +13,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -207,8 +206,6 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     }
 
     @Override
-    @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-        justification = "False positive")
     public HasMetadata apply(HasMetadata resource) {
       if (Objects.equals(
           resource.getMetadata().getNamespace(),

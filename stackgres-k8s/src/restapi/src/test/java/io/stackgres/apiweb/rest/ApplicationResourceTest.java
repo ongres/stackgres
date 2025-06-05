@@ -14,9 +14,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class ApplicationResourceTest implements AuthenticatedResourceTest {
 

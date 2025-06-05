@@ -49,20 +49,20 @@ import org.jooq.lambda.Unchecked;
 @Tag(name = "applications")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class ApplicationsResource {
 
   @Inject
@@ -70,8 +70,8 @@ public class ApplicationsResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(type = SchemaType.OBJECT))})
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(type = SchemaType.OBJECT))})
   @Operation(summary = "List StackGres applications", description = """
       List of the available StackGres applications.
 
@@ -95,8 +95,8 @@ public class ApplicationsResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(type = SchemaType.OBJECT, implementation = ApplicationDto.class))})
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(type = SchemaType.OBJECT, implementation = ApplicationDto.class))})
   @Operation(summary = "Get StackGres application", description = """
       Get a StackGres application info.
 
@@ -120,8 +120,8 @@ public class ApplicationsResource {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(type = SchemaType.OBJECT))})
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(type = SchemaType.OBJECT))})
   @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA))
   @Operation(summary = "Run Babelfish Compass application", description = """
       Run Babelfish Compass application.

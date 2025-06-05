@@ -38,6 +38,14 @@ module_image_name() {
     echo "${BUILDER_VERSION%.*}"
     echo "$SOURCE_IMAGE_NAME"
     jq -r ".modules[\"$MODULE\"]" stackgres-k8s/ci/build/target/config.json
+    eval "cat << EOF
+$(jq -r ".modules[\"$MODULE\"].build_env | if . != null then . else {} end
+          | to_entries
+          | sort_by(.key)
+          | map(\"export \" + .key + \"=\\\"\" + .value + \"\\\"\")
+          | .[]" stackgres-k8s/ci/build/target/config.json)
+EOF
+      "
     if [ "$MODULE_DOCKERFILE" != null ]
     then
       path_hash "$MODULE_DOCKERFILE"
@@ -151,6 +159,7 @@ run_commands_in_container() {
 $(
     jq -r ".modules[\"$MODULE\"].build_env | if . != null then . else {} end
           | to_entries
+          | sort_by(.key)
           | map(\"export \" + .key + \"=\\\"\" + .value + \"\\\"\")
           | .[]" stackgres-k8s/ci/build/target/config.json)
 EOF
@@ -778,6 +787,7 @@ get_module_hash() {
 
 project_hash() {
   git --git-dir "stackgres-k8s/ci/build/target/.git" rev-parse HEAD:
+  env -0 | sort -z | md5sum
 }
 
 path_hash() {

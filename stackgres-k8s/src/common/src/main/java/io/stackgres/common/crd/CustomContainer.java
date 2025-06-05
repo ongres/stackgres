@@ -8,7 +8,6 @@ package io.stackgres.common.crd;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerResizePolicy;
 import io.fabric8.kubernetes.api.model.EnvFromSource;
@@ -41,8 +40,6 @@ import io.sundr.builder.annotations.BuildableReference;
         @BuildableReference(io.fabric8.kubernetes.api.model.VolumeMount.class),
         @BuildableReference(io.fabric8.kubernetes.api.model.ContainerResizePolicy.class),
     })
-@SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
-    justification = "Intentional name shadowing")
 public class CustomContainer extends io.fabric8.kubernetes.api.model.Container {
 
   private static final long serialVersionUID = 1L;

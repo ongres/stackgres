@@ -27,20 +27,20 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgpgconfig")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedPostgresConfigResource
     extends AbstractNamespacedRestServiceDependency<PostgresConfigDto, StackGresPostgresConfig> {
 
@@ -54,8 +54,8 @@ public class NamespacedPostgresConfigResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PostgresConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PostgresConfigDto.class))})
   @Operation(summary = "Get a sgpgconfig", description = """
       Get a sgpgconfig.
 

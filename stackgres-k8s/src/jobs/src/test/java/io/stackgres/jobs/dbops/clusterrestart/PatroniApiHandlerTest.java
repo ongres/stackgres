@@ -12,16 +12,19 @@ import java.time.Duration;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class PatroniApiHandlerTest {
+class PatroniApiHandlerTest extends MockKubeDbTest {
 
   @InjectMock
   PatroniCtlFinder patroniCtlFinder;

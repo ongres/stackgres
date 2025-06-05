@@ -24,7 +24,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.transformer.ObjectStorageTransformerTest;
-import io.stackgres.common.StackGresKubernetesMockServerSetup;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.fixture.Fixtures;
@@ -38,8 +38,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
-@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ObjectStorageResourceTest implements AuthenticatedResourceTest {
 
   @InjectMock

@@ -28,27 +28,27 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgshardeddbops")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class ShardedDbOpsResource
     extends AbstractCustomResourceService<ShardedDbOpsDto, StackGresShardedDbOps> {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedDbOpsDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedDbOpsDto.class))})
   @Operation(summary = "List sgshardeddbops", description = """
       List sgshardeddbops.
 
@@ -63,8 +63,8 @@ public class ShardedDbOpsResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = ShardedDbOpsDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ShardedDbOpsDto.class))})
   @Operation(summary = "Create a sgshardeddbops", description = """
       Create a sgshardeddbops.
 
@@ -92,8 +92,8 @@ public class ShardedDbOpsResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = ShardedDbOpsDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ShardedDbOpsDto.class))})
   @Operation(summary = "Update a sgshardeddbops", description = """
       Update a sgshardeddbops.
 

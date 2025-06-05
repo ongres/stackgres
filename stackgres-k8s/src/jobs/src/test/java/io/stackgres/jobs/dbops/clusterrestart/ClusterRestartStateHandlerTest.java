@@ -11,6 +11,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsRestartStatus;
@@ -26,6 +27,7 @@ import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
 import jakarta.inject.Inject;
 
+@WithKubernetesTestServer
 @QuarkusTest
 class ClusterRestartStateHandlerTest extends ClusterStateHandlerTest {
 

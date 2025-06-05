@@ -151,9 +151,9 @@ public interface BackupStorageDtoUtil {
     return object -> Tuple.<String, Consumer<String>,
         SecretKeySelector, Consumer<SecretKeySelector>>tuple(
         secretGetter.apply(object),
-        secret -> secretSetter.accept(object, secret),
+          secret -> secretSetter.accept(object, secret),
         secretKeySelectorGetter.apply(object),
-        secretKeySelector -> secretKeySelectorSetter.accept(object, secretKeySelector)
+          secretKeySelector -> secretKeySelectorSetter.accept(object, secretKeySelector)
     );
   }
 }

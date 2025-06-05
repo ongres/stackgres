@@ -6,6 +6,7 @@
 package io.stackgres.jobs.dbops;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,7 @@ public class DbOpsExecutorService {
   }
 
   public Uni<Void> invokeAsync(Runnable runnable) {
-    return Uni.createFrom().completionStage(
+    return Uni.createFrom().completionStage((Supplier<CompletionStage<Void>>)
         () -> CompletableFuture.runAsync(runnable, executorService));
   }
 

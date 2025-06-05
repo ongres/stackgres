@@ -17,16 +17,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 public class FileSystemHandler {
 
   public boolean exists(Path path) {
     return Files.exists(path);
   }
 
-  @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
-      justification = "False positive")
   public boolean identical(Path path, InputStream inputStream) throws IOException {
     try (InputStream pathInputStream = Files.newInputStream(path)) {
       return compareInputStreams(inputStream, pathInputStream);

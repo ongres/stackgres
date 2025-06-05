@@ -30,20 +30,20 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgpoolconfig")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class ConnectionPoolingConfigResource extends
     AbstractCustomResourceServiceDependency<PoolingConfigDto, StackGresPoolingConfig> {
 
@@ -57,8 +57,8 @@ public class ConnectionPoolingConfigResource extends
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = PoolingConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = PoolingConfigDto.class))})
   @Operation(summary = "List sgpoolconfigs", description = """
       List sgpoolconfigs.
 
@@ -73,8 +73,8 @@ public class ConnectionPoolingConfigResource extends
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PoolingConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PoolingConfigDto.class))})
   @Operation(summary = "Create a sgpoolconfig", description = """
       Create a sgpoolconfig.
 
@@ -102,8 +102,8 @@ public class ConnectionPoolingConfigResource extends
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PoolingConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PoolingConfigDto.class))})
   @Operation(summary = "Update a sgpoolconfig", description = """
       Update a sgpoolconfig.
 

@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.dbops.lock;
+package io.stackgres.stream.jobs.mock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,24 +21,23 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import jakarta.enterprise.context.ApplicationScoped;
+import io.stackgres.common.crd.sgstream.StackGresStream;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
-@ApplicationScoped
 public class MockKubeDb {
 
   private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
   private static final String KEY_FORMAT = "%s/%s";
   private static final String PENDING_FAILURES = "pendingFailures";
+  private static final String FAIL_UPDATE_ON_STALE_DATA = "failUpdateOnStaleData";
 
   private final Map<Tuple2<Class<?>, String>, CustomResource<?, ?>> customResourceMap;
   private final Map<Tuple2<Class<?>, String>, List<Consumer<CustomResource<?, ?>>>>
       customResourceWatchers;
 
   public MockKubeDb() {
-    this.customResourceMap = new HashMap<>();
+    this.customResourceMap = Collections.synchronizedMap(new HashMap<>());
     customResourceWatchers = new HashMap<>();
     JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     JSON_MAPPER.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
@@ -46,7 +46,9 @@ public class MockKubeDb {
 
   private <T extends CustomResource<?, ?>> Tuple2<Class<?>, String> getResourceKey(
       T resource, Class<T> customResourceClass) {
-    return getResourceKey(resource.getMetadata().getName(), resource.getMetadata().getNamespace(),
+    return getResourceKey(
+        resource.getMetadata().getName(),
+        resource.getMetadata().getNamespace(),
         customResourceClass);
   }
 
@@ -55,14 +57,9 @@ public class MockKubeDb {
     return Tuple.tuple(customResourceClass, String.format(KEY_FORMAT, namespace, name));
   }
 
-  private <T extends CustomResource<?, ?>> T getCustomResource(T customResource,
-      Class<T> customResourceClass) {
-    var key = getResourceKey(customResource.getMetadata().getName(),
-        customResource.getMetadata().getNamespace(), customResourceClass);
-    return copy(customResourceClass.cast(customResourceMap.get(key)), customResourceClass);
-  }
-
-  private <T extends CustomResource<?, ?>> T getCustomResource(String name, String namespace,
+  private <T extends CustomResource<?, ?>> T getCustomResource(
+      String name,
+      String namespace,
       Class<T> customResourceClass) {
     var key = getResourceKey(name, namespace, customResourceClass);
     return customResourceClass.cast(customResourceMap.get(key));
@@ -104,12 +101,16 @@ public class MockKubeDb {
       }
       var oldVersion = storedCustomResource.getMetadata().getResourceVersion();
       var newVersion = customResourceCopy.getMetadata().getResourceVersion();
-      if (oldVersion.equals(newVersion)) {
+      Optional<Boolean> failUpdateOnStaleData = Optional.ofNullable((Boolean) storedCustomResource
+          .getMetadata().getAdditionalProperties().get(FAIL_UPDATE_ON_STALE_DATA));
+      if (failUpdateOnStaleData.orElse(false) && !oldVersion.equals(newVersion)) {
+        throw new IllegalArgumentException(
+            customResourceClass.getSimpleName()
+                + " has stale data (old resourceVersion (" + oldVersion + ")"
+                + " != new resourceVersion (" + newVersion + ")");
+      } else {
         int updatedVersion = Integer.parseInt(oldVersion) + 1;
         customResourceCopy.getMetadata().setResourceVersion(Integer.toString(updatedVersion));
-      } else {
-        throw new IllegalArgumentException(
-            customResourceClass.getSimpleName() + " override with data loss");
       }
     } else {
       customResourceCopy.getMetadata().setResourceVersion("1");
@@ -121,9 +122,7 @@ public class MockKubeDb {
       customResourceWatchers.get(customResourceKey)
           .forEach(consumer -> consumer.accept(customResourceCopy));
     }
-
     return customResourceCopy;
-
   }
 
   private <T extends CustomResource<?, ?>> void watchCustomResource(String name, String namespace,
@@ -149,8 +148,8 @@ public class MockKubeDb {
     delete(cluster, StackGresCluster.class);
   }
 
-  public void delete(StackGresDbOps dbOps) {
-    delete(dbOps, StackGresDbOps.class);
+  public void delete(StackGresStream stream) {
+    delete(stream, StackGresStream.class);
   }
 
   public StackGresCluster getCluster(String name, String namespace) {
@@ -165,16 +164,16 @@ public class MockKubeDb {
     watchCustomResource(name, namespace, consumer, StackGresCluster.class);
   }
 
-  public StackGresDbOps getDbOps(String name, String namespace) {
-    return copyCustomResource(name, namespace, StackGresDbOps.class);
+  public StackGresStream getStream(String name, String namespace) {
+    return copyCustomResource(name, namespace, StackGresStream.class);
   }
 
-  public StackGresDbOps addOrReplaceDbOps(StackGresDbOps cluster) {
-    return addOrReplaceCustomResource(cluster, StackGresDbOps.class);
+  public StackGresStream addOrReplaceStream(StackGresStream cluster) {
+    return addOrReplaceCustomResource(cluster, StackGresStream.class);
   }
 
-  public void watchDbOps(String name, String namespace, Consumer<StackGresDbOps> consumer) {
-    watchCustomResource(name, namespace, consumer, StackGresDbOps.class);
+  public void watchStream(String name, String namespace, Consumer<StackGresStream> consumer) {
+    watchCustomResource(name, namespace, consumer, StackGresStream.class);
   }
 
   public void introduceReplaceFailures(StackGresCluster cluster) {

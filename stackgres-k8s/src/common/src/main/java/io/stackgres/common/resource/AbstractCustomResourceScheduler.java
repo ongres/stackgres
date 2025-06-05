@@ -80,7 +80,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   }
 
   @Override
-  public <S> T updateStatus(T resource, Consumer<T> setter) {
+  public T updateStatus(T resource, Consumer<T> setter) {
     return KubernetesClientUtil.retryOnConflict(
         () -> {
           var resourceToUpdate = getCustomResourceEndpoints()

@@ -8,6 +8,7 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
@@ -26,6 +27,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterReplicationGroup;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -48,6 +50,7 @@ import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class ClusterTransformerTest {
 

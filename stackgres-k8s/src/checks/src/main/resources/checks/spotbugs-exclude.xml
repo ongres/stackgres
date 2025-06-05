@@ -122,4 +122,12 @@
   <Match>
     <Bug pattern="CT_CONSTRUCTOR_THROW"/>
   </Match>
+  
+  <Match>
+    <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+  </Match>
 </FindBugsFilter>

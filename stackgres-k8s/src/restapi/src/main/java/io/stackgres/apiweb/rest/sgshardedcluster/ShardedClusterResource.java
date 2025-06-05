@@ -73,20 +73,20 @@ import org.jooq.lambda.tuple.Tuple4;
 @Tag(name = "sgshardedcluster")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class ShardedClusterResource
     extends AbstractCustomResourceService<ShardedClusterDto, StackGresShardedCluster> {
 
@@ -126,8 +126,8 @@ public class ShardedClusterResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedClusterDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedClusterDto.class))})
   @Operation(summary = "List sgshardedclusters", description = """
       List sgshardedclusters.
 
@@ -147,8 +147,8 @@ public class ShardedClusterResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = ShardedClusterDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ShardedClusterDto.class))})
   @Operation(summary = "Create a sgshardedclusters", description = """
       Create a sgshardedclusters.
 
@@ -166,8 +166,8 @@ public class ShardedClusterResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = ShardedClusterDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ShardedClusterDto.class))})
   @Operation(summary = "Update a sgshardedclusters", description = """
       Update a sgshardedclusters.
 

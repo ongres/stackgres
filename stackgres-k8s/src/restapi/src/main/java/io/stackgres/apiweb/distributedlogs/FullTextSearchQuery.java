@@ -66,7 +66,7 @@ public class FullTextSearchQuery {
     position++;
     for (;
         position < length
-        && query.charAt(position) != '"';
+          && query.charAt(position) != '"';
         position++) {
       Tuple2<String, Integer> result = extractWord(query, position, false);
       queryParts.add(result.v1);

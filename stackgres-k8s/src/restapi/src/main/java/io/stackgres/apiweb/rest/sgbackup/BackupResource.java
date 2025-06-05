@@ -28,26 +28,26 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgbackup")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class BackupResource extends AbstractCustomResourceService<BackupDto, StackGresBackup> {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = BackupDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = BackupDto.class))})
   @Operation(summary = "List sgbackups", description = """
       List sgbackups.
 
@@ -62,8 +62,8 @@ public class BackupResource extends AbstractCustomResourceService<BackupDto, Sta
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = BackupDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = BackupDto.class))})
   @Operation(summary = "Create a sgbackup", description = """
       Create a sgbackup.
 
@@ -91,8 +91,8 @@ public class BackupResource extends AbstractCustomResourceService<BackupDto, Sta
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = BackupDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = BackupDto.class))})
   @Operation(summary = "Update a sgbackup", description = """
         Update a sgbackup.
 

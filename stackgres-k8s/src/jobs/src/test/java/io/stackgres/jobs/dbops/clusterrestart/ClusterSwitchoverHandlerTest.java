@@ -18,16 +18,19 @@ import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class ClusterSwitchoverHandlerTest {
+class ClusterSwitchoverHandlerTest extends MockKubeDbTest {
 
   private static final String TEST_CLUSTER_NAME = "test-cluster";
   private static final String TEST_NAMESPACE_NAME = "test-namespace";

@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.OperatorProperty;
@@ -220,8 +219,6 @@ public class DeployedResourcesCache {
     cache.invalidate(key);
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   private ObjectNode toComparableDeployedNode(
       HasMetadata requiredResource,
       HasMetadata deployedResource) {

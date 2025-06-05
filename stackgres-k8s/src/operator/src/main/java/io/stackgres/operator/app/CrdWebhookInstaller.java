@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhook;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookBuilder;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookConfiguration;
@@ -62,8 +61,6 @@ public class CrdWebhookInstaller {
   private final Supplier<String> operatorCertSupplier;
 
   @Inject
-  @SuppressFBWarnings(value = "MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR",
-        justification = "False positive")
   public CrdWebhookInstaller(
       ResourceFinder<CustomResourceDefinition> crdFinder,
       ResourceWriter<CustomResourceDefinition> crdWriter,

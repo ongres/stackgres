@@ -20,23 +20,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class LockAcquirerTest {
+class LockAcquirerTest extends MockKubeDbTest {
 
   private final AtomicInteger clusterNr = new AtomicInteger(0);
   @Inject
   LockAcquirer lockAcquirer;
-  @Inject
-  MockKubeDb kubeDb;
+
   private StackGresCluster cluster;
   private String clusterName;
   private String clusterNamespace;

@@ -30,20 +30,20 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgpgconfig")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class PostgresConfigResource extends
     AbstractCustomResourceServiceDependency<PostgresConfigDto, StackGresPostgresConfig> {
 
@@ -57,8 +57,8 @@ public class PostgresConfigResource extends
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = PostgresConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = PostgresConfigDto.class))})
   @Operation(summary = "List sgpgconfigs", description = """
       List sgpgconfigs.
 
@@ -73,8 +73,8 @@ public class PostgresConfigResource extends
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PostgresConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PostgresConfigDto.class))})
   @Operation(summary = "Create a sgpgconfig", description = """
       Create a sgpgconfig.
 
@@ -102,8 +102,8 @@ public class PostgresConfigResource extends
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = PostgresConfigDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = PostgresConfigDto.class))})
   @Operation(summary = "Update a sgpgconfig", description = """
       Update a sgpgconfig.
 

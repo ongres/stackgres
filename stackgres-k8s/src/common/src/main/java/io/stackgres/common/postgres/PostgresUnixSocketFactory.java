@@ -10,11 +10,13 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.net.SocketFactory;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
+@NotThreadSafe
 public class PostgresUnixSocketFactory extends SocketFactory {
 
   private final String socketPath;

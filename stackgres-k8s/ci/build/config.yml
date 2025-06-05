@@ -1,12 +1,12 @@
 .images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.31
-  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.9
+  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.10
   jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.21-3.1741781261
-  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro:8.10-22
-  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal:9.5-1742914212
-  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-73.1742991506
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-39.1741813445
-  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-137.1742991061
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro:8.10-24
+  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal:9.5-1747111267
+  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20:1-74.1747789194
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124:1-40
+  pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18:1-138.1747789193
 platforms:
   - linux/x86_64
   - linux/aarch64
@@ -68,9 +68,12 @@ modules:
       - sh stackgres-k8s/ci/build/redact-version.sh operator-framework
     sources:
       - stackgres-k8s/src/operator-framework/src/test
+    build_env:
+      <<: *mvn_build_env
+      MAVEN_CLI_TEST_OPTS: '$MAVEN_CLI_TEST_OPTS'
     build_commands:
       - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
-      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS verify -P safer -f "$MODULE_PATH/pom.xml.build"'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS $MAVEN_CLI_TEST_OPTS verify -P safer -f "$MODULE_PATH/pom.xml.build"'
     artifacts:
       - stackgres-k8s/src/operator-framework/target
   test-util-java:

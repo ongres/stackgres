@@ -81,7 +81,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
-      justification = "We do not care if queue is already filled")
+      justification = "Check return value not needed")
   private void reconcile(List<Optional<H>> existingContextResources) {
     atomicReference.updateAndGet(atomicExistingContextResources -> Seq
         .seq(atomicExistingContextResources)
@@ -271,6 +271,12 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         throw exception.get();
       }
     }
+  }
+
+  protected void onPreReconciliation(T context) {
+  }
+
+  protected void onPostReconciliation(T context) {
   }
 
   protected abstract void onError(Exception ex);

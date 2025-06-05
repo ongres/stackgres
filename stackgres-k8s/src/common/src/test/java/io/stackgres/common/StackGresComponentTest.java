@@ -6,7 +6,6 @@
 package io.stackgres.common;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import java.util.Comparator;
 import java.util.Map;

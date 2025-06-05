@@ -9,6 +9,8 @@ import java.io.IOException;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -21,6 +23,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
+@WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
 class ShardedDbOpsResourceGenerationDiscovererTest
     extends AbstractRequiredResourceGeneratorTest<StackGresShardedDbOpsContext> {

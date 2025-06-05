@@ -15,28 +15,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.StateHandler;
-import io.stackgres.jobs.dbops.lock.MockKubeDb;
+import io.stackgres.jobs.dbops.mock.MockKubeDbTest;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@WithKubernetesTestServer
 @QuarkusTest
-class RestartJobTest {
+class RestartJobTest extends MockKubeDbTest {
 
   private final AtomicInteger clusterNr = new AtomicInteger(0);
   @Inject
   @DatabaseOperation("restart")
   RestartJob restartJob;
-  @Inject
-  MockKubeDb kubeDb;
 
   @InjectMock
   @StateHandler("restart")

@@ -27,20 +27,20 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "sgcluster")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedClusterStatsResource {
 
   private final CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder;
@@ -56,8 +56,8 @@ public class NamespacedClusterStatsResource {
    */
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = ClusterStatsDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ClusterStatsDto.class))})
   @Operation(summary = "Get a sgcluster's stats", description = """
       Get a sgcluster's stats.
 

@@ -8,13 +8,10 @@ package io.stackgres.operator.conciliation;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.arc.ClientProxy;
 
 public interface AnnotationFinder {
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   default <A extends Annotation> A getAnnotation(
       Object targetInstance,
       Class<A> targetAnnotationClass) {
@@ -32,8 +29,6 @@ public interface AnnotationFinder {
             + targetAnnotationClass.getName()));
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   default <A extends Annotation> Optional<A> findAnnotation(
       Object targetInstance,
       Class<A> targetAnnotationClass) {

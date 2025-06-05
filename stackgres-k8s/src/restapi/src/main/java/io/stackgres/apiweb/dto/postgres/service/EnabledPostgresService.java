@@ -9,14 +9,11 @@ import static java.lang.Boolean.TRUE;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties({ "enabled" })
-@SuppressFBWarnings(value = "EQ_DOESNT_OVERRIDE_EQUALS",
-    justification = "equals and hashCode are unused")
 public class EnabledPostgresService extends PostgresService {
 
   private static final long serialVersionUID = 1L;

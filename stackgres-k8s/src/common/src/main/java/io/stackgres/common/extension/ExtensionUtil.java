@@ -207,9 +207,9 @@ public interface ExtensionUtil {
       StackGresClusterInstalledExtension extension, boolean detectOs) {
     final Optional<OsDetector> osDetector = Optional.of(OS_DETECTOR).filter(od -> detectOs);
     return extension.getPublisher() + "/" + extension.getName()
-      + " for version " + extension.getVersion()
-      + "[" + getFlavorPrefix(cluster) + extension.getPostgresVersion()
-      + osDetector.map(od -> "/" + od.getArch() + "/" + od.getOs()).orElse("") + "]";
+        + " for version " + extension.getVersion()
+        + "[" + getFlavorPrefix(cluster) + extension.getPostgresVersion()
+        + osDetector.map(od -> "/" + od.getArch() + "/" + od.getOs()).orElse("") + "]";
   }
 
   static String getDescription(StackGresExtensionMetadata extensionMetadata) {

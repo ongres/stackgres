@@ -45,20 +45,20 @@ import org.jooq.lambda.tuple.Tuple2;
 @Tag(name = "sgstream")
 @APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
-        mediaType = "application/json",
-        schema = @Schema(implementation = ErrorResponse.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class))})
 public class StreamResource
     extends AbstractCustomResourceService<StreamDto, StackGresStream> {
 
@@ -80,8 +80,8 @@ public class StreamResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = StreamDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(type = SchemaType.ARRAY, implementation = StreamDto.class))})
   @Operation(summary = "List sgstreams", description = """
       List sgstreams and read values from the referenced secrets and configmaps.
 
@@ -96,8 +96,8 @@ public class StreamResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = StreamDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = StreamDto.class))})
   @Operation(summary = "Create a sgstream", description = """
       Create a sgstream.
       If values for some script configmap or secret is provided respectively a secret or
@@ -117,8 +117,8 @@ public class StreamResource
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
-          mediaType = "application/json",
-          schema = @Schema(implementation = StreamDto.class))})
+            mediaType = "application/json",
+            schema = @Schema(implementation = StreamDto.class))})
   @Operation(summary = "Update a sgstream", description = """
       Update a sgstream.
 

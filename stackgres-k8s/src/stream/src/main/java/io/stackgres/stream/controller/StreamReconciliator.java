@@ -12,18 +12,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeDataSupport;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamEventsStatus;
 import io.stackgres.common.crd.sgstream.StackGresStreamSnapshotStatus;
+import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgres;
+import io.stackgres.common.crd.sgstream.StackGresStreamSourceSgCluster;
 import io.stackgres.common.crd.sgstream.StackGresStreamStatus;
 import io.stackgres.common.crd.sgstream.StackGresStreamStreamingStatus;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -65,8 +68,6 @@ public class StreamReconciliator
     this.streamScheduler = null;
   }
 
-  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
-      justification = "False positives")
   @Override
   public ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresStreamContext context) throws Exception {
@@ -78,14 +79,34 @@ public class StreamReconciliator
     if (stream.getStatus().getSnapshot() == null) {
       stream.getStatus().setSnapshot(new StackGresStreamSnapshotStatus());
     }
+    final String topicPrefix = SgClusterDebeziumEngineHandler.topicPrefix(stream);
+    final String tablePrefix =
+        Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
+        .map(StackGresStreamSourceSgCluster::getDatabase)
+        .or(() -> Optional.ofNullable(stream.getSpec().getSource().getPostgres())
+            .map(StackGresStreamSourcePostgres::getDatabase))
+        .orElse("postgres") + ".";
     StackGresStreamSnapshotStatus snapshotStatus = stream.getStatus().getSnapshot();
     setStatusMetrics(
         stream,
         snapshotStatus,
         StackGresStreamSnapshotStatus.class,
-        "debezium.postgres:type=connector-metrics,context=snapshot,server="
-            + SgClusterDebeziumEngineHandler.topicPrefix(stream),
+        "debezium.postgres:type=connector-metrics,context=snapshot,server=" + topicPrefix,
         platformMBeanServer);
+    snapshotStatus.setCapturedTables(
+        Optional.of(snapshotStatus)
+            .map(StackGresStreamSnapshotStatus::getCapturedTables)
+            .map(tables -> tables.stream()
+                .map(table -> trimPrefix(tablePrefix, table))
+                .toList())
+            .orElse(null));
+    snapshotStatus.setRowsScanned(
+        Optional.of(snapshotStatus)
+            .map(StackGresStreamSnapshotStatus::getRowsScanned)
+            .map(tableRows -> tableRows.entrySet().stream()
+                .map(tableRow -> Map.entry(trimPrefix(tablePrefix, tableRow.getKey()), tableRow.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+            .orElse(null));
     if (stream.getStatus().getStreaming() == null) {
       stream.getStatus().setStreaming(new StackGresStreamStreamingStatus());
     }
@@ -94,9 +115,15 @@ public class StreamReconciliator
         stream,
         streamingStatus,
         StackGresStreamStreamingStatus.class,
-        "debezium.postgres:type=connector-metrics,context=streaming,server="
-            + SgClusterDebeziumEngineHandler.topicPrefix(stream),
+        "debezium.postgres:type=connector-metrics,context=streaming,server=" + topicPrefix,
         platformMBeanServer);
+    streamingStatus.setCapturedTables(
+        Optional.of(streamingStatus)
+            .map(StackGresStreamStreamingStatus::getCapturedTables)
+            .map(tables -> tables.stream()
+                .map(table -> trimPrefix(tablePrefix, table))
+                .toList())
+            .orElse(null));
     if (stream.getStatus().getEvents() == null) {
       stream.getStatus().setEvents(new StackGresStreamEventsStatus());
     }
@@ -108,6 +135,13 @@ public class StreamReconciliator
     streamScheduler.update(stream, Unchecked.consumer(
         currentStream -> currentStream.setStatus(stream.getStatus())));
     return new ReconciliationResult<Void>();
+  }
+
+  private String trimPrefix(final String prefix, String table) {
+    if (table.startsWith(prefix)) {
+      return table.substring(prefix.length());
+    }
+    return table;
   }
 
   private void setStatusMetrics(

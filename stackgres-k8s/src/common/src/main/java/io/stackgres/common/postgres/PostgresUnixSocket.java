@@ -14,51 +14,114 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketOption;
 import java.net.UnixDomainSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+@NotThreadSafe
 public class PostgresUnixSocket extends Socket {
 
   private final String socketPath;
+  private final SocketAddress address;
+  private final SocketChannel channel;
 
-  private SocketChannel channel;
-  private boolean bound = false;
-
-  public PostgresUnixSocket(String socketFileName) {
+  public PostgresUnixSocket(String socketFileName) throws IOException {
     this.socketPath = socketFileName;
+    this.address = UnixDomainSocketAddress.of(socketPath);
+    this.channel = SocketChannel.open(address);
   }
 
   @Override
-  public void close() throws IOException {
-    if (channel != null) {
-      channel.close();
+  public InputStream getInputStream() throws IOException {
+    if (isClosed()) {
+      throw new SocketException("Socket is closed");
     }
-  }
+    if (!isConnected()) {
+      throw new SocketException("Socket is not connected");
+    }
+    if (isInputShutdown()) {
+      throw new SocketException("Socket input is shutdown");
+    }
 
-  @Override
-  public void connect(SocketAddress endpoint) throws IOException {
-    connect(endpoint, 0);
-  }
-
-  @Override
-  public void connect(SocketAddress endpoint, int timeout) throws IOException {
-    channel = SocketChannel.open(UnixDomainSocketAddress.of(socketPath));
-  }
-
-  @Override
-  public InputStream getInputStream() {
     return Channels.newInputStream(channel);
   }
 
   @Override
-  public OutputStream getOutputStream() {
-    return Channels.newOutputStream(channel);
+  public OutputStream getOutputStream() throws IOException {
+    if (isClosed()) {
+      throw new SocketException("Socket is closed");
+    }
+    if (!isConnected()) {
+      throw new SocketException("Socket is not connected");
+    }
+    if (isOutputShutdown()) {
+      throw new SocketException("Socket output is shutdown");
+    }
+
+    return Channels.newOutputStream(new WrappedWritableByteChannel());
   }
 
   @Override
-  public void bind(SocketAddress bindpoint) throws IOException {
-    bound = true;
+  public SocketChannel getChannel() {
+    return channel;
+  }
+
+  @Override
+  public SocketAddress getLocalSocketAddress() {
+    return address;
+  }
+
+  @Override
+  public SocketAddress getRemoteSocketAddress() {
+    return address;
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    this.channel.close();
+  }
+
+  @Override
+  public boolean isConnected() {
+    return channel.isConnected();
+  }
+
+  @Override
+  public boolean isBound() {
+    return channel.isConnected();
+  }
+
+  @Override
+  public boolean isInputShutdown() {
+    return !channel.isConnected();
+  }
+
+  @Override
+  public boolean isOutputShutdown() {
+    return !channel.isConnected();
+  }
+
+  @Override
+  public void shutdownInput() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void shutdownOutput() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void connect(SocketAddress endpoint) throws IOException {
+  }
+
+  @Override
+  public void connect(SocketAddress endpoint, int timeout) throws IOException {
   }
 
   @Override
@@ -69,31 +132,6 @@ public class PostgresUnixSocket extends Socket {
   @Override
   public InetAddress getLocalAddress() {
     return null;
-  }
-
-  @Override
-  public int getPort() {
-    return -1;
-  }
-
-  @Override
-  public int getLocalPort() {
-    return -1;
-  }
-
-  @Override
-  public SocketAddress getRemoteSocketAddress() {
-    return null;
-  }
-
-  @Override
-  public SocketAddress getLocalSocketAddress() {
-    return null;
-  }
-
-  @Override
-  public SocketChannel getChannel() {
-    return channel;
   }
 
   @Override
@@ -182,44 +220,6 @@ public class PostgresUnixSocket extends Socket {
   }
 
   @Override
-  public void shutdownInput() throws IOException {
-  }
-
-  @Override
-  public void shutdownOutput() throws IOException {
-  }
-
-  @Override
-  public String toString() {
-    return "UnixSocket[" + socketPath + "]";
-  }
-
-  @Override
-  public boolean isConnected() {
-    return channel != null && channel.isConnected();
-  }
-
-  @Override
-  public boolean isBound() {
-    return channel != null && channel.isConnected() && bound;
-  }
-
-  @Override
-  public boolean isClosed() {
-    return channel == null || !channel.isOpen();
-  }
-
-  @Override
-  public boolean isInputShutdown() {
-    return channel == null || !channel.isConnected();
-  }
-
-  @Override
-  public boolean isOutputShutdown() {
-    return channel == null || !channel.isConnected();
-  }
-
-  @Override
   public void setPerformancePreferences(int connectionTime, int latency, int bandwidth) {
   }
 
@@ -236,6 +236,28 @@ public class PostgresUnixSocket extends Socket {
   @Override
   public Set<SocketOption<?>> supportedOptions() {
     return Set.of();
+  }
+
+  private class WrappedWritableByteChannel implements WritableByteChannel {
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+      return PostgresUnixSocket.this.channel.write(src);
+    }
+
+    @Override
+    public boolean isOpen() {
+      return PostgresUnixSocket.this.channel.isOpen();
+    }
+
+    @Override
+    public void close() throws IOException {
+      PostgresUnixSocket.this.channel.close();
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "PostgresUnixSocket[" + socketPath + "]";
   }
 
 }

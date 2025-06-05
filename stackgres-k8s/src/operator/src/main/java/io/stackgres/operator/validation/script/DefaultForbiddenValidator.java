@@ -12,7 +12,6 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAcco
 import java.util.Objects;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
@@ -38,8 +37,6 @@ public class DefaultForbiddenValidator implements ScriptValidator {
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
   public void validate(StackGresScriptReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE, UPDATE: {

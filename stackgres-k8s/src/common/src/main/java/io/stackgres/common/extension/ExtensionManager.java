@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterPath;
@@ -106,25 +105,18 @@ public abstract class ExtensionManager {
           extensionsRepositoryUri, context.getCluster(), installedExtension);
     }
 
-    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-        justification = "False positive")
     public boolean isExtensionInstalled() throws Exception {
       return fileSystemHandler.exists(
           Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + INSTALLED_SUFFIX));
     }
 
-    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-        justification = "False positive")
     public boolean areLinksCreated() throws Exception {
       return fileSystemHandler.exists(
           Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
     }
 
-    @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
-        "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
-        justification = "False positive")
     public void downloadAndExtract() throws Exception {
       LOGGER.info("Downloading {} from {}",
           ExtensionUtil.getDescription(context.getCluster(), installedExtension, true),
@@ -136,9 +128,6 @@ public abstract class ExtensionManager {
       }
     }
 
-    @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
-        "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
-        justification = "False positive")
     public void verify() throws Exception {
       try (InputStream signatureInputStream = fileSystemHandler.newInputStream(
           Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
@@ -153,9 +142,6 @@ public abstract class ExtensionManager {
       }
     }
 
-    @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
-        "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
-        justification = "False positive")
     public boolean doesInstallOverwriteAnySharedFile() throws Exception {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
@@ -167,8 +153,6 @@ public abstract class ExtensionManager {
       }
     }
 
-    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-        justification = "False positive")
     public boolean doesInstallOverwriteAnySharedFile(InputStream inputStream) throws Exception {
       return visitTar(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
@@ -176,9 +160,6 @@ public abstract class ExtensionManager {
           false, (prev, next) -> prev || next);
     }
 
-    @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
-        "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
-        justification = "False positive")
     public void installExtension() throws Exception {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
@@ -250,17 +231,12 @@ public abstract class ExtensionManager {
       this.packageName = ExtensionUtil.getExtensionPackageName(context.getCluster(), extension);
     }
 
-    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-        justification = "False positive")
     public boolean isExtensionInstalled() throws Exception {
       return fileSystemHandler.exists(
           Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + INSTALLED_SUFFIX));
     }
 
-    @SuppressFBWarnings(value = { "UPM_UNCALLED_PRIVATE_METHOD",
-        "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" },
-        justification = "False positive")
     public void uninstallExtension() throws Exception {
       fileSystemHandler.deleteIfExists(
           Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
@@ -297,8 +273,6 @@ public abstract class ExtensionManager {
     }
   }
 
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
   private <T> T visitTar(
       final Path extensionsPath,
       final InputStream inputStream,
@@ -328,8 +302,6 @@ public abstract class ExtensionManager {
     return initialValue;
   }
 
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
   private boolean isSharedFileOverwritten(
       final TarArchiveInputStream tarEntryInputStream,
       final Path targetPath)
@@ -367,8 +339,6 @@ public abstract class ExtensionManager {
     return false;
   }
 
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
   private Void extractFile(
       final TarArchiveInputStream tarEntryInputStream,
       final Path targetPath)
@@ -466,8 +436,6 @@ public abstract class ExtensionManager {
     return permissions;
   }
 
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
   private Void removeFileIfExists(
       final TarArchiveInputStream tarEntryInputStream,
       final Path targetPath)
