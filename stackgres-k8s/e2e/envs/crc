@@ -1,16 +1,22 @@
 #!/bin/sh
 
 #
-# Follow those steps to install and start crc in Ubuntu 20.04:
+# Follow those steps to install and start crc in Ubuntu 22.04:
 # 
-#     sudo wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/crc/2.29.0/crc-linux-amd64.tar.xz -O - | sudo tar xf --strip-components=1 -C /usr/local/bin/ -f - crc
+#     sudo wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/crc/2.51.0/crc-linux-amd64.tar.xz -O - | sudo tar xf --strip-components=1 -C /usr/local/bin/ -f - crc
 #     sudo chmod a+x /usr/local/bin/crc
 #     sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system network-manager
+#     # apply patch for apparmor configuration for libvirt from https://bugs.launchpad.net/ubuntu/+source/libvirt/+bug/1962035/comments/2
+#     echo '/usr/share/OVMF/** rk,' | sudo tee -a /etc/apparmor.d/abstractions/libvirt-qemu
+#     echo '/**/nvram/*_VARS.fd rwk,' | sudo tee -a /etc/apparmor.d/abstractions/libvirt-qemu
+#     sudo systemctl reload apparmor.service
+#     sudo systemctl restart libvirtd
 #     crc config set skip-check-daemon-systemd-unit true
 #     crc config set skip-check-daemon-systemd-sockets true
 #     crc config set network-mode user
 #     crc config set host-network-access true
 #     crc config set nameserver 8.8.8.8
+#     crc config set enable-cluster-monitoring true
 #     crc setup
 #     mkdir -p "$HOME/.crc"
 #
