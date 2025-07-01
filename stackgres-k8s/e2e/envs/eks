@@ -7,6 +7,8 @@ K8S_EKS_NODES="${K8S_EKS_NODES:-1}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_USE_SPOT="${K8S_EKS_USE_SPOT:-true}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
+EKSCTL=eksctl
+EKSCTL_0_210_0=eksctl-0.210.0
 EKS_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 
 export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
@@ -16,7 +18,30 @@ get_k8s_env_version() {
   echo
 }
 
+check_eks_version() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.31" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    if ! "$EKSCTL" version | grep -q -F '0.210.0'
+    then
+      EKSCTL="$EKSCTL_0_210_0"
+    fi
+    if ! "$EKSCTL" version | grep -q -F '0.210.0'
+    then
+      echo "$PATH"
+      echo "To run Kubernetes 1.31+ eksctl 0.210.0 is required"
+      return 1
+    fi
+  else
+    if ! command -v "$EKSCTL" > /dev/null
+    then
+      return 1
+    fi
+  fi
+}
+
 reuse_k8s() {
+  check_eks_version
   if ! eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
     | grep "^$K8S_EKS_NAME" | grep -q "ACTIVE"
   then
@@ -35,7 +60,12 @@ reuse_k8s() {
 create_and_use_cluster_admin_fast() {
   kubectl create sa cluster-admin-fast 2>/dev/null || true
   kubectl create clusterrolebinding cluster-admin-fast --clusterrole=cluster-admin --serviceaccount=default:cluster-admin-fast 2>/dev/null || true
-  SECRET="$(kubectl get sa cluster-admin-fast -o json | jq -r '.secrets[].name')"
+  if ! SECRET="$(kubectl get sa cluster-admin-fast -o json | jq -r '.secrets[].name' 2>/dev/null)"
+  then
+    SECRET=cluster-admin-fast
+    kubectl create secret generic --type=kubernetes.io/service-account-token cluster-admin-fast 2>/dev/null || true
+    kubectl annotate secret cluster-admin-fast kubernetes.io/service-account.name=cluster-admin-fast 2>/dev/null || true
+  fi    
   kubectl get secret "$SECRET" -o json | jq -r '.data["ca.crt"]' | base64 -d > "$TARGET_PATH/eks-ca.crt"
   USER_TOKEN=$(kubectl get secret "$SECRET" -o json | jq -r '.data["token"]' | base64 -d)
   CURRENT_CONTEXT="$(kubectl config current-context)"
@@ -57,6 +87,8 @@ create_and_use_cluster_admin_fast() {
 }
 
 reset_k8s() {
+  check_eks_version
+
   echo "Setting up eks environment $K8S_EKS_NAME..."
 
   delete_k8s
@@ -67,12 +99,15 @@ reset_k8s() {
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
     --nodes "$K8S_EKS_NODES" \
-    --version "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
+    --version "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" \
+    $K8S_EKS_OPTS
   
   echo "...done"
 }
 
 delete_k8s() {
+  check_eks_version
+
   echo "Checking if eks environment $K8S_EKS_NAME exists"
 
   if eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
@@ -136,6 +171,7 @@ excluded_clusterrolebindings() {
   echo "aws-node"
   echo "eks:.*"
   echo "vpc-resource-controller-rolebinding"
+  echo "metrics-server:system:auth-delegator"
 }
 
 
