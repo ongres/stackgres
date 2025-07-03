@@ -54,17 +54,45 @@ reuse_k8s() {
 
   aws eks update-kubeconfig --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION"
 
-  create_and_use_cluster_admin_fast
+  config_k8s
 }
 
-create_and_use_cluster_admin_fast() {
+config_k8s() {
+  eksctl utils associate-iam-oidc-provider --region="$K8S_EKS_REGION" --cluster="$K8S_EKS_NAME" --approve
+  eksctl create iamserviceaccount \
+      --region "$K8S_EKS_REGION" \
+      --name ebs-csi-controller-sa \
+      --namespace kube-system \
+      --cluster "$K8S_EKS_NAME" \
+      --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+      --approve \
+      --role-only \
+      --role-name AmazonEKS_EBS_CSI_DriverRole || true
+  eksctl create addon --name aws-ebs-csi-driver \
+      --region="$K8S_EKS_REGION" \
+      --cluster="$K8S_EKS_NAME" \
+      --service-account-role-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole \
+      --force || true
+  eksctl update addon --name aws-ebs-csi-driver \
+      --region="$K8S_EKS_REGION" \
+      --cluster="$K8S_EKS_NAME" \
+      --service-account-role-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole \
+      --force || true
+
   kubectl create sa cluster-admin-fast 2>/dev/null || true
   kubectl create clusterrolebinding cluster-admin-fast --clusterrole=cluster-admin --serviceaccount=default:cluster-admin-fast 2>/dev/null || true
   if ! SECRET="$(kubectl get sa cluster-admin-fast -o json | jq -r '.secrets[].name' 2>/dev/null)"
   then
     SECRET=cluster-admin-fast
-    kubectl create secret generic --type=kubernetes.io/service-account-token cluster-admin-fast 2>/dev/null || true
-    kubectl annotate secret cluster-admin-fast kubernetes.io/service-account.name=cluster-admin-fast 2>/dev/null || true
+    cat << EOF | kubectl create -f - 2>/dev/null || kubectl get secret cluster-admin-fast > /dev/null
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-admin-fast
+  annotations:
+    kubernetes.io/service-account.name: cluster-admin-fast
+type: kubernetes.io/service-account-token
+EOF
   fi    
   kubectl get secret "$SECRET" -o json | jq -r '.data["ca.crt"]' | base64 -d > "$TARGET_PATH/eks-ca.crt"
   USER_TOKEN=$(kubectl get secret "$SECRET" -o json | jq -r '.data["token"]' | base64 -d)
@@ -102,6 +130,8 @@ reset_k8s() {
     --version "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" \
     $K8S_EKS_OPTS
   
+  config_k8s
+
   echo "...done"
 }
 
@@ -121,10 +151,10 @@ delete_k8s() {
   
   echo "Cleaning volumes related to the $K8S_EKS_NAME cluster"
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 detach-volume --force --region $K8S_EKS_REGION --volume-id % || true"
+    | jq -r '.Volumes[].VolumeId' | xargs -r -I % sh -c "aws ec2 detach-volume --force --region $K8S_EKS_REGION --volume-id % || true"
   
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 delete-volume --region $K8S_EKS_REGION --volume-id % || true" 
+    | jq -r '.Volumes[].VolumeId' | xargs -r -I % sh -c "aws ec2 delete-volume --region $K8S_EKS_REGION --volume-id % || true" 
 
   echo "...done"
 }
@@ -165,6 +195,7 @@ excluded_clusterroles() {
   echo "aws-node"
   echo "eks:.*"
   echo "vpc-resource-controller-role"
+  echo "ebs-.*"
 }
 
 excluded_clusterrolebindings() {
@@ -172,6 +203,7 @@ excluded_clusterrolebindings() {
   echo "eks:.*"
   echo "vpc-resource-controller-rolebinding"
   echo "metrics-server:system:auth-delegator"
+  echo "ebs-.*"
 }
 
 
