@@ -13,9 +13,19 @@ KIND_0_20_0="${KIND_0_20_0:-kind-0.20.0}"
 KIND_0_23_0="${KIND_0_23_0:-kind-0.23.0}"
 KIND_0_25_0="${KIND_0_25_0:-kind-0.25.0}"
 KIND_0_26_0="${KIND_0_26_0:-kind-0.26.0}"
+KIND_0_29_0="${KIND_0_29_0:-kind-0.29.0}"
 
 check_kind_version() {
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.30" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    KIND="$KIND_0_29_0"
+    if ! "$KIND" version | grep -q -F 'kind v0.29.0 '
+    then
+      echo "To run Kubernetes 1.30+ kind v0.29.0 is required"
+      return 1
+    fi
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
       -ge "$(echo "1.29" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     KIND="$KIND_0_26_0"
@@ -773,9 +783,10 @@ get_kind_image() {
 get_kind_images() {
   cat << EOF
 
-v1.32.0@sha256:c48c62eac5da28cdadcf560d1d8616cfa6783b58f0d94cf63ad1bf49600cb027
-v1.31.4@sha256:2cb39f7295fe7eafee0842b1052a599a4fb0f8bcf3f83d96c7f4864c357c6c30
-v1.30.8@sha256:17cd608b3971338d9180b00776cb766c50d0a0b6b904ab4ff52fd3fc5c6369bf
+v1.33.1@sha256:050072256b9a903bd914c0b2866828150cb229cea0efe5892e2b644d5dd3b34f
+v1.32.5@sha256:e3b2327e3a5ab8c76f5ece68936e4cafaa82edf58486b769727ab0b3b97a5b0d
+v1.31.9@sha256:b94a3a6c06198d17f59cca8c6f486236fa05e2fb359cbd75dabbfc348a10b211
+v1.30.13@sha256:397209b3d947d154f6641f2d0ce8d473732bd91c87d9575ade99049aa33cd648
 v1.29.12@sha256:62c0672ba99a4afd7396512848d6fc382906b8f33349ae68fb1dbfe549f70dec
 v1.28.15@sha256:a7c05c7ae043a0b8c818f5a06188bc2c4098f6cb59ca7d1856df00375d839251
 v1.27.16@sha256:2d21a61643eafc439905e18705b8186f3296384750a835ad7a005dceb9546d20
