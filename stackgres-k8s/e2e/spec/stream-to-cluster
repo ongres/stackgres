@@ -378,6 +378,16 @@ UPDATE "complex_$TYPE_NAME" SET "c_$TYPE_NAME" = (CASE
 INNER_EOF
 done
 )
+
+$(
+cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
+do
+  cat << INNER_EOF
+UPDATE i = 7
+     WHERE i = 6;
+INNER_EOF
+done
+)
 EOF
 
   if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 4 + TYPE_COUNT * 2 ))"
