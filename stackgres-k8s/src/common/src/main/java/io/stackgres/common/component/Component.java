@@ -507,34 +507,50 @@ public class Component {
   }
 
   public Seq<String> streamOrderedVersions() {
-    return streamOrderedTagVersions()
+    return streamOrderedComposedVersions()
+        .map(ComposedVersion::getVersion)
         .map(ImageVersion::getVersion)
-        .grouped(Function.identity())
+        .zipWithIndex()
+        .grouped(Tuple2::v1)
+        .map(t -> t.v2.get(0).get())
+        .sorted(Comparator.comparing(t -> t.v2))
         .map(t -> t.v1);
   }
 
   public Seq<String> streamOrderedVersions(String build) {
-    return streamOrderedTagVersions()
+    return streamOrderedComposedVersions()
+        .map(ComposedVersion::getVersion)
         .filter(imageVersion -> imageVersion.getBuild().equals(build))
         .map(ImageVersion::getVersion)
-        .grouped(Function.identity())
+        .zipWithIndex()
+        .grouped(Tuple2::v1)
+        .map(t -> t.v2.get(0).get())
+        .sorted(Comparator.comparing(t -> t.v2))
         .map(t -> t.v1);
   }
 
   public Seq<String> streamOrderedMajorVersions() {
-    return streamOrderedTagVersions()
+    return streamOrderedComposedVersions()
+        .map(ComposedVersion::getVersion)
         .map(ImageVersion::getMajor)
         .map(Object::toString)
-        .grouped(Function.identity())
+        .zipWithIndex()
+        .grouped(Tuple2::v1)
+        .map(t -> t.v2.get(0).get())
+        .sorted(Comparator.comparing(t -> t.v2))
         .map(t -> t.v1);
   }
 
   public Seq<String> streamOrderedMajorVersions(String build) {
-    return streamOrderedTagVersions()
+    return streamOrderedComposedVersions()
+        .map(ComposedVersion::getVersion)
         .filter(imageVersion -> imageVersion.getBuild().equals(build))
         .map(ImageVersion::getMajor)
         .map(Object::toString)
-        .grouped(Function.identity())
+        .zipWithIndex()
+        .grouped(Tuple2::v1)
+        .map(t -> t.v2.get(0).get())
+        .sorted(Comparator.comparing(t -> t.v2))
         .map(t -> t.v1);
   }
 
@@ -542,7 +558,10 @@ public class Component {
     return streamOrderedTagVersions()
         .map(ImageVersion::getBuild)
         .filter(Objects::nonNull)
-        .grouped(Function.identity())
+        .zipWithIndex()
+        .grouped(Tuple2::v1)
+        .map(t -> t.v2.get(0).get())
+        .sorted(Comparator.comparing(t -> t.v2))
         .map(t -> t.v1);
   }
 
@@ -550,7 +569,10 @@ public class Component {
     return streamOrderedTagVersions()
         .map(ImageVersion::getBuildMajor)
         .map(String::valueOf)
-        .grouped(Function.identity())
+        .zipWithIndex()
+        .grouped(Tuple2::v1)
+        .map(t -> t.v2.get(0).get())
+        .sorted(Comparator.comparing(t -> t.v2))
         .map(t -> t.v1);
   }
 
