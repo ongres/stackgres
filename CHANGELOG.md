@@ -1,3 +1,63 @@
+# :rocket: Release 1.17.0-rc1 (2025-07-15)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.17.0-rc1 is out! :confetti_ball: :champagne: 
+
+Finally, support for Kubernetes 1.33 and OpenShift 4.18 and 4.19 has been added.
+
+Also, you will enjoy some important bugfixes and improvements all around the place.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support for Kubernetes 1.33
+* Support for OpenShift 4.18 and 4.19
+* Added Postgres 17.5, 16.9, 15.13, 14.18, 13.21
+* Added Patroni 4.0.6
+* Added Babelfish for PostgreSQL 16.6
+* Update Quarkus to 3.22
+* Updated base images and other components
+* Disable Envoy by default
+* Enable SSL by default
+* Improved SGStream with newer parameters and better support for arrays
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* TOASed value are overwritten with placeholder on update for SGStream
+* PgBouncer SSL is not set when enabled
+* Missing affinity in operator deployment
+* Continuos DNS unix requests
+* Syntax error in install-extensions managed script on distributed logs cluster
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.17.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.17.0-rc1)
+
 # :rocket: Release 1.16.3 (2025-05-28)
 
 ## :notepad_spiral: NOTES
