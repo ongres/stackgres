@@ -26,7 +26,7 @@ showToc: true
 | WAL-G | 3.0.7, 3.0.3, 3.0.2, 3.0.1, 2.0.1, 2.0.0, 1.1 |
 | PgBouncer | 1.24.1 |
 | Postgres Exporter | 0.17.1 |
-| Envoy | 1.34.1 |
+| Envoy | 1.33.2 |
 | Fluent-Bit | 4.0.2 |
 | Fluentd | 1.18.0 |
 | Babelfish Compass | 2025.04 |
