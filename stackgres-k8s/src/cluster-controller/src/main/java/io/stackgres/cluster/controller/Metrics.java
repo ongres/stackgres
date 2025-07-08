@@ -57,8 +57,8 @@ public class Metrics extends AbstractMetrics {
       Class<?> customResourceClass, String suffix) {
     String singular = HasMetadata.getSingular(customResourceClass);
     reconciliations.get(singular + suffix).totalPerformed++;
-    registry.gauge(
-        prefix + "reconciliation_total_performed",
+    registryGauge(
+        "reconciliation_total_performed",
         List.of(new ImmutableTag("resource", singular + suffix)),
         this,
         metrics -> metrics.getReconciliationTotalPerformed(customResourceClass, suffix));
@@ -93,8 +93,8 @@ public class Metrics extends AbstractMetrics {
       String suffix) {
     String singular = HasMetadata.getSingular(customResourceClass);
     reconciliations.get(singular + suffix).totalErrors++;
-    registry.gauge(
-        prefix + "reconciliation_total_errors",
+    registryGauge(
+        "reconciliation_total_errors",
         List.of(new ImmutableTag("resource", singular + suffix)),
         this,
         metrics -> metrics.getReconciliationTotalErrors(customResourceClass, suffix));
@@ -133,8 +133,8 @@ public class Metrics extends AbstractMetrics {
       final long lastDuration) {
     String singular = HasMetadata.getSingular(customResourceClass);
     reconciliations.get(singular + suffix).lastDuration = lastDuration;
-    registry.gauge(
-        prefix + "reconciliation_last_duration",
+    registryGauge(
+        "reconciliation_last_duration",
         List.of(new ImmutableTag("resource", singular + suffix)),
         this,
         metrics -> metrics.getReconciliationLastDuration(customResourceClass, suffix));

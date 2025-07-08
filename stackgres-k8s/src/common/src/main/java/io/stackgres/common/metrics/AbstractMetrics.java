@@ -6,20 +6,25 @@
 package io.stackgres.common.metrics;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.ToDoubleFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.stackgres.common.CdiUtil;
 import org.jooq.lambda.tuple.Tuple;
 
 public abstract class AbstractMetrics {
 
-  protected final MeterRegistry registry;
-  protected final String prefix;
-  protected Map<String, Number> gauges = new HashMap<>();
+  private final MeterRegistry registry;
+  private final String prefix;
+  private Map<String, Number> gauges = new HashMap<>();
+  private Set<String> registered = new HashSet<>();
 
   public AbstractMetrics(
       MeterRegistry registry,
@@ -48,7 +53,30 @@ public abstract class AbstractMetrics {
         .replaceAll("^_", "");
     final String name = prefix + attributeNameNormalized;
     gauges.put(name, attributeValueNumber);
-    registry.gauge(name, this, metrics -> metrics.getGauge(name));
+    registryGauge(name, this, metrics -> metrics.getGauge(name));
+  }
+
+  protected <T> void registryGauge(
+      String name,
+      final T stateObject,
+      final ToDoubleFunction<T> valueFunction) {
+    name = prefix + name;
+    if (!registered.contains(name)) {
+      registry.gauge(name, stateObject, valueFunction);
+      registered.add(name);
+    }
+  }
+
+  protected <T> void registryGauge(
+      String name,
+      final Iterable<Tag> tags,
+      final T stateObject,
+      final ToDoubleFunction<T> valueFunction) {
+    name = prefix + name;
+    if (!registered.contains(name)) {
+      registry.gauge(name, tags, stateObject, valueFunction);
+      registered.add(name);
+    }
   }
 
   public double getGauge(String key) {

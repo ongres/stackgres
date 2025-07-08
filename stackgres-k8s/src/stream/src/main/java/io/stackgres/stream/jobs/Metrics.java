@@ -34,8 +34,8 @@ public class Metrics extends AbstractMetrics {
 
   public void setLastEventWasSent(Boolean lastEventWasSent) {
     this.lastEventWasSent = lastEventWasSent;
-    registry.gauge(
-        prefix + "last_event_was_sent",
+    registryGauge(
+        "last_event_was_sent",
         this,
         Metrics::isLastEventWasSentAsDouble);
   }
@@ -54,8 +54,8 @@ public class Metrics extends AbstractMetrics {
 
   public void incrementTotalNumberOfEventsSent(int size) {
     totalNumberOfEventsSent = totalNumberOfEventsSent + size;
-    registry.gauge(
-        prefix + "total_number_of_events_sent",
+    registryGauge(
+        "total_number_of_events_sent",
         this,
         Metrics::getTotalNumberOfEventsSent);
   }
@@ -74,8 +74,8 @@ public class Metrics extends AbstractMetrics {
 
   public void incrementTotalNumberOfErrorsSeen() {
     totalNumberOfErrorsSeen = totalNumberOfErrorsSeen + 1;
-    registry.gauge(
-        prefix + "total_number_of_errors_seen",
+    registryGauge(
+        "total_number_of_errors_seen",
         this,
         Metrics::getTotalNumberOfErrorsSeen);
   }
