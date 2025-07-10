@@ -65,6 +65,7 @@ spec:
             properties:
               profile:
                 type: string
+                default: production
                 description: |
                   The profile allow to change in a convenient place a set of configuration defaults that affect how the cluster is generated.
                   
@@ -91,7 +92,6 @@ spec:
                     Unsets requests for sidecar containers other than `patroni` (set `.spec.nonProductionOptions.disableClusterResourceRequirements` to `true` by default).
 
                   **Changing this field may require a restart.**
-                default: production
               type:
                 type: string
                 description: |
@@ -260,6 +260,7 @@ spec:
                 properties:
                   mode:
                     type: string
+                    default: async
                     description: |
                       The replication mode applied to the whole cluster.
                       Possible values are:
@@ -319,7 +320,6 @@ spec:
                       
                       The same as `strict-sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
                         of instances less one.
-                    default: async
                   syncInstances:
                     type: integer
                     minimum: 1
@@ -333,6 +333,7 @@ spec:
                     properties:
                       mode:
                         type: string
+                        default: FromExistingBackup
                         description: |
                           Allow to specify how the replicas are initialized.
                           
@@ -346,7 +347,6 @@ spec:
                            Fallsback to `FromReplica` if there's no backup left or it fails.
                           * `FromNewlyCreatedBackup`: When this mode is used replicas will be created from a newly created SGBackup.
                            Fallsback to `FromExistingBackup` if `backupNewerThan` is set and exists a recent backup newer than its value or it fails.
-                        default: FromExistingBackup
                       backupNewerThan:
                         type: string
                         description: |
@@ -582,18 +582,18 @@ spec:
                     properties:
                       disableMetrics:
                         type: boolean
+                        default: false
                         description: |
                           If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use internal monitoring.
 
                           **Changing this field may require a restart.**
-                        default: false
                       receiver:
                         type: string
                         description: Indicate the receiver in the configuration for the collector scraper (if not specified, will default to prometheus).
                       prometheusAutobind:
                         type: boolean
-                        description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
                         default: false
+                        description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
                   backups:
                     type: array
                     description: |
@@ -1006,6 +1006,7 @@ spec:
                     properties:
                       mode:
                         type: string
+                        default: vertical
                         description: |
                           Allow to enable or disable any of horizontal and vertical Pod autoscaling.
                           
@@ -1013,7 +1014,6 @@ spec:
                           * `vertical`: only vertical Pod autoscaling will be enabled (default)
                           * `none`: all autoscaling will be disabled
                         enum: [ "vertical", "none" ]
-                        default: vertical
                       minAllowed:
                         type: object
                         description: |
@@ -1097,24 +1097,24 @@ spec:
                         properties:
                           eplicasConnectionsUsageTarget:
                             type: string
+                            default: "0.8"
                             description: |
                               The target value for replicas connections used in order to trigger the upscale of replica instances.
-                            default: "0.8"
                           replicasConnectionsUsageMetricType:
                             type: string
+                            default: AverageValue
                             description: |
                               The metric type for connections used metric. See https://keda.sh/docs/latest/concepts/scaling-deployments/#triggers
-                            default: AverageValue
                           cooldownPeriod:
                             type: integer
+                            default: 300
                             description: |
                               The period in seconds before the downscale of replica instances can be triggered.
-                            default: 300
                           pollingInterval:
                             type: integer
+                            default: 30
                             description: |
                               The interval in seconds to check if the scaleup or scaledown have to be triggered.
-                            default: 30
                       vertical:
                         type: object
                         description: |
@@ -1208,6 +1208,7 @@ spec:
                               If sharding type is `shardingsphere` then this field is ignored.
                       disableConnectionPooling:
                         type: boolean
+                        default: false
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
                       
@@ -1216,20 +1217,23 @@ spec:
                           **Changing this field may require a restart.**
                       disableMetricsExporter:
                         type: boolean
+                        default: false
                         description: |
                           **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                       disablePostgresUtil:
                         type: boolean
+                        default: false
                         description: |
                           If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
-                      
+
                           If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
                       disableEnvoy:
                         type: boolean
+                        default: true
                         description: |
-                          If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
+                          If set to `false`, creates the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 
                           **Changing this field may require a restart.**
                       resources:
@@ -1747,6 +1751,7 @@ spec:
                     properties:
                       mode:
                         type: string
+                        default: sync-all
                         description: |
                           The replication mode applied to the whole cluster.
                           Possible values are:
@@ -1806,7 +1811,6 @@ spec:
                           
                           The same as `strict-sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
                           of instances less one.
-                        default: sync-all
                       syncInstances:
                         type: integer
                         minimum: 1
@@ -1820,6 +1824,7 @@ spec:
                         properties:
                           mode:
                             type: string
+                            default: FromExistingBackup
                             description: |
                               Allow to specify how the replicas are initialized.
                               
@@ -1833,7 +1838,6 @@ spec:
                                Fallsback to `FromReplica` if there's no backup left or it fails.
                               * `FromNewlyCreatedBackup`: When this mode is used replicas will be created from a newly created SGBackup.
                                Fallsback to `FromExistingBackup` if `backupNewerThan` is set and exists a recent backup newer than its value or it fails.
-                            default: FromExistingBackup
                           backupNewerThan:
                             type: string
                             description: |
@@ -2603,6 +2607,7 @@ spec:
                       This property default value may be changed depending on the value of field `.spec.profile`.
                   enableSetPatroniCpuRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2611,9 +2616,9 @@ spec:
 
                       By default, StackGres will configure cpu requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's cpu requirements request equals to the limit
                         when `.spec.requests.cpu` is configured in the referenced `SGInstanceProfile`.
-                    default: false
                   enableSetClusterCpuRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2622,9 +2627,9 @@ spec:
 
                       By default, StackGres will configure cpu requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's cpu requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
                         when `.spec.requests.containers.<container name>.cpu` `.spec.requests.initContainers.<container name>.cpu` is configured in the referenced `SGInstanceProfile`.
-                    default: false
                   enableSetPatroniMemoryRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2633,9 +2638,9 @@ spec:
 
                       By default, StackGres will configure memory requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's memory requirements request equals to the limit
                         when `.spec.requests.memory` is configured in the referenced `SGInstanceProfile`.
-                    default: false
                   enableSetClusterMemoryRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2644,7 +2649,6 @@ spec:
 
                       By default, StackGres will configure memory requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's memory requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
                         when `.spec.requests.containers.<container name>.memory` `.spec.requests.initContainers.<container name>.memory` is configured in the referenced `SGInstanceProfile`.
-                    default: false
                   enabledFeatureGates:
                     type: array
                     description: |

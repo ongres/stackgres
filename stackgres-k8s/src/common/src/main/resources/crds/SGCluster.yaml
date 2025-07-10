@@ -71,6 +71,7 @@ spec:
             properties:
               profile:
                 type: string
+                default: production
                 description: |
                   The profile allow to change in a convenient place a set of configuration defaults that affect how the cluster is generated.
                   
@@ -97,7 +98,6 @@ spec:
                     Unsets requests for sidecar containers other than `patroni` (set `.spec.nonProductionOptions.disableClusterResourceRequirements` to `true` by default).
 
                   **Changing this field may require a restart.**
-                default: production
               postgres:
                 type: object
                 description: |
@@ -113,6 +113,7 @@ spec:
                       *  A specific major.minor version, like '14.4'.
                   flavor:
                     type: string
+                    default: vanilla
                     description: |
                       Postgres flavor used on the cluster. It is either of:
 
@@ -122,7 +123,6 @@ spec:
                       If not specified then the vanilla Postgres will be used for the cluster.
 
                       **This field can only be set on creation.**
-                    default: vanilla
                   extensions:
                     type: array
                     description: |
@@ -157,8 +157,8 @@ spec:
                           description: The name of the extension to deploy.
                         publisher:
                           type: string
-                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                           default: com.ongres
+                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                         version:
                           type: string
                           description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
@@ -245,6 +245,7 @@ spec:
                 properties:
                   mode:
                     type: string
+                    default: all
                     description: |
                       Allow to enable or disable any of horizontal and vertical Pod autoscaling.
                       
@@ -253,7 +254,6 @@ spec:
                       * `horizontal`: only horizontal Pod autoscaling will be enabled
                       * `vertical`: only vertical Pod autoscaling will be enabled
                       * `none`: all autoscaling will be disabled
-                    default: all
                   minInstances:
                     type: integer
                     description: |
@@ -351,24 +351,24 @@ spec:
                     properties:
                       replicasConnectionsUsageTarget:
                         type: string
+                        default: "0.8"
                         description: |
                           The target value for replicas connections used in order to trigger the upscale of replica instances.
-                        default: "0.8"
                       replicasConnectionsUsageMetricType:
                         type: string
+                        default: AverageValue
                         description: |
                           The metric type for connections used metric. See https://keda.sh/docs/latest/concepts/scaling-deployments/#triggers
-                        default: AverageValue
                       cooldownPeriod:
                         type: integer
+                        default: 300
                         description: |
                           The period in seconds before the downscale of replica instances can be triggered.
-                        default: 300
                       pollingInterval:
                         type: integer
+                        default: 30
                         description: |
                           The interval in seconds to check if the scaleup or scaledown have to be triggered.
-                        default: 30
                   vertical:
                     type: object
                     description: |
@@ -390,6 +390,7 @@ spec:
                 properties:
                   mode:
                     type: string
+                    default: async
                     description: |
                       The replication mode applied to the whole cluster.
                       Possible values are:
@@ -449,9 +450,9 @@ spec:
                       
                       The same as `strict-sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
                         of instances less one.
-                    default: async
                   role:
                     type: string
+                    default: ha-read
                     description: |
                       This role is applied to the instances of the implicit replication group that is composed by `.spec.instances` number of instances.
                       Possible values are:
@@ -459,7 +460,6 @@ spec:
                       * `ha`
                       The primary instance will be elected among all the replication groups that are either `ha` or `ha-read`.
                       Only if the role is set to `ha-read` instances of main replication group will be exposed via the replicas service.
-                    default: ha-read
                   syncInstances:
                     type: integer
                     minimum: 1
@@ -519,6 +519,7 @@ spec:
                     properties:
                       mode:
                         type: string
+                        default: FromExistingBackup
                         description: |
                           Allow to specify how the replicas are initialized.
                           
@@ -532,7 +533,6 @@ spec:
                            Fallsback to `FromReplica` if there's no backup left or it fails.
                           * `FromNewlyCreatedBackup`: When this mode is used replicas will be created from a newly created SGBackup.
                            Fallsback to `FromExistingBackup` if `backupNewerThan` is set and exists a recent backup newer than its value or it fails.
-                        default: FromExistingBackup
                       backupNewerThan:
                         type: string
                         description: |
@@ -670,11 +670,12 @@ spec:
                     properties: &service-properties
                       enabled:
                         type: boolean
-                        description: Specify if the service should be created or not.
                         default: true
+                        description: Specify if the service should be created or not.
                       type:
                         type: string
                         enum: ["ClusterIP", "LoadBalancer", "NodePort", "None"]
+                        default: ClusterIP
                         description: |
                           type determines how the Service is exposed. Defaults to ClusterIP. Valid
                           options are ClusterIP, NodePort, LoadBalancer and None. "ClusterIP" allocates
@@ -688,7 +689,6 @@ spec:
                           * https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
                           * https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
                           * https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/
-                        default: ClusterIP
                       customPorts:
                         type: array
                         description: |
@@ -815,29 +815,30 @@ spec:
                           Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
                   disableConnectionPooling:
                     type: boolean
+                    default: false
                     description: |
                       If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
                       **Changing this field may require a restart.**
-                    default: false
                   disableMetricsExporter:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                   disablePostgresUtil:
                     type: boolean
+                    default: false
                     description: |
                       If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
 
                       **Changing this field may require a restart.**
-                    default: false
                   disableEnvoy:
                     type: boolean
+                    default: true
                     description: |
-                      If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
+                      If set to `false`, creates the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 
                       **Changing this field may require a restart.**
-                    default: false
                   resources:
                     type: object
                     description: Pod custom resources configuration.
@@ -853,11 +854,11 @@ spec:
                         additionalProperties: *resources
                       enableClusterLimitsRequirements:
                         type: boolean
+                        default: false
                         description: |
                           When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
 
                           **Changing this field may require a restart.**
-                        default: false
                       disableResourcesRequestsSplitFromTotal:
                         type: boolean
                         description: |
@@ -911,6 +912,7 @@ spec:
                           podAntiAffinity: *pod-anti-affinity
                   managementPolicy:
                     type: string
+                    default: OrderedReady
                     description: |
                       managementPolicy controls how pods are created during initial scale up, when replacing pods
                         on nodes, or when scaling down. The default policy is `OrderedReady`, where pods are created
@@ -918,7 +920,6 @@ spec:
                         ready before continuing. When scaling down, the pods are removed in the opposite order.
                         The alternative policy is `Parallel` which will create pods in parallel to match the desired
                         scale without waiting, and on scale down will delete all pods at once.
-                    default: OrderedReady
                   customVolumes:
                     type: array
                     description: |
@@ -1158,18 +1159,18 @@ spec:
                     properties:
                       disableMetrics:
                         type: boolean
+                        default: false
                         description: |
                           If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use internal monitoring.
 
                           **Changing this field may require a restart.**
-                        default: false
                       receiver:
                         type: string
                         description: Indicate the receiver name (for type prometheus) in the configuration for the collector scraper (if not specified the default empty name will be used).
                       prometheusAutobind:
                         type: boolean
-                        description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
                         default: false
+                        description: If set to `true`, a PodMonitor is created for each Prometheus instance as specified in the SGConfig.spec.collector.prometheusOperator.monitors section.
                   backups:
                     type: array
                     description: |
@@ -1231,13 +1232,13 @@ spec:
                         retention:
                           type: integer
                           minimum: 1
+                          default: 5
                           description: |
                             When an automatic retention policy is defined to delete old base backups, this parameter specifies the number of base backups to keep, in a sliding window.
                             
                             Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
                             
                             Default is 5.
-                          default: 5
                         sgObjectStorage:
                           type: string
                           description: |
@@ -1522,8 +1523,8 @@ spec:
                 properties:
                   continueOnSGScriptError:
                     type: boolean
-                    description: If true, when any entry of any `SGScript` fail will not prevent subsequent `SGScript` from being executed. By default is `false`.
                     default: false
+                    description: If true, when any entry of any `SGScript` fail will not prevent subsequent `SGScript` from being executed. By default is `false`.
                   scripts:
                     type: array
                     description: |
@@ -2039,6 +2040,7 @@ spec:
                       **Changing this field may require a restart.**
                   enableSetPatroniCpuRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2049,9 +2051,9 @@ spec:
                         when `.spec.requests.cpu` is configured in the referenced `SGInstanceProfile`.
 
                       **Changing this field may require a restart.**
-                    default: false
                   enableSetClusterCpuRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2062,9 +2064,9 @@ spec:
                         when `.spec.requests.containers.<container name>.cpu` `.spec.requests.initContainers.<container name>.cpu` is configured in the referenced `SGInstanceProfile`.
 
                       **Changing this field may require a restart.**
-                    default: false
                   enableSetPatroniMemoryRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2075,9 +2077,9 @@ spec:
                         when `.spec.requests.memory` is configured in the referenced `SGInstanceProfile`.
 
                       **Changing this field may require a restart.**
-                    default: false
                   enableSetClusterMemoryRequests:
                     type: boolean
+                    default: false
                     description: |
                       **Deprecated** this value is ignored and you can consider it as always `true`.
 
@@ -2088,7 +2090,6 @@ spec:
                         when `.spec.requests.containers.<container name>.memory` `.spec.requests.initContainers.<container name>.memory` is configured in the referenced `SGInstanceProfile`.
 
                       **Changing this field may require a restart.**
-                    default: false
                   enabledFeatureGates:
                     type: array
                     description: |
@@ -2287,8 +2288,8 @@ spec:
                               description: The name of the extension to deploy.
                             publisher:
                               type: string
-                              description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                               default: com.ongres
+                              description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                             version:
                               type: string
                               description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
