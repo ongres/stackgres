@@ -807,6 +807,7 @@ check_cluster_before_security_upgrade() {
     jq -Sc '.
       | if .synchronous_mode then . else del(.synchronous_node_count) end
       | .postgresql.parameters = (.postgresql.parameters
+        | if .listen_addresses == "localhost" then .listen_addresses = "0.0.0.0" else . end
         | if .port == null then .port = "5432" else . end
         | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
         | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end

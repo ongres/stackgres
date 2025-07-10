@@ -21,27 +21,30 @@ check_metrics() {
     fi
   done
 
-  if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
-    -- curl -s -f "http://$CLUSTER_POD_IP:8001/stats/prometheus" \
-    | grep -q "^envoy_postgres_ingress_postgres_sessions"
+  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
   then
-    echo "Envoy metric envoy_postgres_ingress_postgres_sessions was found"
-  else
-    echo "Envoy metric envoy_postgres_ingress_postgres_sessions wasn't found"
-    return 1
-  fi
-
-  for ENVOY_CLUSTER in patroni_cluster postgres_cluster postgres_cluster_pool
-  do
     if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
       -- curl -s -f "http://$CLUSTER_POD_IP:8001/stats/prometheus" \
-      | grep "^envoy_cluster_upstream_cx_active" \
-      | grep -q "envoy_cluster_name=\"$ENVOY_CLUSTER\""
+      | grep -q "^envoy_postgres_ingress_postgres_sessions"
     then
-      echo "Envoy metric envoy_cluster_upstream_cx_active for cluster $ENVOY_CLUSTER was found"
+      echo "Envoy metric envoy_postgres_ingress_postgres_sessions was found"
     else
-      echo "Envoy metric envoy_cluster_upstream_cx_active for cluster $ENVOY_CLUSTER wasn't found"
+      echo "Envoy metric envoy_postgres_ingress_postgres_sessions wasn't found"
       return 1
     fi
-  done
+
+    for ENVOY_CLUSTER in patroni_cluster postgres_cluster postgres_cluster_pool
+    do
+      if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
+        -- curl -s -f "http://$CLUSTER_POD_IP:8001/stats/prometheus" \
+        | grep "^envoy_cluster_upstream_cx_active" \
+        | grep -q "envoy_cluster_name=\"$ENVOY_CLUSTER\""
+      then
+        echo "Envoy metric envoy_cluster_upstream_cx_active for cluster $ENVOY_CLUSTER was found"
+      else
+        echo "Envoy metric envoy_cluster_upstream_cx_active for cluster $ENVOY_CLUSTER wasn't found"
+        return 1
+      fi
+    done
+  fi
 }
