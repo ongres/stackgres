@@ -6,7 +6,6 @@
 package io.stackgres.stream.jobs.target.migration;
 
 import java.util.List;
-import java.util.Locale;
 
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.relational.ColumnDescriptor;
@@ -15,9 +14,9 @@ import io.stackgres.stream.jobs.target.migration.dialect.postgres.PostgresDataba
 import org.apache.kafka.connect.data.Schema;
 import org.hibernate.SessionFactory;
 
-public class EnhanchedPostgresDatabaseDialect extends PostgresDatabaseDialect {
+public class EnhancedPostgresDatabaseDialect extends PostgresDatabaseDialect {
 
-  public EnhanchedPostgresDatabaseDialect(
+  public EnhancedPostgresDatabaseDialect(
       JdbcSinkConnectorConfig config,
       SessionFactory sessionFactory) {
     super(config, sessionFactory);
@@ -25,7 +24,7 @@ public class EnhanchedPostgresDatabaseDialect extends PostgresDatabaseDialect {
 
   @Override
   public String getQueryBindingWithValueCast(ColumnDescriptor column, Schema schema, Type type) {
-    final String typeName = column.getTypeName().toLowerCase(Locale.US);
+    final String typeName = column.getTypeName();
     if ("smallserial".equals(typeName)) {
       return "?::smallint";
     }

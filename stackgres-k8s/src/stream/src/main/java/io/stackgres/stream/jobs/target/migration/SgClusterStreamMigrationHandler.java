@@ -13,7 +13,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import io.debezium.connector.jdbc.JdbcChangeEventSink;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
@@ -22,17 +24,21 @@ import io.debezium.connector.jdbc.RecordWriter;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.dialect.DatabaseDialectResolver;
 import io.debezium.connector.jdbc.dialect.postgres.PostgresDatabaseDialect;
+import io.debezium.data.Envelope;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine.RecordCommitter;
 import io.debezium.pipeline.signal.SignalPayload;
 import io.debezium.pipeline.signal.actions.SignalAction;
 import io.debezium.pipeline.spi.Partition;
+import io.debezium.relational.RelationalDatabaseConnectorConfig;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
+import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgres;
+import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgresDebeziumProperties;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourceSgCluster;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetJdbcSinkDebeziumProperties;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetSgCluster;
@@ -54,6 +60,9 @@ import io.stackgres.stream.jobs.target.migration.postgres.SnapshotHelperQueries;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.kafka.common.record.TimestampType;
+import org.apache.kafka.connect.data.ConnectSchema;
+import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.hibernate.SessionFactory;
@@ -110,6 +119,8 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     final StackGresStream stream;
     final boolean skipRestoreIndexes;
+    final String unavailableValuePlaceholder;
+    final byte[] unavailableValuePlaceholderBytes;
 
     boolean started = false;
     boolean snapshot = true;
@@ -128,6 +139,13 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           && !Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipRestoreIndexesAfterSnapshot)
           .orElse(false);
+      this.unavailableValuePlaceholder = Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
+          .map(StackGresStreamSourceSgCluster::getDebeziumProperties)
+          .or(() -> Optional.ofNullable(stream.getSpec().getSource().getPostgres())
+              .map(StackGresStreamSourcePostgres::getDebeziumProperties))
+          .map(StackGresStreamSourcePostgresDebeziumProperties::getUnavailableValuePlaceholder)
+          .orElse(RelationalDatabaseConnectorConfig.DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER);
+      this.unavailableValuePlaceholderBytes = this.unavailableValuePlaceholder.getBytes();
       if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
           .orElse(false)) {
@@ -243,7 +261,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     private DatabaseDialect resolveDatabaseDialect(JdbcSinkConnectorConfig config, SessionFactory sessionFactory) {
       final DatabaseDialect databaseDialect = DatabaseDialectResolver.resolve(config, sessionFactory);
       if (databaseDialect instanceof PostgresDatabaseDialect) {
-        return new EnhanchedPostgresDatabaseDialect(config, sessionFactory);
+        return new EnhancedPostgresDatabaseDialect(config, sessionFactory);
       }
       return databaseDialect;
     }
@@ -254,6 +272,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     public void consumeEvents(
         List<ChangeEvent<SourceRecord, SourceRecord>> changeEvents,
         RecordCommitter<ChangeEvent<SourceRecord, SourceRecord>> committer) {
+      final List<SinkRecord> sinkRecords = new ArrayList<>(changeEvents.size());
       try {
         if (!started) {
           throw new IllegalStateException("Not started");
@@ -264,11 +283,11 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         }
         final Iterator<ChangeEvent<SourceRecord, SourceRecord>> changeEventIterator = changeEvents.iterator();
         final List<ChangeEvent<SourceRecord, SourceRecord>> committedChangeEvents = new ArrayList<>(changeEvents.size());
-        final List<SinkRecord> sinkRecords = new ArrayList<>(changeEvents.size());
         String lastSourceOffset = null;
         while (changeEventIterator.hasNext()) {
           ChangeEvent<SourceRecord, SourceRecord> changeEvent = changeEventIterator.next();
-          final SourceRecord sourceRecord = changeEvent.value();
+          final SourceRecord originalSourceRecord = changeEvent.value();
+          final SourceRecord sourceRecord = removeUnavailableValues(originalSourceRecord);
           if (snapshot
               && !Optional.ofNullable(sourceRecord.sourceOffset().get("snapshot"))
               .map(Object::toString)
@@ -329,15 +348,142 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         metrics.incrementTotalNumberOfEventsSent(sinkRecords.size());
         metrics.setLastEventSent(lastSourceOffset);
         metrics.setLastEventWasSent(true);
-      } catch (RuntimeException ex) {
-        metrics.incrementTotalNumberOfErrorsSeen();
-        metrics.setLastEventWasSent(false);
-        throw ex;
       } catch (Exception ex) {
         metrics.incrementTotalNumberOfErrorsSeen();
         metrics.setLastEventWasSent(false);
-        throw new RuntimeException(ex);
+        throw new RuntimeException(
+            "Error while processing topics "
+                + sinkRecords.stream()
+                .map(SinkRecord::topic)
+                .collect(Collectors.groupingBy(Function.identity()))
+                .keySet()
+                .stream()
+                .collect(Collectors.joining(", ")),
+            ex);
       }
+    }
+
+    private SourceRecord removeUnavailableValues(final SourceRecord originalSourceRecord) {
+      if (originalSourceRecord.value() != null
+          && originalSourceRecord.value() instanceof Struct originalValue) {
+        final boolean isDebeziumMessage = originalValue != null
+            && originalSourceRecord.valueSchema().name() != null
+            && originalSourceRecord.valueSchema().name().contains("Envelope")
+            && originalValue.getStruct(Envelope.FieldName.AFTER) != null;
+        final Struct candidateValue;
+        if (isDebeziumMessage) {
+          candidateValue = originalValue.getStruct(Envelope.FieldName.AFTER);
+        } else {
+          candidateValue = originalValue;
+        }
+        if (candidateValue.schema().fields().stream()
+            .anyMatch(field -> isPlaceholder(candidateValue.get(field)))) {
+          final List<Field> valueFields = new ArrayList<Field>(
+              (int) candidateValue.schema().fields().stream()
+              .filter(field -> !isPlaceholder(candidateValue.get(field)))
+              .count());
+          {
+            int index = 0;
+            for (Field field : candidateValue.schema().fields()) {
+              if (isPlaceholder(candidateValue.get(field))) {
+                continue;
+              }
+              valueFields.add(new Field(field.name(), index, field.schema()));
+              index++;
+            }
+          }
+          final ConnectSchema valueSchema = new ConnectSchema(
+              candidateValue.schema().type(),
+              candidateValue.schema().isOptional(),
+              candidateValue.schema().defaultValue(),
+              candidateValue.schema().name(),
+              candidateValue.schema().version(),
+              candidateValue.schema().doc(),
+              candidateValue.schema().parameters(),
+              valueFields,
+              null,
+              null);
+          final Struct value = new Struct(valueSchema);
+          for (Field field : valueFields) {
+            value.put(field, candidateValue.get(field.name()));
+          }
+          if (isDebeziumMessage) {
+            List<Field> newFields = new ArrayList<>(
+                originalValue.schema().fields());
+            for (int index = 0; index < newFields.size(); index++) {
+              if (Objects.equals(newFields.get(index).name(), Envelope.FieldName.AFTER)) {
+                newFields.set(index, new Field(
+                    Envelope.FieldName.AFTER,
+                    originalValue.schema().field(Envelope.FieldName.AFTER).index(),
+                    valueSchema));
+              }
+            }
+            ConnectSchema newSchema = new ConnectSchema(
+                originalValue.schema().type(),
+                originalValue.schema().isOptional(),
+                originalValue.schema().defaultValue(),
+                originalValue.schema().name(),
+                originalValue.schema().version(),
+                originalValue.schema().doc(),
+                originalValue.schema().parameters(),
+                newFields,
+                null,
+                null);
+            Struct newValue = new Struct(newSchema);
+            for (int index = 0; index < newFields.size(); index++) {
+              if (Objects.equals(newFields.get(index).name(), Envelope.FieldName.AFTER)) {
+                newValue.put(newFields.get(index), value);
+              } else {
+                newValue.put(newFields.get(index), originalValue.get(newFields.get(index).name()));
+              }
+            }
+            return new SourceRecord(
+                originalSourceRecord.sourcePartition(),
+                originalSourceRecord.sourceOffset(),
+                originalSourceRecord.topic(),
+                originalSourceRecord.kafkaPartition(),
+                originalSourceRecord.keySchema(),
+                originalSourceRecord.key(),
+                newSchema,
+                newValue,
+                originalSourceRecord.timestamp(),
+                originalSourceRecord.headers());
+          } else {
+            return new SourceRecord(
+                originalSourceRecord.sourcePartition(),
+                originalSourceRecord.sourceOffset(),
+                originalSourceRecord.topic(),
+                originalSourceRecord.kafkaPartition(),
+                originalSourceRecord.keySchema(),
+                originalSourceRecord.key(),
+                valueSchema,
+                value,
+                originalSourceRecord.timestamp(),
+                originalSourceRecord.headers());
+          }
+        }
+      }
+      return originalSourceRecord;
+    }
+
+    private boolean isPlaceholder(Object value) {
+      return Objects.equals(value, unavailableValuePlaceholder)
+          || Objects.deepEquals(value, unavailableValuePlaceholderBytes)
+          || (value instanceof List valueList
+              && (valueList.size() == unavailableValuePlaceholderBytes.length
+                  && IntStream.range(0, unavailableValuePlaceholderBytes.length)
+                  .allMatch(index -> valueList.get(index) instanceof Number valueElementNumber
+                      && ((valueElementNumber instanceof Integer valueElementInteger
+                          && unavailableValuePlaceholderBytes[index] == valueElementInteger)
+                          || (valueElementNumber instanceof Long valueElementLong
+                              && unavailableValuePlaceholderBytes[index] == valueElementLong)
+                          || (valueElementNumber instanceof Float valueElementFloat
+                              && unavailableValuePlaceholderBytes[index] == valueElementFloat)
+                          || (valueElementNumber instanceof Double valueElementDouble
+                              && unavailableValuePlaceholderBytes[index] == valueElementDouble)
+                          ))
+              || (valueList.size() == 1
+                  && isPlaceholder(valueList.get(0)))));
     }
 
     @Override
