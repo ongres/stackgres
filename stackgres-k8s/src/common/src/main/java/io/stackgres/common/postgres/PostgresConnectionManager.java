@@ -60,7 +60,7 @@ public class PostgresConnectionManager {
     properties.setProperty("socketFactory", PostgresUnixSocketFactory.class.getName());
     properties.setProperty("socketFactoryArg", path + "/.s.PGSQL." + port);
     return DriverManager.getConnection(
-        "jdbc:postgresql://unix/" + database, properties);
+        "jdbc:postgresql://localhost/" + database, properties);
   }
 
 }
