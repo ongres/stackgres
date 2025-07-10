@@ -51,9 +51,8 @@ public abstract class AbstractMetrics {
         .map(t -> t.v1.equals(t.v2) ? t.v1 : "_" + t.v2)
         .collect(Collectors.joining())
         .replaceAll("^_", "");
-    final String name = prefix + attributeNameNormalized;
-    gauges.put(name, attributeValueNumber);
-    registryGauge(name, this, metrics -> metrics.getGauge(name));
+    gauges.put(attributeNameNormalized, attributeValueNumber);
+    registryGauge(attributeNameNormalized, this, metrics -> metrics.getGauge(attributeNameNormalized));
   }
 
   protected <T> void registryGauge(
