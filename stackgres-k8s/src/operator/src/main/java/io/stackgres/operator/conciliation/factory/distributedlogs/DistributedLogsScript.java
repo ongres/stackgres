@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -121,7 +122,7 @@ public class DistributedLogsScript
                 "/distributed-logs/install-extensions.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
-                databaseList,
+                Optional.of(databaseList).filter(Predicate.not(String::isEmpty)).orElse("null"),
                 timescaledbVersion,
                 isPendingRestart))
         .endScript()
@@ -135,7 +136,7 @@ public class DistributedLogsScript
                 "/distributed-logs/init.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
-                databaseList))
+                Optional.of(databaseList).filter(Predicate.not(String::isEmpty)).orElse("null")))
         .endScript()
         .addNewScript()
         .withId(2)
