@@ -28,7 +28,7 @@ import io.debezium.connector.jdbc.type.debezium.AbstractFloatVectorType;
  */
 public class FloatVectorType extends AbstractFloatVectorType {
 
-  public static FloatVectorType INSTANCE = new FloatVectorType();
+  public static final FloatVectorType INSTANCE = new FloatVectorType();
 
   @Override
   public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {

@@ -424,6 +424,18 @@ class DebeziumUtilTest {
         assertEntryInProperties(
             props, Map.entry("unavailable.value.placeholder", streamProperties.getUnavailableValuePlaceholder())),
         assertEntryInProperties(props, Map.entry("xmin.fetch.interval.ms", streamProperties.getXminFetchIntervalMs())),
+        assertEntryInProperties(
+            props, Map.entry("database.query.timeout.ms", streamProperties.getDatabaseQueryTimeoutMs())),
+        assertEntryInProperties(props, Map.entry("read.only", streamProperties.getReadOnly())),
+        assertEntryInProperties(
+            props, Map.entry("snapshot.isolation.mode", streamProperties.getSnapshotIsolationMode())),
+        assertEntryInProperties(props, Map.entry(
+            "message.prefix.include.list",
+            streamProperties.getMessagePrefixIncludeList().stream().collect(Collectors.joining(",")))),
+        assertEntryInProperties(props, Map.entry(
+            "message.prefix.exclude.list",
+            streamProperties.getMessagePrefixExcludeList().stream().collect(Collectors.joining(",")))),
+        assertEntryInProperties(props, Map.entry("slot.failover", streamProperties.getSlotFailover())),
         // Leave this so we can order all the properties correctly without bothering for the latest `,`
         Map.entry("|", streamProperties)
         ));
@@ -474,16 +486,25 @@ class DebeziumUtilTest {
         assertEntryInProperties(props, Map.entry("table.name.format", streamProperties.getTableNameFormat())),
         assertEntryInProperties(props, Map.entry("table.naming.strategy", streamProperties.getTableNamingStrategy())),
         assertEntryInProperties(props, Map.entry("truncate.enabled", streamProperties.getTruncateEnabled())),
+        assertEntryInProperties(
+            props, Map.entry("connection.url.parameters", streamProperties.getConnectionUrlParameters())),
+        assertEntryInProperties(props, Map.entry("use.time.zone", streamProperties.getUseTimeZone())),
+        assertEntryInProperties(props, Map.entry("use.reduction.buffer", streamProperties.getUseReductionBuffer())),
+        assertEntryInProperties(
+            props, Map.entry("collection.naming.strategy", streamProperties.getCollectionNamingStrategy())),
+        assertEntryInProperties(props, Map.entry("collection.name.format", streamProperties.getCollectionNameFormat())),
+        assertEntryInProperties(props, Map.entry("flush.retry.delay.ms", streamProperties.getFlushRetryDelayMs())),
+        assertEntryInProperties(props, Map.entry("flush.max.retries", streamProperties.getFlushMaxRetries())),
         Map.entry("|", streamProperties)
         ));
     props.forEach((key, value) -> {
-      Assertions.assertTrue(expectedProperties.containsKey(key));
+      Assertions.assertTrue(expectedProperties.containsKey(key), key.toString());
     });
   }
 
   Map.Entry<String, Object> assertEntryInProperties(Properties props, Map.Entry<String, Object> entry) {
     Assertions.assertTrue(props.containsKey(entry.getKey()), entry.getKey() + " not found");
-    Assertions.assertEquals(entry.getValue().toString(), props.get(entry.getKey()).toString());
+    Assertions.assertEquals(entry.getValue().toString(), props.get(entry.getKey()).toString(), entry.getKey());
     return entry;
   }
 

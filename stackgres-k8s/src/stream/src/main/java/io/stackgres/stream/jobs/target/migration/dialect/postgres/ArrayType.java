@@ -11,6 +11,7 @@ import static java.time.temporal.ChronoField.NANO_OF_SECOND;
 import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -221,7 +222,7 @@ public class ArrayType extends AbstractType {
         index,
         ((List<ByteBuffer>) valueList)
         .stream()
-        .map(byteBuffer -> byteBuffer != null ? new String(byteBuffer.array()) : null)
+        .map(byteBuffer -> byteBuffer != null ? new String(byteBuffer.array(), StandardCharsets.UTF_8) : null)
         .toList(),
         java.sql.Types.ARRAY,
         typeName));

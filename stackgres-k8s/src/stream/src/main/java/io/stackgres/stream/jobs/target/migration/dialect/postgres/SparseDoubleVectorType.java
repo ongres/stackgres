@@ -35,7 +35,7 @@ import io.debezium.connector.jdbc.type.debezium.AbstractSparseDoubleVectorType;
  */
 public class SparseDoubleVectorType extends AbstractSparseDoubleVectorType {
 
-  public static SparseDoubleVectorType INSTANCE = new SparseDoubleVectorType();
+  public static final SparseDoubleVectorType INSTANCE = new SparseDoubleVectorType();
 
   @Override
   public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {

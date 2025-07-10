@@ -28,7 +28,7 @@ import io.debezium.connector.jdbc.type.debezium.AbstractDoubleVectorType;
  */
 public class DoubleVectorType extends AbstractDoubleVectorType {
 
-  public static DoubleVectorType INSTANCE = new DoubleVectorType();
+  public static final DoubleVectorType INSTANCE = new DoubleVectorType();
 
   @Override
   public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {

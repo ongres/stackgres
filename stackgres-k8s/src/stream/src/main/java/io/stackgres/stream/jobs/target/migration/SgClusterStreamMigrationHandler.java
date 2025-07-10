@@ -5,6 +5,7 @@
 
 package io.stackgres.stream.jobs.target.migration;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.debezium.connector.jdbc.JdbcChangeEventSink;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.QueryBinderResolver;
@@ -145,7 +147,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
               .map(StackGresStreamSourcePostgres::getDebeziumProperties))
           .map(StackGresStreamSourcePostgresDebeziumProperties::getUnavailableValuePlaceholder)
           .orElse(RelationalDatabaseConnectorConfig.DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER);
-      this.unavailableValuePlaceholderBytes = this.unavailableValuePlaceholder.getBytes();
+      this.unavailableValuePlaceholderBytes = this.unavailableValuePlaceholder.getBytes(StandardCharsets.UTF_8);
       if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
           .orElse(false)) {
@@ -185,6 +187,10 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       final String clusterDatabase = Optional.ofNullable(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getDatabase)
           .orElse("postgres");
+      final String clusterParameters = Optional.ofNullable(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getDebeziumProperties)
+          .map(StackGresStreamTargetJdbcSinkDebeziumProperties::getConnectionUrlParameters)
+          .orElse("");
       final String usernameSecretName = sgCluster
           .map(StackGresStreamTargetSgCluster::getUsername)
           .map(SecretKeySelector::getName)
@@ -206,11 +212,12 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
       props.setProperty("connection.username", username);
       props.setProperty("connection.password", password);
-      props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
+      props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s?%s"
           .formatted(
               clusterServiceName,
               clusterPort,
-              clusterDatabase));
+              clusterDatabase,
+              clusterParameters));
       final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(props
           .entrySet()
           .stream()
@@ -230,7 +237,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
       if (!Optional.ofNullable(stream.getSpec().getTarget()
           .getSgCluster().getSkipDdlImport()).orElse(false)) {
-        importDdl(props, namespace, clusterServiceName, clusterPort, clusterDatabase);
+        importDdl(props, namespace, clusterServiceName, clusterPort, clusterDatabase, clusterParameters);
       } else {
         LOGGER.info("Import of DDL has been skipped as required by configuration");
       }
@@ -266,8 +273,8 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       return databaseDialect;
     }
 
-    
-
+    @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
+        justification = "wanted behavior")
     @Override
     public void consumeEvents(
         List<ChangeEvent<SourceRecord, SourceRecord>> changeEvents,
@@ -474,13 +481,13 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
                   && IntStream.range(0, unavailableValuePlaceholderBytes.length)
                   .allMatch(index -> valueList.get(index) instanceof Number valueElementNumber
                       && ((valueElementNumber instanceof Integer valueElementInteger
-                          && unavailableValuePlaceholderBytes[index] == valueElementInteger)
+                          && unavailableValuePlaceholderBytes[index] == valueElementInteger.byteValue())
                           || (valueElementNumber instanceof Long valueElementLong
-                              && unavailableValuePlaceholderBytes[index] == valueElementLong)
+                              && unavailableValuePlaceholderBytes[index] == valueElementLong.byteValue())
                           || (valueElementNumber instanceof Float valueElementFloat
-                              && unavailableValuePlaceholderBytes[index] == valueElementFloat)
+                              && unavailableValuePlaceholderBytes[index] == valueElementFloat.byteValue())
                           || (valueElementNumber instanceof Double valueElementDouble
-                              && unavailableValuePlaceholderBytes[index] == valueElementDouble)
+                              && unavailableValuePlaceholderBytes[index] == valueElementDouble.byteValue())
                           ))
               || (valueList.size() == 1
                   && isPlaceholder(valueList.get(0)))));
@@ -519,15 +526,17 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         final String namespace,
         final String clusterServiceName,
         final String clusterPort,
-        final String clusterDatabase) {
+        final String clusterDatabase,
+        final String clusterParameters) {
       final String sourceType = stream.getSpec().getSource().getType();
       switch(StreamSourceType.fromString(sourceType)) {
         case SGCLUSTER:
-          props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
+          props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s?%s"
               .formatted(
                   clusterServiceName,
                   clusterPort,
-                  "postgres"));
+                  "postgres",
+                  clusterParameters));
           final JdbcSinkConnectorConfig importConfig = new JdbcSinkConnectorConfig(props
               .entrySet()
               .stream()

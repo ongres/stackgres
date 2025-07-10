@@ -28,6 +28,7 @@ import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourcePostgres;
 import io.stackgres.common.crd.sgstream.StackGresStreamSourceSgCluster;
 import io.stackgres.common.crd.sgstream.StackGresStreamStatus;
+import io.stackgres.common.crd.sgstream.StackGresStreamTargetJdbcSinkDebeziumProperties;
 import io.stackgres.common.crd.sgstream.StackGresStreamTargetSgCluster;
 import io.stackgres.common.crd.sgstream.StreamSourceType;
 import io.stackgres.common.crd.sgstream.StreamStatusCondition;
@@ -157,6 +158,10 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
       final String clusterDatabase = Optional.ofNullable(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getDatabase)
           .orElse("postgres");
+      final String clusterParameters = Optional.ofNullable(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getDebeziumProperties)
+          .map(StackGresStreamTargetJdbcSinkDebeziumProperties::getConnectionUrlParameters)
+          .orElse("");
       final String usernameSecretName = sgCluster
           .map(StackGresStreamTargetSgCluster::getUsername)
           .map(SecretKeySelector::getName)
@@ -178,11 +183,12 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
  
       props.setProperty("connection.username", username);
       props.setProperty("connection.password", password);
-      props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s"
+      props.setProperty("connection.url", "jdbc:postgresql://%s:%s/%s?%s"
           .formatted(
               clusterServiceName,
               clusterPort,
-              clusterDatabase));
+              clusterDatabase,
+              clusterParameters));
       final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(props
           .entrySet()
           .stream()
