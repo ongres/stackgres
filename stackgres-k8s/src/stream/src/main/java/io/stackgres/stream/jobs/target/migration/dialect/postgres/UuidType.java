@@ -5,12 +5,13 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
+import org.apache.kafka.connect.data.Schema;
+
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.relational.ColumnDescriptor;
 import io.debezium.connector.jdbc.type.AbstractType;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.data.Uuid;
-import org.apache.kafka.connect.data.Schema;
 
 /**
  * An implementation of {@link Type} for {@link Uuid} types.

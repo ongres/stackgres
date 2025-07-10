@@ -5,10 +5,11 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
+import org.apache.kafka.connect.data.Schema;
+
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.type.AbstractType;
 import io.debezium.connector.jdbc.type.Type;
-import org.apache.kafka.connect.data.Schema;
 
 /**
  * An implementation of {@link Type} for {@code OID} data types.
@@ -17,16 +18,16 @@ import org.apache.kafka.connect.data.Schema;
  */
 class OidType extends AbstractType {
 
-    public static final OidType INSTANCE = new OidType();
+  public static final OidType INSTANCE = new OidType();
 
-    @Override
-    public String[] getRegistrationKeys() {
-        return new String[]{ "OID" };
-    }
+  @Override
+  public String[] getRegistrationKeys() {
+    return new String[] { "OID" };
+  }
 
-    @Override
-    public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-      return "oid";
-    }
+  @Override
+  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+    return "oid";
+  }
 
 }

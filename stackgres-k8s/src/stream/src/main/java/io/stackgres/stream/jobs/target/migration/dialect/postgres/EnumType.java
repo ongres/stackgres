@@ -5,14 +5,15 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
+import org.apache.kafka.connect.data.Schema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.type.AbstractType;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.connector.jdbc.type.connect.ConnectStringType;
 import io.debezium.data.Enum;
-import org.apache.kafka.connect.data.Schema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * An implementation of {@link Type} for {@link Enum} column types.

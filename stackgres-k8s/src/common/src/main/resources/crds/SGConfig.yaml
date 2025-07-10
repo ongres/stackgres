@@ -246,32 +246,32 @@ spec:
                           > This value can only be set in operator helm chart.
                   port:
                     type: integer
+                    default: 443
                     description: |
                       The port that will be exposed by the operator Service for HTTPS
 
                       > This value can only be set in operator helm chart.
-                    default: 443
                   internalHttpPort:
                     type: integer
+                    default: 8080
                     description: |
                       The port that the operator will use to listen for HTTP
                       
                       > This value can only be set in operator helm chart or with the environment variable `OPERATOR_HTTP_PORT`.
-                    default: 8080
                   internalHttpsPort:
                     type: integer
+                    default: 8443
                     description: |
                       The port that the operator will use to listen for HTTPS
 
                       > This value can only be set in operator helm chart or with the environment variable `OPERATOR_HTTPS_PORT`.
-                    default: 8443
                   hostNetwork:
                     type: boolean
+                    default: false
                     description: |
                       Host networking requested for this pod. Use the host's network namespace. If this option is set, the ports that will be used must be specified. Default to false.
 
                       > This value can only be set in operator helm chart.
-                    default: false
               restapi:
                 type: object
                 description: Section to configure REST API Pod
@@ -405,14 +405,6 @@ spec:
                         description: The HTTP port used to expose the Service on Kubernetes nodes
               collector:
                 type: object
-                description: |
-                  Section to configure OpenTelemetry Collector
-
-                  By default a single instance of OpenTelemetry Collector will receive metrics
-                   from all monitored Pods and will then exports those metrics to
-                   a configured target (by default will expose a Prometheus exporter).
-                  
-                  See receivers section to scale this architecture to a set of OpenTelemetry Collectors.
                 default:
                   resources:
                     limits:
@@ -476,6 +468,14 @@ spec:
                           - prometheus
                   prometheusOperator:
                     allowDiscovery: true
+                description: |
+                  Section to configure OpenTelemetry Collector
+
+                  By default a single instance of OpenTelemetry Collector will receive metrics
+                   from all monitored Pods and will then exports those metrics to
+                   a configured target (by default will expose a Prometheus exporter).
+                  
+                  See receivers section to scale this architecture to a set of OpenTelemetry Collectors.
                 properties:
                   name:
                     type: string
@@ -492,18 +492,18 @@ spec:
                     properties:
                       enabled:
                         type: boolean
+                        default: false
                         description: |
                           When set to `true` it enables the creation of a set of OpenTelemetry Collectors receivers
                            that will be scraping from the SGCluster Pods and allow to scale the observability
                            architecture and a set of OpenTelemetry Collectors exporters that exports those metrics
                            to one or more configured targets.
-                        default: false
                       exporters:
                         type: integer
+                        default: 1
                         description: |
                           When receivers are enabled indicates the number of OpenTelemetry Collectors exporters that
                            exports metrics to one or more configured targets.
-                        default: 1
                       deployments:
                         type: array
                         description: |
@@ -801,9 +801,9 @@ spec:
                        of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
                   regenerateCert:
                     type: boolean
+                    default: true
                     description: |
                       When set to `true` the Operator certificates will be regenerated if `createForOperator` is set to `true`, and the certificate is expired or invalid.
-                    default: true
                   certDuration:
                     type: integer
                     description: |
@@ -816,14 +816,14 @@ spec:
                        of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
                   regenerateWebCert:
                     type: boolean
+                    default: true
                     description: |
                       When set to `true` the Web Console / REST API certificates will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
-                    default: true
                   regenerateWebRsa:
                     type: boolean
+                    default: true
                     description: |
                       When set to `true` the Web Console / REST API RSA key pair will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
-                    default: true
                   webCertDuration:
                     type: integer
                     description: |
@@ -841,9 +841,9 @@ spec:
                        of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
                   regenerateCollectorCert:
                     type: boolean
+                    default: true
                     description: |
                       When set to `true` the OpenTelemetry Collector certificates will be regenerated if `createForCollector` is set to `true`, and the certificate is expired or invalid.
-                    default: true
                   collectorCertDuration:
                     type: integer
                     description: |
@@ -897,9 +897,9 @@ spec:
                        If set to `oidc` then see https://stackgres.io/doc/latest/api/rbac/#openid-connect-provider-mechanism.
                   createAdminSecret:
                     type: boolean
+                    default: true
                     description: |
                       When `true` will create the secret used to store the admin user credentials to access the UI.
-                    default: true
                   user:
                     type: string
                     default: admin

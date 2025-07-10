@@ -10,11 +10,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.kafka.connect.errors.ConnectException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.debezium.util.Strings;
-import org.apache.kafka.connect.errors.ConnectException;
 
 /**
  * Utility helper class for HSTORE column data types.

@@ -7,12 +7,13 @@ package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
 import java.sql.Types;
 
+import org.apache.kafka.connect.data.Schema;
+import org.hibernate.engine.jdbc.Size;
+
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.type.AbstractBytesType;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.connector.jdbc.util.ByteArrayUtils;
-import org.apache.kafka.connect.data.Schema;
-import org.hibernate.engine.jdbc.Size;
 
 /**
  * An implementation of {@link Type} for {@code BYTES} column types.

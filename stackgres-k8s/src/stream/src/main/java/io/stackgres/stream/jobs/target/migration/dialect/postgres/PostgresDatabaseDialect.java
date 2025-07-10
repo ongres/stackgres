@@ -15,23 +15,21 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.apache.kafka.connect.data.Schema;
+import org.hibernate.SessionFactory;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
+
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.JdbcSinkRecord;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.dialect.DatabaseDialectProvider;
 import io.debezium.connector.jdbc.dialect.GeneralDatabaseDialect;
 import io.debezium.connector.jdbc.dialect.SqlStatementBuilder;
-import io.debezium.connector.jdbc.dialect.postgres.GeometryType;
-import io.debezium.connector.jdbc.dialect.postgres.SerialType;
-import io.debezium.connector.jdbc.dialect.postgres.ZonedTimestampType;
 import io.debezium.connector.jdbc.relational.ColumnDescriptor;
 import io.debezium.connector.jdbc.relational.TableDescriptor;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.metadata.CollectionId;
-import org.apache.kafka.connect.data.Schema;
-import org.hibernate.SessionFactory;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.PostgreSQLDialect;
 
 /**
  * A {@link DatabaseDialect} implementation for PostgreSQL.
@@ -197,6 +195,10 @@ public class PostgresDatabaseDialect extends GeneralDatabaseDialect {
     registerType(InetType.INSTANCE);
     registerType(CaseInsensitiveTextType.INSTANCE);
     registerType(OidType.INSTANCE);
+
+    registerType(SparseDoubleVectorType.INSTANCE);
+    registerType(FloatVectorType.INSTANCE);
+    registerType(DoubleVectorType.INSTANCE);
   }
 
   @Override

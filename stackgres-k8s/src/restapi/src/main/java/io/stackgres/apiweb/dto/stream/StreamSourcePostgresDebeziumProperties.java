@@ -22,6 +22,8 @@ public class StreamSourcePostgresDebeziumProperties {
 
   private Boolean slotDropOnStop;
 
+  private Boolean slotFailover;
+
   private String publicationName;
 
   private Boolean skipMessagesWithoutChange;
@@ -62,7 +64,13 @@ public class StreamSourcePostgresDebeziumProperties {
 
   private Integer moneyFractionDigits;
 
+  private List<String> messagePrefixIncludeList;
+
+  private List<String> messagePrefixExcludeList;
+
   private Map<String, Map<String, String>> converters;
+
+  private String snapshotIsolationMode;
 
   private String snapshotMode;
 
@@ -144,6 +152,8 @@ public class StreamSourcePostgresDebeziumProperties {
 
   private String incrementalSnapshotWatermarkingStrategy;
 
+  private Boolean readOnly;
+
   private Integer xminFetchIntervalMs;
 
   private String topicNamingStrategy;
@@ -161,6 +171,8 @@ public class StreamSourcePostgresDebeziumProperties {
   private Map<String, String> customMetricTags;
 
   private Integer errorsMaxRetries;
+
+  private Integer databaseQueryTimeoutMs;
 
   public String getPluginName() {
     return pluginName;
@@ -184,6 +196,14 @@ public class StreamSourcePostgresDebeziumProperties {
 
   public void setSlotDropOnStop(Boolean slotDropOnStop) {
     this.slotDropOnStop = slotDropOnStop;
+  }
+
+  public Boolean getSlotFailover() {
+    return slotFailover;
+  }
+
+  public void setSlotFailover(Boolean slotFailover) {
+    this.slotFailover = slotFailover;
   }
 
   public String getPublicationName() {
@@ -346,12 +366,36 @@ public class StreamSourcePostgresDebeziumProperties {
     this.moneyFractionDigits = moneyFractionDigits;
   }
 
+  public List<String> getMessagePrefixIncludeList() {
+    return messagePrefixIncludeList;
+  }
+
+  public void setMessagePrefixIncludeList(List<String> messagePrefixIncludeList) {
+    this.messagePrefixIncludeList = messagePrefixIncludeList;
+  }
+
+  public List<String> getMessagePrefixExcludeList() {
+    return messagePrefixExcludeList;
+  }
+
+  public void setMessagePrefixExcludeList(List<String> messagePrefixExcludeList) {
+    this.messagePrefixExcludeList = messagePrefixExcludeList;
+  }
+
   public Map<String, Map<String, String>> getConverters() {
     return converters;
   }
 
   public void setConverters(Map<String, Map<String, String>> converters) {
     this.converters = converters;
+  }
+
+  public String getSnapshotIsolationMode() {
+    return snapshotIsolationMode;
+  }
+
+  public void setSnapshotIsolationMode(String snapshotIsolationMode) {
+    this.snapshotIsolationMode = snapshotIsolationMode;
   }
 
   public String getSnapshotMode() {
@@ -681,6 +725,14 @@ public class StreamSourcePostgresDebeziumProperties {
     this.incrementalSnapshotWatermarkingStrategy = incrementalSnapshotWatermarkingStrategy;
   }
 
+  public Boolean getReadOnly() {
+    return readOnly;
+  }
+
+  public void setReadOnly(Boolean readOnly) {
+    this.readOnly = readOnly;
+  }
+
   public Integer getXminFetchIntervalMs() {
     return xminFetchIntervalMs;
   }
@@ -751,6 +803,14 @@ public class StreamSourcePostgresDebeziumProperties {
 
   public void setErrorsMaxRetries(Integer errorsMaxRetries) {
     this.errorsMaxRetries = errorsMaxRetries;
+  }
+
+  public Integer getDatabaseQueryTimeoutMs() {
+    return databaseQueryTimeoutMs;
+  }
+
+  public void setDatabaseQueryTimeoutMs(Integer databaseQueryTimeoutMs) {
+    this.databaseQueryTimeoutMs = databaseQueryTimeoutMs;
   }
 
   @Override

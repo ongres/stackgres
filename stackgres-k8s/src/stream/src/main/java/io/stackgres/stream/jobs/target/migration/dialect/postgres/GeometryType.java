@@ -5,6 +5,8 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
+import org.apache.kafka.connect.data.Schema;
+
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.relational.ColumnDescriptor;
@@ -12,7 +14,6 @@ import io.debezium.connector.jdbc.type.AbstractGeoType;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.data.geometry.Geometry;
 import io.debezium.sink.SinkConnectorConfig;
-import org.apache.kafka.connect.data.Schema;
 
 public class GeometryType extends AbstractGeoType {
 

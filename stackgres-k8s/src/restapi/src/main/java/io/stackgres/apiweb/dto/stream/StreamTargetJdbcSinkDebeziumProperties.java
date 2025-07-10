@@ -16,6 +16,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class StreamTargetJdbcSinkDebeziumProperties {
 
+  private String connectionUrlParameters;
+
   @JsonProperty("connectionPoolMin_size")
   private Integer connectionPoolMinSize;
 
@@ -29,6 +31,9 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   @JsonProperty("databaseTime_zone")
   private String databaseTimeZone;
+
+  @JsonProperty("useTime_zone")
+  private String useTimeZone;
 
   private Boolean deleteEnabled;
 
@@ -46,15 +51,33 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   private String tableNameFormat;
 
+  private String collectionNameFormat;
+
   private String dialectPostgresPostgisSchema;
 
   private Boolean dialectSqlserverIdentityInsert;
 
   private Integer batchSize;
 
+  private Boolean useReductionBuffer;
+
+  private Integer flushMaxRetries;
+
+  private Integer flushRetryDelayMs;
+
   private String columnNamingStrategy;
 
   private String tableNamingStrategy;
+
+  private String collectionNamingStrategy;
+
+  public String getConnectionUrlParameters() {
+    return connectionUrlParameters;
+  }
+
+  public void setConnectionUrlParameters(String connectionUrlParameters) {
+    this.connectionUrlParameters = connectionUrlParameters;
+  }
 
   public Integer getConnectionPoolMinSize() {
     return connectionPoolMinSize;
@@ -94,6 +117,14 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   public void setDatabaseTimeZone(String databaseTimeZone) {
     this.databaseTimeZone = databaseTimeZone;
+  }
+
+  public String getUseTimeZone() {
+    return useTimeZone;
+  }
+
+  public void setUseTimeZone(String useTimeZone) {
+    this.useTimeZone = useTimeZone;
   }
 
   public Boolean getDeleteEnabled() {
@@ -160,6 +191,14 @@ public class StreamTargetJdbcSinkDebeziumProperties {
     this.tableNameFormat = tableNameFormat;
   }
 
+  public String getCollectionNameFormat() {
+    return collectionNameFormat;
+  }
+
+  public void setCollectionNameFormat(String collectionNameFormat) {
+    this.collectionNameFormat = collectionNameFormat;
+  }
+
   public String getDialectPostgresPostgisSchema() {
     return dialectPostgresPostgisSchema;
   }
@@ -184,6 +223,30 @@ public class StreamTargetJdbcSinkDebeziumProperties {
     this.batchSize = batchSize;
   }
 
+  public Boolean getUseReductionBuffer() {
+    return useReductionBuffer;
+  }
+
+  public void setUseReductionBuffer(Boolean useReductionBuffer) {
+    this.useReductionBuffer = useReductionBuffer;
+  }
+
+  public Integer getFlushMaxRetries() {
+    return flushMaxRetries;
+  }
+
+  public void setFlushMaxRetries(Integer flushMaxRetries) {
+    this.flushMaxRetries = flushMaxRetries;
+  }
+
+  public Integer getFlushRetryDelayMs() {
+    return flushRetryDelayMs;
+  }
+
+  public void setFlushRetryDelayMs(Integer flushRetryDelayMs) {
+    this.flushRetryDelayMs = flushRetryDelayMs;
+  }
+
   public String getColumnNamingStrategy() {
     return columnNamingStrategy;
   }
@@ -198,6 +261,14 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   public void setTableNamingStrategy(String tableNamingStrategy) {
     this.tableNamingStrategy = tableNamingStrategy;
+  }
+
+  public String getCollectionNamingStrategy() {
+    return collectionNamingStrategy;
+  }
+
+  public void setCollectionNamingStrategy(String collectionNamingStrategy) {
+    this.collectionNamingStrategy = collectionNamingStrategy;
   }
 
   @Override

@@ -379,12 +379,12 @@ spec:
                                       description: The key of the secret to select from. Must be a valid secret key.
                                 keyTransform:
                                   type: string
+                                  default: none
                                   description: |
                                     The transform that will be applied to the `key` to get the required 32 byte key.
                                      Supported transformations are `base64`, `hex` or `none` (default). The option
                                      none exists for backwards compatbility, the user input will be converted to 32
                                      byte either via truncation or by zero-padding.
-                                  default: none
                             openpgp:
                               type: object
                               description: OpenPGP encryption configuration.

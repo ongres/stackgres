@@ -39,7 +39,7 @@ import io.stackgres.stream.jobs.SourceEventHandler;
 import io.stackgres.stream.jobs.StreamDebeziumSignalActionProvider;
 import io.stackgres.stream.jobs.StreamExecutorService;
 import io.stackgres.stream.jobs.TargetEventConsumer;
-import io.stackgres.stream.jobs.target.migration.StreamMigrationTableNamingStrategy;
+import io.stackgres.stream.jobs.target.migration.StreamMigrationCollectionNamingStrategy;
 import jakarta.inject.Inject;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -100,7 +100,7 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
       StackGresStream stream,
       Class<? extends SerializationFormat<T>> format,
       TargetEventConsumer<T> eventConsumer) {
-    StreamMigrationTableNamingStrategy.setTopicPrefix(name(stream));
+    StreamMigrationCollectionNamingStrategy.setTopicPrefix(name(stream));
     DebeziumAnnotationSignalChannelReader.setStreamFinder(streamFinder);
 
     final Properties props = new Properties();

@@ -77,6 +77,26 @@ check_stream_is_working_skippig_ddl_import() {
   check_stream_is_working true
 }
 
+is_array_not_supported() {
+  local TYPE_CATEGORY="$1"
+  local TYPE_TYPE="$2"
+  local TYPE_NAME="$3"
+  local TYPE_FORMAT_TYPE="$4"
+  [ "${TYPE_NAME%serial}" != "$TYPE_NAME" ] \
+    || [ "$TYPE_NAME" = 'aclitem' ] \
+    || [ "$TYPE_NAME" = 'point' ] \
+    || [ "$TYPE_NAME" = 'money' ] \
+    || [ "$TYPE_NAME" = 'interval' ] \
+    || [ "$TYPE_NAME" = 'name' ] \
+    || [ "$TYPE_NAME" = 'varbit' ] \
+    || [ "$TYPE_NAME" = 'xml' ] \
+    || [ "$TYPE_NAME" = 'jsonpath' ] \
+    || [ "$TYPE_NAME" = 'bytea' ] \
+    || [ "$TYPE_NAME" = 'time' ] \
+    || [ "$TYPE_NAME" = 'timetz' ] \
+    || [ "$TYPE_NAME" = 'bit' ]
+}
+
 check_stream_is_working() {
   SKIP_DDL_IMPORT="${1:-false}"
   cat << 'EOF' | tee "$LOG_PATH/list-types.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on -tA > "$LOG_PATH/types"
@@ -132,11 +152,23 @@ INSERT INTO test SELECT i, 'test' FROM generate_series(1, 3) AS i ON CONFLICT (i
 DO \$\$BEGIN
 EXECUTE \$execute\$CREATE OR REPLACE FUNCTION create_complex_table() RETURNS void AS \$sql\$
 $(
+set +x
 cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
 do
-	cat << INNER_EOF
+  cat << INNER_EOF
 DROP TABLE IF EXISTS complex_$TYPE_NAME;
-CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || \$execute\$, PRIMARY KEY (i));
+$(
+if is_array_not_supported "$TYPE_CATEGORY" "$TYPE_TYPE" "$TYPE_NAME" "$TYPE_FORMAT_TYPE"
+then
+  cat << TABLE_EOF
+CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
+TABLE_EOF
+else
+  cat << TABLE_EOF
+CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || ',' || quote_ident('c_$TYPE_NAME') || '_array $TYPE_NAME[]' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
+TABLE_EOF
+fi
+)
 INNER_EOF
 done
 )
@@ -144,48 +176,124 @@ done
 END\$\$;
 
 DO \$\$BEGIN
-EXECUTE 'CREATE OR REPLACE FUNCTION insert_complex(i bigint) RETURNS void LANGUAGE plpgsql AS \$plpgsql\$BEGIN
+EXECUTE \$execute\$CREATE OR REPLACE FUNCTION insert_complex(i bigint) RETURNS void LANGUAGE plpgsql AS \$plpgsql\$BEGIN
 $(
+set +x
 cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
 do
-	cat << INNER_EOF
-  EXECUTE \$insert\$INSERT INTO complex_$TYPE_NAME SELECT \$insert\$ || i || \$insert\$, '
-    || CASE
-        WHEN '$TYPE_NAME' = 'aclitem' THEN '''' || makeaclitem('postgres'::regrole, 'authenticator'::regrole, 'SELECT', FALSE) || ''''
-        WHEN '$TYPE_NAME' IN ('json', 'jsonb') THEN '''true'''
-        WHEN '$TYPE_NAME' = 'jsonpath' THEN '''$.a'''
-        WHEN '$TYPE_NAME' = 'macaddr' THEN '''08:00:2b:01:02:03'''
-        WHEN '$TYPE_NAME' = 'macaddr8' THEN '''08:00:2b:01:02:03:04:05'''
-        WHEN '$TYPE_NAME' = 'pg_lsn' THEN '''FFFFFFFF/FFFFFFFF'''
-        WHEN '$TYPE_NAME' = 'pg_snapshot' THEN '''' || txid_current_snapshot() || ''''
-        WHEN '$TYPE_NAME' = 'txid_snapshot' THEN '''10:20:10,14,15'''
-        WHEN '$TYPE_NAME' = 'uuid' THEN '''a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'''
-        WHEN '$TYPE_NAME' = 'datemultirange' THEN '''{(,)}'''
-        WHEN '$TYPE_NAME' = 'daterange' THEN '''(,)'''
-        WHEN '$TYPE_NAME' = 'int4multirange' THEN '''{[1,2), [3,4)}'''
-        WHEN '$TYPE_NAME' = 'int4range' THEN '''[2,4)'''
-        WHEN '$TYPE_NAME' = 'int8multirange' THEN '''{[4,12)}'''
-        WHEN '$TYPE_NAME' = 'int8range' THEN '''(3,7)'''
-        WHEN '$TYPE_NAME' = 'nummultirange' THEN '''{[1.1,2.2)}'''
-        WHEN '$TYPE_NAME' = 'numrange' THEN '''(1.1,2.2)'''
-        WHEN '$TYPE_NAME' IN ('tsmultirange', 'tstzmultirange') THEN '''{[2011-01-01,2011-03-01)}'''
-        WHEN '$TYPE_NAME' IN ('tsrange', 'tstzrange') THEN '''[2011-01-01,2011-03-01)'''
-        WHEN '$TYPE_NAME' = 'dblink_pkey_results' THEN '''(1,2)'''
-        WHEN '$TYPE_NAME' = 'line' THEN '''{1,2,3}'''
-        WHEN '$TYPE_NAME' IN ('tid', 'point') THEN '''(1,2)'''
-        WHEN '$TYPE_NAME' = 'circle' THEN '''<(1,2),3>'''
-        WHEN '$TYPE_NAME' IN ('lseg','box','path','polygon') THEN '''((1,2),(3,4))'''
-        WHEN '$TYPE_CATEGORY' IN ('I') THEN '''1.2.3.4'''
-        WHEN '$TYPE_CATEGORY' IN ('D') THEN '''' || NOW() || ''''
-        WHEN '$TYPE_CATEGORY' IN ('Z') THEN '''t'''
-        WHEN '$TYPE_TYPE' IN ('r','m') OR '$TYPE_CATEGORY' IN ('A') THEN 'array[]'
-        WHEN '$TYPE_CATEGORY' IN ('N','V','T') OR '$TYPE_NAME' IN ('cid', 'xid', 'xid8') THEN '''1'''
-        ELSE '''t''' END
-    || '::$TYPE_FORMAT_TYPE\$insert\$;
+  cat << INNER_EOF
+  EXECUTE \$insert\$INSERT INTO complex_$TYPE_NAME
+    SELECT c1, c2 $(is_array_not_supported "$TYPE_CATEGORY" "$TYPE_TYPE" "$TYPE_NAME" "$TYPE_FORMAT_TYPE" || printf ', c3')
+    FROM (
+    SELECT NULL AS c1, NULL AS c2, NULL AS c3 where 1 = 0 
+    -- Returns empty table with predefined column names
+    UNION ALL
+    SELECT \$insert\$ || i || \$insert\$,
+    $(
+    if [ "$TYPE_NAME" = 'aclitem' ]
+    then
+      printf %s "makeaclitem('postgres'::regrole, 'authenticator'::regrole, 'SELECT', FALSE)::text::$TYPE_FORMAT_TYPE,null"
+    elif [ "$TYPE_NAME" = 'json' ] || [ "$TYPE_NAME" = 'jsonb' ]
+    then
+      printf %s "('\"' || (SELECT string_agg(i::text, '') FROM generate_series(1,1000) i) || '\"')::$TYPE_FORMAT_TYPE,"
+      printf %s "ARRAY[('\"' || (SELECT string_agg(i::text, '') FROM generate_series(1,1000) i) || '\"')::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'jsonpath' ]
+    then
+      printf %s "('\$.b' || (SELECT string_agg(i::text, '') FROM generate_series(1,1000) i))::$TYPE_FORMAT_TYPE,"
+      printf %s "ARRAY[('\$.b' || (SELECT string_agg(i::text, '') FROM generate_series(1,1000) i))::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'macaddr' ]
+    then
+      printf %s "'08:00:2b:01:02:03'::$TYPE_FORMAT_TYPE, ARRAY['08:00:2b:01:02:03'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'macaddr8' ]
+    then
+      printf %s "'08:00:2b:01:02:03:04:05'::$TYPE_FORMAT_TYPE,ARRAY['08:00:2b:01:02:03:04:05'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'pg_lsn' ]
+    then
+      printf %s "'FFFFFFFF/FFFFFFFF'::$TYPE_FORMAT_TYPE,ARRAY['FFFFFFFF/FFFFFFFF'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'pg_snapshot' ]
+    then
+      printf %s "txid_current_snapshot()::text::$TYPE_FORMAT_TYPE,ARRAY[txid_current_snapshot()::text::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'txid_snapshot' ]
+    then
+      printf %s "'10:20:10,14,15'::$TYPE_FORMAT_TYPE,ARRAY['10:20:10,14,15'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'uuid' ]
+    then
+      printf %s "'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::$TYPE_FORMAT_TYPE,ARRAY['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'datemultirange' ]
+    then
+      printf %s "'{(,)}'::$TYPE_FORMAT_TYPE,ARRAY['{(,)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'daterange' ]
+    then
+      printf %s "'(,)'::$TYPE_FORMAT_TYPE,ARRAY['(,)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int4multirange' ]
+    then
+      printf %s "'{[1,2), [3,4)}'::$TYPE_FORMAT_TYPE,ARRAY['{[1,2), [3,4)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int4range' ]
+    then
+      printf %s "'[2,4)'::$TYPE_FORMAT_TYPE,ARRAY['[2,4)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int8multirange' ]
+    then
+      printf %s "'{[4,12)}'::$TYPE_FORMAT_TYPE,ARRAY['{[4,12)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int8range' ]
+    then
+      printf %s "'(3,7)'::$TYPE_FORMAT_TYPE,ARRAY['(3,7)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'nummultirange' ]
+    then
+      printf %s "'{[1.1,2.2)}'::$TYPE_FORMAT_TYPE,ARRAY['{[1.1,2.2)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'numrange' ]
+    then
+      printf %s "'(1.1,2.2)'::$TYPE_FORMAT_TYPE,ARRAY['(1.1,2.2)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tsmultirange' ] || [ "$TYPE_NAME" = 'tstzmultirange' ]
+    then
+      printf %s "'{[2011-01-01,2011-03-01)}'::$TYPE_FORMAT_TYPE,ARRAY['{[2011-01-01,2011-03-01)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tsrange' ] || [ "$TYPE_NAME" = 'tstzrange' ]
+    then
+      printf %s "'[2011-01-01,2011-03-01)'::$TYPE_FORMAT_TYPE,ARRAY['[2011-01-01,2011-03-01)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'dblink_pkey_results' ]
+    then
+      printf %s "'(1,2)'::$TYPE_FORMAT_TYPE,ARRAY['(1,2)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'line' ]
+    then
+      printf %s "'{1,2,3}'::$TYPE_FORMAT_TYPE,ARRAY['{1,2,3}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tid' ] || [ "$TYPE_NAME" = 'point' ]
+    then
+      printf %s "'(1,2)'::$TYPE_FORMAT_TYPE,ARRAY['(1,2)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'circle' ]
+    then
+      printf %s "'<(1,2),3>'::$TYPE_FORMAT_TYPE,ARRAY['<(1,2),3>'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'lseg' ] || [ "$TYPE_NAME" = 'box' ] || [ "$TYPE_NAME" = 'path' ] || [ "$TYPE_NAME" = 'polygon' ]
+    then
+      printf %s "'((1,2),(3,4))'::$TYPE_FORMAT_TYPE,ARRAY['((1,2),(3,4))'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'I' ]
+    then
+      printf %s "'1.2.3.4'::$TYPE_FORMAT_TYPE,ARRAY['1.2.3.4'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'D' ]
+    then
+      printf %s "NOW()::text::$TYPE_FORMAT_TYPE,ARRAY[NOW()::text::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'Z' ]
+    then
+      printf %s "'f'::$TYPE_FORMAT_TYPE,ARRAY['f'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_TYPE" = 'r' ] || [ "$TYPE_TYPE" = 'm' ] || [ "$TYPE_CATEGORY" = 'A' ]
+    then
+      printf %s "'array[]'::$TYPE_FORMAT_TYPE,ARRAY['{}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'N' ] || [ "$TYPE_CATEGORY" = 'V' ] || [ "$TYPE_CATEGORY" = 'T' ] || [ "$TYPE_NAME" = 'cid' ] || [ "$TYPE_NAME" = 'xid' ] || [ "$TYPE_NAME" = 'xid8' ]
+    then
+      printf %s "'1'::$TYPE_FORMAT_TYPE,ARRAY['1'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'bool' ]
+    then
+      printf %s "'t'::$TYPE_FORMAT_TYPE,ARRAY['t'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tsquery' ] || [ "$TYPE_NAME" = 'tsvector' ]
+    then
+      printf %s "'t'::$TYPE_FORMAT_TYPE,ARRAY['t'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    else
+      printf %s "(SELECT string_agg(i::text, '') FROM generate_series(1,1000) i)::$TYPE_FORMAT_TYPE,ARRAY[(SELECT string_agg(i::text, '') FROM generate_series(1,1000) i)::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    fi
+    )
+    )\$insert\$;
 INNER_EOF
 done
 )
-  END\$plpgsql\$;';
+  END\$plpgsql\$;\$execute\$;
 END\$\$;
 
 SELECT create_complex_table();
@@ -199,7 +307,6 @@ metadata:
   namespace: $CLUSTER_NAMESPACE 
   name: "$STREAM_NAME"
 spec:
-  maxRetries: 0
   source:
 $(
   if [ "$SKIP_DDL_IMPORT" = true ]
@@ -232,6 +339,7 @@ INNER_EOF
       name: "$TARGET_CLUSTER_NAME"
       skipDdlImport: $SKIP_DDL_IMPORT
       debeziumProperties:
+        batchSize: 1
   pods:
     persistentVolume:
       size: 1Gi
@@ -303,6 +411,7 @@ EOF
 DELETE FROM test WHERE i = 1;
 
 $(
+set +x
 cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
 do
   cat << INNER_EOF
@@ -340,57 +449,137 @@ EOF
 UPDATE test SET t = 'hello' WHERE i = 6;
 
 $(
+set +x
 cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
 do
   cat << INNER_EOF
-UPDATE "complex_$TYPE_NAME" SET "c_$TYPE_NAME" = (CASE
-        WHEN '$TYPE_NAME' = 'aclitem' THEN makeaclitem('postgres'::regrole, 'authenticator'::regrole, 'UPDATE', FALSE)::text
-        WHEN '$TYPE_NAME' IN ('json', 'jsonb') THEN 'false'
-        WHEN '$TYPE_NAME' = 'jsonpath' THEN '$.b'
-        WHEN '$TYPE_NAME' = 'macaddr' THEN '09:00:2b:01:02:03'
-        WHEN '$TYPE_NAME' = 'macaddr8' THEN '09:00:2b:01:02:03:04:05'
-        WHEN '$TYPE_NAME' = 'pg_lsn' THEN '0/0'
-        WHEN '$TYPE_NAME' = 'pg_snapshot' THEN txid_current_snapshot()::text
-        WHEN '$TYPE_NAME' = 'txid_snapshot' THEN '20:30:20,24,25'
-        WHEN '$TYPE_NAME' = 'uuid' THEN 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        WHEN '$TYPE_NAME' = 'datemultirange' THEN '{(,)}'
-        WHEN '$TYPE_NAME' = 'daterange' THEN '(,)'
-        WHEN '$TYPE_NAME' = 'int4multirange' THEN '{[2,3), [4,5)}'
-        WHEN '$TYPE_NAME' = 'int4range' THEN '[3,5)'
-        WHEN '$TYPE_NAME' = 'int8multirange' THEN '{[5,13)}'
-        WHEN '$TYPE_NAME' = 'int8range' THEN '(4,8)'
-        WHEN '$TYPE_NAME' = 'nummultirange' THEN '{[2.2,3.3)}'
-        WHEN '$TYPE_NAME' = 'numrange' THEN '(2.2,3.3)'
-        WHEN '$TYPE_NAME' IN ('tsmultirange', 'tstzmultirange') THEN '{[2011-01-02,2011-03-02)}'
-        WHEN '$TYPE_NAME' IN ('tsrange', 'tstzrange') THEN '[2011-01-02,2011-03-02)'
-        WHEN '$TYPE_NAME' = 'dblink_pkey_results' THEN '(2,3)'
-        WHEN '$TYPE_NAME' = 'line' THEN '{2,3,4}'
-        WHEN '$TYPE_NAME' IN ('tid', 'point') THEN '(2,3)'
-        WHEN '$TYPE_NAME' = 'circle' THEN '<(2,3),4>'
-        WHEN '$TYPE_NAME' IN ('lseg','box','path','polygon') THEN '((2,3),(4,5))'
-        WHEN '$TYPE_CATEGORY' IN ('I') THEN '2.3.4.5'
-        WHEN '$TYPE_CATEGORY' IN ('D') THEN NOW()::text
-        WHEN '$TYPE_CATEGORY' IN ('Z') THEN 'f'
-        WHEN '$TYPE_TYPE' IN ('r','m') OR '$TYPE_CATEGORY' IN ('A') THEN 'array[]'
-        WHEN '$TYPE_CATEGORY' IN ('N','V','T') OR '$TYPE_NAME' IN ('cid', 'xid', 'xid8') THEN '0'
-        ELSE 'f' END)::$TYPE_FORMAT_TYPE
-     WHERE i = 6;
+UPDATE "complex_$TYPE_NAME" SET
+  ("c_${TYPE_NAME}" $(is_array_not_supported "$TYPE_CATEGORY" "$TYPE_TYPE" "$TYPE_NAME" "$TYPE_FORMAT_TYPE" || printf %s ", \"c_${TYPE_NAME}_array\"")) =
+  (
+    SELECT c1 $(is_array_not_supported "$TYPE_CATEGORY" "$TYPE_TYPE" "$TYPE_NAME" "$TYPE_FORMAT_TYPE" || printf ', c2')
+    FROM (
+    SELECT NULL AS c1, NULL AS c2 where 1 = 0 
+    -- Returns empty table with predefined column names
+    UNION ALL
+    SELECT
+    $(
+    if [ "$TYPE_NAME" = 'aclitem' ]
+    then
+      printf %s "makeaclitem('postgres'::regrole, 'authenticator'::regrole, 'UPDATE', FALSE)::text::$TYPE_FORMAT_TYPE",null
+    elif [ "$TYPE_NAME" = 'json' ] || [ "$TYPE_NAME" = 'jsonb' ]
+    then
+      printf %s "('\"' || (SELECT string_agg(i::text, '') FROM generate_series(2,1001) i) || '\"')::$TYPE_FORMAT_TYPE,"
+      printf %s "ARRAY[('\"' || (SELECT string_agg(i::text, '') FROM generate_series(2,1001) i) || '\"')::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'jsonpath' ]
+    then
+      printf %s "('\$.b' || (SELECT string_agg(i::text, '') FROM generate_series(2,1001) i))::$TYPE_FORMAT_TYPE,"
+      printf %s "ARRAY[('\$.b' || (SELECT string_agg(i::text, '') FROM generate_series(2,1001) i))::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'macaddr' ]
+    then
+      printf %s "'09:00:2b:01:02:03'::$TYPE_FORMAT_TYPE, ARRAY['09:00:2b:01:02:03'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'macaddr8' ]
+    then
+      printf %s "'09:00:2b:01:02:03:04:05'::$TYPE_FORMAT_TYPE,ARRAY['09:00:2b:01:02:03:04:05'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'pg_lsn' ]
+    then
+      printf %s "'0/0'::$TYPE_FORMAT_TYPE,ARRAY['0/0'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'pg_snapshot' ]
+    then
+      printf %s "txid_current_snapshot()::text::$TYPE_FORMAT_TYPE,ARRAY[txid_current_snapshot()::text::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'txid_snapshot' ]
+    then
+      printf %s "'20:30:20,24,25'::$TYPE_FORMAT_TYPE,ARRAY['20:30:20,24,25'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'uuid' ]
+    then
+      printf %s "'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::$TYPE_FORMAT_TYPE,ARRAY['b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'datemultirange' ]
+    then
+      printf %s "'{(,)}'::$TYPE_FORMAT_TYPE,ARRAY['{(,)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'daterange' ]
+    then
+      printf %s "'(,)'::$TYPE_FORMAT_TYPE,ARRAY['(,)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int4multirange' ]
+    then
+      printf %s "'{[2,3), [4,5)}'::$TYPE_FORMAT_TYPE,ARRAY['{[2,3), [4,5)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int4range' ]
+    then
+      printf %s "'[3,5)'::$TYPE_FORMAT_TYPE,ARRAY['[3,5)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int8multirange' ]
+    then
+      printf %s "'{[5,13)}'::$TYPE_FORMAT_TYPE,ARRAY['{[5,13)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'int8range' ]
+    then
+      printf %s "'(4,8)'::$TYPE_FORMAT_TYPE,ARRAY['(4,8)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'nummultirange' ]
+    then
+      printf %s "'{[2.2,3.3)}'::$TYPE_FORMAT_TYPE,ARRAY['{[2.2,3.3)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'numrange' ]
+    then
+      printf %s "'(2.2,3.3)'::$TYPE_FORMAT_TYPE,ARRAY['(2.2,3.3)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tsmultirange' ] || [ "$TYPE_NAME" = 'tstzmultirange' ]
+    then
+      printf %s "'{[2011-01-02,2011-03-02)}'::$TYPE_FORMAT_TYPE,ARRAY['{[2011-01-02,2011-03-02)}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tsrange' ] || [ "$TYPE_NAME" = 'tstzrange' ]
+    then
+      printf %s "'[2011-01-02,2011-03-02)'::$TYPE_FORMAT_TYPE,ARRAY['[2011-01-02,2011-03-02)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'dblink_pkey_results' ]
+    then
+      printf %s "'(2,3)'::$TYPE_FORMAT_TYPE,ARRAY['(2,3)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'line' ]
+    then
+      printf %s "'{2,3,4}'::$TYPE_FORMAT_TYPE,ARRAY['{2,3,4}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tid' ] || [ "$TYPE_NAME" = 'point' ]
+    then
+      printf %s "'(2,3)'::$TYPE_FORMAT_TYPE,ARRAY['(2,3)'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'circle' ]
+    then
+      printf %s "'<(2,3),4>'::$TYPE_FORMAT_TYPE,ARRAY['<(2,3),4>'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'lseg' ] || [ "$TYPE_NAME" = 'box' ] || [ "$TYPE_NAME" = 'path' ] || [ "$TYPE_NAME" = 'polygon' ]
+    then
+      printf %s "'((2,3),(4,5))'::$TYPE_FORMAT_TYPE,ARRAY['((2,3),(4,5))'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'I' ]
+    then
+      printf %s "'2.3.4.5'::$TYPE_FORMAT_TYPE,ARRAY['2.3.4.5'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'D' ]
+    then
+      printf %s "NOW()::text::$TYPE_FORMAT_TYPE,ARRAY[NOW()::text::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'Z' ]
+    then
+      printf %s "'f'::$TYPE_FORMAT_TYPE,ARRAY['f'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_TYPE" = 'r' ] || [ "$TYPE_TYPE" = 'm' ] || [ "$TYPE_CATEGORY" = 'A' ]
+    then
+      printf %s "'array[]'::$TYPE_FORMAT_TYPE,ARRAY['{}'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_CATEGORY" = 'N' ] || [ "$TYPE_CATEGORY" = 'V' ] || [ "$TYPE_CATEGORY" = 'T' ] || [ "$TYPE_NAME" = 'cid' ] || [ "$TYPE_NAME" = 'xid' ] || [ "$TYPE_NAME" = 'xid8' ]
+    then
+      printf %s "'0'::$TYPE_FORMAT_TYPE,ARRAY['0'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'bool' ]
+    then
+      printf %s "'f'::$TYPE_FORMAT_TYPE,ARRAY['f'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    elif [ "$TYPE_NAME" = 'tsquery' ] || [ "$TYPE_NAME" = 'tsvector' ]
+    then
+      printf %s "'f'::$TYPE_FORMAT_TYPE,ARRAY['f'::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    else
+      printf %s "(SELECT string_agg(i::text, '') FROM generate_series(2,1002) i)::$TYPE_FORMAT_TYPE,ARRAY[(SELECT string_agg(i::text, '') FROM generate_series(2,1002) i)::$TYPE_FORMAT_TYPE]::$TYPE_FORMAT_TYPE[]"
+    fi
+    )
+    ) )
+  WHERE i = 6;
 INNER_EOF
 done
 )
 
 $(
+set +x
 cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
 do
   cat << INNER_EOF
-UPDATE i = 7
-     WHERE i = 6;
+UPDATE "complex_$TYPE_NAME" SET updated = true WHERE i = 6;
 INNER_EOF
 done
 )
 EOF
 
-  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 4 + TYPE_COUNT * 2 ))"
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 4 + TYPE_COUNT * 3 ))"
   then
     success "streaming update transaction successful"
   else
@@ -398,7 +587,7 @@ EOF
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))" \
+    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
   then
     success "streaming update events successful"
@@ -406,8 +595,8 @@ EOF
     fail "streaming update events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 5 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 9 ))"
+  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 ))" \
+    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 ))"
   then
     success "sent update events successful"
   else
@@ -426,7 +615,7 @@ CREATE TABLE pop(i bigint, t text, PRIMARY KEY(i));
 INSERT INTO pop SELECT i, 'test' FROM generate_series(1, 3) AS i;
 EOF
 
-  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 6 + TYPE_COUNT * 2 ))"
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.numberOfCommittedTransactions | grep -qxF '"$(( 6 + TYPE_COUNT * 3 ))"
   then
     success "streaming alter transaction successful"
   else
@@ -434,7 +623,7 @@ EOF
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 + 6 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))" \
+    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) ))" \
     && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
   then
     success "streaming alter events successful"
@@ -442,8 +631,8 @@ EOF
     fail "streaming alter events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 5 + 6 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 9 + 6 ))"
+  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 + 6 ))" \
+    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 + 6 ))"
   then
     success "sent alter events successful"
   else

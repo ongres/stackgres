@@ -406,7 +406,7 @@ public class CollectorConfigMaps
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableEnvoy)
-        .orElse(false)) {
+        .orElse(true)) {
       return;
     }
     addOrOverwriteScrapeConfig(

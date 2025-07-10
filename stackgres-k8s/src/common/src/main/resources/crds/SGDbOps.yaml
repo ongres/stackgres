@@ -546,8 +546,8 @@ spec:
                           description: The name of the extension to deploy.
                         publisher:
                           type: string
-                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                           default: com.ongres
+                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                         version:
                           type: string
                           description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.

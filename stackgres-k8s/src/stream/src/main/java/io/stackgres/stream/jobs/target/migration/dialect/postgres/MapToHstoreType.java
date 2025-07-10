@@ -8,12 +8,13 @@ package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.kafka.connect.data.Schema;
+
 import io.debezium.connector.jdbc.ValueBindDescriptor;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.relational.ColumnDescriptor;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.connector.jdbc.type.connect.AbstractConnectMapType;
-import org.apache.kafka.connect.data.Schema;
 
 /**
  * An implementation of {@link Type} for {@code MAP} schema types that get

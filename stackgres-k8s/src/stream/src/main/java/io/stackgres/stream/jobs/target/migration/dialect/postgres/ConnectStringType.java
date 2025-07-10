@@ -9,13 +9,12 @@ import java.sql.Types;
 import java.util.Locale;
 import java.util.Optional;
 
-import org.apache.kafka.connect.data.Schema;
-import org.hibernate.engine.jdbc.Size;
-
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.type.Type;
 import io.debezium.connector.jdbc.type.connect.AbstractConnectSchemaType;
 import io.debezium.util.Strings;
+import org.apache.kafka.connect.data.Schema;
+import org.hibernate.engine.jdbc.Size;
 
 /**
  * An implementation of {@link Type} that supports {@code STRING} connect schema
@@ -151,7 +150,8 @@ public class ConnectStringType extends AbstractConnectSchemaType {
     // column should be mapped to a nationalized variant (NCHAR/NVARCHAR)
     if (schema.parameters() != null) {
       final String charsetName = schema.parameters().get("__debezium.source.column.character_set");
-      return !Strings.isNullOrEmpty(charsetName) && charsetName.toLowerCase(Locale.US).startsWith("utf8");
+      return !Strings.isNullOrEmpty(charsetName)
+          && charsetName.toLowerCase(Locale.US).startsWith("utf8");
     }
     return false;
   }

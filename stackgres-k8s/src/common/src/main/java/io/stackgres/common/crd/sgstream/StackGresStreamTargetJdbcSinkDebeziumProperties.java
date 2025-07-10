@@ -27,6 +27,8 @@ import jakarta.validation.constraints.AssertTrue;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
+  private String connectionUrlParameters;
+
   @JsonProperty("connectionPoolMin_size")
   private Integer connectionPoolMinSize;
 
@@ -40,6 +42,9 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
   @JsonProperty("databaseTime_zone")
   private String databaseTimeZone;
+
+  @JsonProperty("useTimeZone")
+  private String useTimeZone;
 
   @DebeziumDefault("true")
   private Boolean deleteEnabled;
@@ -63,16 +68,27 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
   @DebeziumDefault("${original}")
   private String tableNameFormat;
 
+  private String collectionNameFormat;
+
   private String dialectPostgresPostgisSchema;
 
   private Boolean dialectSqlserverIdentityInsert;
 
   private Integer batchSize;
 
+  private Boolean useReductionBuffer;
+
+  private Integer flushMaxRetries;
+
+  private Integer flushRetryDelayMs;
+
   private String columnNamingStrategy;
 
   @DebeziumDefault("io.stackgres.stream.jobs.target.migration.StreamMigrationTableNamingStrategy")
   private String tableNamingStrategy;
+
+  @DebeziumDefault("io.stackgres.stream.jobs.target.migration.StreamMigrationCollectionNamingStrategy")
+  private String collectionNamingStrategy;
 
   @ReferencedField("primaryKeyMode")
   interface PrimaryKeyMode extends FieldReference {
@@ -84,7 +100,15 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
   public boolean isTypeMatchSection() {
     return primaryKeyMode == null || !primaryKeyMode.equalsIgnoreCase("kafka");
   }
-  
+
+  public String getConnectionUrlParameters() {
+    return connectionUrlParameters;
+  }
+
+  public void setConnectionUrlParameters(String connectionUrlParameters) {
+    this.connectionUrlParameters = connectionUrlParameters;
+  }
+
   public Integer getConnectionPoolMinSize() {
     return connectionPoolMinSize;
   }
@@ -123,6 +147,14 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
   public void setDatabaseTimeZone(String databaseTimeZone) {
     this.databaseTimeZone = databaseTimeZone;
+  }
+
+  public String getUseTimeZone() {
+    return useTimeZone;
+  }
+
+  public void setUseTimeZone(String useTimeZone) {
+    this.useTimeZone = useTimeZone;
   }
 
   public Boolean getDeleteEnabled() {
@@ -189,6 +221,14 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
     this.tableNameFormat = tableNameFormat;
   }
 
+  public String getCollectionNameFormat() {
+    return collectionNameFormat;
+  }
+
+  public void setCollectionNameFormat(String collectionNameFormat) {
+    this.collectionNameFormat = collectionNameFormat;
+  }
+
   public String getDialectPostgresPostgisSchema() {
     return dialectPostgresPostgisSchema;
   }
@@ -213,6 +253,30 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
     this.batchSize = batchSize;
   }
 
+  public Boolean getUseReductionBuffer() {
+    return useReductionBuffer;
+  }
+
+  public void setUseReductionBuffer(Boolean useReductionBuffer) {
+    this.useReductionBuffer = useReductionBuffer;
+  }
+
+  public Integer getFlushMaxRetries() {
+    return flushMaxRetries;
+  }
+
+  public void setFlushMaxRetries(Integer flushMaxRetries) {
+    this.flushMaxRetries = flushMaxRetries;
+  }
+
+  public Integer getFlushRetryDelayMs() {
+    return flushRetryDelayMs;
+  }
+
+  public void setFlushRetryDelayMs(Integer flushRetryDelayMs) {
+    this.flushRetryDelayMs = flushRetryDelayMs;
+  }
+
   public String getColumnNamingStrategy() {
     return columnNamingStrategy;
   }
@@ -229,13 +293,23 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
     this.tableNamingStrategy = tableNamingStrategy;
   }
 
+  public String getCollectionNamingStrategy() {
+    return collectionNamingStrategy;
+  }
+
+  public void setCollectionNamingStrategy(String collectionNamingStrategy) {
+    this.collectionNamingStrategy = collectionNamingStrategy;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(batchSize, columnNamingStrategy, connectionPoolAcquireIncrement,
-        connectionPoolMaxSize, connectionPoolMinSize, connectionPoolTimeout, databaseTimeZone,
-        deleteEnabled, dialectPostgresPostgisSchema, dialectSqlserverIdentityInsert, insertMode,
-        primaryKeyFields, primaryKeyMode, quoteIdentifiers, schemaEvolution, tableNameFormat,
-        tableNamingStrategy, truncateEnabled);
+    return Objects.hash(batchSize, collectionNameFormat, collectionNamingStrategy,
+        columnNamingStrategy, connectionPoolAcquireIncrement, connectionPoolMaxSize,
+        connectionPoolMinSize, connectionPoolTimeout, connectionUrlParameters, databaseTimeZone,
+        deleteEnabled, dialectPostgresPostgisSchema, dialectSqlserverIdentityInsert,
+        flushMaxRetries, flushRetryDelayMs, insertMode, primaryKeyFields, primaryKeyMode,
+        quoteIdentifiers, schemaEvolution, tableNameFormat, tableNamingStrategy, truncateEnabled,
+        useReductionBuffer, useTimeZone);
   }
 
   @Override
@@ -248,15 +322,20 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
     }
     StackGresStreamTargetJdbcSinkDebeziumProperties other = (StackGresStreamTargetJdbcSinkDebeziumProperties) obj;
     return Objects.equals(batchSize, other.batchSize)
+        && Objects.equals(collectionNameFormat, other.collectionNameFormat)
+        && Objects.equals(collectionNamingStrategy, other.collectionNamingStrategy)
         && Objects.equals(columnNamingStrategy, other.columnNamingStrategy)
         && Objects.equals(connectionPoolAcquireIncrement, other.connectionPoolAcquireIncrement)
         && Objects.equals(connectionPoolMaxSize, other.connectionPoolMaxSize)
         && Objects.equals(connectionPoolMinSize, other.connectionPoolMinSize)
         && Objects.equals(connectionPoolTimeout, other.connectionPoolTimeout)
+        && Objects.equals(connectionUrlParameters, other.connectionUrlParameters)
         && Objects.equals(databaseTimeZone, other.databaseTimeZone)
         && Objects.equals(deleteEnabled, other.deleteEnabled)
         && Objects.equals(dialectPostgresPostgisSchema, other.dialectPostgresPostgisSchema)
         && Objects.equals(dialectSqlserverIdentityInsert, other.dialectSqlserverIdentityInsert)
+        && Objects.equals(flushMaxRetries, other.flushMaxRetries)
+        && Objects.equals(flushRetryDelayMs, other.flushRetryDelayMs)
         && Objects.equals(insertMode, other.insertMode)
         && Objects.equals(primaryKeyFields, other.primaryKeyFields)
         && Objects.equals(primaryKeyMode, other.primaryKeyMode)
@@ -264,7 +343,9 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
         && Objects.equals(schemaEvolution, other.schemaEvolution)
         && Objects.equals(tableNameFormat, other.tableNameFormat)
         && Objects.equals(tableNamingStrategy, other.tableNamingStrategy)
-        && Objects.equals(truncateEnabled, other.truncateEnabled);
+        && Objects.equals(truncateEnabled, other.truncateEnabled)
+        && Objects.equals(useReductionBuffer, other.useReductionBuffer)
+        && Objects.equals(useTimeZone, other.useTimeZone);
   }
 
   @Override

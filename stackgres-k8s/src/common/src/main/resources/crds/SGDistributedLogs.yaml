@@ -43,6 +43,7 @@ spec:
             properties:
               profile:
                 type: string
+                default: production
                 description: |
                   The profile allow to change in a convenient place a set of configuration defaults that affect how the cluster is generated.
                   
@@ -69,7 +70,6 @@ spec:
                     Unsets requests for sidecar containers other than `patroni` (set `.spec.nonProductionOptions.disableClusterResourceRequirements` to `true` by default).
 
                   **Changing this field may require a restart.**
-                default: production
               persistentVolume:
                 type: object
                 description: Pod's persistent volume configuration
@@ -110,6 +110,7 @@ spec:
                     properties: &service-properties
                       type:
                         type: string
+                        default: ClusterIP
                         enum: ["ClusterIP", "LoadBalancer", "NodePort", "None"]
                         description: |
                           type determines how the Service is exposed. Defaults to ClusterIP. Valid
@@ -124,7 +125,6 @@ spec:
                           * https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
                           * https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
                           * https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/
-                        default: ClusterIP
                       allocateLoadBalancerNodePorts: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.allocateLoadBalancerNodePorts
                         {"description":"allocateLoadBalancerNodePorts defines if NodePorts will be automatically allocated for services with type LoadBalancer.  Default is \"true\". It may be set to \"false\" if the cluster load-balancer does not rely on NodePorts.  If the caller requests specific NodePorts (by specifying a value), those requests will be respected, regardless of this field. This field may only be set for services with type LoadBalancer and will be cleared if the type is changed to any other type.","type":"boolean"}
                       externalIPs: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.externalIPs #allocateloadbalancernodeports-v1-core
