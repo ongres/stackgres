@@ -170,6 +170,8 @@ spec:
                             **This section is filled by the operator.**
                   ssl:
                     type: object
+                    default:
+                      enabled: true
                     description: |
                       This section allows to use SSL when connecting to Postgres
 
@@ -194,8 +196,9 @@ spec:
                     properties:
                       enabled:
                         type: boolean
+                        default: true
                         description: |
-                          Allow to enable SSL for connections to Postgres. By default is `false`.
+                          Allow to enable SSL for connections to Postgres. By default is `true`.
                           
                           If `true` certificate and private key will be auto-generated unless fields `certificateSecretKeySelector` and `privateKeySecretKeySelector` are specified.
                       certificateSecretKeySelector:
