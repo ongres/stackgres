@@ -55,7 +55,7 @@ get_pod_ip(){
 }
 
 patroni_curl(){
-  PORT="${PATRONI_PORT:-8008}"
+  PORT="${PATRONI_PORT:-8009}"
   POD_IP="$(get_pod_ip)"
   ENPOINT="cluster"
 

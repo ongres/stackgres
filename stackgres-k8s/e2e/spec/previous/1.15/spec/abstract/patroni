@@ -39,7 +39,7 @@ patroni_switchover(){
 }
 
 patroni_direct_switchover_check(){
-  patroni_curl -e "switchover" -p 8009 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
+  patroni_curl -e "switchover" -p 8008 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
 }
 
 patroni_liveness_check() {

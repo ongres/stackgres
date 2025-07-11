@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
 import io.stackgres.cluster.common.PatroniCommandUtil;
+import io.stackgres.cluster.common.PgBouncerCommandUtil;
 import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -53,11 +54,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class PostgresSslReconciliator extends SafeReconciliator<StackGresClusterContext, Void> {
+public class SslReconciliator extends SafeReconciliator<StackGresClusterContext, Void> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSslReconciliator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SslReconciliator.class);
 
   private final Supplier<Boolean> reconcilePatroni;
+  private final Supplier<Boolean> reconcilePgBouncer;
   private final EventController eventController;
   private final ResourceFinder<Secret> secretFinder;
   private final PostgresConnectionManager postgresConnectionManager;
@@ -71,9 +73,11 @@ public class PostgresSslReconciliator extends SafeReconciliator<StackGresCluster
   }
 
   @Inject
-  public PostgresSslReconciliator(Parameters parameters) {
+  public SslReconciliator(Parameters parameters) {
     this.reconcilePatroni = () -> parameters.propertyContext
         .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PATRONI);
+    this.reconcilePgBouncer = () -> parameters.propertyContext
+        .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER);
     this.eventController = parameters.eventController;
     this.secretFinder = parameters.secretFinder;
     this.postgresConnectionManager = parameters.postgresConnectionManager;
@@ -118,6 +122,9 @@ public class PostgresSslReconciliator extends SafeReconciliator<StackGresCluster
       try {
         if (reconcilePatroni.get()) {
           PatroniCommandUtil.reloadPatroniConfig();
+        }
+        if (reconcilePgBouncer.get()) {
+          PgBouncerCommandUtil.reloadPgBouncerConfig();
         }
       } catch (Exception ex) {
         LOGGER.warn("Was not able to reload Patroni, will try later: {}", ex.getMessage(), ex);

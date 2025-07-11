@@ -21,7 +21,7 @@ e2e_test_install() {
 e2e_test() {
   run_test "Checking that it is not possible to connect to postgres without a password" check_password_required
 
-  run_test "Checking that all 4 ports (5432, 6432, 7432, 7433) in the patroni pods are openned and listening for queries" ports_check
+  run_test "Checking that all 4 ports (5432, 6432) in the patroni pods are openned and listening for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
 
@@ -91,17 +91,13 @@ check_password_is_required() {
 ports_check() {
   RESPONSE_5432="$(run_query -i 0 -p 5432)"
   RESPONSE_6432="$(run_query -i 0 -p 6432)"
-  RESPONSE_7432="$(run_query -i 0 -p 7432)"
-  RESPONSE_7433="$(run_query -i 0 -p 7433)"
 
-  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
+  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ]
   then
     RESPONSE_5432="$(run_query -i 1 -p 5432)"
     RESPONSE_6432="$(run_query -i 1 -p 6432)"
-    RESPONSE_7432="$(run_query -i 1 -p 7432)"
-    RESPONSE_7433="$(run_query -i 1 -p 7433)"
 
-    if ! ( [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ] )
+    if ! ( [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] )
     then
       fail "Not all 4 ports of the replica node are working"
     fi

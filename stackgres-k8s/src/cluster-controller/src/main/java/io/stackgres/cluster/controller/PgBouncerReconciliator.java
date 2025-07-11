@@ -13,14 +13,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
-import com.ongres.process.FluentProcess;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPgBouncerConfigEventReason;
+import io.stackgres.cluster.common.PgBouncerCommandUtil;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
@@ -52,8 +51,6 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
   private static final Path LAST_PGBOUNCER_AUTH_PATH =
       Paths.get(ClusterPath.PGBOUNCER_AUTH_PATH.path()
           + "/last-" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.filename());
-  private static final Pattern PGBOUNCER_COMMAND_PATTERN =
-      Pattern.compile("^/usr/local/bin/pgbouncer .*$");
 
   private final EventController eventController;
   private final Supplier<Boolean> pgbouncerReconciliationEnabled;
@@ -106,7 +103,7 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
     boolean configChanged = configChanged(PGBOUNCER_CONFIG_PATH, LAST_PGBOUNCER_CONFIG_PATH);
     boolean authConfigChanged = configChanged(PGBOUNCER_AUTH_PATH, LAST_PGBOUNCER_AUTH_PATH);
     if (configChanged || authConfigChanged) {
-      reloadPatroniConfig();
+      PgBouncerCommandUtil.reloadPgBouncerConfig();
       if (configChanged) {
         Files.copy(PGBOUNCER_CONFIG_PATH, LAST_PGBOUNCER_CONFIG_PATH,
             StandardCopyOption.REPLACE_EXISTING);
@@ -119,24 +116,6 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
       eventController.sendEvent(ClusterPgBouncerConfigEventReason.CLUSTER_PGBOUNCER_CONFIG_UPDATED,
           "Patroni config updated", client);
     }
-  }
-
-  private void reloadPatroniConfig() {
-    final String patroniPid = findPatroniPid();
-    FluentProcess.start("sh", "-c",
-        String.format("kill -s HUP %s", patroniPid)).join();
-  }
-
-  private String findPatroniPid() {
-    return ProcessHandle.allProcesses()
-        .filter(process -> process.info().commandLine()
-            .map(command -> PGBOUNCER_COMMAND_PATTERN.matcher(command).matches())
-            .orElse(false))
-        .map(ProcessHandle::pid)
-        .map(String::valueOf)
-        .findAny()
-        .orElseThrow(() -> new IllegalStateException(
-            "Process with pattern " + PGBOUNCER_COMMAND_PATTERN + " not found"));
   }
 
 }
