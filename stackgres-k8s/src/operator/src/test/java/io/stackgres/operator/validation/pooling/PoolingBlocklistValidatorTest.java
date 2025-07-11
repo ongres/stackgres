@@ -66,7 +66,7 @@ class PoolingBlocklistValidatorTest {
 
     ValidationFailed assertThrows =
         assertThrows(ValidationFailed.class, () -> validator.validate(review));
-    assertEquals("Invalid PgBouncer configuration, properties: [host, user] cannot be set",
+    assertEquals("Invalid PgBouncer configuration, properties: [host] cannot be set",
         assertThrows.getMessage());
   }
 
