@@ -4,14 +4,23 @@ check_connectivity(){
   RESPONSE_5432="$(wait_until run_query -p 5432 "$@")"
   RESPONSE_6432="$(wait_until run_query -p 6432 "$@")"
 
-  RESPONSE_7432="$(wait_until run_query -p 7432 "$@")"
-  RESPONSE_7433="$(wait_until run_query -p 7433 "$@")"
-  
-  if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
+  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
   then
-    return 0
-  else 
-    return 1
+    RESPONSE_7432="$(wait_until run_query -p 7432 "$@")"
+    RESPONSE_7433="$(wait_until run_query -p 7433 "$@")"
+    if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
+    then
+      return 0
+    else 
+      return 1
+    fi
+  else
+    if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ]
+    then
+      return 0
+    else 
+      return 1
+    fi
   fi
 }
 
