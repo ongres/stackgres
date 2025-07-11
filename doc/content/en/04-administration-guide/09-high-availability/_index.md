@@ -36,7 +36,7 @@ There are two different ways to accomplish this. The first one is with the `kube
 To identify the primary node:
 
 ```
-$ kubectl get pods -n default -l app=StackGresCluster -l role=master
+$ kubectl get pods -n default -l app=StackGresCluster -l role=primary
 NAME          READY   STATUS    RESTARTS   AGE
 stackgres-0   5/5     Running   0          165m
 ```
