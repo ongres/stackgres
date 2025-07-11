@@ -107,8 +107,8 @@
      ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
        || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
-        ( $DO_FULL_ARM && $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_FULL_ARM && $DO_ARM ) )
+        ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_ARM ) )
   artifacts:
     expire_in: 1 week
     when: always
@@ -139,8 +139,8 @@
      ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
        || ( $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_SHA == null ) )
        && (
-        ( $DO_FULL_ARM && $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_FULL_ARM && $DO_NATIVE && $DO_ARM ) ) )
+        ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_NATIVE && $DO_ARM ) ) )
   artifacts:
     expire_in: 1 week
     when: always

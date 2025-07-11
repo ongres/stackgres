@@ -234,7 +234,7 @@ test_cluster_component_versions_are_annotated() {
       return 1
     fi
 
-    if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+    if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
     then
       if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/envoy-version']}")" = "$ENVOY_VERSION" ]
       then

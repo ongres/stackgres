@@ -31,7 +31,7 @@ run_fluentd() {
 }
 
 echo 'Wait for postgres to be up, running and initialized'
-until curl -s localhost:8008/readiness --fail > /dev/null; do sleep 1; done
+until curl -s "localhost:${PATRONI_PORT}/readiness" --fail > /dev/null; do sleep 1; done
 export TMPDIR=/tmp/fluentd
 
 set +x

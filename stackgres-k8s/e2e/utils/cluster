@@ -65,6 +65,15 @@ create_or_replace_cluster_only() {
       $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
       --set cluster.instances="$INSTANCES" "$@"
   fi
+
+  if ! kubectl get sgcluster -n "$NAMESPACE" "$RELEASE" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
+  then
+    POSTGRES_PORT=7432
+    POSTGRES_REPLICATION_PORT=7433
+  else
+    POSTGRES_PORT=5432
+    POSTGRES_REPLICATION_PORT=5432
+  fi
 }
 
 wait_cluster() {
@@ -252,6 +261,15 @@ create_or_replace_cluster_for_version_only() {
         --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
         --set cluster.instances="$INSTANCES" "$@")"
   fi
+
+  if ! kubectl get sgcluster -n "$NAMESPACE" "$RELEASE" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
+  then
+    POSTGRES_PORT=7432
+    POSTGRES_REPLICATION_PORT=7433
+  else
+    POSTGRES_PORT=5432
+    POSTGRES_REPLICATION_PORT=5432
+  fi
 }
 
 create_or_replace_sharded_cluster() {
@@ -308,6 +326,15 @@ create_or_replace_sharded_cluster_only() {
       $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
       --set-string kind=SGShardedCluster --set shardedCluster.shards.clusters="$((CLUSTERS - 1))" \
       --set shardedCluster.shards.instancesPerCluster="$INSTANCES" --set cluster.instances="$INSTANCES" "$@"
+  fi
+
+  if ! kubectl get sgshardedcluster -n "$NAMESPACE" "$RELEASE" --template '{{ .spec.coordinator.pods.disableEnvoy }}' | grep -qxF true
+  then
+    POSTGRES_PORT=7432
+    POSTGRES_REPLICATION_PORT=7433
+  else
+    POSTGRES_PORT=5432
+    POSTGRES_REPLICATION_PORT=5432
   fi
 }
 

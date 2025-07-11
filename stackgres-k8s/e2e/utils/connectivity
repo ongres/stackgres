@@ -4,7 +4,7 @@ check_connectivity(){
   RESPONSE_5432="$(wait_until run_query -p 5432 "$@")"
   RESPONSE_6432="$(wait_until run_query -p 6432 "$@")"
 
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
   then
     RESPONSE_7432="$(wait_until run_query -p 7432 "$@")"
     RESPONSE_7433="$(wait_until run_query -p 7433 "$@")"

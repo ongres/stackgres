@@ -21,7 +21,7 @@ e2e_test_install() {
 }
 
 e2e_test() {
-  run_test "Checking that all 6 ports (5432, 1433, 6432) in the patroni pods are opened and listening for queries" ports_check
+  run_test "Checking that all 6 ports (5432, 1433, 6432, 7432, 7433, 7434) in the patroni pods are opened and listening for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
 
@@ -44,9 +44,13 @@ ports_check() {
   RESPONSE_5432="$(wait_until run_query -i 0 -p 5432)"
   RESPONSE_1433="$(wait_until run_query -t babelfish -i 0 -p 1433 | head -n 1)"
   RESPONSE_6432="$(run_query -i 0 -p 6432)"
+  RESPONSE_7432="$(run_query -i 0 -p "$POSTGRES_PORT")"
+  RESPONSE_7433="$(run_query -i 0 -p "$POSTGRES_REPLICATION_PORT")"
+  RESPONSE_7434="$(run_query -t babelfish -i 0 -p "$BABELFISH_PORT")"
 
   if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_1433" = "1" ] \
-    && [ "$RESPONSE_6432" = "1" ]
+    && [ "$RESPONSE_6432" = "1" ] \
+    && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ] && [ "$(printf %s "$RESPONSE_7434" | head -n 1)" = "1" ]
   then
     echo "Skipping replica check for babelfish"
     return
@@ -54,14 +58,20 @@ ports_check() {
     RESPONSE_5432="$(wait_until run_query -i 1 -p 5432)"
     RESPONSE_1433="$(wait_until run_query -t babelfish -i 1 -p 1433 | head -n 1)"
     RESPONSE_6432="$(run_query -i 1 -p 6432)"
+    RESPONSE_7432="$(run_query -i 1 -p "$POSTGRES_PORT")"
+    RESPONSE_7433="$(run_query -i 1 -p "$POSTGRES_REPLICATION_PORT")"
+    RESPONSE_7434="$(run_query -t babelfish -i 1 -p "$BABELFISH_PORT")"
 
-    if ! ( [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_1433" = "1" ] \
-      && [ "$RESPONSE_6432" = "1" ] )
+    if ! {
+      [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_1433" = "1" ] \
+        && [ "$RESPONSE_6432" = "1" ] \
+        && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ] && [ "$(printf %s "$RESPONSE_7434" | head -n 1)" ]
+    }
     then
-      fail "Not all 6 ports of the replica node are working"
+      fail "Not all ports of the replica node are working"
     fi
   else 
-      fail "Not all 6 ports of the primary node are working"
+      fail "Not all ports of the primary node are working"
   fi
 }
 

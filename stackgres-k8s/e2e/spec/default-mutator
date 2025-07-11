@@ -649,7 +649,7 @@ EOF
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
   then
     assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   fi
@@ -702,7 +702,7 @@ EOF
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
   then
     assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   fi
@@ -948,7 +948,7 @@ EOF
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-coord -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.coordinator.pods.disableEnvoy }}' | grep -qxF true
   then
     assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   fi
@@ -958,7 +958,7 @@ EOF
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-shard0 -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.shards.pods.disableEnvoy }}' | grep -qxF true
   then
     assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   fi
@@ -1023,7 +1023,7 @@ EOF
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-coord -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.coordinator.pods.disableEnvoy }}' | grep -qxF true
   then
     assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   fi
@@ -1033,7 +1033,7 @@ EOF
   INSTALLED_CONTAINERS="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-shard0 -o=jsonpath='{.spec.template.spec.containers[*].name}')"
 
   assert_string_contains "prometheus-postgres-exporter" "$INSTALLED_CONTAINERS"
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.shards.pods.disableEnvoy }}' | grep -qxF true
   then
     assert_string_contains "envoy" "$INSTALLED_CONTAINERS"
   fi

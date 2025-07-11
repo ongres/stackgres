@@ -38,11 +38,11 @@ check_sharded_dbops_resharding_is_working() {
     psql -q -t -A -d citus -c "SELECT nodename from pg_dist_node WHERE shouldhaveshards LIMIT 1")"
   kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -d citus -v ON_ERROR_STOP=1 \
-    -c "SELECT citus_drain_node('$NODE_NAME', 7433)" \
-    -c "SELECT citus_remove_node('$NODE_NAME', 7433)"
+    -c "SELECT citus_drain_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT})" \
+    -c "SELECT citus_remove_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT})"
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
       psql -q -d citus -v ON_ERROR_STOP=1 \
-      -c "SELECT citus_add_node('$NODE_NAME', 7433)"
+      -c "SELECT citus_add_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT})"
   if ! kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
   then

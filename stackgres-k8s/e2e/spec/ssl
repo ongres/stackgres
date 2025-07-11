@@ -66,17 +66,6 @@ ssl_check() {
   local EXIT_CODE RESULT
   while [ "$RETRY" -gt 0 ]
   do
-    if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
-    then
-      if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
-      then
-        echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
-        kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
-        wait_pods_running "$CLUSTER_NAMESPACE" 2
-        wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-        switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-      fi
-    fi
     try_function wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432
     if "$RESULT"
     then

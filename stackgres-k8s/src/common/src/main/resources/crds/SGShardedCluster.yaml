@@ -1234,7 +1234,6 @@ spec:
                           **Changing this field may require a restart.**
                       disableEnvoy:
                         type: boolean
-                        default: true
                         description: |
                           If set to `false`, creates the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 
@@ -1998,16 +1997,19 @@ spec:
                               Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
                       disableConnectionPooling:
                         type: boolean
+                        default: false
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
                           **Changing this field may require a restart.**
                       disableMetricsExporter:
                         type: boolean
+                        default: false
                         description: |
                           **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                       disablePostgresUtil:
                         type: boolean
+                        default: false
                         description: |
                           If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
 
@@ -2311,16 +2313,19 @@ spec:
                                     Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
                             disableConnectionPooling:
                               type: boolean
+                              default: false
                               description: |
                                 If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
                                 **Changing this field may require a restart.**
                             disableMetricsExporter:
                               type: boolean
+                              default: false
                               description: |
                                 **Deprecated** use instead .spec.configurations.observability.disableMetrics.
                             disablePostgresUtil:
                               type: boolean
+                              default: false
                               description: |
                                 If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
 

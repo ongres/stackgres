@@ -29,7 +29,7 @@ spec:
   ingress:
   - ports:
     - protocol: TCP
-      port: 7433
+      port: $POSTGRES_REPLICATION_PORT
 EOF
 
   run_query -i 0 -p 5432 -q "INSERT INTO test SELECT i, 'try to generate a new timeline ' || i FROM generate_series(1, 10000) i"

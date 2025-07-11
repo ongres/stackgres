@@ -27,6 +27,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_13_0="$(get_version_as_number 1.13.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_16_0="$(get_version_as_number 1.16.0-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_17_0="$(get_version_as_number 1.17.0-SNAPSHOT)"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 
@@ -807,7 +808,9 @@ check_cluster_before_security_upgrade() {
     jq -Sc '.
       | if .synchronous_mode then . else del(.synchronous_node_count) end
       | .postgresql.parameters = (.postgresql.parameters
-        | if .listen_addresses == "localhost" then .listen_addresses = "0.0.0.0" else . end
+        | if .ssl == null then .ssl = "on" else . end
+        | if .ssl_cert_file == null then .ssl_cert_file = "/etc/ssl/tls.crt" else . end
+        | if .ssl_key_file == null then .ssl_key_file = "/etc/ssl/tls.key" else . end
         | if .port == null then .port = "5432" else . end
         | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
         | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
@@ -829,15 +832,21 @@ check_cluster_before_security_upgrade() {
     if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ]
     then
       PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
-        | del(.postgresql.parameters.dynamic_library_path)
         | del(.postgresql.recovery_conf)
         ')"
     fi
     if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ] \
-      && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_15_0" ]
+      && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_17_0" ]
     then
       PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
-        | del(.postgresql.parameters.listen_addresses)
+        | del(.postgresql.parameters.ssl)
+        | del(.postgresql.parameters.ssl_cert_file)
+        | del(.postgresql.parameters.ssl_key_file)
+        ')"
+      PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc '. 
+        | del(.postgresql.parameters.ssl)
+        | del(.postgresql.parameters.ssl_cert_file)
+        | del(.postgresql.parameters.ssl_key_file)
         ')"
     fi
 
@@ -861,6 +870,7 @@ check_cluster_before_security_upgrade() {
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
     PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
     cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH" \
+      | sed '\#^auth_user = #a client_tls_cert_file = /etc/ssl/tls.crt\nclient_tls_key_file = /etc/ssl/tls.key\nclient_tls_sslmode = prefer' \
       | sed '/server_check_query = ;/d' \
       | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
@@ -901,7 +911,6 @@ check_sharded_cluster_security_upgrade() {
   local SHARDED_CLUSTER_NAME="$1"
   local DBOPS_NAME="$2"
   local METHOD="$3"
-  local CLUSTERS="$4"
   local PRIMARY_INSTANCE
   local CLUSTER_NAME
   shift 3
@@ -909,11 +918,8 @@ check_sharded_cluster_security_upgrade() {
   assert_sharded_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
   for CLUSTER_NAME in "$SHARDED_CLUSTER_NAME-coord" \
-    $(seq 0 "$((CLUSTERS - 1))" \
-      | while read INDEX
-        do
-          printf %s "$SHARDED_CLUSTER_NAME-shard$INDEX"
-        done)
+    "$SHARDED_CLUSTER_NAME-shard0" \
+    "$SHARDED_CLUSTER_NAME-shard1"
   do
     check_cluster_after_security_upgrade
   done

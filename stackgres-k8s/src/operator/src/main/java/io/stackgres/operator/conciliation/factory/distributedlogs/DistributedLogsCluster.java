@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
@@ -44,6 +45,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
@@ -100,6 +102,12 @@ public class DistributedLogsCluster
     final ObjectMeta metadata = distributedLogs.getMetadata();
     final String name = metadata.getName();
     final String namespace = metadata.getNamespace();
+    final boolean isEnvoyDisabled = previousCluster
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(true);
+    final int patroniPort = isEnvoyDisabled ? EnvoyUtil.PATRONI_PORT : EnvoyUtil.PATRONI_ENTRY_PORT;
 
     final StackGresCluster cluster =
         new StackGresClusterBuilder(
@@ -230,6 +238,10 @@ public class DistributedLogsCluster
                 new EnvVarBuilder()
                 .withName("FLUENTD_LAST_CONFIG_PATH")
                 .withValue("/tmp/fluentd/last-fluentd-config")
+                .build(),
+                new EnvVarBuilder()
+                .withName("PATRONI_PORT")
+                .withValue(String.valueOf(patroniPort))
                 .build())
             .withVolumeMounts(
                 new VolumeMountBuilder()

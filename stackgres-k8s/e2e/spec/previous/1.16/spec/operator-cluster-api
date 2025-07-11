@@ -234,12 +234,15 @@ test_cluster_component_versions_are_annotated() {
       return 1
     fi
 
-    if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/envoy-version']}")" = "$ENVOY_VERSION" ]
+    if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
     then
-      success "Version of component 'envoy' is $ENVOY_VERSION for por $POD"
-    else
-      echo "FALIURE. Version of component 'envoy' is not $ENVOY_VERSION for por $POD"
-      return 1
+      if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/envoy-version']}")" = "$ENVOY_VERSION" ]
+      then
+        success "Version of component 'envoy' is $ENVOY_VERSION for por $POD"
+      else
+        echo "FALIURE. Version of component 'envoy' is not $ENVOY_VERSION for por $POD"
+        return 1
+      fi
     fi
 
     if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath="{.metadata.annotations['stackgres\.io/pgbouncer-version']}")" = "$PGBOUNCER_VERSION" ]

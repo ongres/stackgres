@@ -17,7 +17,7 @@ e2e_test_install() {
 }
 
 e2e_test() {
-  run_test "Checking that all 3 ports (5432) in the patroni pods are openned and listeing for queries" ports_check
+  run_test "Checking that all 3 ports (5432, 7432, 7433) in the patroni pods are openned and listeing for queries" ports_check
 
   run_test "Checking that is possible to connect using services is working" service_check
 
@@ -32,19 +32,25 @@ e2e_test() {
 
 ports_check() {
   RESPONSE_5432="$(run_query -i 0 -p 5432)"
+  RESPONSE_7432="$(run_query -i 0 -p "$POSTGRES_PORT")"
+  RESPONSE_7433="$(run_query -i 0 -p "$POSTGRES_REPLICATION_PORT")"
 
-  if [ "$RESPONSE_5432" = "1" ]
+  if [ "$RESPONSE_5432" = "1" ] \
+    && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
   then
     RESPONSE_5432="$(run_query -i 1 -p 5432)"
+    RESPONSE_7432="$(run_query -i 0 -p "$POSTGRES_PORT")"
+    RESPONSE_7433="$(run_query -i 0 -p "$POSTGRES_REPLICATION_PORT")"
 
-    if [ "$RESPONSE_5432" = "1" ]
+    if ! {
+      [ "$RESPONSE_5432" = "1" ] \
+        && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
+    }
     then
-      success "All ports are ok"
-    else 
-      fail "Not all 3 ports of the replica node are working"
+      fail "Not all ports of the replica node are working"
     fi
   else 
-      fail "Not all 3 ports of the primary node are working"
+    fail "Not all ports of the primary node are working"
   fi
 }
 

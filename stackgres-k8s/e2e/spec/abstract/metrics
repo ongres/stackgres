@@ -21,7 +21,7 @@ check_metrics() {
     fi
   done
 
-  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
+  if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
   then
     if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
       -- curl -s -f "http://$CLUSTER_POD_IP:8001/stats/prometheus" \
