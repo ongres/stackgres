@@ -829,6 +829,7 @@ check_cluster_before_security_upgrade() {
     if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ]
     then
       PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
+        | del(.postgresql.parameters.dynamic_library_path)
         | del(.postgresql.recovery_conf)
         ')"
     fi
@@ -836,7 +837,7 @@ check_cluster_before_security_upgrade() {
       && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_15_0" ]
     then
       PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
-        | del(.postgresql.parameters.dynamic_library_path)
+        | del(.postgresql.parameters.listen_addresses)
         ')"
     fi
 
