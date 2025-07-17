@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.external.keda.ScaledObjectBuilder;
 import io.stackgres.common.crd.external.keda.TriggerAuthenticationBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -31,7 +30,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_15)
+@OperatorVersionBinder
 public class HorizontalAutoscaling implements ResourceGenerator<StackGresClusterContext> {
 
   public static String name(StackGresCluster cluster) {

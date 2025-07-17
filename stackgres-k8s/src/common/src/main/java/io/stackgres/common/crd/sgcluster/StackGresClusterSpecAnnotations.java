@@ -12,8 +12,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.DeprecatedVersionPlaceholder;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -27,9 +25,6 @@ public class StackGresClusterSpecAnnotations {
   private Map<String, String> allResources;
 
   private Map<String, String> clusterPods;
-
-  @DeprecatedVersionPlaceholder(StackGresVersion.V_1_15)
-  private Map<String, String> pods;
 
   private Map<String, String> services;
 
@@ -51,14 +46,6 @@ public class StackGresClusterSpecAnnotations {
 
   public void setClusterPods(Map<String, String> clusterPods) {
     this.clusterPods = clusterPods;
-  }
-
-  public Map<String, String> getPods() {
-    return pods;
-  }
-
-  public void setPods(Map<String, String> pods) {
-    this.pods = pods;
   }
 
   public Map<String, String> getServices() {
@@ -87,7 +74,7 @@ public class StackGresClusterSpecAnnotations {
 
   @Override
   public int hashCode() {
-    return Objects.hash(allResources, clusterPods, pods, primaryService, replicasService, services);
+    return Objects.hash(allResources, clusterPods, primaryService, replicasService, services);
   }
 
   @Override
@@ -100,7 +87,7 @@ public class StackGresClusterSpecAnnotations {
     }
     StackGresClusterSpecAnnotations other = (StackGresClusterSpecAnnotations) obj;
     return Objects.equals(allResources, other.allResources)
-        && Objects.equals(clusterPods, other.clusterPods) && Objects.equals(pods, other.pods)
+        && Objects.equals(clusterPods, other.clusterPods)
         && Objects.equals(primaryService, other.primaryService)
         && Objects.equals(replicasService, other.replicasService)
         && Objects.equals(services, other.services);

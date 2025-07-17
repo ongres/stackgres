@@ -24,10 +24,10 @@ e2e_test() {
   run_test "Check that operator can not be upgrade from an alpha version" check_operator_upgrade_alpha
   run_test "Check that operator can not be upgrade from a beta version" check_operator_upgrade_beta
   run_test "Check that operator can not be upgrade from version 0.9.5" check_operator_upgrade_0_9_5
-  run_test "Check that operator can be upgrade from version 1.14.0" check_operator_upgrade_1_14_0
-  run_test "Check that operator can be upgrade from version 1.15.0" check_operator_upgrade_1_15_0
+  run_test "Check that operator can be upgrade from 1st older minor version" check_operator_upgrade_first_old_minor
+  run_test "Check that operator can be upgrade from 2nd older minor version" check_operator_upgrade_second_old_minor
   run_test "Check that operator can not be upgrade with an SGCluster that uses version 0.9.5" check_operator_upgrade_with_cluster_using_0_9_5
-  run_test "Check that operator can be upgrade with an SGCluster that uses version 1.14.0 and 1.15.0" check_operator_upgrade_with_cluster_using_1_14_0_and_1_15_0
+  run_test "Check that operator can be upgrade with an SGCluster that uses 1st and 2nd older minot versions" check_operator_upgrade_with_cluster_using_first_and_second_old_versions
   run_test "Check that operator can be deleted" check_operator_delete
   run_test "Check that operator can be installed from outside" check_operator_install_outside
   run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
@@ -163,31 +163,45 @@ check_operator_upgrade_0_9_5() {
   fi
 }
 
-check_operator_upgrade_1_15_0() {
-  local PREVIOUS_VERSION=1.15.0
+check_operator_upgrade_first_old_minor() {
+  local PREVIOUS_VERSION="$(
+    FIRST_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
+    FIRST_OLDER_MINOR_VERSION="${FIRST_OLDER_MINOR_VERSION#*.}"
+    printf '%s.%s.%s' \
+      "${STACKGRES_VERSION%%.*}" \
+      "$((FIRST_OLDER_MINOR_VERSION - 1))" \
+      "${STACKGRES_VERSION##*.}"
+    )"
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
   then
-    success "Upgrade did not failed when previous version was 1.15.0"
+    success "Upgrade did not failed when previous version was $PREVIOUS_VERSION"
   else
-    fail "Upgrade failed when previous version was 1.15.0"
+    fail "Upgrade failed when previous version was $PREVIOUS_VERSION"
   fi
 }
 
-check_operator_upgrade_1_14_0() {
-  local PREVIOUS_VERSION=1.14.0
+check_operator_upgrade_second_old_minor() {
+  local PREVIOUS_VERSION="$(
+    FIRST_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
+    FIRST_OLDER_MINOR_VERSION="${FIRST_OLDER_MINOR_VERSION#*.}"
+    printf '%s.%s.%s' \
+      "${STACKGRES_VERSION%%.*}" \
+      "$((FIRST_OLDER_MINOR_VERSION - 2))" \
+      "${STACKGRES_VERSION##*.}"
+    )"
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
   then
-    success "Upgrade did not failed when previous version was 1.14.0"
+    success "Upgrade did not failed when previous version was $PREVIOUS_VERSION"
   else
-    fail "Upgrade failed when previous version was 1.14.0"
+    fail "Upgrade failed when previous version was $PREVIOUS_VERSION"
   fi
 }
 
@@ -214,13 +228,27 @@ check_operator_upgrade_with_cluster_using_0_9_5() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
-check_operator_upgrade_with_cluster_using_1_14_0_and_1_15_0() {
+check_operator_upgrade_with_cluster_using_first_and_second_old_versions() {
   CLUSTER_1_NAME="$(get_sgcluster_name "$SPEC_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$SPEC_NAME-2")"
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
-  local PREVIOUS_VERSION_1=1.14.0
-  local PREVIOUS_VERSION_2=1.15.0
+  local PREVIOUS_VERSION_1="$(
+    FIRST_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
+    FIRST_OLDER_MINOR_VERSION="${FIRST_OLDER_MINOR_VERSION#*.}"
+    printf '%s.%s.%s' \
+      "${STACKGRES_VERSION%%.*}" \
+      "$((FIRST_OLDER_MINOR_VERSION - 1))" \
+      "${STACKGRES_VERSION##*.}"
+    )"
+  local PREVIOUS_VERSION_2="$(
+    SECOND_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
+    SECOND_OLDER_MINOR_VERSION="${SECOND_OLDER_MINOR_VERSION#*.}"
+    printf '%s.%s.%s' \
+      "${STACKGRES_VERSION%%.*}" \
+      "$((SECOND_OLDER_MINOR_VERSION - 2))" \
+      "${STACKGRES_VERSION##*.}"
+    )"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version=13.9
@@ -246,9 +274,9 @@ check_operator_upgrade_with_cluster_using_1_14_0_and_1_15_0() {
   try_function upgrade_operator
   if "$RESULT"
   then
-    success "Upgrade did not failed with an SGCluster that uses version 1.14.0 and 1.15.0"
+    success "Upgrade did not failed with an SGCluster that uses version $PREVIOUS_VERSION_1 and $PREVIOUS_VERSION_2"
   else
-    fail "Upgrade failed with an SGCluster that uses version 1.14.0 and 1.15.0"
+    fail "Upgrade failed with an SGCluster that uses version $PREVIOUS_VERSION_1 and $PREVIOUS_VERSION_2"
   fi
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   remove_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"

@@ -82,7 +82,7 @@ ssl_check() {
     local EXIT_CODE RESULT
     while [ "$RETRY" -gt 0 ]
     do
-      if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.pods.disableEnvoy }}' | grep -qxF true
+      if ! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | jq .spec.pods.disableEnvoy | grep -qxF true
       then
         if ! wait_until -t "$((E2E_TIMEOUT / 4))" run_query -m require -h "$CLUSTER_NAME"-replicas -i 0 -p 5432
         then
