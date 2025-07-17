@@ -30,7 +30,6 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.CustomContainerBuilder;
 import io.stackgres.common.crd.CustomVolumeBuilder;
@@ -65,7 +64,7 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_15)
+@OperatorVersionBinder
 public class DistributedLogsCluster
     implements ResourceGenerator<StackGresDistributedLogsContext> {
 
