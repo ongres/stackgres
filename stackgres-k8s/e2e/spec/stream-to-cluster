@@ -161,11 +161,11 @@ $(
 if is_array_not_supported "$TYPE_CATEGORY" "$TYPE_TYPE" "$TYPE_NAME" "$TYPE_FORMAT_TYPE"
 then
   cat << TABLE_EOF
-CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
+CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME NOT NULL' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
 TABLE_EOF
 else
   cat << TABLE_EOF
-CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || ',' || quote_ident('c_$TYPE_NAME') || '_array $TYPE_NAME[]' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
+CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME NOT NULL' || ',' || quote_ident('c_$TYPE_NAME') || '_array $TYPE_NAME[] NOT NULL' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
 TABLE_EOF
 fi
 )

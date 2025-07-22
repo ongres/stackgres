@@ -495,6 +495,8 @@ class DebeziumUtilTest {
         assertEntryInProperties(props, Map.entry("collection.name.format", streamProperties.getCollectionNameFormat())),
         assertEntryInProperties(props, Map.entry("flush.retry.delay.ms", streamProperties.getFlushRetryDelayMs())),
         assertEntryInProperties(props, Map.entry("flush.max.retries", streamProperties.getFlushMaxRetries())),
+        assertEntryInProperties(props, Map.entry("remove.placeholders", streamProperties.getRemovePlaceholders())),
+        assertEntryInProperties(props, Map.entry("detect.insert.mode", streamProperties.getDetectInsertMode())),
         Map.entry("|", streamProperties)
         ));
     props.forEach((key, value) -> {
