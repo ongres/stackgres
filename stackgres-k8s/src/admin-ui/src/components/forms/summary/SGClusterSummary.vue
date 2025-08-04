@@ -154,7 +154,7 @@
                                             <strong class="label">SSL Connections</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl')"></span>
                                             <span class="value"> : Enabled</span>
-                                            <ul>
+                                            <ul v-if="hasProp(cluster, 'data.spec.postgres.ssl.certificateSecretKeySelector.name') && hasProp(cluster, 'data.spec.postgres.ssl.certificateSecretKeySelector.key') && hasProp(cluster, 'data.spec.postgres.ssl.privateKeySecretKeySelector.name') && hasProp(cluster, 'data.spec.postgres.ssl.privateKeySecretKeySelector.key')">
                                                 <li>
                                                     <button class="toggleSummary"></button>
                                                     <strong class="label">Certificate Secret Key Selector</strong>
