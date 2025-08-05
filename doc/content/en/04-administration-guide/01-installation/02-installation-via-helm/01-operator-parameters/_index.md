@@ -43,7 +43,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="adminui--image--tag">adminui.image.tag</td>
 			<td>string</td>
-			<td>`"1.17.0"`</td>
+			<td>`"1.17.1"`</td>
 			<td>Web Console image tag</td>
       </tr>
       <tr>
@@ -847,7 +847,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="jobs--image--tag">jobs.image.tag</td>
 			<td>string</td>
-			<td>`"1.17.0"`</td>
+			<td>`"1.17.1"`</td>
 			<td>Operator Installation Jobs image tag</td>
       </tr>
       <tr>
@@ -895,7 +895,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="operator--image--tag">operator.image.tag</td>
 			<td>string</td>
-			<td>`"1.17.0"`</td>
+			<td>`"1.17.1"`</td>
 			<td>Operator image tag</td>
       </tr>
       <tr>
@@ -967,7 +967,7 @@ Workaround for hugo bug not rendering first table row
       <tr>
 			<td id="restapi--image--tag">restapi.image.tag</td>
 			<td>string</td>
-			<td>`"1.17.0"`</td>
+			<td>`"1.17.1"`</td>
 			<td>REST API image tag</td>
       </tr>
       <tr>

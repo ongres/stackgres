@@ -66,35 +66,15 @@ e2e_test() {
     return
   fi
 
-  run_test "Checking that stream is working" check_stream_is_working
-
   run_test "Checking that stream is working skipping DDL import" check_stream_is_working_skippig_ddl_import
+
+  run_test "Checking that stream is working" check_stream_is_working
 
   run_test "Checking that stream copying schema first is working" check_stream_copy_schema_is_working
 }
 
 check_stream_is_working_skippig_ddl_import() {
   check_stream_is_working true
-}
-
-is_array_not_supported() {
-  local TYPE_CATEGORY="$1"
-  local TYPE_TYPE="$2"
-  local TYPE_NAME="$3"
-  local TYPE_FORMAT_TYPE="$4"
-  [ "${TYPE_NAME%serial}" != "$TYPE_NAME" ] \
-    || [ "$TYPE_NAME" = 'aclitem' ] \
-    || [ "$TYPE_NAME" = 'point' ] \
-    || [ "$TYPE_NAME" = 'money' ] \
-    || [ "$TYPE_NAME" = 'interval' ] \
-    || [ "$TYPE_NAME" = 'name' ] \
-    || [ "$TYPE_NAME" = 'varbit' ] \
-    || [ "$TYPE_NAME" = 'xml' ] \
-    || [ "$TYPE_NAME" = 'jsonpath' ] \
-    || [ "$TYPE_NAME" = 'bytea' ] \
-    || [ "$TYPE_NAME" = 'time' ] \
-    || [ "$TYPE_NAME" = 'timetz' ] \
-    || [ "$TYPE_NAME" = 'bit' ]
 }
 
 check_stream_is_working() {
@@ -139,6 +119,17 @@ EOF
 
   cat << EOF | tee "$LOG_PATH/reset-target-status.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on
 ALTER DATABASE postgres SET sgstream.ddl_import_completed = false;
+DROP TABLE IF EXISTS test;
+DROP TABLE IF EXISTS pop;
+$(
+set +x
+cat "$LOG_PATH/types" | while read -r TYPE_CATEGORY TYPE_TYPE TYPE_NAME TYPE_FORMAT_TYPE
+do
+  cat << INNER_EOF
+DROP TABLE IF EXISTS complex_$TYPE_NAME;
+INNER_EOF
+done
+)
 EOF
 
   TYPE_COUNT="$(wc -l "$LOG_PATH/types" | cut -d ' ' -f 1)"
@@ -161,11 +152,11 @@ $(
 if is_array_not_supported "$TYPE_CATEGORY" "$TYPE_TYPE" "$TYPE_NAME" "$TYPE_FORMAT_TYPE"
 then
   cat << TABLE_EOF
-CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
+CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME NOT NULL' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
 TABLE_EOF
 else
   cat << TABLE_EOF
-CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME' || ',' || quote_ident('c_$TYPE_NAME') || '_array $TYPE_NAME[]' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
+CREATE TABLE complex_$TYPE_NAME(i bigint,\$execute\$ || quote_ident('c_$TYPE_NAME') || ' $TYPE_NAME NOT NULL' || ',' || quote_ident('c_$TYPE_NAME') || '_array $TYPE_NAME[] NOT NULL' || \$execute\$, updated boolean DEFAULT false, PRIMARY KEY (i));
 TABLE_EOF
 fi
 )
@@ -681,6 +672,26 @@ EOF
       fail "schema was not migrated successfully"
     fi
   fi
+}
+
+is_array_not_supported() {
+  local TYPE_CATEGORY="$1"
+  local TYPE_TYPE="$2"
+  local TYPE_NAME="$3"
+  local TYPE_FORMAT_TYPE="$4"
+  [ "${TYPE_NAME%serial}" != "$TYPE_NAME" ] \
+    || [ "$TYPE_NAME" = 'aclitem' ] \
+    || [ "$TYPE_NAME" = 'point' ] \
+    || [ "$TYPE_NAME" = 'money' ] \
+    || [ "$TYPE_NAME" = 'interval' ] \
+    || [ "$TYPE_NAME" = 'name' ] \
+    || [ "$TYPE_NAME" = 'varbit' ] \
+    || [ "$TYPE_NAME" = 'xml' ] \
+    || [ "$TYPE_NAME" = 'jsonpath' ] \
+    || [ "$TYPE_NAME" = 'bytea' ] \
+    || [ "$TYPE_NAME" = 'time' ] \
+    || [ "$TYPE_NAME" = 'timetz' ] \
+    || [ "$TYPE_NAME" = 'bit' ]
 }
 
 check_stream_copy_schema_is_working() {

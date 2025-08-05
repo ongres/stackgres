@@ -391,7 +391,7 @@
                                     SSL Certificate Secret Name
                                     <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
+                                <input v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name')"></span>
                             </div>
                             <div class="col">
@@ -399,7 +399,7 @@
                                     SSL Certificate Secret Key
                                     <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
+                                <input v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key')"></span>
                             </div>
                             <div class="col">
@@ -407,7 +407,7 @@
                                     SSL Private Key Secret Name
                                     <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
+                                <input v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name')"></span>
                             </div>
                             <div class="col">
@@ -415,7 +415,7 @@
                                     SSL Private Key Secret Key
                                     <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
+                                <input v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key')"></span>
                             </div>
                         </div>
@@ -3619,7 +3619,9 @@
                             }
 
                             if(vm.hasProp(c, 'data.spec.postgres.ssl.enabled') && c.data.spec.postgres.ssl.enabled) {
-                                vm.ssl = c.data.spec.postgres.ssl
+                                vm.ssl = c.data.spec.postgres.ssl;
+                                vm.ssl.certificateSecretKeySelector = c.data.spec.postgres.ssl.certificateSecretKeySelector || { name: "", key: "" };
+                                vm.ssl.privateKeySecretKeySelector = c.data.spec.postgres.ssl.privateKeySecretKeySelector || { name: "", key: "" };
                             }
                             
                             vm.profile = c.data.spec.hasOwnProperty('profile') ? c.data.spec.profile : 'production' ;
@@ -4104,7 +4106,15 @@
                             } || {"extensions": null} ),
                             "flavor": this.flavor,
                             ...(this.ssl.enabled && {
-                                "ssl": this.ssl
+                                "ssl": {
+                                  "enabled": true,
+                                  ...((this.ssl.certificateSecretKeySelector.key || this.ssl.certificateSecretKeySelector.name) && {
+                                    "certificateSecretKeySelector": this.ssl.certificateSecretKeySelector,
+                                  } || {}),
+                                  ...((this.ssl.privateKeySecretKeySelector.key || this.ssl.privateKeySecretKeySelector.name) && {
+                                    "privateKeySecretKeySelector": this.ssl.privateKeySecretKeySelector,
+                                  } || {}),
+                                }
                             } || {"ssl": null} )
                         }
 
