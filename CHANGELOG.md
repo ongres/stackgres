@@ -1,3 +1,49 @@
+# :rocket: Release 1.17.1 (2025-08-05)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.17.1 is out! :confetti_ball: :champagne: 
+
+This patch release fixes a blocking issue with the Web Console and a critical issue in SGStream for TOSTAble column with NOT NULL constraints.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+Nothing new here! :eyes:
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* SGStream migration fail when a TOASTable column has NOT NULL constraint
+
+## Web Console
+
+* SGCluster can not be edited
+* SGCluster summary has errors
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.17.1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.17.1)
+
 # :rocket: Release 1.17.0 (2025-07-18)
 
 ## :notepad_spiral: NOTES

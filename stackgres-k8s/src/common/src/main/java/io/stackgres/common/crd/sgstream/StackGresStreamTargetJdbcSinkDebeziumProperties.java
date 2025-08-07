@@ -29,6 +29,10 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
   private String connectionUrlParameters;
 
+  private Boolean detectInsertMode;
+
+  private Boolean removePlaceholders;
+
   @JsonProperty("connectionPoolMin_size")
   private Integer connectionPoolMinSize;
 
@@ -107,6 +111,22 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
   public void setConnectionUrlParameters(String connectionUrlParameters) {
     this.connectionUrlParameters = connectionUrlParameters;
+  }
+
+  public Boolean getDetectInsertMode() {
+    return detectInsertMode;
+  }
+
+  public void setDetectInsertMode(Boolean detectInsertMode) {
+    this.detectInsertMode = detectInsertMode;
+  }
+
+  public Boolean getRemovePlaceholders() {
+    return removePlaceholders;
+  }
+
+  public void setRemovePlaceholders(Boolean removePlaceholders) {
+    this.removePlaceholders = removePlaceholders;
   }
 
   public Integer getConnectionPoolMinSize() {
@@ -306,10 +326,10 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
     return Objects.hash(batchSize, collectionNameFormat, collectionNamingStrategy,
         columnNamingStrategy, connectionPoolAcquireIncrement, connectionPoolMaxSize,
         connectionPoolMinSize, connectionPoolTimeout, connectionUrlParameters, databaseTimeZone,
-        deleteEnabled, dialectPostgresPostgisSchema, dialectSqlserverIdentityInsert,
-        flushMaxRetries, flushRetryDelayMs, insertMode, primaryKeyFields, primaryKeyMode,
-        quoteIdentifiers, schemaEvolution, tableNameFormat, tableNamingStrategy, truncateEnabled,
-        useReductionBuffer, useTimeZone);
+        deleteEnabled, detectInsertMode, dialectPostgresPostgisSchema,
+        dialectSqlserverIdentityInsert, flushMaxRetries, flushRetryDelayMs, insertMode,
+        primaryKeyFields, primaryKeyMode, quoteIdentifiers, removePlaceholders, schemaEvolution,
+        tableNameFormat, tableNamingStrategy, truncateEnabled, useReductionBuffer, useTimeZone);
   }
 
   @Override
@@ -332,6 +352,7 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
         && Objects.equals(connectionUrlParameters, other.connectionUrlParameters)
         && Objects.equals(databaseTimeZone, other.databaseTimeZone)
         && Objects.equals(deleteEnabled, other.deleteEnabled)
+        && Objects.equals(detectInsertMode, other.detectInsertMode)
         && Objects.equals(dialectPostgresPostgisSchema, other.dialectPostgresPostgisSchema)
         && Objects.equals(dialectSqlserverIdentityInsert, other.dialectSqlserverIdentityInsert)
         && Objects.equals(flushMaxRetries, other.flushMaxRetries)
@@ -340,6 +361,7 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
         && Objects.equals(primaryKeyFields, other.primaryKeyFields)
         && Objects.equals(primaryKeyMode, other.primaryKeyMode)
         && Objects.equals(quoteIdentifiers, other.quoteIdentifiers)
+        && Objects.equals(removePlaceholders, other.removePlaceholders)
         && Objects.equals(schemaEvolution, other.schemaEvolution)
         && Objects.equals(tableNameFormat, other.tableNameFormat)
         && Objects.equals(tableNamingStrategy, other.tableNamingStrategy)

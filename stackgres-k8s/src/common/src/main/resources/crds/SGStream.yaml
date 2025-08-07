@@ -968,6 +968,14 @@ spec:
                             type: string
                             description: |
                               Paremeters that are set in the JDBC connection URL. See https://jdbc.postgresql.org/documentation/use/
+                          detectInsertMode:
+                            type: boolean
+                            description: |
+                              Default `true`. Parameter `insertMode` is ignored and the inser mode is detected from the record hints.
+                          removePlaceholders:
+                            type: boolean
+                            description: |
+                              Default `true`. When `true` the placeholders are removed from the records.
                           connectionPoolMin_size:
                             type: integer
                             description: |

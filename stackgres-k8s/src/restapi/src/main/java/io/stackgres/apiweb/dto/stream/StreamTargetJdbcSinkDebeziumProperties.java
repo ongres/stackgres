@@ -18,6 +18,10 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   private String connectionUrlParameters;
 
+  private Boolean detectInsertMode;
+
+  private Boolean removePlaceholders;
+
   @JsonProperty("connectionPoolMin_size")
   private Integer connectionPoolMinSize;
 
@@ -77,6 +81,22 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   public void setConnectionUrlParameters(String connectionUrlParameters) {
     this.connectionUrlParameters = connectionUrlParameters;
+  }
+
+  public Boolean getDetectInsertMode() {
+    return detectInsertMode;
+  }
+
+  public void setDetectInsertMode(Boolean detectInsertMode) {
+    this.detectInsertMode = detectInsertMode;
+  }
+
+  public Boolean getRemovePlaceholders() {
+    return removePlaceholders;
+  }
+
+  public void setRemovePlaceholders(Boolean removePlaceholders) {
+    this.removePlaceholders = removePlaceholders;
   }
 
   public Integer getConnectionPoolMinSize() {

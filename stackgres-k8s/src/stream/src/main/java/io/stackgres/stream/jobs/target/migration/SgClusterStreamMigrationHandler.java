@@ -15,17 +15,21 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.debezium.connector.jdbc.JdbcChangeEventSink;
+import io.debezium.connector.AbstractSourceInfo;
+import io.debezium.connector.SnapshotRecord;
+import io.debezium.connector.SnapshotType;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.QueryBinderResolver;
-import io.debezium.connector.jdbc.RecordWriter;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.dialect.DatabaseDialectResolver;
 import io.debezium.connector.jdbc.dialect.postgres.PostgresDatabaseDialect;
+import io.debezium.connector.postgresql.SourceInfo;
+import io.debezium.connector.postgresql.connection.ReplicationMessage.Operation;
 import io.debezium.data.Envelope;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.ChangeEvent;
@@ -34,6 +38,7 @@ import io.debezium.pipeline.signal.SignalPayload;
 import io.debezium.pipeline.signal.actions.SignalAction;
 import io.debezium.pipeline.spi.Partition;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
+import io.debezium.sink.spi.ChangeEventSink;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -64,12 +69,15 @@ import jakarta.inject.Inject;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.data.ConnectSchema;
 import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.header.ConnectHeaders;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,14 +127,18 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
   class JdbcHandler implements TargetEventConsumer<SourceRecord>, SignalAction<Partition> {
 
+    public static final String SNAPSHOT_HEADER_KEY = "stackgres.io/snapshot";
+    public static final String INSERT_HEADER_KEY = "stackgres.io/insert";
+
     final StackGresStream stream;
     final boolean skipRestoreIndexes;
     final String unavailableValuePlaceholder;
     final byte[] unavailableValuePlaceholderBytes;
+    final boolean removePlaceholders;
 
     boolean started = false;
     boolean snapshot = true;
-    JdbcChangeEventSink changeEventSink;
+    ChangeEventSink changeEventSink;
     SessionFactory sessionFactory;
     StatelessSession session;
     DatabaseDialect databaseDialect;
@@ -148,6 +160,10 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           .map(StackGresStreamSourcePostgresDebeziumProperties::getUnavailableValuePlaceholder)
           .orElse(RelationalDatabaseConnectorConfig.DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER);
       this.unavailableValuePlaceholderBytes = this.unavailableValuePlaceholder.getBytes(StandardCharsets.UTF_8);
+      this.removePlaceholders = Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getDebeziumProperties)
+          .map(StackGresStreamTargetJdbcSinkDebeziumProperties::getRemovePlaceholders)
+          .orElse(true);
       if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
           .orElse(false)) {
@@ -209,6 +225,10 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           .map(SecretKeySelector::getKey)
           .orElseGet(() -> StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY);
       final var password = getSecretKeyValue(namespace, passwordSecretName, passwordSecretKey);
+      final boolean detectIsertMode = sgCluster
+          .map(StackGresStreamTargetSgCluster::getDebeziumProperties)
+          .map(StackGresStreamTargetJdbcSinkDebeziumProperties::getDetectInsertMode)
+          .orElse(true);
 
       props.setProperty("connection.username", username);
       props.setProperty("connection.password", password);
@@ -231,9 +251,11 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       session = sessionFactory.openStatelessSession();
       databaseDialect = resolveDatabaseDialect(config, sessionFactory);
       QueryBinderResolver queryBinderResolver = new QueryBinderResolver();
-      RecordWriter recordWriter = new RecordWriter(session, queryBinderResolver, config, databaseDialect);
+      EnhancedRecordWriter recordWriter =
+          new EnhancedRecordWriter(session, queryBinderResolver, config, databaseDialect, detectIsertMode);
 
-      changeEventSink = new JdbcChangeEventSink(config, session, databaseDialect, recordWriter);
+      changeEventSink = new EnhancedJdbcChangeEventSink(
+          config, session, databaseDialect, recordWriter);
 
       if (!Optional.ofNullable(stream.getSpec().getTarget()
           .getSgCluster().getSkipDdlImport()).orElse(false)) {
@@ -294,12 +316,13 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         while (changeEventIterator.hasNext()) {
           ChangeEvent<SourceRecord, SourceRecord> changeEvent = changeEventIterator.next();
           final SourceRecord originalSourceRecord = changeEvent.value();
-          final SourceRecord sourceRecord = removeUnavailableValues(originalSourceRecord);
-          if (snapshot
-              && !Optional.ofNullable(sourceRecord.sourceOffset().get("snapshot"))
-              .map(Object::toString)
-              .map(Boolean.TRUE.toString()::equals)
-              .orElse(false)) {
+          final SourceRecord sourceRecord;
+          if (removePlaceholders) {
+            sourceRecord = addInsertModeHintsHeaders(removePlaceholderValues(originalSourceRecord));
+          } else {
+            sourceRecord = addInsertModeHintsHeaders(originalSourceRecord);
+          }
+          if (snapshot && !isSnapshot(sourceRecord)) {
             snapshot = false;
             if (!sinkRecords.isEmpty()) {
               changeEventSink.execute(sinkRecords);
@@ -370,12 +393,52 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       }
     }
 
-    private SourceRecord removeUnavailableValues(final SourceRecord originalSourceRecord) {
-      if (originalSourceRecord.value() != null
-          && originalSourceRecord.value() instanceof Struct originalValue) {
+    private final static List<String> SNAPSHOT_VALUES =
+        Seq.<String>of()
+        .append(Seq.of(SnapshotRecord.values()).filter(Predicate.not(SnapshotRecord.FALSE::equals)).map(Enum::name))
+        .append(Seq.of(SnapshotType.values()).map(Enum::name))
+        .toList();
+
+    private boolean isSnapshot(final SourceRecord sourceRecord) {
+      return Optional.ofNullable(sourceRecord.sourceOffset().get(AbstractSourceInfo.SNAPSHOT_KEY))
+      .map(Object::toString)
+      .filter(SNAPSHOT_VALUES::contains)
+      .map(snapshot -> true)
+      .orElse(false);
+    }
+
+    private SourceRecord addInsertModeHintsHeaders(final SourceRecord sourceRecord) {
+      final ConnectHeaders newHeaders = new ConnectHeaders(sourceRecord.headers());
+      final boolean isSnapshot = isSnapshot(sourceRecord);
+      final boolean isInsert = Objects.equals(
+          sourceRecord.sourceOffset().get(SourceInfo.MSG_TYPE_KEY),
+          Operation.INSERT.name());
+      if (isSnapshot || isInsert) {
+        if (isSnapshot) {
+          newHeaders.add(SNAPSHOT_HEADER_KEY, true, Schema.BOOLEAN_SCHEMA);
+        }
+        newHeaders.add(INSERT_HEADER_KEY, true, Schema.BOOLEAN_SCHEMA);
+        return new SourceRecord(
+            sourceRecord.sourcePartition(),
+            sourceRecord.sourceOffset(),
+            sourceRecord.topic(),
+            sourceRecord.kafkaPartition(),
+            sourceRecord.keySchema(),
+            sourceRecord.key(),
+            sourceRecord.valueSchema(),
+            sourceRecord.value(),
+            sourceRecord.timestamp(),
+            newHeaders);
+      }
+      return sourceRecord;
+    }
+
+    private SourceRecord removePlaceholderValues(final SourceRecord sourceRecord) {
+      if (sourceRecord.value() != null
+          && sourceRecord.value() instanceof Struct originalValue) {
         final boolean isDebeziumMessage = originalValue != null
-            && originalSourceRecord.valueSchema().name() != null
-            && originalSourceRecord.valueSchema().name().contains("Envelope")
+            && sourceRecord.valueSchema().name() != null
+            && sourceRecord.valueSchema().name().contains("Envelope")
             && originalValue.getStruct(Envelope.FieldName.AFTER) != null;
         final Struct candidateValue;
         if (isDebeziumMessage) {
@@ -445,32 +508,32 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
               }
             }
             return new SourceRecord(
-                originalSourceRecord.sourcePartition(),
-                originalSourceRecord.sourceOffset(),
-                originalSourceRecord.topic(),
-                originalSourceRecord.kafkaPartition(),
-                originalSourceRecord.keySchema(),
-                originalSourceRecord.key(),
+                sourceRecord.sourcePartition(),
+                sourceRecord.sourceOffset(),
+                sourceRecord.topic(),
+                sourceRecord.kafkaPartition(),
+                sourceRecord.keySchema(),
+                sourceRecord.key(),
                 newSchema,
                 newValue,
-                originalSourceRecord.timestamp(),
-                originalSourceRecord.headers());
+                sourceRecord.timestamp(),
+                sourceRecord.headers());
           } else {
             return new SourceRecord(
-                originalSourceRecord.sourcePartition(),
-                originalSourceRecord.sourceOffset(),
-                originalSourceRecord.topic(),
-                originalSourceRecord.kafkaPartition(),
-                originalSourceRecord.keySchema(),
-                originalSourceRecord.key(),
+                sourceRecord.sourcePartition(),
+                sourceRecord.sourceOffset(),
+                sourceRecord.topic(),
+                sourceRecord.kafkaPartition(),
+                sourceRecord.keySchema(),
+                sourceRecord.key(),
                 valueSchema,
                 value,
-                originalSourceRecord.timestamp(),
-                originalSourceRecord.headers());
+                sourceRecord.timestamp(),
+                sourceRecord.headers());
           }
         }
       }
-      return originalSourceRecord;
+      return sourceRecord;
     }
 
     private boolean isPlaceholder(Object value) {
