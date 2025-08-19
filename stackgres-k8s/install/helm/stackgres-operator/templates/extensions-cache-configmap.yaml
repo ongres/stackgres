@@ -34,6 +34,7 @@ data:
       server_name  localhost;
       
       listen       8080;
+      listen       [::]:8080;
       root   /opt/app-root/src;
       
       location / {
