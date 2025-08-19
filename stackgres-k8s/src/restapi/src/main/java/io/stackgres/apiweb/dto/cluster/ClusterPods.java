@@ -14,6 +14,8 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
+import io.stackgres.common.crd.CustomEnvFromSource;
+import io.stackgres.common.crd.CustomEnvVar;
 import io.stackgres.common.crd.CustomVolume;
 import io.stackgres.common.crd.CustomVolumeMount;
 
@@ -48,6 +50,14 @@ public class ClusterPods {
   private Map<String, List<CustomVolumeMount>> customVolumeMounts;
 
   private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
+
+  private Map<String, List<CustomEnvVar>> customEnv;
+
+  private Map<String, List<CustomEnvVar>> customInitEnv;
+
+  private Map<String, List<CustomEnvFromSource>> customEnvFrom;
+
+  private Map<String, List<CustomEnvFromSource>> customInitEnvFrom;
 
   private Long terminationGracePeriodSeconds;
 
@@ -157,6 +167,39 @@ public class ClusterPods {
 
   public void setCustomInitVolumeMounts(Map<String, List<CustomVolumeMount>> customInitVolumeMounts) {
     this.customInitVolumeMounts = customInitVolumeMounts;
+  }
+
+  public Map<String, List<CustomEnvVar>> getCustomEnv() {
+    return customEnv;
+  }
+
+  public void setCustomEnv(Map<String, List<CustomEnvVar>> customEnv) {
+    this.customEnv = customEnv;
+  }
+
+  public Map<String, List<CustomEnvVar>> getCustomInitEnv() {
+    return customInitEnv;
+  }
+
+  public void setCustomInitEnv(Map<String, List<CustomEnvVar>> customInitEnv) {
+    this.customInitEnv = customInitEnv;
+  }
+
+  public Map<String, List<CustomEnvFromSource>> getCustomEnvFrom() {
+    return customEnvFrom;
+  }
+
+  public void setCustomEnvFrom(Map<String, List<CustomEnvFromSource>> customEnvFrom) {
+    this.customEnvFrom = customEnvFrom;
+  }
+
+  public Map<String, List<CustomEnvFromSource>> getCustomInitEnvFrom() {
+    return customInitEnvFrom;
+  }
+
+  public void setCustomInitEnvFrom(
+      Map<String, List<CustomEnvFromSource>> customInitEnvFrom) {
+    this.customInitEnvFrom = customInitEnvFrom;
   }
 
   public Long getTerminationGracePeriodSeconds() {

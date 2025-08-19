@@ -580,7 +580,7 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster.getSpec().getNonProductionOptions(),
         cluster.getSpec().getNonProductionOptions());
     if (shardedCluster.getStatus() != null
-        && shardedCluster.getStatus().getToInstallPostgresExtensions() != null) {
+        && shardedCluster.getStatus().getExtensions() != null) {
       Assertions.assertEquals(
           new StackGresClusterPostgresBuilder(shardedCluster.getSpec().getPostgres())
           .editSsl()
@@ -599,7 +599,7 @@ class StackGresShardedClusterForCitusUtilTest {
                   : shardedCluster.getSpec().getPostgres().getSsl()
                   .getPrivateKeySecretKeySelector())
           .endSsl()
-          .withExtensions(shardedCluster.getStatus().getToInstallPostgresExtensions()
+          .withExtensions(shardedCluster.getStatus().getExtensions()
               .stream()
               .map(extension -> new StackGresClusterExtensionBuilder()
                   .withName(extension.getName())
@@ -649,6 +649,18 @@ class StackGresShardedClusterForCitusUtilTest {
       Assertions.assertEquals(
           pod.getCustomInitContainers(),
           cluster.getSpec().getPods().getCustomInitContainers());
+      Assertions.assertEquals(
+          pod.getCustomEnv(),
+          cluster.getSpec().getPods().getCustomEnv());
+      Assertions.assertEquals(
+          pod.getCustomInitEnv(),
+          cluster.getSpec().getPods().getCustomInitEnv());
+      Assertions.assertEquals(
+          pod.getCustomEnvFrom(),
+          cluster.getSpec().getPods().getCustomEnvFrom());
+      Assertions.assertEquals(
+          pod.getCustomInitEnvFrom(),
+          cluster.getSpec().getPods().getCustomInitEnvFrom());
       Assertions.assertEquals(
           pod.getResources(),
           cluster.getSpec().getPods().getResources());

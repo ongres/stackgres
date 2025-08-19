@@ -149,15 +149,15 @@ class ClusterExtensionsContextAppenderTest {
   }
 
   @Test
-  void clusterWithAnExtension_shouldSetTheVersionAndToInstall() throws Exception {
+  void clusterWithAnExtension_shouldSetToInstall() throws Exception {
     StackGresClusterExtension extension = getExtension();
     cluster.getSpec().getPostgres().setExtensions(
-        ImmutableList.<StackGresClusterExtension>builder()
-        .addAll(extensions).add(extension).build());
+        Seq.seq(extensions).append(extension).toList());
     cluster.setStatus(new StackGresClusterStatus());
     cluster.getStatus().setExtensions(new ArrayList<>());
     cluster.getStatus().getExtensions()
         .addAll(toInstallExtensions);
+    var expectedExtensions = JsonUtil.copy(cluster.getSpec().getPostgres()).getExtensions();
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
@@ -173,8 +173,9 @@ class ClusterExtensionsContextAppenderTest {
         Optional.empty(),
         Optional.empty());
 
-    cluster.getSpec().getPostgres().getExtensions()
-        .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
+    assertEquals(
+        expectedExtensions,
+        cluster.getSpec().getPostgres().getExtensions());
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
         cluster.getStatus().getExtensions());

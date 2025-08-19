@@ -285,9 +285,6 @@ spec:
   adminui:
     image:
       tag: "$ADMINUI_IMAGE_TAG"
-  jobs:
-    image:
-      tag: "$IMAGE_TAG"
   developer:
     version: $STACKGRES_VERSION
 $(
@@ -321,24 +318,6 @@ $(
         volumeMounts:
           - name: admin
             mountPath: /opt/app-root/src/admin
-      jobs:
-        volumes:
-          - name: app
-            hostPath:
-              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)"
-        volumeMounts:
-          - name: app
-            mountPath: /app/app
-            subPath: app
-          - name: app
-            mountPath: /app/lib
-            subPath: lib
-          - name: app
-            mountPath: /app/quarkus
-            subPath: quarkus
-          - name: app
-            mountPath: /app/quarkus-run.jar
-            subPath: quarkus-run.jar
       clusterController:
         volumes:
           - name: app

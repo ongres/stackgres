@@ -66,6 +66,7 @@ class ClusterValidationQuarkusTest {
     var review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getMetadata().setNamespace("test");
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    review.getRequest().getObject().setStatus(new StackGresClusterStatus());
     StackGresClusterStatus status = review.getRequest().getObject().getStatus();
     spec.getPostgres().setExtensions(
         getExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
@@ -196,7 +197,7 @@ class ClusterValidationQuarkusTest {
   }
 
   @Test
-  void given_withoutInstalledExtensions_shouldFail() {
+  void given_withoutInstalledExtensions_shouldNotFail() {
     StackGresClusterReview clusterReview = getConstraintClusterReview();
     clusterReview.getRequest().getObject().getStatus().setExtensions(null);
     RestAssured.given()
@@ -205,13 +206,8 @@ class ClusterValidationQuarkusTest {
         .accept(ContentType.JSON)
         .post(ValidationUtil.CLUSTER_VALIDATION_PATH)
         .then()
-        .body("response.allowed", is(false),
-            "kind", is("AdmissionReview"),
-            "response.status.code", is(400),
-            "response.status.message",
-            is("Some extensions were not found: dblink,"
-                + " pg_stat_statements, plpgsql,"
-                + " plpython3u"))
+        .body("response.allowed", is(true),
+            "kind", is("AdmissionReview"))
         .statusCode(200);
   }
 

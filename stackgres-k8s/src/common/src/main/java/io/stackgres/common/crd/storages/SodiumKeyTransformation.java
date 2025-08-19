@@ -24,13 +24,13 @@ public enum SodiumKeyTransformation {
     return type;
   }
 
-  public static @NotNull SodiumKeyTransformation fromString(@NotNull String value) {
-    for (SodiumKeyTransformation role : SodiumKeyTransformation.values()) {
-      if (role.toString().equals(value)) {
-        return role;
+  public static @NotNull SodiumKeyTransformation fromString(@NotNull String from) {
+    for (SodiumKeyTransformation value : SodiumKeyTransformation.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknown sodium key transformation " + value);
+    throw new IllegalArgumentException("Unknown sodium key transformation " + from);
   }
 
 }

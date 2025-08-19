@@ -24,13 +24,13 @@ public enum DbOpsSamplingMode {
     return type;
   }
 
-  public static DbOpsSamplingMode fromString(String name) {
+  public static DbOpsSamplingMode fromString(String from) {
     for (DbOpsSamplingMode value : values()) {
-      if (value.type.equals(name)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("sampling mode is invalid: " + name);
+    throw new IllegalArgumentException("sampling mode is invalid: " + from);
   }
 
 }

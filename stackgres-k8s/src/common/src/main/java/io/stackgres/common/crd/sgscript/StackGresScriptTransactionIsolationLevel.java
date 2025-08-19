@@ -39,14 +39,14 @@ public enum StackGresScriptTransactionIsolationLevel {
     return type;
   }
 
-  public static StackGresScriptTransactionIsolationLevel fromString(String value) {
-    for (StackGresScriptTransactionIsolationLevel role : StackGresScriptTransactionIsolationLevel
+  public static StackGresScriptTransactionIsolationLevel fromString(String from) {
+    for (StackGresScriptTransactionIsolationLevel value : StackGresScriptTransactionIsolationLevel
         .values()) {
-      if (role.toString().equals(value)) {
-        return role;
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException(value + " can not be converted to a "
+    throw new IllegalArgumentException(from + " can not be converted to a "
         + StackGresScriptTransactionIsolationLevel.class.getName());
   }
 }

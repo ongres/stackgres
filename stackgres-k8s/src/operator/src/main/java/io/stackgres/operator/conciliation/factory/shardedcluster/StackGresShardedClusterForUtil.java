@@ -241,7 +241,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
     spec.getPostgres().setExtensions(
         Optional.ofNullable(cluster.getStatus())
-        .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
+        .map(StackGresShardedClusterStatus::getExtensions)
         .stream()
         .flatMap(List::stream)
         .map(extension -> new StackGresClusterExtensionBuilder()
@@ -544,6 +544,9 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       if (specOverride.getPodsForShards().getManagementPolicy() != null) {
         spec.getPods().setManagementPolicy(specOverride.getPodsForShards().getManagementPolicy());
       }
+      if (specOverride.getPodsForShards().getUpdateStrategy() != null) {
+        spec.getPods().setUpdateStrategy(specOverride.getPodsForShards().getUpdateStrategy());
+      }
       if (specOverride.getPodsForShards().getPersistentVolume() != null) {
         if (specOverride.getPodsForShards().getPersistentVolume().getSize() != null) {
           spec.getPods().getPersistentVolume().setSize(
@@ -606,6 +609,22 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       if (specOverride.getPodsForShards().getCustomInitVolumeMounts() != null) {
         spec.getPods().setCustomInitVolumeMounts(
             specOverride.getPodsForShards().getCustomInitVolumeMounts());
+      }
+      if (specOverride.getPodsForShards().getCustomEnv() != null) {
+        spec.getPods().setCustomEnv(
+            specOverride.getPodsForShards().getCustomEnv());
+      }
+      if (specOverride.getPodsForShards().getCustomInitEnv() != null) {
+        spec.getPods().setCustomInitEnv(
+            specOverride.getPodsForShards().getCustomInitEnv());
+      }
+      if (specOverride.getPodsForShards().getCustomEnvFrom() != null) {
+        spec.getPods().setCustomEnvFrom(
+            specOverride.getPodsForShards().getCustomEnvFrom());
+      }
+      if (specOverride.getPodsForShards().getCustomInitEnvFrom() != null) {
+        spec.getPods().setCustomInitEnvFrom(
+            specOverride.getPodsForShards().getCustomInitEnvFrom());
       }
     }
   }

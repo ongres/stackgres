@@ -15,6 +15,7 @@ e2e_test() {
 
 check_restart_timed_out() {
   reset_cluster
+  trigger_cluster_require_restart
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -49,6 +50,7 @@ EOF
     fail "restart job was removed after failure."
   fi
 
+  trigger_cluster_require_restart
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 
   if wait_until eval '[ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
@@ -68,7 +70,7 @@ EOF
 }
 
 check_restart_repeat() {
-
+  trigger_cluster_require_restart
   set_restarted_pods
 
   cat << EOF | kubectl create -f -

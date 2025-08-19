@@ -23,13 +23,13 @@ public enum DbOpsBenchmarkConnectionType {
     return type;
   }
 
-  public static DbOpsBenchmarkConnectionType fromString(String name) {
+  public static DbOpsBenchmarkConnectionType fromString(String from) {
     for (DbOpsBenchmarkConnectionType value : values()) {
-      if (value.type.equals(name)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("benchmark connection type is invalid: " + name);
+    throw new IllegalArgumentException("benchmark connection type is invalid: " + from);
   }
 
 }

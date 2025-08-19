@@ -81,13 +81,15 @@ class ClusterPostgresConfigContextAppenderTest {
         .thenReturn(Optional.of(
             new StackGresPostgresConfigBuilder()
             .withNewSpec()
-            .withPostgresVersion("10")
+            .withPostgresVersion("12")
             .endSpec()
             .build()));
     var ex =
         assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
-            cluster, contextBuilder, "10"));
-    assertEquals("Invalid postgres version, must be 10 to use SGPostgresConfig postgresconf", ex.getMessage());
+            cluster, contextBuilder, "16.4"));
+    assertEquals(
+        "Invalid postgres version 16.4 for SGPostgresConfig postgresconf that uses version 12",
+        ex.getMessage());
   }
 
   @Test

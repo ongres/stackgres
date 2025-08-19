@@ -673,17 +673,6 @@ spec:
 EOF
 
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
-
-  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template "{{ if .metadata.annotations }}{{ if (index .metadata.annotations \"stackgres.io/lockTimeout\") }}{{ (index .metadata.annotations \"stackgres.io/lockTimeout\") }}{{ else }}0{{ end }}{{ else }}0{{ end }}")" != 0 ]'
-  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
-    >/dev/null 2>&1
-  then
-    fail "Cluster has been updated while locked."
-  else
-    success "Cluster has not been updated while locked."
-  fi
 }
 
 check_sharded_cluster_security_upgrade_start() {
@@ -726,17 +715,6 @@ spec:
 EOF
 
   assert_sharded_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
-
-  wait_until eval '[ "$(kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" \
-    --template "{{ if .metadata.annotations }}{{ if (index .metadata.annotations \"stackgres.io/lockTimeout\") }}{{ (index .metadata.annotations \"stackgres.io/lockTimeout\") }}{{ else }}0{{ end }}{{ else }}0{{ end }}")" != 0 ]'
-  if kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
-    >/dev/null 2>&1
-  then
-    fail "Sharded Cluster has been updated while locked."
-  else
-    success "Sharded Cluster has not been updated while locked."
-  fi
 }
 
 check_cluster_before_security_upgrade() {

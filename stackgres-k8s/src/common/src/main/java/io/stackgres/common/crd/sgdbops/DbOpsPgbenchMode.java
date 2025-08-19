@@ -25,13 +25,13 @@ public enum DbOpsPgbenchMode {
     return type;
   }
 
-  public static DbOpsPgbenchMode fromString(String name) {
+  public static DbOpsPgbenchMode fromString(String from) {
     for (DbOpsPgbenchMode value : values()) {
-      if (value.type.equals(name)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("pgbench mode is invalid: " + name);
+    throw new IllegalArgumentException("pgbench mode is invalid: " + from);
   }
 
 }

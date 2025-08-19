@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -41,50 +40,18 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
       String buildVersion,
       Optional<String> previousVersion,
       Optional<String> previousBuildVersion) {
-    if (extensionsChanged(
-        inputContext, postgresVersion, buildVersion, previousVersion, previousBuildVersion)) {
-      setExtensions(inputContext, postgresVersion, buildVersion);
-    }
-  }
-
-  protected boolean extensionsChanged(
-      C inputContext,
-      String postgresVersion,
-      String buildVersion,
-      Optional<String> previousVersion,
-      Optional<String> previousBuildVersion) {
-    if (previousVersion.isEmpty() || previousBuildVersion.isEmpty()) {
-      return true;
-    }
-    final List<StackGresClusterExtension> extensions =
-        getExtensions(inputContext, postgresVersion, buildVersion);
-    final List<StackGresClusterExtension> oldExtensions =
-        getExtensions(inputContext, previousVersion.get(), previousBuildVersion.get());
-    if (!Objects.equals(extensions, oldExtensions)) {
-      return true;
-    }
-    final List<ExtensionTuple> missingDefaultExtensions =
-        getDefaultExtensions(inputContext, postgresVersion, buildVersion);
-    final List<ExtensionTuple> oldMissingDefaultExtensions =
-        getDefaultExtensions(inputContext, previousVersion.get(), previousBuildVersion.get());
-    if (!Objects.equals(missingDefaultExtensions, oldMissingDefaultExtensions)) {
-      return true;
-    }
-    return false;
-  }
-
-  private void setExtensions(C inputContext, String postgresVersion, String buildVersion) {
     StackGresCluster cluster = getCluster(inputContext);
     List<StackGresClusterExtension> extensions = getExtensions(inputContext, postgresVersion, buildVersion);
     List<StackGresClusterInstalledExtension> missingDefaultExtensions =
-        getDefaultExtensions(inputContext, postgresVersion, buildVersion).stream()
-        .map(t -> t.extensionVersion()
-            .map(version -> getExtension(cluster, t.extensionName(), version))
-            .orElseGet(() -> getExtension(cluster, t.extensionName())))
-        .flatMap(Optional::stream)
+        getDefaultExtensions(inputContext, postgresVersion, buildVersion)
+        .stream()
         .filter(defaultExtension -> extensions.stream()
-            .noneMatch(extension -> extension.getName()
-                .equals(defaultExtension.getName())))
+            .map(StackGresClusterExtension::getName)
+            .noneMatch(defaultExtension.extensionName()::equals))
+        .map(t -> t.extensionVersion()
+            .flatMap(version -> getExtension(cluster, t.extensionName(), version))
+            .or(() -> getExtension(cluster, t.extensionName())))
+        .flatMap(Optional::stream)
         .toList();
     final List<StackGresClusterInstalledExtension> toInstallExtensions =
         Seq.seq(extensions)
@@ -95,13 +62,6 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
         .toList();
 
     setToInstallExtensions(inputContext, toInstallExtensions);
-    Seq.seq(extensions)
-        .forEach(extension -> toInstallExtensions.stream()
-            .filter(toInstallExtension -> toInstallExtension.getName()
-                .equals(extension.getName()))
-            .findFirst()
-            .ifPresent(installedExtension -> onExtensionToInstall(
-                extension, installedExtension)));
 
     List<ExtensionTuple> defaultExtensions = getDefaultExtensions(inputContext, postgresVersion, buildVersion);
 
@@ -210,30 +170,18 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
         .toList();
   }
 
-  protected abstract void setToInstallExtensions(C inputContext,
-      List<StackGresClusterInstalledExtension> toInstallExtensions);
-
-  protected abstract Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
-      C inputContext);
-
   protected abstract StackGresCluster getCluster(C inputContext);
-
-  protected abstract List<StackGresClusterExtension> getExtensions(
-      C inputContext, String version, String buildVersion);
 
   protected abstract List<ExtensionTuple> getDefaultExtensions(
       C inputContext, String version, String buildVersion);
 
-  protected void onExtensionToInstall(
-      final StackGresClusterExtension extension,
-      final StackGresClusterInstalledExtension installedExtension) {
-    if (extension.getVersion() == null
-        || !installedExtension.getVersion().equals(extension.getVersion())) {
-      extension.setVersion(installedExtension.getVersion());
-    }
-  }
+  protected abstract List<StackGresClusterExtension> getExtensions(
+      C inputContext, String version, String buildVersion);
 
-  protected Optional<StackGresClusterInstalledExtension> getExtension(StackGresCluster cluster,
+  protected abstract void setToInstallExtensions(C inputContext,
+      List<StackGresClusterInstalledExtension> toInstallExtensions);
+
+  private Optional<StackGresClusterInstalledExtension> getExtension(StackGresCluster cluster,
       String extensionName) {
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
@@ -243,7 +191,7 @@ public abstract class AbstractExtensionsContextAppender<C, T> {
             cluster, extension, extensionMetadata, false));
   }
 
-  protected Optional<StackGresClusterInstalledExtension> getExtension(
+  private Optional<StackGresClusterInstalledExtension> getExtension(
       StackGresCluster cluster,
       String extensionName,
       String extensionVersion) {

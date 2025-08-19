@@ -28,13 +28,13 @@ public enum DbOpsOperation {
     return type;
   }
 
-  public static DbOpsOperation fromString(String name) {
+  public static DbOpsOperation fromString(String from) {
     for (DbOpsOperation value : values()) {
-      if (value.type.equals(name)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("DbOps operation type is invalid: " + name);
+    throw new IllegalArgumentException("DbOps operation type is invalid: " + from);
   }
 
 }

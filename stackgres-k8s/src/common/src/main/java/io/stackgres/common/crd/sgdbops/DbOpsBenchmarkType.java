@@ -23,13 +23,13 @@ public enum DbOpsBenchmarkType {
     return type;
   }
 
-  public static DbOpsBenchmarkType fromString(String name) {
+  public static DbOpsBenchmarkType fromString(String from) {
     for (DbOpsBenchmarkType value : values()) {
-      if (value.type.equals(name)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("benchmark type is invalid: " + name);
+    throw new IllegalArgumentException("benchmark type is invalid: " + from);
   }
 
 }

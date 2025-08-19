@@ -14,9 +14,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import io.stackgres.common.ClusterRolloutUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.operator.common.ClusterRolloutUtil;
 import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.validation.ValidationUtil;
@@ -105,19 +106,19 @@ public class ClusterPostgresVersionContextAppender
     boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(cluster);
     if (isRolloutAllowed
         && (
-            cluster.getMetadata().getLabels() == null
+            cluster.getMetadata().getAnnotations() == null
             || !Objects.equals(
-                cluster.getMetadata().getLabels().get(StackGresContext.VERSION_KEY),
-                StackGresVersion.LATEST.getVersion())
+                cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY),
+                StackGresProperty.OPERATOR_VERSION.getString())
         )) {
-      cluster.getMetadata().setLabels(
+      cluster.getMetadata().setAnnotations(
           Seq.seq(
-              Optional.ofNullable(cluster.getMetadata().getLabels())
+              Optional.ofNullable(cluster.getMetadata().getAnnotations())
               .map(Map::entrySet)
               .stream()
               .flatMap(Set::stream)
               .filter(label -> !StackGresContext.VERSION_KEY.equals(label.getKey())))
-          .append(Map.entry(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion()))
+          .append(Map.entry(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString()))
           .toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
     String givenVersion = previousVersion.filter(version -> !isRolloutAllowed)
@@ -175,12 +176,12 @@ public class ClusterPostgresVersionContextAppender
           && (
               cluster.getStatus().getDbOps() == null
               || cluster.getStatus().getDbOps().getMajorVersionUpgrade() == null)) {
-        version = null;
         eventController.sendEvent(
             ClusterEventReason.CLUSTER_MAJOR_UPGRADE,
             "To upgrade to major Postgres version " + majorVersion + ", please create an SGDbOps operation"
                 + " with \"op: majorVersionUpgrade\" and set the target postgres version to " + version + ".",
             cluster);
+        version = null;
       }
       if (majorVersionIndex > previousMajorVersionIndex) {
         throw new IllegalArgumentException("Can not change the major version " + majorVersion

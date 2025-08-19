@@ -12,6 +12,7 @@ import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -23,6 +24,7 @@ import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresSharde
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext.Builder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ShardedClusterExtensionsContextAppender
@@ -41,14 +43,6 @@ public class ShardedClusterExtensionsContextAppender
   }
 
   @Override
-  protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
-      StackGresShardedCluster cluster) {
-    return Optional.of(cluster)
-        .map(StackGresShardedCluster::getStatus)
-        .map(StackGresShardedClusterStatus::getExtensions);
-  }
-
-  @Override
   protected StackGresCluster getCluster(StackGresShardedCluster inputContext) {
     return StackGresShardedClusterForCitusUtil
         .getCoordinatorCluster(inputContext);
@@ -57,17 +51,31 @@ public class ShardedClusterExtensionsContextAppender
   @Override
   protected List<StackGresClusterExtension> getExtensions(
       StackGresShardedCluster inputContext, String version, String buildVersion) {
-    return Optional.of(inputContext)
-        .map(StackGresShardedCluster::getSpec)
-        .map(StackGresShardedClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getExtensions)
-        .orElse(List.of());
+    final List<StackGresClusterExtension> extensions = Optional.of(inputContext)
+            .map(StackGresShardedCluster::getSpec)
+            .map(StackGresShardedClusterSpec::getPostgres)
+            .map(StackGresClusterPostgres::getExtensions)
+            .stream()
+            .flatMap(List::stream)
+            .toList();
+    return Seq.seq(extensions)
+        .append(
+            StackGresUtil.getShardedClusterExtensions(inputContext)
+            .stream()
+            .filter(extension -> extensions.stream()
+                .map(StackGresClusterExtension::getName)
+                .noneMatch(extension.extensionName()::equals))
+            .map(extension -> new StackGresClusterExtensionBuilder()
+                .withName(extension.extensionName())
+                .withVersion(extension.extensionVersion().orElse(null))
+                .build()))
+        .toList();
   }
 
   @Override
   protected List<ExtensionTuple> getDefaultExtensions(
       StackGresShardedCluster inputContext, String version, String buildVersion) {
-    return StackGresUtil.getDefaultShardedClusterExtensions(inputContext);
+    return List.of();
   }
 
   @Override

@@ -38,7 +38,6 @@ test_yamls() {
   OPERATOR_NATIVE_IMAGE_VERSION_LN="$(( $(grep -n 'name: OPERATOR_NATIVE_IMAGE_VERSION$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 1))"
   OPERATOR_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/operator$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
   RESTAPI_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/restapi$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
-  JOBS_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/jobs$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
   ADMINUI_IMAGE_TAG_LN="$(( $(grep -n 'name: stackgres/admin-ui$' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" | cut -d : -f 1) + 2))"
   cat "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" \
     | sed "s|name: stackgres$|name: $OPERATOR_NAMESPACE|" \
@@ -51,7 +50,6 @@ test_yamls() {
     | sed "s|imagePullPolicy:.*[a-zA-Z].*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
     | sed "s/{\(\"name\":\"stackgres\/operator\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$IMAGE_TAG\"}/" \
     | sed "s/{\(\"name\":\"stackgres\/restapi\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$IMAGE_TAG\"}/" \
-    | sed "s/{\(\"name\":\"stackgres\/jobs\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$IMAGE_TAG\"}/" \
     | sed "s/{\(\"name\":\"stackgres\/admin-ui\",[^}]\+\)\"tag\":\"[^\"]\+\"}/{\1\"tag\":\"$ADMINUI_IMAGE_TAG\"}/" \
     | sed "s/\"pullPolicy\":\"[^\"]\+\"/\"pullPolicy\":\"$E2E_OPERATOR_PULL_POLICY\"/g" \
     | sed '/image: \([^/]\+\/\)\?ongres\/.*$/{$!{N;s/image: \([^/]\+\/\)\?\(ongres\/.*\)\n\( *\)imagePullPolicy: .*$/image: \2\n\3imagePullPolicy: IfNotPresent/;ty;P;D;:y}}' \
@@ -208,8 +206,6 @@ test_packages() {
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "restapi.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
-    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
-    --set-string "jobs.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \

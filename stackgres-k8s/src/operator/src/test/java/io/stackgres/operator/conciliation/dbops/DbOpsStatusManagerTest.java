@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -102,6 +103,9 @@ class DbOpsStatusManagerTest {
   ResourceScanner<Pod> podScanner;
 
   @Mock
+  ResourceFinder<Endpoints> endpointsFinder;
+
+  @Mock
   PatroniCtl patroniCtl;
 
   private DbOpsStatusManager statusManager;
@@ -109,7 +113,7 @@ class DbOpsStatusManagerTest {
   @BeforeEach
   void setUp() {
     statusManager = new DbOpsStatusManager(jobFinder, clusterFinder,
-        labelFactory, statefulSetFinder, podScanner, patroniCtl);
+        labelFactory, statefulSetFinder, podScanner, endpointsFinder, patroniCtl);
     expectedDbOps = Fixtures.dbOps().loadPgbench().get();
     dbOps = Fixtures.dbOps().loadPgbench().get();
   }
@@ -157,7 +161,7 @@ class DbOpsStatusManagerTest {
   void failedDbOpsWithCompletedJob_shouldUpdateResource() {
     dbOps.setStatus(new StackGresDbOpsStatus());
     dbOps.getStatus().setConditions(List.of(
-        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition().setLastTransitionTime(),
         DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DBOPS_FAILED.getCondition().setLastTransitionTime()));
 

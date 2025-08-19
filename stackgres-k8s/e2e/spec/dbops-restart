@@ -17,6 +17,7 @@ e2e_test() {
 
 check_restart_is_working() {
   reset_cluster 1
+  trigger_cluster_require_restart
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -40,6 +41,7 @@ EOF
   check_restart
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+  trigger_cluster_require_restart
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -50,6 +52,8 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: restart
+  restart:
+    method: ReducedImpact
 EOF
 
   set_restarted_pods "$CLUSTER_NAME-1"
@@ -60,6 +64,7 @@ EOF
 
 check_restart_in_place_is_working() {
   reset_cluster
+  trigger_cluster_require_restart
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -84,6 +89,7 @@ check_restart_only_pending_restart_is_working() {
 
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"add","path":"/spec/pods/disableConnectionPooling","value":true}]'
+  wait_until eval "kubectl get sts -n '$CLUSTER_NAMESPACE' '$CLUSTER_NAME' -o template='{{range .spec.template.spec.containers}}.{{end}}' | grep -qxF ...."
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   wait_pods_running "$CLUSTER_NAMESPACE" 3

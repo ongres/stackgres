@@ -36,7 +36,6 @@
     <module>operator</module>
     <module>restapi</module>
     <module>cluster-controller</module>
-    <module>jobs</module>
     <module>stream</module>
   </modules>
 

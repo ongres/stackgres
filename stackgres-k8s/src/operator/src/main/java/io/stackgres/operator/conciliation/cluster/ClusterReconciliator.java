@@ -5,16 +5,21 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -31,10 +36,12 @@ import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
+import io.stackgres.operator.conciliation.factory.dbops.DbOpsClusterRollout;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import org.jooq.lambda.Seq;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -113,6 +120,24 @@ public class ClusterReconciliator
 
     clusterScheduler.update(config,
         (currentCluster) -> {
+          currentCluster.getMetadata().setAnnotations(
+              Seq.seq(
+                  Optional.ofNullable(currentCluster.getMetadata().getAnnotations())
+                  .map(Map::entrySet)
+                  .stream()
+                  .flatMap(Set::stream)
+                  .filter(annotation -> !Objects.equals(annotation.getKey(), StackGresContext.VERSION_KEY))
+                  .filter(annotation -> !DbOpsClusterRollout.ROLLOUT_DBOPS_KEYS.contains(annotation.getKey())
+                      || Optional.ofNullable(config.getStatus())
+                      .map(StackGresClusterStatus::getDbOps)
+                      .map(StackGresClusterDbOpsStatus::getName)
+                      .isPresent()))
+              .append(Optional.ofNullable(config.getMetadata().getAnnotations())
+                  .map(Map::entrySet)
+                  .stream()
+                  .flatMap(Set::stream)
+                  .filter(annotation -> Objects.equals(annotation.getKey(), StackGresContext.VERSION_KEY)))
+              .toMap(Map.Entry::getKey, Map.Entry::getValue));
           var targetOs = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getOs)
               .orElse(null);

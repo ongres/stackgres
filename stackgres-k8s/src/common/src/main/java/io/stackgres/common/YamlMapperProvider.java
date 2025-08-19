@@ -17,20 +17,31 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.arc.Unremovable;
 import jakarta.inject.Singleton;
+import org.yaml.snakeyaml.LoaderOptions;
 
 @SuppressWarnings("deprecation")
 @Singleton
 @Unremovable
 public class YamlMapperProvider implements Supplier<YAMLMapper> {
 
-  private static final YAMLMapper YAML_MAPPER = YAMLMapper.builder(new YAMLFactory()
-      .disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID))
+  private static final YAMLMapper YAML_MAPPER = YAMLMapper
+      .builder(
+          YAMLFactory.builder()
+          .disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID)
+          .loaderOptions(yamlLoaderOptions())
+          .build())
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
       .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
       .disable(Feature.WRITE_DOC_START_MARKER)
       .enable(Feature.USE_NATIVE_OBJECT_ID)
       .build();
+
+  private static LoaderOptions yamlLoaderOptions() {
+    final LoaderOptions loaderOptions = new LoaderOptions();
+    loaderOptions.setMaxAliasesForCollections(100);
+    return loaderOptions;
+  }
 
   static {
     YAML_MAPPER

@@ -16,6 +16,8 @@ import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
+import io.stackgres.common.crd.CustomEnvFromSource;
+import io.stackgres.common.crd.CustomEnvVar;
 import io.stackgres.common.crd.CustomVolume;
 import io.stackgres.common.crd.CustomVolumeMount;
 import io.stackgres.common.validation.FieldReference;
@@ -44,9 +46,12 @@ public class StackGresClusterPods {
 
   private Boolean disableEnvoy;
 
-  @ValidEnum(enumClass = StackGresPodManagementPolicy.class, allowNulls = true,
+  @ValidEnum(enumClass = StackGresClusterManagementPolicy.class, allowNulls = true,
       message = "managementPolicy must be OrderedReady or Parallel")
   private String managementPolicy;
+
+  @Valid
+  private StackGresClusterUpdateStrategy updateStrategy;
 
   @Valid
   private StackGresClusterResources resources;
@@ -68,6 +73,18 @@ public class StackGresClusterPods {
 
   @Valid
   private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
+
+  @Valid
+  private Map<String, List<CustomEnvVar>> customEnv;
+
+  @Valid
+  private Map<String, List<CustomEnvVar>> customInitEnv;
+
+  @Valid
+  private Map<String, List<CustomEnvFromSource>> customEnvFrom;
+
+  @Valid
+  private Map<String, List<CustomEnvFromSource>> customInitEnvFrom;
 
   private Long terminationGracePeriodSeconds;
 
@@ -150,6 +167,14 @@ public class StackGresClusterPods {
     this.managementPolicy = managementPolicy;
   }
 
+  public StackGresClusterUpdateStrategy getUpdateStrategy() {
+    return updateStrategy;
+  }
+
+  public void setUpdateStrategy(StackGresClusterUpdateStrategy updateStrategy) {
+    this.updateStrategy = updateStrategy;
+  }
+
   public List<CustomVolume> getCustomVolumes() {
     return customVolumes;
   }
@@ -190,6 +215,39 @@ public class StackGresClusterPods {
     this.customInitVolumeMounts = customInitVolumeMounts;
   }
 
+  public Map<String, List<CustomEnvVar>> getCustomEnv() {
+    return customEnv;
+  }
+
+  public void setCustomEnv(Map<String, List<CustomEnvVar>> customEnv) {
+    this.customEnv = customEnv;
+  }
+
+  public Map<String, List<CustomEnvVar>> getCustomInitEnv() {
+    return customInitEnv;
+  }
+
+  public void setCustomInitEnv(Map<String, List<CustomEnvVar>> customInitEnv) {
+    this.customInitEnv = customInitEnv;
+  }
+
+  public Map<String, List<CustomEnvFromSource>> getCustomEnvFrom() {
+    return customEnvFrom;
+  }
+
+  public void setCustomEnvFrom(Map<String, List<CustomEnvFromSource>> customEnvFrom) {
+    this.customEnvFrom = customEnvFrom;
+  }
+
+  public Map<String, List<CustomEnvFromSource>> getCustomInitEnvFrom() {
+    return customInitEnvFrom;
+  }
+
+  public void setCustomInitEnvFrom(
+      Map<String, List<CustomEnvFromSource>> customInitEnvFrom) {
+    this.customInitEnvFrom = customInitEnvFrom;
+  }
+
   public Long getTerminationGracePeriodSeconds() {
     return terminationGracePeriodSeconds;
   }
@@ -216,10 +274,11 @@ public class StackGresClusterPods {
 
   @Override
   public int hashCode() {
-    return Objects.hash(customContainers, customInitContainers, customInitVolumeMounts,
-        customVolumeMounts, customVolumes, disableConnectionPooling, disableEnvoy,
-        disableMetricsExporter, disablePostgresUtil, livenessProbe, managementPolicy,
-        persistentVolume, readinessProbe, resources, scheduling, terminationGracePeriodSeconds);
+    return Objects.hash(customContainers, customEnv, customEnvFrom, customInitContainers,
+        customInitEnv, customInitEnvFrom, customInitVolumeMounts, customVolumeMounts, customVolumes,
+        disableConnectionPooling, disableEnvoy, disableMetricsExporter, disablePostgresUtil,
+        livenessProbe, managementPolicy, persistentVolume, readinessProbe, resources, scheduling,
+        terminationGracePeriodSeconds, updateStrategy);
   }
 
   @Override
@@ -232,7 +291,11 @@ public class StackGresClusterPods {
     }
     StackGresClusterPods other = (StackGresClusterPods) obj;
     return Objects.equals(customContainers, other.customContainers)
+        && Objects.equals(customEnv, other.customEnv)
+        && Objects.equals(customEnvFrom, other.customEnvFrom)
         && Objects.equals(customInitContainers, other.customInitContainers)
+        && Objects.equals(customInitEnv, other.customInitEnv)
+        && Objects.equals(customInitEnvFrom, other.customInitEnvFrom)
         && Objects.equals(customInitVolumeMounts, other.customInitVolumeMounts)
         && Objects.equals(customVolumeMounts, other.customVolumeMounts)
         && Objects.equals(customVolumes, other.customVolumes)
@@ -246,7 +309,8 @@ public class StackGresClusterPods {
         && Objects.equals(readinessProbe, other.readinessProbe)
         && Objects.equals(resources, other.resources)
         && Objects.equals(scheduling, other.scheduling)
-        && Objects.equals(terminationGracePeriodSeconds, other.terminationGracePeriodSeconds);
+        && Objects.equals(terminationGracePeriodSeconds, other.terminationGracePeriodSeconds)
+        && Objects.equals(updateStrategy, other.updateStrategy);
   }
 
   @Override

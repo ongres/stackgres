@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -21,12 +22,16 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.ProfileFinder;
+import io.stackgres.common.resource.ResourceScanner;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
@@ -40,6 +45,14 @@ class DbOpsRequiredResourcesGeneratorTest {
 
   @InjectMock
   ProfileFinder profileFinder;
+
+  @InjectMock
+  ResourceScanner<Pod> podScanner;
+
+  @InjectMock
+  PatroniCtl patorniCtl;
+
+  PatroniCtlInstance patroniCtlInstance;
 
   @Inject
   DbOpsRequiredResourcesGenerator generator;
@@ -59,6 +72,7 @@ class DbOpsRequiredResourcesGeneratorTest {
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgCluster());
     profile = Fixtures.instanceProfile().loadSizeS().get();
+    patroniCtlInstance = Mockito.mock(PatroniCtlInstance.class);
   }
 
   @Test
@@ -71,6 +85,9 @@ class DbOpsRequiredResourcesGeneratorTest {
 
     when(profileFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(profile));
+
+    when(patorniCtl.instanceFor(any()))
+        .thenReturn(patroniCtlInstance);
 
     generator.getRequiredResources(dbOps);
   }

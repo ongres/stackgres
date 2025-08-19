@@ -98,6 +98,7 @@ class ClusterRequiredResourcesGeneratorTest {
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().streamOrderedVersions()
         .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
+    cluster.getStatus().setPostgresVersion(null);
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     final String namespace = cluster.getMetadata().getNamespace();

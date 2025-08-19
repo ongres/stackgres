@@ -298,7 +298,12 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
   protected void updateManagedSqlStatus(StackGresClusterContext context,
       StackGresClusterManagedSqlStatus managedSqlStatus) {
     clusterScheduler.update(context.getCluster(),
-        (currentCluster) -> currentCluster.getStatus().setManagedSql(managedSqlStatus));
+        (currentCluster) -> {
+          if (currentCluster.getStatus() == null) {
+            currentCluster.setStatus(new StackGresClusterStatus());
+          }
+          currentCluster.getStatus().setManagedSql(managedSqlStatus);
+        });
   }
 
   protected void sendEvent(KubernetesClient client, StackGresClusterContext context,

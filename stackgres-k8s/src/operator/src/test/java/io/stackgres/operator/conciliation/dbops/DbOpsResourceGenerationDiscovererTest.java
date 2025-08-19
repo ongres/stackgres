@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.dbops;
 
 import java.io.IOException;
+import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
@@ -42,7 +43,7 @@ class DbOpsResourceGenerationDiscovererTest
   @BeforeEach
   public void setup() {
     this.config = Fixtures.config().loadDefault().get();
-    this.resource = Fixtures.dbOps().loadMinorVersionUpgrade().get();
+    this.resource = Fixtures.dbOps().loadMajorVersionUpgrade().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
     this.cluster = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
   }
@@ -79,6 +80,8 @@ class DbOpsResourceGenerationDiscovererTest
         .source(resource)
         .foundCluster(cluster)
         .foundProfile(profile)
+        .foundClusterPods(List.of())
+        .foundClusterPatroniMembers(List.of())
         .build();
   }
 

@@ -21,11 +21,11 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
+import io.stackgres.operator.common.DbOpsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
@@ -55,7 +55,8 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresDbOpsContext context) {
-    if (DbOpsUtil.isAlreadyCompleted(context.getSource())) {
+    if (DbOpsUtil.ROLLOUT_OPS.contains(context.getSource().getSpec().getOp())
+        || DbOpsUtil.isAlreadyCompleted(context.getSource())) {
       return Stream.of();
     }
 

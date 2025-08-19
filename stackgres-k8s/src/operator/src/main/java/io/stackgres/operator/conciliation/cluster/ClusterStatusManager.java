@@ -6,21 +6,13 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.ClusterRolloutUtil;
-import io.stackgres.common.ClusterRolloutUtil.RestartReason;
-import io.stackgres.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.common.ManagedSqlUtil;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -39,6 +31,9 @@ import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.operator.common.ClusterRolloutUtil;
+import io.stackgres.operator.common.ClusterRolloutUtil.RestartReason;
+import io.stackgres.operator.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.ServiceBindingSecret;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
@@ -70,8 +65,12 @@ public class ClusterStatusManager
   }
 
   @Inject
-  public ClusterStatusManager(LabelFactoryForCluster labelFactory, CustomResourceFinder<StackGresScript> scriptFinder,
-      ResourceFinder<StatefulSet> statefulSetFinder, ResourceScanner<Pod> podScanner, PatroniCtl patroniCtl) {
+  public ClusterStatusManager(
+      LabelFactoryForCluster labelFactory,
+      CustomResourceFinder<StackGresScript> scriptFinder,
+      ResourceFinder<StatefulSet> statefulSetFinder,
+      ResourceScanner<Pod> podScanner,
+      PatroniCtl patroniCtl) {
     this.labelFactory = labelFactory;
     this.scriptFinder = scriptFinder;
     this.statefulSetFinder = statefulSetFinder;
@@ -87,12 +86,13 @@ public class ClusterStatusManager
     source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
     source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
     StatusContext context = getStatusContext(source);
-    if (isPendingRestart(source, context)) {
+    RestartReasons restartReasons = getRestartReasons(source, context);
+    if (restartReasons.requiresRestart()) {
       updateCondition(getPodRequiresRestart(), source);
     } else {
       updateCondition(getFalsePendingRestart(), source);
     }
-    if (isPendingUpgrade(source)) {
+    if (restartReasons.requiresUpgrade()) {
       updateCondition(getClusterRequiresUpgrade(), source);
     } else {
       updateCondition(getFalsePendingUpgrade(), source);
@@ -193,7 +193,7 @@ public class ClusterStatusManager
   /**
    * Check pending restart status condition.
    */
-  public boolean isPendingRestart(StackGresCluster cluster, StatusContext context) {
+  public RestartReasons getRestartReasons(StackGresCluster cluster, StatusContext context) {
     RestartReasons reasons = ClusterRolloutUtil.getRestartReasons(
         context.cluster(), context.statefulSet(), context.pods(), context.patroniMembers());
     for (RestartReason reason : reasons.getReasons()) {
@@ -210,11 +210,15 @@ public class ClusterStatusManager
           LOGGER.debug("Cluster {} requires restart due to pod template changes",
               getClusterId(cluster));
           break;
+        case UPGRADE:
+          LOGGER.debug("Cluster {} requires upgrade due to cluster using old version",
+              getClusterId(cluster));
+          break;
         default:
           break;
       }
     }
-    return reasons.requiresRestart();
+    return reasons;
   }
 
   private StatusContext getStatusContext(StackGresCluster cluster) {
@@ -225,24 +229,6 @@ public class ClusterStatusManager
     final List<PatroniMember> patroniMembers = patroniCtl.instanceFor(cluster).list();
     StatusContext context = new StatusContext(cluster, statefulSet, pods, patroniMembers);
     return context;
-  }
-
-  /**
-   * Check pending upgrade status condition.
-   */
-  public boolean isPendingUpgrade(StackGresCluster cluster) {
-    if (Optional.of(cluster.getMetadata())
-        .map(ObjectMeta::getAnnotations)
-        .stream()
-        .map(Map::entrySet)
-        .flatMap(Set::stream)
-        .anyMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
-            && !e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))) {
-      LOGGER.debug("Cluster {} requires upgrade since it is using an old operator version",
-          getClusterId(cluster));
-      return true;
-    }
-    return false;
   }
 
   @Override

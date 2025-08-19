@@ -22,13 +22,13 @@ public enum StreamTargetCloudEventFormat {
     return format;
   }
 
-  public static StreamTargetCloudEventFormat fromString(String format) {
+  public static StreamTargetCloudEventFormat fromString(String from) {
     for (StreamTargetCloudEventFormat value : values()) {
-      if (value.format.equals(format)) {
+      if (value.format.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("CloudEvent format " + format + " is invalid");
+    throw new IllegalArgumentException("CloudEvent format " + from + " is invalid");
   }
 
 }

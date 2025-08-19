@@ -31,9 +31,14 @@ public class PreviousExtensionsStatusMutator implements ClusterMutator {
       Optional.of(resource.getSpec())
           .map(StackGresClusterSpec::getToInstallPostgresExtensions)
           .ifPresent(extensions -> {
-            resource.getSpec().setToInstallPostgresExtensions(null);
             resource.getStatus().setExtensions(extensions);
           });
+    }
+    // Set toInstallPostgresExtensions to null when 1.17 get removed and version is <= 1.18
+    // This to prevent preivous version of the controller from removing installed extensions
+    if (StackGresVersion.V_1_17 == null
+        && StackGresVersion.getStackGresVersionAsNumber(resource) <= StackGresVersion.V_1_18.getVersionAsNumber()) {
+      resource.getSpec().setToInstallPostgresExtensions(null);
     }
     return resource;
   }

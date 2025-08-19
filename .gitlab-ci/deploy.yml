@@ -84,11 +84,6 @@ deploy restapi jvm image:
   variables:
     IMAGE_NAME: "stackgres/restapi"
 
-deploy jobs jvm image:
-  extends: .deploy jvm image
-  variables:
-    IMAGE_NAME: "stackgres/jobs"
-
 deploy cluster-controller jvm image:
   extends: .deploy jvm image
   variables:
@@ -122,11 +117,6 @@ deploy restapi native image:
   extends: .deploy native image
   variables:
     IMAGE_NAME: "stackgres/restapi"
-
-deploy job native image:
-  extends: .deploy native image
-  variables:
-    IMAGE_NAME: "stackgres/jobs"
 
 deploy cluster-controller native image:
   extends: .deploy native image

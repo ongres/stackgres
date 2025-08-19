@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -112,7 +114,9 @@ class ClusterPostgresVersionContextAppenderTest {
   @BeforeEach
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getMetadata().setAnnotations(Map.of(StackGresContext.ROLLOUT_KEY, StackGresContext.ROLLOUT_ALWAYS_VALUE));
     cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
+    cluster.getStatus().setPostgresVersion(null);
     contextAppender = new ClusterPostgresVersionContextAppender(
         eventController,
         clusterPostgresConfigContextAppender,
@@ -132,6 +136,11 @@ class ClusterPostgresVersionContextAppenderTest {
     assertEquals(
         cluster.getSpec().getPostgres().getVersion(),
         cluster.getStatus().getPostgresVersion());
+    assertNotNull(
+        cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
+    assertEquals(
+        StackGresProperty.OPERATOR_VERSION.getString(),
+        cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
     assertNotNull(
         cluster.getStatus().getBuildVersion());
     verify(clusterPostgresConfigContextAppender).appendContext(

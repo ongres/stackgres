@@ -22,7 +22,6 @@ yq -r '.appVersion' stackgres-operator/Chart.yaml | grep -xF "$STACKGRES_VERSION
 yq -r '.operator.image.tag' stackgres-operator/values.yaml | grep "^$IMAGE_TAG$"
 yq -r '.restapi.image.tag' stackgres-operator/values.yaml | grep "^$IMAGE_TAG$"
 yq -r '.adminui.image.tag' stackgres-operator/values.yaml | grep "^$ADMINUI_IMAGE_TAG$"
-yq -r '.jobs.image.tag' stackgres-operator/values.yaml | grep "^$IMAGE_TAG$"
 helm lint stackgres-operator
 
 yq -r '.version' stackgres-cluster/Chart.yaml | grep -xF "$STACKGRES_VERSION"

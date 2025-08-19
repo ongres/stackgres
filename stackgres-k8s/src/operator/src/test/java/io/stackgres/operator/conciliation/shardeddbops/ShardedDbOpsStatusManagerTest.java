@@ -135,7 +135,7 @@ class ShardedDbOpsStatusManagerTest {
   void failedDbOpsWithCompletedJob_shouldUpdateResource() {
     dbOps.setStatus(new StackGresShardedDbOpsStatus());
     dbOps.getStatus().setConditions(List.of(
-        ShardedDbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        ShardedDbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition().setLastTransitionTime(),
         ShardedDbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
         ShardedDbOpsStatusCondition.DBOPS_FAILED.getCondition().setLastTransitionTime()
         .setLastTransitionTime()));

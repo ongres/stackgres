@@ -9,6 +9,8 @@ import static io.stackgres.operator.conciliation.factory.cluster.KubernetessMock
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -71,11 +74,16 @@ class ClusterConciliatorTest {
   @Mock
   private PatroniCtl patroniCtl;
 
+  @Mock
+  private PatroniCtlInstance patroniCtlInstance;
+
   private DeployedResourcesCache deployedResourcesCache;
 
   @BeforeEach
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getSpec().setInstances(2);
+    lenient().when(patroniCtl.instanceFor(any())).thenReturn(patroniCtlInstance);
   }
 
   @Test

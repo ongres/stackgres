@@ -10,8 +10,10 @@ import java.util.List;
 
 import io.quarkus.test.Mock;
 import io.stackgres.common.fixture.Fixtures;
+import jakarta.inject.Singleton;
 
 @Mock
+@Singleton
 public class ExtensionMetadataManagerMock extends ExtensionMetadataManager {
 
   List<StackGresExtension> extraExtensions = List.of();

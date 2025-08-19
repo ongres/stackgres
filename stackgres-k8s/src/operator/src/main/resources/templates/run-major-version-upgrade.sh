@@ -83,6 +83,7 @@ run_op() {
     echo
     DBOPS_PATCH="$(cat << EOF
       {
+        "name": "$DBOPS_NAME",
         "majorVersionUpgrade":{
           "initialInstances": [$(
             FIRST=true
@@ -169,6 +170,7 @@ EOF
     until kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
         -p "$(cat << EOF
 [
+  {"op":"replace","path":"/status/dbOps/name","value": "$DBOPS_NAME"},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/targetPostgresVersion","value": "$TARGET_VERSION"},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/link","value": $LINK},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/clone","value": $CLONE},

@@ -134,7 +134,7 @@ class StreamStatusManagerTest {
   void failedStreamWithCompletedJob_shouldUpdateResource() {
     stream.setStatus(new StackGresStreamStatus());
     stream.getStatus().setConditions(List.of(
-        StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition(),
+        StreamStatusCondition.STREAM_FALSE_RUNNING.getCondition().setLastTransitionTime(),
         StreamStatusCondition.STREAM_FALSE_COMPLETED.getCondition(),
         StreamStatusCondition.STREAM_FAILED.getCondition().setLastTransitionTime()));
     when(jobFinder.findByNameAndNamespace(any(), any()))

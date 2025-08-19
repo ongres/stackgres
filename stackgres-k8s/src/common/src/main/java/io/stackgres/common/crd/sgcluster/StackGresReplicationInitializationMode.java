@@ -29,13 +29,13 @@ public enum StackGresReplicationInitializationMode {
     return mode;
   }
 
-  public static StackGresReplicationInitializationMode fromString(String value) {
-    for (StackGresReplicationInitializationMode mode : StackGresReplicationInitializationMode.values()) {
-      if (mode.toString().equals(value)) {
-        return mode;
+  public static StackGresReplicationInitializationMode fromString(String from) {
+    for (StackGresReplicationInitializationMode value : StackGresReplicationInitializationMode.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknwon replication initialization mode " + value);
+    throw new IllegalArgumentException("Unknwon replication initialization mode " + from);
   }
 
 }

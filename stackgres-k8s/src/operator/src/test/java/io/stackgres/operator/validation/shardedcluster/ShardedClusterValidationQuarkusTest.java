@@ -5,10 +5,8 @@
 
 package io.stackgres.operator.validation.shardedcluster;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +36,6 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationUtil;
-import io.stackgres.testutil.JsonUtil;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,7 +68,7 @@ class ShardedClusterValidationQuarkusTest {
     review.getRequest().getObject().getMetadata().setNamespace("test");
     review.getRequest().getObject().setStatus(new StackGresShardedClusterStatus());
     StackGresShardedClusterStatus status = review.getRequest().getObject().getStatus();
-    status.setToInstallPostgresExtensions(
+    status.setExtensions(
         getInstalledExtension("citus", "citus_columnar"));
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(POSTGRES_VERSION);
@@ -187,28 +184,18 @@ class ShardedClusterValidationQuarkusTest {
   }
 
   @Test
-  void given_withoutInstalledExtensions_shouldFail() throws Exception {
+  void given_withoutInstalledExtensions_shouldNotFail() throws Exception {
     StackGresShardedClusterReview clusterReview = getConstraintClusterReview();
-    clusterReview.getRequest().getObject().getStatus().setToInstallPostgresExtensions(null);
-    InputStream is = RestAssured.given()
+    clusterReview.getRequest().getObject().getStatus().setExtensions(null);
+    RestAssured.given()
         .body(clusterReview)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post(ValidationUtil.SHARDED_CLUSTER_VALIDATION_PATH)
         .then()
-        .statusCode(200)
-        .extract()
-        .asInputStream();
-    var body = JsonUtil.jsonMapper().readTree(is);
-    try {
-      assertThat(body.get("response").get("allowed").asBoolean(), is(false));
-      assertThat(body.get("kind").asText(), is("AdmissionReview"));
-      assertThat(body.get("response").get("status").get("code").asInt(), is(400));
-      assertThat(body.get("response").get("status").get("message").asText(),
-          is("Some extensions were not found: citus 13.0.1, citus_columnar 13.0.1"));
-    } catch (AssertionError ae) {
-      throw new AssertionError("Body " + body + " has unexpected values", ae);
-    }
+        .body("response.allowed", is(true),
+            "kind", is("AdmissionReview"))
+        .statusCode(200);
   }
 
 }

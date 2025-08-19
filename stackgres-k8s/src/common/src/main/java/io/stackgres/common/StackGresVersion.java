@@ -76,7 +76,7 @@ public enum StackGresVersion {
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
       justification = "False positive")
-  private static long getVersionAsNumber(String version) {
+  public static long getVersionAsNumber(String version) {
     int lastMajorVersionIndex = version.indexOf('.') - 1;
     if (lastMajorVersionIndex < 0) {
       throw new IllegalArgumentException(

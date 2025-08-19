@@ -39,26 +39,11 @@ reset_cluster() {
 check_restart_ran_successfully() {
   check_restart_is_running
 
-  check_restart_prevent_updates_to_cluster
-
   check_restart_completed
 }
 
 check_restart_is_running() {
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
-}
-
-check_restart_prevent_updates_to_cluster() {
-  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq --argjson timestamp "$(date +%s)" ".metadata.annotations[\"stackgres.io/lockTimeout\"] | . // \"0\" | tonumber - \$timestamp")" -gt 0 ]'
-  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
-    >/dev/null 2>&1
-  then
-    fail "Cluster has been updated while locked."
-  else
-    success "Cluster has not been updated while locked."
-  fi
 }
 
 check_restart_completed() {
@@ -75,12 +60,6 @@ check_restart() {
   test -n "$RESTARTED_PODS"
 
   check_restart_is_running
-
-  local DBOPS_JOB_NAME
-  DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
-
-  check_restart_prevent_updates_to_cluster
 
   check_restart_completed
 
@@ -121,25 +100,6 @@ check_restart() {
       fail "Pod $POD was restarted"
     fi
   done
-
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
-    -o name 2>/dev/null | wc -l)" = 1 ]
-  then
-    success "restart job was not removed after completion."
-  else
-    fail "restart job was removed after completion."
-  fi
-
-  local FINAL_DBOPS_JOB_NAME
-  FINAL_DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
-  if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
-  then
-    success "restart Job was not re-created."
-  else
-    fail "restart Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
-  fi
 
   if [ "$SKIP_CHECK_DATA" != true ]
   then

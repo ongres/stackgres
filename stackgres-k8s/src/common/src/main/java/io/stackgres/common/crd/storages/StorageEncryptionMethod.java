@@ -23,13 +23,13 @@ public enum StorageEncryptionMethod {
     return type;
   }
 
-  public static @NotNull StorageEncryptionMethod fromString(@NotNull String value) {
-    for (StorageEncryptionMethod role : StorageEncryptionMethod.values()) {
-      if (role.toString().equals(value)) {
-        return role;
+  public static @NotNull StorageEncryptionMethod fromString(@NotNull String from) {
+    for (StorageEncryptionMethod value : StorageEncryptionMethod.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknown storage encryption method " + value);
+    throw new IllegalArgumentException("Unknown storage encryption method " + from);
   }
 
 }

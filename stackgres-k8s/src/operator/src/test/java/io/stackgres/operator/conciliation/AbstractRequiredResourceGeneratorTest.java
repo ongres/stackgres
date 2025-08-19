@@ -31,8 +31,12 @@ import junit.framework.AssertionFailedError;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRequiredResourceGeneratorTest<T> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRequiredResourceGeneratorTest.class);
 
   private int sgClusterMaxLength;
   private int sgScriptMaxLength;
@@ -96,6 +100,8 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
       assertThatCronJobResourceLabelsAreComplaints(resource);
       assertThatJobResourceLabelsAreComplaints(resource);
     } catch (Exception ex) {
+      LOGGER.error("Validation for resource " + resource.getMetadata().getName()
+          + " of kind " + resource.getKind() + " failed: " + ex.getMessage(), ex);
       throw new AssertionFailedError(format(
           "Validation for resource %s of kind %s failed: %s",
           resource.getMetadata().getName(), resource.getKind(), ex.getMessage()));

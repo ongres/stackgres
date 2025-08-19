@@ -9,6 +9,7 @@ import static io.stackgres.operator.conciliation.ReconciliationUtil.isResourceRe
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.ws.rs.core.Response;
@@ -98,6 +100,11 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
         .map(t -> t.map2(DeployedResource::foundDeployed))
         .toList();
 
+    final var updateUnownedResources = requiredResources.stream()
+        .filter(requiredResource -> Optional.ofNullable(requiredResource.getMetadata().getAnnotations())
+            .map(annotations -> annotations.containsKey(StackGresContext.UPDATE_UNOWNED_RESOURCE_KEY))
+            .orElse(false))
+        .toList();
     var deployedOtherOwnerRequiredResources = deployedResourcesSnapshot.deployedResources().stream()
         .filter(deployedResource -> deployedResource.getMetadata().getOwnerReferences() != null
             && !deployedResource.getMetadata().getOwnerReferences().isEmpty())
@@ -106,6 +113,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
             .map(ownedDeployedResource -> ResourceKey.create(config, ownedDeployedResource))
             .noneMatch(deployedResourceKey::equals))
         .filter(deployedResourceKey -> requiredResources.stream()
+            .filter(Predicate.not(updateUnownedResources::contains))
             .map(requiredResource -> ResourceKey.create(config, requiredResource))
             .anyMatch(deployedResourceKey::equals))
         .toList();
@@ -127,6 +135,9 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
           List.of(),
           List.of());
     }
+    updateUnownedResources
+        .forEach(requiredResource -> requiredResource.getMetadata().getAnnotations()
+            .remove(StackGresContext.UPDATE_UNOWNED_RESOURCE_KEY));
 
     var foundConfig = finder.findByNameAndNamespace(
         config.getMetadata().getName(),

@@ -23,12 +23,12 @@ public enum StackGresShardingSphereModeType {
     return type;
   }
 
-  public static @NotNull StackGresShardingSphereModeType fromString(@NotNull String value) {
-    for (StackGresShardingSphereModeType type : StackGresShardingSphereModeType.values()) {
-      if (type.toString().equals(value)) {
-        return type;
+  public static @NotNull StackGresShardingSphereModeType fromString(@NotNull String from) {
+    for (StackGresShardingSphereModeType value : StackGresShardingSphereModeType.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknwon sharding type " + value);
+    throw new IllegalArgumentException("Unknwon sharding type " + from);
   }
 }

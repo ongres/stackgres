@@ -22,6 +22,8 @@ import jakarta.validation.Valid;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterDbOpsStatus {
 
+  private String name;
+
   @Valid
   private StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
@@ -33,6 +35,14 @@ public class StackGresClusterDbOpsStatus {
 
   @Valid
   private StackGresClusterDbOpsSecurityUpgradeStatus securityUpgrade;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 
   public StackGresClusterDbOpsMajorVersionUpgradeStatus getMajorVersionUpgrade() {
     return majorVersionUpgrade;
@@ -70,7 +80,7 @@ public class StackGresClusterDbOpsStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(majorVersionUpgrade, minorVersionUpgrade, restart, securityUpgrade);
+    return Objects.hash(majorVersionUpgrade, minorVersionUpgrade, name, restart, securityUpgrade);
   }
 
   @Override
@@ -84,7 +94,7 @@ public class StackGresClusterDbOpsStatus {
     StackGresClusterDbOpsStatus other = (StackGresClusterDbOpsStatus) obj;
     return Objects.equals(majorVersionUpgrade, other.majorVersionUpgrade)
         && Objects.equals(minorVersionUpgrade, other.minorVersionUpgrade)
-        && Objects.equals(restart, other.restart)
+        && Objects.equals(name, other.name) && Objects.equals(restart, other.restart)
         && Objects.equals(securityUpgrade, other.securityUpgrade);
   }
 

@@ -24,12 +24,12 @@ public enum StackGresShardingSphereRepositoryType {
     return type;
   }
 
-  public static @NotNull StackGresShardingSphereRepositoryType fromString(@NotNull String value) {
-    for (StackGresShardingSphereRepositoryType type : StackGresShardingSphereRepositoryType.values()) {
-      if (type.toString().equals(value)) {
-        return type;
+  public static @NotNull StackGresShardingSphereRepositoryType fromString(@NotNull String from) {
+    for (StackGresShardingSphereRepositoryType value : StackGresShardingSphereRepositoryType.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknwon sharding type " + value);
+    throw new IllegalArgumentException("Unknwon sharding type " + from);
   }
 }

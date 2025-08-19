@@ -122,6 +122,7 @@ check_external_dcs_two_clusters_is_working() {
 }
 
 check_restart_is_working_with_external_dcs() {
+  trigger_cluster_require_restart
   CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_NEAR_NAME" set_restarted_pods
 
   cat << EOF | kubectl create -f -
@@ -149,6 +150,7 @@ EOF
 }
 
 check_restart_is_working_with_external_dcs_and_primary_part_of_another_cluster() {
+  trigger_cluster_require_restart
   CLUSTER_NAMESPACE="$CLUSTER_FAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_FAR_NAME" set_restarted_pods
 
   cat << EOF | kubectl create -f -

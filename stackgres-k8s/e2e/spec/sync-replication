@@ -372,6 +372,7 @@ check_strict_sync_all_replication_is_working() {
 }
 
 check_cluster_can_restart_without_replicas_in_any_ha_group() {
+  trigger_cluster_require_restart
   DBOPS_NAME="$(get_sgdbops_name restart)"
 
   set_restarted_pods "$CLUSTER_NAME-0 $CLUSTER_NAME-1 $CLUSTER_NAME-2"

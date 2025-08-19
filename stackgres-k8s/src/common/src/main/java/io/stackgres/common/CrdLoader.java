@@ -20,6 +20,7 @@ import io.stackgres.common.crd.CommonDefinition;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 public class CrdLoader {
@@ -30,7 +31,9 @@ public class CrdLoader {
   private final YAMLMapper yamlMapper;
 
   public CrdLoader(YAMLMapper yamlMapper) {
-    this.yamlParser = new Yaml();
+    final LoaderOptions loaderOptions = new LoaderOptions();
+    loaderOptions.setMaxAliasesForCollections(100);
+    this.yamlParser = new Yaml(loaderOptions);
     this.yamlMapper = yamlMapper;
   }
 
@@ -62,7 +65,7 @@ public class CrdLoader {
     }
   }
 
-  private CustomResourceDefinition readCrd(String crdFilename) {
+  public CustomResourceDefinition readCrd(String crdFilename) {
     LOGGER.debug("Read CRD {}", crdFilename);
     try (InputStream resourceAsStream = CommonDefinition.class.getResourceAsStream(
         "/crds/" + crdFilename)) {

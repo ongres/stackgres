@@ -85,8 +85,11 @@ public interface StackGresContext {
   String ROLLOUT_KEY = STACKGRES_KEY_PREFIX + "rollout";
   String ROLLOUT_SCHEDULE_KEY = STACKGRES_KEY_PREFIX + "rollout-schedule";
   String ROLLOUT_DBOPS_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops";
-  String ROLLOUT_NEVER_VALUE = "never";
+  String ROLLOUT_METHOD_KEY = STACKGRES_KEY_PREFIX + "rollout-method";
+  String ROLLOUT_DBOPS_METHOD_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops-method";
   String ROLLOUT_ALWAYS_VALUE = "always";
+  String ROLLOUT_SCHEDULE_VALUE = "schedule";
+  String ROLLOUT_NEVER_VALUE = "never";
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
@@ -118,5 +121,9 @@ public interface StackGresContext {
   String LOCK_SERVICE_ACCOUNT_KEY = STACKGRES_KEY_PREFIX + "lockServiceAccount";
   String LOCK_POD_KEY = STACKGRES_KEY_PREFIX + "lockPod";
   String LOCK_TIMEOUT_KEY = STACKGRES_KEY_PREFIX + "lockTimeout";
+
+  String INTERNAL_STACKGRES_KEY_PREFIX = "internal.stackgres.io/";
+
+  String UPDATE_UNOWNED_RESOURCE_KEY = INTERNAL_STACKGRES_KEY_PREFIX + "update-unowned-resource";
 
 }

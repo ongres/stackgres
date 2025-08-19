@@ -406,6 +406,10 @@ public class Component {
     return getVersion(StackGresComponent.LATEST);
   }
 
+  public String getLatestVersion(Map<Component, String> subComponents) {
+    return getVersion(StackGresComponent.LATEST, subComponents);
+  }
+
   public Optional<String> findVersion(String version) {
     return findLatestBuildVersion(version)
         .map(ImageVersion::getVersion);

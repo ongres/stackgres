@@ -12,12 +12,18 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatusBuilder;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.ClusterLabelFactory;
+import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +49,15 @@ class DbOpsClusterContextAppenderTest {
   private CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Mock
+  private ResourceScanner<Pod> podScanner;
+
+  @Mock
+  private PatroniCtl patroniCtl;
+
+  @Mock
+  private PatroniCtlInstance patroniCtlInstance;
+
+  @Mock
   private DbOpsClusterInstanceProfileContextAppender dbOpsClusterInstanceProfileContextAppender;
 
   @Mock
@@ -57,6 +72,9 @@ class DbOpsClusterContextAppenderTest {
     cluster = Fixtures.cluster().loadDefault().get();
     contextAppender = new DbOpsClusterContextAppender(
         clusterFinder,
+        podScanner,
+        new ClusterLabelFactory(new ClusterLabelMapper()),
+        patroniCtl,
         dbOpsClusterInstanceProfileContextAppender,
         dbOpsClusterMajorVersionUpgradeContextAppender,
         dbOpsClusterMinorVersionUpgradeContextAppender);
@@ -68,6 +86,8 @@ class DbOpsClusterContextAppenderTest {
         dbOps.getSpec().getSgCluster(),
         dbOps.getMetadata().getNamespace()))
         .thenReturn(Optional.of(cluster));
+    when(patroniCtl.instanceFor(cluster))
+        .thenReturn(patroniCtlInstance);
     contextAppender.appendContext(dbOps, contextBuilder);
     verify(contextBuilder).foundCluster(Optional.of(cluster));
     verify(dbOpsClusterInstanceProfileContextAppender).appendContext(cluster, contextBuilder);
@@ -111,6 +131,8 @@ class DbOpsClusterContextAppenderTest {
         dbOps.getSpec().getSgCluster(),
         dbOps.getMetadata().getNamespace()))
         .thenReturn(Optional.of(cluster));
+    when(patroniCtl.instanceFor(cluster))
+        .thenReturn(patroniCtlInstance);
     contextAppender.appendContext(dbOps, contextBuilder);
     verify(contextBuilder).foundCluster(Optional.of(cluster));
     verify(dbOpsClusterInstanceProfileContextAppender).appendContext(cluster, contextBuilder);
@@ -126,6 +148,8 @@ class DbOpsClusterContextAppenderTest {
         dbOps.getSpec().getSgCluster(),
         dbOps.getMetadata().getNamespace()))
         .thenReturn(Optional.of(cluster));
+    when(patroniCtl.instanceFor(cluster))
+        .thenReturn(patroniCtlInstance);
     contextAppender.appendContext(dbOps, contextBuilder);
     verify(contextBuilder).foundCluster(Optional.of(cluster));
     verify(dbOpsClusterInstanceProfileContextAppender).appendContext(cluster, contextBuilder);

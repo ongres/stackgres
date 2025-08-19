@@ -23,11 +23,11 @@ public enum StackGresAuthenticationType {
     return type;
   }
 
-  public static @NotNull StackGresAuthenticationType fromString(@NotNull String name) {
-    return switch (name) {
+  public static @NotNull StackGresAuthenticationType fromString(@NotNull String from) {
+    return switch (from) {
       case "jwt" -> JWT;
       case "oidc" -> OIDC;
-      default -> throw new IllegalArgumentException("Unknown authentication type " + name);
+      default -> throw new IllegalArgumentException("Unknown authentication type " + from);
     };
   }
 

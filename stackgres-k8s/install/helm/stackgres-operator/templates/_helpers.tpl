@@ -26,10 +26,6 @@
 {{- if not (regexMatch "^[^/]+\\.[^/]+/.*$" .Values.adminui.image.name ) }}{{ .Values.containerRegistry }}/{{ end }}{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}
 {{- end }}
 
-{{- define "jobs-image" }}
-{{- if not (regexMatch "^[^/]+\\.[^/]+/.*$" .Values.jobs.image.name ) }}{{ .Values.containerRegistry }}/{{ end }}{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}
-{{- end }}
-
 {{- define "cert-name" }}
 {{- .Values.cert.secretName | default (printf "%s-%s" .Release.Name "certs") }}
 {{- end }}

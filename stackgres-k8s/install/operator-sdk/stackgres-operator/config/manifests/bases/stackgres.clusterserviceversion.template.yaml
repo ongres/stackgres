@@ -107,8 +107,6 @@ EOF
     name: stackgres-restapi
   - image: quay.io/stackgres/admin-ui:${VERSION}
     name: stackgres-admin-ui
-  - image: quay.io/stackgres/jobs:${VERSION}
-    name: stackgres-jobs
   description: |
 $(
   sed 's/^/    /' config/manifests/bases/stackgres.clusterserviceversion.description.txt

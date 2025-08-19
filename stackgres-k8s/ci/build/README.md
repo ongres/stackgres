@@ -11,7 +11,7 @@ This tool allows to build a hierarchy of modules, where each module depends on
  centralized repository.
 
 > EXAMPLE: If I just make a change in the `operator` module (let's say rename a variable) then
->  `stackgres-parent`, `operator-framework`, `common`, `restapi`, `admin-ui`, `jobs`,
+>  `stackgres-parent`, `operator-framework`, `common`, `restapi`, `admin-ui`,
 >  `cluster-controller` and all their respective dependencies
 >  (the `java-image`, `native` and `native-image` module types) will not be rebuilt, only the
 >  `operator`, `operator-java-image`, `operator-native` and `operator-native-image` modules will be
