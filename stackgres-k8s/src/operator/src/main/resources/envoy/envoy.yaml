@@ -20,5 +20,6 @@ admin:
   access_log: []
   address:
     socket_address:
-      address: 0.0.0.0
+      ipv4_compat: true
+      address: "::"
       port_value: $envoy_port

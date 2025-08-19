@@ -3,7 +3,8 @@ resources:
     name: patroni_listener
     address:
       socket_address:
-        address: 0.0.0.0
+        ipv4_compat: true
+        address: "::"
         port_value: '$patroni_entry_port'
     filter_chains:
     - filters:
@@ -32,7 +33,8 @@ resources:
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
     address:
       socket_address:
-        address: 0.0.0.0
+        ipv4_compat: true
+        address: "::"
         port_value: '$postgres_entry_port'
     filter_chains:
     - filters:
@@ -64,7 +66,8 @@ resources:
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
     address:
       socket_address:
-        address: 0.0.0.0
+        ipv4_compat: true
+        address: "::"
         port_value: '$postgres_repl_entry_port'
     filter_chains:
     - filters:
@@ -79,7 +82,8 @@ resources:
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
     address:
       socket_address:
-        address: 0.0.0.0
+        ipv4_compat: true
+        address: "::"
         port_value: '$babelfish_entry_port'
     filter_chains:
     - filters:
