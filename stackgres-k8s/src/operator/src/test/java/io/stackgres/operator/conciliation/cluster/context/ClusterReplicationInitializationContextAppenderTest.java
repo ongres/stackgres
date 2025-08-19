@@ -181,7 +181,8 @@ class ClusterReplicationInitializationContextAppenderTest {
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
 
-    contextAppender.appendContext(cluster, Optional.of(objectStorage), contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
 
     verify(backupScanner, times(1)).getResources(any());
     verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
@@ -239,7 +240,8 @@ class ClusterReplicationInitializationContextAppenderTest {
             backupCreated,
             failedBackup));
 
-    contextAppender.appendContext(cluster, Optional.of(objectStorage), contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
 
     verify(backupScanner, times(1)).getResources(any());
     verify(secretFinder, never()).findByNameAndNamespace(any(), any());
@@ -304,7 +306,8 @@ class ClusterReplicationInitializationContextAppenderTest {
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
 
-    contextAppender.appendContext(cluster, Optional.of(objectStorage), contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
 
     verify(backupScanner, times(1)).getResources(any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());

@@ -29,7 +29,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.InjectMock;
 import io.smallrye.mutiny.Multi;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

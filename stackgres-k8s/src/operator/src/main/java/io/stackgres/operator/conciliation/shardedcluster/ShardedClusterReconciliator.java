@@ -27,7 +27,7 @@ import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
-import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
+import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -90,13 +90,13 @@ public class ShardedClusterReconciliator
 
   @Override
   protected void onPreReconciliation(StackGresShardedCluster config) {
-    if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
+    if (ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.keySet()
         .contains(config.getSpec().getPostgres().getVersion())) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
           "SGShardedCluster " + config.getMetadata().getNamespace() + "."
               + config.getMetadata().getName() + " is using PostgreSQL "
               + config.getSpec().getPostgres().getVersion() + ". "
-              + PostgresConfigValidator.BUGGY_PG_VERSIONS.get(
+              + ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.get(
                   config.getSpec().getPostgres().getVersion()), config);
     }
   }

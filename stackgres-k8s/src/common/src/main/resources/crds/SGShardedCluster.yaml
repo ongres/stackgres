@@ -19,7 +19,7 @@ spec:
     additionalPrinterColumns:
     - name: version
       type: string
-      jsonPath: .spec.postgres.version
+      jsonPath: .status.postgresVersion
     - name: instances
       type: integer
       jsonPath: .spec.coordinator.instances + (.spec.shards.clusters * .spec.shards.instancesPerCluster) 
@@ -2757,6 +2757,46 @@ spec:
                     type:
                       description: Type of deployment condition.
                       type: string
+              postgresVersion:
+                type: string
+                description: The Postgres version used used to generate the SGShardedCluster's SGClusters
+              buildVersion:
+                type: string
+                description: The Postgres build version used to generate the SGShardedCluster's SGClusters
+              extensions:
+                type: array
+                description: |
+                  The list of Postgres extensions to install.
+                  
+                  **This section is filled by the operator.**
+                items:
+                  type: object
+                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the extension to install.
+                    publisher:
+                      type: string
+                      description: The id of the publisher of the extension to install.
+                    version:
+                      type: string
+                      description: The version of the extension to install.
+                    repository:
+                      type: string
+                      description: The repository base URL from where the extension will be installed from.
+                    postgresVersion:
+                      type: string
+                      description: The postgres major version of the extension to install.
+                    build:
+                      type: string
+                      description: The build version of the extension to install.
+                    extraMounts:
+                      type: array
+                      description: The extra mounts of the extension to install.
+                      items:
+                        type: string
+                        description: The extra mount of the installed extension.
               clusterStatuses:
                 type: array
                 description: The list of cluster statuses.
@@ -2772,7 +2812,10 @@ spec:
                       description: Indicates if the cluster requires restart
               toInstallPostgresExtensions:
                 type: array
-                description: The list of Postgres extensions to install
+                description: |
+                  **Deprecated** replaced by `extensions`.
+                  
+                  The list of Postgres extensions to install
                 items:
                   type: object
                   required: ["name", "publisher", "version", "repository", "postgresVersion"]

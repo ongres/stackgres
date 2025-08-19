@@ -18,6 +18,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
@@ -85,7 +87,9 @@ public class DbOpsDeployedResourceScanner extends AbstractDeployedResourcesScann
           Map.entry(ServiceAccount.class, KubernetesClient::serviceAccounts),
           Map.entry(Role.class, client -> client.rbac().roles()),
           Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
-          Map.entry(Job.class, client -> client.batch().v1().jobs())
+          Map.entry(Job.class, client -> client.batch().v1().jobs()),
+          Map.entry(StackGresCluster.class, client -> client
+              .resources(StackGresCluster.class, StackGresClusterList.class))
           );
 
 }

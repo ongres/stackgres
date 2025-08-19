@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
+import org.jooq.lambda.Seq;
 
 @Value.Immutable
 public interface StackGresBackupContext extends GenerationContext<StackGresBackup>, ClusterContext {
@@ -74,13 +75,15 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
         .map(StackGresClusterSpec::getConfigurations)
         .map(StackGresClusterConfigurations::getBackups)
         .map(Collection::stream)
+        .map(Seq::seq)
+        .map(seq -> seq.zipWithIndex())
         .flatMap(Stream::findFirst)
         .map(bc -> new BackupConfiguration(
-            bc.getRetention(),
-            bc.getCronSchedule(),
-            bc.getCompression(),
-            bc.getPath(),
-            Optional.ofNullable(bc.getPerformance())
+            bc.v1.getRetention(),
+            bc.v1.getCronSchedule(),
+            bc.v1.getCompression(),
+            getCluster().getStatus().getBackupPaths().get(bc.v2.intValue()),
+            Optional.ofNullable(bc.v1.getPerformance())
             .map(bp -> new BackupPerformance(
                 bp.getMaxNetworkBandwidth(),
                 bp.getMaxDiskBandwidth(),
@@ -88,14 +91,14 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                 bp.getUploadConcurrency(),
                 bp.getDownloadConcurrency()))
             .orElse(null),
-            Optional.ofNullable(bc.getUseVolumeSnapshot())
+            Optional.ofNullable(bc.v1.getUseVolumeSnapshot())
             .orElse(false),
-            bc.getVolumeSnapshotClass(),
-            bc.getFastVolumeSnapshot(),
-            bc.getTimeout(),
-            bc.getReconciliationTimeout(),
-            bc.getMaxRetries(),
-            bc.getRetainWalsForUnmanagedLifecycle()))
+            bc.v1.getVolumeSnapshotClass(),
+            bc.v1.getFastVolumeSnapshot(),
+            bc.v1.getTimeout(),
+            bc.v1.getReconciliationTimeout(),
+            bc.v1.getMaxRetries(),
+            bc.v1.getRetainWalsForUnmanagedLifecycle()))
         .orElseThrow();
   }
 

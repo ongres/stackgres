@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -36,8 +34,6 @@ public class ClusterSpec {
   private ClusterManagedSql managedSql;
 
   private ClusterDistributedLogs distributedLogs;
-
-  private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
   private ClusterPods pods;
 
@@ -149,15 +145,6 @@ public class ClusterSpec {
 
   public void setDistributedLogs(ClusterDistributedLogs distributedLogs) {
     this.distributedLogs = distributedLogs;
-  }
-
-  public List<ClusterInstalledExtension> getToInstallPostgresExtensions() {
-    return toInstallPostgresExtensions;
-  }
-
-  public void setToInstallPostgresExtensions(
-      List<ClusterInstalledExtension> toInstallPostgresExtensions) {
-    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
   public ClusterPostgresServices getPostgresServices() {

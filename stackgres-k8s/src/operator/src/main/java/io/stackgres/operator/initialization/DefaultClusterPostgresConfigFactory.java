@@ -36,6 +36,17 @@ public class DefaultClusterPostgresConfigFactory
 
   @Override
   public StackGresPostgresConfig buildResource(StackGresCluster resource) {
+    if (resource.getStatus() == null
+        || resource.getStatus().getPostgresVersion() == null) {
+      return new StackGresPostgresConfigBuilder()
+          .withMetadata(new ObjectMetaBuilder()
+              .withNamespace(resource.getMetadata().getNamespace())
+              .withName(getDefaultResourceName(resource))
+              .build())
+          .withNewSpec()
+          .endSpec()
+          .build();
+    }
     Map<String, String> defaultValues = getDefaultValues(resource);
     Set<String> blockedValues = PostgresBlocklist.getBlocklistParameters();
     return new StackGresPostgresConfigBuilder()
@@ -65,7 +76,7 @@ public class DefaultClusterPostgresConfigFactory
 
   private String getPostgresMajorVersion(StackGresCluster resource) {
     String version = getPostgresFlavorComponent(resource).get(resource)
-        .getVersion(resource.getSpec().getPostgres().getVersion());
+        .getVersion(resource.getStatus().getPostgresVersion());
     return version.split("\\.")[0];
   }
 

@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
@@ -54,7 +55,10 @@ public class DistributedLogsStatusManager
       if (source.getStatus() == null) {
         source.setStatus(new StackGresDistributedLogsStatus());
       }
-      source.getStatus().setPostgresVersion(cluster.getSpec().getPostgres().getVersion());
+      source.getStatus().setPostgresVersion(
+          Optional.ofNullable(cluster.getStatus())
+          .map(StackGresClusterStatus::getPostgresVersion)
+          .orElse(null));
       source.getStatus().setTimescaledbVersion(
           Optional.ofNullable(cluster.getSpec().getPostgres().getExtensions())
           .stream()

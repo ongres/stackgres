@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation;
 
+import static io.stackgres.common.ClusterRolloutUtil.isRolloutAllowed;
 import static io.stackgres.common.StackGresContext.ANNOTATIONS_TO_COMPONENT;
 
 import java.time.Duration;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,15 +28,18 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.ClusterRolloutUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -43,6 +48,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -74,6 +80,8 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
 
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
 
+  private final ResourceFinder<Secret> secretFinder;
+
   private final PatroniCtl patroniCtl;
 
   private final ObjectMapper objectMapper;
@@ -85,6 +93,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
+      ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
     this.handler = handler;
@@ -93,6 +102,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
     this.statefulSetFinder = statefulSetFinder;
     this.podScanner = podScanner;
     this.pvcScanner = pvcScanner;
+    this.secretFinder = secretFinder;
     this.patroniCtl = patroniCtl;
     this.objectMapper = objectMapper;
   }
@@ -105,6 +115,7 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
     this.statefulSetFinder = null;
     this.podScanner = null;
     this.pvcScanner = null;
+    this.secretFinder = null;
     this.patroniCtl = null;
     this.objectMapper = null;
   }
@@ -239,7 +250,189 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
 
     fixPvcs(context, requiredSts, updatedSts, appLabel);
 
+    if (isRolloutAllowed(context)) {
+      performRollout(context, requiredSts, updatedSts, appLabel,
+          latestPrimaryFromPatroni, patroniCtl);
+    }
+
     return updatedSts;
+  }
+
+  private void performRollout(
+      StackGresCluster context,
+      StatefulSet requiredSts,
+      StatefulSet updatedSts,
+      Map<String, String> appLabel,
+      Optional<String> latestPrimaryFromPatroni,
+      PatroniCtlInstance patroniCtl) {
+    List<Pod> pods = findStatefulSetPods(requiredSts, appLabel);
+    final Optional<Pod> foundPrimaryPod = pods.stream()
+        .filter(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
+        .findFirst();
+    final Optional<Pod> foundPrimaryPodAndPendingRestart = foundPrimaryPod
+        .filter(pod -> ClusterRolloutUtil
+            .getRestartReasons(context, Optional.of(updatedSts), pod, List.of())
+            .requiresRestart());
+    final Optional<Pod> foundPrimaryPodAndPendingRestartAndFailed = foundPrimaryPodAndPendingRestart
+        .filter(ClusterRolloutUtil::isPodInFailedPhase);
+    if (foundPrimaryPodAndPendingRestartAndFailed.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting primary Pod {} since pending retart and failed",
+            foundPrimaryPod.get().getMetadata().getName());
+      }
+      handler.delete(context, foundPrimaryPodAndPendingRestartAndFailed.get());
+      return;
+    }
+    final Pod primaryPod = foundPrimaryPod.orElse(null);
+    final List<Pod> otherPods = pods.stream()
+        .filter(pod -> !Objects.equals(pod, primaryPod))
+        .toList();
+    final Optional<Pod> anyOtherPodAndPendingRestartAndFailed = otherPods
+        .stream()
+        .filter(pod -> ClusterRolloutUtil
+            .getRestartReasons(context, Optional.of(updatedSts), pod, List.of())
+            .requiresRestart())
+        .filter(ClusterRolloutUtil::isPodInFailedPhase)
+        .findAny();
+    if (foundPrimaryPod.isEmpty()
+        && anyOtherPodAndPendingRestartAndFailed.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting non primary Pod {} since pending restart and failed",
+            foundPrimaryPod.get().getMetadata().getName());
+      }
+      handler.delete(context, anyOtherPodAndPendingRestartAndFailed.get());
+      return;
+    }
+    if (Seq.seq(foundPrimaryPod.stream())
+        .append(otherPods)
+        .anyMatch(Predicate.not(
+            ((Predicate<Pod>) ClusterRolloutUtil::isPodInFailedPhase)
+            .or(ClusterRolloutUtil::isPodReady)))) {
+      LOGGER.debug("A Pod is not ready nor failing, wait for it to become ready or fail");
+      return;
+    }
+    final Optional<Pod> anyOtherPodAndPendingRestart = otherPods
+        .stream()
+        .filter(pod -> ClusterRolloutUtil
+            .getRestartReasons(context, Optional.of(updatedSts), pod, List.of())
+            .requiresRestart())
+        .findAny();
+    if (foundPrimaryPod.isEmpty()
+        && anyOtherPodAndPendingRestart.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting non primary Pod {} since pending restart",
+            foundPrimaryPod.get().getMetadata().getName());
+      }
+      handler.delete(context, anyOtherPodAndPendingRestart.get());
+      return;
+    }
+    final List<PatroniMember> patroniMembers = patroniCtl.list();
+    if (foundPrimaryPod
+        .map(pod -> patroniMembers.stream()
+            .anyMatch(patroniMember -> patroniMember.getMember().equals(pod.getMetadata().getName())
+                && patroniMember.getPendingRestart() != null))
+        .orElse(false)) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart",
+            foundPrimaryPod.get().getMetadata().getName());
+      }
+      var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+      patroniCtl.restart(credentials.v1, credentials.v2, foundPrimaryPod.get().getMetadata().getName());
+      return;
+    }
+    if (foundPrimaryPod.isPresent()
+        && anyOtherPodAndPendingRestartAndFailed.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting non primary Pod {} since pending restart and failed",
+            foundPrimaryPod.get().getMetadata().getName());
+      }
+      handler.delete(context, anyOtherPodAndPendingRestartAndFailed.get());
+      return;
+    }
+    if (foundPrimaryPod.isPresent()
+        && anyOtherPodAndPendingRestart.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting non primary Pod {} since pending restart and failed",
+            foundPrimaryPod.get().getMetadata().getName());
+      }
+      handler.delete(context, anyOtherPodAndPendingRestart.get());
+      return;
+    }
+    final Optional<PatroniMember> leastLagPatroniMemberAndReady =
+        patroniMembers
+        .stream()
+        .filter(PatroniMember::isReplica)
+        .filter(PatroniMember::isRunning)
+        .filter(member -> Optional.ofNullable(member.getTags())
+            .filter(tags -> tags.entrySet().stream().anyMatch(
+                tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)
+                && tag.getValue() != null && tag.getValue().getValue() != null
+                && Objects.equals(tag.getValue().getValue().toString(), Boolean.TRUE.toString())))
+            .isEmpty())
+        .min((m1, m2) -> {
+          var l1 = Optional.ofNullable(m1.getLagInMb())
+              .map(IntOrString::getIntVal);
+          var l2 = Optional.ofNullable(m2.getLagInMb())
+              .map(IntOrString::getIntVal);
+          if (l1.isPresent() && l2.isPresent()) {
+            return l1.get().compareTo(l2.get());
+          } else if (l1.isPresent() && l2.isEmpty()) {
+            return -1;
+          } else if (l1.isEmpty() && l2.isPresent()) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+    final Optional<Pod> otherLeastLagPodAndReady = otherPods
+        .stream()
+        .filter(ClusterRolloutUtil::isPodReady)
+        .filter(pod -> leastLagPatroniMemberAndReady
+            .filter(member -> member.getMember().equals(pod.getMetadata().getName()))
+            .isPresent())
+        .findAny();
+    if (foundPrimaryPodAndPendingRestart.isPresent()
+        && otherLeastLagPodAndReady.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Failover primary Pod {} to ready Pod {} with least lag",
+            foundPrimaryPod.get().getMetadata().getName(),
+            otherLeastLagPodAndReady.get().getMetadata().getName());
+      }
+      var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+      patroniCtl.switchover(
+          credentials.v1,
+          credentials.v2,
+          foundPrimaryPod.get().getMetadata().getName(),
+          otherLeastLagPodAndReady.get().getMetadata().getName());
+      return;
+    }
+    if (foundPrimaryPodAndPendingRestart.isPresent()
+        && otherLeastLagPodAndReady.isEmpty()) {
+      handler.delete(context, foundPrimaryPodAndPendingRestart.get());
+      return;
+    }
+  }
+
+  public Tuple2<String, String> getPatroniCredentials(String clusterName, String namespace) {
+    return Optional
+        .ofNullable(secretFinder
+            .findByNameAndNamespace(
+                namespace,
+                PatroniUtil.secretName(clusterName))
+            .get())
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .map(date -> Tuple.tuple(
+            Optional.ofNullable(date.get(StackGresPasswordKeys.RESTAPI_USERNAME_KEY))
+            .orElseThrow(() -> new RuntimeException("Can not find key "
+                + StackGresPasswordKeys.RESTAPI_USERNAME_KEY
+                + " in Secret " + PatroniUtil.secretName(clusterName))),
+            Optional.ofNullable(date.get(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY))
+            .orElseThrow(() -> new RuntimeException("Can not find key "
+                + StackGresPasswordKeys.RESTAPI_PASSWORD_KEY
+                + " in Secret " + PatroniUtil.secretName(clusterName)))))
+        .orElseThrow(() -> new RuntimeException(
+            "Can not find Secret " + PatroniUtil.secretName(clusterName)));
   }
 
   private void startPrimaryIfRemoved(StackGresCluster context, StatefulSet requiredSts,

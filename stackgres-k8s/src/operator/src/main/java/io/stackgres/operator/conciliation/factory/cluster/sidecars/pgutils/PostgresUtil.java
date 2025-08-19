@@ -66,7 +66,7 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
         getPostgresFlavorComponent(context.getClusterContext().getCluster())
         .get(context.getClusterContext().getCluster())
         .getVersion(
-            context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()));
+            context.getClusterContext().getCluster().getStatus().getPostgresVersion()));
   }
 
   @Override
@@ -75,7 +75,7 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
         .withName(StackGresContainer.POSTGRES_UTIL.getName())
         .withImage(StackGresComponent.POSTGRES_UTIL.get(context.getClusterContext().getCluster())
             .getImageName(
-                context.getClusterContext().getSource().getSpec().getPostgres().getVersion()))
+                context.getClusterContext().getSource().getStatus().getPostgresVersion()))
         .withImagePullPolicy(getDefaultPullPolicy())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)

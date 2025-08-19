@@ -62,12 +62,13 @@ public class ClusterReplicationInitializationContextAppender {
 
   public void appendContext(
       StackGresCluster cluster,
+      Builder contextBuilder,
       Optional<StackGresObjectStorage> backupObjectStorage,
-      Builder contextBuilder) {
+      String version) {
     final Optional<Tuple2<StackGresBackup, Map<String, Secret>>> replicationInitializationBackupAndSecrets =
-        getReplicationInitializationBackupAndSecrets(cluster, backupObjectStorage);
+        getReplicationInitializationBackupAndSecrets(cluster, backupObjectStorage, version);
     final Optional<StackGresBackup> replicationInitializationBackupToCreate =
-        getReplicationInitializationBackupToCreate(cluster, backupObjectStorage);
+        getReplicationInitializationBackupToCreate(cluster, backupObjectStorage, version);
     contextBuilder
         .replicationInitializationBackup(replicationInitializationBackupAndSecrets
             .map(Tuple2::v1))
@@ -79,7 +80,8 @@ public class ClusterReplicationInitializationContextAppender {
 
   private Optional<Tuple2<StackGresBackup, Map<String, Secret>>> getReplicationInitializationBackupAndSecrets(
       StackGresCluster cluster,
-      Optional<StackGresObjectStorage> backupObjectStorage) {
+      Optional<StackGresObjectStorage> backupObjectStorage,
+      String version) {
     if (StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal()
         > cluster.getSpec().getReplication().getInitializationModeOrDefault().ordinal()) {
       return Optional.empty();
@@ -92,7 +94,7 @@ public class ClusterReplicationInitializationContextAppender {
         .map(Instant.now()::minus);
     final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getMajorVersion(version);
     return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
@@ -164,7 +166,8 @@ public class ClusterReplicationInitializationContextAppender {
 
   private Optional<StackGresBackup> getReplicationInitializationBackupToCreate(
       StackGresCluster cluster,
-      Optional<StackGresObjectStorage> backupObjectStorage) {
+      Optional<StackGresObjectStorage> backupObjectStorage,
+      String version) {
     if (!StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.equals(
         cluster.getSpec().getReplication().getInitializationModeOrDefault())) {
       return Optional.empty();
@@ -176,7 +179,7 @@ public class ClusterReplicationInitializationContextAppender {
         .map(now::minus);
     final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getMajorVersion(version);
     return Seq.seq(backupScanner
         .getResourcesWithLabels(
             cluster.getMetadata().getNamespace(),

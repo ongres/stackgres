@@ -19,7 +19,7 @@ spec:
     additionalPrinterColumns:
     - name: version
       type: string
-      jsonPath: .spec.postgres.version
+      jsonPath: .status.postgresVersion
     - name: instances
       type: integer
       jsonPath: .spec.instances 
@@ -111,6 +111,13 @@ spec:
                       *  The string 'latest', which automatically sets the latest major.minor Postgres version.
                       *  A major version, like '14' or '13', which sets that major version and the latest minor version.
                       *  A specific major.minor version, like '14.4'.
+                      
+                      Changing this value will trigger an SGCluster's Pods restart with the following conditions:
+                      
+                      * When a restart SGDbOps targeting this SGCluster is created the Pods will be restarted when the SGDbOps is started.
+                      * When SGCluster is annotated with `stackgres.io/rollout` with value `always` the Pods will be restarted ASAP.
+                      * When SGCluster is annotated with `stackgres.io/schedule` with value syntax `<cron  expression>[:<duration>][,...]` the Pods will be restarted in the time windows specified by the cron expressions and durations values defined.
+                      * When SGCluster is annotated with `stackgres.io/rollout` with value `never` the Pods will never be restarted (even creating an SGDbOps).
                   flavor:
                     type: string
                     default: vanilla
@@ -131,6 +138,7 @@ spec:
                       statement. After an extension is deployed correctly it will be present until removed and the cluster restarted.
                       
                       A cluster restart is required for:
+
                       * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
                       * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
                       * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
@@ -161,7 +169,7 @@ spec:
                           description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                         version:
                           type: string
-                          description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
+                          description: The version of the extension to deploy. If not specified latest version will be used by default. If latest version can not be determined (if extension uses non standard versioning) a version will be picked up randomly.
                         repository:
                           type: string
                           description: |
@@ -2173,15 +2181,6 @@ spec:
             type: object
             description: Current status of a StackGres cluster.
             properties:
-              instances:
-                type: integer
-                description: Actual number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
-              labelSelector:
-                type: string
-                description: Actual label selector for instances for the StackGres cluster's Pods to be used by autoscaling.
-              replicationInitializationFailedSGBackup:
-                type: string
-                description: Indicates the latest failed backup for the replication initialization.
               conditions:
                 type: array
                 items:
@@ -2202,6 +2201,63 @@ spec:
                     type:
                       description: Type of deployment condition.
                       type: string
+              postgresVersion:
+                type: string
+                description: The Postgres version used to generate the SGCluster's Pods
+              buildVersion:
+                type: string
+                description: The Postgres build version used to generate the SGCluster's Pods
+              extensions:
+                type: array
+                description: |
+                  The list of Postgres extensions to install.
+                  
+                  **This section is filled by the operator.**
+                items:
+                  type: object
+                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the extension to install.
+                    publisher:
+                      type: string
+                      description: The id of the publisher of the extension to install.
+                    version:
+                      type: string
+                      description: The version of the extension to install.
+                    repository:
+                      type: string
+                      description: The repository base URL from where the extension will be installed from.
+                    postgresVersion:
+                      type: string
+                      description: The postgres major version of the extension to install.
+                    build:
+                      type: string
+                      description: The build version of the extension to install.
+                    extraMounts:
+                      type: array
+                      description: The extra mounts of the extension to install.
+                      items:
+                        type: string
+                        description: The extra mount of the installed extension.
+              sgPostgresConfig:
+                type: string
+                description: The Postgres configuration that is being used by the SGCluster's Pods
+              backupPaths:
+                type: array
+                description: The backup paths used
+                items:
+                  type: string
+              instances:
+                type: integer
+                description: Actual number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
+              labelSelector:
+                type: string
+                description: Actual label selector for instances for the StackGres cluster's Pods to be used by autoscaling.
+              replicationInitializationFailedSGBackup:
+                type: string
+                description: Indicates the latest failed backup for the replication initialization.
               podStatuses:
                 type: array
                 description: The list of pod statuses.

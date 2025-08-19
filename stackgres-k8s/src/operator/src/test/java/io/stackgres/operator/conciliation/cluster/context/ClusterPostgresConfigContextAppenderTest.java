@@ -60,7 +60,8 @@ class ClusterPostgresConfigContextAppenderTest {
         .build());
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(postgresConfig);
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        cluster.getSpec().getPostgres().getVersion());
     verify(contextBuilder).postgresConfig(postgresConfig);
   }
 
@@ -69,7 +70,8 @@ class ClusterPostgresConfigContextAppenderTest {
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("SGPostgresConfig postgresconf was not found", ex.getMessage());
   }
 
@@ -83,7 +85,8 @@ class ClusterPostgresConfigContextAppenderTest {
             .endSpec()
             .build()));
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, "10"));
     assertEquals("Invalid postgres version, must be 10 to use SGPostgresConfig postgresconf", ex.getMessage());
   }
 
@@ -93,7 +96,7 @@ class ClusterPostgresConfigContextAppenderTest {
         defaultPostgresConfigFactory.getDefaultResourceName(cluster));
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(contextBuilder).postgresConfig(Optional.empty());
   }
 

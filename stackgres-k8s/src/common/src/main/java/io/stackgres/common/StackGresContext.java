@@ -71,10 +71,22 @@ public interface StackGresContext {
   String CONFIG_NAME_KEY = "config-name";
   String CONFIG_UID_KEY = "config-uid";
   String CONFIG_NAMESPACE_KEY = "config-namespace";
+  String SCRIPT_KEY = "script";
+  String SCRIPT_APP_NAME = "StackGresScript";
+  String SCRIPT_NAME_KEY = "script-name";
+  String SCRIPT_UID_KEY = "script-uid";
+  String SCRIPT_SCOPE_KEY = "script-scope";
+  String SCRIPT_NAMESPACE_KEY = "script-namespace";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
   String REST_PASSWORD_KEY = "password";
+
+  String ROLLOUT_KEY = STACKGRES_KEY_PREFIX + "rollout";
+  String ROLLOUT_SCHEDULE_KEY = STACKGRES_KEY_PREFIX + "rollout-schedule";
+  String ROLLOUT_DBOPS_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops";
+  String ROLLOUT_NEVER_VALUE = "never";
+  String ROLLOUT_ALWAYS_VALUE = "always";
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";

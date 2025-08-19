@@ -39,6 +39,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.PatroniUtil;
@@ -95,6 +96,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
   private ResourceFinder<StatefulSet> statefulSetFinder;
 
   @Mock
+  private ResourceFinder<Secret> secretFinder;
+
+  @Mock
   private PatroniCtl patroniCtl;
 
   @Mock
@@ -124,7 +128,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void setUp() {
     handler = new ClusterStatefulSetReconciliationHandler(
         defaultHandler, protectHandler, labelFactory, statefulSetFinder,
-        podScanner, pvcScanner, patroniCtl, objectMapper);
+        podScanner, pvcScanner, secretFinder, patroniCtl, objectMapper);
     requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
 
     cluster = new StackGresCluster();

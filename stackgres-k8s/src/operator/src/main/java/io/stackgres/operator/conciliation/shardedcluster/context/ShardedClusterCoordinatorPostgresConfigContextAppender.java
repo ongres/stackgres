@@ -9,19 +9,15 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Optional;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext.Builder;
 import io.stackgres.operator.initialization.DefaultShardedClusterPostgresConfigFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ShardedClusterCoordinatorPostgresConfigContextAppender
-    extends ContextAppender<StackGresShardedCluster, Builder> {
+public class ShardedClusterCoordinatorPostgresConfigContextAppender {
 
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final DefaultShardedClusterPostgresConfigFactory defaultPostgresConfigFactory;
@@ -33,8 +29,7 @@ public class ShardedClusterCoordinatorPostgresConfigContextAppender
     this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
 
-  @Override
-  public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder) {
+  public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder, String postgresVersion) {
     final Optional<StackGresPostgresConfig> coordinatorPostgresConfig = postgresConfigFinder
         .findByNameAndNamespace(
             cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
@@ -47,12 +42,8 @@ public class ShardedClusterCoordinatorPostgresConfigContextAppender
           + cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig()
           + " was not found");
     }
-    String givenPgVersion = Optional.of(cluster.getSpec())
-        .map(StackGresShardedClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getVersion)
-        .orElse(null);
     String clusterMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(givenPgVersion);
+        .getMajorVersion(postgresVersion);
     if (coordinatorPostgresConfig.isPresent()) {
       String postgresConfigVersion = coordinatorPostgresConfig.get().getSpec().getPostgresVersion();
       if (!postgresConfigVersion.equals(clusterMajorVersion)) {

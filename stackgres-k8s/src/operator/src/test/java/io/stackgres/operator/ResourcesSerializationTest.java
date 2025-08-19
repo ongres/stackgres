@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.nio.channels.spi.SelectorProvider;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -122,4 +123,7 @@ class ResourcesSerializationTest {
         .filter(classInfo -> classInfo.getPackageName().startsWith("io.stackgres."));
   }
 
+  public static void main(String[] args) throws Exception {
+    SelectorProvider.provider().openSocketChannel(null);
+  }
 }

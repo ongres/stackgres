@@ -509,7 +509,7 @@ public interface StackGresUtil {
   }
 
   static String getPatroniVersion(StackGresCluster cluster) {
-    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+    return getPatroniVersion(cluster, cluster.getStatus().getPostgresVersion());
   }
 
   static String getPatroniVersion(StackGresCluster cluster, String postgresVersion) {
@@ -549,7 +549,7 @@ public interface StackGresUtil {
   }
 
   static String getPatroniImageName(StackGresCluster cluster) {
-    return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
+    return getPatroniImageName(cluster, cluster.getStatus().getPostgresVersion());
   }
 
   static String getPatroniImageName(StackGresCluster cluster, String postgresVersion) {

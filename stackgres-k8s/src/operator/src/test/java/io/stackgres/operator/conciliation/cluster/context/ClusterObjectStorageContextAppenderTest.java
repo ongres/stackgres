@@ -99,11 +99,11 @@ class ClusterObjectStorageContextAppenderTest {
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
 
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
 
     verify(objectStorageFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(clusterReplicationInitializationContextAppender, times(1)).appendContext(any(), any(), any());
+    verify(clusterReplicationInitializationContextAppender, times(1)).appendContext(any(), any(), any(), any());
   }
 
   @Test
@@ -111,7 +111,8 @@ class ClusterObjectStorageContextAppenderTest {
     cluster.getSpec().getConfigurations().getBackups().get(0).setSgObjectStorage("missing-object-storage");
 
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("SGObjectStorage missing-object-storage not found", ex.getMessage());
 
     verify(objectStorageFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -123,7 +124,8 @@ class ClusterObjectStorageContextAppenderTest {
         .thenReturn(Optional.of(objectStorage));
 
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Secret test not found for SGObjectStorage objectstorage", ex.getMessage());
 
     verify(objectStorageFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -138,7 +140,8 @@ class ClusterObjectStorageContextAppenderTest {
         .thenReturn(Optional.of(new Secret()));
 
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Key accessKeyId not found in Secret test for SGObjectStorage objectstorage", ex.getMessage());
 
     verify(objectStorageFinder, times(1)).findByNameAndNamespace(any(), any());

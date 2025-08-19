@@ -10,6 +10,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -39,8 +40,9 @@ public class ClusterStatefulSetReconciliationHandler
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
+      ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl, ObjectMapper objectMapper) {
-    super(handler, handler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
+    super(handler, handler, labelFactory, statefulSetFinder, podScanner, pvcScanner, secretFinder,
         patroniCtl, objectMapper);
   }
 
@@ -51,8 +53,9 @@ public class ClusterStatefulSetReconciliationHandler
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
+      ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl, ObjectMapper objectMapper) {
-    super(handler, protectHandler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
+    super(handler, protectHandler, labelFactory, statefulSetFinder, podScanner, pvcScanner, secretFinder,
         patroniCtl, objectMapper);
   }
 
