@@ -15,14 +15,17 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.ClusterRolloutUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniMember;
@@ -121,7 +124,23 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
       }
-      return noPrimaryPod || anyPodWithWrongOrMissingRole;
+      final boolean anyPodCanRestart;
+      if (ClusterRolloutUtil.isRolloutAllowed(config)) {
+        anyPodCanRestart = Optional.of(config)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getConditions)
+            .stream()
+            .flatMap(List::stream)
+            .anyMatch(ClusterStatusCondition.POD_REQUIRES_RESTART::isCondition);
+      } else {
+        anyPodCanRestart = false;
+      }
+      if (anyPodCanRestart && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Will force StatefulSet reconciliation since some pod must be restarted for SGCluster {}.{}",
+            config.getMetadata().getNamespace(),
+            config.getMetadata().getName());
+      }
+      return noPrimaryPod || anyPodWithWrongOrMissingRole || anyPodCanRestart;
     }
     return false;
   }

@@ -417,9 +417,9 @@ public abstract class AbstractStatefulSetWithPrimaryReconciliationHandler
     return Optional
         .ofNullable(secretFinder
             .findByNameAndNamespace(
-                namespace,
-                PatroniUtil.secretName(clusterName))
-            .get())
+                PatroniUtil.secretName(clusterName),
+                namespace)
+            .orElseThrow(() -> new RuntimeException("Can not find Secret " + PatroniUtil.secretName(clusterName)))
         .map(Secret::getData)
         .map(ResourceUtil::decodeSecret)
         .map(date -> Tuple.tuple(
