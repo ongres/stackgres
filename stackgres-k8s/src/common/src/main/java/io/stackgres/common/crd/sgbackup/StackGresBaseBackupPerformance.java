@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
-import jakarta.validation.constraints.Null;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -21,14 +20,6 @@ import jakarta.validation.constraints.Null;
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresBaseBackupPerformance {
-
-  @Null
-  @Deprecated(forRemoval = true)
-  private Long maxNetworkBandwitdh;
-
-  @Null
-  @Deprecated(forRemoval = true)
-  private Long maxDiskBandwitdh;
 
   private Long maxNetworkBandwidth;
 
@@ -39,26 +30,6 @@ public class StackGresBaseBackupPerformance {
   private Integer uploadConcurrency;
 
   private Integer downloadConcurrency;
-
-  @Deprecated(forRemoval = true)
-  public Long getMaxNetworkBandwitdh() {
-    return maxNetworkBandwitdh;
-  }
-
-  @Deprecated(forRemoval = true)
-  public void setMaxNetworkBandwitdh(Long maxNetworkBandwitdh) {
-    this.maxNetworkBandwitdh = maxNetworkBandwitdh;
-  }
-
-  @Deprecated(forRemoval = true)
-  public Long getMaxDiskBandwitdh() {
-    return maxDiskBandwitdh;
-  }
-
-  @Deprecated(forRemoval = true)
-  public void setMaxDiskBandwitdh(Long maxDiskBandwitdh) {
-    this.maxDiskBandwitdh = maxDiskBandwitdh;
-  }
 
   public Long getMaxNetworkBandwidth() {
     return maxNetworkBandwidth;
@@ -102,8 +73,8 @@ public class StackGresBaseBackupPerformance {
 
   @Override
   public int hashCode() {
-    return Objects.hash(downloadConcurrency, maxDiskBandwidth, maxDiskBandwitdh,
-        maxNetworkBandwidth, maxNetworkBandwitdh, uploadConcurrency, uploadDiskConcurrency);
+    return Objects.hash(downloadConcurrency, maxDiskBandwidth, maxNetworkBandwidth,
+        uploadConcurrency, uploadDiskConcurrency);
   }
 
   @Override
@@ -117,9 +88,7 @@ public class StackGresBaseBackupPerformance {
     StackGresBaseBackupPerformance other = (StackGresBaseBackupPerformance) obj;
     return Objects.equals(downloadConcurrency, other.downloadConcurrency)
         && Objects.equals(maxDiskBandwidth, other.maxDiskBandwidth)
-        && Objects.equals(maxDiskBandwitdh, other.maxDiskBandwitdh)
         && Objects.equals(maxNetworkBandwidth, other.maxNetworkBandwidth)
-        && Objects.equals(maxNetworkBandwitdh, other.maxNetworkBandwitdh)
         && Objects.equals(uploadConcurrency, other.uploadConcurrency)
         && Objects.equals(uploadDiskConcurrency, other.uploadDiskConcurrency);
   }

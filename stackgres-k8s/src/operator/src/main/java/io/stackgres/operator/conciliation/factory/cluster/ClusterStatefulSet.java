@@ -34,7 +34,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackupVolumeSnapshotStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationInitializationMode;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -129,8 +129,8 @@ public class ClusterStatefulSet
         ));
 
     final var installedExtensions = Optional
-        .ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getToInstallPostgresExtensions)
+        .ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getExtensions)
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toUnmodifiableList());

@@ -64,7 +64,7 @@ class ClusterRestoreBackupContextAppenderTest {
   @Test
   void givenClusterWithoutBackup_shouldPass() {
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.empty());
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(contextBuilder).restoreBackup(Optional.empty());
     verify(contextBuilder).restoreSecrets(Map.of());
   }
@@ -75,7 +75,7 @@ class ClusterRestoreBackupContextAppenderTest {
         new StackGresClusterStatusBuilder()
         .addToConditions(ClusterStatusCondition.CLUSTER_BOOTSTRAPPED.getCondition())
         .build());
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(backupFinder, Mockito.never()).findByNameAndNamespace(any(), any());
     verify(contextBuilder).restoreBackup(Optional.empty());
     verify(contextBuilder).restoreSecrets(Map.of());
@@ -132,7 +132,7 @@ class ClusterRestoreBackupContextAppenderTest {
             "secretAccessKey", "test"))
         .build();
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(contextBuilder).restoreBackup(backup);
     verify(contextBuilder).restoreSecrets(Map.of("test", secret));
   }
@@ -150,7 +150,8 @@ class ClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Cannot restore from SGBackup backup because it's not Completed", ex.getMessage());
   }
 
@@ -172,7 +173,8 @@ class ClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Cannot restore from SGBackup backup because it's not Completed", ex.getMessage());
   }
 
@@ -194,7 +196,8 @@ class ClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Cannot restore from SGBackup backup because it's not Completed", ex.getMessage());
   }
 
@@ -244,7 +247,8 @@ class ClusterRestoreBackupContextAppenderTest {
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.empty());
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Secret test not found for SGBackup backup", ex.getMessage());
   }
 
@@ -299,7 +303,8 @@ class ClusterRestoreBackupContextAppenderTest {
         .build();
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Key accessKeyId not found in Secret test for SGBackup backup", ex.getMessage());
   }
 

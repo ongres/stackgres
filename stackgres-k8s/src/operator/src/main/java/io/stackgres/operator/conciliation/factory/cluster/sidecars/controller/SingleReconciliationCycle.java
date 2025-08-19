@@ -56,7 +56,7 @@ public class SingleReconciliationCycle implements ContainerFactory<ClusterContai
             .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
             .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getSourcePostgresVersion)
             .map(context.getClusterContext().getCluster()
-                .getSpec().getPostgres().getVersion()::equals)
+                .getStatus().getPostgresVersion()::equals)
             .map(equals -> !equals)
             .orElse(false)
             || Optional.of(context.getClusterContext().getSource())

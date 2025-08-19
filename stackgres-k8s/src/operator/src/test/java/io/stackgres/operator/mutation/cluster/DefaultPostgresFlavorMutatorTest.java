@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultPostgresVersionMutatorTest {
+class DefaultPostgresFlavorMutatorTest {
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
@@ -35,34 +35,20 @@ class DefaultPostgresVersionMutatorTest {
 
   private StackGresClusterReview review;
 
-  private DefaultPostgresVersionMutator mutator;
+  private DefaultPostgresFlavorMutator mutator;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
     review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
-    mutator = new DefaultPostgresVersionMutator();
+    mutator = new DefaultPostgresFlavorMutator();
   }
 
-  @Test
-  void clusterWithFinalPostgresVersion_shouldNotDoAnything() {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-
+  void clusterWithFinalFlavor_shouldNotDoAnything() {
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(review.getRequest().getObject(), result);
-  }
-
-  @Test
-  void clusteWithNoPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(null);
-
-    StackGresCluster result = mutator.mutate(
-        review, JsonUtil.copy(review.getRequest().getObject()));
-
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
-        result.getSpec().getPostgres().getVersion());
   }
 
   @Test
@@ -77,27 +63,4 @@ class DefaultPostgresVersionMutatorTest {
         result.getSpec().getPostgres().getFlavor());
   }
 
-  @Test
-  void clusteWithLatestPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(StackGresComponent.LATEST);
-
-    StackGresCluster result = mutator.mutate(
-        review, JsonUtil.copy(review.getRequest().getObject()));
-
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
-        result.getSpec().getPostgres().getVersion());
-  }
-
-  @Test
-  void clusteWithMajorPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(
-        StackGresComponent.POSTGRESQL.getLatest().getLatestMajorVersion());
-
-    StackGresCluster result = mutator.mutate(
-        review, JsonUtil.copy(review.getRequest().getObject()));
-
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getVersion(
-        StackGresComponent.POSTGRESQL.getLatest().getLatestVersion()),
-        result.getSpec().getPostgres().getVersion());
-  }
 }

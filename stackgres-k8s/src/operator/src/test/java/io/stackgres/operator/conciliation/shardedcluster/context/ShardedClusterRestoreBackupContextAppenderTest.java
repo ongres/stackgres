@@ -65,7 +65,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
   @Test
   void givenClusterWithoutBackup_shouldPass() {
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.empty());
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     assertNull(cluster.getStatus());
   }
 
@@ -75,7 +76,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         new StackGresShardedClusterStatusBuilder()
         .addToConditions(ShardedClusterStatusCondition.SHARDED_CLUSTER_BOOTSTRAPPED.getCondition())
         .build());
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(backupFinder, Mockito.never()).findByNameAndNamespace(any(), any());
   }
 
@@ -103,7 +105,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .endStatus()
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     assertNotNull(cluster.getStatus());
     assertNotNull(cluster.getStatus().getSgBackups());
     assertEquals(List.of("1", "2", "3"), cluster.getStatus().getSgBackups());
@@ -122,7 +125,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Cannot restore from SGShardedBackup backup because it's not Completed", ex.getMessage());
   }
 
@@ -144,7 +148,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Cannot restore from SGShardedBackup backup because it's not Completed", ex.getMessage());
   }
 
@@ -166,7 +171,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Cannot restore from SGShardedBackup backup because it's not Completed", ex.getMessage());
   }
 
@@ -195,7 +201,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("In SGShardedBackup backup sgBackups must be an array of"
         + " size 3 (the coordinator plus the number of shards) but was 2", ex.getMessage());
   }
@@ -225,7 +232,8 @@ class ShardedClusterRestoreBackupContextAppenderTest {
         .build());
     when(backupFinder.findByNameAndNamespace(any(), any())).thenReturn(backup);
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("In SGShardedBackup backup sgBackups must be an array of"
         + " size 3 (the coordinator plus the number of shards) but was 4", ex.getMessage());
   }

@@ -39,6 +39,9 @@ public class PgConfigDefaultValuesMutator
         .withVersion(resource.getSpec().getPostgresVersion())
         .endPostgres()
         .endSpec()
+        .withNewStatus()
+        .withPostgresVersion(resource.getSpec().getPostgresVersion())
+        .endStatus()
         .build();
   }
 

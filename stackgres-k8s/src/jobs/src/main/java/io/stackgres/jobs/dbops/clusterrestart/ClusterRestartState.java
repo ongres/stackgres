@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import org.immutables.value.Value;

@@ -22,14 +22,17 @@ public class DbOpsClusterContextAppender
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final DbOpsClusterInstanceProfileContextAppender dbOpsClusterInstanceProfileContextAppender;
   private final DbOpsClusterMajorVersionUpgradeContextAppender dbOpsClusterMajorVersionUpgradeContextAppender;
+  private final DbOpsClusterMinorVersionUpgradeContextAppender dbOpsClusterMinorVersionUpgradeContextAppender;
 
   public DbOpsClusterContextAppender(
       CustomResourceFinder<StackGresCluster> clusterFinder,
       DbOpsClusterInstanceProfileContextAppender dbOpsClusterInstanceProfileContextAppender,
-      DbOpsClusterMajorVersionUpgradeContextAppender dbOpsClusterMajorVersionUpgradeContextAppender) {
+      DbOpsClusterMajorVersionUpgradeContextAppender dbOpsClusterMajorVersionUpgradeContextAppender,
+      DbOpsClusterMinorVersionUpgradeContextAppender dbOpsClusterMinorVersionUpgradeContextAppender) {
     this.clusterFinder = clusterFinder;
     this.dbOpsClusterInstanceProfileContextAppender = dbOpsClusterInstanceProfileContextAppender;
     this.dbOpsClusterMajorVersionUpgradeContextAppender = dbOpsClusterMajorVersionUpgradeContextAppender;
+    this.dbOpsClusterMinorVersionUpgradeContextAppender = dbOpsClusterMinorVersionUpgradeContextAppender;
   }
 
   @Override
@@ -54,6 +57,9 @@ public class DbOpsClusterContextAppender
     dbOpsClusterInstanceProfileContextAppender.appendContext(cluster, contextBuilder);
     if (dbOps.getSpec().isOpMajorVersionUpgrade()) {
       dbOpsClusterMajorVersionUpgradeContextAppender.appendContext(dbOps, cluster, contextBuilder);
+    }
+    if (dbOps.getSpec().isOpMinorVersionUpgrade()) {
+      dbOpsClusterMinorVersionUpgradeContextAppender.appendContext(dbOps, cluster, contextBuilder);
     }
   }
 

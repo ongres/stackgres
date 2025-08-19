@@ -5,8 +5,10 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
+import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ConfigContext;
 import io.stackgres.common.StackGresVersion;
@@ -16,6 +18,7 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSamplingStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
@@ -30,6 +33,10 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
 
   Optional<StackGresDbOpsSamplingStatus> getSamplingStatus();
 
+  Optional<List<Pod>> getFoundClusterPods();
+
+  Optional<List<PatroniMember>> getFoundClusterPatroniMembers();
+
   @Override
   @Value.Lazy
   default StackGresCluster getCluster() {
@@ -38,6 +45,26 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " have a non existent SGCluster "
+                + getSource().getSpec().getSgCluster()));
+  }
+
+  @Value.Lazy
+  default List<Pod> getClusterPods() {
+    return getFoundClusterPods()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGDbOps " + getSource().getMetadata().getNamespace() + "."
+                + getSource().getMetadata().getName()
+                + " have a non existent Pods for SGCluster "
+                + getSource().getSpec().getSgCluster()));
+  }
+
+  @Value.Lazy
+  default List<PatroniMember> getClusterPatroniMembers() {
+    return getFoundClusterPatroniMembers()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGDbOps " + getSource().getMetadata().getNamespace() + "."
+                + getSource().getMetadata().getName()
+                + " have a non existent Patroni members for SGCluster "
                 + getSource().getSpec().getSgCluster()));
   }
 

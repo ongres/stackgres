@@ -16,6 +16,7 @@ public enum ShardedClusterEventReason implements OperatorEventReason {
   SHARDED_CLUSTER_UPDATED(NORMAL, "ShardedClusterUpdated"),
   SHARDED_CLUSTER_DELETED(NORMAL, "ShardedClusterDeleted"),
   SHARDED_CLUSTER_SECURITY_WARNING(WARNING, "ShardedClusterSecurityWarning"),
+  SHARDED_CLUSTER_MAJOR_UPGRADE(WARNING, "ShardedClusterMajorUpgrade"),
   SHARDED_CLUSTER_CONFIG_ERROR(WARNING, "ShardedClusterConfigFailed");
 
   private final Type type;

@@ -5,10 +5,26 @@
 
 package io.stackgres.common.event;
 
+import java.util.Map;
+
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.labels.LabelFactory;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DistributedLogsEventEmitter extends AbstractEventEmitter<StackGresDistributedLogs> {
+
+  private final LabelFactory<StackGresDistributedLogs> labelFactory;
+
+  @Inject
+  public DistributedLogsEventEmitter(LabelFactory<StackGresDistributedLogs> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
+
+  @Override
+  protected Map<String, String> getLabels(StackGresDistributedLogs involvedObject) {
+    return labelFactory.genericLabels(involvedObject);
+  }
 
 }

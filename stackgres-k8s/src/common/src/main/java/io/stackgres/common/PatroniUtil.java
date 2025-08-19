@@ -66,6 +66,11 @@ public interface PatroniUtil {
 
   String NOLOADBALANCE_TAG = "noloadbalance";
   String NOFAILOVER_TAG = "nofailover";
+  String CLONEFROM_TAG = "clonefrom";
+  String FAILOVER_PRIORITY_TAG = "failover_priority";
+  String NOSYNC_TAG = "nosync";
+  String NOSTREAM_TAG = "nostream";
+  String REPLICATEFROM_TAG = "replicatefrom";
   String TRUE_TAG_VALUE = "true";
   String FALSE_TAG_VALUE = "false";
 

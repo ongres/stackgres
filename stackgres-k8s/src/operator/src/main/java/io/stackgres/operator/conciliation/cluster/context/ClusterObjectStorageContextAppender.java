@@ -19,7 +19,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,8 +26,7 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
-public class ClusterObjectStorageContextAppender
-    extends ContextAppender<StackGresCluster, Builder> {
+public class ClusterObjectStorageContextAppender {
 
   private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
   private final ResourceFinder<Secret> secretFinder;
@@ -46,8 +44,7 @@ public class ClusterObjectStorageContextAppender
     this.clusterReplicationInitializationContextAppender = clusterReplicationInitializationContextAppender;
   }
 
-  @Override
-  public void appendContext(StackGresCluster cluster, Builder contextBuilder) {
+  public void appendContext(StackGresCluster cluster, Builder contextBuilder, String version) {
     final Optional<StackGresObjectStorage> backupObjectStorage = Optional
         .ofNullable(cluster.getSpec().getConfigurations().getBackups())
         .map(Collection::stream)
@@ -98,7 +95,7 @@ public class ClusterObjectStorageContextAppender
         .backupSecrets(backupSecrets);
 
     clusterReplicationInitializationContextAppender
-        .appendContext(cluster, backupObjectStorage, contextBuilder);
+        .appendContext(cluster, contextBuilder, backupObjectStorage, version);
   }
 
 }

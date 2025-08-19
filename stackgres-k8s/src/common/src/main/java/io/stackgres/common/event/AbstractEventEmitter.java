@@ -8,7 +8,6 @@ package io.stackgres.common.event;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Random;
 
 import io.fabric8.kubernetes.api.model.Event;
@@ -30,6 +29,8 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
 
   private KubernetesClient client;
 
+  protected abstract Map<String, String> getLabels(T involvedObject);
+
   @Override
   public void sendEvent(EventReason reason, String message, T involvedObject) {
     if (involvedObject == null) {
@@ -41,8 +42,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
 
     Event ev = client.v1().events()
         .inNamespace(namespace)
-        .withLabels(Optional.ofNullable(involvedObject.getMetadata().getLabels())
-            .orElse(Map.of()))
+        .withLabels(getLabels(involvedObject))
         .list()
         .getItems()
         .stream()
@@ -77,13 +77,13 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
             reason.reason())
         && Objects.equals(
             event.getType(),
-            reason.type().type())
-        && Objects.equals(
-            event.getMessage(),
-            message);
+            reason.type().type());
   }
 
-  private Event patchEvent(Event event, Instant now, KubernetesClient client) {
+  private Event patchEvent(
+      Event event,
+      Instant now,
+      KubernetesClient client) {
     event.setCount(event.getCount() + 1);
     event.setLastTimestamp(now.toString());
     return client.v1().events()
@@ -92,8 +92,12 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
         .patch(event);
   }
 
-  private Event createEvent(String namespace, Instant now,
-      EventReason reason, String message, HasMetadata involvedObject,
+  private Event createEvent(
+      String namespace,
+      Instant now,
+      EventReason reason,
+      String message,
+      T involvedObject,
       KubernetesClient client) {
     final String id = nextId();
     final String name = involvedObject.getMetadata().getName() + "." + id;
@@ -103,7 +107,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
             .withNewMetadata()
             .withNamespace(namespace)
             .withName(name)
-            .withLabels(involvedObject.getMetadata().getLabels())
+            .withLabels(getLabels(involvedObject))
             .endMetadata()
             .withType(reason.type().type())
             .withReason(reason.reason())

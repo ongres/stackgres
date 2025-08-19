@@ -33,6 +33,13 @@ public class StackGresShardedClusterStatus {
   @Valid
   private List<Condition> conditions = new ArrayList<>();
 
+  private String postgresVersion;
+
+  private String buildVersion;
+
+  @Valid
+  private List<StackGresClusterInstalledExtension> extensions;
+
   @Valid
   private List<StackGresShardedClusterClusterStatus> clusterStatuses;
 
@@ -47,20 +54,36 @@ public class StackGresShardedClusterStatus {
 
   private List<String> sgBackups;
 
-  public List<String> getSgBackups() {
-    return sgBackups;
-  }
-
-  public void setSgBackups(List<String> sgBackups) {
-    this.sgBackups = sgBackups;
-  }
-
   public List<Condition> getConditions() {
     return conditions;
   }
 
   public void setConditions(List<Condition> conditions) {
     this.conditions = conditions;
+  }
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getBuildVersion() {
+    return buildVersion;
+  }
+
+  public void setBuildVersion(String buildVersion) {
+    this.buildVersion = buildVersion;
+  }
+
+  public List<StackGresClusterInstalledExtension> getExtensions() {
+    return extensions;
+  }
+
+  public void setExtensions(List<StackGresClusterInstalledExtension> extensions) {
+    this.extensions = extensions;
   }
 
   public List<StackGresShardedClusterClusterStatus> getClusterStatuses() {
@@ -96,10 +119,18 @@ public class StackGresShardedClusterStatus {
     this.dbOps = dbOps;
   }
 
+  public List<String> getSgBackups() {
+    return sgBackups;
+  }
+
+  public void setSgBackups(List<String> sgBackups) {
+    this.sgBackups = sgBackups;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(binding, clusterStatuses, conditions, dbOps, sgBackups,
-        toInstallPostgresExtensions);
+    return Objects.hash(binding, buildVersion, clusterStatuses, conditions, dbOps, extensions,
+        postgresVersion, sgBackups, toInstallPostgresExtensions);
   }
 
   @Override
@@ -112,9 +143,11 @@ public class StackGresShardedClusterStatus {
     }
     StackGresShardedClusterStatus other = (StackGresShardedClusterStatus) obj;
     return Objects.equals(binding, other.binding)
+        && Objects.equals(buildVersion, other.buildVersion)
         && Objects.equals(clusterStatuses, other.clusterStatuses)
-        && Objects.equals(conditions, other.conditions)
-        && Objects.equals(dbOps, other.dbOps)
+        && Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
+        && Objects.equals(extensions, other.extensions)
+        && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(sgBackups, other.sgBackups)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

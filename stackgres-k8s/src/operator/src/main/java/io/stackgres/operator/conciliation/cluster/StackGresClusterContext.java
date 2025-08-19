@@ -24,7 +24,6 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
@@ -32,6 +31,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitializati
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -42,7 +42,7 @@ import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import org.immutables.value.Value;
-import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 
 @Value.Immutable
 public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
@@ -161,15 +161,11 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Map<String, String> getPodDataPersistentVolumeNames();
 
   default Optional<String> getBackupPath() {
-    Optional<@NotNull StackGresClusterConfigurations> config = Optional.of(getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfigurations);
-
-    return config
-        .map(StackGresClusterConfigurations::getBackups)
+    return Optional.of(getCluster())
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getBackupPaths)
         .map(Collection::stream)
-        .flatMap(Stream::findFirst)
-        .map(StackGresClusterBackupConfiguration::getPath);
+        .flatMap(Stream::findFirst);
   }
 
   default Optional<BackupConfiguration> getBackupConfiguration() {
@@ -178,13 +174,15 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
         .map(StackGresClusterSpec::getConfigurations)
         .map(StackGresClusterConfigurations::getBackups)
         .map(Collection::stream)
+        .map(Seq::seq)
+        .map(seq -> seq.zipWithIndex())
         .flatMap(Stream::findFirst)
         .map(bc -> new BackupConfiguration(
-            bc.getRetention(),
-            bc.getCronSchedule(),
-            bc.getCompression(),
-            bc.getPath(),
-            Optional.ofNullable(bc.getPerformance())
+            bc.v1.getRetention(),
+            bc.v1.getCronSchedule(),
+            bc.v1.getCompression(),
+            getCluster().getStatus().getBackupPaths().get(bc.v2.intValue()),
+            Optional.ofNullable(bc.v1.getPerformance())
                 .map(bp -> new BackupPerformance(
                     bp.getMaxNetworkBandwidth(),
                     bp.getMaxDiskBandwidth(),
@@ -192,14 +190,14 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                     bp.getUploadConcurrency(),
                     bp.getDownloadConcurrency()))
                 .orElse(null),
-            Optional.ofNullable(bc.getUseVolumeSnapshot())
+            Optional.ofNullable(bc.v1.getUseVolumeSnapshot())
             .orElse(false),
-            bc.getVolumeSnapshotClass(),
-            bc.getFastVolumeSnapshot(),
-            bc.getTimeout(),
-            bc.getReconciliationTimeout(),
-            bc.getMaxRetries(),
-            bc.getRetainWalsForUnmanagedLifecycle()));
+            bc.v1.getVolumeSnapshotClass(),
+            bc.v1.getFastVolumeSnapshot(),
+            bc.v1.getTimeout(),
+            bc.v1.getReconciliationTimeout(),
+            bc.v1.getMaxRetries(),
+            bc.v1.getRetainWalsForUnmanagedLifecycle()));
   }
 
   default Optional<BackupStorage> getBackupStorage() {
@@ -227,13 +225,11 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   default Optional<String> getReplicatePath() {
     return getReplicateCluster()
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfigurations)
-        .map(StackGresClusterConfigurations::getBackups)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getBackupPaths)
         .stream()
         .flatMap(List::stream)
         .findFirst()
-        .map(StackGresClusterBackupConfiguration::getPath)
         .or(() -> Optional.of(getCluster())
             .map(StackGresCluster::getSpec)
             .map(StackGresClusterSpec::getReplicateFrom)

@@ -22,6 +22,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -65,9 +66,10 @@ class ClusterValidationQuarkusTest {
     var review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getMetadata().setNamespace("test");
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    StackGresClusterStatus status = review.getRequest().getObject().getStatus();
     spec.getPostgres().setExtensions(
         getExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
-    spec.setToInstallPostgresExtensions(
+    status.setExtensions(
         getInstalledExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
     spec.setDistributedLogs(null);
     spec.setInitialData(null);
@@ -196,7 +198,7 @@ class ClusterValidationQuarkusTest {
   @Test
   void given_withoutInstalledExtensions_shouldFail() {
     StackGresClusterReview clusterReview = getConstraintClusterReview();
-    clusterReview.getRequest().getObject().getSpec().setToInstallPostgresExtensions(null);
+    clusterReview.getRequest().getObject().getStatus().setExtensions(null);
     RestAssured.given()
         .body(clusterReview)
         .contentType(ContentType.JSON)

@@ -251,9 +251,6 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             .withVersion(extension.getVersion())
             .build())
         .toList());
-    if (cluster.getStatus() != null) {
-      spec.setToInstallPostgresExtensions(cluster.getStatus().getToInstallPostgresExtensions());
-    }
   }
 
   void setConfigurationsObservability(

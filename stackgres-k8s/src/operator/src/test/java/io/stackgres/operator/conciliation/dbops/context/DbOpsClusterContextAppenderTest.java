@@ -48,6 +48,9 @@ class DbOpsClusterContextAppenderTest {
   @Mock
   private DbOpsClusterMajorVersionUpgradeContextAppender dbOpsClusterMajorVersionUpgradeContextAppender;
 
+  @Mock
+  private DbOpsClusterMinorVersionUpgradeContextAppender dbOpsClusterMinorVersionUpgradeContextAppender;
+
   @BeforeEach
   void setUp() {
     dbOps = Fixtures.dbOps().loadPgbench().get();
@@ -55,7 +58,8 @@ class DbOpsClusterContextAppenderTest {
     contextAppender = new DbOpsClusterContextAppender(
         clusterFinder,
         dbOpsClusterInstanceProfileContextAppender,
-        dbOpsClusterMajorVersionUpgradeContextAppender);
+        dbOpsClusterMajorVersionUpgradeContextAppender,
+        dbOpsClusterMinorVersionUpgradeContextAppender);
   }
 
   @Test
@@ -96,6 +100,8 @@ class DbOpsClusterContextAppenderTest {
     verify(dbOpsClusterInstanceProfileContextAppender, Mockito.never()).appendContext(Mockito.any(), Mockito.any());
     verify(dbOpsClusterMajorVersionUpgradeContextAppender, Mockito.never())
         .appendContext(Mockito.any(), Mockito.any(), Mockito.any());
+    verify(dbOpsClusterMinorVersionUpgradeContextAppender, Mockito.never())
+        .appendContext(Mockito.any(), Mockito.any(), Mockito.any());
   }
 
   @Test
@@ -109,6 +115,23 @@ class DbOpsClusterContextAppenderTest {
     verify(contextBuilder).foundCluster(Optional.of(cluster));
     verify(dbOpsClusterInstanceProfileContextAppender).appendContext(cluster, contextBuilder);
     verify(dbOpsClusterMajorVersionUpgradeContextAppender).appendContext(dbOps, cluster, contextBuilder);
+    verify(dbOpsClusterMinorVersionUpgradeContextAppender, Mockito.never())
+        .appendContext(Mockito.any(), Mockito.any(), Mockito.any());
+  }
+
+  @Test
+  void givenValidMinorVersionUpgradeDbOps_shouldPass() {
+    dbOps = Fixtures.dbOps().loadMinorVersionUpgrade().get();
+    when(clusterFinder.findByNameAndNamespace(
+        dbOps.getSpec().getSgCluster(),
+        dbOps.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(cluster));
+    contextAppender.appendContext(dbOps, contextBuilder);
+    verify(contextBuilder).foundCluster(Optional.of(cluster));
+    verify(dbOpsClusterInstanceProfileContextAppender).appendContext(cluster, contextBuilder);
+    verify(dbOpsClusterMajorVersionUpgradeContextAppender, Mockito.never())
+        .appendContext(Mockito.any(), Mockito.any(), Mockito.any());
+    verify(dbOpsClusterMinorVersionUpgradeContextAppender).appendContext(dbOps, cluster, contextBuilder);
   }
 
 }

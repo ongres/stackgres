@@ -153,12 +153,20 @@ public class ClusterControllerReconciliator
     if (extensionReconciliationResult.result().orElse(false)) {
       KubernetesClientUtil.retryOnConflict(() -> clusterScheduler.update(cluster,
           (currentCluster) -> {
-            cluster.getSpec().getToInstallPostgresExtensions().stream()
-                .filter(toInstallExtension -> currentCluster.getSpec()
-                    .getToInstallPostgresExtensions()
-                    .stream().noneMatch(toInstallExtension::equals))
+            Optional.ofNullable(cluster.getStatus())
+                .map(StackGresClusterStatus::getExtensions)
+                .stream()
+                .flatMap(List::stream)
+                .filter(toInstallExtension -> Optional.ofNullable(currentCluster.getStatus())
+                    .map(StackGresClusterStatus::getExtensions)
+                    .stream()
+                    .flatMap(List::stream)
+                    .noneMatch(toInstallExtension::equals))
                 .map(toInstallExtension -> Tuple.tuple(toInstallExtension,
-                    currentCluster.getSpec().getToInstallPostgresExtensions().stream()
+                    Optional.ofNullable(currentCluster.getStatus())
+                    .map(StackGresClusterStatus::getExtensions)
+                    .stream()
+                    .flatMap(List::stream)
                     .filter(targetToInstallExtension -> toInstallExtension.getName()
                         .equals(targetToInstallExtension.getName()))
                     .findFirst()))

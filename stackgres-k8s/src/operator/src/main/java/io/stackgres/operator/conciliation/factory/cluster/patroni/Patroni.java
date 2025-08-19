@@ -129,7 +129,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresComponent.POSTGRESQL.get(context.getClusterContext().getCluster())
         .getVersion(
-            context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
+            context.getClusterContext().getCluster().getStatus().getPostgresVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
         .getLatestVersion());

@@ -30,7 +30,7 @@ import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliatorWorkerThreadPool;
 import io.stackgres.operator.conciliation.StatusManager;
-import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
+import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
@@ -93,13 +93,16 @@ public class ClusterReconciliator
 
   @Override
   protected void onPreReconciliation(StackGresCluster config) {
-    if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
-        .contains(config.getSpec().getPostgres().getVersion())) {
+    if (Optional.of(config)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getPostgresVersion)
+        .map(ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.keySet()::contains)
+        .orElse(false)) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
           "Cluster " + config.getMetadata().getNamespace() + "."
               + config.getMetadata().getName() + " is using PostgreSQL "
               + config.getSpec().getPostgres().getVersion() + ". "
-              + PostgresConfigValidator.BUGGY_PG_VERSIONS.get(
+              + ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.get(
                   config.getSpec().getPostgres().getVersion()), config);
     }
   }
@@ -133,8 +136,6 @@ public class ClusterReconciliator
             config.getStatus().setManagedSql(targetManagedSql);
             currentCluster.setStatus(config.getStatus());
           }
-          currentCluster.getSpec().setToInstallPostgresExtensions(
-              config.getSpec().getToInstallPostgresExtensions());
         });
   }
 

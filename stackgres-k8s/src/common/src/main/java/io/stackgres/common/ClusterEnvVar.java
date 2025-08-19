@@ -15,14 +15,14 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterContext> {
-  POSTGRES_VERSION(context -> context.getSpec().getPostgres().getVersion()),
+  POSTGRES_VERSION(context -> context.getStatus().getPostgresVersion()),
   POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getMajorVersion(context.getSpec().getPostgres().getVersion())),
+      .getMajorVersion(context.getStatus().getPostgresVersion())),
   POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context).get(context).getName()),
   BUILD_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getBuildVersion(context.getSpec().getPostgres().getVersion())),
+      .getBuildVersion(context.getStatus().getPostgresVersion())),
   BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .getBuildMajorVersion(context.getSpec().getPostgres().getVersion())),
+      .getBuildMajorVersion(context.getStatus().getPostgresVersion())),
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),

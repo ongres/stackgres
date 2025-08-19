@@ -17,6 +17,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterStatus {
 
+  private String postgresVersion;
+
+  private String buildVersion;
+
+  private List<ClusterInstalledExtension> extensions;
+
+  private String sgPostgresConfig;
+
+  private List<String> backupPaths;
+
   private Integer instances;
 
   private String labelSelector;
@@ -39,6 +49,46 @@ public class ClusterStatus {
 
   @JsonProperty("replicationInitializationFailedSGBackup")
   private String replicationInitializationFailedSgBackup;
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getBuildVersion() {
+    return buildVersion;
+  }
+
+  public void setBuildVersion(String buildVersion) {
+    this.buildVersion = buildVersion;
+  }
+
+  public List<ClusterInstalledExtension> getExtensions() {
+    return extensions;
+  }
+
+  public void setExtensions(List<ClusterInstalledExtension> extensions) {
+    this.extensions = extensions;
+  }
+
+  public String getSgPostgresConfig() {
+    return sgPostgresConfig;
+  }
+
+  public void setSgPostgresConfig(String sgPostgresConfig) {
+    this.sgPostgresConfig = sgPostgresConfig;
+  }
+
+  public List<String> getBackupPaths() {
+    return backupPaths;
+  }
+
+  public void setBackupPaths(List<String> backupPaths) {
+    this.backupPaths = backupPaths;
+  }
 
   public Integer getInstances() {
     return instances;

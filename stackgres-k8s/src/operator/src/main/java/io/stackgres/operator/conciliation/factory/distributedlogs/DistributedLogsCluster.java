@@ -49,6 +49,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -138,9 +139,8 @@ public class DistributedLogsCluster
         .editPostgres()
         .withVersion(
             previousCluster
-            .map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getPostgres)
-            .map(StackGresClusterPostgres::getVersion)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getPostgresVersion)
             .orElse(getPostgresVersion(distributedLogs)))
         .withExtensions(
             Seq.of(previousCluster

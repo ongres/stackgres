@@ -16,14 +16,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.ClusterPendingRestartUtil;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.ClusterRolloutUtil;
+import io.stackgres.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -36,6 +35,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -230,13 +230,19 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
                 .chain(cluster -> Uni.combine().all().unis(
                         Uni.createFrom().item(cluster),
                         getClusterStatefulSet(cluster),
-                        scanClusterPods(cluster))
+                        scanClusterPods(cluster),
+                        patroniApiHandler.getClusterMembers(
+                            cluster.getMetadata().getName(),
+                            cluster.getMetadata().getNamespace()))
                     .asTuple()))
         .asTuple()
         .onItem()
         .transform(tuple -> buildClusterRestartState(
-            tuple.getItem1(), tuple.getItem2().getItem1(),
-            tuple.getItem2().getItem2(), tuple.getItem2().getItem3()));
+            tuple.getItem1(),
+            tuple.getItem2().getItem1(),
+            tuple.getItem2().getItem2(),
+            tuple.getItem2().getItem3(),
+            tuple.getItem2().getItem4()));
   }
 
   protected Uni<?> initClusterDbOpsStatus(ClusterRestartState clusterRestartState) {
@@ -324,8 +330,12 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   protected abstract ClusterDbOpsRestartStatus getClusterRestartStatus(StackGresCluster cluster);
 
-  protected ClusterRestartState buildClusterRestartState(StackGresDbOps dbOps,
-      StackGresCluster cluster, Optional<StatefulSet> statefulSet, List<Pod> clusterPods) {
+  protected ClusterRestartState buildClusterRestartState(
+      StackGresDbOps dbOps,
+      StackGresCluster cluster,
+      Optional<StatefulSet> statefulSet,
+      List<Pod> clusterPods,
+      List<PatroniMember> patroniMembers) {
     final DbOpsOperation operation = DbOpsOperation.fromString(dbOps.getSpec().getOp());
     final DbOpsMethodType method = getRestartMethod(dbOps)
         .orElse(DbOpsMethodType.REDUCED_IMPACT);
@@ -348,7 +358,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     final var podRestartReasonsMap = clusterPods.stream()
         .collect(Collectors.toUnmodifiableMap(
             Function.identity(),
-            pod -> getPodRestartReasons(cluster, statefulSet, pod)));
+            pod -> getPodRestartReasons(cluster, statefulSet, pod, patroniMembers)));
 
     LOGGER.info("Operation: {}", operation.toString());
     LOGGER.info("Restart method: {}", method.toString());
@@ -394,14 +404,16 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .build();
   }
 
-  private RestartReasons getPodRestartReasons(StackGresCluster cluster,
-                                              Optional<StatefulSet> statefulSet, Pod pod) {
-    return ClusterPendingRestartUtil.getRestartReasons(
-        Optional.ofNullable(cluster.getStatus())
-            .map(StackGresClusterStatus::getPodStatuses)
-            .orElse(ImmutableList.of()),
+  private RestartReasons getPodRestartReasons(
+      StackGresCluster cluster,
+      Optional<StatefulSet> statefulSet,
+      Pod pod,
+      List<PatroniMember> patroniMembers) {
+    return ClusterRolloutUtil.getRestartReasons(
+        cluster,
         statefulSet,
-        ImmutableList.of(pod));
+        List.of(pod),
+        patroniMembers);
   }
 
   protected Optional<String> getPrimaryInstance(List<Pod> pods, StackGresCluster cluster) {

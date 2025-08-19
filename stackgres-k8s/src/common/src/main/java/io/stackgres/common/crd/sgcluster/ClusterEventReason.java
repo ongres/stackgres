@@ -16,6 +16,7 @@ public enum ClusterEventReason implements OperatorEventReason {
   CLUSTER_UPDATED(NORMAL, "ClusterUpdated"),
   CLUSTER_DELETED(NORMAL, "ClusterDeleted"),
   CLUSTER_SECURITY_WARNING(WARNING, "ClusterSecurityWarning"),
+  CLUSTER_MAJOR_UPGRADE(WARNING, "ClusterMajorUpgrade"),
   CLUSTER_CONFIG_ERROR(WARNING, "ClusterConfigFailed");
 
   private final Type type;

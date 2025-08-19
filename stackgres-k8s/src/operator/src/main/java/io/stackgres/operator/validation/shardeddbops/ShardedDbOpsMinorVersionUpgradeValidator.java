@@ -20,9 +20,9 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedDbOpsReview;
+import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
-import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -92,9 +92,9 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
               fail(errorPostgresMismatchUri, message);
             }
 
-            if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
+            if (ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
               fail(errorForbiddenUpdateUri, "Do not use PostgreSQL " + givenPgVersion + ". "
-                  + PostgresConfigValidator.BUGGY_PG_VERSIONS.get(givenPgVersion));
+                  + ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS.get(givenPgVersion));
             }
 
             String givenMajorVersion = getPostgresFlavorComponent(cluster)

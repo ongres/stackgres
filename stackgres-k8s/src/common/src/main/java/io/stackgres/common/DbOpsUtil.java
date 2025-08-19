@@ -6,6 +6,7 @@
 package io.stackgres.common;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -20,6 +21,11 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public interface DbOpsUtil {
+
+  List<String> ROLLOUT_OPS = List.of(
+      "restart",
+      "securityUpgrade",
+      "minorVersionUpgrade");
 
   Pattern UPPERCASE_LETTER_PATTERN = Pattern.compile("([A-Z])");
 
@@ -42,6 +48,16 @@ public interface DbOpsUtil {
         .filter(condition -> Status.TRUE.getStatus().equals(condition.getStatus()))
         .anyMatch(condition -> Type.COMPLETED.getType().equals(condition.getType())
             || Type.FAILED.getType().equals(condition.getType()));
+  }
+
+  static boolean isAlreadySuccessfullyCompleted(StackGresDbOps dbOps) {
+    return Optional.of(dbOps)
+        .map(StackGresDbOps::getStatus)
+        .map(StackGresDbOpsStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .filter(condition -> Status.TRUE.getStatus().equals(condition.getStatus()))
+        .anyMatch(condition -> Type.COMPLETED.getType().equals(condition.getType()));
   }
 
   static String jobName(StackGresDbOps dbOps) {
@@ -67,6 +83,15 @@ public interface DbOpsUtil {
     return UPPERCASE_LETTER_PATTERN
         .matcher(dbOps.getSpec().getOp())
         .replaceAll(m -> "-" + m.group().toLowerCase(Locale.US));
+  }
+
+  public static Boolean isToRunAfter(StackGresDbOps dbOps, Instant now) {
+    return Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::getRunAt)
+        .map(Instant::parse)
+        .map(runAt -> !runAt.isBefore(now))
+        .orElse(false);
   }
 
 }

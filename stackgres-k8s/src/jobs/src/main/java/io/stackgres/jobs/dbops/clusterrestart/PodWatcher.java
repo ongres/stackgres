@@ -9,14 +9,11 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.readiness.Readiness;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.ClusterPendingRestartUtil;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.ClusterRolloutUtil;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
@@ -78,11 +75,8 @@ public class PodWatcher {
 
   private Optional<StatefulSetChangedException> getStatefulSetChangedException(String clusterName,
       String podName, String namespace, Pod updatedPod) {
-    Optional<StatefulSet> sts = getStatefulSet(clusterName, namespace);
-    RestartReasons restartReasons =
-        ClusterPendingRestartUtil.getRestartReasons(
-            ImmutableList.of(), sts, ImmutableList.of(updatedPod));
-    if (restartReasons.getReasons().contains(RestartReason.STATEFULSET)) {
+    Optional<StatefulSet> statefulSet = getStatefulSet(clusterName, namespace);
+    if (ClusterRolloutUtil.isStatefulSetPodPendingRestart(statefulSet, updatedPod)) {
       String warningMessage = String.format(
           "Statefulset for pod %s changed!", podName);
       LOGGER.info(warningMessage);

@@ -61,7 +61,8 @@ class ShardedClusterShardsPostgresConfigContextAppenderTest {
         .build());
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(postgresConfig);
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(contextBuilder).shardsPostgresConfig(postgresConfig);
   }
 
@@ -70,7 +71,8 @@ class ShardedClusterShardsPostgresConfigContextAppenderTest {
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("SGPostgresConfig postgresconf was not found", ex.getMessage());
   }
 
@@ -84,7 +86,8 @@ class ShardedClusterShardsPostgresConfigContextAppenderTest {
             .endSpec()
             .build()));
     var ex =
-        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(cluster, contextBuilder));
+        assertThrows(IllegalArgumentException.class, () -> contextAppender.appendContext(
+            cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion()));
     assertEquals("Invalid postgres version, must be 10 to use SGPostgresConfig postgresconf", ex.getMessage());
   }
 
@@ -94,7 +97,8 @@ class ShardedClusterShardsPostgresConfigContextAppenderTest {
         defaultPostgresConfigFactory.getDefaultResourceName(cluster));
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
-    contextAppender.appendContext(cluster, contextBuilder);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion());
     verify(contextBuilder).shardsPostgresConfig(Optional.empty());
   }
 

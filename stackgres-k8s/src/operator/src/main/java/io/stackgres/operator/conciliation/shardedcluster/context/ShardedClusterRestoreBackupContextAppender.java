@@ -20,13 +20,11 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext.Builder;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ShardedClusterRestoreBackupContextAppender
-    extends ContextAppender<StackGresShardedCluster, Builder> {
+public class ShardedClusterRestoreBackupContextAppender {
 
   private final CustomResourceFinder<StackGresShardedBackup> backupFinder;
 
@@ -35,8 +33,7 @@ public class ShardedClusterRestoreBackupContextAppender
     this.backupFinder = backupFinder;
   }
 
-  @Override
-  public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder) {
+  public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder, String postgresVersion) {
     if (Optional.of(cluster)
         .map(StackGresShardedCluster::getStatus)
         .map(StackGresShardedClusterStatus::getConditions)
@@ -48,13 +45,15 @@ public class ShardedClusterRestoreBackupContextAppender
 
     findRestoreBackup(
         cluster,
-        cluster.getMetadata().getNamespace());
+        cluster.getMetadata().getNamespace(),
+        postgresVersion);
 
   }
 
   private void findRestoreBackup(
       StackGresShardedCluster cluster,
-      final String clusterNamespace) {
+      String clusterNamespace,
+      String postgresVersion) {
     Optional<StackGresShardedBackup> foundRestoreBackup = Optional
         .ofNullable(cluster.getSpec().getInitialData())
         .map(StackGresShardedClusterInitialData::getRestore)
@@ -74,13 +73,11 @@ public class ShardedClusterRestoreBackupContextAppender
           .getBackupInformation()
           .getPostgresMajorVersion();
 
-      String givenPgVersion = cluster.getSpec()
-          .getPostgres().getVersion();
-      String givenMajorVersion = getPostgresFlavorComponent(cluster)
+      String postgresMajorVersion = getPostgresFlavorComponent(cluster)
           .get(cluster)
-          .getMajorVersion(givenPgVersion);
+          .getMajorVersion(postgresVersion);
 
-      if (!backupMajorVersion.equals(givenMajorVersion)) {
+      if (!backupMajorVersion.equals(postgresMajorVersion)) {
         throw new IllegalArgumentException("Cannot restore from " + StackGresShardedBackup.KIND + " "
             + restoreBackup.getMetadata().getName()
             + " because it has been created from a postgres instance"

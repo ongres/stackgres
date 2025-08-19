@@ -11,7 +11,6 @@ import java.util.TreeSet;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -46,8 +45,8 @@ public class DbOpsRepackExtensionValidator implements DbOpsValidator {
         Optional<StackGresCluster> cluster =
             clusterFinder.findByNameAndNamespace(sgCluster, namespace);
 
-        boolean isSetToInstall = cluster.map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getToInstallPostgresExtensions)
+        boolean isSetToInstall = cluster.map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getExtensions)
             .stream()
             .flatMap(List::stream)
             .anyMatch(ext -> PG_REPACK.equals(ext.getName()));
