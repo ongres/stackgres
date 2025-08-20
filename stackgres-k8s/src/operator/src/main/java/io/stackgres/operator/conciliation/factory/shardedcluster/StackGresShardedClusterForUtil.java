@@ -241,7 +241,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
     spec.getPostgres().setExtensions(
         Optional.ofNullable(cluster.getStatus())
-        .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
+        .map(StackGresShardedClusterStatus::getExtensions)
         .stream()
         .flatMap(List::stream)
         .map(extension -> new StackGresClusterExtensionBuilder()

@@ -57,13 +57,15 @@ class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest
     lenient().when(lockAcquirer.lockRun(any(), any()))
         .then(invocation -> (Uni<?>) invocation.getArguments()[1]);
     PatroniMember primary = new PatroniMember();
+    primary.setMember(clusterName + "-0");
     primary.setState(PatroniMember.RUNNING);
     primary.setRole(PatroniMember.LEADER);
     primary.setPendingRestart(null);
     PatroniMember replica = new PatroniMember();
+    replica.setMember(clusterName + "-1");
     replica.setState(PatroniMember.RUNNING);
     replica.setRole(PatroniMember.REPLICA);
-    primary.setPendingRestart("true");
+    replica.setPendingRestart("true");
     lenient().when(patroniCtl.list())
         .thenReturn(List.of(
             primary,

@@ -29,6 +29,8 @@ public interface JsonFixtureWithPaths {
 
   String EVENT_EVENT_VALID_JSON = "event/event_valid.json";
 
+  String EXTENSION_METADATA_CITUS_INDEX_JSON = "extension_metadata/citus-index.json";
+
   String EXTENSION_METADATA_EXTENSIONS_JSON = "extension_metadata/extensions.json";
 
   String EXTENSION_METADATA_INDEX_JSON = "extension_metadata/index.json";

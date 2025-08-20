@@ -50,6 +50,9 @@ public class KubernetessMockResourceGenerationUtil {
         .withVersion(POSTGRES_VERSION)
         .endPostgres()
         .endSpec()
+        .withNewStatus()
+        .withPostgresVersion(POSTGRES_VERSION)
+        .endStatus()
         .build();
     return buildResources(cluster);
   }

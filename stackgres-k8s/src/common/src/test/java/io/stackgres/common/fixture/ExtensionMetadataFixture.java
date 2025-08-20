@@ -16,6 +16,11 @@ public class ExtensionMetadataFixture extends Fixture<StackGresExtensions> {
     return this;
   }
 
+  public ExtensionMetadataFixture loadCitus() {
+    fixture = readFromJson(EXTENSION_METADATA_CITUS_INDEX_JSON);
+    return this;
+  }
+
   public StackGresExtensionsBuilder getBuilder() {
     return new StackGresExtensionsBuilder(fixture);
   }

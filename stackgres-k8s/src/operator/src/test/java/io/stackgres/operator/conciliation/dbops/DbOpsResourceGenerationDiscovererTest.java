@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.dbops;
 
 import java.io.IOException;
+import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
@@ -79,6 +80,8 @@ class DbOpsResourceGenerationDiscovererTest
         .source(resource)
         .foundCluster(cluster)
         .foundProfile(profile)
+        .foundClusterPods(List.of())
+        .foundClusterPatroniMembers(List.of())
         .build();
   }
 

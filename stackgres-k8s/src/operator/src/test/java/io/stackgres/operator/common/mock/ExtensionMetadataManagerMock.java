@@ -6,8 +6,10 @@
 package io.stackgres.operator.common.mock;
 
 import io.quarkus.test.Mock;
+import jakarta.inject.Singleton;
 
 @Mock
+@Singleton
 public class ExtensionMetadataManagerMock
     extends io.stackgres.common.extension.ExtensionMetadataManagerMock {
 

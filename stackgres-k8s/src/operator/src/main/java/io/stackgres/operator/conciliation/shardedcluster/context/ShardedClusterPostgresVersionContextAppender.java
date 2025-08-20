@@ -147,12 +147,12 @@ public class ShardedClusterPostgresVersionContextAppender
           && (
               cluster.getStatus().getDbOps() == null
               || cluster.getStatus().getDbOps().getMajorVersionUpgrade() == null)) {
-        version = null;
         eventController.sendEvent(
             ShardedClusterEventReason.SHARDED_CLUSTER_MAJOR_UPGRADE,
             "To upgrade to major Postgres version " + majorVersion + ", please create an SGShardedDbOps operation"
                 + " with \"op: majorVersionUpgrade\" and set the target postgres version to " + version + ".",
             cluster);
+        version = null;
       }
       if (majorVersionIndex > previousMajorVersionIndex) {
         throw new IllegalArgumentException("Can not change the major version " + majorVersion

@@ -361,24 +361,24 @@ public interface StackGresUtil {
         new ExtensionTuple("plpython3u"));
   }
 
-  static List<ExtensionTuple> getDefaultShardedClusterExtensions(
+  static List<ExtensionTuple> getShardedClusterExtensions(
       StackGresShardedCluster cluster) {
     if (StackGresShardingType.CITUS.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getDefaultCitusShardedClusterExtensions(cluster);
+      return getCitusShardedClusterExtensions(cluster);
     }
     if (StackGresShardingType.DDP.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getDefaultDdpShardedClusterExtensions(cluster);
+      return getDdpShardedClusterExtensions(cluster);
     }
     if (StackGresShardingType.SHARDING_SPHERE.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getDefaultShardingSphereShardedClusterExtensions(cluster);
+      return getShardingSphereShardedClusterExtensions(cluster);
     }
     return List.of();
   }
 
-  static List<ExtensionTuple> getDefaultCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
     StackGresVersion sgVersion = StackGresVersion.getStackGresVersion(cluster);
     Component pgComponent = StackGresComponent.POSTGRESQL.getOrThrow(sgVersion);
@@ -407,22 +407,22 @@ public interface StackGresUtil {
         .get();
     return List.of(
         pgMajorVersionIndex <= pg17Index
-        ? new ExtensionTuple("citus", "13.0.1")
+        ? new ExtensionTuple("citus", "13.1.0")
             : pgMajorVersionIndex <= pg14Index
             ? new ExtensionTuple("citus", "12.1-1")
                 : new ExtensionTuple("citus", "11.3-1"),
         pgMajorVersionIndex <= pg17Index
-        ? new ExtensionTuple("citus_columnar", "13.0.1")
+        ? new ExtensionTuple("citus_columnar", "13.1.0")
             : new ExtensionTuple("citus_columnar", "11.3-1"));
   }
 
-  static List<ExtensionTuple> getDefaultDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
     return List.of(
         new ExtensionTuple("dblink"),
         new ExtensionTuple("postgres_fdw"));
   }
 
-  static List<ExtensionTuple> getDefaultShardingSphereShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getShardingSphereShardedClusterExtensions(StackGresShardedCluster cluster) {
     return List.of(
         new ExtensionTuple("dblink"),
         new ExtensionTuple("postgres_fdw"));

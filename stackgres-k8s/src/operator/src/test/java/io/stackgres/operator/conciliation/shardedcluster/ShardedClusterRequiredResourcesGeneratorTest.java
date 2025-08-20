@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -33,6 +34,7 @@ import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileFinder;
 import io.stackgres.common.resource.SecretFinder;
+import io.stackgres.operator.common.mock.ExtensionMetadataManagerMock;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import jakarta.inject.Inject;
@@ -62,6 +64,9 @@ class ShardedClusterRequiredResourcesGeneratorTest {
   SecretFinder secretFinder;
 
   @Inject
+  ExtensionMetadataManagerMock extensionMetadataManagerMock;
+
+  @Inject
   ShardedClusterRequiredResourcesGenerator generator;
 
   StackGresConfig config;
@@ -72,11 +77,15 @@ class ShardedClusterRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
+    extensionMetadataManagerMock.setExtraExtensions(
+        Fixtures.extensionMetadata().loadCitus().get().getExtensions());
     config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().streamOrderedVersions()
         .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
+    cluster.setStatus(new StackGresShardedClusterStatus());
+    cluster.getStatus().setPostgresVersion(cluster.getSpec().getPostgres().getVersion());
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     final String namespace = cluster.getMetadata().getNamespace();

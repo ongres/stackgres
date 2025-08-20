@@ -660,20 +660,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void givenNullBackupPathOnBackups_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getConfigurations().getBackups()
-        .add(new StackGresClusterBackupConfiguration());
-    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
-        .setSgObjectStorage("test");
-
-    checkErrorCause(StackGresClusterBackupConfiguration.class,
-        "spec.configurations.backups[0].path",
-        review, NotNull.class, "must not be null");
-  }
-
-  @Test
   void givenNullObjectStorageOnBackups_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());

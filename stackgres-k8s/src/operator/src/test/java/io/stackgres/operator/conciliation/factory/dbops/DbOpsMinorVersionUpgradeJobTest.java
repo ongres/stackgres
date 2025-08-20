@@ -13,7 +13,7 @@ import io.stackgres.common.fixture.Fixtures;
 
 @WithKubernetesTestServer(setup = KubernetesTestServerSetup.class)
 @QuarkusTest
-class DbOpsMinorVersionUpgradeJobTest extends DbOpsJobTestCase {
+class DbOpsMinorVersionUpgradeJobTest extends DbOpsRolloutJobTestCase {
 
   @Override
   StackGresDbOps getDbOps() {

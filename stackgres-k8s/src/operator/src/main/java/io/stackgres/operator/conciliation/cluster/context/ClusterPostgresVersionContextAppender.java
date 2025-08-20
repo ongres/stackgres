@@ -110,9 +110,9 @@ public class ClusterPostgresVersionContextAppender
                 cluster.getMetadata().getLabels().get(StackGresContext.VERSION_KEY),
                 StackGresVersion.LATEST.getVersion())
         )) {
-      cluster.getMetadata().setLabels(
+      cluster.getMetadata().setAnnotations(
           Seq.seq(
-              Optional.ofNullable(cluster.getMetadata().getLabels())
+              Optional.ofNullable(cluster.getMetadata().getAnnotations())
               .map(Map::entrySet)
               .stream()
               .flatMap(Set::stream)
@@ -175,12 +175,12 @@ public class ClusterPostgresVersionContextAppender
           && (
               cluster.getStatus().getDbOps() == null
               || cluster.getStatus().getDbOps().getMajorVersionUpgrade() == null)) {
-        version = null;
         eventController.sendEvent(
             ClusterEventReason.CLUSTER_MAJOR_UPGRADE,
             "To upgrade to major Postgres version " + majorVersion + ", please create an SGDbOps operation"
                 + " with \"op: majorVersionUpgrade\" and set the target postgres version to " + version + ".",
             cluster);
+        version = null;
       }
       if (majorVersionIndex > previousMajorVersionIndex) {
         throw new IllegalArgumentException("Can not change the major version " + majorVersion

@@ -44,6 +44,7 @@ public class StackGresShardedClusterStatus {
   private List<StackGresShardedClusterClusterStatus> clusterStatuses;
 
   @Valid
+  @Deprecated(forRemoval = true)
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
   @Valid
@@ -94,10 +95,12 @@ public class StackGresShardedClusterStatus {
     this.clusterStatuses = clusterStatuses;
   }
 
+  @Deprecated(forRemoval = true)
   public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
     return toInstallPostgresExtensions;
   }
 
+  @Deprecated(forRemoval = true)
   public void setToInstallPostgresExtensions(
       List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;

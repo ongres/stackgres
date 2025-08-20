@@ -38,6 +38,7 @@ class ClusterDefaultBackupPathContextAppenderTest {
   @BeforeEach
   void setUp() throws Exception {
     cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getStatus().setBackupPaths(null);
     defaultTimestamp = Instant.now();
     contextAppender = new ClusterDefaultBackupPathContextAppender(
         defaultTimestamp);

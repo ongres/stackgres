@@ -49,6 +49,8 @@ public class DbOpsJobsGenerator implements ResourceGenerator<StackGresDbOpsConte
                 config,
                 new StackGresClusterBuilder()
                 .withNewMetadata()
+                .withNamespace(dbOp.getMetadata().getNamespace())
+                .withName(dbOp.getSpec().getSgCluster())
                 .withAnnotations(
                     Seq.seq(
                       Optional.ofNullable(config.getCluster().getMetadata().getAnnotations())

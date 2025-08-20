@@ -38,14 +38,6 @@ public class ClusterExtensionsContextAppender extends AbstractExtensionsContextA
   }
 
   @Override
-  protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
-      StackGresCluster cluster) {
-    return Optional.of(cluster)
-        .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getExtensions);
-  }
-
-  @Override
   protected StackGresCluster getCluster(StackGresCluster inputContext) {
     return inputContext;
   }

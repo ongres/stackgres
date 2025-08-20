@@ -11,11 +11,11 @@ import io.stackgres.apiweb.configuration.WebApiProperty;
 import io.stackgres.apiweb.configuration.WebApiPropertyContext;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
-@ApplicationScoped
+@Singleton
 public class RestApiExtensionMetadataManager extends ExtensionMetadataManager {
 
   @Inject

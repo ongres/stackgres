@@ -533,7 +533,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         shardedCluster.getSpec().getNonProductionOptions(),
         cluster.getSpec().getNonProductionOptions());
     if (shardedCluster.getStatus() != null
-        && shardedCluster.getStatus().getToInstallPostgresExtensions() != null) {
+        && shardedCluster.getStatus().getExtensions() != null) {
       Assertions.assertEquals(
           new StackGresClusterPostgresBuilder(shardedCluster.getSpec().getPostgres())
           .editSsl()
@@ -552,7 +552,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
                   : shardedCluster.getSpec().getPostgres().getSsl()
                   .getPrivateKeySecretKeySelector())
           .endSsl()
-          .withExtensions(shardedCluster.getStatus().getToInstallPostgresExtensions()
+          .withExtensions(shardedCluster.getStatus().getExtensions()
               .stream()
               .map(extension -> new StackGresClusterExtensionBuilder()
                   .withName(extension.getName())

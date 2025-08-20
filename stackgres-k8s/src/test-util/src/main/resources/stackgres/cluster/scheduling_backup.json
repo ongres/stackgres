@@ -39,47 +39,47 @@
     "pods":{
       "scheduling" : {
         "backup" : {
- 			"nodeAffinity": {
-      		    "requiredDuringSchedulingIgnoredDuringExecution": {
-      		        "nodeSelectorTerms": 
-      		        [
-      		            {
-      		                "matchExpressions": [
-      		                    {
-      		                        "key": "kubernetes.io/e2e-az-name-required",
-      		                        "operator": "In",
-      		                        "values": [
-      		                            "e2e-az1",
-      		                            "e2e-az2"
-      		                        ]
-      		                    }
-      		                ]
-      		            }
-      		        ]
-      		    },
-      		    "preferredDuringSchedulingIgnoredDuringExecution": 
-      		    [
-      		    	{
-      		    		"weight": 1,
-      		    		"preference": {
-      			            "matchExpressions": [
-      			                {
-      			                    "key": "kubernetes.io/e2e-az-name-preferred",
-      			                    "operator": "In",
-      			                    "values": [
-      			                        "e2e-az1",
-      			                        "e2e-az2"
-      			                    ]
-      			                }
-      			            ]
-      		    		}
-      		    	}
-      		    ]
- 			},
-			"nodeSelector": {
-	          "name": "node-1",
-	          "tenant": "tenant-2"
-	      	}
+       "nodeAffinity": {
+              "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "nodeSelectorTerms": 
+                  [
+                      {
+                          "matchExpressions": [
+                              {
+                                  "key": "kubernetes.io/e2e-az-name-required",
+                                  "operator": "In",
+                                  "values": [
+                                      "e2e-az1",
+                                      "e2e-az2"
+                                  ]
+                              }
+                          ]
+                      }
+                  ]
+              },
+              "preferredDuringSchedulingIgnoredDuringExecution": 
+              [
+                {
+                  "weight": 1,
+                  "preference": {
+                        "matchExpressions": [
+                            {
+                                "key": "kubernetes.io/e2e-az-name-preferred",
+                                "operator": "In",
+                                "values": [
+                                    "e2e-az1",
+                                    "e2e-az2"
+                                ]
+                            }
+                        ]
+                  }
+                }
+              ]
+       },
+      "nodeSelector": {
+            "name": "node-1",
+            "tenant": "tenant-2"
+          }
         }
       },
       "persistentVolume": {
@@ -99,14 +99,14 @@
         "enabled": true,
         "type": "ClusterIP",
         "externalIPs": [
-        	"13.33.108.129"
+          "13.33.108.129"
         ]
       },
       "replicas": {
         "enabled": true,
         "type": "ClusterIP",
         "externalIPs": [
-        	"13.33.108.129"
+          "13.33.108.129"
         ]
       }
     },
@@ -135,5 +135,8 @@
       }
     }
   },
-  "status": null
+  "status":   {
+      "postgresVersion": "13.5",
+      "backupPaths": ["sgbackups.stackgres.io/stackgres/stackgres/11"]
+    }
 }

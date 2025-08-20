@@ -53,6 +53,7 @@ class DbOpsRepackExtensionValidatorTest {
     cluster = getDefaultCluster();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     cluster.setStatus(new StackGresClusterStatus());
+    cluster.getStatus().setPostgresVersion(POSTGRES_VERSION);
   }
 
   @ParameterizedTest
@@ -60,7 +61,7 @@ class DbOpsRepackExtensionValidatorTest {
   void givenStackGresPgRepackInstalledExtension_shouldNotFail(int podCount) {
     // given
     final StackGresDbOpsReview review = getCreationReview();
-    cluster.getSpec().setToInstallPostgresExtensions(
+    cluster.getStatus().setExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u", "pg_repack"));
     cluster.getStatus().setPodStatuses(getPodStatus(podCount, "dblink", "pg_stat_statements",
@@ -82,7 +83,7 @@ class DbOpsRepackExtensionValidatorTest {
   void givenStackGresNoPgRepackExtension_shouldFail(int podCount) {
     // given
     final StackGresDbOpsReview review = getCreationReview();
-    cluster.getSpec().setToInstallPostgresExtensions(
+    cluster.getStatus().setExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u"));
     cluster.getStatus().setPodStatuses(getPodStatus(podCount, "plpgsql", "pg_stat_statements"));
@@ -105,7 +106,7 @@ class DbOpsRepackExtensionValidatorTest {
   void givenStackGresOnePodNoPgRepackExtension_shouldFail() {
     // given
     final StackGresDbOpsReview review = getCreationReview();
-    cluster.getSpec().setToInstallPostgresExtensions(
+    cluster.getStatus().setExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u", "pg_repack"));
     var list = new ArrayList<StackGresClusterPodStatus>();
@@ -141,10 +142,9 @@ class DbOpsRepackExtensionValidatorTest {
   void givenStackGresNoStatus_shouldFail() {
     // given
     final StackGresDbOpsReview review = getCreationReview();
-    cluster.getSpec().setToInstallPostgresExtensions(
+    cluster.getStatus().setExtensions(
         getInstalledExtension("dblink", "pg_stat_statements",
             "plpgsql", "plpython3u", "pg_repack"));
-    cluster.setStatus(null);
 
     // when
     String sgcluster = review.getRequest().getObject().getSpec().getSgCluster();
