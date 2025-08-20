@@ -28,6 +28,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_16_0="$(get_version_as_number 1.16.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_17_0="$(get_version_as_number 1.17.0-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_18_0="$(get_version_as_number 1.18.0-SNAPSHOT)"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 
@@ -849,6 +850,13 @@ check_cluster_before_security_upgrade() {
         | del(.postgresql.parameters.ssl_key_file)
         ')"
     fi
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_18_0" ]
+    then
+        PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
+          | .postgresql.parameters.listen_addresses = "localhost,::1"
+          | .postgresql.pg_hba = (.postgresql.pg_hba|[.[0:5][], "host all all ::/0 md5", .[5:][], "host replication replicator ::/0 md5"])
+          ')"
+    fi
 
     if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
     then
@@ -874,6 +882,13 @@ check_cluster_before_security_upgrade() {
       | sed '/server_check_query = ;/d' \
       | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_18_0" ]
+    then
+        PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG" \
+          | sed "s/listen_addr = [\"']\?127\.0\.0\.1.*/listen_addr = 127.0.0.1,::1/")"
+        PREVIOUS_PGBOUNCER_CONFIG="$(printf '%s' "$PREVIOUS_PGBOUNCER_CONFIG" \
+          | sed "s/listen_addr = [\"']\?127\.0\.0\.1.*/listen_addr = 127.0.0.1,::1/")"
+    fi
 
     if [ "$PGBOUNCER_CONFIG" = "$PREVIOUS_PGBOUNCER_CONFIG" ]
     then

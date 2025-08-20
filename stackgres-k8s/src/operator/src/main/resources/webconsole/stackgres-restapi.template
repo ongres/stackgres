@@ -8,7 +8,9 @@ server {
   server_name  localhost;
 
   listen       9080;
+  listen       [::]:9080;
   listen       9443 ssl http2;
+  listen       [::]:9443 ssl http2;
   ssl_certificate         /etc/operator/certs/tls.crt;
   ssl_certificate_key     /etc/operator/certs/tls.key;
   ssl_protocols           TLSv1.2 TLSv1.3;
