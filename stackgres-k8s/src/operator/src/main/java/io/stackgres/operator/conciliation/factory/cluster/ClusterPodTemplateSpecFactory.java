@@ -201,7 +201,7 @@ public class ClusterPodTemplateSpecFactory
                 .map(StackGresClusterPodsScheduling::getPodAntiAffinity)
                 .map(PodAntiAffinityBuilder::new)
                 .orElseGet(PodAntiAffinityBuilder::new)
-                .addAllToRequiredDuringSchedulingIgnoredDuringExecution(Seq.of(
+                .withRequiredDuringSchedulingIgnoredDuringExecution(Seq.of(
                     new PodAffinityTermBuilder()
                         .withLabelSelector(new LabelSelectorBuilder()
                             .withMatchExpressions(new LabelSelectorRequirementBuilder()
