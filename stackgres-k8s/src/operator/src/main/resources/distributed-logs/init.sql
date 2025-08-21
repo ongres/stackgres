@@ -1,7 +1,7 @@
 DO $distributedlogsinit$
 DECLARE database_name text;
 BEGIN
-  FOREACH database_name IN ARRAY ARRAY['template1',%1$s]
+  FOREACH database_name IN ARRAY ARRAY[%1$s]
   LOOP
     IF EXISTS (SELECT * FROM pg_database WHERE datname = database_name) THEN
       PERFORM dblink(
