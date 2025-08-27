@@ -133,12 +133,14 @@ spec:
             echo "$EXTENSIONS_CACHE_LOG_LEVEL" | grep -v -q '^\(DEBUG\|TRACE\)$' || set -x
             cd /opt/app-root/src
             sh /usr/local/bin/extensions-cache-conciliator.sh run "$OPERATOR_NAMESPACE" '{{ .Release.Name }}-extensions-cache'
+        {{- if not .Values.disableExtensionsCacheProbe }}
         readinessProbe:
           exec:
             command:
             - test
             - -f
             - /tmp/extensions-cache-ready
+        {{- end }}
         volumeMounts:
           - name: extensions-cache-config
             mountPath: /usr/local/bin/extensions-cache-conciliator.sh

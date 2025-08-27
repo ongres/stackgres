@@ -8,6 +8,7 @@ KIND_CONTAINERD_CACHE_RESET="${K8S_CACHE_RESET:-$KIND_CONTAINERD_CACHE_RESET}"
 KIND_LOG_PATH="${KIND_LOG_PATH:-$TARGET_PATH/kind-logs}"
 KIND_LOG_RESOURCES_POLICY_PATH="${KIND_LOG_RESOURCES_POLICY_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
 KIND_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
+K8S_IP_FAMILY="${K8S_IP_FAMILY:-ipv4}"
 KIND_0_15_0="${KIND_0_15_0:-kind-0.15.0}"
 KIND_0_20_0="${KIND_0_20_0:-kind-0.20.0}"
 KIND_0_23_0="${KIND_0_23_0:-kind-0.23.0}"
@@ -122,10 +123,17 @@ update_k8s_config() {
   kubectl config set "clusters.kind-$KIND_NAME.insecure-skip-tls-verify" --set-raw-bytes true
   kubectl config unset "clusters.kind-$KIND_NAME.certificate-authority-data"
 
-  screen -ls 2>/dev/null | grep '\.kind-daemon' \
+  screen -ls 2>/dev/null | grep '\.kind-tag-import-images' \
     | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
     | xargs -r -I % kill % || true
-  E2E_ENV=kind screen -dmS kind-daemon -L -Logfile "$HOME/.kind-daemon.log" "$SHELL" stackgres-k8s/e2e/e2e properly_tag_not_found_import_images
+  E2E_ENV=kind screen -dmS kind-tag-import-images -L -Logfile "$HOME/.kind-tag-import-images.log" "$SHELL" stackgres-k8s/e2e/e2e properly_tag_not_found_import_images
+  if [ "$K8S_IP_FAMILY" = ipv6 ]
+  then
+    screen -ls 2>/dev/null | grep '\.kind-ipv6-dns-socat' \
+      | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+      | xargs -r -I % kill %
+    screen -dmS kind-ipv6-dns-socat -L -Logfile "$HOME/.crc/kind-ipv6-dns-socat.log" socat UDP6-RECVFROM:5300,fork UDP4-SENDTO:127.0.0.53:53
+  fi
 }
 
 properly_tag_not_found_import_images() {
@@ -273,7 +281,8 @@ INNER_EOF
   fi
 )
 networking:
-  disableDefaultCNI: true
+  ipFamily: "${K8S_IP_FAMILY}"
+  disableDefaultCNI: $(if [ "$K8S_DISABLE_CALICO" != true ]; then printf true; else printf false; fi)
   apiServerAddress: "0.0.0.0"
 nodes:
 - role: control-plane
@@ -397,26 +406,36 @@ EOF
     kubectl patch deployment -n kube-system coredns --type json \
       --patch '[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"k8s.gcr.io/coredns:1.3.1"}]'
   fi
-
-  echo "Setting up calico for kind..."
-  until kubectl get node --template '{{ if (index .items 0).spec.podCIDR }}true{{ end }}' | grep -q 'true'
-  do
-    sleep 3
-  done
-  K8S_POD_CIDR="$(kubectl get node --template '{{ (index .items 0).spec.podCIDR }}')"
-  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  if [ "$K8S_IP_FAMILY" = ipv6 ]
   then
-    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/tigera-operator.yaml
-    wait_until kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
-    kubectl patch installations.operator.tigera.io default --type json \
-      -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
-  else
-    kubectl apply -f https://docs.projectcalico.org/v3.12/manifests/calico.yaml
-    kubectl -n kube-system set env daemonset/calico-node CALICO_IPV4POOL_CIDR="$K8S_POD_CIDR"
-    kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+    DOCKER_IPV6="$(docker inspect "$KIND_NAME-control-plane" --format='{{range .NetworkSettings.Networks}}{{.IPv6Gateway}}{{end}}')"
+    kubectl get -oyaml -n=kube-system configmap/coredns \
+      | sed "s/forward .*$/forward . [$DOCKER_IPV6]:5300 {/" \
+      | kubectl replace -f -
   fi
-  echo "...done"
+
+  if [ "$K8S_DISABLE_CALICO" != true ]
+  then
+    echo "Setting up calico for kind..."
+    until kubectl get node --template '{{ if (index .items 0).spec.podCIDR }}true{{ end }}' | grep -q 'true'
+    do
+      sleep 3
+    done
+    K8S_POD_CIDR="$(kubectl get node --template '{{ (index .items 0).spec.podCIDR }}')"
+    if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/tigera-operator.yaml
+      wait_until kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
+      kubectl patch installations.operator.tigera.io default --type json \
+        -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
+    else
+      kubectl apply -f https://docs.projectcalico.org/v3.12/manifests/calico.yaml
+      kubectl -n kube-system set env daemonset/calico-node CALICO_IPV4POOL_CIDR="$K8S_POD_CIDR"
+      kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+    fi
+    echo "...done"
+  fi
 
   if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
   then
@@ -604,9 +623,15 @@ delete_k8s() {
     echo "...done"
   fi
 
-  screen -ls 2>/dev/null | grep '\.kind-daemon' \
+  screen -ls 2>/dev/null | grep '\.kind-tag-import-images' \
     | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
     | xargs -r -I % kill % || true
+  if [ "$K8S_IP_FAMILY" = ipv6 ]
+  then
+    screen -ls 2>/dev/null | grep '\.kind-ipv6-dns-socat' \
+      | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+      | xargs -r -I % kill % || true
+  fi
 }
 
 has_image_k8s() {

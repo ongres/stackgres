@@ -250,7 +250,9 @@ public class PatroniConfigEndpoints
             "host all all ::1/128 md5",
             "local replication all trust",
             "host all all 0.0.0.0/0 md5",
-            "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " 0.0.0.0/0 md5")
+            "host all all ::/0 md5",
+            "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " 0.0.0.0/0 md5",
+            "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " ::/0 md5")
         .toList());
     patroniConf.getPostgresql().setParameters(
         getPostgresConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
@@ -314,7 +316,7 @@ public class PatroniConfigEndpoints
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableEnvoy)
         .orElse(false);
-    params.put("listen_addresses", isEnvoyDisabled ? "0.0.0.0" : "localhost");
+    params.put("listen_addresses", isEnvoyDisabled ? "0.0.0.0,::" : "localhost,::1");
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 
     if (isBackupConfigurationPresent) {
