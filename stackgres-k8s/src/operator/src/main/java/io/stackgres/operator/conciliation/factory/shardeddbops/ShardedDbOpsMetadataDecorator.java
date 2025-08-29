@@ -7,14 +7,14 @@ package io.stackgres.operator.conciliation.factory.shardeddbops;
 
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.AbstractShardedClusterAnnotationDecorator;
+import io.stackgres.operator.conciliation.factory.AbstractShardedClusterMetadataDecorator;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
 import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder
-public class ShardedDbOpsAnnotationDecorator
-    extends AbstractShardedClusterAnnotationDecorator<StackGresShardedDbOpsContext> {
+public class ShardedDbOpsMetadataDecorator
+    extends AbstractShardedClusterMetadataDecorator<StackGresShardedDbOpsContext> {
 
   @Override
   protected StackGresShardedCluster getShardedCluster(StackGresShardedDbOpsContext context) {

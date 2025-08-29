@@ -620,27 +620,32 @@ spec:
                     properties:
                       allResources:
                         type: object
-                        description: Annotations to attach to any resource created or managed by StackGres.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       clusterPods:
                         type: object
-                        description: Annotations to attach to pods created or managed by StackGres.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       services:
                         type: object
-                        description: Annotations to attach to all services created or managed by StackGres.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       primaryService:
                         type: object
-                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       replicasService:
                         type: object
-                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
+                        additionalProperties:
+                          type: string
+                      serviceAccount:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                   labels:
@@ -664,16 +669,36 @@ spec:
                               customLabel: customLabelValue
                       ```
                     properties:
+                      allResources:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
                       clusterPods:
                         type: object
-                        description: Labels to attach to Pods created or managed by StackGres.
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
                           type: string 
                       services:
                         type: object
-                        description: Labels to attach to Services and Endpoints created or managed by StackGres.
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
-                          type: string 
+                          type: string
+                      primaryService:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
+                      replicasService:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
+                      serviceAccount:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
               postgresServices:
                 type: object
                 description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.

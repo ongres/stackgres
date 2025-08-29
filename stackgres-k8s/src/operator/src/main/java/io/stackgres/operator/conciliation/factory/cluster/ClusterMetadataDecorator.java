@@ -13,13 +13,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.AbstractClusterAnnotationDecorator;
+import io.stackgres.operator.conciliation.factory.AbstractClusterMetadataDecorator;
 import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder
-public class ClusterAnnotationDecorator
-    extends AbstractClusterAnnotationDecorator<StackGresClusterContext> {
+public class ClusterMetadataDecorator
+    extends AbstractClusterMetadataDecorator<StackGresClusterContext> {
 
   @Override
   protected Optional<StackGresClusterSpecMetadata> getSpecMetadata(StackGresClusterContext context) {

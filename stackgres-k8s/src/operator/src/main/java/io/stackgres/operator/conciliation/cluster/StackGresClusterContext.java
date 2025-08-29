@@ -29,8 +29,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitialization;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -295,24 +293,6 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             null,
             null,
             null));
-  }
-
-  default Map<String, String> clusterPodsCustomLabels() {
-    return Optional.ofNullable(getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getLabels)
-        .map(StackGresClusterSpecLabels::getClusterPods)
-        .orElse(Map.of());
-  }
-
-  default Map<String, String> servicesCustomLabels() {
-    return Optional.ofNullable(getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getLabels)
-        .map(StackGresClusterSpecLabels::getServices)
-        .orElse(Map.of());
   }
 
 }

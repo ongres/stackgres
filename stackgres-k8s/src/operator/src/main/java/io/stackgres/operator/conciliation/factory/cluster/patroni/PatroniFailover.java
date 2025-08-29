@@ -5,12 +5,17 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -41,7 +46,16 @@ public class PatroniFailover implements ResourceGenerator<StackGresClusterContex
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(name(cluster))
-            .addToLabels(context.servicesCustomLabels())
+            .addToLabels(
+                Optional.ofNullable(cluster.getSpec().getMetadata())
+                .map(StackGresClusterSpecMetadata::getLabels)
+                .map(StackGresClusterSpecLabels::getServices)
+                .orElse(Map.of()))
+            .addToAnnotations(
+                Optional.ofNullable(cluster.getSpec().getMetadata())
+                .map(StackGresClusterSpecMetadata::getAnnotations)
+                .map(StackGresClusterSpecAnnotations::getServices)
+                .orElse(Map.of()))
             .addToLabels(labelFactory.clusterLabels(context.getSource()))
             .endMetadata()
             .build()

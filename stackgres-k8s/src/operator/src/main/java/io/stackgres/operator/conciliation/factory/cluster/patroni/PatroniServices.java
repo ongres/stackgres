@@ -32,6 +32,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -119,7 +120,16 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(configName(context))
-        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServices)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.clusterLabels(cluster))
         .endMetadata()
         .withNewSpec()
@@ -135,7 +145,16 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(restName(context))
-        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServices)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withNewSpec()
@@ -158,9 +177,27 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readWriteName(context))
-        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getPrimaryService)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServices)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getPrimaryService)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.clusterLabels(cluster))
-        .withAnnotations(getPrimaryServiceAnnotations(cluster))
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getPrimary())
         .editSpec()
@@ -261,14 +298,6 @@ public class PatroniServices implements
         .toList();
   }
 
-  private Map<String, String> getPrimaryServiceAnnotations(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
-        .map(StackGresClusterSpecAnnotations::getPrimaryService)
-        .orElse(Map.of());
-  }
-
   private Service createDeprecatedPrimaryService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
@@ -276,7 +305,16 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(deprecatedReadWriteName(context))
-        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServices)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withNewSpec()
@@ -294,9 +332,27 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readOnlyName(context))
-        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getReplicasService)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServices)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getReplicasService)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.genericLabels(cluster))
-        .withAnnotations(getReplicasServiceAnnotations(cluster))
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getReplicas())
         .editSpec()
@@ -408,14 +464,6 @@ public class PatroniServices implements
       builder.withProtocol("TCP");
     }
     return builder;
-  }
-
-  private Map<String, String> getReplicasServiceAnnotations(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
-        .map(StackGresClusterSpecAnnotations::getReplicasService)
-        .orElse(Map.of());
   }
 
 }

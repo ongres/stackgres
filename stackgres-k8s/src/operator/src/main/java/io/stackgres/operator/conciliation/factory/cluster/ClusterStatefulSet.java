@@ -100,7 +100,6 @@ public class ClusterStatefulSet
 
     final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
-    final Map<String, String> customPodLabels = context.clusterPodsCustomLabels();
 
     Map<String, VolumePair> availableVolumesPairs = volumeDiscoverer.discoverVolumes(context);
 
@@ -172,7 +171,6 @@ public class ClusterStatefulSet
             .orElse("OrderedReady"))
         .withReplicas(instances)
         .withSelector(new LabelSelectorBuilder()
-            .addToMatchLabels(customPodLabels)
             .addToMatchLabels(podLabels)
             .build())
         .withUpdateStrategy(new StatefulSetUpdateStrategyBuilder()

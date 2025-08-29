@@ -38,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ClusterAnnotationDecoratorTest {
 
-  private final ClusterAnnotationDecorator annotationDecorator = new ClusterAnnotationDecorator();
+  private final ClusterMetadataDecorator annotationDecorator = new ClusterMetadataDecorator();
 
   @Mock
   private StackGresClusterContext context;

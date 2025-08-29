@@ -18,7 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.AbstractClusterAnnotationDecorator;
+import io.stackgres.operator.conciliation.factory.AbstractClusterMetadataDecorator;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -27,8 +27,8 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @OperatorVersionBinder
-public class DistributedLogsAnnotationDecorator
-    extends AbstractClusterAnnotationDecorator<StackGresDistributedLogsContext> {
+public class DistributedLogsMetadataDecorator
+    extends AbstractClusterMetadataDecorator<StackGresDistributedLogsContext> {
 
   @Override
   protected Optional<StackGresClusterSpecMetadata> getSpecMetadata(StackGresDistributedLogsContext context) {
@@ -50,11 +50,12 @@ public class DistributedLogsAnnotationDecorator
   private void decorateCluster(
       @NotNull StackGresDistributedLogsContext context,
       @NotNull HasMetadata cluster) {
-    decorateResource(
-        cluster,
+    decorateResourceMetadata(
+        cluster.getMetadata(),
         Seq.seq(getAllResourcesAnnotations(context))
         .filter(annotation -> !annotation.v1.equals(StackGresContext.VERSION_KEY))
-        .toMap(Tuple2::v1, Tuple2::v2));
+        .toMap(Tuple2::v1, Tuple2::v2),
+        getAllResourcesLabels(context));
   }
 
 }

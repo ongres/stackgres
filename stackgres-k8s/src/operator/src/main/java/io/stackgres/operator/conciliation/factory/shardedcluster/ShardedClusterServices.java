@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -24,6 +25,9 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresCoordinatorServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresShardsServices;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecAnnotations;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecLabels;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetadata;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
@@ -89,7 +93,22 @@ public class ShardedClusterServices implements
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(StackGresShardedClusterUtil.anyCoordinatorServiceName(
             context.getSource()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getAnnotations)
+            .map(StackGresShardedClusterSpecAnnotations::getCoordinatorAnyService)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.genericLabels(cluster))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getLabels)
+            .map(StackGresShardedClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getLabels)
+            .map(StackGresShardedClusterSpecLabels::getCoordinatorAnyService)
+            .orElse(Map.of()))
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getCoordinator().getAny())
         .editSpec()
@@ -139,7 +158,22 @@ public class ShardedClusterServices implements
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(StackGresShardedClusterUtil.primaryCoordinatorServiceName(
             context.getSource()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getAnnotations)
+            .map(StackGresShardedClusterSpecAnnotations::getCoordinatorPrimaryService)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.genericLabels(cluster))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getLabels)
+            .map(StackGresShardedClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getLabels)
+            .map(StackGresShardedClusterSpecLabels::getCoordinatorPrimaryService)
+            .orElse(Map.of()))
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getCoordinator().getPrimary())
         .editSpec()
@@ -191,7 +225,22 @@ public class ShardedClusterServices implements
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(StackGresShardedClusterUtil.primariesShardsServiceName(
             context.getSource()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getAnnotations)
+            .map(StackGresShardedClusterSpecAnnotations::getShardsPrimariesService)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.genericLabels(cluster))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getLabels)
+            .map(StackGresShardedClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresShardedClusterSpecMetadata::getLabels)
+            .map(StackGresShardedClusterSpecLabels::getShardsPrimariesService)
+            .orElse(Map.of()))
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getShards().getPrimaries())
         .editSpec()

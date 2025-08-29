@@ -25,7 +25,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -35,6 +34,8 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecLabels;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetadata;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.impl.DSL;
@@ -112,8 +113,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       var specLabels = spec.getMetadata().getLabels();
       var clusterLabels = Optional.of(cluster.getSpec())
           .map(StackGresShardedClusterSpec::getMetadata)
-          .map(StackGresClusterSpecMetadata::getLabels)
-          .orElseGet(() -> new StackGresClusterSpecLabels());
+          .map(StackGresShardedClusterSpecMetadata::getLabels)
+          .orElseGet(() -> new StackGresShardedClusterSpecLabels());
       if (specLabels.getClusterPods() != null) {
         specLabels.setClusterPods(
             withCitusGroupLabel(specLabels.getClusterPods(), index));

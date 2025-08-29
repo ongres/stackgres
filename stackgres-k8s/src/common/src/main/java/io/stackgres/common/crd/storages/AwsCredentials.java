@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -27,6 +28,9 @@ public class AwsCredentials {
   @Valid
   private AwsSecretKeySelector secretKeySelectors;
 
+  @JsonProperty("useIAMRole")
+  private Boolean useIamRole;
+
   public AwsSecretKeySelector getSecretKeySelectors() {
     return secretKeySelectors;
   }
@@ -35,21 +39,30 @@ public class AwsCredentials {
     this.secretKeySelectors = secretKeySelectors;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(secretKeySelectors);
+  public Boolean getUseIamRole() {
+    return useIamRole;
+  }
+
+  public void setUseIamRole(Boolean useIamRole) {
+    this.useIamRole = useIamRole;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public int hashCode() {
+    return Objects.hash(secretKeySelectors, useIamRole);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof AwsCredentials)) {
       return false;
     }
-    AwsCredentials that = (AwsCredentials) o;
-    return Objects.equals(secretKeySelectors, that.secretKeySelectors);
+    AwsCredentials other = (AwsCredentials) obj;
+    return Objects.equals(secretKeySelectors, other.secretKeySelectors)
+        && Objects.equals(useIamRole, other.useIamRole);
   }
 
   @Override

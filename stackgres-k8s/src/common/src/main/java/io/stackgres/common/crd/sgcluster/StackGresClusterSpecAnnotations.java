@@ -32,6 +32,8 @@ public class StackGresClusterSpecAnnotations {
 
   private Map<String, String> replicasService;
 
+  private Map<String, String> serviceAccount;
+
   public Map<String, String> getAllResources() {
     return allResources;
   }
@@ -72,9 +74,18 @@ public class StackGresClusterSpecAnnotations {
     this.replicasService = replicasService;
   }
 
+  public Map<String, String> getServiceAccount() {
+    return serviceAccount;
+  }
+
+  public void setServiceAccount(Map<String, String> serviceAccount) {
+    this.serviceAccount = serviceAccount;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(allResources, clusterPods, primaryService, replicasService, services);
+    return Objects.hash(allResources, clusterPods, primaryService, replicasService, serviceAccount,
+        services);
   }
 
   @Override
@@ -90,6 +101,7 @@ public class StackGresClusterSpecAnnotations {
         && Objects.equals(clusterPods, other.clusterPods)
         && Objects.equals(primaryService, other.primaryService)
         && Objects.equals(replicasService, other.replicasService)
+        && Objects.equals(serviceAccount, other.serviceAccount)
         && Objects.equals(services, other.services);
   }
 

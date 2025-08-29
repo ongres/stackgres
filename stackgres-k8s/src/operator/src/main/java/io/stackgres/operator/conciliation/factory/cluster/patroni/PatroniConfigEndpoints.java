@@ -42,6 +42,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -94,7 +97,16 @@ public class PatroniConfigEndpoints
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(PatroniUtil.configName(context.getCluster()))
-        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServices)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServices)
+            .orElse(Map.of()))
         .addToLabels(labelFactory.clusterLabels(context.getSource()))
         .withAnnotations(Map.of(PatroniUtil.CONFIG_KEY, patroniConfigJson))
         .endMetadata()

@@ -40,6 +40,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
@@ -143,15 +146,22 @@ public class ClusterPodTemplateSpecFactory
 
     StackGresCluster cluster = context.getClusterContext().getSource();
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
-    final Map<String, String> customPodLabels = context.getClusterContext()
-        .clusterPodsCustomLabels();
 
     final boolean isEnabledClusterPodAntiAffinity =
         !context.getClusterContext().calculateDisableClusterPodAntiAffinity();
 
     var podTemplate = new PodTemplateSpecBuilder()
         .withMetadata(new ObjectMetaBuilder()
-            .addToLabels(customPodLabels)
+            .addToLabels(
+                Optional.ofNullable(cluster.getSpec().getMetadata())
+                .map(StackGresClusterSpecMetadata::getLabels)
+                .map(StackGresClusterSpecLabels::getClusterPods)
+                .orElse(Map.of()))
+            .addToAnnotations(
+                Optional.ofNullable(cluster.getSpec().getMetadata())
+                .map(StackGresClusterSpecMetadata::getAnnotations)
+                .map(StackGresClusterSpecAnnotations::getClusterPods)
+                .orElse(Map.of()))
             .addToLabels(podLabels)
             .addToAnnotations(StackGresContext.VERSION_KEY,
                 StackGresProperty.OPERATOR_VERSION.getString())
