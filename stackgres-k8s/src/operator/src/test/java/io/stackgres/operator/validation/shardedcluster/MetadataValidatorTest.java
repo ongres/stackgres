@@ -7,10 +7,10 @@ package io.stackgres.operator.validation.shardedcluster;
 
 import java.util.Map;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecAnnotations;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecLabels;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetadata;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.StackGresShardedClusterReviewBuilder;
@@ -110,18 +110,18 @@ class MetadataValidatorTest {
   }
 
   private void disableClusterLabels() {
-    defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
+    defaultCluster.getSpec().setMetadata(new StackGresShardedClusterSpecMetadata());
     defaultCluster.getSpec().getMetadata().setLabels(null);
   }
 
   private void disableClusterAnnotations() {
-    defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
+    defaultCluster.getSpec().setMetadata(new StackGresShardedClusterSpecMetadata());
     defaultCluster.getSpec().getMetadata().setAnnotations(null);
   }
 
   private void enableClusterLabels(String key, String value) {
-    defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
-    defaultCluster.getSpec().getMetadata().setLabels(new StackGresClusterSpecLabels());
+    defaultCluster.getSpec().setMetadata(new StackGresShardedClusterSpecMetadata());
+    defaultCluster.getSpec().getMetadata().setLabels(new StackGresShardedClusterSpecLabels());
     defaultCluster
             .getSpec()
             .getMetadata()
@@ -136,8 +136,8 @@ class MetadataValidatorTest {
   }
 
   private void enableClusterAnnotations(String key, String value) {
-    defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
-    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
+    defaultCluster.getSpec().setMetadata(new StackGresShardedClusterSpecMetadata());
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresShardedClusterSpecAnnotations());
     defaultCluster
             .getSpec()
             .getMetadata()

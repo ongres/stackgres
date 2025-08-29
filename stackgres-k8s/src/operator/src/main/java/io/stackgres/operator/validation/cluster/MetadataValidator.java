@@ -28,11 +28,16 @@ import jakarta.inject.Singleton;
 public class MetadataValidator implements ClusterValidator {
 
   private final String labelServicesPath;
+  private final String labelReplicasServicePath;
+  private final String labelPrimaryServicePath;
   private final String labelClusterPodsPath;
+  private final String labelServiceAccountPath;
+  private final String labelAllResourcesPath;
   private final String annotationServicesPath;
   private final String annotationReplicasServicePath;
   private final String annotationPrimaryServicePath;
   private final String annotationClusterPodsPath;
+  private final String annotationServiceAccountPath;
   private final String annotationAllResourcesPath;
 
   public MetadataValidator() {
@@ -40,13 +45,42 @@ public class MetadataValidator implements ClusterValidator {
       StackGresCluster.class, "spec",
       StackGresClusterSpec.class, "metadata",
       StackGresClusterSpecMetadata.class, "labels",
-      StackGresClusterSpecLabels.class, "services");
+      StackGresClusterSpecLabels.class, "services"
+    );
+
+    this.labelReplicasServicePath = getFieldPath(
+      StackGresCluster.class, "spec",
+      StackGresClusterSpec.class, "metadata",
+      StackGresClusterSpecMetadata.class, "labels",
+      StackGresClusterSpecLabels.class, "replicasService"
+    );
+
+    this.labelPrimaryServicePath = getFieldPath(
+      StackGresCluster.class, "spec",
+      StackGresClusterSpec.class, "metadata",
+      StackGresClusterSpecMetadata.class, "labels",
+      StackGresClusterSpecLabels.class, "primaryService"
+    );
 
     this.labelClusterPodsPath = getFieldPath(
       StackGresCluster.class, "spec",
       StackGresClusterSpec.class, "metadata",
       StackGresClusterSpecMetadata.class, "labels",
       StackGresClusterSpecLabels.class, "clusterPods"
+    );
+
+    this.labelServiceAccountPath = getFieldPath(
+      StackGresCluster.class, "spec",
+      StackGresClusterSpec.class, "metadata",
+      StackGresClusterSpecMetadata.class, "labels",
+      StackGresClusterSpecLabels.class, "serviceAccount"
+    );
+
+    this.labelAllResourcesPath = getFieldPath(
+      StackGresCluster.class, "spec",
+      StackGresClusterSpec.class, "metadata",
+      StackGresClusterSpecMetadata.class, "labels",
+      StackGresClusterSpecLabels.class, "allResources"
     );
 
     this.annotationServicesPath = getFieldPath(
@@ -75,6 +109,13 @@ public class MetadataValidator implements ClusterValidator {
       StackGresClusterSpec.class, "metadata",
       StackGresClusterSpecMetadata.class, "annotations",
       StackGresClusterSpecAnnotations.class, "clusterPods"
+    );
+
+    this.annotationServiceAccountPath = getFieldPath(
+      StackGresCluster.class, "spec",
+      StackGresClusterSpec.class, "metadata",
+      StackGresClusterSpecMetadata.class, "annotations",
+      StackGresClusterSpecAnnotations.class, "serviceAccount"
     );
 
     this.annotationAllResourcesPath = getFieldPath(
@@ -111,10 +152,34 @@ public class MetadataValidator implements ClusterValidator {
             checkLabel(labelServicesPath, entry.getKey(), entry.getValue());
           }
 
+          final Map<String, String> replicasService =
+              Objects.requireNonNullElseGet(labels.getReplicasService(), Map::of);
+          for (var entry : replicasService.entrySet()) {
+            checkLabel(labelReplicasServicePath, entry.getKey(), entry.getValue());
+          }
+
+          final Map<String, String> primaryService =
+              Objects.requireNonNullElseGet(labels.getPrimaryService(), Map::of);
+          for (var entry : primaryService.entrySet()) {
+            checkLabel(labelPrimaryServicePath, entry.getKey(), entry.getValue());
+          }
+
           final Map<String, String> clusterPods =
               Objects.requireNonNullElseGet(labels.getClusterPods(), Map::of);
-          for (var entry: clusterPods.entrySet()) {
+          for (var entry : clusterPods.entrySet()) {
             checkLabel(labelClusterPodsPath, entry.getKey(), entry.getValue());
+          }
+
+          final Map<String, String> serviceAccount =
+              Objects.requireNonNullElseGet(labels.getAllResources(), Map::of);
+          for (var entry : serviceAccount.entrySet()) {
+            checkLabel(labelServiceAccountPath, entry.getKey(), entry.getValue());
+          }
+
+          final Map<String, String> allResources =
+              Objects.requireNonNullElseGet(labels.getAllResources(), Map::of);
+          for (var entry : allResources.entrySet()) {
+            checkLabel(labelAllResourcesPath, entry.getKey(), entry.getValue());
           }
         }
 
@@ -143,6 +208,12 @@ public class MetadataValidator implements ClusterValidator {
               Objects.requireNonNullElseGet(annotations.getClusterPods(), Map::of);
           for (var entry : clusterPods.entrySet()) {
             checkAnnotation(annotationClusterPodsPath, entry.getKey());
+          }
+
+          final Map<String, String> serviceAccount =
+              Objects.requireNonNullElseGet(annotations.getAllResources(), Map::of);
+          for (var entry : serviceAccount.entrySet()) {
+            checkAnnotation(annotationServiceAccountPath, entry.getKey());
           }
 
           final Map<String, String> allResources =

@@ -10,8 +10,6 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.DeprecatedVersionPlaceholder;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -21,14 +19,13 @@ public class ClusterSpecAnnotations {
 
   private Map<String, String> clusterPods;
 
-  @DeprecatedVersionPlaceholder(StackGresVersion.V_1_15)
-  private Map<String, String> pods;
-
   private Map<String, String> services;
 
   private Map<String, String> primaryService;
 
   private Map<String, String> replicasService;
+
+  private Map<String, String> serviceAccount;
 
   public Map<String, String> getAllResources() {
     return allResources;
@@ -42,16 +39,8 @@ public class ClusterSpecAnnotations {
     return clusterPods;
   }
 
-  public void setClusterPods(Map<String, String> pods) {
-    this.clusterPods = pods;
-  }
-
-  public Map<String, String> getPods() {
-    return pods;
-  }
-
-  public void setPods(Map<String, String> pods) {
-    this.pods = pods;
+  public void setClusterPods(Map<String, String> clusterPods) {
+    this.clusterPods = clusterPods;
   }
 
   public Map<String, String> getServices() {
@@ -74,8 +63,16 @@ public class ClusterSpecAnnotations {
     return replicasService;
   }
 
-  public void setReplicasService(Map<String, String> resplicasService) {
-    this.replicasService = resplicasService;
+  public void setReplicasService(Map<String, String> replicasService) {
+    this.replicasService = replicasService;
+  }
+
+  public Map<String, String> getServiceAccount() {
+    return serviceAccount;
+  }
+
+  public void setServiceAccount(Map<String, String> serviceAccount) {
+    this.serviceAccount = serviceAccount;
   }
 
   @Override

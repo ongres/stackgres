@@ -19,6 +19,12 @@ public class ClusterSpecLabels {
 
   private Map<String, String> services;
 
+  private Map<String, String> primaryService;
+
+  private Map<String, String> replicasService;
+
+  private Map<String, String> serviceAccount;
+
   public Map<String, String> getClusterPods() {
     return clusterPods;
   }
@@ -33,6 +39,30 @@ public class ClusterSpecLabels {
 
   public void setServices(Map<String, String> services) {
     this.services = services;
+  }
+
+  public Map<String, String> getPrimaryService() {
+    return primaryService;
+  }
+
+  public void setPrimaryService(Map<String, String> primaryService) {
+    this.primaryService = primaryService;
+  }
+
+  public Map<String, String> getReplicasService() {
+    return replicasService;
+  }
+
+  public void setReplicasService(Map<String, String> replicasService) {
+    this.replicasService = replicasService;
+  }
+
+  public Map<String, String> getServiceAccount() {
+    return serviceAccount;
+  }
+
+  public void setServiceAccount(Map<String, String> serviceAccount) {
+    this.serviceAccount = serviceAccount;
   }
 
   @Override

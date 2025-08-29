@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
@@ -33,6 +34,8 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
   protected abstract @NotNull Map<String, String> getServiceAnnotations(@NotNull T context);
 
   protected abstract @NotNull Map<String, String> getPodAnnotations(@NotNull T context);
+
+  protected abstract @NotNull Map<String, String> getServiceAccountAnnotations(@NotNull T context);
 
   @Override
   public HasMetadata decorate(T context, HasMetadata resource) {
@@ -62,6 +65,7 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
 
   protected @NotNull Map<Class<?>, BiConsumer<T, HasMetadata>> getCustomDecorators() {
     return Map.of(
+        ServiceAccount.class, this::decorateServiceAccount,
         Service.class, this::decorateService,
         Pod.class, this::decoratePod,
         StatefulSet.class, this::decorateSts,
@@ -69,6 +73,10 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
         CronJob.class, this::decorateCronJob,
         io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob.class,
         this::decorateCronJobV1Beta1);
+  }
+
+  protected void decorateServiceAccount(@NotNull T context, @NotNull HasMetadata service) {
+    decorateResource(service, getServiceAccountAnnotations(context));
   }
 
   protected void decorateService(@NotNull T context, @NotNull HasMetadata service) {

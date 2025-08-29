@@ -145,6 +145,11 @@ spec:
                     description: |
                       The credentials to access AWS S3 for writing and reading.
                     properties:
+                      useIAMRole:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` the IAM role credentials will be used instead of the secret key selector.
                       secretKeySelectors:
                         type: object
                         required: ["accessKeyId", "secretAccessKey"]

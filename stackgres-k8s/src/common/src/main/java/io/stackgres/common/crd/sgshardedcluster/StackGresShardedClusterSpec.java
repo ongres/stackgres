@@ -18,7 +18,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.stackgres.common.validation.ValidEnum;
@@ -62,7 +61,7 @@ public class StackGresShardedClusterSpec {
   private StackGresShardedClusterConfigurations configurations;
 
   @Valid
-  private StackGresClusterSpecMetadata metadata;
+  private StackGresShardedClusterSpecMetadata metadata;
 
   @Valid
   private StackGresClusterDistributedLogs distributedLogs;
@@ -156,11 +155,11 @@ public class StackGresShardedClusterSpec {
     this.profile = profile;
   }
 
-  public StackGresClusterSpecMetadata getMetadata() {
+  public StackGresShardedClusterSpecMetadata getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(StackGresClusterSpecMetadata metadata) {
+  public void setMetadata(StackGresShardedClusterSpecMetadata metadata) {
     this.metadata = metadata;
   }
 

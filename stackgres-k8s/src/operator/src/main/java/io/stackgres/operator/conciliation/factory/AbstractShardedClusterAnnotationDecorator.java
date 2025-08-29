@@ -14,9 +14,9 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetadata;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractShardedClusterAnnotationDecorator<T>
@@ -29,7 +29,7 @@ public abstract class AbstractShardedClusterAnnotationDecorator<T>
       @NotNull T context) {
     var allResourcesAnnotations = Optional.ofNullable(getShardedCluster(context).getSpec())
         .map(StackGresShardedClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresShardedClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getAllResources)
         .orElse(Map.of());
 
@@ -45,12 +45,28 @@ public abstract class AbstractShardedClusterAnnotationDecorator<T>
   }
 
   @Override
+  protected @NotNull Map<String, String> getServiceAccountAnnotations(
+      @NotNull T context) {
+    Map<String, String> serviceAccountsSpecificAnnotations =
+        Optional.ofNullable(getShardedCluster(context).getSpec())
+        .map(StackGresShardedClusterSpec::getMetadata)
+        .map(StackGresShardedClusterSpecMetadata::getAnnotations)
+        .map(StackGresClusterSpecAnnotations::getServiceAccount)
+        .orElse(Map.of());
+
+    return ImmutableMap.<String, String>builder()
+        .putAll(getAllResourcesAnnotations(context))
+        .putAll(serviceAccountsSpecificAnnotations)
+        .build();
+  }
+
+  @Override
   protected @NotNull Map<String, String> getServiceAnnotations(
       @NotNull T context) {
     Map<String, String> servicesSpecificAnnotations =
         Optional.ofNullable(getShardedCluster(context).getSpec())
         .map(StackGresShardedClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresShardedClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getServices)
         .orElse(Map.of());
 
@@ -65,7 +81,7 @@ public abstract class AbstractShardedClusterAnnotationDecorator<T>
     Map<String, String> primaryServiceAnnotations =
         Optional.ofNullable(getShardedCluster(context).getSpec())
         .map(StackGresShardedClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresShardedClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getPrimaryService)
         .orElse(Map.of());
 
@@ -80,7 +96,7 @@ public abstract class AbstractShardedClusterAnnotationDecorator<T>
     Map<String, String> replicaServiceAnnotations =
         Optional.ofNullable(getShardedCluster(context).getSpec())
         .map(StackGresShardedClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresShardedClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getReplicasService)
         .orElse(Map.of());
 
@@ -113,7 +129,7 @@ public abstract class AbstractShardedClusterAnnotationDecorator<T>
     Map<String, String> podSpecificAnnotations =
         Optional.ofNullable(getShardedCluster(context).getSpec())
         .map(StackGresShardedClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresShardedClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getClusterPods)
         .orElse(Map.of());
 

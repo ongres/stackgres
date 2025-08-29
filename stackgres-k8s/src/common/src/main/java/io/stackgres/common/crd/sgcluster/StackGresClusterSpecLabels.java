@@ -26,6 +26,12 @@ public class StackGresClusterSpecLabels {
 
   private Map<String, String> services;
 
+  private Map<String, String> primaryService;
+
+  private Map<String, String> replicasService;
+
+  private Map<String, String> serviceAccount;
+
   public Map<String, String> getClusterPods() {
     return clusterPods;
   }
@@ -42,9 +48,33 @@ public class StackGresClusterSpecLabels {
     this.services = services;
   }
 
+  public Map<String, String> getPrimaryService() {
+    return primaryService;
+  }
+
+  public void setPrimaryService(Map<String, String> primaryService) {
+    this.primaryService = primaryService;
+  }
+
+  public Map<String, String> getReplicasService() {
+    return replicasService;
+  }
+
+  public void setReplicasService(Map<String, String> replicasService) {
+    this.replicasService = replicasService;
+  }
+
+  public Map<String, String> getServiceAccount() {
+    return serviceAccount;
+  }
+
+  public void setServiceAccount(Map<String, String> serviceAccount) {
+    this.serviceAccount = serviceAccount;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(clusterPods, services);
+    return Objects.hash(clusterPods, primaryService, replicasService, serviceAccount, services);
   }
 
   @Override
@@ -57,6 +87,9 @@ public class StackGresClusterSpecLabels {
     }
     StackGresClusterSpecLabels other = (StackGresClusterSpecLabels) obj;
     return Objects.equals(clusterPods, other.clusterPods)
+        && Objects.equals(primaryService, other.primaryService)
+        && Objects.equals(replicasService, other.replicasService)
+        && Objects.equals(serviceAccount, other.serviceAccount)
         && Objects.equals(services, other.services);
   }
 

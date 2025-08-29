@@ -46,6 +46,21 @@ public abstract class AbstractClusterAnnotationDecorator<T>
   }
 
   @Override
+  protected @NotNull Map<String, String> getServiceAccountAnnotations(
+      @NotNull T context) {
+    Map<String, String> serviceAccountsSpecificAnnotations =
+        getSpecMetadata(context)
+        .map(StackGresClusterSpecMetadata::getAnnotations)
+        .map(StackGresClusterSpecAnnotations::getServiceAccount)
+        .orElse(Map.of());
+
+    return ImmutableMap.<String, String>builder()
+        .putAll(getAllResourcesAnnotations(context))
+        .putAll(serviceAccountsSpecificAnnotations)
+        .build();
+  }
+
+  @Override
   protected @NotNull Map<String, String> getServiceAnnotations(
       @NotNull T context) {
     Map<String, String> servicesSpecificAnnotations =

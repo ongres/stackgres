@@ -10,7 +10,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterNonProductionOptions;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
-import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
@@ -29,7 +28,7 @@ public class ShardedClusterSpec {
 
   private ShardedClusterConfigurations configurations;
 
-  private ClusterSpecMetadata metadata;
+  private ShardedClusterSpecMetadata metadata;
 
   private ClusterDistributedLogs distributedLogs;
 
@@ -115,11 +114,11 @@ public class ShardedClusterSpec {
     this.nonProductionOptions = nonProductionOptions;
   }
 
-  public ClusterSpecMetadata getMetadata() {
+  public ShardedClusterSpecMetadata getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(ClusterSpecMetadata metadata) {
+  public void setMetadata(ShardedClusterSpecMetadata metadata) {
     this.metadata = metadata;
   }
 
