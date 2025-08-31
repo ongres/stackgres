@@ -1,3 +1,55 @@
+# :rocket: Release 1.17.2 (01-09-2025)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.17.2 is out! :confetti_ball: :champagne: 
+
+This release bring latest PostgreSQL minor versions and some fixes that makes the operator more reliable.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* PostgreSQL 17.6, 16.10, 15.14, 14.19 and 13.22
+* Babelfish for PostgreSQL 17.6 and 16.9
+* FluentBit 4.0.7
+* Babelfish Compass 2025.06
+* OTEL Collector 0.132.0
+* Kubectl 1.33.4 and 1.31.12
+* Support IPV6 only K8s clusters
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* The pod anti affinity rules are applied twice for SGCluster's Pods
+* Syntax error in install-extensions script on SGDistributedLogs
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.17.2/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.17.2)
+
 # :rocket: Release 1.17.1 (2025-08-05)
 
 ## :notepad_spiral: NOTES
