@@ -88,6 +88,12 @@ public class DistributedLogsScript
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName()) + "'")
         .collect(Collectors.joining(","));
+    final String template1AndDatabaseList = Seq.of("'template1'")
+        .append(context.getConnectedClusters().stream()
+            .map(cluster -> "'" + FluentdUtil.databaseName(
+                cluster.getMetadata().getNamespace(),
+                cluster.getMetadata().getName()) + "'"))
+        .collect(Collectors.joining(","));
     final String databaseAndRetenentionList = context.getConnectedClusters().stream()
         .map(cluster -> "['" + FluentdUtil.databaseName(
             cluster.getMetadata().getNamespace(),
@@ -122,7 +128,7 @@ public class DistributedLogsScript
                 "/distributed-logs/install-extensions.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
-                Optional.of(databaseList).filter(Predicate.not(String::isEmpty)).orElse("null"),
+                Optional.of(template1AndDatabaseList).filter(Predicate.not(String::isEmpty)).orElse("null"),
                 timescaledbVersion,
                 isPendingRestart))
         .endScript()
@@ -136,7 +142,7 @@ public class DistributedLogsScript
                 "/distributed-logs/init.sql"),
                 StandardCharsets.UTF_8)
             .read()).get().formatted(
-                Optional.of(databaseList).filter(Predicate.not(String::isEmpty)).orElse("null")))
+                Optional.of(template1AndDatabaseList).filter(Predicate.not(String::isEmpty)).orElse("null")))
         .endScript()
         .addNewScript()
         .withId(2)

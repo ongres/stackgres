@@ -287,7 +287,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableEnvoy)
         .orElse(false);
-    parameters.put("listen_addr", isEnvoyDisabled ? "*" : "127.0.0.1");
+    parameters.put("listen_addr", isEnvoyDisabled ? "0.0.0.0,::" : "127.0.0.1,::1");
     parameters.put("listen_port", String.valueOf(EnvoyUtil.PG_POOL_PORT));
     parameters.put("unix_socket_dir", ClusterPath.PG_RUN_PATH.path());
     parameters.put("auth_file", ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());

@@ -254,10 +254,12 @@ fi
   - data-checksums
   pg_hba:
   - 'host all all 0.0.0.0/0 md5'
+  - 'host all all ::/0 md5'
   - 'host replication ${PATRONI_REPLICATION_USERNAME} 0.0.0.0/0 md5'
+  - 'host replication ${PATRONI_REPLICATION_USERNAME} ::/0 md5'
 restapi:
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:8008'
-  listen: 0.0.0.0:8008
+  listen: "*:8008"
 postgresql:
   use_slots: true
   use_pg_rewind: true
@@ -265,7 +267,7 @@ postgresql:
   use_unix_socket: true
   use_unix_socket_repl: true
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
-  listen: 0.0.0.0:5432
+  listen: 0.0.0.0,[::]:5432
   pg_ctl_timeout: $PATRONI_PG_CTL_TIMEOUT
   authentication:
     superuser:

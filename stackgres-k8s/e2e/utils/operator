@@ -1765,6 +1765,13 @@ set_helm_values_for_developer() {
     --set-string developer.extraOpts[11]=-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG 
     --set-string developer.extraOpts[12]=-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE 
 EOF
+  if [ "$K8S_IP_FAMILY" = ipv6 ]
+  then
+  cat << EOF
+    --set-string developer.extraOpts[13]=-Djava.net.preferIPv6Addresses=true 
+    --set-string developer.extraOpts[14]=-Djava.net.preferIPv4Stack=false 
+EOF
+  fi
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
     cat << EOF
