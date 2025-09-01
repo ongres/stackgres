@@ -51,6 +51,8 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$DISTRIBUTEDLOGS_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test_uninstall() {
@@ -126,6 +128,7 @@ check_distributed_logs_attach_to_clusters() {
   fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
+  wait_cluster "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME$"
   wait_until -t "$((E2E_TIMEOUT * 4))" has_cluster_joined_distributedlogs
   wait_services_available "$CLUSTER_NAMESPACE" "1" "$COPY_CLUSTER_NAME$"
