@@ -53,8 +53,8 @@ EOF
       if ! grep -qxF "$DBOPS_NAME" /tmp/completed-dbops
       then
         DBOPS_STATUS="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-          --template '{{ range .status.conditions }}{{ if eq .status "True" }}{{ .type }}{{ end }}{{ end }}')"
-        if ! printf %s "$DBOPS_STATUS" | grep -q "^\($DBOPS_COMPLETED\|$DBOPS_FAILED\)$"
+          --template '{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}')"
+        if ! printf %s "$DBOPS_STATUS" | grep -q " \($DBOPS_COMPLETED\|$DBOPS_FAILED\) "
         then
           COMPLETED=false
           continue
@@ -87,12 +87,12 @@ update_status() {
     RESTARTED_CLUSTERS=""
   else
     DBOPS_STATUSES="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" -l "$DBOPS_LABELS" \
-      --template '{{ range .items }}{{ .spec.sgCluster }}/{{ range .status.conditions }}{{ if eq .status "True" }}{{ .type }}{{ end }}{{ end }}{{ "\n" }}{{ end }}')"
+      --template '{{ range .items }}{{ .spec.sgCluster }}/{{ range .status.conditions }}{{ if eq .status "True" }} {{ .type }} {{ end }}{{ end }}{{ "\n" }}{{ end }}')"
     PENDING_TO_RESTART_CLUSTERS="$(echo "$CLUSTER_NAMES" | tr ' ' '\n' | grep -vxF '' \
       | while read CLUSTER
         do
           if ! printf '%s' "$DBOPS_STATUSES" | cut -d / -f 1 | grep -q "^$CLUSTER$" \
-            || ! printf '%s' "$DBOPS_STATUSES" | grep -q "^$CLUSTER/$DBOPS_COMPLETED$"
+            || ! printf '%s' "$DBOPS_STATUSES" | grep -q "^$CLUSTER/.* $DBOPS_COMPLETED .*$"
           then
             echo "$CLUSTER"
           fi
@@ -100,7 +100,7 @@ update_status() {
     RESTARTED_CLUSTERS="$(echo "$CLUSTER_NAMES" | tr ' ' '\n' \
       | while read CLUSTER
         do
-          if printf '%s' "$DBOPS_STATUSES" | grep -q "^$CLUSTER/$DBOPS_COMPLETED$"
+          if printf '%s' "$DBOPS_STATUSES" | grep -q "^$CLUSTER/.* $DBOPS_COMPLETED .*$"
           then
             echo "$CLUSTER"
           fi

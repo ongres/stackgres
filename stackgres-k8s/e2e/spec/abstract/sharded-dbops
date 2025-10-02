@@ -2,9 +2,8 @@
 
 wait_dbops_is_completed() {
   local DBOPS_NAME="$1"
-  if wait_until eval 'kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-    --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
-    | grep -q "^Completed$"'
+  if wait_until kubectl wait --timeout 0s sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --for=condition=Completed > /dev/null
   then
     success "The dbops has completed"
   else
@@ -14,9 +13,8 @@ wait_dbops_is_completed() {
 
 wait_sharded_dbops_is_completed() {
   local SHARDED_DBOPS_NAME="$1"
-  if wait_until -t "$((E2E_TIMEOUT * 4))" eval 'kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
-    --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
-    | grep -q "^Completed$"'
+  if wait_until -t "$((E2E_TIMEOUT * 4))" kubectl wait --timeout 0s sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+    --for=condition=Completed > /dev/null
   then
     success "The sharded dbops has completed"
   else
