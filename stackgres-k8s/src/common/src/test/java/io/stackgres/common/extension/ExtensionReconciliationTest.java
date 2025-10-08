@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.extension.ExtensionManager.ExtensionInstaller;
+import io.stackgres.common.extension.ExtensionManager.ExtensionPuller;
 import io.stackgres.common.extension.ExtensionManager.ExtensionUninstaller;
 import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Assertions;
@@ -61,6 +62,9 @@ public class ExtensionReconciliationTest {
 
   @Mock
   private ExtensionInstaller extensionInstaller;
+
+  @Mock
+  private ExtensionPuller extensionPuller;
 
   @Mock
   private ExtensionUninstaller extensionUninstaller;
@@ -154,15 +158,11 @@ public class ExtensionReconciliationTest {
 
   @Test
   void testReconciliationWithExtension_installIsPerformed() throws Exception {
-    StackGresClusterInstalledExtension installedExtension = createInstalledExtension();
-    ExtensionReconciliatorContext context = getContext(cluster -> {
-      cluster.getSpec().getPostgres().setExtensions(null);
-      cluster.getSpec().setToInstallPostgresExtensions(new ArrayList<>());
-      cluster.getSpec().getToInstallPostgresExtensions().add(installedExtension);
-    });
     when(extensionManager.getExtensionInstaller(
         any(), any(StackGresClusterInstalledExtension.class)))
         .thenReturn(extensionInstaller);
+    when(extensionInstaller.getPuller())
+        .thenReturn(extensionPuller);
     when(extensionInstaller
         .isExtensionInstalled())
         .thenReturn(false)
@@ -170,6 +170,13 @@ public class ExtensionReconciliationTest {
     when(extensionInstaller
         .isExtensionPendingOverwrite())
         .thenReturn(false);
+    StackGresClusterInstalledExtension installedExtension = createInstalledExtension();
+    ExtensionReconciliatorContext context = getContext(cluster -> {
+      cluster.getSpec().getPostgres().setExtensions(null);
+      cluster.setStatus(new StackGresClusterStatus());
+      cluster.getStatus().setExtensions(new ArrayList<>());
+      cluster.getStatus().getExtensions().add(installedExtension);
+    });
     doNothing().when(eventEmitter).emitExtensionDeployed(installedExtension);
     Assertions.assertTrue(reconciliator.reconcile(null, context).result().get());
     Assertions.assertTrue(Optional.of(context.getCluster())
@@ -188,8 +195,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(2)).isExtensionInstalled();
     verify(extensionInstaller, times(1)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(1)).downloadAndExtract();
-    verify(extensionInstaller, times(1)).verify();
+    verify(extensionPuller, times(1)).downloadAndExtract();
+    verify(extensionPuller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(1)).createExtensionLinks();
     verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedFile();
@@ -233,8 +240,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(2)).isExtensionInstalled();
     verify(extensionInstaller, times(1)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
@@ -284,8 +291,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(2)).isExtensionInstalled();
     verify(extensionInstaller, times(1)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(1)).createExtensionLinks();
     verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
@@ -304,6 +311,8 @@ public class ExtensionReconciliationTest {
     when(extensionManager.getExtensionInstaller(
         any(), any(StackGresClusterInstalledExtension.class)))
         .thenReturn(extensionInstaller);
+    when(extensionInstaller.getPuller())
+        .thenReturn(extensionPuller);
     when(extensionInstaller
         .isExtensionInstalled())
         .thenReturn(false)
@@ -327,8 +336,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(1)).areLinksCreated();
     verify(extensionInstaller, times(0)).isExtensionPendingOverwrite();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(1)).downloadAndExtract();
-    verify(extensionInstaller, times(1)).verify();
+    verify(extensionPuller, times(1)).downloadAndExtract();
+    verify(extensionPuller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(1)).createExtensionLinks();
     verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
@@ -343,6 +352,8 @@ public class ExtensionReconciliationTest {
     when(extensionManager.getExtensionInstaller(
         any(), any(StackGresClusterInstalledExtension.class)))
         .thenReturn(extensionInstaller);
+    when(extensionInstaller.getPuller())
+        .thenReturn(extensionPuller);
     when(extensionInstaller
         .isExtensionInstalled())
         .thenReturn(false);
@@ -376,8 +387,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).areLinksCreated();
     verify(extensionInstaller, times(2)).isExtensionPendingOverwrite();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(1)).downloadAndExtract();
-    verify(extensionInstaller, times(1)).verify();
+    verify(extensionPuller, times(1)).downloadAndExtract();
+    verify(extensionPuller, times(1)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedFile();
@@ -405,6 +416,8 @@ public class ExtensionReconciliationTest {
     when(extensionManager.getExtensionInstaller(
         any(), any(StackGresClusterInstalledExtension.class)))
         .thenReturn(extensionInstaller);
+    when(extensionInstaller.getPuller())
+        .thenReturn(extensionPuller);
     when(extensionInstaller
         .isExtensionInstalled())
         .thenReturn(false);
@@ -428,8 +441,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).areLinksCreated();
     verify(extensionInstaller, times(0)).isExtensionPendingOverwrite();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(1)).downloadAndExtract();
-    verify(extensionInstaller, times(1)).verify();
+    verify(extensionPuller, times(1)).downloadAndExtract();
+    verify(extensionPuller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
@@ -481,8 +494,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).areLinksCreated();
     verify(extensionInstaller, times(1)).isExtensionPendingOverwrite();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
@@ -531,8 +544,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(2)).isExtensionInstalled();
     verify(extensionInstaller, times(1)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).createExtensionLinks();
@@ -544,6 +557,18 @@ public class ExtensionReconciliationTest {
   @Test
   void testReconciliationWithPreviousExtensionAlreadyInstalled_upgradeIsPerformed()
       throws Exception {
+    when(extensionManager.getExtensionInstaller(
+        any(), any(StackGresClusterInstalledExtension.class)))
+        .thenReturn(extensionInstaller);
+    when(extensionInstaller.getPuller())
+        .thenReturn(extensionPuller);
+    when(extensionInstaller
+        .isExtensionPendingOverwrite())
+        .thenReturn(false);
+    when(extensionInstaller
+        .isExtensionInstalled())
+        .thenReturn(false)
+        .thenReturn(true);
     StackGresClusterInstalledExtension previousInstalledExtension = createInstalledExtension();
     previousInstalledExtension.setVersion("1.7.0");
     StackGresClusterInstalledExtension installedExtension = createInstalledExtension();
@@ -559,16 +584,6 @@ public class ExtensionReconciliationTest {
       podStatus.getInstalledPostgresExtensions().add(previousInstalledExtension);
       cluster.getStatus().getPodStatuses().add(podStatus);
     });
-    when(extensionManager.getExtensionInstaller(
-        any(), any(StackGresClusterInstalledExtension.class)))
-        .thenReturn(extensionInstaller);
-    when(extensionInstaller
-        .isExtensionPendingOverwrite())
-        .thenReturn(false);
-    when(extensionInstaller
-        .isExtensionInstalled())
-        .thenReturn(false)
-        .thenReturn(true);
     doNothing().when(eventEmitter).emitExtensionChanged(previousInstalledExtension,
         installedExtension);
     Assertions.assertTrue(reconciliator.reconcile(null, context).result().get());
@@ -588,8 +603,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(2)).isExtensionInstalled();
     verify(extensionInstaller, times(1)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(1)).downloadAndExtract();
-    verify(extensionInstaller, times(1)).verify();
+    verify(extensionPuller, times(1)).downloadAndExtract();
+    verify(extensionPuller, times(1)).verify();
     verify(extensionInstaller, times(1)).installExtension();
     verify(extensionInstaller, times(1)).createExtensionLinks();
     verify(extensionInstaller, times(1)).doesInstallOverwriteAnySharedFile();
@@ -636,8 +651,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).isExtensionInstalled();
     verify(extensionInstaller, times(0)).areLinksCreated();
     verify(extensionUninstaller, times(1)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).createExtensionLinks();
@@ -678,8 +693,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).isExtensionInstalled();
     verify(extensionInstaller, times(0)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).createExtensionLinks();
@@ -710,8 +725,8 @@ public class ExtensionReconciliationTest {
     verify(extensionInstaller, times(0)).isExtensionInstalled();
     verify(extensionInstaller, times(0)).areLinksCreated();
     verify(extensionUninstaller, times(0)).isExtensionInstalled();
-    verify(extensionInstaller, times(0)).downloadAndExtract();
-    verify(extensionInstaller, times(0)).verify();
+    verify(extensionPuller, times(0)).downloadAndExtract();
+    verify(extensionPuller, times(0)).verify();
     verify(extensionInstaller, times(0)).installExtension();
     verify(extensionInstaller, times(0)).createExtensionLinks();
     verify(extensionInstaller, times(0)).doesInstallOverwriteAnySharedFile();
