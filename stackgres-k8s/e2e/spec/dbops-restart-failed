@@ -29,6 +29,8 @@ check_restart_cluster_fail() {
       fail "sgpgconfig has not been updated."
   fi
 
+  kubectl wait --timeout="$E2E_TIMEOUT"s sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for=condition=PendingRestart
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps

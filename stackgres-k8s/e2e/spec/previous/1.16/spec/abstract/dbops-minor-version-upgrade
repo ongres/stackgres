@@ -33,16 +33,16 @@ reset_cluster() {
   wait_until check_mock_data_replication "$CLUSTER_NAME"
 
   if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p "$(cat << EOF
+    --dry-run=server -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/postgres/version","value":"$E2E_MINOR_TARGET_POSTGRES_VERSION"}
 ]
 EOF
         )" >/dev/null 2>&1
   then
-    fail "Changed SGCluster postgres version directly."
+    success "Can change SGCluster postgres version directly."
   else
-    success "Could not change SGCluster postgres version directly."
+    fail "Can not change SGCluster postgres version directly."
   fi
 }
 

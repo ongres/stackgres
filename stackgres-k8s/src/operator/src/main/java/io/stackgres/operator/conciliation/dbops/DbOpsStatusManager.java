@@ -122,8 +122,7 @@ public class DbOpsStatusManager
     }
     if (DbOpsUtil.isTimeoutExpired(source, now)) {
       updateCondition(getFalseRunning(), source);
-      updateCondition(getFalseRestartCompleted(), source);
-      updateCondition(getFalseCompleted(), source);
+      updateCondition(getCompleted(), source);
       updateCondition(getFailedDueToTimeoutFailure(), source);
       return;
     }
@@ -162,7 +161,7 @@ public class DbOpsStatusManager
       source.setStatus(new StackGresDbOpsStatus());
     }
     if (primaryIsReadyAndUpdated
-        && cluster.getSpec().getInstances() == podsReadyAndUpdated.size()) {
+        && pods.size() == podsReadyAndUpdated.size()) {
       updateCondition(getRolloutCompleted(), source);
       if (Optional.ofNullable(cluster.getMetadata().getAnnotations())
           .map(Map::entrySet)

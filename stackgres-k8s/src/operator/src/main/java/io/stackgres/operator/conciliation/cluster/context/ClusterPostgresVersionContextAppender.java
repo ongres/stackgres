@@ -121,15 +121,15 @@ public class ClusterPostgresVersionContextAppender
           .append(Map.entry(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString()))
           .toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-    String givenVersion = previousVersion.filter(version -> !isRolloutAllowed)
+    String postgresVersion = previousVersion.filter(version -> !isRolloutAllowed)
         .orElseGet(() -> Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPostgres)
             .map(StackGresClusterPostgres::getVersion)
             .orElse(StackGresComponent.LATEST));
 
-    if (!isPostgresVersionSupported(cluster, givenVersion)) {
+    if (!isPostgresVersionSupported(cluster, postgresVersion)) {
       throw new IllegalArgumentException(
-          "Unsupported postgres version " + givenVersion
+          "Unsupported postgres version " + postgresVersion
           + ".  Supported postgres versions are: "
           + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
               .get(StackGresVersion.getStackGresVersion(cluster)))
@@ -138,10 +138,10 @@ public class ClusterPostgresVersionContextAppender
 
     String version = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getVersion(givenVersion);
+        .getVersion(postgresVersion);
     String buildVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
-        .getBuildVersion(givenVersion);
+        .getBuildVersion(postgresVersion);
 
     if (BUGGY_PG_VERSIONS.keySet().contains(version)) {
       throw new IllegalArgumentException(
@@ -207,9 +207,15 @@ public class ClusterPostgresVersionContextAppender
   }
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {
-    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
+    if (version.contains(".")) {
+      return supportedPostgresVersions
+        .get(getPostgresFlavorComponent(cluster))
+        .get(StackGresVersion.getStackGresVersion(cluster)).contains(version);
+    }
+    return getPostgresFlavorComponent(cluster)
         .get(StackGresVersion.getStackGresVersion(cluster))
-        .contains(version);
+        .filter(component -> component.findVersion(version).isPresent())
+        .isPresent();
   }
 
 }

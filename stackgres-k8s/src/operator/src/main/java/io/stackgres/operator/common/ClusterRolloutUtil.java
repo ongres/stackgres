@@ -50,6 +50,8 @@ public class ClusterRolloutUtil {
   private static final CronParser CRON_PARSER =
       new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
 
+  public static final String DBOPS_NOT_FOUND_NAME = "__DBOPS_NOT_FOUND__";
+
   public static boolean isRolloutAllowed(StackGresCluster cluster) {
     final Map<String, String> annotations = Optional
         .ofNullable(cluster.getMetadata().getAnnotations())

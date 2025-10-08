@@ -372,7 +372,7 @@ check_cluster_restart() {
     --template '{{ .metadata.annotations.leader }}')"
   PRIMARY_INSTANCE="${PRIMARY_INSTANCE#$CLUSTER_NAME-}"
 
-  check_mock_data_samehost "$CLUSTER_NAME" "$PRIMARY_INSTANCE"
+  wait_until check_mock_data_samehost "$CLUSTER_NAME" "$PRIMARY_INSTANCE"
 }
 
 check_cluster_after_restart() {

@@ -27,6 +27,7 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.common.ClusterPatchResumer;
+import io.stackgres.operator.common.ClusterRolloutUtil;
 import io.stackgres.operator.common.Metrics;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -131,7 +132,8 @@ public class ClusterReconciliator
                       || Optional.ofNullable(config.getStatus())
                       .map(StackGresClusterStatus::getDbOps)
                       .map(StackGresClusterDbOpsStatus::getName)
-                      .isPresent()))
+                      .map(name -> !ClusterRolloutUtil.DBOPS_NOT_FOUND_NAME.equals(name))
+                      .orElse(true)))
               .append(Optional.ofNullable(config.getMetadata().getAnnotations())
                   .map(Map::entrySet)
                   .stream()

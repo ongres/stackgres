@@ -73,10 +73,10 @@ test_yamls() {
   grep -qF "imagePullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
   if [ "$IMAGE_TAG" != "$ADMINUI_IMAGE_TAG" ]
   then
-    grep -o -i "\"tag\":\"$IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 3
+    grep -o -i "\"tag\":\"$IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 2
     grep -o -i "\"tag\":\"$ADMINUI_IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 1
   else
-    grep -o -i "\"tag\":\"$IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 4
+    grep -o -i "\"tag\":\"$IMAGE_TAG\"" "${LOG_PATH}/stackgres-operator-demo.yml" | wc -l | grep -qxF 3
   fi
   grep -qF "\"pullPolicy\":\"$E2E_OPERATOR_PULL_POLICY\"" "${LOG_PATH}/stackgres-operator-demo.yml"
   if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"

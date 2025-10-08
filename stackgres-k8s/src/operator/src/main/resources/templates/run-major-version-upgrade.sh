@@ -16,6 +16,7 @@ run_op() {
   until {
     CLUSTER="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.status.postgresVersion = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.extensions = '"$TARGET_EXTENSIONS")"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "async"')"
@@ -23,13 +24,9 @@ run_op() {
     if [ -n "$TARGET_BACKUP_PATH" ]
     then
       CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '
-          if .spec.configurations.sgBackupConfig != null
-          then .spec.configurations.backupPath = "'"$TARGET_BACKUP_PATH"'"
-          else
-            if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
-            then .spec.configurations.backups[0].path = "'"$TARGET_BACKUP_PATH"'"
-            else .
-            end
+          if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
+          then .spec.configurations.backups[0].path = "'"$TARGET_BACKUP_PATH"'"
+          else .
           end')"
     fi
     PATCH_OUTPUT="$(kubectl patch --dry-run "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$CLUSTER" 2>&1)"
@@ -51,19 +48,29 @@ run_op() {
     if [ "x$PRIMARY_INSTANCE" = "x" ] \
       || ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o name > /dev/null
     then
-      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance $PRIMARY_INSTANCE not found!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance $PRIMARY_INSTANCE not found" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       return 1
     fi
     echo "Found primary instance $PRIMARY_INSTANCE"
     echo
     SOURCE_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template='{{ .spec.postgres.version }}')"
+      --template='{{ .status.postgresVersion }}')"
+    if [ "$SOURCE_VERSION" = '<no value>' ]
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not retrieve the Postgres version" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      return 1
+    fi
     SOURCE_EXTENSIONS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
       | jq '.spec.postgres.extensions')"
     SOURCE_POSTGRES_CONFIG="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .spec.configurations.sgPostgresConfig }}')"
     SOURCE_BACKUP_PATH="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template='{{ if .spec.configurations.backups }}{{ (index .spec.configurations.backups 0).path }}{{ else }}{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ end }}{{ end }}')"
+      --template='{{ if .status }}{{ if .status.backupPaths }}{{ index .status.backupPaths 0 }}{{ end }}{{ end }}')"
+    if [ "$SOURCE_BACKUP_PATH" = '<no value>' ]
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not retrieve the backup path" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      return 1
+    fi
     SOURCE_REPLICATION_MODE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ .spec.replication.mode }}')"
     LOCALE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
@@ -153,14 +160,14 @@ EOF
     INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
     if [ "x$INITIAL_INSTANCES" = "x" ]
     then
-      echo "FAILURE=$NORMALIZED_OP_NAME failed. Initial instances was not set!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Initial instances was not set" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       return 1
     fi
     PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ with .status.dbOps.majorVersionUpgrade.primaryInstance }}{{ . }}{{ end }}')"
     if [ "x$PRIMARY_INSTANCE" = "x" ]
     then
-      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance was not set!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance was not set" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       return 1
     fi
 
@@ -262,18 +269,16 @@ EOF
   until {
     CLUSTER="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.status.postgresVersion = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.extensions = '"$TARGET_EXTENSIONS")"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.status.backupPaths = []')"
     if [ -n "$TARGET_BACKUP_PATH" ]
     then
       CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '
-          if .spec.configurations.sgBackupConfig != null
-          then .spec.configurations.backupPath = "'"$TARGET_BACKUP_PATH"'"
-          else
-            if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
-            then .spec.configurations.backups[0].path = "'"$TARGET_BACKUP_PATH"'"
-            else .
-            end
+          if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
+          then .spec.configurations.backups[0].path = "'"$TARGET_BACKUP_PATH"'"
+          else .
           end')"
     fi
     REPLACE_OUTPUT="$(printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f - 2>&1)"
@@ -619,20 +624,21 @@ rollback_major_version_upgrade() {
   until {
     CLUSTER="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.version = "'"$SOURCE_VERSION"'"')"
+    CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.status.postgresVersion = "'"$SOURCE_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.postgres.extensions = '"$SOURCE_EXTENSIONS")"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.configurations.sgPostgresConfig = "'"$SOURCE_POSTGRES_CONFIG"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.spec.replication.mode = "async"')"
-    if [ -n "$SOURCE_BACKUP_PATH" ]
+    if [ -n "$TARGET_BACKUP_PATH" ]
     then
       CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '
-          if .spec.configurations.sgBackupConfig != null
-          then .spec.configurations.backupPath = "'"$SOURCE_BACKUP_PATH"'"
-          else
-            if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
-            then .spec.configurations.backups[0].path = "'"$SOURCE_BACKUP_PATH"'"
-            else .
-            end
+          if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
+          then .spec.configurations.backups[0].path = null
+          else .
           end')"
+    fi
+    if [ -n "$SOURCE_BACKUP_PATH" ]
+    then
+      CLUSTER="$(printf '%s' "$CLUSTER" | jq -c '.status.backupPaths = ["'"$SOURCE_BACKUP_PATH"'"]')"
     fi
     printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
     }
