@@ -4364,9 +4364,11 @@
                     };
                     
                     await sgApi
-                    .create('sgdistributedlogs', sgdistributedlog)
+                    .create('sgdistributedlogs', sgdistributedlog, vc.dryRun)
                     .then(function (response) {
-                        vc.distributedLogs = name;
+                        if (!vc.dryRun) {
+                          vc.distributedLogs = name;
+                        }
                     })
                     .catch(function (error) {
                         console.log(error.response);
@@ -4388,10 +4390,12 @@
                     };
                     
                     await sgApi
-                    .create('sgpgconfigs', sgpgconfig)
+                    .create('sgpgconfigs', sgpgconfig, vc.dryRun)
                     .then(function (response) {
-                        vc.pgConfig = name;
-                        vc.fetchAPI('sgpgconfigs');
+                        if (!vc.dryRun) {
+                          vc.pgConfig = name;
+                          vc.fetchAPI('sgpgconfigs');
+                        }
                     })
                     .catch(function (error) {
                         console.log(error.response);
@@ -4414,10 +4418,12 @@
                     };
                     
                     await sgApi
-                    .create('sgpoolconfigs', sgpoolingconfig)
+                    .create('sgpoolconfigs', sgpoolingconfig, vc.dryRun)
                     .then(function (response) {
-                        vc.connectionPoolingConfig = name;
-                        vc.fetchAPI('sgpoolconfigs');
+                        if (!vc.dryRun) {
+                          vc.connectionPoolingConfig = name;
+                          vc.fetchAPI('sgpoolconfigs');
+                        }
                     })
                     .catch(function (error) {
                         console.log(error.response);
