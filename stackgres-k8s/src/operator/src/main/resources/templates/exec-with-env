@@ -53,32 +53,34 @@ do
   *)
     if echo "$1" | grep -q "^/"
     then
-      plain_envdir="$1"
-      secret_envdir=""
-      [ -d "$plain_envdir" ] \
-        || die "$plain_envdir is not a directory"
+      PLAIN_ENVDIR="$1"
+      SECRET_ENVDIR=""
+      [ -d "$PLAIN_ENVDIR" ] \
+        || die "$PLAIN_ENVDIR is not a directory"
     else
-      secret_envdir="${BASE_SECRET_PATH}/$1"
-      plain_envdir="${BASE_ENV_PATH}/$1"
-      [ -d "$plain_envdir" -o -d "$secret_envdir" ] \
-        || die "None of $plain_envdir or $secret_envdir is a directory"
+      SECRET_ENVDIR="${BASE_SECRET_PATH}/$1"
+      PLAIN_ENVDIR="${BASE_ENV_PATH}/$1"
+      [ -d "$PLAIN_ENVDIR" -o -d "$SECRET_ENVDIR" ] \
+        || die "None of $PLAIN_ENVDIR or $SECRET_ENVDIR is a directory"
     fi
     shift
-    for envdir in "$plain_envdir" "$secret_envdir"
+    for ENVDIR in "$PLAIN_ENVDIR" "$SECRET_ENVDIR"
     do
-      [ -d "$envdir" ] || continue
+      [ -d "$ENVDIR" ] || continue
       # When md5sum of key and values of environment variables ordered alphabetically (excluding variable
       # MD5SUM_2) does not match value of variable MD5SUM_2 we fail since in transition state
-      [ "$(ls -1a "$envdir" | grep -v "^MD5SUM" \
-        | while read envvar; do [ ! -f "$envdir/$envvar" ] || { printf %s= "$envvar"; cat "$envdir/$envvar"; }; done \
-        | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')" = "$(cat "$envdir/MD5SUM_2")" ] \
+      [ "$(ls -1a "$ENVDIR" | grep -v "^MD5SUM" \
+        | while read ENVVAR; do [ ! -f "$ENVDIR/$ENVVAR" ] || { printf %s= "$ENVVAR"; cat "$ENVDIR/$ENVVAR"; }; done \
+        | md5sum | cut -d ' ' -f 1 | tr 'a-z' 'A-Z')" = "$(cat "$ENVDIR/MD5SUM_2")" ] \
         || die "Environment variable in transient state"
-      for envvar in $(ls -1a "$envdir")
+      for ENVVAR in $(ls -1a "$ENVDIR")
       do
-        # Only export if "$envdir/$envvar" is a file
-        # and environment variable with name $envvar is not set
-        [ ! -f "$envdir/$envvar" ] || [ "$OVERWRITE" != "true" -a -n "$(eval "echo \"\$$envvar\"")" ] \
-          || eval "export $envvar='$(cat "$envdir/$envvar")'"
+        # Only export if "$ENVDIR/$ENVVAR" is a file and name is one of a variable
+        # and environment variable with name $ENVVAR is not set
+        [ ! -f "$ENVDIR/$ENVVAR" ] \
+          || ! printf %s "$ENVVAR" | grep -q '^[a-zA-Z][a-zA-Z0-9_]*$' \
+          || [ "$OVERWRITE" != "true" -a -n "$(eval "echo \"\$$ENVVAR\"")" ] \
+          || eval "export $ENVVAR='$(cat "$ENVDIR/$ENVVAR")'"
       done
     done
     ;;
