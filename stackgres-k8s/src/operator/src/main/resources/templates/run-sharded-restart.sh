@@ -61,7 +61,7 @@ EOF
         fi
         printf %s "$DBOPS_NAME" >> /tmp/completed-dbops
         update_status
-        if printf %s "$DBOPS_STATUS" | grep -q "^$DBOPS_FAILED$"
+        if printf %s "$DBOPS_STATUS" | grep -q " $DBOPS_FAILED "
         then
           echo "...$DBOPS_NAME failed"
           echo "FAILURE=$NORMALIZED_OP_NAME failed. SGDbOps $DBOPS_NAME failed" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"

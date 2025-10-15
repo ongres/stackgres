@@ -143,7 +143,7 @@ public class DbOpsStatusManager
     }
     List<Pod> pods = podScanner
         .getResourcesInNamespaceWithLabels(
-            source.getMetadata().getNamespace(), labelFactory.patroniClusterLabels(cluster));
+            source.getMetadata().getNamespace(), labelFactory.clusterLabels(cluster));
     List<PatroniMember> patroniMembers = patroniCtl.instanceFor(cluster).list();
     boolean primaryIsReadyAndUpdated = pods.stream()
         .filter(ClusterRolloutUtil::isPodReady)
