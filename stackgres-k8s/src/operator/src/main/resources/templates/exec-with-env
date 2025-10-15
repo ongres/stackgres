@@ -1,6 +1,8 @@
 #!/bin/sh
 
-LC_ALL=C.UTF-8; export LC_ALL
+_LC_ALL="$LC_ALL"
+LC_ALL=C.UTF-8;
+export LC_ALL
 
 set -e
 
@@ -77,10 +79,16 @@ do
       do
         # Only export if "$ENVDIR/$ENVVAR" is a file and name is one of a variable
         # and environment variable with name $ENVVAR is not set
-        [ ! -f "$ENVDIR/$ENVVAR" ] \
-          || ! printf %s "$ENVVAR" | grep -q '^[a-zA-Z][a-zA-Z0-9_]*$' \
-          || [ "$OVERWRITE" != "true" -a -n "$(eval "echo \"\$$ENVVAR\"")" ] \
-          || eval "export $ENVVAR='$(cat "$ENVDIR/$ENVVAR")'"
+        if ! {
+          [ ! -f "$ENVDIR/$ENVVAR" ] \
+            || ! printf %s "$ENVVAR" | grep -q '^[a-zA-Z][a-zA-Z0-9_]*$' \
+            || [ "$OVERWRITE" != "true" -a -n "$(eval "echo \"\$$ENVVAR\"")" ] \
+            || eval "export $ENVVAR='$(cat "$ENVDIR/$ENVVAR")'"
+          }
+        then
+          echo "An error occurred while exporting environment variable $ENVVAR" >&2
+          exit 1
+        fi
       done
     done
     ;;
@@ -95,7 +103,7 @@ then
   done
 fi
 
-unset LC_ALL
+LC_ALL="$_LC_ALL"
 
 if [ -n "$1" ]
 then
