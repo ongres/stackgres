@@ -8,18 +8,19 @@ do
     continue
   fi
 
+  echo "Looking for $IMAGE..."
   TAG="${IMAGE##*:}"
   NEW_TAG="$(crane ls "${IMAGE%:*}" \
-    | grep "^${TAG%-*}.*[0-9]$" \
+    | grep "^[0-9]\+\([^0-9]\+[0-9]\+\)*$" \
     | while read LINE
       do
         printf '%s ' "$LINE"
         printf %s "$LINE" | sed 's/[^0-9]\+/ /g'
         printf '\n'
       done \
-    | while read V V1 V2 V3 V4
+    | while read V V1 V2 V3 V4 V5 V6 OTHERS
       do
-        printf '%016d%016d%016d%016d %s\n' "$V1" "$V2" "$V3" "$V4" "$V"
+        printf '%016d%016d%016d%016d%016d%016d %s\n' "${V1:-0}" "${V2:-0}" "${V3:-0}" "${V4:-0}" "${V5:-0}" "${V6:-0}" "$V"
       done \
     | sort -k 1 \
     | cut -d ' ' -f 2 \
