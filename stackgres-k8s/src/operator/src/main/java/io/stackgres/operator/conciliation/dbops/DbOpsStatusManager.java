@@ -152,6 +152,12 @@ public class DbOpsStatusManager
         .anyMatch(pod -> patroniMembers.stream()
             .anyMatch(patroniMember -> patroniMember.getMember().equals(pod.getMetadata().getName())
                 && patroniMember.isPrimary()));
+    boolean primaryIsExternal = patroniMembers.stream()
+        .filter(PatroniMember::isPrimary)
+        .anyMatch(patroniMember -> pods.stream()
+            .map(HasMetadata::getMetadata)
+            .map(ObjectMeta::getName)
+            .noneMatch(patroniMember.getMember()::equals));
     List<Pod> podsReadyAndUpdated = pods.stream()
         .filter(ClusterRolloutUtil::isPodReady)
         .filter(pod -> !ClusterRolloutUtil.getRestartReasons(
@@ -160,7 +166,7 @@ public class DbOpsStatusManager
     if (source.getStatus() == null) {
       source.setStatus(new StackGresDbOpsStatus());
     }
-    if (primaryIsReadyAndUpdated
+    if ((primaryIsReadyAndUpdated || primaryIsExternal)
         && pods.size() == podsReadyAndUpdated.size()) {
       updateCondition(getRolloutCompleted(), source);
       if (Optional.ofNullable(cluster.getMetadata().getAnnotations())
@@ -232,22 +238,22 @@ public class DbOpsStatusManager
         .map(pod -> pod.getMetadata().getName())
         .toList();
     final Supplier<String> switchoverInitiated = () -> Optional.ofNullable(primaryInstance)
-        .flatMap(ignored -> endpointsFinder
-            .findByNameAndNamespace(PatroniUtil.failoverName(cluster), source.getMetadata().getNamespace()))
-        .map(HasMetadata::getMetadata)
-        .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get("leader"))
-        .filter(primaryInstance::equals)
-        .map(ignored -> now.toString())
+        .flatMap(primary -> endpointsFinder
+            .findByNameAndNamespace(PatroniUtil.failoverName(cluster), source.getMetadata().getNamespace())
+            .map(HasMetadata::getMetadata)
+            .map(ObjectMeta::getAnnotations)
+            .map(annotations -> annotations.get("leader"))
+            .filter(primary::equals)
+            .map(ignored -> now.toString()))
         .orElse(null);
     final Supplier<String> switchoverFinalized = () -> Optional.ofNullable(primaryInstance)
-        .flatMap(ignored -> endpointsFinder
-            .findByNameAndNamespace(PatroniUtil.failoverName(cluster), source.getMetadata().getNamespace()))
-        .map(HasMetadata::getMetadata)
-        .map(ObjectMeta::getAnnotations)
-        .map(annotations -> Optional.ofNullable(annotations.get("leader")).orElse("none"))
-        .filter(Predicate.not(primaryInstance::equals))
-        .map(ignored -> now.toString())
+        .flatMap(primary -> endpointsFinder
+            .findByNameAndNamespace(PatroniUtil.failoverName(cluster), source.getMetadata().getNamespace())
+            .map(HasMetadata::getMetadata)
+            .map(ObjectMeta::getAnnotations)
+            .map(annotations -> Optional.ofNullable(annotations.get("leader")).orElse("none"))
+            .filter(Predicate.not(primary::equals))
+            .map(ignored -> now.toString()))
         .orElse(null);
     final DbOpsRestartStatus restartStatus;
     if ("restart".equals(source.getSpec().getOp())) {

@@ -419,13 +419,13 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             return 0;
           }
         });
-    final Optional<Pod> otherLeastLagPodAndReady = otherPods
+    final Optional<Pod> otherLeastLagPodAndReady = leastLagPatroniMemberAndReady
         .stream()
-        .filter(ClusterRolloutUtil::isPodReady)
-        .filter(pod -> leastLagPatroniMemberAndReady
-            .filter(member -> member.getMember().equals(pod.getMetadata().getName()))
-            .isPresent())
-        .findAny();
+        .flatMap(member -> otherPods
+            .stream()
+            .filter(ClusterRolloutUtil::isPodReady)
+            .filter(pod -> member.getMember().equals(pod.getMetadata().getName())))
+        .findFirst();
     if (foundPrimaryPodAndPendingRestart.isPresent()
         && otherLeastLagPodAndReady.isPresent()) {
       if (LOGGER.isDebugEnabled()) {

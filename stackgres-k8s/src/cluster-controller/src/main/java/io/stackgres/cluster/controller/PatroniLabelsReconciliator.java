@@ -50,6 +50,12 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
       PatroniUtil.NOSYNC_TAG,
       PatroniUtil.REPLICATEFROM_TAG);
 
+  private static final List<String> PATRONI_FLAG_LABELS = List.of(
+      PatroniUtil.NOLOADBALANCE_TAG,
+      PatroniUtil.NOFAILOVER_TAG,
+      PatroniUtil.NOSTREAM_TAG,
+      PatroniUtil.NOSYNC_TAG);
+
   private final String podName;
   private final PatroniCtl patroniCtl;
   private final ResourceFinder<Pod> podFinder;
@@ -113,7 +119,14 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
               .stream()
               .flatMap(Set::stream))
           .filter(label -> !PATRONI_LABELS.contains(label.getKey()))
-          .append(patroniLabels.entrySet())
+          .append(patroniLabels.entrySet().stream()
+              .filter(entry -> !PATRONI_FLAG_LABELS.contains(entry.getKey())))
+          .append(PATRONI_FLAG_LABELS
+              .stream()
+              .flatMap(tag -> Optional.ofNullable(patroniLabels.get(tag))
+                  .flatMap(label -> Optional.<Map.Entry<String, String>>empty())
+                  .or(() -> Optional.of(Map.entry(tag, PatroniUtil.FALSE_TAG_VALUE)))
+                  .stream()))
           .toMap(Map.Entry::getKey, Map.Entry::getValue));
       if (!Objects.equals(currentLabels, currentPod.getMetadata().getLabels())) {
         patroniLabelsUpdated.set(true);
