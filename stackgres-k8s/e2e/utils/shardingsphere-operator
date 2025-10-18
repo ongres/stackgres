@@ -29,6 +29,7 @@ install_shardingsphere_operator() {
     --namespace "$(shardingsphere_namespace)" \
     --set operator.featureGates.computeNode=true \
     --set proxyCluster.enabled=false \
+    --set-string zookeeper.image.repository=bitnamilegacy/zookeeper \
     "$@"
   kubectl delete clusterrole shardingsphere-operator-for-stackgres --ignore-not-found
   kubectl delete clusterrolebinding shardingsphere-operator-for-stackgres --ignore-not-found

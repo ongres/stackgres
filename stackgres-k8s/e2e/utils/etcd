@@ -27,6 +27,7 @@ install_etcd() {
     --create-namespace \
     --namespace "$(etcd_namespace)" \
     --set-string auth.rbac.rootPassword=test \
+    --set-string image.repository=bitnamilegacy/etcd \
     "$@"
 
   wait_pods_running "$(etcd_namespace)" 1

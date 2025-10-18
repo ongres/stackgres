@@ -1,13 +1,11 @@
 #!/bin/sh
 
 wait_certificate_approval() {
-  while true
-  do
-    CRS_STATUS="$(kubectl get csr stackgres-operator -o jsonpath='{.status.conditions[0].type}')"
-    if [ "$CRS_STATUS" = "Approved" ]; then
-      break;
-    fi
-    sleep 1
-  done
-  echo "Certificate approved"
+  if kubectl wait --timeout="$E2E_TIMEOUT"s csr stackgres-operator --for=condition=Approved
+  then
+    echo "Certificate approved"
+  else
+    echo "Timeout while waiting for certificate approval"
+    return 1
+  fi
 }
