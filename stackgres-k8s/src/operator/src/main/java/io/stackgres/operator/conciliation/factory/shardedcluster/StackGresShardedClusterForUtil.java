@@ -34,6 +34,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporterQueries;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackupBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitrBuilder;
@@ -202,6 +206,35 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     setMetadata(cluster, spec, index);
     setInitialData(cluster, spec, index);
     setManagedSql(cluster, spec, index);
+    if (cluster.getSpec().getReplicateFrom() != null) {
+      spec.setReplicateFrom(new StackGresClusterReplicateFrom());
+      if (cluster.getSpec().getReplicateFrom().getInstance() != null) {
+        spec.getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+        if (cluster.getSpec().getReplicateFrom().getInstance().getExternal() != null) {
+          spec.getReplicateFrom().getInstance().setExternal(new StackGresClusterReplicateFromExternal());
+          spec.getReplicateFrom().getInstance().getExternal().setHost(
+              cluster.getSpec().getReplicateFrom().getInstance().getExternal().getHosts().get(index));
+          spec.getReplicateFrom().getInstance().getExternal().setPort(
+              cluster.getSpec().getReplicateFrom().getInstance().getExternal().getPorts().get(index));
+        }
+        if (cluster.getSpec().getReplicateFrom().getInstance().getSgShardedCluster() != null) {
+          spec.getReplicateFrom().getInstance().setSgCluster(
+              StackGresShardedClusterUtil.getClusterName(
+                  cluster.getSpec().getReplicateFrom().getInstance().getSgShardedCluster(),
+                  index));
+        }
+      }
+      if (cluster.getSpec().getReplicateFrom().getStorage() != null) {
+        spec.getReplicateFrom().setStorage(new StackGresClusterReplicateFromStorage());
+        spec.getReplicateFrom().getStorage().setPerformance(
+            cluster.getSpec().getReplicateFrom().getStorage().getPerformance());
+        spec.getReplicateFrom().getStorage().setSgObjectStorage(
+            cluster.getSpec().getReplicateFrom().getStorage().getSgObjectStorage());
+        spec.getReplicateFrom().getStorage().setPath(
+            cluster.getSpec().getReplicateFrom().getStorage().getPaths().get(index));
+      }
+      spec.getReplicateFrom().setUsers(cluster.getSpec().getReplicateFrom().getUsers());
+    }
     spec.setDistributedLogs(cluster.getSpec().getDistributedLogs());
     spec.setNonProductionOptions(cluster.getSpec().getNonProductionOptions());
   }

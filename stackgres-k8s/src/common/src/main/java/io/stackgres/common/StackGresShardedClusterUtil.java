@@ -15,10 +15,14 @@ public interface StackGresShardedClusterUtil {
   int LAST_RESERVER_SCRIPT_ID = 9;
 
   static String getClusterName(StackGresShardedCluster cluster, int index) {
+    return getClusterName(cluster.getMetadata().getName(), index);
+  }
+
+  static String getClusterName(String name, int index) {
     if (index == 0) {
-      return getCoordinatorClusterName(cluster);
+      return getCoordinatorClusterName(name);
     }
-    return getShardClusterName(cluster, index - 1);
+    return getShardClusterName(name, index - 1);
   }
 
   static String getCoordinatorClusterName(StackGresShardedCluster cluster) {
@@ -30,11 +34,19 @@ public interface StackGresShardedClusterUtil {
   }
 
   static String getShardClusterName(StackGresShardedCluster cluster, int shardIndex) {
-    return getShardClusterName(cluster, String.valueOf(shardIndex));
+    return getShardClusterName(cluster.getMetadata().getName(), shardIndex);
   }
 
   static String getShardClusterName(StackGresShardedCluster cluster, String shardIndex) {
-    return cluster.getMetadata().getName() + "-shard" + shardIndex;
+    return getShardClusterName(cluster.getMetadata().getName(), shardIndex);
+  }
+
+  static String getShardClusterName(String name, int shardIndex) {
+    return getShardClusterName(name, String.valueOf(shardIndex));
+  }
+
+  static String getShardClusterName(String name, String shardIndex) {
+    return name + "-shard" + shardIndex;
   }
 
   static String coordinatorConfigName(StackGresShardedCluster cluster) {

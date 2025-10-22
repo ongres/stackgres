@@ -135,22 +135,6 @@ class ShardedClusterConstraintValidatorTest
   }
 
   @Test
-  void givenNullBackupPathsOnBackups_shouldFail() {
-    StackGresShardedClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec()
-        .setConfigurations(new StackGresShardedClusterConfigurations());
-    review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getConfigurations().getBackups()
-        .add(new StackGresShardedClusterBackupConfiguration());
-    review.getRequest().getObject().getSpec().getConfigurations().getBackups().get(0)
-        .setSgObjectStorage("test");
-
-    checkErrorCause(StackGresShardedClusterBackupConfiguration.class,
-        "spec.configurations.backups[0].paths",
-        review, NotNull.class, "must not be null");
-  }
-
-  @Test
   void givenNullObjectStorageOnBackups_shouldFail() {
     StackGresShardedClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec()

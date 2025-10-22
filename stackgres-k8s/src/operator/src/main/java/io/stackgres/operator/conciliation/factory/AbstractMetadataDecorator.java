@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,6 +100,19 @@ public abstract class AbstractMetadataDecorator<T> implements Decorator<T> {
               .orElseGet(ObjectMeta::new);
           podTemplate.setMetadata(podTemplateMetadata);
           decorateResourceMetadata(podTemplateMetadata, context);
+        });
+
+    Optional
+        .ofNullable(sts.getSpec())
+        .map(StatefulSetSpec::getVolumeClaimTemplates)
+        .stream()
+        .flatMap(List::stream)
+        .forEach(pvcTemplate -> {
+          final ObjectMeta pvcTemplateMetadata = Optional
+              .ofNullable(pvcTemplate.getMetadata())
+              .orElseGet(ObjectMeta::new);
+          pvcTemplate.setMetadata(pvcTemplateMetadata);
+          decorateResourceMetadata(pvcTemplateMetadata, context);
         });
 
     decorateResourceMetadata(sts.getMetadata(), context);

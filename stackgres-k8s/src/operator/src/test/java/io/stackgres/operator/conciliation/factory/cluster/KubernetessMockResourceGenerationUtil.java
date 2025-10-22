@@ -94,6 +94,8 @@ public class KubernetessMockResourceGenerationUtil {
             .withReplicas(2)
             .withTemplate(
                 new PodTemplateSpecBuilder()
+                    .withNewMetadata()
+                    .endMetadata()
                     .withNewSpec()
                     .addNewContainer()
                     .withName(StackGresContainer.PATRONI.getName())

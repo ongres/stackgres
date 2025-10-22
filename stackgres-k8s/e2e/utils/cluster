@@ -283,9 +283,9 @@ create_or_replace_sharded_cluster() {
     -f "$SPEC_VALUES_FILE" \
     --set-string cluster.postgres.version="$E2E_POSTGRES_VERSION" \
     $(
-    if ! printf %s " $* " | tr -s '\n' ' ' | grep -qF ' --set credentials=null '
+    if ! printf %s " $* " | tr -s '\n' ' ' | grep -qF ' --set cluster.configurations.credentials=null '
     then
-      printf '%s %s' --set-string credentials.users.superuser.username="${E2E_SUPERUSER_USERNAME:-postgres}"
+      printf '%s %s' --set-string cluster.configurations.credentials.users.superuser.username="${E2E_SUPERUSER_USERNAME:-postgres}"
     fi
     ) \
     "$@"

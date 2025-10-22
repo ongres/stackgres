@@ -1040,6 +1040,316 @@ spec:
                         description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
                           type: string
+              replicateFrom:
+                type: object
+                description: |
+                  Make the sharded cluster a read-only standby replica allowing to replicate from another sharded cluster and acting as a rely.
+                  
+                  Changing this section is allowed to fix issues or to change the replication source.
+                  
+                  Removing this section convert the sharded cluster in a normal sharded cluster where the standby leader of each SGCluster is converted into a primary instance.
+
+                  **Example:**
+
+                  From SGShardedCluster instance:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGShardedCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    replicateFrom:
+                      instance:
+                        sgShardedCluster: my-cluster
+                  ```
+                  > **Note:** The above example allow to replicate from another SGShardedCluster instance that in the same namespace and the same K8s cluster.
+                  > 
+                  > This option cannot be combined with external sharded cluster instance, storage and users.
+
+                  From external sharded cluster instance:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGShardedCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    replicateFrom:
+                      instance:
+                        external:
+                          hosts: [${COORDINATOR_HOST_IP},${SHARD_0_HOST_IP},${SHARD_1_HOST_IP}]
+                          ports: [5433,5433,5433]
+                      users:
+                        superuser:
+                          username:
+                            name: pg-origin-secret
+                            key: superuser-username
+                          password:
+                            name: pg-origin-secret
+                            key: superuser-password
+                        replication:
+                          username:
+                            name: pg-origin-secret
+                            key: replication-username
+                          password:
+                            name: pg-origin-secret
+                            key: replication-password
+                        authenticator:
+                          username:
+                            name: pg-origin-secret
+                            key: authenticator-username
+                          password:
+                            name: pg-origin-secret
+                            key: authenticator-password
+                  ```
+
+                  > **Note:** Replace the ${COORDINATOR_HOST_IP}, ${SHARD_0_HOST_IP} and ${SHARD_1_HOST_IP} with the actual IPs of the external sharded cluster instance.
+
+                  From Storage:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGShardedCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    initialData:
+                      restore:
+                        fromBackup:
+                          name: backup-name
+                    replicateFrom:
+                      storage:
+                        paths: [${PG_ORIGIN_COORDINATOR_BACKUP_PATH},${PG_ORIGIN_SHARD_0_BACKUP_PATH},${PG_ORIGIN_SHARD_1_BACKUP_PATH}]
+                        sgObjectStorage: stackgres-backups
+                      users:
+                        superuser:
+                          username:
+                            name: pg-origin-secret
+                            key: superuser-username
+                          password:
+                            name: pg-origin-secret
+                            key: superuser-password
+                        replication:
+                          username:
+                            name: pg-origin-secret
+                            key: replication-username
+                          password:
+                            name: pg-origin-secret
+                            key: replication-password
+                        authenticator:
+                          username:
+                            name: pg-origin-secret
+                            key: authenticator-username
+                          password:
+                            name: pg-origin-secret
+                            key: authenticator-password
+                  ```
+
+                  > **Note:** Using storage only to replicate from requires to recover from a backup in order to bootstrap the database.
+                  > 
+                  > Replace the ${PG_ORIGIN_COORDINATOR_BACKUP_PATH}, ${PG_ORIGIN_SHARD_0_BACKUP_PATH}, ${PG_ORIGIN_SHARD_1_BACKUP_PATH} with the actual paths in the object storage where the backups are stored.
+
+                  From external instance and storage:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    replicateFrom:
+                      instance:
+                        external:
+                          hosts: [${COORDINATOR_HOST_IP},${SHARD_0_HOST_IP},${SHARD_1_HOST_IP}]
+                          ports: [5433,5433,5433]
+                      storage:
+                        paths: [${PG_ORIGIN_COORDINATOR_BACKUP_PATH},${PG_ORIGIN_SHARD_0_BACKUP_PATH},${PG_ORIGIN_SHARD_1_BACKUP_PATH}]
+                        sgObjectStorage: stackgres-backups
+                      users:
+                        superuser:
+                          username:
+                            name: pg-origin-secret
+                            key: superuser-username
+                          password:
+                            name: pg-origin-secret
+                            key: superuser-password
+                        replication:
+                          username:
+                            name: pg-origin-secret
+                            key: replication-username
+                          password:
+                            name: pg-origin-secret
+                            key: replication-password
+                        authenticator:
+                          username:
+                            name: pg-origin-secret
+                            key: authenticator-username
+                          password:
+                            name: pg-origin-secret
+                            key: authenticator-password
+                  ```
+
+                  > **Note:** Replace the ${COORDINATOR_HOST_IP}, ${SHARD_0_HOST_IP} and ${SHARD_1_HOST_IP} with the actual IPs of the external sharded cluster instance.
+                  > 
+                  > Replace the ${PG_ORIGIN_COORDINATOR_BACKUP_PATH}, ${PG_ORIGIN_SHARD_0_BACKUP_PATH}, ${PG_ORIGIN_SHARD_1_BACKUP_PATH} with the actual paths in the object storage where the backups are stored.
+                properties:
+                  instance:
+                    type: object
+                    description: |
+                      Configure replication from a PostgreSQL sharded cluster instance.
+                    properties:
+                      sgShardedCluster:
+                        type: string
+                        description: |
+                          Configure replication from an SGShardedCluster.
+                      external:
+                        type: object
+                        description: |
+                          Configure replication from an external PostgreSQL instance.
+                        required: ["hosts", "ports"]
+                        properties:
+                          hosts:
+                            type: array
+                            description: The hosts of the PostgreSQL instances to replicate from.
+                            items:
+                              type: string
+                          ports:
+                            type: array
+                            description: The ports of the PostgreSQL instances to replicate from.
+                            items:
+                              type: integer
+                  storage:
+                    type: object
+                    description: |
+                      Configure replication from an SGObjectStorage using WAL shipping.
+
+                      The file structure of the object storage must follow the
+                        [WAL-G](https://github.com/wal-g/wal-g) file structure.
+                    required: ["sgObjectStorage", "paths"]
+                    properties:
+                      performance:
+                        type: object
+                        description: |
+                          Configuration that affects the backup network and disk usage performance during recovery.
+                        properties:
+                          maxNetworkBandwidth:
+                            type: integer
+                            description: |
+                              Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
+                          maxDiskBandwidth:
+                            type: integer
+                            description: |
+                              Maximum disk read I/O when performing a backup. In bytes (per second).
+                          downloadConcurrency:
+                            type: integer
+                            minimum: 1
+                            description: |
+                              Backup storage may use several concurrent streams to read the data. This parameter configures the number of parallel streams to use. By default, it's set to the minimum between the number of file to read and 10.
+                      sgObjectStorage:
+                        type: string
+                        description: The SGObjectStorage name to replicate from.
+                      paths:
+                        type: array
+                        description: The paths in the SGObjectStorage to replicate from.
+                        items:
+                          type: string
+                  users:
+                    type: object
+                    description: |
+                      Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the credentials of the users.
+                    required: ["superuser", "replication", "authenticator"]
+                    properties:
+                      superuser:
+                        type: object
+                        description: |
+                          A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the credentials of the superuser (usually the postgres user).
+                        required: ["username", "password"]
+                        properties:
+                          username:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the username of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                          password:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the password of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                      replication:
+                        type: object
+                        description: |
+                          A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the credentials of the replication user used to replicate from the primary cluster and from replicas of this cluster.
+                        required: ["username", "password"]
+                        properties:
+                          username:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the username of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                          password:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the password of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                      authenticator:
+                        type: object
+                        description: |
+                          A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the credentials of the authenticator user used by pgbouncer to authenticate other users.
+                        required: ["username", "password"]
+                        properties:
+                          username:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the username of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                          password:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#secretkeyselector-v1-core) that contains the password of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
               coordinator:
                 type: object
                 description: |

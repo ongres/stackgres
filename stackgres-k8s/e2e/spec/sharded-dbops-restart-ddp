@@ -22,6 +22,7 @@ e2e_test() {
 }
 
 check_sharded_dbops_restart_is_working() {
+  trigger_sharded_cluster_require_restart
   SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
 
   cat << EOF | kubectl create -f -

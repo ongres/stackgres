@@ -78,6 +78,9 @@ public class StackGresShardedClusterSpec {
   private StackGresShardedClusterInitialData initialData;
 
   @Valid
+  private StackGresShardedClusterReplicateFrom replicateFrom;
+
+  @Valid
   private StackGresClusterNonProduction nonProductionOptions;
 
   @ReferencedField("postgres")
@@ -243,6 +246,14 @@ public class StackGresShardedClusterSpec {
     this.initialData = initialData;
   }
 
+  public StackGresShardedClusterReplicateFrom getReplicateFrom() {
+    return replicateFrom;
+  }
+
+  public void setReplicateFrom(StackGresShardedClusterReplicateFrom replicateFrom) {
+    this.replicateFrom = replicateFrom;
+  }
+
   public StackGresClusterNonProduction getNonProductionOptions() {
     return nonProductionOptions;
   }
@@ -254,8 +265,8 @@ public class StackGresShardedClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configurations, coordinator, database, distributedLogs, initialData,
-        metadata, nonProductionOptions, postgres, postgresServices, profile, replication, shards,
-        type);
+        metadata, nonProductionOptions, postgres, postgresServices, profile, replicateFrom,
+        replication, shards, type);
   }
 
   @Override
@@ -276,8 +287,10 @@ public class StackGresShardedClusterSpec {
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(profile, other.profile) && Objects.equals(replication, other.replication)
-        && Objects.equals(shards, other.shards) && Objects.equals(type, other.type);
+        && Objects.equals(profile, other.profile)
+        && Objects.equals(replicateFrom, other.replicateFrom)
+        && Objects.equals(replication, other.replication) && Objects.equals(shards, other.shards)
+        && Objects.equals(type, other.type);
   }
 
   @Override

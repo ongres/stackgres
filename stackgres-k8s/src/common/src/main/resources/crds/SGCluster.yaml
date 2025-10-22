@@ -1837,7 +1837,7 @@ spec:
                   
                   Changing this section is allowed to fix issues or to change the replication source.
                   
-                  Removing this section convert the cluster in a normal cluster where the standby leader is converted into the a primary instance.
+                  Removing this section convert the cluster in a normal cluster where the standby leader is converted into a primary instance.
 
                   **Example:**
 
