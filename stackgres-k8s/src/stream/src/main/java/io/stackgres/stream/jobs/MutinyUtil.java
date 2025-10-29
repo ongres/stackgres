@@ -16,7 +16,7 @@ public interface MutinyUtil {
 
   Logger LOGGER = LoggerFactory.getLogger(MutinyUtil.class);
 
-  static Function<? super Throwable, ? extends Throwable> logOnFailureToRetry(String message) {
+  static Function<Throwable, ? extends Throwable> logOnFailureToRetry(String message) {
     return ex -> logOnFailureToRetry(ex, message);
   }
 

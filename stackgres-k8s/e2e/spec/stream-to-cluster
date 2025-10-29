@@ -71,6 +71,8 @@ e2e_test() {
   run_test "Checking that stream is working" check_stream_is_working
 
   run_test "Checking that stream copying schema first is working" check_stream_copy_schema_is_working
+
+  run_test "Checking that stream with incremental snapshots is working" check_stream_incremental_snapshots_is_working
 }
 
 check_stream_is_working_skippig_ddl_import() {
@@ -652,7 +654,7 @@ EOF
     QUERY="$(cat << 'EOF'
 DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
+COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=postgres --exclude-table="(test|spatial_ref_sys|pg_stat_statements_info|pg_stat_statements|geometry_columns|geography_columns)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
@@ -762,9 +764,9 @@ SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64
   ;
 EOF
 )"
-  run_query -p 5432 -i "0" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/expected-schema"
-  run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/actual-schema"
-  if diff "$LOG_PATH/expected-schema" "$LOG_PATH/actual-schema"
+  run_query -p 5432 -i "0" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/copy-schema-expected-schema"
+  run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/copy-schema-actual-schema"
+  if diff "$LOG_PATH/copy-schema-expected-schema" "$LOG_PATH/copy-schema-actual-schema"
   then
     success "sakila schema was migrated successfully"
   else
@@ -773,20 +775,37 @@ EOF
 
   local DATA_QUERY
   DATA_QUERY="$(cat << 'EOF'
-DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
-COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --inserts --rows-per-insert=1 --dbname=sakila --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
-SELECT regexp_replace(line, 'setval\(([^,]*,[^,]*), true\)', 'setval(\1, false)') FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
-  WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
-  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
-  AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
-  AND line NOT SIMILAR TO 'COMMENT ON EXTENSION (dblink|postgis) %'
-  AND line NOT SIMILAR TO '% SET "sgstream.ddl_import_completed" TO ''true'';'
-  ;
+DO
+$$
+DECLARE
+    rec RECORD;
+    count text;
+    hash text;
+BEGIN
+    -- Loop through all sequences in the current schema
+    FOR rec IN
+        SELECT
+            table_schema,
+            table_name
+        FROM
+            information_schema.tables
+        WHERE table_schema IN ('public') AND table_name NOT IN ('test', 'spatial_ref_sys')
+        ORDER BY table_schema, table_name
+    LOOP
+        -- Reset the sequence based on the maximum id value in the table
+        EXECUTE 'SELECT count(*)::text AS count, '
+          || 'md5(bit_xor(((''x'' || left(md5(' || quote_ident(rec.table_name) || '::text), 16))::bit(64))'
+          || ' # ((''x'' || right(md5(' || quote_ident(rec.table_name) || '::text), 16))::bit(64)))::text) AS hash'
+          || ' FROM ' || quote_ident(rec.table_schema) || '.' || quote_ident(rec.table_name) INTO count, hash;
+        RAISE NOTICE '%: count:%, hash:%', quote_ident(rec.table_schema) || '.' || quote_ident(rec.table_name), count, hash;
+    END LOOP;
+END
+$$;
 EOF
 )"
-  run_query -p 5432 -i "0" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/expected-data"
-  run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/actual-data"
-  if diff "$LOG_PATH/expected-data" "$LOG_PATH/actual-data"
+  run_query -p 5432 -i "0" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/copy-schema-expected-data"
+  run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/copy-schema-actual-data"
+  if diff "$LOG_PATH/copy-schema-expected-data" "$LOG_PATH/copy-schema-actual-data"
   then
     success "sakila data was migrated successfully"
   else
@@ -799,4 +818,201 @@ check_sakila_database() {
   check_user "$1" 0
   check_database "$1" 0
   check_schema "$1" 0
+}
+
+check_stream_incremental_snapshots_is_working() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    createdb pgbench
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER_NAME-0" -c patroni -- \
+    createdb pgbench
+cat << 'EOF' > "$LOG_PATH/pgbench.sql"
+DROP TABLE IF EXISTS public.pgbench_branches;
+DROP TABLE IF EXISTS public.pgbench_tellers;
+DROP TABLE IF EXISTS public.pgbench_accounts;
+DROP TABLE IF EXISTS public.pgbench_history;
+
+CREATE TABLE public.pgbench_branches (
+    bid integer NOT NULL,
+    bbalance integer,
+    filler character(88)
+)
+WITH (fillfactor='100');
+CREATE TABLE public.pgbench_tellers (
+    bid integer,
+    tid integer NOT NULL,
+    tbalance integer,
+    filler character(84)
+)
+WITH (fillfactor='100');
+CREATE TABLE public.pgbench_accounts (
+    bid integer,
+    aid integer NOT NULL,
+    abalance integer,
+    filler character(84)
+)
+WITH (fillfactor='100');
+CREATE TABLE public.pgbench_history (
+    bid integer,
+    tid integer,
+    aid integer,
+    delta integer,
+    mtime timestamp without time zone,
+    filler character(22)
+);
+
+ALTER TABLE ONLY public.pgbench_branches
+    ADD CONSTRAINT pgbench_branches_pkey PRIMARY KEY (bid);
+ALTER TABLE ONLY public.pgbench_tellers
+    ADD CONSTRAINT pgbench_tellers_pkey PRIMARY KEY (tid);
+ALTER TABLE ONLY public.pgbench_accounts
+    ADD CONSTRAINT pgbench_accounts_pkey PRIMARY KEY (aid);
+ALTER TABLE ONLY public.pgbench_history
+    ADD CONSTRAINT pgbench_history_pkey PRIMARY KEY (bid, tid, aid);
+
+INSERT INTO pgbench_branches (bid, bbalance)
+  SELECT i, 0 FROM generate_series(1, 7) AS i;
+INSERT INTO pgbench_tellers (tid, bid, tbalance)
+  SELECT i, 1 + ((i - 1) / 10), 0 FROM generate_series(1, 7 * 10) AS i;
+INSERT INTO pgbench_accounts (aid, bid, abalance)
+  SELECT i, 1 + ((i - 1) / 100000), 0 FROM generate_series(1, 7 * 100000) AS i;
+EOF
+  cat "$LOG_PATH/pgbench.sql" \
+    | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+      psql -d pgbench
+
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    pgbench -d pgbench -s 100 -c 4 -j 4 -T "$(( E2E_TIMEOUT * 10 ))" \
+    > "$LOG_PATH/pgbench.log" 2>&1 &
+  echo "$!" > "$LOG_PATH/pgbench.pid"
+  trap_kill "$(cat "$LOG_PATH/pgbench.pid")"
+
+  cat << 'EOF' | tee "$LOG_PATH/create-debezium-signal-table.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on -d pgbench
+  CREATE TABLE debezium_signal (id VARCHAR(42) PRIMARY KEY, type VARCHAR(32) NOT NULL, data VARCHAR(2048) NULL);
+EOF
+
+  cat << EOF | tee "$LOG_PATH/sgstream-incremental-snapshot-working.yaml" | kubectl replace --force -f -
+apiVersion: stackgres.io/v1alpha1
+kind: SGStream
+metadata:
+  namespace: $CLUSTER_NAMESPACE 
+  name: "$STREAM_NAME"
+spec:
+  maxRetries: 0
+  source:
+    type: SGCluster
+    sgCluster:
+      name: "$CLUSTER_NAME"
+      database: pgbench
+      debeziumProperties:
+        snapshotMode: no_data
+        signalEnabledChannels: [source]
+        signalDataCollection: public.debezium_signal
+  target:
+    type: SGCluster
+    sgCluster:
+      name: "$TARGET_CLUSTER_NAME"
+      database: pgbench
+      skipDropPrimaryKeys: true
+      skipRestoreIndexesAfterSnapshot: true
+      debeziumProperties:
+        detectInsertMode: false
+        removePlaceholders: false
+  pods:
+    persistentVolume:
+      size: 1Gi
+  debeziumEngineProperties:
+EOF
+
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.connected | grep -qxF true'
+  then
+    success "streaming started"
+  else
+    fail "streaming not started"
+  fi
+
+  cat << 'EOF' | tee "$LOG_PATH/signal-start-incremental-snapshots.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on -d pgbench
+INSERT INTO debezium_signal VALUES (now()::text, 'execute-snapshot', '{"data-collections": [' || (SELECT string_agg('"' || nspname || '.' || relname || '"', ',') FROM pg_class LEFT JOIN pg_namespace ON (pg_class.relnamespace = pg_namespace.oid) WHERE nspname = 'public' AND relkind = 'r' AND relname NOT IN ('debezium_signal')) || '], "type":"incremental"}');
+EOF
+
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.snapshot.snapshotCompleted | grep -qxF true'
+  then
+    success "snapshot completed"
+  else
+    fail "snapshot did not completed"
+  fi
+
+  kill "$LOG_PATH/pgbench.pid" || true
+
+  cat << 'EOF' | tee "$LOG_PATH/signal-tombstone.sql" | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- psql -q -v ON_ERROR_STOP=on -d pgbench
+INSERT INTO debezium_signal VALUES (now()::text, 'tombstone', '{}');
+EOF
+
+  if kubectl wait --timeout="${E2E_TIMEOUT}s" sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" --for=condition=Completed
+  then
+    success "stream has completed"
+  else
+    fail "stream has not completed"
+  fi
+
+  local SCHEMA_QUERY
+  SCHEMA_QUERY="$(cat << 'EOF'
+DROP TABLE IF EXISTS input; CREATE TEMPORARY TABLE input (line text);
+COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles-only; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
+COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=pgbench --exclude-table="(test|spatial_ref_sys|debezium_signal)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
+SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
+  WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' -- Skip comments and empty lines
+  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
+  AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
+  AND line NOT SIMILAR TO 'COMMENT ON EXTENSION (dblink|postgis) %'
+  AND line NOT SIMILAR TO '% SET "sgstream.ddl_import_completed" TO ''true'';'
+  ;
+EOF
+)"
+  run_query -p 5432 -i "0" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/incremental-snapshot-expected-schema"
+  run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$SCHEMA_QUERY" > "$LOG_PATH/incremental-snapshot-actual-schema"
+  if diff "$LOG_PATH/incremental-snapshot-expected-schema" "$LOG_PATH/incremental-snapshot-actual-schema"
+  then
+    success "pgbench schema was migrated successfully"
+  else
+    fail "pgbench schema was not migrated successfully"
+  fi
+
+  local DATA_QUERY
+  DATA_QUERY="$(cat << 'EOF'
+DO
+$$
+DECLARE
+    rec RECORD;
+    count text;
+    hash text;
+BEGIN
+    -- Loop through all sequences in the current schema
+    FOR rec IN
+        SELECT
+            table_schema,
+            table_name
+        FROM
+            information_schema.tables
+        WHERE table_schema IN ('public') AND table_name NOT IN ('debezium_signal')
+        ORDER BY table_schema, table_name
+    LOOP
+        -- Reset the sequence based on the maximum id value in the table
+        EXECUTE 'SELECT count(*)::text AS count, '
+          || 'md5(bit_xor(((''x'' || left(md5(' || quote_ident(rec.table_name) || '::text), 16))::bit(64))'
+          || ' # ((''x'' || right(md5(' || quote_ident(rec.table_name) || '::text), 16))::bit(64)))::text) AS hash'
+          || ' FROM ' || quote_ident(rec.table_schema) || '.' || quote_ident(rec.table_name) INTO count, hash;
+        RAISE NOTICE '%: count:%, hash:%', quote_ident(rec.table_schema) || '.' || quote_ident(rec.table_name), count, hash;
+    END LOOP;
+END
+$$;
+EOF
+)"
+  run_query -p 5432 -i "0" -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/incremental-snapshot-expected-data"
+  run_query -p 5432 -i "0" -h "$TARGET_CLUSTER_NAME" -c "$TARGET_CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "$DATA_QUERY" | sort > "$LOG_PATH/incremental-snapshot-actual-data"
+  if diff "$LOG_PATH/incremental-snapshot-expected-data" "$LOG_PATH/incremental-snapshot-actual-data" > "$LOG_PATH/incremental-snapshot-data-diff"
+  then
+    success "pgbench data was migrated successfully"
+  else
+    fail "pgbench data was not migrated successfully"
+  fi
 }

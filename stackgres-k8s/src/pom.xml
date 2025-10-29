@@ -86,8 +86,8 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>3.23.0</quarkus.version>
-    <hibernate.version>6.6.15.Final</hibernate.version>
+    <quarkus.version>3.29.0</quarkus.version>
+    <hibernate.version>7.1.4.Final</hibernate.version>
     <jool.version>0.9.15</jool.version>
     <immutables.version>2.10.1</immutables.version>
     <checkstyle.version>10.25.0</checkstyle.version>
@@ -108,7 +108,7 @@
     <javapoet.version>1.13.0</javapoet.version>
     <compile-testing.version>0.21.0</compile-testing.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <debezium.version>3.1.2.Final</debezium.version>
+    <debezium.version>3.3.1.Final</debezium.version>
     <kafka-clients.version>3.9.1</kafka-clients.version>
     <jmx-prometheus-collector.version>1.3.0</jmx-prometheus-collector.version>
     <asm.version>9.8</asm.version>
@@ -228,6 +228,12 @@
         <groupId>io.debezium</groupId>
         <artifactId>debezium-connector-jdbc</artifactId>
         <version>${debezium.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-c3p0</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.kafka</groupId>

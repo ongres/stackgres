@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -131,9 +132,13 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     public static final String INSERT_HEADER_KEY = "stackgres.io/insert";
 
     final StackGresStream stream;
+    final boolean skipDropPrimaryKeys;
+    final boolean skipDropIndexes;
     final boolean skipRestoreIndexes;
     final String unavailableValuePlaceholder;
+    final String unavailableValuePlaceholderJson;
     final byte[] unavailableValuePlaceholderBytes;
+    final byte[] unavailableValuePlaceholderJsonBytes;
     final boolean removePlaceholders;
 
     boolean started = false;
@@ -147,10 +152,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     JdbcHandler(StackGresStream stream) {
       this.stream = stream;
-      this.skipRestoreIndexes = !Optional.of(stream.getSpec().getTarget().getSgCluster())
+      this.skipDropPrimaryKeys = Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipDropPrimaryKeys)
+          .orElse(false);
+      this.skipDropIndexes = Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
-          .orElse(false)
-          && !Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .orElse(false);
+      this.skipRestoreIndexes = skipDropIndexes
+          || Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipRestoreIndexesAfterSnapshot)
           .orElse(false);
       this.unavailableValuePlaceholder = Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
@@ -159,14 +168,15 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
               .map(StackGresStreamSourcePostgres::getDebeziumProperties))
           .map(StackGresStreamSourcePostgresDebeziumProperties::getUnavailableValuePlaceholder)
           .orElse(RelationalDatabaseConnectorConfig.DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER);
+      this.unavailableValuePlaceholderJson = fixJsonPlaceholderString(this.unavailableValuePlaceholder);
       this.unavailableValuePlaceholderBytes = this.unavailableValuePlaceholder.getBytes(StandardCharsets.UTF_8);
+      this.unavailableValuePlaceholderJsonBytes = fixJsonPlaceholderString(unavailableValuePlaceholder)
+          .getBytes(StandardCharsets.UTF_8);
       this.removePlaceholders = Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getDebeziumProperties)
           .map(StackGresStreamTargetJdbcSinkDebeziumProperties::getRemovePlaceholders)
-          .orElse(true);
-      if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
-          .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
-          .orElse(false)) {
+          .orElse(false);
+      if (skipRestoreIndexes) {
         snapshot = false;
       }
     }
@@ -252,7 +262,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       databaseDialect = resolveDatabaseDialect(config, sessionFactory);
       QueryBinderResolver queryBinderResolver = new QueryBinderResolver();
       EnhancedRecordWriter recordWriter =
-          new EnhancedRecordWriter(session, queryBinderResolver, config, databaseDialect, detectIsertMode);
+          new EnhancedRecordWriter(session, queryBinderResolver, config, databaseDialect, this, detectIsertMode);
 
       changeEventSink = new EnhancedJdbcChangeEventSink(
           config, session, databaseDialect, recordWriter);
@@ -264,13 +274,16 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         LOGGER.info("Import of DDL has been skipped as required by configuration");
       }
 
-      if (!Optional.of(stream.getSpec().getTarget().getSgCluster())
-          .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
-          .orElse(false)) {
+      if (!skipDropIndexes) {
         storeAndDropConstraintsAndIndexes();
-        LOGGER.info("Storing and removing constraints and indexes for target database");
       } else {
         LOGGER.info("Skipping storing and removing constraints and indexes for target database");
+      }
+
+      if (!skipDropPrimaryKeys) {
+        storeAndDropPrimaryKeys();
+      } else {
+        LOGGER.info("Skipping storing and removing primary keys for target database");
       }
     }
 
@@ -290,7 +303,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     private DatabaseDialect resolveDatabaseDialect(JdbcSinkConnectorConfig config, SessionFactory sessionFactory) {
       final DatabaseDialect databaseDialect = DatabaseDialectResolver.resolve(config, sessionFactory);
       if (databaseDialect instanceof PostgresDatabaseDialect) {
-        return new EnhancedPostgresDatabaseDialect(config, sessionFactory);
+        return new EnhancedPostgresDatabaseDialect(this, config, sessionFactory);
       }
       return databaseDialect;
     }
@@ -320,7 +333,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
           if (removePlaceholders) {
             sourceRecord = addInsertModeHintsHeaders(removePlaceholderValues(originalSourceRecord));
           } else {
-            sourceRecord = addInsertModeHintsHeaders(originalSourceRecord);
+            sourceRecord = addInsertModeHintsHeaders(fixPlaceholderValues(originalSourceRecord));
           }
           if (snapshot && !isSnapshot(sourceRecord)) {
             snapshot = false;
@@ -335,7 +348,13 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
             }
             sinkRecords.clear();
             committedChangeEvents.clear();
-            if (skipRestoreIndexes) {
+            if (!skipDropPrimaryKeys) {
+              LOGGER.info("Restoring primary keys for target database");
+              restorePrimaryKeys();
+            } else {
+              LOGGER.info("Skipping restoring primary keys for target database");
+            }
+            if (!skipRestoreIndexes) {
               LOGGER.info("Restoring indexes for target database");
               restoreIndexes();
             } else {
@@ -536,24 +555,154 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       return sourceRecord;
     }
 
-    private boolean isPlaceholder(Object value) {
+    private SourceRecord fixPlaceholderValues(final SourceRecord sourceRecord) {
+      if (sourceRecord.value() != null
+          && sourceRecord.value() instanceof Struct originalValue) {
+        final boolean isDebeziumMessage = originalValue != null
+            && sourceRecord.valueSchema().name() != null
+            && sourceRecord.valueSchema().name().contains("Envelope")
+            && originalValue.getStruct(Envelope.FieldName.AFTER) != null;
+        final Struct candidateValue;
+        if (isDebeziumMessage) {
+          candidateValue = originalValue.getStruct(Envelope.FieldName.AFTER);
+        } else {
+          candidateValue = originalValue;
+        }
+        if (candidateValue.schema().fields().stream()
+            .anyMatch(field -> isJsonPlaceholder(field, candidateValue.get(field)))) {
+          final Struct value = new Struct(candidateValue.schema());
+          for (Field field : candidateValue.schema().fields()) {
+            final Object currentValue = candidateValue.get(field.name());
+            if (isJsonPlaceholder(field, currentValue)) {
+              value.put(field, fixJsonPlaceholder(currentValue));
+            } else {
+              value.put(field, currentValue);
+            }
+          }
+          if (isDebeziumMessage) {
+            List<Field> newFields = new ArrayList<>(
+                originalValue.schema().fields());
+            for (int index = 0; index < newFields.size(); index++) {
+              if (Objects.equals(newFields.get(index).name(), Envelope.FieldName.AFTER)) {
+                newFields.set(index, new Field(
+                    Envelope.FieldName.AFTER,
+                    originalValue.schema().field(Envelope.FieldName.AFTER).index(),
+                    candidateValue.schema()));
+              }
+            }
+            ConnectSchema newSchema = new ConnectSchema(
+                originalValue.schema().type(),
+                originalValue.schema().isOptional(),
+                originalValue.schema().defaultValue(),
+                originalValue.schema().name(),
+                originalValue.schema().version(),
+                originalValue.schema().doc(),
+                originalValue.schema().parameters(),
+                newFields,
+                null,
+                null);
+            Struct newValue = new Struct(newSchema);
+            for (int index = 0; index < newFields.size(); index++) {
+              if (Objects.equals(newFields.get(index).name(), Envelope.FieldName.AFTER)) {
+                newValue.put(newFields.get(index), value);
+              } else {
+                newValue.put(newFields.get(index), originalValue.get(newFields.get(index).name()));
+              }
+            }
+            return new SourceRecord(
+                sourceRecord.sourcePartition(),
+                sourceRecord.sourceOffset(),
+                sourceRecord.topic(),
+                sourceRecord.kafkaPartition(),
+                sourceRecord.keySchema(),
+                sourceRecord.key(),
+                newSchema,
+                newValue,
+                sourceRecord.timestamp(),
+                sourceRecord.headers());
+          } else {
+            final ConnectSchema valueSchema = new ConnectSchema(
+                candidateValue.schema().type(),
+                candidateValue.schema().isOptional(),
+                candidateValue.schema().defaultValue(),
+                candidateValue.schema().name(),
+                candidateValue.schema().version(),
+                candidateValue.schema().doc(),
+                candidateValue.schema().parameters(),
+                candidateValue.schema().fields(),
+                null,
+                null);
+            return new SourceRecord(
+                sourceRecord.sourcePartition(),
+                sourceRecord.sourceOffset(),
+                sourceRecord.topic(),
+                sourceRecord.kafkaPartition(),
+                sourceRecord.keySchema(),
+                sourceRecord.key(),
+                valueSchema,
+                value,
+                sourceRecord.timestamp(),
+                sourceRecord.headers());
+          }
+        }
+      }
+      return sourceRecord;
+    }
+
+    private Object fixJsonPlaceholder(Object value) {
+      if (value instanceof List<?> valueList) {
+        return valueList.stream()
+            .map(this::fixJsonPlaceholder)
+            .toList();
+      }
+      if (value instanceof byte[] currentValueBytes) {
+        return fixJsonPlaceholderString(new String(currentValueBytes, StandardCharsets.UTF_8))
+            .getBytes(StandardCharsets.UTF_8);
+      }
+      return fixJsonPlaceholderString(value.toString());
+    }
+
+    private String fixJsonPlaceholderString(String value) {
+      return '"' + value + '"';
+    }
+
+    private boolean isJsonPlaceholder(Field field, Object value) {
+      if (field.schema().parameters() == null) {
+        return false;
+      }
+      final String fieldType = field.schema().parameters().get("__debezium.source.column.type")
+          .toLowerCase(Locale.US);
+      return (Objects.equals(fieldType, "json") || Objects.equals(fieldType, "_json")
+          || Objects.equals(fieldType, "jsonb") || Objects.equals(fieldType, "_jsonb")
+          || Objects.equals(fieldType, "jsonpath") || Objects.equals(fieldType, "_jsonpath"))
+          && isPlaceholder(value);
+    }
+
+    public boolean isPlaceholder(Object value) {
       return Objects.equals(value, unavailableValuePlaceholder)
+          || Objects.equals(value, unavailableValuePlaceholderJson)
           || Objects.deepEquals(value, unavailableValuePlaceholderBytes)
-          || (value instanceof List valueList
-              && (valueList.size() == unavailableValuePlaceholderBytes.length
-                  && IntStream.range(0, unavailableValuePlaceholderBytes.length)
-                  .allMatch(index -> valueList.get(index) instanceof Number valueElementNumber
-                      && ((valueElementNumber instanceof Integer valueElementInteger
-                          && unavailableValuePlaceholderBytes[index] == valueElementInteger.byteValue())
-                          || (valueElementNumber instanceof Long valueElementLong
-                              && unavailableValuePlaceholderBytes[index] == valueElementLong.byteValue())
-                          || (valueElementNumber instanceof Float valueElementFloat
-                              && unavailableValuePlaceholderBytes[index] == valueElementFloat.byteValue())
-                          || (valueElementNumber instanceof Double valueElementDouble
-                              && unavailableValuePlaceholderBytes[index] == valueElementDouble.byteValue())
-                          ))
-              || (valueList.size() == 1
+          || Objects.deepEquals(value, unavailableValuePlaceholderJsonBytes)
+          || (value instanceof List<?> valueList
+              && (isValueListPlaceholderBytes(valueList, unavailableValuePlaceholderBytes)
+                  || isValueListPlaceholderBytes(valueList, unavailableValuePlaceholderJsonBytes)
+                  || (valueList.size() == 1
                   && isPlaceholder(valueList.get(0)))));
+    }
+
+    private boolean isValueListPlaceholderBytes(List<?> valueList, byte[] placeholderBytes) {
+      return valueList.size() == placeholderBytes.length
+          && IntStream.range(0, placeholderBytes.length)
+          .allMatch(index -> valueList.get(index) instanceof Number valueElementNumber
+              && ((valueElementNumber instanceof Integer valueElementInteger
+                  && placeholderBytes[index] == valueElementInteger.byteValue())
+                  || (valueElementNumber instanceof Long valueElementLong
+                      && placeholderBytes[index] == valueElementLong.byteValue())
+                  || (valueElementNumber instanceof Float valueElementFloat
+                      && placeholderBytes[index] == valueElementFloat.byteValue())
+                  || (valueElementNumber instanceof Double valueElementDouble
+                      && placeholderBytes[index] == valueElementDouble.byteValue())
+                  ));
     }
 
     @Override
@@ -568,6 +717,21 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       }
 
       return false;
+    }
+
+    private List<Object> executeQuery(StatelessSession session, String commandSql) {
+      Transaction transaction = session.beginTransaction();
+      try {
+        List<Object> result = session.createNativeQuery(commandSql, Object.class).getResultList();
+        transaction.commit();
+        return result;
+      } catch (RuntimeException ex) {
+        transaction.rollback();
+        throw ex;
+      } catch (Exception ex) {
+        transaction.rollback();
+        throw new RuntimeException(ex);
+      }
     }
 
     private void executeCommand(StatelessSession session, String commandSql) {
@@ -665,6 +829,19 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
                   + "|" + sourceAuthenticatorUsername + ")")));
     }
 
+    private void storeAndDropPrimaryKeys() {
+      if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
+        storeAndDropPrimaryKeysSgCluster();
+      }
+    }
+
+    private void storeAndDropPrimaryKeysSgCluster() {
+      LOGGER.info("Store primary keys for target database");
+      executeCommand(session, SnapshotHelperQueries.STORE_PRIMARY_KEYS.readSql());
+      LOGGER.info("Drop primary keys for target database");
+      executeCommand(session, SnapshotHelperQueries.DROP_PRIMARY_KEYS.readSql());
+    }
+
     private void storeAndDropConstraintsAndIndexes() {
       if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
         storeAndDropConstraintsAndIndexesSgCluster();
@@ -682,6 +859,26 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       executeCommand(session, SnapshotHelperQueries.DROP_INDEXES.readSql());
     }
 
+    private void restorePrimaryKeys() {
+      if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
+        restorePrimaryKeysSgCluster();
+      }
+    }
+
+    private void restorePrimaryKeysSgCluster() {
+      if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
+        LOGGER.info("Restore primary keys for target database");
+        var result = executeQuery(session, SnapshotHelperQueries.CHECK_RESTORE_PRIMARY_KEYS.readSql());
+        if (result == null || result.size() <= 0 || !(result.get(0) instanceof Number)) {
+          throw new RuntimeException("Undefined result while restoring objects on target database");
+        }
+        final int resultCount = Number.class.cast(result.get(0)).intValue();
+        for (int index = 0; index < resultCount; index++) {
+          executeCommand(session, SnapshotHelperQueries.RESTORE_PRIMARY_KEYS.readSql());
+        }
+      }
+    }
+
     private void restoreIndexes() {
       if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
         restoreIndexesSgCluster();
@@ -690,7 +887,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     private void restoreIndexesSgCluster() {
       LOGGER.info("Restore indexes for target database");
-      executeCommand(session, SnapshotHelperQueries.RESTORE_INDEXES.readSql());
+      var result = executeQuery(session, SnapshotHelperQueries.CHECK_RESTORE_INDEXES.readSql());
+      if (result == null || result.size() <= 0 || !(result.get(0) instanceof Number)) {
+        throw new RuntimeException("Undefined result while restoring objects on target database");
+      }
+      final int resultCount = Number.class.cast(result.get(0)).intValue();
+      for (int index = 0; index < resultCount; index++) {
+        executeCommand(session, SnapshotHelperQueries.RESTORE_INDEXES.readSql());
+      }
     }
   }
 

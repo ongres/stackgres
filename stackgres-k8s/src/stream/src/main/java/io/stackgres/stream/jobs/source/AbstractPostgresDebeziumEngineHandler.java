@@ -13,7 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import io.debezium.embedded.ConvertingEngineBuilderFactory;
 import io.debezium.embedded.async.ConvertingAsyncEngineBuilderFactory;
 import io.debezium.engine.DebeziumEngine;
 import io.debezium.engine.DebeziumEngine.CompletionCallback;
@@ -121,13 +120,7 @@ public abstract class AbstractPostgresDebeziumEngineHandler implements SourceEve
     setSourceProperties(stream, props);
 
     final CompletableFuture<Void> streamCompleted = new CompletableFuture<>();
-    final String engineBuilderFactory;
-    if (Optional.ofNullable(stream.getSpec().getUseDebeziumAsyncEngine())
-        .orElse(true)) {
-      engineBuilderFactory = ConvertingAsyncEngineBuilderFactory.class.getName();
-    } else {
-      engineBuilderFactory = ConvertingEngineBuilderFactory.class.getName();
-    }
+    final String engineBuilderFactory = ConvertingAsyncEngineBuilderFactory.class.getName();
     final DebeziumEngine<?> engine;
     try {
       engine = DebeziumEngine

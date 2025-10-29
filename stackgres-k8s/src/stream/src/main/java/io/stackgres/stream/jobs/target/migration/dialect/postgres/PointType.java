@@ -5,16 +5,14 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
+import io.debezium.connector.jdbc.type.JdbcType;
+import io.debezium.data.geometry.Point;
+import io.debezium.sink.column.ColumnDescriptor;
 import org.apache.kafka.connect.data.Schema;
 
-import io.debezium.connector.jdbc.dialect.DatabaseDialect;
-import io.debezium.connector.jdbc.relational.ColumnDescriptor;
-import io.debezium.connector.jdbc.type.Type;
-import io.debezium.data.geometry.Point;
-
 /**
- * An implementation of {@link Type} for {@code io.debezium.data.geometry.Point}
- * types.
+ * An implementation of {@link JdbcType} for
+ * {@code io.debezium.data.geometry.Point} types.
  *
  * @author Chris Cranford
  */
@@ -38,7 +36,7 @@ class PointType extends GeometryType {
   }
 
   @Override
-  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+  public String getTypeName(Schema schema, boolean isKey) {
     return TYPE_NAME;
   }
 }

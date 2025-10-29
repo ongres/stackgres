@@ -5,17 +5,24 @@
 
 package io.stackgres.stream.jobs.target.migration;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import io.debezium.connector.jdbc.JdbcKafkaSinkRecord;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.JdbcSinkRecord;
 import io.debezium.connector.jdbc.QueryBinder;
 import io.debezium.connector.jdbc.QueryBinderResolver;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
+import io.debezium.connector.jdbc.field.JdbcFieldDescriptor;
+import io.stackgres.stream.jobs.target.migration.SgClusterStreamMigrationHandler.JdbcHandler;
 import io.stackgres.stream.jobs.target.migration.jdbc.RecordWriter;
+import org.apache.kafka.connect.data.Struct;
 import org.hibernate.SharedSessionContract;
 
 public class EnhancedRecordWriter extends RecordWriter {
 
+  private final JdbcHandler jdbcHandler;
   private final boolean detectInsertMode;
 
   public EnhancedRecordWriter(
@@ -23,8 +30,10 @@ public class EnhancedRecordWriter extends RecordWriter {
       QueryBinderResolver queryBinderResolver,
       JdbcSinkConnectorConfig config,
       DatabaseDialect dialect,
+      JdbcHandler jdbcHandler,
       boolean detectInsertMode) {
     super(session, queryBinderResolver, config, dialect);
+    this.jdbcHandler = jdbcHandler;
     this.detectInsertMode = detectInsertMode;
   }
 
@@ -50,6 +59,33 @@ public class EnhancedRecordWriter extends RecordWriter {
       int index = bindNonKeyValuesToQuery(record, queryBinder, 1);
       bindKeyValuesToQuery(record, queryBinder, index);
     }
+  }
+
+  @Override
+  protected int bindFieldValuesToQuery(JdbcSinkRecord record, QueryBinder query, int index,
+      Struct source, Set<String> fieldNames) {
+    if ((!detectInsertMode || !isInsert(record)) && !record.isDelete()) {
+      LinkedHashSet<String> newFieldNames = new LinkedHashSet<String>();
+      boolean anyChanged = false;
+      for (String fieldName : fieldNames) {
+        final JdbcFieldDescriptor field = record.jdbcFields().get(fieldName);
+        Object value;
+        if (field.getSchema().isOptional()) {
+          value = source.getWithoutDefault(fieldName);
+        } else {
+          value = source.get(fieldName);
+        }
+        if (jdbcHandler.isPlaceholder(value)) {
+          anyChanged = true;
+          continue;
+        }
+        newFieldNames.add(fieldName);
+      }
+      if (anyChanged) {
+        fieldNames = newFieldNames;
+      }
+    }
+    return super.bindFieldValuesToQuery(record, query, index, source, fieldNames);
   }
 
   public boolean isSnapshot(JdbcSinkRecord jdbcSinkRecord) {

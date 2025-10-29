@@ -84,7 +84,6 @@ public class PatroniRole implements
         .withNewMetadata()
         .withName(serviceAccountName)
         .withNamespace(serviceAccountNamespace)
-        .withLabels(labels)
         .addToLabels(
             Optional.ofNullable(cluster.getSpec().getMetadata())
             .map(StackGresClusterSpecMetadata::getLabels)
@@ -95,6 +94,7 @@ public class PatroniRole implements
             .map(StackGresClusterSpecMetadata::getAnnotations)
             .map(StackGresClusterSpecAnnotations::getServiceAccount)
             .orElse(Map.of()))
+        .addToLabels(labels)
         .endMetadata()
         .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()

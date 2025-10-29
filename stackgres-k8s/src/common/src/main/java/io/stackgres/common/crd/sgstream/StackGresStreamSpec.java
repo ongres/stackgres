@@ -36,12 +36,13 @@ public class StackGresStreamSpec {
   private Integer maxRetries;
 
   @Valid
+  private StackGresStreamSpecMetadata metadata;
+
+  @Valid
   private StackGresStreamPods pods;
 
   @Valid
   private StackGresStreamDebeziumEngineProperties debeziumEngineProperties;
-
-  private Boolean useDebeziumAsyncEngine;
 
   public StackGresStreamSource getSource() {
     return source;
@@ -67,6 +68,14 @@ public class StackGresStreamSpec {
     this.maxRetries = maxRetries;
   }
 
+  public StackGresStreamSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(StackGresStreamSpecMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   public StackGresStreamPods getPods() {
     return pods;
   }
@@ -84,18 +93,9 @@ public class StackGresStreamSpec {
     this.debeziumEngineProperties = debeziumEngineProperties;
   }
 
-  public Boolean getUseDebeziumAsyncEngine() {
-    return useDebeziumAsyncEngine;
-  }
-
-  public void setUseDebeziumAsyncEngine(Boolean useDebeziumAsyncEngine) {
-    this.useDebeziumAsyncEngine = useDebeziumAsyncEngine;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(debeziumEngineProperties, maxRetries, pods, source, target,
-        useDebeziumAsyncEngine);
+    return Objects.hash(debeziumEngineProperties, maxRetries, metadata, pods, source, target);
   }
 
   @Override
@@ -108,9 +108,9 @@ public class StackGresStreamSpec {
     }
     StackGresStreamSpec other = (StackGresStreamSpec) obj;
     return Objects.equals(debeziumEngineProperties, other.debeziumEngineProperties)
-        && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(pods, other.pods)
-        && Objects.equals(source, other.source) && Objects.equals(target, other.target)
-        && Objects.equals(useDebeziumAsyncEngine, other.useDebeziumAsyncEngine);
+        && Objects.equals(maxRetries, other.maxRetries) && Objects.equals(metadata, other.metadata)
+        && Objects.equals(pods, other.pods) && Objects.equals(source, other.source)
+        && Objects.equals(target, other.target);
   }
 
   @Override

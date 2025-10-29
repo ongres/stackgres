@@ -14,7 +14,7 @@ DO $$
           FROM pg_constraint
             JOIN pg_class ON pg_class.oid = pg_constraint.conrelid
             JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
-          WHERE contype IN ('c', 'f', 'u', 't', 'x')
+          WHERE contype IN ('p')
             AND pg_namespace.nspname NOT IN ('pg_catalog', 'pg_toast', 'information_schema')
             AND pg_class.relkind = 'r'
           UNION ALL
@@ -28,10 +28,10 @@ DO $$
           FROM pg_attribute
             JOIN pg_class ON pg_class.oid = pg_attribute.attrelid
             JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
-            LEFT JOIN pg_index ON pg_index.indisprimary
+            JOIN pg_index ON pg_index.indisprimary
               AND pg_index.indrelid = pg_attribute.attrelid
               AND pg_attribute.attnum = ANY(pg_index.indkey)
-          WHERE indisprimary IS NULL AND attnum > 0 AND attnotnull
+          WHERE indisprimary AND attnum > 0 AND attnotnull
             AND pg_namespace.nspname NOT IN ('pg_catalog', 'pg_toast', 'information_schema', '__migration__')
             AND pg_class.relkind = 'r'
           ORDER BY type DESC,schema_name DESC,table_name DESC,name DESC

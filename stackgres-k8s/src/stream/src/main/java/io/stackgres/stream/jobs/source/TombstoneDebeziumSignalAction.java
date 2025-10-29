@@ -198,22 +198,46 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
           SessionFactory sessionFactory = config.getHibernateConfiguration().buildSessionFactory();
           StatelessSession session = sessionFactory.openStatelessSession();
           ) {
-        Transaction transaction = session.beginTransaction();
-        try {
-          session.createNativeQuery(
-              SnapshotHelperQueries.RESTORE_INDEXES.readSql(),
-              Object.class).executeUpdate();
-          session.createNativeQuery(
-              SnapshotHelperQueries.RESTORE_CONSTRAINTS.readSql(),
-              Object.class).executeUpdate();
-          transaction.commit();
-        } catch (RuntimeException ex) {
-          transaction.rollback();
-          throw ex;
-        } catch (Exception ex) {
-          transaction.rollback();
-          throw new RuntimeException(ex);
-        }
+        restoreIndexes(session);
+        restoreConstraints(session);
+      }
+    }
+  }
+
+  private void restoreIndexes(StatelessSession session) {
+    executeUpdates(
+        session,
+        SnapshotHelperQueries.CHECK_RESTORE_INDEXES.readSql(),
+        SnapshotHelperQueries.RESTORE_INDEXES.readSql());
+  }
+
+  private void restoreConstraints(StatelessSession session) {
+    executeUpdates(session,
+        SnapshotHelperQueries.CHECK_RESTORE_CONSTRAINTS.readSql(),
+        SnapshotHelperQueries.RESTORE_CONSTRAINTS.readSql());
+  }
+
+  private void executeUpdates(StatelessSession session, String checkSql, String updateSql) {
+    var result = session.createNativeQuery(
+        checkSql,
+        Object.class).getResultList();
+    if (result == null || result.size() <= 0 || !(result.get(0) instanceof Number)) {
+      throw new RuntimeException("Undefined result while restoring objects on target database");
+    }
+    final int resultCount = Number.class.cast(result.get(0)).intValue();
+    for (int index = 0; index < resultCount; index++) {
+      Transaction transaction = session.beginTransaction();
+      try {
+        session.createNativeQuery(
+            updateSql,
+            Object.class).executeUpdate();
+        transaction.commit();
+      } catch (RuntimeException ex) {
+        transaction.rollback();
+        throw ex;
+      } catch (Exception ex) {
+        transaction.rollback();
+        throw new RuntimeException(ex);
       }
     }
   }

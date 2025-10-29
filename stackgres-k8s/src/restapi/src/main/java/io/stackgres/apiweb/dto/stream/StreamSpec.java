@@ -19,11 +19,11 @@ public class StreamSpec {
 
   private Integer maxRetries;
 
+  private StreamSpecMetadata metadata;
+
   private StreamPods pods;
 
   private StreamDebeziumEngineProperties debeziumEngineProperties;
-
-  private Boolean useDebeziumAsyncEngine;
 
   public StreamSource getSource() {
     return source;
@@ -49,6 +49,14 @@ public class StreamSpec {
     this.maxRetries = maxRetries;
   }
 
+  public StreamSpecMetadata getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(StreamSpecMetadata metadata) {
+    this.metadata = metadata;
+  }
+
   public StreamPods getPods() {
     return pods;
   }
@@ -64,14 +72,6 @@ public class StreamSpec {
   public void setDebeziumEngineProperties(
       StreamDebeziumEngineProperties debeziumEngineProperties) {
     this.debeziumEngineProperties = debeziumEngineProperties;
-  }
-
-  public Boolean getUseDebeziumAsyncEngine() {
-    return useDebeziumAsyncEngine;
-  }
-
-  public void setUseDebeziumAsyncEngine(Boolean useDebeziumAsyncEngine) {
-    this.useDebeziumAsyncEngine = useDebeziumAsyncEngine;
   }
 
   @Override

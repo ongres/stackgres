@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.stream;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -21,6 +22,9 @@ import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgstream.StackGresStream;
+import io.stackgres.common.crd.sgstream.StackGresStreamSpecAnnotations;
+import io.stackgres.common.crd.sgstream.StackGresStreamSpecLabels;
+import io.stackgres.common.crd.sgstream.StackGresStreamSpecMetadata;
 import io.stackgres.common.labels.LabelFactoryForStream;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -70,7 +74,17 @@ public class StreamRole implements ResourceGenerator<StackGresStreamContext> {
         .withNewMetadata()
         .withName(serviceAccountName)
         .withNamespace(serviceAccountNamespace)
-        .withLabels(labels)
+        .addToLabels(
+            Optional.ofNullable(stream.getSpec().getMetadata())
+            .map(StackGresStreamSpecMetadata::getLabels)
+            .map(StackGresStreamSpecLabels::getServiceAccount)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(stream.getSpec().getMetadata())
+            .map(StackGresStreamSpecMetadata::getAnnotations)
+            .map(StackGresStreamSpecAnnotations::getServiceAccount)
+            .orElse(Map.of()))
+        .addToLabels(labels)
         .endMetadata()
         .build();
 

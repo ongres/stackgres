@@ -39,6 +39,8 @@ public class StackGresStreamTargetSgCluster {
 
   private String ddlImportRoleSkipFilter;
 
+  private Boolean skipDropPrimaryKeys;
+
   private Boolean skipDropIndexesAndConstraints;
 
   private Boolean skipRestoreIndexesAfterSnapshot;
@@ -94,6 +96,14 @@ public class StackGresStreamTargetSgCluster {
     this.ddlImportRoleSkipFilter = ddlImportRoleSkipFilter;
   }
 
+  public Boolean getSkipDropPrimaryKeys() {
+    return skipDropPrimaryKeys;
+  }
+
+  public void setSkipDropPrimaryKeys(Boolean skipDropPrimaryKeys) {
+    this.skipDropPrimaryKeys = skipDropPrimaryKeys;
+  }
+
   public Boolean getSkipDropIndexesAndConstraints() {
     return skipDropIndexesAndConstraints;
   }
@@ -122,7 +132,8 @@ public class StackGresStreamTargetSgCluster {
   @Override
   public int hashCode() {
     return Objects.hash(database, ddlImportRoleSkipFilter, debeziumProperties, name, password,
-        skipDdlImport, skipDropIndexesAndConstraints, skipRestoreIndexesAfterSnapshot, username);
+        skipDdlImport, skipDropIndexesAndConstraints, skipDropPrimaryKeys,
+        skipRestoreIndexesAfterSnapshot, username);
   }
 
   @Override
@@ -140,6 +151,7 @@ public class StackGresStreamTargetSgCluster {
         && Objects.equals(name, other.name) && Objects.equals(password, other.password)
         && Objects.equals(skipDdlImport, other.skipDdlImport)
         && Objects.equals(skipDropIndexesAndConstraints, other.skipDropIndexesAndConstraints)
+        && Objects.equals(skipDropPrimaryKeys, other.skipDropPrimaryKeys)
         && Objects.equals(skipRestoreIndexesAfterSnapshot, other.skipRestoreIndexesAfterSnapshot)
         && Objects.equals(username, other.username);
   }

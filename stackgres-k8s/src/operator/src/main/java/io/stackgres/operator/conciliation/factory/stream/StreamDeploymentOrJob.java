@@ -41,6 +41,9 @@ import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamPods;
 import io.stackgres.common.crd.sgstream.StackGresStreamPodsScheduling;
 import io.stackgres.common.crd.sgstream.StackGresStreamSpec;
+import io.stackgres.common.crd.sgstream.StackGresStreamSpecAnnotations;
+import io.stackgres.common.crd.sgstream.StackGresStreamSpecLabels;
+import io.stackgres.common.crd.sgstream.StackGresStreamSpecMetadata;
 import io.stackgres.common.labels.LabelFactoryForStream;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -86,7 +89,17 @@ public class StreamDeploymentOrJob implements ResourceGenerator<StackGresStreamC
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(jobName(stream))
-        .withLabels(labelFactory.streamPodLabels(stream))
+        .addToLabels(
+            Optional.ofNullable(stream.getSpec().getMetadata())
+            .map(StackGresStreamSpecMetadata::getLabels)
+            .map(StackGresStreamSpecLabels::getPods)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(stream.getSpec().getMetadata())
+            .map(StackGresStreamSpecMetadata::getAnnotations)
+            .map(StackGresStreamSpecAnnotations::getPods)
+            .orElse(Map.of()))
+        .addToLabels(labelFactory.streamPodLabels(stream))
         .endMetadata()
         .withNewSpec()
         .withSecurityContext(podSecurityFactory.createResource(context))

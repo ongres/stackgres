@@ -124,6 +124,8 @@ public class StreamSourcePostgresDebeziumProperties {
 
   private Integer snapshotDelayMs;
 
+  private Integer streamingDelayMs;
+
   private Integer snapshotFetchSize;
 
   private Map<String, String> slotStreamParams;
@@ -135,6 +137,8 @@ public class StreamSourcePostgresDebeziumProperties {
   private String unavailableValuePlaceholder;
 
   private Boolean provideTransactionMetadata;
+
+  private Boolean publishViaPartitionRoot;
 
   private Boolean flushLsnSource;
 
@@ -173,6 +177,12 @@ public class StreamSourcePostgresDebeziumProperties {
   private Integer errorsMaxRetries;
 
   private Integer databaseQueryTimeoutMs;
+
+  private Integer guardrailCollectionsMax;
+
+  private String guardrailCollectionsLimitAction;
+
+  private Boolean extendedHeadersEnabled;
 
   public String getPluginName() {
     return pluginName;
@@ -612,6 +622,14 @@ public class StreamSourcePostgresDebeziumProperties {
     this.snapshotDelayMs = snapshotDelayMs;
   }
 
+  public Integer getStreamingDelayMs() {
+    return streamingDelayMs;
+  }
+
+  public void setStreamingDelayMs(Integer streamingDelayMs) {
+    this.streamingDelayMs = streamingDelayMs;
+  }
+
   public Integer getSnapshotFetchSize() {
     return snapshotFetchSize;
   }
@@ -658,6 +676,14 @@ public class StreamSourcePostgresDebeziumProperties {
 
   public void setProvideTransactionMetadata(Boolean provideTransactionMetadata) {
     this.provideTransactionMetadata = provideTransactionMetadata;
+  }
+
+  public Boolean getPublishViaPartitionRoot() {
+    return publishViaPartitionRoot;
+  }
+
+  public void setPublishViaPartitionRoot(Boolean publishViaPartitionRoot) {
+    this.publishViaPartitionRoot = publishViaPartitionRoot;
   }
 
   public Boolean getFlushLsnSource() {
@@ -811,6 +837,30 @@ public class StreamSourcePostgresDebeziumProperties {
 
   public void setDatabaseQueryTimeoutMs(Integer databaseQueryTimeoutMs) {
     this.databaseQueryTimeoutMs = databaseQueryTimeoutMs;
+  }
+
+  public Integer getGuardrailCollectionsMax() {
+    return guardrailCollectionsMax;
+  }
+
+  public void setGuardrailCollectionsMax(Integer guardrailCollectionsMax) {
+    this.guardrailCollectionsMax = guardrailCollectionsMax;
+  }
+
+  public String getGuardrailCollectionsLimitAction() {
+    return guardrailCollectionsLimitAction;
+  }
+
+  public void setGuardrailCollectionsLimitAction(String guardrailCollectionsLimitAction) {
+    this.guardrailCollectionsLimitAction = guardrailCollectionsLimitAction;
+  }
+
+  public Boolean getExtendedHeadersEnabled() {
+    return extendedHeadersEnabled;
+  }
+
+  public void setExtendedHeadersEnabled(Boolean extendedHeadersEnabled) {
+    this.extendedHeadersEnabled = extendedHeadersEnabled;
   }
 
   @Override
