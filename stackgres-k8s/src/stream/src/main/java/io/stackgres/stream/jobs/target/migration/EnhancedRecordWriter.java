@@ -34,8 +34,9 @@ public class EnhancedRecordWriter extends RecordWriter {
 
   @Override
   protected void bindValues(JdbcSinkRecord record, QueryBinder queryBinder) {
-    if (detectInsertMode) {
+    if (!detectInsertMode) {
       super.bindValues(record, queryBinder);
+      return;
     }
     if (record.isDelete()) {
       bindKeyValuesToQuery(record, queryBinder, 1);
