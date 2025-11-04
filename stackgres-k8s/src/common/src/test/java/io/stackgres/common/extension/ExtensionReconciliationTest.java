@@ -173,9 +173,8 @@ public class ExtensionReconciliationTest {
     StackGresClusterInstalledExtension installedExtension = createInstalledExtension();
     ExtensionReconciliatorContext context = getContext(cluster -> {
       cluster.getSpec().getPostgres().setExtensions(null);
-      cluster.setStatus(new StackGresClusterStatus());
-      cluster.getStatus().setExtensions(new ArrayList<>());
-      cluster.getStatus().getExtensions().add(installedExtension);
+      cluster.getSpec().setToInstallPostgresExtensions(new ArrayList<>());
+      cluster.getSpec().getToInstallPostgresExtensions().add(installedExtension);
     });
     doNothing().when(eventEmitter).emitExtensionDeployed(installedExtension);
     Assertions.assertTrue(reconciliator.reconcile(null, context).result().get());
