@@ -97,7 +97,7 @@
     <fluent-process.version>1.0.1</fluent-process.version>
     <jooq.version>3.20.4</jooq.version>
     <mockito.version>3.0.0</mockito.version>
-    <sundrio.version>0.200.4</sundrio.version>
+    <sundrio.version>0.230.2</sundrio.version>
     <reflections.version>0.10.2</reflections.version>
     <truth.version>1.4.4</truth.version>
     <jsonassert.version>1.5.3</jsonassert.version>
