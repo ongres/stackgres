@@ -49,6 +49,10 @@ public class PgConfigParametersValidator implements ClusterValidator {
       final Map<String, String> postgresqlConf = conf.getPostgresqlConf();
       final String postgresVersion =
           review.getRequest().getObject().getSpec().getPostgres().getVersion().split("\\.")[0];
+      // TODO: Update when dependency update is available
+      if (postgresVersion.equals("18")) {
+        return;
+      }
       final GucValidator val = GucValidator.forVersion(postgresVersion);
       StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();
       postgresqlConf.entrySet().stream()
