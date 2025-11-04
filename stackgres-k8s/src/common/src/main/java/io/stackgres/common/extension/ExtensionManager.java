@@ -69,12 +69,7 @@ public abstract class ExtensionManager {
 
   public ExtensionInstaller getExtensionInstaller(ClusterContext context,
       StackGresClusterInstalledExtension installedExtension) throws Exception {
-    final StackGresExtensionPublisher extensionPublisher = extensionMetadataManager
-        .getPublisher(installedExtension.getPublisher());
-    final URI extensionsRepositoryUri = extensionMetadataManager
-        .getExtensionRepositoryUri(URI.create(installedExtension.getRepository()));
-    return new ExtensionInstaller(context, installedExtension, extensionPublisher,
-        extensionsRepositoryUri);
+    return new ExtensionInstaller(context, installedExtension);
   }
 
   public ExtensionUninstaller getExtensionUninstaller(ClusterContext context,
@@ -85,24 +80,15 @@ public abstract class ExtensionManager {
   public class ExtensionInstaller {
     private final ClusterContext context;
     private final StackGresClusterInstalledExtension installedExtension;
-    private final StackGresExtensionPublisher extensionPublisher;
     private final String packageName;
-    private final URI extensionsRepositoryUri;
-    private final URI extensionUri;
 
     private ExtensionInstaller(
         final ClusterContext context,
-        final StackGresClusterInstalledExtension installedExtension,
-        final StackGresExtensionPublisher extensionPublisher,
-        final URI extensionsRepositoryUri) {
+        final StackGresClusterInstalledExtension installedExtension) {
       this.context = context;
       this.installedExtension = installedExtension;
-      this.extensionPublisher = extensionPublisher;
       this.packageName = ExtensionUtil.getExtensionPackageName(
           context.getCluster(), installedExtension);
-      this.extensionsRepositoryUri = extensionsRepositoryUri;
-      this.extensionUri = ExtensionUtil.getExtensionPackageUri(
-          extensionsRepositoryUri, context.getCluster(), installedExtension);
     }
 
     public boolean isExtensionInstalled() throws Exception {
@@ -115,31 +101,6 @@ public abstract class ExtensionManager {
       return fileSystemHandler.exists(
           Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
-    }
-
-    public void downloadAndExtract() throws Exception {
-      LOGGER.info("Downloading {} from {}",
-          ExtensionUtil.getDescription(context.getCluster(), installedExtension, true),
-          extensionUri);
-      try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
-        try (InputStream inputStream = client.getInputStream(extensionUri)) {
-          extractTar(inputStream);
-        }
-      }
-    }
-
-    public void verify() throws Exception {
-      try (InputStream signatureInputStream = fileSystemHandler.newInputStream(
-          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
-          .resolve(packageName + SHA256_SUFFIX));
-          InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
-              Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
-              .resolve(packageName + TGZ_SUFFIX))) {
-        if (!SignatureUtil.verify(extensionPublisher.getPublicKey(),
-            signatureInputStream, extensionPackageInputStream)) {
-          throw new SignatureException("Signature verification failed");
-        }
-      }
     }
 
     public boolean doesInstallOverwriteAnySharedFile() throws Exception {
@@ -199,7 +160,7 @@ public abstract class ExtensionManager {
           .resolve(packageName + LINKS_CREATED_SUFFIX));
     }
 
-    private void extractTar(InputStream inputStream)
+    protected void extractTar(InputStream inputStream)
         throws Exception {
       visitTar(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
@@ -217,6 +178,65 @@ public abstract class ExtensionManager {
       fileSystemHandler.createOrReplaceFile(
           Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + PENDING_SUFFIX));
+    }
+
+    public ExtensionPuller getPuller() throws Exception {
+      final StackGresExtensionPublisher extensionPublisher = extensionMetadataManager
+          .getPublisher(installedExtension.getPublisher());
+      final URI extensionsRepositoryUri = extensionMetadataManager
+          .getExtensionRepositoryUri(URI.create(installedExtension.getRepository()));
+      return new ExtensionPuller(context, installedExtension, extensionPublisher,
+          extensionsRepositoryUri);
+    }
+  }
+
+  public class ExtensionPuller extends ExtensionInstaller {
+    private final ClusterContext context;
+    private final StackGresClusterInstalledExtension installedExtension;
+    private final StackGresExtensionPublisher extensionPublisher;
+    private final String packageName;
+    private final URI extensionsRepositoryUri;
+    private final URI extensionUri;
+
+    private ExtensionPuller(
+        final ClusterContext context,
+        final StackGresClusterInstalledExtension installedExtension,
+        final StackGresExtensionPublisher extensionPublisher,
+        final URI extensionsRepositoryUri) {
+      super(context, installedExtension);
+      this.context = context;
+      this.installedExtension = installedExtension;
+      this.extensionPublisher = extensionPublisher;
+      this.packageName = ExtensionUtil.getExtensionPackageName(
+          context.getCluster(), installedExtension);
+      this.extensionsRepositoryUri = extensionsRepositoryUri;
+      this.extensionUri = ExtensionUtil.getExtensionPackageUri(
+          extensionsRepositoryUri, context.getCluster(), installedExtension);
+    }
+
+    public void downloadAndExtract() throws Exception {
+      LOGGER.info("Downloading {} from {}",
+          ExtensionUtil.getDescription(context.getCluster(), installedExtension, true),
+          extensionUri);
+      try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
+        try (InputStream inputStream = client.getInputStream(extensionUri)) {
+          extractTar(inputStream);
+        }
+      }
+    }
+
+    public void verify() throws Exception {
+      try (InputStream signatureInputStream = fileSystemHandler.newInputStream(
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
+          .resolve(packageName + SHA256_SUFFIX));
+          InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
+              Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
+              .resolve(packageName + TGZ_SUFFIX))) {
+        if (!SignatureUtil.verify(extensionPublisher.getPublicKey(),
+            signatureInputStream, extensionPackageInputStream)) {
+          throw new SignatureException("Signature verification failed");
+        }
+      }
     }
   }
 

@@ -41,6 +41,10 @@ public class PgConfigParametersValidator implements PgConfigValidator {
       final StackGresPostgresConfig conf = review.getRequest().getObject();
       final Map<String, String> postgresqlConf = conf.getSpec().getPostgresqlConf();
       final String postgresVersion = conf.getSpec().getPostgresVersion().split("\\.")[0];
+      // TODO: Update when dependency update is available
+      if (postgresVersion.equals("18")) {
+        return;
+      }
       final GucValidator val = GucValidator.forVersion(postgresVersion);
       StatusDetailsBuilder detailsBuilder = new StatusDetailsBuilder();
       postgresqlConf.entrySet().stream()

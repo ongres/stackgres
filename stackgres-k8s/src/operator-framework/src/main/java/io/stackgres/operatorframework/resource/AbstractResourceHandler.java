@@ -76,7 +76,7 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
         Optional.ofNullable(getResourceOperations(resource))
           .map(function -> function.apply(client))
           .orElseThrow(() -> new RuntimeException("Resource of type " + resource.getKind()
-            + " is not configured"));
+              + " is not configured"));
   }
 
   protected abstract <M extends HasMetadata> Function<KubernetesClient,

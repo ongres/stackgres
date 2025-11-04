@@ -47,6 +47,10 @@ public class PgConfigNormalizeValuesMutator implements PgConfigMutator {
     if (params.size() == 0) {
       return Map.of();
     }
+    // TODO: Update when dependency update is available
+    if (postgresVersion.equals("18")) {
+      return Map.copyOf(params);
+    }
     final GucValidator val = GucValidator.forVersion(postgresVersion.split("\\.")[0]);
     Map<String, String> updatedParams = new HashMap<>(params);
     params.forEach((name, setting) -> {

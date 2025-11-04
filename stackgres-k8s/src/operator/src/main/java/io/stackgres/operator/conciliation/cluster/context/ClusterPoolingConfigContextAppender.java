@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster.context;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -37,9 +38,10 @@ public class ClusterPoolingConfigContextAppender
             .findByNameAndNamespace(
                 poolingConfigName,
                 cluster.getMetadata().getNamespace()));
-    if (!cluster.getSpec().getConfigurations().getSgPoolingConfig()
-        .equals(defaultPoolingConfigFactory.getDefaultResourceName(cluster))
-        && !Optional.ofNullable(cluster.getSpec().getPods().getDisableConnectionPooling()).orElse(false)
+    if (!Optional.ofNullable(cluster.getSpec().getPods().getDisableConnectionPooling()).orElse(false)
+        && !Objects.equals(
+            cluster.getSpec().getConfigurations().getSgPoolingConfig(),
+            defaultPoolingConfigFactory.getDefaultResourceName(cluster))
         && poolingConfig.isEmpty()) {
       throw new IllegalArgumentException(
           StackGresPoolingConfig.KIND + " "
