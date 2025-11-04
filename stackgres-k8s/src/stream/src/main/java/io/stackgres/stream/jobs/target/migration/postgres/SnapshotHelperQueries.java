@@ -23,7 +23,8 @@ public enum SnapshotHelperQueries {
   RESTORE_PRIMARY_KEYS,
   RESTORE_INDEXES,
   AUTOVACUUM_DISABLE,
-  AUTOVACUUM_RESET;
+  AUTOVACUUM_RESET,
+  CLEANUP;
 
   public String readSql() {
     String queryType = name().toLowerCase(Locale.ENGLISH);

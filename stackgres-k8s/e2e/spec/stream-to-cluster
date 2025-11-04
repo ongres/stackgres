@@ -393,7 +393,7 @@ EOF
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 6 ))"
+    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 6 ))"'
   then
     success "sent insert events successful"
   else
@@ -431,7 +431,7 @@ EOF
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 4 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 8 ))"
+    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 8 ))"'
   then
     success "sent delete events successful"
   else
@@ -589,7 +589,7 @@ EOF
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 ))"
+    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 ))"'
   then
     success "sent update events successful"
   else
@@ -625,14 +625,14 @@ EOF
   fi
 
   if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 + 6 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 + 6 ))"
+    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 + 6 ))"'
   then
     success "sent alter events successful"
   else
     fail "sent alter events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.lastEventWasSent | grep -qxF true
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.lastEventWasSent | grep -qxF true'
   then
     success "sent last event successful"
   else

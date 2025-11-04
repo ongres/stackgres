@@ -133,7 +133,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     final StackGresStream stream;
     final boolean skipDropPrimaryKeys;
-    final boolean skipDropIndexes;
+    final boolean skipDropConstraintsAndIndexes;
     final boolean skipRestoreIndexes;
     final String unavailableValuePlaceholder;
     final String unavailableValuePlaceholderJson;
@@ -152,13 +152,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     JdbcHandler(StackGresStream stream) {
       this.stream = stream;
-      this.skipDropPrimaryKeys = Optional.of(stream.getSpec().getTarget().getSgCluster())
-          .map(StackGresStreamTargetSgCluster::getSkipDropPrimaryKeys)
-          .orElse(false);
-      this.skipDropIndexes = Optional.of(stream.getSpec().getTarget().getSgCluster())
+      this.skipDropConstraintsAndIndexes = Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
           .orElse(false);
-      this.skipRestoreIndexes = skipDropIndexes
+      this.skipDropPrimaryKeys = skipDropConstraintsAndIndexes
+          || Optional.of(stream.getSpec().getTarget().getSgCluster())
+          .map(StackGresStreamTargetSgCluster::getSkipDropPrimaryKeys)
+          .orElse(false);
+      this.skipRestoreIndexes = skipDropConstraintsAndIndexes
           || Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipRestoreIndexesAfterSnapshot)
           .orElse(false);
@@ -274,7 +275,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
         LOGGER.info("Import of DDL has been skipped as required by configuration");
       }
 
-      if (!skipDropIndexes) {
+      if (!skipDropConstraintsAndIndexes) {
         storeAndDropConstraintsAndIndexes();
       } else {
         LOGGER.info("Skipping storing and removing constraints and indexes for target database");
@@ -349,13 +350,11 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
             sinkRecords.clear();
             committedChangeEvents.clear();
             if (!skipDropPrimaryKeys) {
-              LOGGER.info("Restoring primary keys for target database");
               restorePrimaryKeys();
             } else {
               LOGGER.info("Skipping restoring primary keys for target database");
             }
             if (!skipRestoreIndexes) {
-              LOGGER.info("Restoring indexes for target database");
               restoreIndexes();
             } else {
               LOGGER.info("Skipping restoring indexes for target database");
@@ -836,9 +835,9 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     }
 
     private void storeAndDropPrimaryKeysSgCluster() {
-      LOGGER.info("Store primary keys for target database");
+      LOGGER.info("Storing primary keys for target database");
       executeCommand(session, SnapshotHelperQueries.STORE_PRIMARY_KEYS.readSql());
-      LOGGER.info("Drop primary keys for target database");
+      LOGGER.info("Dropping primary keys for target database");
       executeCommand(session, SnapshotHelperQueries.DROP_PRIMARY_KEYS.readSql());
     }
 
@@ -849,13 +848,13 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     }
 
     private void storeAndDropConstraintsAndIndexesSgCluster() {
-      LOGGER.info("Store constraints for target database");
+      LOGGER.info("Storing constraints for target database");
       executeCommand(session, SnapshotHelperQueries.STORE_CONSTRAINTS.readSql());
-      LOGGER.info("Store indexes for target database");
+      LOGGER.info("Storing indexes for target database");
       executeCommand(session, SnapshotHelperQueries.STORE_INDEXES.readSql());
-      LOGGER.info("Drop constraints for target database");
+      LOGGER.info("Dropping constraints for target database");
       executeCommand(session, SnapshotHelperQueries.DROP_CONSTRAINTS.readSql());
-      LOGGER.info("Drop indexes for target database");
+      LOGGER.info("Dropping indexes for target database");
       executeCommand(session, SnapshotHelperQueries.DROP_INDEXES.readSql());
     }
 
@@ -867,13 +866,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
 
     private void restorePrimaryKeysSgCluster() {
       if (Objects.equals(stream.getSpec().getTarget().getType(), StreamTargetType.SGCLUSTER.toString())) {
-        LOGGER.info("Restore primary keys for target database");
+        LOGGER.info("Restoring primary keys for target database");
         var result = executeQuery(session, SnapshotHelperQueries.CHECK_RESTORE_PRIMARY_KEYS.readSql());
         if (result == null || result.size() <= 0 || !(result.get(0) instanceof Number)) {
           throw new RuntimeException("Undefined result while restoring objects on target database");
         }
         final int resultCount = Number.class.cast(result.get(0)).intValue();
         for (int index = 0; index < resultCount; index++) {
+          LOGGER.info("Restoring primary key {}/{} for target database", index + 1, resultCount);
           executeCommand(session, SnapshotHelperQueries.RESTORE_PRIMARY_KEYS.readSql());
         }
       }
@@ -886,13 +886,14 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
     }
 
     private void restoreIndexesSgCluster() {
-      LOGGER.info("Restore indexes for target database");
+      LOGGER.info("Restoring indexes for target database");
       var result = executeQuery(session, SnapshotHelperQueries.CHECK_RESTORE_INDEXES.readSql());
       if (result == null || result.size() <= 0 || !(result.get(0) instanceof Number)) {
         throw new RuntimeException("Undefined result while restoring objects on target database");
       }
       final int resultCount = Number.class.cast(result.get(0)).intValue();
       for (int index = 0; index < resultCount; index++) {
+        LOGGER.info("Restoring index {}/{} for target database", index + 1, resultCount);
         executeCommand(session, SnapshotHelperQueries.RESTORE_INDEXES.readSql());
       }
     }

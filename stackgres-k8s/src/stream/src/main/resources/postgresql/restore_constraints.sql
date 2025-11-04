@@ -13,5 +13,3 @@ DO $$
       EXIT;
     END LOOP;
   END;$$;
-
-DROP SCHEMA IF EXISTS __migration__ CASCADE;

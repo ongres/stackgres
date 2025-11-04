@@ -7,6 +7,7 @@ package io.stackgres.stream;
 
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.stackgres.stream.app.StreamMBeamMonitor;
 import io.stackgres.stream.app.StreamProperty;
 import io.stackgres.stream.app.StreamReconciliationClock;
 import io.stackgres.stream.controller.StreamReconciliationCycle;
@@ -23,6 +24,9 @@ public class Main implements QuarkusApplication {
   StreamReconciliationClock streamReconciliationClock;
 
   @Inject
+  StreamMBeamMonitor streamMBeamMonitor;
+
+  @Inject
   StreamReconciliationCycle streamReconciliationCycle;
 
   @Override
@@ -30,6 +34,7 @@ public class Main implements QuarkusApplication {
     streamReconciliationClock.start();
     String streamName = StreamProperty.STREAM_NAME.getString();
     String streamNamespace = StreamProperty.STREAM_NAMESPACE.getString();
+    streamMBeamMonitor.start(streamNamespace, streamName);
     streamLauncher.launchStream(streamName, streamNamespace);
     streamReconciliationClock.stop();
     streamReconciliationCycle.reconcileAll();

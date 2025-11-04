@@ -5,7 +5,6 @@
 
 package io.stackgres.stream.controller;
 
-import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -16,8 +15,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.management.InstanceNotFoundException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import javax.management.openmbean.CompositeDataSupport;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -32,10 +29,11 @@ import io.stackgres.common.crd.sgstream.StackGresStreamStreamingStatus;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
+import io.stackgres.stream.app.StreamMBeamMonitor;
+import io.stackgres.stream.app.StreamMBeamMonitor.StreamMBeanInfo;
 import io.stackgres.stream.common.StackGresStreamContext;
 import io.stackgres.stream.configuration.StreamPropertyContext;
 import io.stackgres.stream.jobs.Metrics;
-import io.stackgres.stream.jobs.source.SgClusterDebeziumEngineHandler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -52,11 +50,13 @@ public class StreamReconciliator
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StreamReconciliator.class);
 
+  private final StreamMBeamMonitor mbeanMonitor;
   private final Metrics metrics;
   private final CustomResourceScheduler<StackGresStream> streamScheduler;
 
   @Inject
   public StreamReconciliator(Parameters parameters) {
+    this.mbeanMonitor = parameters.mbeanMonitor;
     this.metrics = parameters.metrics;
     this.streamScheduler = parameters.streamScheduler;
   }
@@ -64,6 +64,7 @@ public class StreamReconciliator
   public StreamReconciliator() {
     super();
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.mbeanMonitor = null;
     this.metrics = null;
     this.streamScheduler = null;
   }
@@ -75,55 +76,53 @@ public class StreamReconciliator
     if (stream.getStatus() == null) {
       stream.setStatus(new StackGresStreamStatus());
     }
-    var platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
     if (stream.getStatus().getSnapshot() == null) {
       stream.getStatus().setSnapshot(new StackGresStreamSnapshotStatus());
     }
-    final String topicPrefix = SgClusterDebeziumEngineHandler.topicPrefix(stream);
-    final String tablePrefix =
-        Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
-        .map(StackGresStreamSourceSgCluster::getDatabase)
-        .or(() -> Optional.ofNullable(stream.getSpec().getSource().getPostgres())
-            .map(StackGresStreamSourcePostgres::getDatabase))
-        .orElse("postgres") + ".";
-    StackGresStreamSnapshotStatus snapshotStatus = stream.getStatus().getSnapshot();
-    setStatusMetrics(
-        stream,
-        snapshotStatus,
-        StackGresStreamSnapshotStatus.class,
-        "debezium.postgres:type=connector-metrics,context=snapshot,server=" + topicPrefix,
-        platformMBeanServer);
-    snapshotStatus.setCapturedTables(
-        Optional.of(snapshotStatus)
-            .map(StackGresStreamSnapshotStatus::getCapturedTables)
-            .map(tables -> tables.stream()
-                .map(table -> trimPrefix(tablePrefix, table))
-                .toList())
-            .orElse(null));
-    snapshotStatus.setRowsScanned(
-        Optional.of(snapshotStatus)
-            .map(StackGresStreamSnapshotStatus::getRowsScanned)
-            .map(tableRows -> tableRows.entrySet().stream()
-                .map(tableRow -> Map.entry(trimPrefix(tablePrefix, tableRow.getKey()), tableRow.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
-            .orElse(null));
-    if (stream.getStatus().getStreaming() == null) {
-      stream.getStatus().setStreaming(new StackGresStreamStreamingStatus());
+    if (mbeanMonitor.hasData()) {
+      final String tablePrefix =
+          Optional.ofNullable(stream.getSpec().getSource().getSgCluster())
+          .map(StackGresStreamSourceSgCluster::getDatabase)
+          .or(() -> Optional.ofNullable(stream.getSpec().getSource().getPostgres())
+              .map(StackGresStreamSourcePostgres::getDatabase))
+          .orElse("postgres") + ".";
+      StackGresStreamSnapshotStatus snapshotStatus = stream.getStatus().getSnapshot();
+      setStatusMetrics(
+          stream,
+          snapshotStatus,
+          StackGresStreamSnapshotStatus.class,
+          mbeanMonitor.getSnapshotMBean());
+      snapshotStatus.setCapturedTables(
+          Optional.of(snapshotStatus)
+              .map(StackGresStreamSnapshotStatus::getCapturedTables)
+              .map(tables -> tables.stream()
+                  .map(table -> trimPrefix(tablePrefix, table))
+                  .toList())
+              .orElse(null));
+      snapshotStatus.setRowsScanned(
+          Optional.of(snapshotStatus)
+              .map(StackGresStreamSnapshotStatus::getRowsScanned)
+              .map(tableRows -> tableRows.entrySet().stream()
+                  .map(tableRow -> Map.entry(trimPrefix(tablePrefix, tableRow.getKey()), tableRow.getValue()))
+                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+              .orElse(null));
+      if (stream.getStatus().getStreaming() == null) {
+        stream.getStatus().setStreaming(new StackGresStreamStreamingStatus());
+      }
+      StackGresStreamStreamingStatus streamingStatus = stream.getStatus().getStreaming();
+      setStatusMetrics(
+          stream,
+          streamingStatus,
+          StackGresStreamStreamingStatus.class,
+          mbeanMonitor.getStreamingMBean());
+      streamingStatus.setCapturedTables(
+          Optional.of(streamingStatus)
+              .map(StackGresStreamStreamingStatus::getCapturedTables)
+              .map(tables -> tables.stream()
+                  .map(table -> trimPrefix(tablePrefix, table))
+                  .toList())
+              .orElse(null));
     }
-    StackGresStreamStreamingStatus streamingStatus = stream.getStatus().getStreaming();
-    setStatusMetrics(
-        stream,
-        streamingStatus,
-        StackGresStreamStreamingStatus.class,
-        "debezium.postgres:type=connector-metrics,context=streaming,server=" + topicPrefix,
-        platformMBeanServer);
-    streamingStatus.setCapturedTables(
-        Optional.of(streamingStatus)
-            .map(StackGresStreamStreamingStatus::getCapturedTables)
-            .map(tables -> tables.stream()
-                .map(table -> trimPrefix(tablePrefix, table))
-                .toList())
-            .orElse(null));
     if (stream.getStatus().getEvents() == null) {
       stream.getStatus().setEvents(new StackGresStreamEventsStatus());
     }
@@ -148,20 +147,17 @@ public class StreamReconciliator
       StackGresStream currentStream,
       Object statusSection,
       Class<?> statusSectionClass,
-      String mbeanName,
-      MBeanServer platformMBeanServer)
+      StreamMBeanInfo streamMBeanInfo)
       throws Exception {
     try {
-      ObjectName sectionMetricsName = new ObjectName(mbeanName);
-      var sectionMetricsMBean = platformMBeanServer.getMBeanInfo(sectionMetricsName);
       for (Field field : statusSectionClass.getDeclaredFields()) {
         String attributeName = field.getName().substring(0, 1).toUpperCase(Locale.US)
             + field.getName().substring(1);
         String setterMethodName = "set" + attributeName;
         Method setterMethod = statusSectionClass.getMethod(setterMethodName, field.getType());
-        for (var attribute : sectionMetricsMBean.getAttributes()) {
+        for (var attribute : streamMBeanInfo.getMbeanInfo().getAttributes()) {
           if (attribute.getName().equals(attributeName)) {
-            Object attributeValue = platformMBeanServer.getAttribute(sectionMetricsName, attributeName);
+            Object attributeValue = streamMBeanInfo.getAttribute(attributeName);
             if (attributeValue instanceof String[] attributeValueStringArray) {
               attributeValue = Arrays.asList(attributeValueStringArray);
             } else if (attributeValue instanceof Map attributeValueMap) {
@@ -187,13 +183,15 @@ public class StreamReconciliator
         }
       }
     } catch (InstanceNotFoundException ex) {
-      LOGGER.debug("Error occurred while trying to retrieve MBean " + mbeanName, ex);
-      return;
+      LOGGER.trace("Error while reading MBean", ex);
+    } catch (Exception ex) {
+      LOGGER.error("Error while reading MBean", ex);
     }
   }
 
   @Dependent
   public static class Parameters {
+    @Inject StreamMBeamMonitor mbeanMonitor;
     @Inject Metrics metrics;
     @Inject CustomResourceScheduler<StackGresStream> streamScheduler;
     @Inject StreamPropertyContext propertyContext;
