@@ -14,9 +14,9 @@ metadata:
 spec:
   {{- if eq .Values.cluster.postgres.version "latest" }}
     {{- if eq .Values.cluster.postgres.flavor "babelfish" }}
-  postgresVersion: "16"
-    {{- else }}
   postgresVersion: "17"
+    {{- else }}
+  postgresVersion: "18"
     {{- end }}
   {{- else }}
   postgresVersion: "{{ index (.Values.cluster.postgres.version | splitList ".") 0 }}"
