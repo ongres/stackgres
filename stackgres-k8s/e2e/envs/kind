@@ -524,7 +524,8 @@ EOF
         || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.30 ] \
         || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.31 ] \
         || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.32 ] \
-        || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.33 ]
+        || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.33 ] \
+        || [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.34 ]
       then
         CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.30"
       fi
