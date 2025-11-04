@@ -1444,7 +1444,6 @@ spec:
                           
                           * synchronous_mode
                           * synchronous_mode_strict
-                          * failsafe_mode
                           * postgresql (except pg_hba section)
                           * standby_cluster
                           

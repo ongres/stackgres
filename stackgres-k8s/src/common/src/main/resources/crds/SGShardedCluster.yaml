@@ -2000,7 +2000,6 @@ spec:
                               
                               * synchronous_mode
                               * synchronous_mode_strict
-                              * failsafe_mode
                               * postgresql
                               * standby_cluster
                       
