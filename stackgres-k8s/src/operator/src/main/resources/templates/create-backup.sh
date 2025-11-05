@@ -61,7 +61,15 @@ reconcile_backups() {
 
   BACKUP_CONFIG_RESOURCE_VERSION="$(retry kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')"
   CLUSTER_BACKUP_PATH="$(retry kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template="{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")"
+    --template="{{ with .status }}{{ with .backupPaths }}{{ with (index . 0) }}{{ . }}{{ end }}{{ end }}{{ end }}")"
+  if [ -z "$CLUSTER_BACKUP_PATH" ]
+  then
+    echo "Backup path not configured yet"
+    retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup path not configured yet' | to_json_string)"'}
+      ]'
+    return 1
+  fi
   BACKUP_ALREADY_COMPLETED=false
   create_or_update_backup_cr
   if [ "$BACKUP_ALREADY_COMPLETED" = "true" ]
@@ -109,7 +117,7 @@ reconcile_backups() {
       ]'
     return 1
   elif [ "$CLUSTER_BACKUP_PATH" != "$(retry kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template="{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")" ]
+    --template="{{ with .status }}{{ with .backupPaths }}{{ with (index . 0) }}{{ . }}{{ end }}{{ end }}{{ end }}")" ]
   then
     cat /tmp/backup-list
     echo "Backup path '$CLUSTER_BACKUP_PATH' changed during backup"
