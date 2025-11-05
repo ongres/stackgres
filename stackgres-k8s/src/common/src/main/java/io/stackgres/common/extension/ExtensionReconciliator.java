@@ -165,10 +165,10 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           LOGGER.info("Download extension {}",
               ExtensionUtil.getDescription(cluster, extension, true));
           extensionEventEmitter.emitExtensionDownloading(extension);
-          extensionInstaller.downloadAndExtract();
+          extensionInstaller.getPuller().downloadAndExtract();
           LOGGER.info("Verify extension {}",
               ExtensionUtil.getDescription(cluster, extension, true));
-          extensionInstaller.verify();
+          extensionInstaller.getPuller().verify();
           if (skipSharedLibrariesOverwrites
               && extensionInstaller.doesInstallOverwriteAnySharedFile()) {
             LOGGER.info("Skip installation of extension {}",

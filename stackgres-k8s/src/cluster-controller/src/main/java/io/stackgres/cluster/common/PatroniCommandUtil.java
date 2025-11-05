@@ -12,7 +12,7 @@ import com.ongres.process.FluentProcess;
 public interface PatroniCommandUtil {
 
   Pattern PATRONI_COMMAND_PATTERN =
-      Pattern.compile("^[^ ]+ /usr/bin/patroni .*$");
+      Pattern.compile("^(/[^/]+)+/python[^ ]* (/[^/]+)+/patroni .*$");
 
   static void reloadPatroniConfig() {
     final String patroniPid = findPatroniPid();

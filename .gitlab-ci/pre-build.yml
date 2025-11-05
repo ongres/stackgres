@@ -6,6 +6,7 @@
     - |
       [ "$DEBUG" != true ] || set -x
       TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/$IMAGE_NAME-$ARCH"
+      LATEST_TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/${IMAGE_NAME%:*}:latest-$ARCH"
       mkdir -p $HOME/.docker                                                                                                                                                                               
       cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
       echo | docker login "$CI_REGISTRY" || \
@@ -18,10 +19,11 @@
         exit
       fi
       echo Building...
-      docker build -f "$IMAGE_DOCKERFILE" -t "$TARGET_IMAGE_NAME" .
+      docker build -f "$IMAGE_DOCKERFILE" -t "$TARGET_IMAGE_NAME" -t "$LATEST_TARGET_IMAGE_NAME" .
       echo ...done
       echo Pushing...
       docker push "$TARGET_IMAGE_NAME"
+      docker push "$LATEST_TARGET_IMAGE_NAME"
       echo ...done
       EOF
       flock "/tmp/stackgres-build-$IMAGE_NAME" sh -xe build-image.sh
@@ -37,6 +39,7 @@
     - |
       [ "$DEBUG" != true ] || set -x
       TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/$IMAGE_NAME"
+      LATEST_TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/${IMAGE_NAME%:*}:latest"
       mkdir -p $HOME/.docker                                                                                                                                                                               
       cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"                                                                                                                                              
       echo | docker login "$CI_REGISTRY" || \
@@ -56,10 +59,13 @@
       for ARCH in $ARCH_LIST
       do
         docker pull "$TARGET_IMAGE_NAME-$ARCH"
+        docker pull "$LATEST_TARGET_IMAGE_NAME-$ARCH"
       done
       docker pull "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder"
       docker tag "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder" "$TARGET_IMAGE_NAME"
       docker push "$TARGET_IMAGE_NAME"
+      docker tag "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder" "$LATEST_TARGET_IMAGE_NAME"
+      docker push "$LATEST_TARGET_IMAGE_NAME"
       docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
       docker manifest create "$TARGET_IMAGE_NAME" $(
         for ARCH in $ARCH_LIST
@@ -67,6 +73,13 @@
           echo "$TARGET_IMAGE_NAME-$ARCH "
         done)
       docker manifest push "$TARGET_IMAGE_NAME"
+      docker manifest rm "$LATEST_TARGET_IMAGE_NAME" 2>/dev/null || true
+      docker manifest create "$LATEST_TARGET_IMAGE_NAME" $(
+        for ARCH in $ARCH_LIST
+        do
+          echo "$LATEST_TARGET_IMAGE_NAME-$ARCH "
+        done)
+      docker manifest push "$LATEST_TARGET_IMAGE_NAME"
   retry: 2
 
 build ci image amd64:
