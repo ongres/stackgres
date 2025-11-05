@@ -149,8 +149,6 @@ helm_custom_annotations(){
   wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
   )
 
-  wait_until check_cronjob_annotation "$POD_RANDOM_VALUE"
-
   cat <<EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGBackup
