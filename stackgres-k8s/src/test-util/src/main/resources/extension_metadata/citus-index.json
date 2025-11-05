@@ -46,7 +46,7 @@
           ]
         },
         {
-          "version": "13.1.0",
+          "version": "13.2.0",
           "availableFor": [
             {
               "postgresVersion": "15",
@@ -101,7 +101,7 @@
           ]
         },
         {
-          "version": "13.1.0",
+          "version": "13.2.0",
           "availableFor": [
             {
               "postgresVersion": "15",

@@ -83,7 +83,7 @@ class ShardedClusterRequiredResourcesGeneratorTest {
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().streamOrderedVersions()
-        .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
+        .skipUntil(version -> version.startsWith("15")).findFirst().orElseThrow());
     cluster.setStatus(new StackGresShardedClusterStatus());
     cluster.getStatus().setPostgresVersion(cluster.getSpec().getPostgres().getVersion());
     cluster.getMetadata().getAnnotations().put(
@@ -93,7 +93,7 @@ class ShardedClusterRequiredResourcesGeneratorTest {
     postgresConfig.getSpec()
         .setPostgresVersion(StackGresComponent.POSTGRESQL
             .getLatest().streamOrderedMajorVersions()
-            .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
+            .skipUntil(version -> version.startsWith("15")).findFirst().orElseThrow());
     setNamespace(postgresConfig);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     final String version = postgresConfig.getSpec().getPostgresVersion();

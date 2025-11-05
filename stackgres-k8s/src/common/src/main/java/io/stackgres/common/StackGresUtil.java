@@ -391,6 +391,13 @@ public interface StackGresUtil {
         .map(Tuple2::v2)
         .findAny()
         .get();
+    long pg13Index = pgComponent
+        .streamOrderedMajorVersions()
+        .zipWithIndex()
+        .filter(t -> t.v1.equals("13"))
+        .map(Tuple2::v2)
+        .findAny()
+        .get();
     long pg14Index = pgComponent
         .streamOrderedMajorVersions()
         .zipWithIndex()
@@ -398,22 +405,28 @@ public interface StackGresUtil {
         .map(Tuple2::v2)
         .findAny()
         .get();
-    long pg17Index = pgComponent
+    long pg15Index = pgComponent
         .streamOrderedMajorVersions()
         .zipWithIndex()
-        .filter(t -> t.v1.equals("17"))
+        .filter(t -> t.v1.equals("15"))
         .map(Tuple2::v2)
         .findAny()
         .get();
     return List.of(
-        pgMajorVersionIndex <= pg17Index
-        ? new ExtensionTuple("citus", "13.1.0")
+        pgMajorVersionIndex <= pg15Index
+        ? new ExtensionTuple("citus", "13.2.0")
             : pgMajorVersionIndex <= pg14Index
-            ? new ExtensionTuple("citus", "12.1-1")
-                : new ExtensionTuple("citus", "11.3-1"),
-        pgMajorVersionIndex <= pg17Index
-        ? new ExtensionTuple("citus_columnar", "13.1.0")
-            : new ExtensionTuple("citus_columnar", "11.3-1"));
+            ? new ExtensionTuple("citus", "12.1.6")
+                : pgMajorVersionIndex <= pg13Index
+                ? new ExtensionTuple("citus", "11.3-1")
+                    : new ExtensionTuple("citus", "10.2-5"),
+        pgMajorVersionIndex <= pg15Index
+        ? new ExtensionTuple("citus_columnar", "13.2.0")
+            : pgMajorVersionIndex <= pg14Index
+            ? new ExtensionTuple("citus_columnar", "12.1.6")
+                : pgMajorVersionIndex <= pg13Index
+                ? new ExtensionTuple("citus_columnar", "11.3-1")
+                    : new ExtensionTuple("citus_columnar", "10.2-5"));
   }
 
   static List<ExtensionTuple> getDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
