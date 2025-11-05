@@ -9,11 +9,12 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterSpecLabels {
+public class ShardedClusterSpecLabels extends ClusterSpecLabels {
 
   private Map<String, String> coordinatorPrimaryService;
 
