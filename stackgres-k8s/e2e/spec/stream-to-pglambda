@@ -29,7 +29,8 @@ e2e_test_install() {
 
   kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  install_operator_only
+  set_helm_values_for_developer > /dev/null
+  install_operator_only --set-string "developer.extraOpts[$E2E_OPERATOR_EXTRA_OPTS_INDEX]=-Dsun.net.http.allowRestrictedHeaders=true"
 
   STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
 

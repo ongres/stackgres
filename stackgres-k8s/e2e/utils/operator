@@ -1744,6 +1744,7 @@ set_max_length() {
 }
 
 set_helm_values_for_developer() {
+  E2E_OPERATOR_EXTRA_OPTS_INDEX=13
   cat << EOF
     --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER=${CLUSTER_CONTROLLER_IMAGE_NAME} 
     --set-string developer.extraOpts[0]=-Dquarkus.log.category."io.stackgres".level=DEBUG 
@@ -1764,6 +1765,7 @@ set_helm_values_for_developer() {
 EOF
   if [ "$K8S_IP_FAMILY" = ipv6 ]
   then
+  E2E_OPERATOR_EXTRA_OPTS_INDEX=15
   cat << EOF
     --set-string developer.extraOpts[13]=-Djava.net.preferIPv6Addresses=true 
     --set-string developer.extraOpts[14]=-Djava.net.preferIPv4Stack=false 
