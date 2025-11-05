@@ -237,21 +237,21 @@ EOF
     fail "streaming transaction failed"
   fi
 
-  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.streaming.totalNumberOfCreateEventsSeen' | grep -qxF 6'
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF 6'
   then
     success "streaming events successful"
   else
     fail "streaming events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.events.totalNumberOfEventsSent' | grep -qxF 12
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF 12'
   then
     success "sent events successful"
   else
     fail "sent events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq '.status.events.lastEventWasSent' | grep -qxF true
+  if wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.lastEventWasSent | grep -qxF true'
   then
     success "sent last event successful"
   else
