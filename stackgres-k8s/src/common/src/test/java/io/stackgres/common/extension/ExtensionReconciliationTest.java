@@ -157,12 +157,6 @@ public class ExtensionReconciliationTest {
 
   @Test
   void testReconciliationWithExtension_installIsPerformed() throws Exception {
-    ExtensionReconciliatorContext context = getContext(cluster -> {
-      cluster.getSpec().getPostgres().setExtensions(null);
-      cluster.setStatus(new StackGresClusterStatus());
-      cluster.getStatus().setExtensions(new ArrayList<>());
-      cluster.getStatus().getExtensions().add(installedExtension);
-    });
     when(extensionManager.getExtensionInstaller(
         any(), any(StackGresClusterInstalledExtension.class)))
         .thenReturn(extensionInstaller);
