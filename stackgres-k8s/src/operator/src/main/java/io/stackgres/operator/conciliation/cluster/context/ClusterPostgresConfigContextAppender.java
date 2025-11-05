@@ -59,6 +59,16 @@ public class ClusterPostgresConfigContextAppender {
       }
     }
 
+    validatePostgresConfig(cluster, majorVersion);
+
+    contextBuilder.postgresConfig(postgresConfig);
+  }
+
+  private void validatePostgresConfig(StackGresCluster cluster, String majorVersion) {
+    // TODO: Update when dependency update is available
+    if (majorVersion.equals("18")) {
+      return;
+    }
     final GucValidator val = GucValidator.forVersion(majorVersion);
     Optional.ofNullable(cluster.getSpec().getConfigurations().getPostgres())
         .map(StackGresPostgresConfigSpec::getPostgresqlConf)
@@ -74,8 +84,6 @@ public class ClusterPostgresConfigContextAppender {
                 + parameter.getHint().map(hint -> " (" + hint + ")").orElse(""));
           }
         });
-
-    contextBuilder.postgresConfig(postgresConfig);
   }
 
 }
