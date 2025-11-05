@@ -27,7 +27,7 @@ import io.debezium.sink.column.ColumnDescriptor;
  */
 public class FloatVectorType extends AbstractFloatVectorType {
 
-  public static FloatVectorType INSTANCE = new FloatVectorType();
+  public static final FloatVectorType INSTANCE = new FloatVectorType();
 
   @Override
   public String getTypeName(Schema schema, boolean isKey) {

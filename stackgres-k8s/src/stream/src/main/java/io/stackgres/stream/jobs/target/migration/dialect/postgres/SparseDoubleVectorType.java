@@ -34,7 +34,7 @@ import io.debezium.sink.column.ColumnDescriptor;
  */
 public class SparseDoubleVectorType extends AbstractSparseDoubleVectorType {
 
-  public static SparseDoubleVectorType INSTANCE = new SparseDoubleVectorType();
+  public static final SparseDoubleVectorType INSTANCE = new SparseDoubleVectorType();
 
   @Override
   public String getTypeName(Schema schema, boolean isKey) {

@@ -127,7 +127,7 @@ public class PostgresDatabaseDialect extends GeneralDatabaseDialect {
   public String getQueryBindingWithValueCast(ColumnDescriptor column, Schema schema,
       JdbcType type) {
     if (schema.type() == Schema.Type.STRING) {
-      final String typeName = column.getTypeName().toLowerCase();
+      final String typeName = column.getTypeName().toLowerCase(Locale.US);
       if ("uuid".equals(typeName)) {
         return "cast(? as uuid)";
       } else if ("json".equals(typeName)) {

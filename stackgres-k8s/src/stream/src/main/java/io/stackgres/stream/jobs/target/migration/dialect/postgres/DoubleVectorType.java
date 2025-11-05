@@ -27,7 +27,7 @@ import io.debezium.sink.column.ColumnDescriptor;
  */
 public class DoubleVectorType extends AbstractDoubleVectorType {
 
-  public static DoubleVectorType INSTANCE = new DoubleVectorType();
+  public static final DoubleVectorType INSTANCE = new DoubleVectorType();
 
   @Override
   public String getTypeName(Schema schema, boolean isKey) {

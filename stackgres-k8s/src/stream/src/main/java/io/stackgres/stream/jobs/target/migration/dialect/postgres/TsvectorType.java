@@ -42,7 +42,7 @@ import io.debezium.sink.valuebinding.ValueBindDescriptor;
  */
 public class TsvectorType extends AbstractType {
 
-  public static TsvectorType INSTANCE = new TsvectorType();
+  public static final TsvectorType INSTANCE = new TsvectorType();
 
   @Override
   public String getTypeName(Schema schema, boolean isKey) {

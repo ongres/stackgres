@@ -6,6 +6,7 @@
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
 import java.sql.Types;
+import java.util.Locale;
 import java.util.Optional;
 
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
@@ -150,7 +151,7 @@ public class ConnectStringType extends AbstractConnectSchemaType {
     // column should be mapped to a nationalized variant (NCHAR/NVARCHAR)
     if (schema.parameters() != null) {
       final String charsetName = schema.parameters().get("__debezium.source.column.character_set");
-      return !Strings.isNullOrEmpty(charsetName) && charsetName.toLowerCase().startsWith("utf8");
+      return !Strings.isNullOrEmpty(charsetName) && charsetName.toLowerCase(Locale.US).startsWith("utf8");
     }
     return false;
   }
