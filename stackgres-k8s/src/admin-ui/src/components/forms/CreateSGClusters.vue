@@ -727,52 +727,53 @@
                 
                         <h4 for="spec.configurations.backups.cronSchedule">
                             Backup Schedule 
-                            <span class="req">*</span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.cronSchedule')"></span>
                         </h4><br/>
 
                         <div class="flex-center cron" data-field="spec.configurations.backups.cronSchedule">
                             <div class="col">
-                                <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].min" required id="backupConfigFullScheduleMin" @change="updateCronSchedule(0)" data-tzdep="true">
+                                <label for="backupConfigFullScheduleMin" title="Minute *">Minute</label>
+                                <input v-model="cronSchedule[0].min" id="backupConfigFullScheduleMin" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
-                                <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].hour" required id="backupConfigFullScheduleHour" @change="updateCronSchedule(0)" data-tzdep="true">
+                                <label for="backupConfigFullScheduleHour" title="Hour *">Hour</label>
+                                <input v-model="cronSchedule[0].hour" id="backupConfigFullScheduleHour" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
-                                <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].dom" required id="backupConfigFullScheduleDOM" @change="updateCronSchedule(0)" data-tzdep="true">
+                                <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month</label>
+                                <input v-model="cronSchedule[0].dom" id="backupConfigFullScheduleDOM" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
-                                <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].month" required id="backupConfigFullScheduleMonth" @change="updateCronSchedule(0)" data-tzdep="true">
+                                <label for="backupConfigFullScheduleMonth" title="Month *">Month</label>
+                                <input v-model="cronSchedule[0].month" id="backupConfigFullScheduleMonth" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
-                                <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].dow" required id="backupConfigFullScheduleDOW" @change="updateCronSchedule(0)" data-tzdep="true">
+                                <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week</label>
+                                <input v-model="cronSchedule[0].dow" id="backupConfigFullScheduleDOW" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
                         </div>
                         <br/>
+                        <template v-if="backups[0].cronSchedule && cronSchedule && !isCronScheduleUnset(0)">
                         <div class="warning">
                             <strong>That is: </strong>
                             {{ tzCrontab(backups[0].cronSchedule) | prettyCRON(false) }}
-                        </div>                    
+                        </div>
+                        </template>          
+                        <template v-else>
+                        <div class="warning">
+                            <strong>That is: </strong>
+                            never
+                        </div>
+                        </template>
 
                         <hr/>
                         
                         <div class="row-50">
                             <h3>Base Backup Details</h3>
-
-                            <div class="col">
-                                <label for="spec.configurations.backups.path">Backups Path</label>
-                                <input v-model="backups[0].path" @change="!backups[0].path.length && (backups[0].path = null)" data-field="spec.configurations.backups.path" autocomplete="off">
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.path')"></span>
-                            </div>
 
                             <div class="col">
                                 <label for="spec.configurations.backups.retention">Retention Window (max. number of base backups)</label>
@@ -875,6 +876,18 @@
                                     ></span>
                                 </div>
                             </template>
+                        </div>
+                        
+                        <hr/>
+                        
+                        <div class="row-50">
+                            <h3>Extra Details</h3>
+
+                            <div class="col">
+                                <label for="spec.configurations.backups.path">Backups Path (leave empty if unsure)</label>
+                                <input v-model="backups[0].path" @change="!backups[0].path.length && (backups[0].path = null)" data-field="spec.configurations.backups.path" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.path')"></span>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -3637,19 +3650,25 @@
                             vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
                             if (typeof c.data.spec.configurations.backups !== 'undefined') {
                               vm.backups = c.data.spec.configurations.backups;
-                              let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
-                              vm.cronSchedule[0].ref = {};
-                              vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
-                              vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
-                              vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
-                              vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
-                              vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
-                              vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
-                              vm.cronSchedule[0].min = cronScheduleSplit[0];
-                              vm.cronSchedule[0].hour = cronScheduleSplit[1];
-                              vm.cronSchedule[0].dom = cronScheduleSplit[2];
-                              vm.cronSchedule[0].month = cronScheduleSplit[3];
-                              vm.cronSchedule[0].dow = cronScheduleSplit[4];
+                              if (typeof c.data.spec.configurations.backups[0].cronSchedule !== 'undefined') {
+                                let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
+                                vm.cronSchedule[0].ref = {};
+                                vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
+                                vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
+                                vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
+                                vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
+                                vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
+                                vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
+                                vm.cronSchedule[0].min = cronScheduleSplit[0];
+                                vm.cronSchedule[0].hour = cronScheduleSplit[1];
+                                vm.cronSchedule[0].dom = cronScheduleSplit[2];
+                                vm.cronSchedule[0].month = cronScheduleSplit[3];
+                                vm.cronSchedule[0].dow = cronScheduleSplit[4];
+                              } else {
+                                vm.cronSchedule[0] = {};
+                                vm.cronSchedule[0].ref = {};
+                                vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
+                              }
                             }
                             if(vm.managedBackups && !c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
                                 vm.backups[0].performance = {
@@ -4260,10 +4279,14 @@
             updateCronSchedule(index) {
                 if (this.cronSchedule[index].ref
                     && this.cronSchedule[index].min == this.cronSchedule[index].ref.min
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.hour
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.dom
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.month
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.dow) {
+                    && this.cronSchedule[index].hour == this.cronSchedule[index].ref.hour
+                    && this.cronSchedule[index].dom == this.cronSchedule[index].ref.dom
+                    && this.cronSchedule[index].month == this.cronSchedule[index].ref.month
+                    && this.cronSchedule[index].dow == this.cronSchedule[index].ref.dow) {
+                  return;
+                }
+                if (this.isCronScheduleUnset(index)) {
+                  this.backups[index].cronSchedule = null;
                   return;
                 }
                 this.backups[index].cronSchedule = this.tzCrontab(
@@ -4272,6 +4295,14 @@
                         + ' ' + this.cronSchedule[index].dom
                         + ' ' + this.cronSchedule[index].month
                         + ' ' + this.cronSchedule[index].dow, false);
+            },
+
+            isCronScheduleUnset(index) {
+              return this.cronSchedule[index].min == ''
+                || this.cronSchedule[index].hour == ''
+                || this.cronSchedule[index].dom == ''
+                || this.cronSchedule[index].month == ''
+                || this.cronSchedule[index].dow == '';
             },
 
             checkenableMonitoring() {
