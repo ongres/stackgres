@@ -151,10 +151,11 @@ public class PatroniConfigEndpoints
     if (patroniConf.getRetryTimeout() == null) {
       patroniConf.setRetryTimeout(10);
     }
-    patroniConf.setFailsafeMode(null);
     patroniConf.setStandbyCluster(null);
     if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH) {
-      patroniConf.setCheckTimeline(true);
+      if (patroniConf.getCheckTimeline() == null) {
+        patroniConf.setCheckTimeline(true);
+      }
     }
     patroniConf.setSynchronousMode(
         cluster.getSpec().getReplication().isSynchronousMode()
