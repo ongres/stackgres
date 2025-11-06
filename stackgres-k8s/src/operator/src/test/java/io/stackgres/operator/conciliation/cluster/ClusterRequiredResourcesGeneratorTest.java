@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.operator.utils.ConciliationUtils.toNumericPostgresVersion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -129,7 +130,7 @@ class ClusterRequiredResourcesGeneratorTest {
     backup.getStatus().setInternalName("test");
     backup.getStatus().setBackupInformation(new StackGresBackupInformation());
     backup.getStatus().getBackupInformation().setPostgresVersion(
-        cluster.getSpec().getPostgres().getVersion());
+        toNumericPostgresVersion(cluster.getSpec().getPostgres().getVersion()));
     minioSecret = Fixtures.secret().loadMinio().get();
     when(configScanner.findResources()).thenReturn(Optional.of(List.of(config)));
   }

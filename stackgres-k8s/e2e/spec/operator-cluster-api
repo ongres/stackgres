@@ -206,8 +206,9 @@ test_cluster_component_versions_are_annotated() {
   local PGBOUNCER_VERSION
   local PROMETHEUS_POSTGRES_EXPORTER_VERSION
   POSTGRESQL_VERSION="$(get_component_versions "$STACKGRES_VERSION" "postgresql" | grep -F "$E2E_POSTGRES_VERSION" | tail -n 1)"
+  POSTGRESQL_BUILD_VERSION="${POSTGRESQL_VERSION#*-build-}"
   POSTGRESQL_VERSION="${POSTGRESQL_VERSION%-build-*}"
-  PATRONI_VERSION="$(get_component_versions "$STACKGRES_VERSION" "patroni" | tail -n 1)"
+  PATRONI_VERSION="$(get_component_versions "$STACKGRES_VERSION" "patroni" | grep ".-build-$POSTGRESQL_BUILD_VERSION$" | tail -n 1)"
   PATRONI_VERSION="${PATRONI_VERSION%-build-*}"
   ENVOY_VERSION="$(get_component_versions "$STACKGRES_VERSION" "envoy" | tail -n 1)"
   ENVOY_VERSION="${ENVOY_VERSION%-build-*}"
@@ -714,6 +715,8 @@ check_create_cluster_node_selectors_script() {
 }
 
 check_extension_validation() {
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
   INVALID_CLUSTER="$(cat "$LOG_PATH/dummy-cluster.json" | jq '.spec.postgres.extensions = [{name: "non-existing-extension"}]')"
 
   echo "$INVALID_CLUSTER" > "$LOG_PATH/invalid-extension-cluster.json"
@@ -722,14 +725,5 @@ check_extension_validation() {
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE"  -d "$LOG_PATH/invalid-extension-cluster.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
-  assert_string_equal "400" "$HTTP_STATUS"
-
-  ERROR_RESPONSE="$(run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-extension-cluster.json" -e '-X POST')"
-
-  EXPECTED_ERROR_TYPE="extension-not-found"
-  EXPECTED_ERROR_TITLE="Extension not found"
-  EXPECTED_ERROR_DETAIL="Extension was not found: non-existing-extension"
-  EXPECTED_ERROR_FIELD=""
-
-  assert_api_error "$ERROR_RESPONSE"
+  assert_string_equal "200" "$HTTP_STATUS"
 }

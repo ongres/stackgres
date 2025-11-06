@@ -49,7 +49,7 @@ EOF
     | jq .status.process.status | grep -q Completed'
 
   local PRIMARY_CLUSTER_BACKUP_PATH
-  PRIMARY_CLUSTER_BACKUP_PATH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$PRIMARY_CLUSTER_NAME" --template '{{ (index .spec.configurations.backups 0).path }}')"
+  PRIMARY_CLUSTER_BACKUP_PATH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$PRIMARY_CLUSTER_NAME" --template '{{ index .status.backupPaths 0 }}')"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set configurations.create=false \
     --set instanceProfiles=null \
@@ -199,7 +199,7 @@ check_standby_can_be_converted_to_primary() {
 
 check_primary_can_be_converted_to_standby_from_both_external_and_storage() {
   local PRIMARY_CLUSTER_BACKUP_PATH
-  PRIMARY_CLUSTER_BACKUP_PATH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$PRIMARY_CLUSTER_NAME" --template '{{ (index .spec.configurations.backups 0).path }}')"
+  PRIMARY_CLUSTER_BACKUP_PATH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$PRIMARY_CLUSTER_NAME" --template '{{ index .status.backupPaths 0 }}')"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
     --set configurations.create=false \

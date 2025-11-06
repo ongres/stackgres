@@ -43,6 +43,7 @@ public class StackGresBackupInformation {
   @JsonIgnore
   public String getPostgresMajorVersion() {
     return Optional.ofNullable(postgresVersion)
+        .filter(version -> version.length() == 6)
         .map(version -> version.substring(0, 2))
         .orElse(null);
   }

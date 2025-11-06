@@ -52,6 +52,7 @@ import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.common.ClusterRolloutUtil;
+import io.stackgres.operator.common.ClusterRolloutUtil.RestartReason;
 import io.stackgres.operator.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -313,7 +314,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .filter(ClusterRolloutUtil::isPodInFailedPhase);
     if (foundPrimaryPodAndPendingRestartAndFailed.isPresent()) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Restarting primary Pod {} since pending retart and failed",
+        LOGGER.debug("Restarting primary Pod {} since pending restart and failed",
             foundPrimaryPodAndPendingRestartAndFailed.get().getMetadata().getName());
       }
       handler.delete(context, foundPrimaryPodAndPendingRestartAndFailed.get());
@@ -339,6 +340,20 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       handler.delete(context, anyOtherPodAndPendingRestartAndFailed.get());
       return;
     }
+    final Optional<Pod> anyOtherPodAndPendingRestart = otherPods
+        .stream()
+        .filter(pod -> ClusterRolloutUtil
+            .getRestartReasons(context, Optional.of(updatedSts), pod, List.of())
+            .getReasons().contains(RestartReason.STATEFULSET))
+        .findAny();
+    if (anyOtherPodAndPendingRestart.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting non primary Pod {} since pending restart",
+            anyOtherPodAndPendingRestart.get().getMetadata().getName());
+      }
+      handler.delete(context, anyOtherPodAndPendingRestart.get());
+      return;
+    }
     if (Seq.seq(foundPrimaryPod.stream())
         .append(otherPods)
         .anyMatch(Predicate.not(
@@ -347,19 +362,19 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       LOGGER.debug("A Pod is not ready nor failing, wait for it to become ready or fail");
       return;
     }
-    final Optional<Pod> anyOtherPodAndPendingRestart = otherPods
+    final Optional<Pod> anyOtherPodAndPendingRestartAnyReason = otherPods
         .stream()
         .filter(pod -> ClusterRolloutUtil
             .getRestartReasons(context, Optional.of(updatedSts), pod, List.of())
             .requiresRestart())
         .findAny();
     if (foundPrimaryPod.isEmpty()
-        && anyOtherPodAndPendingRestart.isPresent()) {
+        && anyOtherPodAndPendingRestartAnyReason.isPresent()) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Restarting non primary Pod {} since pending restart",
-            anyOtherPodAndPendingRestart.get().getMetadata().getName());
+            anyOtherPodAndPendingRestartAnyReason.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestart.get());
+      handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
     if (foundPrimaryPod
@@ -385,12 +400,12 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       return;
     }
     if (foundPrimaryPod.isPresent()
-        && anyOtherPodAndPendingRestart.isPresent()) {
+        && anyOtherPodAndPendingRestartAnyReason.isPresent()) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Restarting non primary Pod {} since pending restart",
-            anyOtherPodAndPendingRestart.get().getMetadata().getName());
+            anyOtherPodAndPendingRestartAnyReason.get().getMetadata().getName());
       }
-      handler.delete(context, anyOtherPodAndPendingRestart.get());
+      handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
     final Optional<PatroniMember> leastLagPatroniMemberAndReady =

@@ -111,7 +111,7 @@ check_restart() {
 
   if [ "$SKIP_CHECK_DATA" != true ]
   then
-    check_mock_data_samehost "$CLUSTER_NAME"
+    wait_until check_mock_data_samehost "$CLUSTER_NAME"
     if [ "$INITIAL_INSTANCES" -ge 2 ]
     then
       wait_until check_mock_data_replication "$CLUSTER_NAME"

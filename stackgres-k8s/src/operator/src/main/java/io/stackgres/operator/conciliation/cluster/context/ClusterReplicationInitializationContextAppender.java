@@ -106,10 +106,9 @@ public class ClusterReplicationInitializationContextAppender {
         .filter(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getBackupPath)
             .equals(Optional
-                .ofNullable(cluster.getSpec().getConfigurations().getBackups())
+                .ofNullable(cluster.getStatus().getBackupPaths())
                 .map(Collection::stream)
-                .flatMap(Stream::findFirst)
-                .map(StackGresClusterBackupConfiguration::getPath)))
+                .flatMap(Stream::findFirst)))
         .filter(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getBackupInformation)
             .map(StackGresBackupInformation::getPostgresMajorVersion)

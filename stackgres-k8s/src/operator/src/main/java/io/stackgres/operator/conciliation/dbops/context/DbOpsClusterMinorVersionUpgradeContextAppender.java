@@ -11,6 +11,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext.Builder;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -18,6 +19,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class DbOpsClusterMinorVersionUpgradeContextAppender {
 
   public void appendContext(StackGresDbOps dbOps, StackGresCluster cluster, Builder contextBuilder) {
+    if (dbOps.getStatus() == null) {
+      dbOps.setStatus(new StackGresDbOpsStatus());
+    }
     if (dbOps.getStatus().getMinorVersionUpgrade() == null) {
       dbOps.getStatus().setMinorVersionUpgrade(new StackGresDbOpsMinorVersionUpgradeStatus());
     }
