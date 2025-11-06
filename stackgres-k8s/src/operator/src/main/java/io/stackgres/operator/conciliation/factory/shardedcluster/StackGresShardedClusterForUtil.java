@@ -332,7 +332,6 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
         .map(backups -> backups.getFirst())
-        .filter(backup -> backup.getPaths() != null)
         .ifPresent(backup -> {
           if (spec.getConfigurations() == null) {
             spec.setConfigurations(new StackGresClusterConfigurations());
@@ -340,7 +339,8 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
           spec.getConfigurations().setBackups(List.of(
               new StackGresClusterBackupConfigurationBuilder()
               .withSgObjectStorage(backup.getSgObjectStorage())
-              .withPath(backup.getPaths().get(index))
+              .withPath(backup.getPaths() != null && backup.getPaths().size() > index
+                  ? backup.getPaths().get(index) : null)
               .withRetention(backup.getRetention())
               .withCompression(backup.getCompression())
               .withPerformance(backup.getPerformance())
