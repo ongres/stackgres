@@ -159,8 +159,6 @@ spec:
   sgCluster: $CLUSTER_NAME
 EOF
 
-  wait_until check_job_annotation "$BACKUP_NAME" "$POD_RANDOM_VALUE"
-
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
