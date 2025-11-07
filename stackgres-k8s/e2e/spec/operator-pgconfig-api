@@ -335,7 +335,7 @@ test_constraint_violation_api_error() {
 
   HTTP_STATUS="$(run_curl -r "stackgres/sgpgconfigs" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-pgconfig.json" -e '-X POST -w %{http_code} -o /dev/null')"
 
-  assert_string_equal "200" "$HTTP_STATUS"
+  assert_string_equal "422" "$HTTP_STATUS"
 }
 
 test_authentication_api_error() {
