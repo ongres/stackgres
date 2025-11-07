@@ -605,7 +605,7 @@
                                             </div>
                                         </template>
                                     </fieldset>
-                                    <div class="fieldsetFooter">
+                                    <div id="addBackupPath" class="fieldsetFooter">
                                         <a class="addRow" @click="$set(backups[0].paths, backups[0].paths.length, null)">Add Path</a>
                                     </div>
                                 </div>

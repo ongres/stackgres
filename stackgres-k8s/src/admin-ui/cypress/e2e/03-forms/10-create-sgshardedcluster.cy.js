@@ -286,6 +286,8 @@ describe('Create SGShardedCluster', () => {
             .type('3')
 
         // Base Backup Details
+        cy.get('div#addBackupPath a')
+            .click()
         cy.get('[data-field="spec.configurations.backups.paths[0]"]')
             .clear()    
             .type('/path')
