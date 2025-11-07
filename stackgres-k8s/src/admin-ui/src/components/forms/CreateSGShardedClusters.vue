@@ -606,7 +606,7 @@
                                         </template>
                                     </fieldset>
                                     <div class="fieldsetFooter">
-                                        <a class="addRow" @click="backups[0].paths.push(null)">Add Path</a>
+                                        <a class="addRow" @click="$set(backups[0].paths, backups[0].paths.length, null)">Add Path</a>
                                     </div>
                                 </div>
                             </div>
@@ -7306,7 +7306,7 @@
                         if (vm.managedBackups) {
                             vm.backups = c.data.spec.configurations.backups;
                             if (vm.backups[0].paths == null) {
-                              vm.backups[0].paths = [];
+                              vm.$set(vm.backups[0], 'paths', []);
                             }
                             if (typeof c.data.spec.configurations.backups[0].cronSchedule !== 'undefined') {
                               let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
@@ -7323,7 +7323,7 @@
                               vm.cronSchedule[0].month = cronScheduleSplit[3];
                               vm.cronSchedule[0].dow = cronScheduleSplit[4];
                             } else {
-                              vm.cronSchedule[0] = {};
+                              vm.$set(vm.cronSchedule, 0, {});
                               vm.cronSchedule[0].ref = {};
                               vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
                             }
@@ -8080,10 +8080,10 @@
             updateCronSchedule(index) {
                 if (this.cronSchedule[index].ref
                     && this.cronSchedule[index].min == this.cronSchedule[index].ref.min
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.hour
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.dom
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.month
-                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.dow) {
+                    && this.cronSchedule[index].hour == this.cronSchedule[index].ref.hour
+                    && this.cronSchedule[index].dom == this.cronSchedule[index].ref.dom
+                    && this.cronSchedule[index].month == this.cronSchedule[index].ref.month
+                    && this.cronSchedule[index].dow == this.cronSchedule[index].ref.dow) {
                   return;
                 }
                 if (this.isCronScheduleUnset(index)) {

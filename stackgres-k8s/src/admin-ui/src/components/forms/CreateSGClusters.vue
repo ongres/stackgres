@@ -3665,7 +3665,7 @@
                                 vm.cronSchedule[0].month = cronScheduleSplit[3];
                                 vm.cronSchedule[0].dow = cronScheduleSplit[4];
                               } else {
-                                vm.cronSchedule[0] = {};
+                                vm.$set(vm.cronSchedule, 0, {});
                                 vm.cronSchedule[0].ref = {};
                                 vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
                               }
