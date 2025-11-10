@@ -259,13 +259,13 @@ check_backup_config_is_propagated_to_sharded_standby() {
 
 check_restart_sharded_standby() {
   trigger_sharded_cluster_require_restart
-  DBOPS_NAME="$(get_sgshardeddbops_name restart)"
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart)"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGShardedDbOps
 metadata:
-  name: $DBOPS_NAME
+  name: $SHARDED_DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgShardedCluster: $CLUSTER_NAME
