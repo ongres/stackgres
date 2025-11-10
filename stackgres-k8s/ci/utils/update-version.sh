@@ -66,7 +66,6 @@ echo "Setting helm charts images to tag $IMAGE_TAG (tag $ADMINUI_IMAGE_TAG for a
 yq_update_file "^operator:$" "^    tag:.*$" "    tag: \"$IMAGE_TAG\"" stackgres-k8s/install/helm/stackgres-operator/values.yaml
 yq_update_file "^restapi:$" "^    tag:.*$" "    tag: \"$IMAGE_TAG\"" stackgres-k8s/install/helm/stackgres-operator/values.yaml
 yq_update_file "^adminui:$" "^    tag:.*$" "    tag: \"$ADMINUI_IMAGE_TAG\"" stackgres-k8s/install/helm/stackgres-operator/values.yaml
-yq_update_file "^jobs:$" "^    tag:.*$" "    tag: \"$IMAGE_TAG\"" stackgres-k8s/install/helm/stackgres-operator/values.yaml
 
 echo
 echo "Setting helm charts version to $VERSION"

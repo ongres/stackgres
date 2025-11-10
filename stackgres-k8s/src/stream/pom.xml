@@ -10,7 +10,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>1.18.0-SNAPSHOT</version>
+    <version>1.18.0-rc1</version>
   </parent>
 
   <artifactId>stackgres-stream</artifactId>

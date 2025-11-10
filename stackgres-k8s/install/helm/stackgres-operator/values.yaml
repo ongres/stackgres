@@ -20,7 +20,7 @@ operator:
     # -- Operator image name
     name: "stackgres/operator"
     # -- Operator image tag
-    tag: "main-jvm"
+    tag: "1.18.0-rc1"
     # -- Operator image pull policy
     pullPolicy: "IfNotPresent"
   # -- Operator Pod annotations
@@ -61,7 +61,7 @@ restapi:
     # -- REST API image name
     name: "stackgres/restapi"
     # -- REST API image tag
-    tag: "main-jvm"
+    tag: "1.18.0-rc1"
     # -- REST API image pull policy
     pullPolicy: "IfNotPresent"
   # -- REST API Pod annotations
@@ -92,7 +92,7 @@ adminui:
     # -- Web Console image name
     name: "stackgres/admin-ui"
     # -- Web Console image tag
-    tag: "main"
+    tag: "1.18.0-rc1"
     # -- Web Console image pull policy
     pullPolicy: "IfNotPresent"
   # -- Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
