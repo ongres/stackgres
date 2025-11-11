@@ -424,7 +424,8 @@ $(cat "$TARGET_PATH/e2e-tests-junit-report.results.xml")
 </testsuites>
 EOF
 
-if [ "$E2E_USE_TEST_CACHE" = true ]
+if [ "$E2E_USE_TEST_CACHE" = true ] \
+  && [ "$E2E_USE_TEST_CACHE_PER_TEST" != true ]
 then
   store_test_results
 fi
