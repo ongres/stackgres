@@ -179,7 +179,7 @@ public class ClusterPostgresVersionContextAppender
         .getBuildVersion(postgresVersion);
 
     if (BUGGY_PG_VERSIONS.keySet().contains(version)
-        && Objects.equals(Optional.of(version), previousVersion)) {
+        && !Objects.equals(Optional.of(version), previousVersion)) {
       throw new IllegalArgumentException(
           "Do not use PostgreSQL " + version + ". "
               + BUGGY_PG_VERSIONS.get(version));

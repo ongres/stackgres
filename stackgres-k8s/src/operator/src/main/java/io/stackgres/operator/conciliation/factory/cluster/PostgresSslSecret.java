@@ -43,7 +43,7 @@ public class PostgresSslSecret
 
   private static final Duration ONE_DAY = Duration.ofDays(1);
 
-  private static final long DEFAULT_DURATION = 13 * 30;
+  private static final long DEFAULT_DURATION = 365;
 
   private static final String SSL_SUFFIX = "-ssl";
 

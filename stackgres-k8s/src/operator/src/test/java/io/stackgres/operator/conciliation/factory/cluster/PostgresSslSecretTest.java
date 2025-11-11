@@ -16,6 +16,8 @@ import java.security.cert.CertificateFactory;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -26,6 +28,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.operator.common.CryptoUtil;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.Assertions;
@@ -110,12 +113,15 @@ class PostgresSslSecretTest {
   }
 
   @Test
-  void givenAClusterWithSslAndSecret_itShouldReuseSslSecret() {
+  void givenAClusterWithSslAndSecret_itShouldReuseSslSecret() throws Exception {
     cluster.getSpec().getPostgres().setSsl(new StackGresClusterSsl());
     cluster.getSpec().getPostgres().getSsl().setEnabled(true);
     when(context.getSource()).thenReturn(cluster);
-    when(context.getPostgresSslCertificate()).thenReturn(Optional.of("test-certificate"));
-    when(context.getPostgresSslPrivateKey()).thenReturn(Optional.of("test-private-key"));
+    var generated = CryptoUtil.generateCertificateAndPrivateKey(Instant.now().plus(Duration.ofDays(365)));
+    final String cert = generated.v1;
+    when(context.getPostgresSslCertificate()).thenReturn(Optional.of(cert));
+    final String key = generated.v2;
+    when(context.getPostgresSslPrivateKey()).thenReturn(Optional.of(key));
 
     var secretVolumePairs = postgresSslSecret.buildVolumes(context).toList();
 
@@ -130,7 +136,7 @@ class PostgresSslSecretTest {
         .map(Secret::getData)
         .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
         .isPresent());
-    Assertions.assertEquals("test-certificate",
+    Assertions.assertEquals(cert,
         ResourceUtil.decodeSecret(
         secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
@@ -142,7 +148,7 @@ class PostgresSslSecretTest {
         .map(Secret::getData)
         .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
         .isPresent());
-    Assertions.assertEquals("test-private-key",
+    Assertions.assertEquals(key,
         ResourceUtil.decodeSecret(
         secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
