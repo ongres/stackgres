@@ -102,6 +102,7 @@ check_sharded_connectivity() {
   do
     CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX" check_connectivity -i 0
   done
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME"
 }
 
 check_sharded_metrics() {
@@ -111,6 +112,7 @@ check_sharded_metrics() {
   do
     CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX" check_metrics
   done
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME"
 }
 
 check_sharded_standby_can_be_converted_to_sharded_primary() {
