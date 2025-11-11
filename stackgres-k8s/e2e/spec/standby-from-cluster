@@ -268,10 +268,9 @@ check_backup_config_is_propagated_to_standby() {
 }
 
 check_restart_standby() {
+  set_restarted_pods
   trigger_cluster_require_restart
   DBOPS_NAME="$(get_sgdbops_name restart)"
-
-  set_restarted_pods
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1

@@ -120,6 +120,7 @@ check_restart() {
 }
 
 set_restarted_pods() {
+  BEFORE_RESTART_DATE="$(date +%s)"
   RESTARTED_PODS="$1"
   NOT_RESTARTED_PODS="$2"
   if [ -z "$RESTARTED_PODS" ]

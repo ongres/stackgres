@@ -122,8 +122,8 @@ check_external_dcs_two_clusters_is_working() {
 }
 
 check_restart_is_working_with_external_dcs() {
-  CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_NEAR_NAME" trigger_cluster_require_restart
   CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_NEAR_NAME" set_restarted_pods
+  CLUSTER_NAMESPACE="$CLUSTER_NEAR_NAMESPACE" CLUSTER_NAME="$CLUSTER_NEAR_NAME" trigger_cluster_require_restart
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
