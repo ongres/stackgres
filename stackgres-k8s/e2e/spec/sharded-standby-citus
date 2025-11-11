@@ -44,11 +44,7 @@ e2e_test() {
 }
 
 check_sharded_standby_is_working() {
-  local CLUSTER_NAME="$CLUSTER_NAME"
-  SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
-  CLUSTER_NAME="$SHARDED_CLUSTER_NAME-coord" check_connectivity -i 0
-  CLUSTER_NAME="$SHARDED_CLUSTER_NAME-shard0" check_connectivity -i 0
-  CLUSTER_NAME="$SHARDED_CLUSTER_NAME-shard1" check_connectivity -i 0
+  check_sharded_connectivity
 
   local SYNCHRONOUS_STANDBY_NAMES
   SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord-0" -c postgres-util -- \
@@ -97,6 +93,15 @@ check_sharded_standby_is_working() {
   else
     fail "standby replication is not working. The records don't match between primary and standby for the fibonacci table"
   fi
+}
+
+check_sharded_connectivity() {
+  local CLUSTER_NAME="$CLUSTER_NAME"
+  SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
+  for SUFFIX in coord shard0 shard1
+  do
+    CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX" check_connectivity -i 0
+  done
 }
 
 check_sharded_metrics() {
