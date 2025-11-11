@@ -42,11 +42,20 @@ public class ClusterPostgresVersionContextAppender
           + " with CREATE INDEX CONCURRENTLY and REINDEX CONCURRENTLY that"
           + " could cause silent data corruption of indexes. For more info"
           + " see https://www.postgresql.org/about/news/postgresql-144-released-2470/.";
+  private static final String REPLICATION_SLOTS_INVALIDATION_BUG =
+      "A bug was introduced in Postgres versions 17.5, 16.9, 15.13, 14.18 and 13.21"
+          + " that can invalidate logical replication slots. For more info see"
+          + " https://www.postgresql.org/message-id/flat/680bdaf6-f7d1-4536-b580-05c2760c67c6%40deepbluecap.com";
   public static final Map<String, String> BUGGY_PG_VERSIONS = Map.ofEntries(
       Map.entry("14.0", PG_14_CREATE_CONCURRENT_INDEX_BUG),
       Map.entry("14.1", PG_14_CREATE_CONCURRENT_INDEX_BUG),
       Map.entry("14.2", PG_14_CREATE_CONCURRENT_INDEX_BUG),
-      Map.entry("14.3", PG_14_CREATE_CONCURRENT_INDEX_BUG)
+      Map.entry("14.3", PG_14_CREATE_CONCURRENT_INDEX_BUG),
+      Map.entry("13.21", REPLICATION_SLOTS_INVALIDATION_BUG),
+      Map.entry("14.18", REPLICATION_SLOTS_INVALIDATION_BUG),
+      Map.entry("15.13", REPLICATION_SLOTS_INVALIDATION_BUG),
+      Map.entry("16.9", REPLICATION_SLOTS_INVALIDATION_BUG),
+      Map.entry("17.5", REPLICATION_SLOTS_INVALIDATION_BUG)
       );
 
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
@@ -99,11 +108,11 @@ public class ClusterPostgresVersionContextAppender
     if (cluster.getStatus() == null) {
       cluster.setStatus(new StackGresClusterStatus());
     }
-    Optional<String> previousVersion = Optional.ofNullable(cluster.getStatus())
+    final Optional<String> previousVersion = Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getPostgresVersion);
-    Optional<String> previousBuildVersion = Optional.ofNullable(cluster.getStatus())
+    final Optional<String> previousBuildVersion = Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getBuildVersion);
-    boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(cluster);
+    final boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(cluster);
     if (isRolloutAllowed
         && (
             cluster.getMetadata().getAnnotations() == null
@@ -121,11 +130,37 @@ public class ClusterPostgresVersionContextAppender
           .append(Map.entry(StackGresContext.VERSION_KEY, StackGresProperty.OPERATOR_VERSION.getString()))
           .toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-    String postgresVersion = previousVersion.filter(version -> !isRolloutAllowed)
-        .orElseGet(() -> Optional.ofNullable(cluster.getSpec())
-            .map(StackGresClusterSpec::getPostgres)
-            .map(StackGresClusterPostgres::getVersion)
-            .orElse(StackGresComponent.LATEST));
+    String targetPostgresVersion = Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getVersion)
+        .orElse(StackGresComponent.LATEST);
+
+    if (!isPostgresVersionSupported(cluster, targetPostgresVersion)) {
+      eventController.sendEvent(
+          ClusterEventReason.CLUSTER_SECURITY_WARNING,
+          "Unsupported postgres version " + targetPostgresVersion
+          + ".  Supported postgres versions are: "
+          + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
+              .get(StackGresVersion.getStackGresVersion(cluster)))
+          .toString(", "),
+          cluster);
+    }
+
+    Optional<String> targetVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .findVersion(targetPostgresVersion);
+
+    if (targetVersion.map(BUGGY_PG_VERSIONS.keySet()::contains).orElse(false)) {
+      eventController.sendEvent(
+          ClusterEventReason.CLUSTER_SECURITY_WARNING,
+          "Do not use PostgreSQL " + targetVersion.get() + ". "
+              + BUGGY_PG_VERSIONS.get(targetVersion.get()),
+          cluster);
+    }
+
+    String postgresVersion = previousVersion
+        .filter(version -> !isRolloutAllowed)
+        .orElse(targetPostgresVersion);
 
     if (!isPostgresVersionSupported(cluster, postgresVersion)) {
       throw new IllegalArgumentException(
@@ -143,7 +178,8 @@ public class ClusterPostgresVersionContextAppender
         .get(cluster)
         .getBuildVersion(postgresVersion);
 
-    if (BUGGY_PG_VERSIONS.keySet().contains(version)) {
+    if (BUGGY_PG_VERSIONS.keySet().contains(version)
+        && Objects.equals(Optional.of(version), previousVersion)) {
       throw new IllegalArgumentException(
           "Do not use PostgreSQL " + version + ". "
               + BUGGY_PG_VERSIONS.get(version));
