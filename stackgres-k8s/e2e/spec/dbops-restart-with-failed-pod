@@ -31,7 +31,7 @@ check_cluster_start_not_fail_if_cluster_failed() {
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"add","path":"/spec/pods/scheduling","value":{"nodeSelector":{"test":"test"}}}]'
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq .spec.nodeSelector.test | grep -q test'
+    | jq .spec.template.spec.nodeSelector.test | grep -q test'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -52,7 +52,7 @@ EOF
   wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq .spec.nodeSelector | grep -q null'
+    | jq .spec.template.spec.nodeSelector | grep -q null'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -82,7 +82,7 @@ check_cluster_start_not_fail_if_pod_failed() {
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"add","path":"/spec/pods/scheduling","value":{"nodeSelector":{"test":"test"}}}]'
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq .spec.nodeSelector.test | grep -q test'
+    | jq .spec.template.spec.nodeSelector.test | grep -q test'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -103,7 +103,7 @@ EOF
   wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
   wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq .spec.nodeSelector | grep -q null'
+    | jq .spec.template.spec.nodeSelector | grep -q null'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
