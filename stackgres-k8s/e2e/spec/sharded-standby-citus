@@ -44,9 +44,11 @@ e2e_test() {
 }
 
 check_sharded_standby_is_working() {
-  CLUSTER_NAME="$CLUSTER_NAME-coord" check_connectivity -i 0
-  CLUSTER_NAME="$CLUSTER_NAME-shard0" check_connectivity -i 0
-  CLUSTER_NAME="$CLUSTER_NAME-shard1" check_connectivity -i 0
+  local CLUSTER_NAME="$CLUSTER_NAME"
+  SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME-coord" check_connectivity -i 0
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME-shard0" check_connectivity -i 0
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME-shard1" check_connectivity -i 0
 
   local SYNCHRONOUS_STANDBY_NAMES
   SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord-0" -c postgres-util -- \
@@ -98,9 +100,11 @@ check_sharded_standby_is_working() {
 }
 
 check_sharded_metrics() {
+  local CLUSTER_NAME="$CLUSTER_NAME"
+  SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
   for SUFFIX in coord shard0 shard1
   do
-    CLUSTER_NAME="$CLUSTER_NAME-$SUFFIX" check_metrics
+    CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX" check_metrics
   done
 }
 
