@@ -223,6 +223,14 @@ spec:
                           Allow to enable SSL for connections to Postgres. By default is `true`.
                           
                           If `true` certificate and private key will be auto-generated unless fields `certificateSecretKeySelector` and `privateKeySecretKeySelector` are specified.
+                      duration:
+                        type: string
+                        description: |
+                          An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies the duration of the auto-generated certificate.
+
+                          If not specified the default duration will be of 13 months.
+
+                          The certificate will be re-generated 1 day or, if more, 1/12th of its duration before it expires.
                       certificateSecretKeySelector:
                         type: object
                         description: |

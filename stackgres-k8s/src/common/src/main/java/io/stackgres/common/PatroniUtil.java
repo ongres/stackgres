@@ -271,7 +271,7 @@ public interface PatroniUtil {
             kubernetes.put("pod_ip", "${POD_IP}");
             kubernetes.set("ports", getPatroniEndpointPortsAsJson(cluster, objectMapper));
             if (config.get("kubernetes") instanceof ObjectNode) {
-              Seq.seq(config.get("kubernetes").fields())
+              Seq.seq(config.get("kubernetes").properties())
                   .filter(field -> !kubernetes.has(field.getKey()))
                   .forEach(field -> kubernetes.set(field.getKey(), field.getValue()));
             }

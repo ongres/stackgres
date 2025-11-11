@@ -5,15 +5,20 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -30,6 +35,26 @@ public class StackGresClusterSsl {
 
   @Valid
   private SecretKeySelector privateKeySecretKeySelector;
+
+  private String duration;
+
+  @ReferencedField("duration")
+  interface Duration extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "duration must be positive and in ISO 8601 duration format:"
+      + " `PnDTnHnMn.nS`.",
+      payload = Duration.class)
+  public boolean isBackupNewerThanValid() {
+    try {
+      if (duration != null) {
+        return !java.time.Duration.parse(duration).isNegative();
+      }
+      return true;
+    } catch (DateTimeParseException ex) {
+      return false;
+    }
+  }
 
   public Boolean getEnabled() {
     return enabled;
@@ -53,6 +78,14 @@ public class StackGresClusterSsl {
 
   public void setPrivateKeySecretKeySelector(SecretKeySelector privateKeySecretKeySelector) {
     this.privateKeySecretKeySelector = privateKeySecretKeySelector;
+  }
+
+  public String getDuration() {
+    return duration;
+  }
+
+  public void setDuration(String duration) {
+    this.duration = duration;
   }
 
   @Override

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.config;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -108,7 +109,8 @@ public class OperatorSecret
         certInvalid = false;
       } else if (CryptoUtil.isCertificateAndKeyValid(
           previousSecretData.get(ConfigPath.CERTIFICATE_PATH.filename()),
-          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()))) {
+          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()),
+          Duration.ofDays(1))) {
         certInvalid = false;
       }
     }

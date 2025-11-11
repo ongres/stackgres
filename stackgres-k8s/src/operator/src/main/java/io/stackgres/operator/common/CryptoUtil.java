@@ -29,6 +29,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -163,7 +164,8 @@ public interface CryptoUtil {
         + END_PUBLIC_KEY + System.lineSeparator();
   }
 
-  static boolean isCertificateAndKeyValid(String certPem, String privateKeyPem) {
+  static boolean isCertificateAndKeyValid(String certPem, String privateKeyPem,
+      Duration gap) {
     try {
       byte[] challenge = new byte[10000];
       ThreadLocalRandom.current().nextBytes(challenge);
@@ -172,7 +174,7 @@ public interface CryptoUtil {
           .getInstance("X509")
           .generateCertificate(new ByteArrayInputStream(certPem.getBytes(
               StandardCharsets.UTF_8)));
-      Instant now = Instant.now();
+      Instant now = Instant.now().plus(gap);
       KeyFactory keyFactory = KeyFactory.getInstance("RSA");
       byte[] privateKeyEncoded = Base64.getDecoder().decode(privateKeyPem
           .replaceAll("-+[^-]+-+", "")

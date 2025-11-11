@@ -35,10 +35,24 @@ e2e_test() {
 generated_ssl_check() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set cluster.postgres.ssl.enabled=true \
+    --set-string cluster.postgres.ssl.duration=P1DT2M \
     --set cluster.postgres.ssl.certificateSecretKeySelector=null \
     --set cluster.postgres.ssl.privateKeySecretKeySelector=null
 
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls /etc/ssl/tls.key
+  SSL_KEY_FILE="$(wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls -l /etc/ssl/tls.key)"
+
+  ssl_check
+
+  wait_until eval '! kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls -l /etc/ssl/tls.key | grep -qF "$(printf %s "$SSL_KEY_FILE" | cut -d " " -f 2-)"'
+
+  NEW_SSL_KEY_FILE="$(wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls -l /etc/ssl/tls.key)"
+
+  if [ "$NEW_SSL_KEY_FILE" != "$SSL_KEY_FILE" ]
+  then
+    success "SSL certificate was re-newed"
+  else
+    fail "SSL certificate was NOT re-newed"
+  fi
 
   ssl_check
 }
