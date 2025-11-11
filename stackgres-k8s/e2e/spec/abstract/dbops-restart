@@ -81,16 +81,13 @@ check_restart() {
     fail "Instances after restart ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
   fi
 
-  local DBOPS_CREATION_TIMESTAMP
-  DBOPS_CREATION_TIMESTAMP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template='{{ .metadata.creationTimestamp }}')"
-  DBOPS_CREATION_TIMESTAMP="$(date -d "$DBOPS_CREATION_TIMESTAMP" +%s)"
   local POD_CREATION_TIMESTAMP
   local POD
   for POD in $RESTARTED_PODS
   do
     POD_CREATION_TIMESTAMP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" --template='{{ .metadata.creationTimestamp }}')"
     POD_CREATION_TIMESTAMP="$(date -d "$POD_CREATION_TIMESTAMP" +%s)"
-    if [ "$POD_CREATION_TIMESTAMP" -lt "$DBOPS_CREATION_TIMESTAMP" ]
+    if [ "$POD_CREATION_TIMESTAMP" -lt "$BEFORE_RESTART_DATE" ]
     then
       fail "Pod $POD was not restarted"
     else
@@ -101,7 +98,7 @@ check_restart() {
   do
     POD_CREATION_TIMESTAMP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" --template='{{ .metadata.creationTimestamp }}')"
     POD_CREATION_TIMESTAMP="$(date -d "$POD_CREATION_TIMESTAMP" +%s)"
-    if [ "$POD_CREATION_TIMESTAMP" -lt "$DBOPS_CREATION_TIMESTAMP" ]
+    if [ "$POD_CREATION_TIMESTAMP" -lt "$BEFORE_RESTART_DATE" ]
     then
       success "Pod $POD was not restarted"
     else
