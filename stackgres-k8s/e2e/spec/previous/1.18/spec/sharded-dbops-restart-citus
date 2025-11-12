@@ -1,0 +1,51 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/sharded-dbops"
+
+e2e_test_extra_hash() {
+  printf '%s\n' E2E_CITUS_POSTGRES_VERSION="$E2E_CITUS_POSTGRES_VERSION"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/sharded-dbops")"
+}
+
+e2e_test_install() {
+  E2E_POSTGRES_VERSION="${E2E_CITUS_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
+  CLUSTER_NAME="$(get_sgshardedcluster_name "$SPEC_NAME")"
+
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 6
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
+}
+
+check_sharded_dbops_restart_is_working() {
+  trigger_sharded_cluster_require_restart
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  local DBOPS_NAME
+  local SUFFIX
+  for SUFFIX in coord shard0 shard1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
+}

@@ -35,9 +35,9 @@ import org.jooq.lambda.Seq;
 public enum StackGresVersion {
 
   UNDEFINED,
-  V_1_16("1.16"),
   V_1_17("1.17"),
-  V_1_18("1.18");
+  V_1_18("1.18"),
+  V_1_19("1.19");
 
   @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
   @Retention(RetentionPolicy.SOURCE)

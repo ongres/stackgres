@@ -70,5 +70,7 @@
     },
     "prometheusAutobind": "true"
   },
-  "status": null
+  "status": {
+    "postgresVersion": "13.5"
+  }
 }

@@ -1610,6 +1610,7 @@ spec:
                           **Changing this field may require a restart.**
                       disableEnvoy:
                         type: boolean
+                        default: true
                         description: |
                           If set to `false`, creates the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 
@@ -2499,6 +2500,7 @@ spec:
                           **Changing this field may require a restart.**
                       disableEnvoy:
                         type: boolean
+                        default: true
                         description: |
                           If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 
@@ -2869,6 +2871,7 @@ spec:
                                 **Changing this field may require a restart.**
                             disableEnvoy:
                               type: boolean
+                              default: true
                               description: |
                                 If set to `true`, avoids creating the `envoy` sidecar. This sidecar is used as the endge proxy for the cluster's Pods providing extra metrics to the monitoring layer.
 

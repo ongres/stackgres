@@ -51,6 +51,7 @@ class ShardedClusterRestoreBackupContextAppenderTest {
   @BeforeEach
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
+    cluster.setStatus(null);
     cluster.getSpec().setInitialData(
         new StackGresShardedClusterInitialDataBuilder()
         .withNewRestore()

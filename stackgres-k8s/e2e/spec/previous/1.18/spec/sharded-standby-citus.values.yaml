@@ -1,0 +1,31 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+cluster:
+  managedSql:
+    scripts:
+    - database: citus
+      name: create-sakila-user
+      scriptFrom:
+        secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
+          name: sql-scripts-sakila-user
+          key: create-sakila-user.sql
+    - database: citus
+      wrapInTransaction: repeatable-read
+      scriptFrom:
+        configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
+          name: sql-scripts-sakila-schema
+          key: create-sakila-schema.sql
+  pods:
+    persistentVolume:
+      size: 128Mi
+    managementPolicy: Parallel
+shardedCluster:
+  shards:
+    pods:
+      persistentVolume:
+        size: 128Mi
+      managementPolicy: Parallel
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true

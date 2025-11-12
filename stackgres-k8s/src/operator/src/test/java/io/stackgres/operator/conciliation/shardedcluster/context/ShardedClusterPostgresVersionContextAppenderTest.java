@@ -110,6 +110,7 @@ class ShardedClusterPostgresVersionContextAppenderTest {
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
+    cluster.getStatus().setPostgresVersion(null);
     contextAppender = new ShardedClusterPostgresVersionContextAppender(
         eventController,
         clusterCoordinatorPostgresConfigContextAppender,
