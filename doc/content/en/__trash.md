@@ -76,8 +76,8 @@ from stackgres installation
 -->
 
 The recommended way to install StackGres is to use the official Helm chart. Additional parameters can be passed to the default installation:
-* Access to Grafana. StackGres uses this access to install StackGres specific dashboards as well as to embed Grafana into the web console. If you've installed Prometheus as shown in the previous step, the host and credentials are set to the default values (Grafana service: `prometheus-grafana.monitoring`, username: `admin`, password: `prom-operator`).
-* How to expose the web console. You can choose `LoadBalancer` if you're using a Kubernetes setup that supports creating load balancers. Otherwise, you can choose `ClusterIP` (the default), or omit this parameter, in which case you will need to create a custom routing to the console, or use mechanisms such as a port forward, in order to access the web console.
+* Access to Grafana. StackGres uses this access to install StackGres specific dashboards as well as to embed Grafana into the Web Console. If you've installed Prometheus as shown in the previous step, the host and credentials are set to the default values (Grafana service: `prometheus-grafana.monitoring`, username: `admin`, password: `prom-operator`).
+* How to expose the Web Console. You can choose `LoadBalancer` if you're using a Kubernetes setup that supports creating load balancers. Otherwise, you can choose `ClusterIP` (the default), or omit this parameter, in which case you will need to create a custom routing to the console, or use mechanisms such as a port forward, in order to access the Web Console.
 
 Proceed to install StackGres:
 
@@ -247,6 +247,6 @@ spec:
 
 Upon creating this resource, StackGres will schedule and run a benchmark.
 The results of the benchmark will be written in the `.Status` field of the CRD, which you can query with `kubectl describe`.
-You may also check them from the web console.
+You may also check them from the Web Console.
 
 <!-- -------------------- -->

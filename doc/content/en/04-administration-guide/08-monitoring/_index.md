@@ -168,7 +168,7 @@ POD_NAME=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=gr
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 3000
 ```
 
-You will need the admin credential to log into the web console (at `localhost:3000` if you're using port forwarding).
+You will need the admin credential to log into the Web Console (at `localhost:3000` if you're using port forwarding).
 
 > NOTE: take note of the Grafana's URL `grafana.monitoring`, which will be used when configuring StackGres Operator.
 
@@ -231,7 +231,7 @@ prometheus-prometheus-node-exporter-jbsm2                 0/1     Pending   0   
 
 ## Enable Prometheus Auto Binding in Cluster
 
-To allow the StackGres operator to discover available [Prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheus) instances, to create required [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor), to store StackGres stats in existing Prometheus instances (only for those that are created through the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)), you have to set the field `.spec.prometheusAutobind` to `true` in your [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}):
+To allow the StackGres operator to discover available [Prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/primary/Documentation/api.md#prometheus) instances, to create required [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/primary/Documentation/api.md#servicemonitor), to store StackGres stats in existing Prometheus instances (only for those that are created through the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)), you have to set the field `.spec.prometheusAutobind` to `true` in your [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}):
 
 ```yaml
 apiVersion: stackgres.io/v1

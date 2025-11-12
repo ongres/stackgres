@@ -20,6 +20,6 @@ Have a look at the [CRD Reference]({{% relref "06-crd-reference" %}}) to learn a
 
 Have a look at the [Getting Started]({{% relref "03-demo-quickstart" %}}) guide to get started with a simple StackGres installation.
 
-> **Note:** If you prefer a visual UI over YAML files and the command line, note that every single action that you can query or perform via CRDs is also possible via the web console.
-> Likewise, any action performed in the web console will automatically be reflected in the CRDs.
+> **Note:** If you prefer a visual UI over YAML files and the command line, note that every single action that you can query or perform via CRDs is also possible via the Web Console.
+> Likewise, any action performed in the Web Console will automatically be reflected in the CRDs.
 > The choice is yours.

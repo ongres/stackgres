@@ -51,7 +51,7 @@ Get the node ip address (kind ip address on the example below):
 ```
 kubectl get nodes -o wide
 # NAME                 STATUS   ROLES    AGE    VERSION    INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                                     KERNEL-VERSION     CONTAINER-RUNTIME
-# kind-control-plane   Ready    master   115s   v1.17.11   172.18.0.3    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0
+# kind-control-plane   Ready    primary   115s   v1.17.11   172.18.0.3    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0
 # kind-worker          Ready    <none>   79s    v1.17.11   172.18.0.4    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0
 # kind-worker2         Ready    <none>   79s    v1.17.11   172.18.0.7    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0
 # kind-worker3         Ready    <none>   79s    v1.17.11   172.18.0.5    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0

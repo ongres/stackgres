@@ -41,7 +41,7 @@ gcloud container clusters create "stackgres" \
 The output will be similar to the following:
 ```
 Note: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s).
-Creating cluster stackgres in us-west1... Cluster is being health-checked (master is healthy)...done.                                                                                                              
+Creating cluster stackgres in us-west1... Cluster is being health-checked (primary is healthy)...done.                                                                                                              
 Created [https://container.googleapis.com/v1beta1/projects/my-project/zones/us-west1/clusters/stackgres].
 To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-west1/stackgres?project=my-project
 kubeconfig entry generated for stackgres.

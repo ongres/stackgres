@@ -47,11 +47,11 @@ distributedlogs-0   3/3     Running   1          73s
 Distributed logs server are multi-tenant: you may reference a distributed log server from more than one cluster.
 If a distributed log server is used, Postgres logs will not be stored in the ephemeral pod storage (except temporarily in small buffers).
 
-To see the distributed logs, you may view them in the web console, or connect via `psql` and query them with SQL.
+To see the distributed logs, you may view them in the Web Console, or connect via `psql` and query them with SQL.
 
 ## Accessing Postgres and Patroni Logs
 
-In the admin UI, accessing the logs is easy: go to the web console, navigate to the cluster, and click on the `Logs` pane.
+In the admin UI, accessing the logs is easy: go to the Web Console, navigate to the cluster, and click on the `Logs` pane.
 
 But now, let's do it from the CLI.
 You are able to connect to the distributed logs database and query the logs with SQL.

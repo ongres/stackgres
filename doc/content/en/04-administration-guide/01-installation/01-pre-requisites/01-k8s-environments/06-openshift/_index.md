@@ -111,9 +111,9 @@ cat << 'EOF' | kubectl create -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
-  name: 50-master-local-path-provisioner
+  name: 50-primary-local-path-provisioner
   labels:
-    machineconfiguration.openshift.io/role: master
+    machineconfiguration.openshift.io/role: primary
 spec:
   config:
     ignition:

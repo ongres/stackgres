@@ -67,7 +67,7 @@ Each configuration, once applied, need to be _reloaded_.
 This can be done by getting the corresponding primary node pod name and issue the same signal it is done on most of the environments:
 
 ```
-PRIMARY=$(kubectl get pod -l role=master -n cluster -o name)
+PRIMARY=$(kubectl get pod -l role=primary -n cluster -o name)
 kubectl exec -n cluster -it ${PRIMARY} -c postgres-util -- pkill --signal HUP pgbouncer
 ```
 

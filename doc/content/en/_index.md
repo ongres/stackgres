@@ -38,5 +38,6 @@ Curently the stack of StackGres is composed of the following components:
 * [WAL-G](https://github.com/wal-g/wal-g): WAL-G is an archival restoration tool for Postgres
 * [PgBouncer](http://www.pgbouncer.org/): Lightweight connection pooler for PostgreSQL 
 * [PostgreSQL Server Exporter](https://github.com/wrouesnel/postgres_exporter): Prometheus exporter for PostgreSQL server metrics.
-* [Envoy](https://www.envoyproxy.io/): open source edge and service proxy, designed for cloud-native applications
+* [FlunetBit](https://fluentbit.io/): Ingest logs and send them to a variety of intermediary and storages.
+* [OTEL Collector](https://opentelemetry.io/docs/collector/): A collector for metrics, logs and traces that allow to merge multiple sources and manage observability on a variety of platforms.
 
