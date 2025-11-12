@@ -117,6 +117,7 @@ build documentation:
   script:
     - |
       [ "$DEBUG" != true ] || set -x
+      sh stackgres-k8s/ci/build/build-gitlab.sh build documentation
       export DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
       export DOCUMENTATION_EXTRA_PATH=""
       if [ -z "$CI_COMMIT_TAG" ]
