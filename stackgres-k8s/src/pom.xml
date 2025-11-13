@@ -103,7 +103,7 @@
     <jsonassert.version>1.5.3</jsonassert.version>
     <commons-configuration2.version>2.12.0</commons-configuration2.version>
     <org.tukaani.xz.version>1.10</org.tukaani.xz.version>
-    <pgconfig-validator.version>1.7.2</pgconfig-validator.version>
+    <pgconfig-validator.version>1.7.1</pgconfig-validator.version>
     <auto-service.version>1.1.1</auto-service.version>
     <javapoet.version>1.13.0</javapoet.version>
     <compile-testing.version>0.23.0</compile-testing.version>
