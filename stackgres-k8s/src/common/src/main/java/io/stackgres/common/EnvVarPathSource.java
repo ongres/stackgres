@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -134,8 +133,6 @@ public interface EnvVarPathSource<R extends HasMetadata> extends VolumePath<EnvV
     return relativize(subPath(envVars), relativeTo.subPath(envVars));
   }
 
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
   private String relativize(String subPath, String relativeToSubPath) {
     Preconditions.checkArgument(subPath.startsWith(relativeToSubPath + "/"),
         subPath + " is not relative to " + relativeToSubPath + "/");
@@ -161,8 +158,6 @@ public interface EnvVarPathSource<R extends HasMetadata> extends VolumePath<EnvV
         .build();
   }
 
-  @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
-      justification = "False positive")
   private Map<String, String> envVars(EnvVarContext<R> context, Map<String, String> envVars) {
     Map<String, String> mergedEnvVars = new HashMap<>(context.getEnvironmentVariables());
     mergedEnvVars.putAll(envVars);
