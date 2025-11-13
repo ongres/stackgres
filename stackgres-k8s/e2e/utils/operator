@@ -1228,7 +1228,7 @@ traceable_get_component_versions() {
     then
       cat "$STACKGRES_PATH/src/common/src/main/resources/versions-${STACKGRES_TARGET_VERSION%.*}.properties"
     else
-      cat "$STACKGRES_PATH/src/common/src/main/resources/versions.properties"
+      cat "$STACKGRES_PATH/src/common/src/main/resources/versions-${STACKGRES_VERSION%.*}.properties"
     fi
   else
     curl -f -s "$(get_versions_url "$VERSION")"
@@ -1241,7 +1241,14 @@ traceable_get_component_versions() {
 
 get_versions_url() {
   [ -n "$1" ]
-  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions.properties"
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_1_18_0RC1="$(get_version_as_number 1.18.0-rc1)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_1_18_0RC1" ]
+  then
+    echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions-${VERSION%.*}.properties"
+  else
+    echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions.properties"
+  fi
 }
 
 get_component_images_pre_1_0_0_alpha2() {

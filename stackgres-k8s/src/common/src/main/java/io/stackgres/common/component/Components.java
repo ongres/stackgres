@@ -51,7 +51,7 @@ public enum Components {
   public enum ComponentVersionReader {
     V_1_16(new VersionReader("/versions-1.16.properties")),
     V_1_17(new VersionReader("/versions-1.17.properties")),
-    V_1_18(new VersionReader("/versions.properties"));
+    V_1_18(new VersionReader("/versions-1.18.properties"));
 
     final VersionReader versionReader;
 

@@ -43,7 +43,7 @@ EOF
     sh -x stackgres-k8s/ci/utils/update-version.sh "${VERSION}"
     ```
 1. [ ] Update `CHANGELOG.md` (review commit messages to populate the changelog: `git log`)
-1. [ ] Add ${VERSION} section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions.properties`
+1. [ ] Add ${VERSION} section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions-${VERSION%.*}.properties`
 1. [ ] Check the changes to ensure everything is correct before commit:
     ```
     git diff
@@ -246,15 +246,7 @@ $(
     ```
     git push origin add-version-${NEXT_MINOR_VERSION}
     ```
-1. [ ] Wait for the pipeline of `add-version-${NEXT_MINOR_VERSION}` branch to complete
-1. [ ] Merge local branch `add-version-${NEXT_MINOR_VERSION}` into `main`:
-    ```
-    git checkout main && git pull && git merge --ff-only add-version-${NEXT_MINOR_VERSION}
-    ```
-1. [ ] Push `main` to origin:
-    ```
-    git push
-    ```
+1. [ ] Create a MR using the link provided by the previous command (against the `main` branch) and merge it when all checks pass.
 1. [ ] Change scheduled pipeline description and `STACKGRES_PREVIOUS_VERSION` environment variable to test upgrade from version `${TO_REMOVE_MINOR_VERSION}` to version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/237754/edit?id=237754
 1. [ ] Change scheduled pipeline description and `STACKGRES_VERSION` environment variable to test from version `${TO_REMOVE_MINOR_VERSION}` to version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/262456/edit?id=262456 or https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/235791/edit?id=235791
 EOF

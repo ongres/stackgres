@@ -29,7 +29,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     sh -x stackgres-k8s/ci/utils/update-version.sh "1.18.0-rc2"
     ```
 1. [ ] Update `CHANGELOG.md` (review commit messages to populate the changelog: `git log`)
-1. [ ] Add 1.18.0-rc2 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions.properties`
+1. [ ] Add 1.18.0-rc2 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions-${VERSION%.*}.properties`
 1. [ ] Check the changes to ensure everything is correct before commit:
     ```
     git diff
