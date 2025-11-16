@@ -18,7 +18,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.stackgres.common.validation.ValidEnum;
@@ -62,7 +61,7 @@ public class StackGresShardedClusterSpec {
   private StackGresShardedClusterConfigurations configurations;
 
   @Valid
-  private StackGresClusterSpecMetadata metadata;
+  private StackGresShardedClusterSpecMetadata metadata;
 
   @Valid
   private StackGresClusterDistributedLogs distributedLogs;
@@ -77,6 +76,9 @@ public class StackGresShardedClusterSpec {
 
   @Valid
   private StackGresShardedClusterInitialData initialData;
+
+  @Valid
+  private StackGresShardedClusterReplicateFrom replicateFrom;
 
   @Valid
   private StackGresClusterNonProduction nonProductionOptions;
@@ -156,11 +158,11 @@ public class StackGresShardedClusterSpec {
     this.profile = profile;
   }
 
-  public StackGresClusterSpecMetadata getMetadata() {
+  public StackGresShardedClusterSpecMetadata getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(StackGresClusterSpecMetadata metadata) {
+  public void setMetadata(StackGresShardedClusterSpecMetadata metadata) {
     this.metadata = metadata;
   }
 
@@ -244,6 +246,14 @@ public class StackGresShardedClusterSpec {
     this.initialData = initialData;
   }
 
+  public StackGresShardedClusterReplicateFrom getReplicateFrom() {
+    return replicateFrom;
+  }
+
+  public void setReplicateFrom(StackGresShardedClusterReplicateFrom replicateFrom) {
+    this.replicateFrom = replicateFrom;
+  }
+
   public StackGresClusterNonProduction getNonProductionOptions() {
     return nonProductionOptions;
   }
@@ -255,8 +265,8 @@ public class StackGresShardedClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configurations, coordinator, database, distributedLogs, initialData,
-        metadata, nonProductionOptions, postgres, postgresServices, profile, replication, shards,
-        type);
+        metadata, nonProductionOptions, postgres, postgresServices, profile, replicateFrom,
+        replication, shards, type);
   }
 
   @Override
@@ -277,8 +287,10 @@ public class StackGresShardedClusterSpec {
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(profile, other.profile) && Objects.equals(replication, other.replication)
-        && Objects.equals(shards, other.shards) && Objects.equals(type, other.type);
+        && Objects.equals(profile, other.profile)
+        && Objects.equals(replicateFrom, other.replicateFrom)
+        && Objects.equals(replication, other.replication) && Objects.equals(shards, other.shards)
+        && Objects.equals(type, other.type);
   }
 
   @Override

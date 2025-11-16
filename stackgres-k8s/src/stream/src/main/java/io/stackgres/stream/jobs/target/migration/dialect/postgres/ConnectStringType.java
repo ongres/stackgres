@@ -10,15 +10,15 @@ import java.util.Locale;
 import java.util.Optional;
 
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
-import io.debezium.connector.jdbc.type.Type;
+import io.debezium.connector.jdbc.type.JdbcType;
 import io.debezium.connector.jdbc.type.connect.AbstractConnectSchemaType;
 import io.debezium.util.Strings;
 import org.apache.kafka.connect.data.Schema;
 import org.hibernate.engine.jdbc.Size;
 
 /**
- * An implementation of {@link Type} that supports {@code STRING} connect schema
- * types.
+ * An implementation of {@link JdbcType} that supports {@code STRING} connect
+ * schema types.
  *
  * @author Chris Cranford
  */
@@ -32,7 +32,7 @@ public class ConnectStringType extends AbstractConnectSchemaType {
   }
 
   @Override
-  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+  public String getTypeName(Schema schema, boolean isKey) {
     // Some source data types emit a column size, and we need to be careful about
     // using the provided
     // size as it may be relative to the source data type; however due to the
@@ -55,10 +55,11 @@ public class ConnectStringType extends AbstractConnectSchemaType {
     // what was passed
     // in the propagated properties.
     final int resolvedJdbcType = getColumnSqlType(schema);
+    DatabaseDialect dialect = getDialect();
     if (Types.OTHER != resolvedJdbcType) {
       // Resolved the type to CHAR/NCHAR/VARCHAR/NVARCHAR equivalent.
       // It's safe to use the specified size in the data type.
-      int columnSize = getColumnSize(dialect, schema, key, resolvedJdbcType);
+      int columnSize = getColumnSize(dialect, schema, resolvedJdbcType, isKey);
 
       // MySQL will not emit a column size when propagation is enabled and CHARACTER
       // columns
@@ -79,33 +80,33 @@ public class ConnectStringType extends AbstractConnectSchemaType {
       }
 
       if (columnSize > 0) {
-        return dialect.getTypeName(resolvedJdbcType, Size.length(columnSize));
+        return dialect.getJdbcTypeName(resolvedJdbcType, Size.length(columnSize));
       }
-      return dialect.getTypeName(resolvedJdbcType);
+      return dialect.getJdbcTypeName(resolvedJdbcType);
     } else {
-      final int jdbcType = hasNationalizedCharacterSet(schema) ? Types.NVARCHAR : Types.VARCHAR;
       // The column propagation details either don't exist or did not map to a logical
       // STRING type
       // In this case, we apply the size defaults (no size for non-keys and max-key
       // for keys).
-      if (key) {
-        return dialect.getTypeName(jdbcType, Size.length(getMaxSizeInKey(dialect, jdbcType)));
+      final int jdbcType = hasNationalizedCharacterSet(schema) ? Types.NVARCHAR : Types.VARCHAR;
+      if (isKey) {
+        return dialect.getJdbcTypeName(jdbcType, Size.length(getMaxSizeInKey(dialect, jdbcType)));
       }
-      return dialect.getTypeName(jdbcType);
+      return dialect.getJdbcTypeName(jdbcType);
     }
   }
 
-  private int getColumnSize(DatabaseDialect dialect, Schema schema, boolean key, int jdbcType) {
+  private int getColumnSize(DatabaseDialect dialect, Schema schema, int jdbcType, boolean isKey) {
     int columnSize = Integer.parseInt(getSourceColumnSize(schema).orElse("0"));
-    if (key) {
-      final int maxSizeInKey = getMaxSizeInKey(dialect, jdbcType);
-      if (columnSize > 0) {
-        columnSize = Math.min(columnSize, maxSizeInKey);
-      } else {
-        columnSize = maxSizeInKey;
-      }
+    if (!isKey) {
+      return columnSize;
     }
-    return columnSize;
+    final int maxSizeInKey = getMaxSizeInKey(dialect, jdbcType);
+    if (columnSize > 0) {
+      return Math.min(columnSize, maxSizeInKey);
+    } else {
+      return maxSizeInKey;
+    }
   }
 
   private int getMaxSizeInKey(DatabaseDialect dialect, int jdbcType) {
@@ -150,8 +151,7 @@ public class ConnectStringType extends AbstractConnectSchemaType {
     // column should be mapped to a nationalized variant (NCHAR/NVARCHAR)
     if (schema.parameters() != null) {
       final String charsetName = schema.parameters().get("__debezium.source.column.character_set");
-      return !Strings.isNullOrEmpty(charsetName)
-          && charsetName.toLowerCase(Locale.US).startsWith("utf8");
+      return !Strings.isNullOrEmpty(charsetName) && charsetName.toLowerCase(Locale.US).startsWith("utf8");
     }
     return false;
   }

@@ -56,7 +56,7 @@ kubectl_mock() {
     ;;
     ("annotate sgclusters.stackgres.io "*)
     ;;
-    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ with .status }}{{ with .backupPaths }}{{ with (index . 0) }}{{ . }}{{ end }}{{ end }}{{ end }}")
     echo test
     ;;
     ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template={{ .metadata.resourceVersion }}")

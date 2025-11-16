@@ -48,11 +48,11 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
 import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
-import io.stackgres.common.crd.sgconfig.StackGresConfigJobs;
 import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -361,24 +361,24 @@ public interface StackGresUtil {
         new ExtensionTuple("plpython3u"));
   }
 
-  static List<ExtensionTuple> getDefaultShardedClusterExtensions(
+  static List<ExtensionTuple> getShardedClusterExtensions(
       StackGresShardedCluster cluster) {
     if (StackGresShardingType.CITUS.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getDefaultCitusShardedClusterExtensions(cluster);
+      return getCitusShardedClusterExtensions(cluster);
     }
     if (StackGresShardingType.DDP.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getDefaultDdpShardedClusterExtensions(cluster);
+      return getDdpShardedClusterExtensions(cluster);
     }
     if (StackGresShardingType.SHARDING_SPHERE.equals(
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
-      return getDefaultShardingSphereShardedClusterExtensions(cluster);
+      return getShardingSphereShardedClusterExtensions(cluster);
     }
     return List.of();
   }
 
-  static List<ExtensionTuple> getDefaultCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
     StackGresVersion sgVersion = StackGresVersion.getStackGresVersion(cluster);
     Component pgComponent = StackGresComponent.POSTGRESQL.getOrThrow(sgVersion);
@@ -391,6 +391,13 @@ public interface StackGresUtil {
         .map(Tuple2::v2)
         .findAny()
         .get();
+    long pg13Index = pgComponent
+        .streamOrderedMajorVersions()
+        .zipWithIndex()
+        .filter(t -> t.v1.equals("13"))
+        .map(Tuple2::v2)
+        .findAny()
+        .get();
     long pg14Index = pgComponent
         .streamOrderedMajorVersions()
         .zipWithIndex()
@@ -398,31 +405,37 @@ public interface StackGresUtil {
         .map(Tuple2::v2)
         .findAny()
         .get();
-    long pg17Index = pgComponent
+    long pg15Index = pgComponent
         .streamOrderedMajorVersions()
         .zipWithIndex()
-        .filter(t -> t.v1.equals("17"))
+        .filter(t -> t.v1.equals("15"))
         .map(Tuple2::v2)
         .findAny()
         .get();
     return List.of(
-        pgMajorVersionIndex <= pg17Index
-        ? new ExtensionTuple("citus", "13.0.1")
+        pgMajorVersionIndex <= pg15Index
+        ? new ExtensionTuple("citus", "13.2.0")
             : pgMajorVersionIndex <= pg14Index
-            ? new ExtensionTuple("citus", "12.1-1")
-                : new ExtensionTuple("citus", "11.3-1"),
-        pgMajorVersionIndex <= pg17Index
-        ? new ExtensionTuple("citus_columnar", "13.0.1")
-            : new ExtensionTuple("citus_columnar", "11.3-1"));
+            ? new ExtensionTuple("citus", "12.1.6")
+                : pgMajorVersionIndex <= pg13Index
+                ? new ExtensionTuple("citus", "11.3-1")
+                    : new ExtensionTuple("citus", "10.2-5"),
+        pgMajorVersionIndex <= pg15Index
+        ? new ExtensionTuple("citus_columnar", "13.2.0")
+            : pgMajorVersionIndex <= pg14Index
+            ? new ExtensionTuple("citus_columnar", "12.1.6")
+                : pgMajorVersionIndex <= pg13Index
+                ? new ExtensionTuple("citus_columnar", "11.3-1")
+                    : new ExtensionTuple("citus_columnar", "10.2-5"));
   }
 
-  static List<ExtensionTuple> getDefaultDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
     return List.of(
         new ExtensionTuple("dblink"),
         new ExtensionTuple("postgres_fdw"));
   }
 
-  static List<ExtensionTuple> getDefaultShardingSphereShardedClusterExtensions(StackGresShardedCluster cluster) {
+  static List<ExtensionTuple> getShardingSphereShardedClusterExtensions(StackGresShardedCluster cluster) {
     return List.of(
         new ExtensionTuple("dblink"),
         new ExtensionTuple("postgres_fdw"));
@@ -509,7 +522,14 @@ public interface StackGresUtil {
   }
 
   static String getPatroniVersion(StackGresCluster cluster) {
-    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+    if (StackGresVersion.getStackGresVersionAsNumber(cluster) <= StackGresVersion.V_1_18.getVersionAsNumber()) {
+      return getPatroniVersion(
+          cluster,
+          Optional.ofNullable(cluster.getStatus().getPostgresVersion())
+          .orElse(cluster.getSpec().getPostgres().getVersion()));
+    }
+
+    return getPatroniVersion(cluster, cluster.getStatus().getPostgresVersion());
   }
 
   static String getPatroniVersion(StackGresCluster cluster, String postgresVersion) {
@@ -521,7 +541,14 @@ public interface StackGresUtil {
   }
 
   static String getPatroniVersion(StackGresShardedCluster cluster) {
-    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+    if (StackGresVersion.getStackGresVersionAsNumber(cluster) <= StackGresVersion.V_1_18.getVersionAsNumber()) {
+      return getPatroniVersion(
+          cluster,
+          Optional.ofNullable(cluster.getStatus())
+          .map(StackGresShardedClusterStatus::getPostgresVersion)
+          .orElse(cluster.getSpec().getPostgres().getVersion()));
+    }
+    return getPatroniVersion(cluster, cluster.getStatus().getPostgresVersion());
   }
 
   static String getPatroniVersion(StackGresShardedCluster cluster, String postgresVersion) {
@@ -549,7 +576,7 @@ public interface StackGresUtil {
   }
 
   static String getPatroniImageName(StackGresCluster cluster) {
-    return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
+    return getPatroniImageName(cluster, cluster.getStatus().getPostgresVersion());
   }
 
   static String getPatroniImageName(StackGresCluster cluster, String postgresVersion) {
@@ -683,15 +710,6 @@ public interface StackGresUtil {
         .get().getLatestImageName();
   }
 
-  static String getJobsImageNameWithTag(ConfigContext context) {
-    return getImageNameWithTag(
-        context,
-        Optional.of(context.getConfig().getSpec())
-        .map(StackGresConfigSpec::getJobs)
-        .map(StackGresConfigJobs::getImage),
-        "stackgres/jobs");
-  }
-      
   static String getImageNameWithTag(
       ConfigContext context,
       Optional<StackGresConfigImage> image,

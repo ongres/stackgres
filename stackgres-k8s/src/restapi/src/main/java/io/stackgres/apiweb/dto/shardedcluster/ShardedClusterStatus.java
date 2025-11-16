@@ -21,6 +21,12 @@ public class ShardedClusterStatus {
 
   private List<ClusterCondition> conditions = new ArrayList<>();
 
+  private String postgresVersion;
+
+  private String buildVersion;
+
+  private List<ClusterInstalledExtension> extensions;
+
   private List<ShardedClusterClusterStatus> clusterStatuses;
 
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
@@ -37,6 +43,30 @@ public class ShardedClusterStatus {
 
   public void setConditions(List<ClusterCondition> conditions) {
     this.conditions = conditions;
+  }
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getBuildVersion() {
+    return buildVersion;
+  }
+
+  public void setBuildVersion(String buildVersion) {
+    this.buildVersion = buildVersion;
+  }
+
+  public List<ClusterInstalledExtension> getExtensions() {
+    return extensions;
+  }
+
+  public void setExtensions(List<ClusterInstalledExtension> extensions) {
+    this.extensions = extensions;
   }
 
   public List<ShardedClusterClusterStatus> getClusterStatuses() {

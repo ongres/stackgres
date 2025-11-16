@@ -39,7 +39,6 @@ public class StackGresClusterBackupConfiguration {
   @NotNull
   private String sgObjectStorage;
 
-  @NotNull
   private String path;
 
   private Boolean useVolumeSnapshot;

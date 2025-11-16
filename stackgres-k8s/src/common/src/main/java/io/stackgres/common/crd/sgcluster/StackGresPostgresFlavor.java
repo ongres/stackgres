@@ -23,13 +23,13 @@ public enum StackGresPostgresFlavor {
     return type;
   }
 
-  public static @NotNull StackGresPostgresFlavor fromString(@NotNull String value) {
-    for (StackGresPostgresFlavor role : StackGresPostgresFlavor.values()) {
-      if (role.toString().equals(value)) {
-        return role;
+  public static @NotNull StackGresPostgresFlavor fromString(@NotNull String from) {
+    for (StackGresPostgresFlavor value : StackGresPostgresFlavor.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknown flavor " + value);
+    throw new IllegalArgumentException("Unknown flavor " + from);
   }
 
 }

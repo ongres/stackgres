@@ -5,14 +5,13 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
-import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.type.AbstractType;
-import io.debezium.connector.jdbc.type.Type;
+import io.debezium.connector.jdbc.type.JdbcType;
 import org.apache.kafka.connect.data.Schema;
 
 /**
- * An implementation of {@link Type} for {@code SMALLSERIAL}, {@code SERIAL},
- * and {@code BIGSERIAL} column types.
+ * An implementation of {@link JdbcType} for {@code SMALLSERIAL},
+ * {@code SERIAL}, and {@code BIGSERIAL} column types.
  *
  * @author Chris Cranford
  */
@@ -26,12 +25,12 @@ public class SerialType extends AbstractType {
   }
 
   @Override
-  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+  public String getTypeName(Schema schema, boolean isKey) {
     return getSourceColumnType(schema).orElseThrow();
   }
 
   @Override
-  public String getDefaultValueBinding(DatabaseDialect dialect, Schema schema, Object value) {
+  public String getDefaultValueBinding(Schema schema, Object value) {
     // PostgreSQL does not allow specifying a default value for these data types
     // By returning a null value, no default value clause gets bound
     return null;

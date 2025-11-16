@@ -7,9 +7,9 @@ DO $$
     FOR statement_to_restore IN (
         SELECT statement
         FROM __migration__constraints_to_restore) LOOP
+      RAISE NOTICE 'Executing: %', statement_to_restore;
       EXECUTE statement_to_restore;
       DELETE FROM __migration__.constraints WHERE statement = statement_to_restore;
+      EXIT;
     END LOOP;
   END;$$;
-
-DROP SCHEMA IF EXISTS __migration__ CASCADE;

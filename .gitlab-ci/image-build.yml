@@ -102,13 +102,6 @@ build restapi jvm image amd64:
     LOCK_FILE: stackgres-restapi-build-jvm-image
     IMAGE_MODULE_NAME: restapi-jvm-image
 
-build jobs jvm image amd64:
-  extends: .build jvm image amd64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-build-jvm-image
-    IMAGE_MODULE_NAME: jobs-jvm-image
-
 build cluster-controller jvm image amd64:
   extends: .build jvm image amd64
   variables:
@@ -136,13 +129,6 @@ build restapi native image amd64:
     IMAGE_BASE_NAME: stackgres/restapi
     LOCK_FILE: stackgres-restapi-build-native-image
     IMAGE_MODULE_NAME: restapi-native-image
-
-build jobs native image amd64:
-  extends: .build native image amd64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-build-native-image
-    IMAGE_MODULE_NAME: jobs-native-image
 
 build cluster-controller native image amd64:
   extends: .build native image amd64
@@ -219,13 +205,6 @@ build restapi jvm image arm64:
     LOCK_FILE: stackgres-restapi-build-jvm-image
     IMAGE_MODULE_NAME: restapi-jvm-image
 
-build jobs jvm image arm64:
-  extends: .build jvm image arm64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-build-jvm-image
-    IMAGE_MODULE_NAME: jobs-jvm-image
-
 build cluster-controller jvm image arm64:
   extends: .build jvm image arm64
   variables:
@@ -253,13 +232,6 @@ build restapi native image arm64:
     IMAGE_BASE_NAME: stackgres/restapi
     LOCK_FILE: stackgres-restapi-build-native-image
     IMAGE_MODULE_NAME: restapi-native-image
-
-build jobs native image arm64:
-  extends: .build native image arm64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-build-native-image
-    IMAGE_MODULE_NAME: jobs-native-image
 
 build cluster-controller native image arm64:
   extends: .build native image arm64
@@ -327,11 +299,6 @@ build restapi jvm image multi archs:
   variables:
     IMAGE_BASE_NAME: stackgres/restapi
 
-build jobs jvm image multi archs:
-  extends: .build jvm image multi archs
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-
 build cluster-controller jvm image multi archs:
   extends: .build jvm image multi archs
   variables:
@@ -351,11 +318,6 @@ build restapi native image multi archs:
   extends: .build native image multi archs
   variables:
     IMAGE_BASE_NAME: stackgres/restapi
-
-build jobs native image multi archs:
-  extends: .build native image multi archs
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
 
 build cluster-controller native image multi archs:
   extends: .build native image multi archs

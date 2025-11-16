@@ -66,6 +66,11 @@ public interface PatroniUtil {
 
   String NOLOADBALANCE_TAG = "noloadbalance";
   String NOFAILOVER_TAG = "nofailover";
+  String CLONEFROM_TAG = "clonefrom";
+  String FAILOVER_PRIORITY_TAG = "failover_priority";
+  String NOSYNC_TAG = "nosync";
+  String NOSTREAM_TAG = "nostream";
+  String REPLICATEFROM_TAG = "replicatefrom";
   String TRUE_TAG_VALUE = "true";
   String FALSE_TAG_VALUE = "false";
 
@@ -266,7 +271,7 @@ public interface PatroniUtil {
             kubernetes.put("pod_ip", "${POD_IP}");
             kubernetes.set("ports", getPatroniEndpointPortsAsJson(cluster, objectMapper));
             if (config.get("kubernetes") instanceof ObjectNode) {
-              Seq.seq(config.get("kubernetes").fields())
+              Seq.seq(config.get("kubernetes").properties())
                   .filter(field -> !kubernetes.has(field.getKey()))
                   .forEach(field -> kubernetes.set(field.getKey(), field.getValue()));
             }

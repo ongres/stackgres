@@ -67,6 +67,7 @@ public class StackGresClusterSpec {
   private StackGresClusterDistributedLogs distributedLogs;
 
   @Valid
+  @Deprecated(forRemoval = true)
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
   @Valid
@@ -319,10 +320,12 @@ public class StackGresClusterSpec {
     this.distributedLogs = distributedLogs;
   }
 
+  @Deprecated(forRemoval = true)
   public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
     return toInstallPostgresExtensions;
   }
 
+  @Deprecated(forRemoval = true)
   public void setToInstallPostgresExtensions(
       List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;

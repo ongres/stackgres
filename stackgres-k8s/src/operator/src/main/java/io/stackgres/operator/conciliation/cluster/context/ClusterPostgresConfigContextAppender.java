@@ -7,21 +7,22 @@ package io.stackgres.operator.conciliation.cluster.context;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import com.ongres.pgconfig.validator.GucValidator;
+import com.ongres.pgconfig.validator.PgParameter;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ClusterPostgresConfigContextAppender
-    extends ContextAppender<StackGresCluster, Builder> {
+public class ClusterPostgresConfigContextAppender {
 
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
   private final DefaultClusterPostgresConfigFactory defaultPostgresConfigFactory;
@@ -33,8 +34,7 @@ public class ClusterPostgresConfigContextAppender
     this.defaultPostgresConfigFactory = defaultPostgresConfigFactory;
   }
 
-  @Override
-  public void appendContext(StackGresCluster cluster, Builder contextBuilder) {
+  public void appendContext(StackGresCluster cluster, Builder contextBuilder, String version) {
     final Optional<StackGresPostgresConfig> postgresConfig = postgresConfigFinder
         .findByNameAndNamespace(
             cluster.getSpec().getConfigurations().getSgPostgresConfig(),
@@ -47,22 +47,43 @@ public class ClusterPostgresConfigContextAppender
           + cluster.getSpec().getConfigurations().getSgPostgresConfig()
           + " was not found");
     }
-    String givenPgVersion = Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getVersion)
-        .orElse(null);
-    String clusterMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .getMajorVersion(givenPgVersion);
+    String majorVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .getMajorVersion(version);
     if (postgresConfig.isPresent()) {
       String postgresConfigVersion = postgresConfig.get().getSpec().getPostgresVersion();
-      if (!postgresConfigVersion.equals(clusterMajorVersion)) {
+      if (!postgresConfigVersion.equals(majorVersion)) {
         throw new IllegalArgumentException(
-            "Invalid postgres version, must be "
-                + postgresConfigVersion + " to use SGPostgresConfig "
-                + cluster.getSpec().getConfigurations().getSgPostgresConfig());
+            "Invalid postgres version " + version + " for " + StackGresPostgresConfig.KIND
+            + " " + cluster.getSpec().getConfigurations().getSgPostgresConfig()
+            + " that uses version " + postgresConfigVersion);
       }
     }
+
+    validatePostgresConfig(cluster, majorVersion);
+
     contextBuilder.postgresConfig(postgresConfig);
+  }
+
+  private void validatePostgresConfig(StackGresCluster cluster, String majorVersion) {
+    // TODO: Update when dependency update is available
+    if (majorVersion.equals("18")) {
+      return;
+    }
+    final GucValidator val = GucValidator.forVersion(majorVersion);
+    Optional.ofNullable(cluster.getSpec().getConfigurations().getPostgres())
+        .map(StackGresPostgresConfigSpec::getPostgresqlConf)
+        .map(Map::entrySet)
+        .stream()
+        .flatMap(Set::stream)
+        .forEach(e -> {
+          PgParameter parameter = val.parameter(e.getKey(), e.getValue());
+          if (!parameter.isValid()) {
+            throw new IllegalArgumentException(
+                "Postgres config parameter " + parameter.getName()
+                + ": " + parameter.getError().orElseThrow()
+                + parameter.getHint().map(hint -> " (" + hint + ")").orElse(""));
+          }
+        });
   }
 
 }

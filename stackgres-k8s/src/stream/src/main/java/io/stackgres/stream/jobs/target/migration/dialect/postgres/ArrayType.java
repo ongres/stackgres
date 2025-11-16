@@ -18,26 +18,25 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
 
-import io.debezium.connector.jdbc.ValueBindDescriptor;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.type.AbstractType;
-import io.debezium.connector.jdbc.type.Type;
+import io.debezium.connector.jdbc.type.JdbcType;
 import io.debezium.connector.jdbc.util.DateTimeUtils;
 import io.debezium.data.VariableScaleDecimal;
 import io.debezium.sink.SinkConnectorConfig;
+import io.debezium.sink.valuebinding.ValueBindDescriptor;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An implementation of {@link Type} for {@code ARRAY} column types.
+ * An implementation of {@link JdbcType} for {@code ARRAY} column types.
  *
  * @author Bertrand Paquet
  */
@@ -100,11 +99,11 @@ public class ArrayType extends AbstractType {
   }
 
   @Override
-  public String getTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
+  public String getTypeName(Schema schema, boolean isKey) {
     Optional<String> sourceColumnType = getSourceColumnType(schema)
         .map(this::removeUnderscore);
 
-    String typeName = getElementTypeName(this.getDialect(), schema, false);
+    String typeName = getElementTypeName(getDialect(), schema, false);
     if (typeName.indexOf('(') > 0 && typeName.indexOf(')') > 0) {
       typeName = typeName.substring(0, typeName.indexOf('('))
           + typeName.substring(typeName.indexOf(')') + 1);
@@ -128,17 +127,17 @@ public class ArrayType extends AbstractType {
     return typeName;
   }
 
-  private String getElementTypeName(DatabaseDialect dialect, Schema schema, boolean key) {
-    Type elementType = dialect.getSchemaType(schema.valueSchema());
-    return elementType.getTypeName(dialect, schema.valueSchema(), key);
+  private String getElementTypeName(DatabaseDialect dialect, Schema schema, boolean isKey) {
+    JdbcType elementType = dialect.getSchemaType(schema.valueSchema());
+    return elementType.getTypeName(schema.valueSchema(), isKey);
   }
 
   @Override
   public List<ValueBindDescriptor> bind(int index, Schema schema, Object value) {
     if (value == null) {
-      return Arrays.asList(new ValueBindDescriptor(index, null));
+      return List.of(new ValueBindDescriptor(index, null));
     }
-    final String typeName = getTypeName(getDialect(), schema, false)
+    final String typeName = getTypeName(schema, false)
         .transform(type -> type.substring(0, type.length() - 2));
     if (value instanceof List valueList
         && valueList.size() > 0) {

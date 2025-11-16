@@ -148,26 +148,6 @@ modules:
       - stackgres-k8s/src/restapi/src/test
     artifacts:
       - stackgres-k8s/src/restapi/target
-  jobs-java:
-    <<: *operator-framework-java
-    path: stackgres-k8s/src/jobs/.
-    filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh jobs
-    sources:
-      - stackgres-k8s/src/jobs/src/main/java
-      - stackgres-k8s/src/jobs/src/main/resources
-    artifacts:
-      - stackgres-k8s/src/jobs/target
-      - .m2/repository/io/stackgres/stackgres-jobs
-  jobs-java-test:
-    <<: *operator-framework-java-test
-    path: stackgres-k8s/src/jobs/.
-    filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh jobs
-    sources:
-      - stackgres-k8s/src/jobs/src/test
-    artifacts:
-      - stackgres-k8s/src/jobs/target
   stream-java:
     <<: *operator-framework-java
     path: stackgres-k8s/src/stream/.
@@ -255,11 +235,6 @@ modules:
     path: stackgres-k8s/src/restapi
     artifacts:
       - stackgres-k8s/src/restapi/target/stackgres-restapi-runner
-  jobs-native:
-    <<: *native
-    path: stackgres-k8s/src/jobs
-    artifacts:
-      - stackgres-k8s/src/jobs/target/stackgres-jobs-runner
   stream-native:
     <<: *native
     path: stackgres-k8s/src/stream
@@ -301,20 +276,6 @@ modules:
       0: stackgres-k8s/src/restapi/src/main/docker/LICENCE
       1: stackgres-k8s/src/restapi/src/main/docker/stackgres-restapi.jvm.sh
       2: stackgres-k8s/src/restapi/target/quarkus-app
-  jobs-jvm-image: &jobs-jvm-image
-    <<: *operator-jvm-image
-    path: stackgres-k8s/src/jobs
-    dockerfile:
-      <<: *jvm-image-dockerfile
-      path: stackgres-k8s/src/jobs/src/main/docker/Dockerfile.jvm
-      args:
-        <<: *jvm-image-args
-        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh jobs)
-        BUILD_HASH: $(sh stackgres-k8s/ci/build/build-functions.sh get_module_hash "$MODULE")
-    artifacts: &jobs-jvm-image-artifacts
-      0: stackgres-k8s/src/jobs/src/main/docker/LICENCE
-      1: stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.jvm.sh
-      2: stackgres-k8s/src/jobs/target/quarkus-app
   stream-jvm-image: &stream-jvm-image
     <<: *operator-jvm-image
     path: stackgres-k8s/src/stream
@@ -390,20 +351,6 @@ modules:
       0: stackgres-k8s/src/restapi/src/main/docker/LICENCE
       1: stackgres-k8s/src/restapi/target/stackgres-restapi-runner
       2: stackgres-k8s/src/restapi/src/main/docker/stackgres-restapi.native.sh
-  jobs-native-image: &jobs-native-image
-    <<: *operator-native-image
-    path: stackgres-k8s/src/jobs
-    dockerfile:
-      <<: *native-image-dockerfile
-      path: stackgres-k8s/src/jobs/src/main/docker/Dockerfile.native
-      args:
-        <<: *native-image-args
-        STACKGRES_VERSION: $(sh stackgres-k8s/ci/build/version.sh jobs)
-        BUILD_HASH: $(sh stackgres-k8s/ci/build/build-functions.sh get_module_hash "$MODULE")
-    artifacts: &jobs-native-image-artifacts
-      0: stackgres-k8s/src/jobs/src/main/docker/LICENCE
-      1: stackgres-k8s/src/jobs/target/stackgres-jobs-runner
-      2: stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.native.sh
   stream-native-image: &stream-native-image
     <<: *operator-native-image
     path: stackgres-k8s/src/stream
@@ -572,12 +519,6 @@ modules:
     artifacts:
       <<: *restapi-jvm-image-artifacts
       999: stackgres-k8s/src/restapi/pom.xml
-  jobs-jvm-release-image:
-    <<: *jobs-jvm-image
-    type: jvm-release-image
-    artifacts:
-      <<: *jobs-jvm-image-artifacts
-      999: stackgres-k8s/src/jobs/pom.xml
   stream-jvm-release-image:
     <<: *stream-jvm-image
     type: jvm-release-image
@@ -608,12 +549,6 @@ modules:
     artifacts:
       <<: *restapi-native-image-artifacts
       999: stackgres-k8s/src/restapi/pom.xml
-  jobs-native-release-image:
-    <<: *jobs-native-image
-    type: native-release-image
-    artifacts:
-      <<: *jobs-native-image-artifacts
-      999: stackgres-k8s/src/jobs/pom.xml
   stream-native-release-image:
     <<: *stream-native-image
     type: native-release-image
@@ -679,31 +614,26 @@ stages:
   - common-java: test-util-java
   - operator-java: common-java
   - restapi-java: common-java
-  - jobs-java: common-java
   - stream-java: common-java
   - cluster-controller-java: common-java
   - operator-framework-java-test: operator-framework-java
   - common-java-test: common-java
   - operator-java-test: operator-java
   - restapi-java-test: restapi-java
-  - jobs-java-test: jobs-java
   - stream-java-test: stream-java
   - cluster-controller-java-test: cluster-controller-java
   - admin-ui: restapi-java
   - operator-jvm-image: operator-java
   - restapi-jvm-image: restapi-java
-  - jobs-jvm-image: jobs-java
   - stream-jvm-image: stream-java
   - cluster-controller-jvm-image: cluster-controller-java
   - admin-ui-image: admin-ui
   - operator-native: operator-java
   - restapi-native: restapi-java
-  - jobs-native: jobs-java
   - stream-native: stream-java
   - cluster-controller-native: cluster-controller-java
   - operator-native-image: operator-native
   - restapi-native-image: restapi-native
-  - jobs-native-image: jobs-native
   - stream-native-image: stream-native
   - cluster-controller-native-image: cluster-controller-native
   - helm-packages: null
@@ -715,13 +645,11 @@ stages:
   - documentation: restapi-java
   - operator-jvm-release-image: operator-java
   - restapi-jvm-release-image: restapi-java
-  - jobs-jvm-release-image: jobs-java
   - stream-jvm-release-image: stream-java
   - cluster-controller-jvm-release-image: cluster-controller-java
   - admin-ui-release-image: admin-ui
   - operator-native-release-image: operator-native
   - restapi-native-release-image: restapi-native
-  - jobs-native-release-image: jobs-native
   - stream-native-release-image: stream-native
   - cluster-controller-native-release-image: cluster-controller-native
   - helm-release-packages: null

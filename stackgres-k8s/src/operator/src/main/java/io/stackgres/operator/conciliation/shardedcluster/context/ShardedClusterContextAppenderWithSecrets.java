@@ -32,6 +32,12 @@ public abstract class ShardedClusterContextAppenderWithSecrets
     this.secretFinder = null;
   }
 
+  protected Secret getSecretOrThrow(String secretName, String namespace, String onNotFound) {
+    return secretFinder
+        .findByNameAndNamespace(secretName, namespace)
+        .orElseThrow(() -> new IllegalArgumentException(onNotFound));
+  }
+
   protected <T, S> Optional<String> getSecretAndKeyOrThrow(
       final String clusterNamespace,
       final Optional<T> secretSection,

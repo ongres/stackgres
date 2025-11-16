@@ -142,10 +142,11 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
       if (Optional.of(stream.getSpec().getTarget().getSgCluster())
           .map(StackGresStreamTargetSgCluster::getSkipDropIndexesAndConstraints)
           .orElse(false)) {
-        LOGGER.info("Skipping restoring constraints and indexes for target database on tombstone signal");
+        LOGGER.info("Skipping restoring primary keys, restoring constraints and indexes"
+            + " for target database on tombstone signal");
         return;
       }
-      LOGGER.info("Restoring constraints and indexes for target database on tombstone signal");
+      LOGGER.info("Restoring primary keys, constraints and indexes for target database on tombstone signal");
       final Properties props = new Properties();
       final var sgCluster = Optional.of(stream.getSpec().getTarget().getSgCluster());
       final String namespace = stream.getMetadata().getNamespace();
@@ -198,23 +199,75 @@ public class TombstoneDebeziumSignalAction implements SignalAction<Partition> {
           SessionFactory sessionFactory = config.getHibernateConfiguration().buildSessionFactory();
           StatelessSession session = sessionFactory.openStatelessSession();
           ) {
-        Transaction transaction = session.beginTransaction();
-        try {
-          session.createNativeQuery(
-              SnapshotHelperQueries.RESTORE_INDEXES.readSql(),
-              Object.class).executeUpdate();
-          session.createNativeQuery(
-              SnapshotHelperQueries.RESTORE_CONSTRAINTS.readSql(),
-              Object.class).executeUpdate();
-          transaction.commit();
-        } catch (RuntimeException ex) {
-          transaction.rollback();
-          throw ex;
-        } catch (Exception ex) {
-          transaction.rollback();
-          throw new RuntimeException(ex);
+        if (Optional.of(stream.getSpec().getTarget().getSgCluster())
+            .map(StackGresStreamTargetSgCluster::getSkipDropPrimaryKeys)
+            .orElse(false)) {
+          LOGGER.info("Skipping restoring primary keys for target database on tombstone signal");
+        } else {
+          restorePrimaryKeys(session);
         }
+        restoreIndexes(session);
+        restoreConstraints(session);
+        executeUpdate(session, SnapshotHelperQueries.CLEANUP.readSql());
       }
+    }
+  }
+
+  private void restorePrimaryKeys(StatelessSession session) {
+    executeUpdates(
+        session,
+        "primary key",
+        SnapshotHelperQueries.CHECK_RESTORE_PRIMARY_KEYS.readSql(),
+        SnapshotHelperQueries.RESTORE_PRIMARY_KEYS.readSql());
+  }
+
+  private void restoreIndexes(StatelessSession session) {
+    executeUpdates(
+        session,
+        "index",
+        SnapshotHelperQueries.CHECK_RESTORE_INDEXES.readSql(),
+        SnapshotHelperQueries.RESTORE_INDEXES.readSql());
+  }
+
+  private void restoreConstraints(StatelessSession session) {
+    executeUpdates(session,
+        "constraint",
+        SnapshotHelperQueries.CHECK_RESTORE_CONSTRAINTS.readSql(),
+        SnapshotHelperQueries.RESTORE_CONSTRAINTS.readSql());
+  }
+
+  private void executeUpdates(
+      StatelessSession session,
+      String object,
+      String checkSql,
+      String updateSql) {
+    var result = session.createNativeQuery(
+        checkSql,
+        Object.class).getResultList();
+    if (result == null || result.size() <= 0 || !(result.get(0) instanceof Number)) {
+      throw new RuntimeException("Undefined result while restoring objects on target database");
+    }
+    final int resultCount = Number.class.cast(result.get(0)).intValue();
+    for (int index = 0; index < resultCount; index++) {
+      LOGGER.info("Restoring {} {}/{} for target database on tombstone signal",
+          object, index + 1, resultCount);
+      executeUpdate(session, updateSql);
+    }
+  }
+
+  private void executeUpdate(StatelessSession session, String updateSql) {
+    Transaction transaction = session.beginTransaction();
+    try {
+      session.createNativeQuery(
+          updateSql,
+          Object.class).executeUpdate();
+      transaction.commit();
+    } catch (RuntimeException ex) {
+      transaction.rollback();
+      throw ex;
+    } catch (Exception ex) {
+      transaction.rollback();
+      throw new RuntimeException(ex);
     }
   }
 

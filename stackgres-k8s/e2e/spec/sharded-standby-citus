@@ -1,0 +1,297 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/metrics"
+. "$SPEC_PATH/abstract/sharded-dbops"
+
+e2e_test_extra_hash() {
+  printf '%s\n' E2E_CITUS_POSTGRES_VERSION="$E2E_CITUS_POSTGRES_VERSION"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/sharded-dbops")"
+}
+
+e2e_test_install() {
+  install_minio
+
+  CLUSTER_NAME="$(get_sgshardedcluster_name "$SPEC_NAME")"
+  PRIMARY_CLUSTER_NAME="$(get_sgshardedcluster_name "primary-$SPEC_NAME")"
+  create_or_replace_sharded_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1"
+  wait_sharded_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1" \
+    --set configurations.create=false \
+    --set instanceProfiles=null \
+    --set-string shardedCluster.replicateFrom.instance.sgShardedCluster="$PRIMARY_CLUSTER_NAME"
+  WAIT_CLUSTER_BOOTSTRAP_ONLY=true wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "5"
+}
+
+e2e_test() {
+  run_test "Checking that sharded standby is working" check_sharded_standby_is_working
+
+  run_test "Checking that metrics are exported" check_sharded_metrics
+
+  run_test "Checking that sharded standby can be converted to sharded primary" check_sharded_standby_can_be_converted_to_sharded_primary
+
+  run_test "Checking that sharded primary can be converted to sharded standby" check_sharded_primary_can_be_converted_to_sharded_standby
+
+  run_test "Checking that backup configuration is propagated to sharded standby" check_backup_config_is_propagated_to_sharded_standby
+
+  run_test "Checking that sharded standby can be restarted" check_restart_sharded_standby
+}
+
+check_sharded_standby_is_working() {
+  check_sharded_connectivity
+
+  local SYNCHRONOUS_STANDBY_NAMES
+  SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord-0" -c postgres-util -- \
+    psql -q -At -c 'SHOW synchronous_standby_names')"
+  if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
+  then
+    success "async replication is set for leader"
+  else
+    fail "async replication is not set for leader"
+  fi
+
+  local RESULT EXIT_CODE
+  try_function run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -h "$CLUSTER_NAME-coord" -q "CREATE DATABASE test;"
+  if "$RESULT"
+  then
+    fail "It should not be possible to create a database in the leader node of the sharded standby cluster"
+  else
+    success "It is not possible to create a database in the leader node of the sharded standby cluster" 
+  fi
+
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "CREATE TABLE fibonacci(num integer, PRIMARY KEY (num));"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "SELECT create_distributed_table('fibonacci', 'num');"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (1);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (2);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (3);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (1 + 134217728);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (2 + 134217728);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (3 + 134217728);"
+
+  PRIMARY_RESPONSE="$(run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -c "$PRIMARY_CLUSTER_NAME" -p 5432 -i 0 -h "$PRIMARY_CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "citus")"
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123134217729134217730134217731" ]
+  then
+    success "inserts on the primary where successful."
+  else
+    fail "inserts on the primary where not successful."
+  fi
+
+  try_function wait_until eval '
+    STANDBY_RESPONSE="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -q "SELECT num FROM fibonacci ORDER BY num;" -d "citus")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$STANDBY_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    success "standby replication is working"
+  else
+    fail "standby replication is not working. The records don't match between primary and standby for the fibonacci table"
+  fi
+}
+
+check_sharded_connectivity() {
+  local CLUSTER_NAME="$CLUSTER_NAME"
+  SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
+  for SUFFIX in coord shard0 shard1
+  do
+    CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX" check_connectivity -i 0
+  done
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME"
+}
+
+check_sharded_metrics() {
+  local CLUSTER_NAME="$CLUSTER_NAME"
+  SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
+  for SUFFIX in coord shard0 shard1
+  do
+    CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX" check_metrics
+  done
+  CLUSTER_NAME="$SHARDED_CLUSTER_NAME"
+}
+
+check_sharded_standby_can_be_converted_to_sharded_primary() {
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1" \
+    --reset-values \
+    --set configurations.create=false \
+    --set instanceProfiles=null \
+    --set shardedCluster.replicateFrom=null
+
+  local RESULT EXIT_CODE
+  try_function wait_until run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -q "CREATE DATABASE test2;"
+  if "$RESULT"
+  then
+    success "The leader node of the standby cluster was converted to a primary" 
+  else
+    fail "The leader node of the standby cluster was not converted to a primary"
+  fi
+
+  local RESULT EXIT_CODE
+  try_function wait_until run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -d citus -q "$(cat << EOF
+DO \$\$BEGIN
+  IF EXISTS (SELECT * FROM pg_dist_node WHERE nodename IN ($(
+    kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-scope=$PRIMARY_CLUSTER_NAME" \
+      --template "{{ range \$i,\$e := .items }}{{ if \$i }},{{ end }}'{{ \$e.status.podIP }}'{{ end }}"
+  )))
+  THEN
+    RAISE EXCEPTION 'pg_dist_node still configured with replicated nodes';
+  END IF;
+END\$\$;
+EOF
+    )"
+  if "$RESULT"
+  then
+    success "The leader node of the standby cluster is following the primary cluster" 
+  else
+    fail "The leader node of the standby cluster is not following the primary cluster"
+  fi
+
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "CREATE TABLE fibonacci2(num integer, PRIMARY KEY (num));"
+  wait_until run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "SELECT create_distributed_table('fibonacci2', 'num');"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (1);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (2);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (3);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (1 + 134217728);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (2 + 134217728);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (3 + 134217728);"
+
+  PRIMARY_RESPONSE="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -q "SELECT num FROM fibonacci2 ORDER BY num;" -d "citus")"
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123134217729134217730134217731" ]
+  then
+    success "inserts on the primary where successful."
+  else
+    fail "inserts on the primary where not successful."
+  fi
+}
+
+check_sharded_primary_can_be_converted_to_sharded_standby() {
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1" \
+    --reset-values \
+    --set configurations.create=false \
+    --set instanceProfiles=null \
+    --set-string shardedCluster.replicateFrom.instance.sgShardedCluster="$PRIMARY_CLUSTER_NAME"
+
+  local RESULT EXIT_CODE
+  try_function wait_until run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -d citus -q "$(cat << 'EOF'
+DO $$BEGIN
+  IF EXISTS (SELECT * FROM pg_class WHERE relname = 'fibonacci2')
+  THEN
+    RAISE EXCEPTION 'Table fibonacci2 does exists';
+  END IF;
+END$$;
+EOF
+    )"
+  if "$RESULT"
+  then
+    success "The leader node of the standby cluster is following the primary cluster" 
+  else
+    fail "The leader node of the standby cluster is not following the primary cluster"
+  fi
+
+  local RESULT EXIT_CODE
+  try_function run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -q "CREATE DATABASE test2;"
+  if "$RESULT"
+  then
+    fail "It should not be possible to create a database in the leader node of the standby cluster"
+  else
+    success "It is not possible to create a database in the leader node of the standby cluster" 
+  fi
+
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "CREATE TABLE fibonacci2(num integer, PRIMARY KEY (num));"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "SELECT create_distributed_table('fibonacci2', 'num');"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (1);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (2);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (3);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (1 + 134217728);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (2 + 134217728);"
+  run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci2(num) VALUES (3 + 134217728);"
+
+  PRIMARY_RESPONSE="$(run_query -x "$PRIMARY_CLUSTER_NAME-coord-0" -p 5432 -n "$CLUSTER_NAMESPACE" -c "$PRIMARY_CLUSTER_NAME" -q "SELECT num FROM fibonacci2 ORDER BY num;" -d "citus")"
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123134217729134217730134217731" ]
+  then
+    success "inserts on the primary where successful."
+  else
+    fail "inserts on the primary where not successful."
+  fi
+
+  try_function wait_until eval '
+    STANDBY_RESPONSE="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -q "SELECT num FROM fibonacci ORDER BY num;" -d "citus")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$STANDBY_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    success "standby replication is working"
+  else
+    fail "standby replication is not working. The records don't match between primary and standby for the fibonacci table"
+  fi
+}
+
+check_backup_config_is_propagated_to_sharded_standby() {
+  create_or_replace_cluster "backupconf" "$CLUSTER_NAMESPACE" "1" \
+    --set configurations.objectstorage.create=true \
+    --set cluster.create=false \
+    --set configurations.postgresconfig.create=false \
+    --set configurations.poolingconfig.create=false \
+    --set instanceProfiles=null \
+    --set-string configurations.objectstorage.s3Compatible.bucket=stackgres \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=sharded-standby-citus-minio \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=sharded-standby-citus-minio \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
+    --set-string configurations.objectstorage.s3Compatible.region=k8s \
+    --set configurations.objectstorage.s3Compatible.enablePathStyleAddressing=true \
+    --set-string configurations.objectstorage.s3Compatible.endpoint=http://sharded-standby-citus-minio:9000 \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf
+
+  create_or_replace_sharded_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1" \
+    --set configurations.objectstorage.create=false \
+    --set cluster.configurations.backups.retention=2 \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf
+
+  try_function wait_until eval '
+    STANDBY_RESPONSE="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -q "SHOW restore_command")"
+    [ "" != "$(echo "$STANDBY_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    success "standby replication is using restore_command"
+  else
+    fail "standby replication is not using restore_command"
+  fi
+}
+
+check_restart_sharded_standby() {
+  trigger_sharded_cluster_require_restart
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart)"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  local DBOPS_NAME
+  local SUFFIX
+  for SUFFIX in coord shard0 shard1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
+}

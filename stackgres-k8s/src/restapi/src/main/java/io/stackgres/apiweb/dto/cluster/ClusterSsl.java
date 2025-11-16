@@ -20,6 +20,8 @@ public class ClusterSsl {
 
   private SecretKeySelector privateKeySecretKeySelector;
 
+  private String duration;
+
   public Boolean getEnabled() {
     return enabled;
   }
@@ -42,6 +44,14 @@ public class ClusterSsl {
 
   public void setPrivateKeySecretKeySelector(SecretKeySelector privateKeySecretKeySelector) {
     this.privateKeySecretKeySelector = privateKeySecretKeySelector;
+  }
+
+  public String getDuration() {
+    return duration;
+  }
+
+  public void setDuration(String duration) {
+    this.duration = duration;
   }
 
   @Override

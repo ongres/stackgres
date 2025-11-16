@@ -22,13 +22,13 @@ import io.debezium.connector.jdbc.Buffer;
 import io.debezium.connector.jdbc.JdbcKafkaSinkRecord;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.JdbcSinkRecord;
-import io.debezium.connector.jdbc.JdbcSinkRecord.FieldDescriptor;
 import io.debezium.connector.jdbc.RecordBuffer;
 import io.debezium.connector.jdbc.ReducedRecordBuffer;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.relational.TableDescriptor;
 import io.debezium.metadata.CollectionId;
 import io.debezium.sink.DebeziumSinkRecord;
+import io.debezium.sink.field.FieldDescriptor;
 import io.debezium.sink.spi.ChangeEventSink;
 import io.debezium.util.Clock;
 import io.debezium.util.Metronome;
@@ -83,7 +83,8 @@ public class JdbcChangeEventSink implements ChangeEventSink {
     for (SinkRecord kafkaSinkRecord : records) {
 
       JdbcSinkRecord record = new JdbcKafkaSinkRecord(kafkaSinkRecord, config.getPrimaryKeyMode(),
-          config.getPrimaryKeyFields(), config.getFieldFilter(), dialect);
+          config.getPrimaryKeyFields(), config.getFieldFilter(),
+          config.cloudEventsSchemaNamePattern(), dialect);
       LOGGER.trace("Processing {}", record);
 
       validate(record);

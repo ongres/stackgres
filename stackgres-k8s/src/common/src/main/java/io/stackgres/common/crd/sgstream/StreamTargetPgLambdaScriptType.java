@@ -22,13 +22,13 @@ public enum StreamTargetPgLambdaScriptType {
     return type;
   }
 
-  public static StreamTargetPgLambdaScriptType fromString(String type) {
+  public static StreamTargetPgLambdaScriptType fromString(String from) {
     for (StreamTargetPgLambdaScriptType value : values()) {
-      if (value.type.equals(type)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("PgLambda script type " + type + " is invalid");
+    throw new IllegalArgumentException("PgLambda script type " + from + " is invalid");
   }
 
 }

@@ -9,14 +9,15 @@ import java.sql.BatchUpdateException;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.JdbcSinkRecord;
 import io.debezium.connector.jdbc.QueryBinder;
 import io.debezium.connector.jdbc.QueryBinderResolver;
-import io.debezium.connector.jdbc.ValueBindDescriptor;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
+import io.debezium.connector.jdbc.field.JdbcFieldDescriptor;
+import io.debezium.sink.valuebinding.ValueBindDescriptor;
 import io.debezium.util.Stopwatch;
 import org.apache.kafka.connect.data.Struct;
 import org.hibernate.SharedSessionContract;
@@ -38,11 +39,8 @@ public class RecordWriter {
   private final JdbcSinkConnectorConfig config;
   private final DatabaseDialect dialect;
 
-  public RecordWriter(
-      SharedSessionContract session,
-      QueryBinderResolver queryBinderResolver,
-      JdbcSinkConnectorConfig config,
-      DatabaseDialect dialect) {
+  public RecordWriter(SharedSessionContract session, QueryBinderResolver queryBinderResolver,
+      JdbcSinkConnectorConfig config, DatabaseDialect dialect) {
     this.session = session;
     this.queryBinderResolver = queryBinderResolver;
     this.config = config;
@@ -126,30 +124,22 @@ public class RecordWriter {
   }
 
   protected int bindKeyValuesToQuery(JdbcSinkRecord record, QueryBinder query, int index) {
-    if (Objects.requireNonNull(
-        config.getPrimaryKeyMode()) == JdbcSinkConnectorConfig.PrimaryKeyMode.KAFKA) {
-      query.bind(new ValueBindDescriptor(index++, record.topicName()));
-      query.bind(new ValueBindDescriptor(index++, record.partition()));
-      query.bind(new ValueBindDescriptor(index++, record.offset()));
-    } else {
-      final Struct keySource = record.getKeyStruct(config.getPrimaryKeyMode(),
-          config.getPrimaryKeyFields());
-      if (keySource != null) {
-        index = bindFieldValuesToQuery(record, query, index, keySource, record.keyFieldNames());
-      }
+    final Struct keySource = record.filteredKey();
+    if (keySource != null) {
+      index = bindFieldValuesToQuery(record, query, index, keySource, record.keyFieldNames());
     }
     return index;
   }
 
   protected int bindNonKeyValuesToQuery(JdbcSinkRecord record, QueryBinder query, int index) {
     return bindFieldValuesToQuery(record, query, index, record.getPayload(),
-        record.getNonKeyFieldNames());
+        record.nonKeyFieldNames());
   }
 
-  private int bindFieldValuesToQuery(JdbcSinkRecord record, QueryBinder query, int index,
-      Struct source, List<String> fields) {
-    for (String fieldName : fields) {
-      final JdbcSinkRecord.FieldDescriptor field = record.allFields().get(fieldName);
+  protected int bindFieldValuesToQuery(JdbcSinkRecord record, QueryBinder query, int index,
+      Struct source, Set<String> fieldNames) {
+    for (String fieldName : fieldNames) {
+      final JdbcFieldDescriptor field = record.jdbcFields().get(fieldName);
 
       Object value;
       if (field.getSchema().isOptional()) {

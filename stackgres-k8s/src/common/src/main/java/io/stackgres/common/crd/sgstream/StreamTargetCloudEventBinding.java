@@ -22,13 +22,13 @@ public enum StreamTargetCloudEventBinding {
     return binding;
   }
 
-  public static StreamTargetCloudEventBinding fromString(String binding) {
+  public static StreamTargetCloudEventBinding fromString(String from) {
     for (StreamTargetCloudEventBinding value : values()) {
-      if (value.binding.equals(binding)) {
+      if (value.binding.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("CloudEvent format " + binding + " is invalid");
+    throw new IllegalArgumentException("CloudEvent format " + from + " is invalid");
   }
 
 }

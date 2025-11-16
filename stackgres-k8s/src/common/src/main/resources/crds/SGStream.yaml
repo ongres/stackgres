@@ -330,7 +330,8 @@ spec:
                               
                               * `all_tables` - If a publication exists, the connector uses it. If a publication does not exist, the connector creates a publication for all tables in the database for which the connector is capturing changes. For the connector to create a publication it must access the database through a database user account that has permission to create publications and perform replications. You grant the required permission by using the following SQL command CREATE PUBLICATION <publication_name> FOR ALL TABLES;.
                               * `disabled` - The connector does not attempt to create a publication. A database administrator or the user configured to perform replications must have created the publication before running the connector. If the connector cannot find the publication, the connector throws an exception and stops.
-                              * `filtered` - If a publication exists, the connector uses it. If no publication exists, the connector creates a new publication for tables that match the current filter configuration as specified by the schema.include.list, schema.exclude.list, and table.include.list, and table.exclude.list connector configuration properties. For example: CREATE PUBLICATION <publication_name> FOR TABLE <tbl1, tbl2, tbl3>. If the publication exists, the connector updates the publication for tables that match the current filter configuration. For example: ALTER PUBLICATION <publication_name> SET TABLE <tbl1, tbl2, tbl3>.
+                              * `filtered` - If a publication exists, the connector uses it. If no publication exists, the connector creates a new publication for tables that match the current filter configuration as specified by the schema include, schema exclude, table include and table exclude configuration properties. For example: `CREATE PUBLICATION <publication_name> FOR TABLE <tbl1, tbl2, tbl3>`. If the publication exists, the connector updates the publication for tables that match the current filter configuration. For example: `ALTER PUBLICATION <publication_name> SET TABLE <tbl1, tbl2, tbl3>`.
+                              * `no_tables` - If a publication exists, the connector uses it. If a publication does not exist, the connector creates a publication without specifying any table by running a SQL command in the following format: `CREATE PUBLICATION <publication_name>;`. Set the `no_tables` option if you want the connector to capture only logical decoding messages, and not capture any other change events, such as those caused by INSERT, UPDATE, and DELETE operations on any table. If you select this option, to prevent the connector from emitting and processing READ events, you can specify names of schemas or tables for which you do not want to capture changes, for example, by using table exclude configuration or schema exclude configuration (like "public.*").
                           replicaIdentityAutosetValues:
                             type: array
                             items:
@@ -599,6 +600,10 @@ spec:
                             type: integer
                             description: |
                               An interval in milliseconds that the connector should wait before performing a snapshot when the connector starts. If you are starting multiple connectors in a cluster, this property is useful for avoiding snapshot interruptions, which might cause re-balancing of connectors.
+                          streamingDelayMs:
+                            type: integer
+                            description: |
+                              Specifies the time, in milliseconds, that the connector delays the start of the streaming process after it completes a snapshot. Setting a delay interval helps to prevent the connector from restarting snapshots in the event that a failure occurs immediately after the snapshot completes, but before the streaming process begins. Set a delay value that is higher than the value of the `offsetFlushIntervalMs` property that is set for the Kafka Connect worker.
                           snapshotFetchSize:
                             type: integer
                             description: |
@@ -631,6 +636,15 @@ spec:
                             type: boolean
                             description: |
                               Default `false`. Determines whether the connector generates events with transaction boundaries and enriches change event envelopes with transaction metadata. Specify true if you want the connector to do this. For more information, see [Transaction metadata](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-transaction-metadata).
+                          publishViaPartitionRoot:
+                            type: boolean
+                            description: |
+                              Default `false`. Specifies how the connector captures and emits events for changes that it captures from partitioned tables. This setting applies only if the `publicationAutocreateMode` property is set to `all_tables` or `filtered`, and Debezium creates the publication for the captured tables.
+
+                              Set one of the following options:
+
+                              * `true` : The connector emits change events for all partitions to a topic with the name of the base table. When the connector creates a publication, it submits a `CREATE PUBLICATION` statement in which the publish_via_`partition_root parameter` is set to true. As a result, the publication ignores the partition in which changes originate, and only records the name of the name of the source table.
+                              * `false`: The connector emits changes from each source partition to a topic that reflects the name of the partition. When the connector creates the publication, the `CREATE PUBLICATION` statement omits the `publish_via_partition_root parameter` so that the publication always uses the name of the source partition to publish change events.
                           flushLsnSource:
                             type: boolean
                             description: |
@@ -644,7 +658,14 @@ spec:
                             items:
                               type: string
                             description: |
-                              Default `none`. A list of operation types that will be skipped during streaming. The operations include: c for inserts/create, u for updates, d for deletes, t for truncates, and none to not skip any operations. By default, no operations are skipped.
+                              Default `none`. A list of operation types that will be skipped during streaming.
+                              
+                              The operations include: 
+                              * `c` for inserts/create
+                              * `u` for updates
+                              * `d` for deletes
+                              * `t` for truncates
+                              * `none` to not skip any operations. By default, no operations are skipped.
                           signalDataCollection:
                             type: string
                             description: |
@@ -732,6 +753,28 @@ spec:
                             type: integer
                             description: |
                               Default `0`. Specifies the time, in milliseconds, that the connector waits for a query to complete. Set the value to 0 (zero) to remove the timeout limit.
+                          guardrailCollectionsMax:
+                            type: integer
+                            description: |
+                              Default `0`. Specifies the maximum number of tables that the connector can capture. Exceeding this limit triggers the action specified by `guardrailCollectionsLimitAction`. Set this property to 0 to prevent the connector from triggering guardrail actions.
+                          guardrailCollectionsLimitAction:
+                            type: string
+                            description: |
+                              Default `warn`. Specifies the action to trigger if the number of tables that the connector captures exceeds the number that you specify in the `guardrailCollectionsMax` property. Set the property to one of the following values:
+
+                              * `fail`: The connector fails and reports an exception.
+                              * `warn`: The connector logs a warning.
+                          extendedHeadersEnabled:
+                            type: boolean
+                            description: |
+                              Default `true`. This property specifies whether Debezium adds context headers with the prefix `__debezium.context.` to the messages that it emits.
+                              These headers are required by the OpenLineage integration and provide metadata that enables downstream processing systems to track and identify the sources of change events.
+
+                              The property adds following headers:
+
+                              * `__debezium.context.connectorLogicalName`: The logical name of the Debezium connector.
+                              * `__debezium.context.taskId`: The unique identifier of the connector task.
+                              * `__debezium.context.connectorName`: The name of the Debezium connector.
                   postgres:
                     type: object
                     description: |
@@ -947,14 +990,18 @@ spec:
                           Allow to set a [SIMILAR TO regular expression](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-SIMILARTO-REGEXP) to match the names of the roles to skip during import of DDL.
                           
                           When not set and source is an SGCluster will match the superuser, replicator and authenticator usernames.
+                      skipDropPrimaryKeys:
+                        type: boolean
+                        description: |
+                          When `true` disable drop of primary keys. Primary keys are dropped to improve snapshotting performance. This option is required to be set to `true` when using [incremental snapshotting](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-incremental-snapshots).
                       skipDropIndexesAndConstraints:
                         type: boolean
                         description: |
-                          When `true` disable drop of indexes and constraints that improve snapshotting performance.
+                          When `true` disable drop of indexes and constraints. Indexes and constrinats are dropped in order to improve snapshotting performance.
                       skipRestoreIndexesAfterSnapshot:
                         type: boolean
                         description: |
-                          When `true` disable restore of indexes on the first non-snapshot event. This option is required when using incremental snapshotting. This option is ignored when `skipDropIndexesAndConstraints` is set to `true`.
+                          When `true` disable restore of indexes on the first non-snapshot event. This option is required to be set to `true` when using [incremental snapshotting](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-incremental-snapshots). This option is ignored when `skipDropIndexesAndConstraints` is set to `true`.
                       debeziumProperties: &target-jdbc-debeziumProperties
                         type: object
                         description: |
@@ -971,7 +1018,7 @@ spec:
                           detectInsertMode:
                             type: boolean
                             description: |
-                              Default `true`. Parameter `insertMode` is ignored and the inser mode is detected from the record hints.
+                              Default `true`. Parameter `insertMode` is ignored and the insert mode is detected from the record hints.
                           removePlaceholders:
                             type: boolean
                             description: |
@@ -992,10 +1039,14 @@ spec:
                             type: integer
                             description: |
                               Default `1800`. Specifies the number of seconds that an unused connection is kept before it is discarded.
-                          databaseTime_zone:
-                            type: string
+                          connectionRestartOnErrors:
+                            type: boolean
                             description: |
-                              **DEPRECATED** use `useTimeZone` instead. Default `UTC`. Specifies the timezone used when inserting JDBC temporal values.
+                              Default `false`. Specifies whether the connector retries after a transient JDBC connection error.
+                              When enabled (`true`), the connector treats connection issues (such as socket closures or timeouts) as retriable, allowing it to retry processing instead of failing the task. This reduces downtime and improves resilience against temporary disruptions.
+
+                              > Setting this option to `true` can reduce downtime. However, in master-replica environments with asynchronous replication, it may lead to data loss if retries occur before all changes are fully replicated.
+                              > Use with caution where strong data consistency is required.
                           useTimeZone:
                             type: string
                             description: |
@@ -1048,10 +1099,6 @@ spec:
                               Default `basic`. Specifies how the connector evolves the destination table schemas. For more information, see Schema evolution. The following options are available:
                               `none`: Specifies that the connector does not evolve the destination schema.
                               `basic`: Specifies that basic evolution occurs. The connector adds missing columns to the table by comparing the incoming event’s record schema to the database table structure.
-                          tableNameFormat:
-                            type: string
-                            description: |
-                              **DEPRECATED** use `collectionNameFormat` instead. Default `${original}`. Specifies a string that determines how the destination table name is formatted, based on the topic name of the event. The placeholder ${original} is replaced with the schema name and the table name separated by a point character (`.`).
                           collectionNameFormat:
                             type: string
                             description: |
@@ -1096,17 +1143,10 @@ spec:
                             description: |
                               Default `io.debezium.connector.jdbc.naming.DefaultColumnNamingStrategy`. Specifies the fully-qualified class name of a ColumnNamingStrategy implementation that the connector uses to resolve column names from event field names.
                               By default, the connector uses the field name as the column name.
-                          tableNamingStrategy:
-                            type: string
-                            description: |
-                              **DEPRECATED** use `collectionNamingStrategy` instead. Default `io.stackgres.stream.jobs.migration.StreamMigrationTableNamingStrategy`. Specifies the fully-qualified class name of a TableNamingStrategy implementation that the connector uses to resolve table names from incoming event topic names.
-                              The default behavior is to:
-                              * Replace the ${topic} placeholder in the `tableNameFormat` configuration property with the event’s topic.
-                              * Sanitize the table name by replacing dots (`.`) with underscores (`_`).
                           collectionNamingStrategy:
                             type: string
                             description: |
-                              **DEPRECATED** use `collectionNamingStrategy` instead. Default `io.stackgres.stream.jobs.migration.StreamMigrationTableNamingStrategy`. Specifies the fully-qualified class name of a TableNamingStrategy implementation that the connector uses to resolve table names from incoming event topic names.
+                              Default `io.stackgres.stream.jobs.migration.StreamMigrationTableNamingStrategy`. Specifies the fully-qualified class name of a TableNamingStrategy implementation that the connector uses to resolve table names from incoming event topic names.
                               The default behavior is to:
                               * Replace the ${topic} placeholder in the `tableNameFormat` configuration property with the event’s topic.
                               * Sanitize the table name by replacing dots (`.`) with underscores (`_`).
@@ -1116,6 +1156,78 @@ spec:
                   The maximum number of retries the streaming operation is allowed to do after a failure.
 
                   A value of `0` (zero) means no retries are made. A value of `-1` means retries are unlimited. Defaults to: `-1`.
+              metadata:
+                type: object
+                description: Metadata information for stream created resources.
+                properties:
+                  annotations:
+                    type: object
+                    description: |
+                      Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+
+                      **Example:**
+
+                      ```yaml
+                      apiVersion: stackgres.io/v1alpha1
+                      kind: SGStream
+                      metadata:
+                        name: stackgres
+                      spec:
+                        metadata:
+                          annotations:
+                            pods:
+                              key: value
+                      ```
+                    properties:
+                      allResources:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
+                        additionalProperties:
+                          type: string
+                      pods:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
+                        additionalProperties:
+                          type: string
+                      serviceAccount:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
+                        additionalProperties:
+                          type: string
+                  labels:
+                    type: object
+                    description: |
+                      Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.
+
+                      **Example:**
+
+                      ```yaml
+                      apiVersion: stackgres.io/v1alpha1
+                      kind: SGStream
+                      metadata:
+                        name: stackgres
+                      spec:
+                        metadata:
+                          labels:
+                            pods:
+                              customLabel: customLabelValue
+                      ```
+                    properties:
+                      allResources:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
+                      pods:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string 
+                      serviceAccount:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
               pods:
                 type: object
                 description: The configuration for SGStream Pod
@@ -1129,8 +1241,8 @@ spec:
                       **Example:**
 
                       ```yaml
-                      apiVersion: stackgres.io/v1
-                      kind: SGCluster
+                      apiVersion: stackgres.io/v1alpha1
+                      kind: SGStream
                       metadata:
                         name: stackgres
                       spec:

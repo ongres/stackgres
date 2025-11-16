@@ -53,9 +53,9 @@ public class ClusterTransformer
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     if (original != null) {
-      if (original.getSpec() != null) {
-        transformation.getSpec().setToInstallPostgresExtensions(
-            original.getSpec().getToInstallPostgresExtensions());
+      if (original.getStatus() != null) {
+        transformation.getStatus().setExtensions(
+            original.getStatus().getExtensions());
       }
     }
 

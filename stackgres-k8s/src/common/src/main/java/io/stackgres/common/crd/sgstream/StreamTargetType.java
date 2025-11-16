@@ -24,13 +24,13 @@ public enum StreamTargetType {
     return type;
   }
 
-  public static StreamTargetType fromString(String type) {
+  public static StreamTargetType fromString(String from) {
     for (StreamTargetType value : values()) {
-      if (value.type.equals(type)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("SGStream target type " + type + " is invalid");
+    throw new IllegalArgumentException("SGStream target type " + from + " is invalid");
   }
 
 }

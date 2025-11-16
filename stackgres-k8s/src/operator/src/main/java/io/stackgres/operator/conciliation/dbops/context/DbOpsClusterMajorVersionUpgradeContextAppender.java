@@ -90,6 +90,18 @@ public class DbOpsClusterMajorVersionUpgradeContextAppender {
       throw new IllegalArgumentException(message);
     }
 
+    final String postgresVersion;
+    if (StackGresVersion.getStackGresVersionAsNumber(cluster) <= StackGresVersion.V_1_18.getVersionAsNumber()) {
+      postgresVersion = Optional.ofNullable(cluster.getStatus().getPostgresVersion())
+          .orElse(cluster.getSpec().getPostgres().getVersion());
+    } else {
+      postgresVersion = cluster.getStatus().getPostgresVersion();
+    }
+    if (postgresVersion == null) {
+      throw new IllegalArgumentException(StackGresCluster.KIND
+          + " " + cluster.getMetadata().getName() + " has no postgres version defined yet");
+    }
+
     String givenMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster).getMajorVersion(givenPgVersion);
     long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
@@ -104,7 +116,7 @@ public class DbOpsClusterMajorVersionUpgradeContextAppender {
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
         .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getSourcePostgresVersion)
-        .orElse(cluster.getSpec().getPostgres().getVersion());
+        .orElse(postgresVersion);
     String oldMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
         .getMajorVersion(oldPgVersion);

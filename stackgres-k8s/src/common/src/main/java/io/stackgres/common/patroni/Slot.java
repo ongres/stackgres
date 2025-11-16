@@ -10,6 +10,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -25,6 +26,9 @@ public class Slot {
   private String database;
 
   private String plugin;
+
+  @JsonProperty("cluster_type")
+  private String clusterType;
 
   public String getType() {
     return type;
@@ -50,9 +54,17 @@ public class Slot {
     this.plugin = plugin;
   }
 
+  public String getClusterType() {
+    return clusterType;
+  }
+
+  public void setClusterType(String clusterType) {
+    this.clusterType = clusterType;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(database, plugin, type);
+    return Objects.hash(clusterType, database, plugin, type);
   }
 
   @Override
@@ -64,8 +76,8 @@ public class Slot {
       return false;
     }
     Slot other = (Slot) obj;
-    return Objects.equals(database, other.database)
-        && Objects.equals(plugin, other.plugin)
+    return Objects.equals(clusterType, other.clusterType)
+        && Objects.equals(database, other.database) && Objects.equals(plugin, other.plugin)
         && Objects.equals(type, other.type);
   }
 

@@ -13,6 +13,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterDbOpsStatus {
 
+  private String name;
+
   private ClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
   private ClusterDbOpsRestartStatus restart;
@@ -20,6 +22,14 @@ public class ClusterDbOpsStatus {
   private ClusterDbOpsMinorVersionUpgradeStatus minorVersionUpgrade;
 
   private ClusterDbOpsSecurityUpgradeStatus securityUpgrade;
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 
   public ClusterDbOpsMajorVersionUpgradeStatus getMajorVersionUpgrade() {
     return majorVersionUpgrade;

@@ -40,7 +40,6 @@ public class StackGresShardedClusterBackupConfiguration {
   @NotNull
   private String sgObjectStorage;
 
-  @NotNull
   private List<String> paths;
 
   private Boolean useVolumeSnapshot;

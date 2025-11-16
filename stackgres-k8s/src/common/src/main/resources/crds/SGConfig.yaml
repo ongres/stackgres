@@ -709,13 +709,6 @@ spec:
                     type: object
                     description: Section to configure Operator Installation Jobs image
                     properties:
-                      name:
-                        type: string
-                        default: "stackgres/jobs"
-                        description: Operator Installation Jobs image name
-                      tag:
-                        type: string
-                        description: Operator Installation Jobs image tag
                       pullPolicy:
                         type: string
                         default: "IfNotPresent"
@@ -1253,23 +1246,6 @@ spec:
                         type: object
                         description: |
                           Section to define volumes to be used by the adminui container
-                        properties:
-                          volumes:
-                            type: array
-                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#volume-v1-core
-                            items:
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                          volumeMounts:
-                            type: array
-                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#volumemount-v1-core
-                            items:
-                              type: object
-                              x-kubernetes-preserve-unknown-fields: true
-                      jobs:
-                        type: object
-                        description: |
-                          Section to define volumes to be used by the jobs container
                         properties:
                           volumes:
                             type: array

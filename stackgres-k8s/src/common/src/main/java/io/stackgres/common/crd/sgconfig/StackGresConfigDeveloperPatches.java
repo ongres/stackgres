@@ -27,8 +27,6 @@ public class StackGresConfigDeveloperPatches {
 
   private StackGresConfigDeveloperContainerPatches adminui;
 
-  private StackGresConfigDeveloperContainerPatches jobs;
-
   private StackGresConfigDeveloperContainerPatches clusterController;
 
   private StackGresConfigDeveloperContainerPatches stream;
@@ -57,14 +55,6 @@ public class StackGresConfigDeveloperPatches {
     this.adminui = adminui;
   }
 
-  public StackGresConfigDeveloperContainerPatches getJobs() {
-    return jobs;
-  }
-
-  public void setJobs(StackGresConfigDeveloperContainerPatches jobs) {
-    this.jobs = jobs;
-  }
-
   public StackGresConfigDeveloperContainerPatches getClusterController() {
     return clusterController;
   }
@@ -83,7 +73,7 @@ public class StackGresConfigDeveloperPatches {
 
   @Override
   public int hashCode() {
-    return Objects.hash(adminui, clusterController, jobs, operator,
+    return Objects.hash(adminui, clusterController, operator,
         restapi, stream);
   }
 
@@ -98,7 +88,7 @@ public class StackGresConfigDeveloperPatches {
     StackGresConfigDeveloperPatches other = (StackGresConfigDeveloperPatches) obj;
     return Objects.equals(adminui, other.adminui)
         && Objects.equals(clusterController, other.clusterController)
-        && Objects.equals(jobs, other.jobs) && Objects.equals(operator, other.operator)
+        && Objects.equals(operator, other.operator)
         && Objects.equals(restapi, other.restapi) && Objects.equals(stream, other.stream);
   }
 

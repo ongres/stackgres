@@ -17,11 +17,12 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
-import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
@@ -38,7 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ClusterAnnotationDecoratorTest {
 
-  private final ClusterAnnotationDecorator annotationDecorator = new ClusterAnnotationDecorator();
+  private final ClusterMetadataDecorator annotationDecorator = new ClusterMetadataDecorator();
 
   @Mock
   private StackGresClusterContext context;
@@ -90,19 +91,19 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(Map.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String serviceAnnotationKey = StringUtil.generateRandom(8);
-    String serviceAnnotationValue = StringUtil.generateRandom(8);
+    String annotationKey = StringUtil.generateRandom(8);
+    String annotationValue = StringUtil.generateRandom(8);
 
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
+    resources.forEach(resource -> resource.getMetadata().setAnnotations(
+        Map.of(annotationKey, annotationValue)));
 
     resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
-        serviceAnnotationKey, serviceAnnotationValue);
+        annotationKey, annotationValue);
 
     resources.stream()
-        .filter(r -> r.getKind().equals("Service"))
+        .filter(Service.class::isInstance)
         .forEach(resource -> checkResourceAnnotations(resource, expected));
   }
 
@@ -117,80 +118,20 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String podAnnotationKey = StringUtil.generateRandom(8);
-    String podAnnotationValue = StringUtil.generateRandom(8);
+    String annotationKey = StringUtil.generateRandom(8);
+    String annotationValue = StringUtil.generateRandom(8);
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
+        .setClusterPods(Map.of(annotationKey, annotationValue));
 
     resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     resources.stream()
-        .filter(r -> r.getKind().equals("Service"))
+        .filter(Service.class::isInstance)
         .forEach(resource -> {
-          assertFalse(resource.getMetadata().getAnnotations().containsKey(podAnnotationKey));
+          assertFalse(resource.getMetadata().getAnnotations().containsKey(annotationKey));
         });
 
-  }
-
-  @Test
-  void primaryServices_shouldHavePrimaryServiceAnnotations() {
-    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
-
-    String primaryAnnotationKey = "primary-" + StringUtil.generateRandom(8);
-    String primaryAnnotationValue = "primary-" + StringUtil.generateRandom(8);
-
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setPrimaryService(Map.of(primaryAnnotationKey, primaryAnnotationValue));
-
-    String serviceAnnotationKey = "service-" + StringUtil.generateRandom(8);
-    String serviceAnnotationValue = "service-" + StringUtil.generateRandom(8);
-
-    defaultCluster.getSpec().setPods(null);
-    defaultCluster.getSpec().getPostgresServices().setReplicas(null);
-
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
-
-    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
-
-    Map<String, String> expected = Map.of(primaryAnnotationKey, primaryAnnotationValue,
-        serviceAnnotationKey, serviceAnnotationValue);
-
-    resources.stream()
-        .filter(r -> r.getKind().equals("Service"))
-        .filter(r -> r.getMetadata().getName().endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE))
-        .forEach(resource -> checkResourceAnnotations(resource, expected));
-  }
-
-  @Test
-  void replicaServices_shouldHaveReplicaServiceAnnotations() {
-    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
-
-    String replicaAnnotationKey = StringUtil.generateRandom(8);
-    String replicaAnnotationValue = StringUtil.generateRandom(8);
-
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setReplicasService(Map.of(replicaAnnotationKey, replicaAnnotationValue));
-
-    String serviceAnnotationKey = StringUtil.generateRandom(8);
-    String serviceAnnotationValue = StringUtil.generateRandom(8);
-
-    defaultCluster.getSpec().setPods(null);
-    defaultCluster.getSpec().getPostgresServices().setPrimary(null);
-
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
-
-    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
-
-    Map<String, String> expected = Map.of(replicaAnnotationKey, replicaAnnotationValue,
-        serviceAnnotationKey, serviceAnnotationValue);
-
-    resources.stream()
-        .filter(r -> r.getKind().equals("Service"))
-        .filter(r -> r.getMetadata().getName().endsWith(PatroniUtil.READ_ONLY_SERVICE))
-        .forEach(resource -> checkResourceAnnotations(resource, expected));
   }
 
   @Test
@@ -204,19 +145,19 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String podAnnotationKey = StringUtil.generateRandom(8);
-    String podAnnotationValue = StringUtil.generateRandom(8);
+    String annotationKey = StringUtil.generateRandom(8);
+    String annotationValue = StringUtil.generateRandom(8);
 
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
+    resources.forEach(resource -> resource.getMetadata().setAnnotations(
+        Map.of(annotationKey, annotationValue)));
 
     resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
-        podAnnotationKey, podAnnotationValue);
+        annotationKey, annotationValue);
 
     resources.stream()
-        .filter(r -> r.getKind().equals("Pod"))
+        .filter(Pod.class::isInstance)
         .forEach(resource -> checkVersionableResourceAnnotations(resource, expected));
   }
 
@@ -231,18 +172,18 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    String serviceAnnotationKey = StringUtil.generateRandom(8);
-    String serviceAnnotationValue = StringUtil.generateRandom(8);
+    String annotationKey = StringUtil.generateRandom(8);
+    String annotationValue = StringUtil.generateRandom(8);
 
     defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
+        .setServices(ImmutableMap.of(annotationKey, annotationValue));
 
     resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     resources.stream()
-        .filter(r -> r.getKind().equals("Pod"))
+        .filter(Pod.class::isInstance)
         .forEach(resource -> assertFalse(
-            resource.getMetadata().getAnnotations().containsKey(serviceAnnotationKey)));
+            resource.getMetadata().getAnnotations().containsKey(annotationKey)));
   }
 
   @Test
@@ -259,23 +200,62 @@ class ClusterAnnotationDecoratorTest {
     String podAnnotationKey = "Pod-" + StringUtil.generateRandom(8);
     String podAnnotationValue = "Pod-" + StringUtil.generateRandom(8);
 
-    defaultCluster.getSpec().getMetadata().getAnnotations()
-        .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
+    resources.stream()
+        .filter(StatefulSet.class::isInstance)
+        .map(StatefulSet.class::cast)
+        .forEach(statefulSet -> statefulSet.getSpec().getTemplate().getMetadata().setAnnotations(
+            Map.of(podAnnotationKey, podAnnotationValue)));
 
     resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expectedSts = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
-    Map<String, String> expectedPod = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
+    Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
         podAnnotationKey, podAnnotationValue);
 
     resources.stream()
-        .filter(r -> r.getKind().equals("StatefulSet"))
-        .forEach(resource -> {
-          checkResourceAnnotations(resource, expectedSts);
-          StatefulSet statefulSet = (StatefulSet) resource;
-          checkResourceAnnotations(statefulSet.getSpec().getTemplate(), expectedPod);
+        .filter(StatefulSet.class::isInstance)
+        .map(StatefulSet.class::cast)
+        .forEach(statefulSet -> {
+          checkResourceAnnotations(statefulSet, expectedSts);
+          checkResourceAnnotations(statefulSet.getSpec().getTemplate(), expected);
         });
+  }
 
+  @Test
+  void pvcsAnnotations_shouldBePresentInStatefulSetPodTemplates() {
+    String allResourceAnnotationKey = "AllResource-" + StringUtil.generateRandom(8);
+    String allResourceAnnotationValue = "AllResource-" + StringUtil.generateRandom(8);
+
+    defaultCluster.getSpec().setPods(null);
+    defaultCluster.getSpec().setPostgresServices(null);
+    defaultCluster.getSpec().getMetadata().setAnnotations(new StackGresClusterSpecAnnotations());
+    defaultCluster.getSpec().getMetadata().getAnnotations()
+        .setAllResources(Map.of(allResourceAnnotationKey, allResourceAnnotationValue));
+
+    String pvcAnnotationKey = "Pvc-" + StringUtil.generateRandom(8);
+    String pvcAnnotationValue = "Pvc-" + StringUtil.generateRandom(8);
+
+    resources.stream()
+        .filter(StatefulSet.class::isInstance)
+        .map(StatefulSet.class::cast)
+        .forEach(statefulSet -> statefulSet.getSpec().getVolumeClaimTemplates()
+            .forEach(volumeClaimTemplate -> volumeClaimTemplate.getMetadata().setAnnotations(
+                Map.of(pvcAnnotationKey, pvcAnnotationValue))));
+
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
+
+    Map<String, String> expectedSts = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
+    Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
+        pvcAnnotationKey, pvcAnnotationValue);
+
+    resources.stream()
+        .filter(StatefulSet.class::isInstance)
+        .map(StatefulSet.class::cast)
+        .forEach(statefulSet -> {
+          checkResourceAnnotations(statefulSet, expectedSts);
+          statefulSet.getSpec().getVolumeClaimTemplates()
+              .forEach(volumeClaimTemplate -> checkResourceAnnotations(volumeClaimTemplate, expected));
+        });
   }
 
   @Test
@@ -286,7 +266,7 @@ class ClusterAnnotationDecoratorTest {
         .getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
 
     resources.stream()
-        .filter(r -> r.getKind().equals("StatefulSet"))
+        .filter(StatefulSet.class::isInstance)
         .forEach(resource -> {
           StatefulSet statefulSet = (StatefulSet) resource;
           checkResourceAnnotations(statefulSet.getSpec().getTemplate(), expected);
@@ -309,7 +289,7 @@ class ClusterAnnotationDecoratorTest {
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
 
     resources.stream()
-        .filter(r -> r.getKind().equals("StatefulSet"))
+        .filter(StatefulSet.class::isInstance)
         .forEach(resource -> {
           StatefulSet statefulSet = (StatefulSet) resource;
           statefulSet.getSpec().getVolumeClaimTemplates().forEach(template -> {

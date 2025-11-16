@@ -34,6 +34,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporterQueries;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackupBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitrBuilder;
@@ -202,6 +206,35 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
     setMetadata(cluster, spec, index);
     setInitialData(cluster, spec, index);
     setManagedSql(cluster, spec, index);
+    if (cluster.getSpec().getReplicateFrom() != null) {
+      spec.setReplicateFrom(new StackGresClusterReplicateFrom());
+      if (cluster.getSpec().getReplicateFrom().getInstance() != null) {
+        spec.getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+        if (cluster.getSpec().getReplicateFrom().getInstance().getExternal() != null) {
+          spec.getReplicateFrom().getInstance().setExternal(new StackGresClusterReplicateFromExternal());
+          spec.getReplicateFrom().getInstance().getExternal().setHost(
+              cluster.getSpec().getReplicateFrom().getInstance().getExternal().getHosts().get(index));
+          spec.getReplicateFrom().getInstance().getExternal().setPort(
+              cluster.getSpec().getReplicateFrom().getInstance().getExternal().getPorts().get(index));
+        }
+        if (cluster.getSpec().getReplicateFrom().getInstance().getSgShardedCluster() != null) {
+          spec.getReplicateFrom().getInstance().setSgCluster(
+              StackGresShardedClusterUtil.getClusterName(
+                  cluster.getSpec().getReplicateFrom().getInstance().getSgShardedCluster(),
+                  index));
+        }
+      }
+      if (cluster.getSpec().getReplicateFrom().getStorage() != null) {
+        spec.getReplicateFrom().setStorage(new StackGresClusterReplicateFromStorage());
+        spec.getReplicateFrom().getStorage().setPerformance(
+            cluster.getSpec().getReplicateFrom().getStorage().getPerformance());
+        spec.getReplicateFrom().getStorage().setSgObjectStorage(
+            cluster.getSpec().getReplicateFrom().getStorage().getSgObjectStorage());
+        spec.getReplicateFrom().getStorage().setPath(
+            cluster.getSpec().getReplicateFrom().getStorage().getPaths().get(index));
+      }
+      spec.getReplicateFrom().setUsers(cluster.getSpec().getReplicateFrom().getUsers());
+    }
     spec.setDistributedLogs(cluster.getSpec().getDistributedLogs());
     spec.setNonProductionOptions(cluster.getSpec().getNonProductionOptions());
   }
@@ -241,7 +274,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
     spec.getPostgres().setExtensions(
         Optional.ofNullable(cluster.getStatus())
-        .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
+        .map(StackGresShardedClusterStatus::getExtensions)
         .stream()
         .flatMap(List::stream)
         .map(extension -> new StackGresClusterExtensionBuilder()
@@ -251,9 +284,6 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
             .withVersion(extension.getVersion())
             .build())
         .toList());
-    if (cluster.getStatus() != null) {
-      spec.setToInstallPostgresExtensions(cluster.getStatus().getToInstallPostgresExtensions());
-    }
   }
 
   void setConfigurationsObservability(
@@ -302,7 +332,6 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
         .map(backups -> backups.getFirst())
-        .filter(backup -> backup.getPaths() != null)
         .ifPresent(backup -> {
           if (spec.getConfigurations() == null) {
             spec.setConfigurations(new StackGresClusterConfigurations());
@@ -310,7 +339,8 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
           spec.getConfigurations().setBackups(List.of(
               new StackGresClusterBackupConfigurationBuilder()
               .withSgObjectStorage(backup.getSgObjectStorage())
-              .withPath(backup.getPaths().get(index))
+              .withPath(backup.getPaths() != null && backup.getPaths().size() > index
+                  ? backup.getPaths().get(index) : null)
               .withRetention(backup.getRetention())
               .withCompression(backup.getCompression())
               .withPerformance(backup.getPerformance())
@@ -547,6 +577,9 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       if (specOverride.getPodsForShards().getManagementPolicy() != null) {
         spec.getPods().setManagementPolicy(specOverride.getPodsForShards().getManagementPolicy());
       }
+      if (specOverride.getPodsForShards().getUpdateStrategy() != null) {
+        spec.getPods().setUpdateStrategy(specOverride.getPodsForShards().getUpdateStrategy());
+      }
       if (specOverride.getPodsForShards().getPersistentVolume() != null) {
         if (specOverride.getPodsForShards().getPersistentVolume().getSize() != null) {
           spec.getPods().getPersistentVolume().setSize(
@@ -609,6 +642,22 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       if (specOverride.getPodsForShards().getCustomInitVolumeMounts() != null) {
         spec.getPods().setCustomInitVolumeMounts(
             specOverride.getPodsForShards().getCustomInitVolumeMounts());
+      }
+      if (specOverride.getPodsForShards().getCustomEnv() != null) {
+        spec.getPods().setCustomEnv(
+            specOverride.getPodsForShards().getCustomEnv());
+      }
+      if (specOverride.getPodsForShards().getCustomInitEnv() != null) {
+        spec.getPods().setCustomInitEnv(
+            specOverride.getPodsForShards().getCustomInitEnv());
+      }
+      if (specOverride.getPodsForShards().getCustomEnvFrom() != null) {
+        spec.getPods().setCustomEnvFrom(
+            specOverride.getPodsForShards().getCustomEnvFrom());
+      }
+      if (specOverride.getPodsForShards().getCustomInitEnvFrom() != null) {
+        spec.getPods().setCustomInitEnvFrom(
+            specOverride.getPodsForShards().getCustomInitEnvFrom());
       }
     }
   }

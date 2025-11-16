@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -65,10 +66,16 @@ public class BackupEnvVarFactory {
     return Seq.of(
             Optional.ofNullable(storage.getS3())
             .map(AwsS3Storage::getAwsCredentials)
+            .filter(Predicate.not(awsCredentials -> Optional.of(awsCredentials)
+                .map(AwsCredentials::getUseIamRole)
+                .orElse(false)))
             .map(AwsCredentials::getSecretKeySelectors)
             .map(AwsSecretKeySelector::getAccessKeyId),
             Optional.ofNullable(storage.getS3())
             .map(AwsS3Storage::getAwsCredentials)
+            .filter(Predicate.not(awsCredentials -> Optional.of(awsCredentials)
+                .map(AwsCredentials::getUseIamRole)
+                .orElse(false)))
             .map(AwsCredentials::getSecretKeySelectors)
             .map(AwsSecretKeySelector::getSecretAccessKey),
             Optional.ofNullable(storage.getS3Compatible())
@@ -151,7 +158,10 @@ public class BackupEnvVarFactory {
                 secrets),
             getSecretEntry("AWS_SECRET_ACCESS_KEY",
                 awsConf.getAwsCredentials()
-                    .getSecretKeySelectors().getSecretAccessKey(), secrets))),
+                    .getSecretKeySelectors().getSecretAccessKey(), secrets))
+            .filter(entry -> Optional.ofNullable(awsConf.getAwsCredentials().getUseIamRole())
+                .filter(useIamRole -> !useIamRole)
+                .orElse(true))),
         Optional.of(storage)
         .map(BackupStorage::getS3Compatible)
         .map(awsConf -> Seq.of(

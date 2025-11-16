@@ -140,6 +140,8 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
 
   private Integer snapshotDelayMs;
 
+  private Integer streamingDelayMs;
+
   private Integer snapshotFetchSize;
 
   @DebeziumListSeparator(";")
@@ -153,6 +155,8 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
   private String unavailableValuePlaceholder;
 
   private Boolean provideTransactionMetadata;
+
+  private Boolean publishViaPartitionRoot;
 
   private Boolean flushLsnSource;
 
@@ -194,6 +198,12 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
 
   @DebeziumDefault("0")
   private Integer databaseQueryTimeoutMs;
+
+  private Integer guardrailCollectionsMax;
+
+  private String guardrailCollectionsLimitAction;
+
+  private Boolean extendedHeadersEnabled;
 
   public String getPluginName() {
     return pluginName;
@@ -633,6 +643,14 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
     this.snapshotDelayMs = snapshotDelayMs;
   }
 
+  public Integer getStreamingDelayMs() {
+    return streamingDelayMs;
+  }
+
+  public void setStreamingDelayMs(Integer streamingDelayMs) {
+    this.streamingDelayMs = streamingDelayMs;
+  }
+
   public Integer getSnapshotFetchSize() {
     return snapshotFetchSize;
   }
@@ -679,6 +697,14 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
 
   public void setProvideTransactionMetadata(Boolean provideTransactionMetadata) {
     this.provideTransactionMetadata = provideTransactionMetadata;
+  }
+
+  public Boolean getPublishViaPartitionRoot() {
+    return publishViaPartitionRoot;
+  }
+
+  public void setPublishViaPartitionRoot(Boolean publishViaPartitionRoot) {
+    this.publishViaPartitionRoot = publishViaPartitionRoot;
   }
 
   public Boolean getFlushLsnSource() {
@@ -834,31 +860,57 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
     this.databaseQueryTimeoutMs = databaseQueryTimeoutMs;
   }
 
+  public Integer getGuardrailCollectionsMax() {
+    return guardrailCollectionsMax;
+  }
+
+  public void setGuardrailCollectionsMax(Integer guardrailCollectionsMax) {
+    this.guardrailCollectionsMax = guardrailCollectionsMax;
+  }
+
+  public String getGuardrailCollectionsLimitAction() {
+    return guardrailCollectionsLimitAction;
+  }
+
+  public void setGuardrailCollectionsLimitAction(String guardrailCollectionsLimitAction) {
+    this.guardrailCollectionsLimitAction = guardrailCollectionsLimitAction;
+  }
+
+  public Boolean getExtendedHeadersEnabled() {
+    return extendedHeadersEnabled;
+  }
+
+  public void setExtendedHeadersEnabled(Boolean extendedHeadersEnabled) {
+    this.extendedHeadersEnabled = extendedHeadersEnabled;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(binaryHandlingMode, columnMaskHash, columnMaskHashV2,
         columnMaskWithLengthChars, columnPropagateSourceType, columnTruncateToLengthChars,
         converters, customMetricTags, databaseInitialStatements, databaseQueryTimeoutMs,
         datatypePropagateSourceType, decimalHandlingMode, errorsMaxRetries,
-        eventProcessingFailureHandlingMode, fieldNameAdjustmentMode, flushLsnSource,
+        eventProcessingFailureHandlingMode, extendedHeadersEnabled, fieldNameAdjustmentMode,
+        flushLsnSource, guardrailCollectionsLimitAction, guardrailCollectionsMax,
         heartbeatActionQuery, heartbeatIntervalMs, hstoreHandlingMode, includeUnknownDatatypes,
         incrementalSnapshotChunkSize, incrementalSnapshotWatermarkingStrategy, intervalHandlingMode,
         maxBatchSize, maxQueueSize, maxQueueSizeInBytes, messageKeyColumns,
         messagePrefixExcludeList, messagePrefixIncludeList, moneyFractionDigits,
         notificationEnabledChannels, pluginName, pollIntervalMs, provideTransactionMetadata,
-        publicationAutocreateMode, publicationName, readOnly, replicaIdentityAutosetValues,
-        retriableRestartConnectorWaitMs, schemaNameAdjustmentMode, schemaRefreshMode,
-        signalDataCollection, signalEnabledChannels, skipMessagesWithoutChange, skippedOperations,
-        slotDropOnStop, slotMaxRetries, slotName, slotRetryDelayMs, slotStreamParams,
-        snapshotDelayMs, snapshotFetchSize, snapshotIncludeCollectionList, snapshotIsolationMode,
-        snapshotLockTimeoutMs, snapshotLockingMode, snapshotLockingModeCustomName,
-        snapshotMaxThreads, snapshotMode, snapshotModeConfigurationBasedSnapshotData,
+        publicationAutocreateMode, publicationName, publishViaPartitionRoot, readOnly,
+        replicaIdentityAutosetValues, retriableRestartConnectorWaitMs, schemaNameAdjustmentMode,
+        schemaRefreshMode, signalDataCollection, signalEnabledChannels, skipMessagesWithoutChange,
+        skippedOperations, slotDropOnStop, slotFailover, slotMaxRetries, slotName, slotRetryDelayMs,
+        slotStreamParams, snapshotDelayMs, snapshotFetchSize, snapshotIncludeCollectionList,
+        snapshotIsolationMode, snapshotLockTimeoutMs, snapshotLockingMode,
+        snapshotLockingModeCustomName, snapshotMaxThreads, snapshotMode,
+        snapshotModeConfigurationBasedSnapshotData,
         snapshotModeConfigurationBasedSnapshotOnDataError,
         snapshotModeConfigurationBasedSnapshotOnSchemaError,
         snapshotModeConfigurationBasedSnapshotSchema, snapshotModeConfigurationBasedStartStream,
         snapshotModeCustomName, snapshotQueryMode, snapshotQueryModeCustomName,
-        snapshotSelectStatementOverrides, statusUpdateIntervalMs, slotFailover, timePrecisionMode,
-        tombstonesOnDelete, topicCacheSize, topicDelimiter, topicHeartbeatPrefix,
+        snapshotSelectStatementOverrides, statusUpdateIntervalMs, streamingDelayMs,
+        timePrecisionMode, tombstonesOnDelete, topicCacheSize, topicDelimiter, topicHeartbeatPrefix,
         topicNamingStrategy, topicTransaction, unavailableValuePlaceholder, xminFetchIntervalMs);
   }
 
@@ -886,8 +938,11 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
         && Objects.equals(errorsMaxRetries, other.errorsMaxRetries)
         && Objects.equals(eventProcessingFailureHandlingMode,
             other.eventProcessingFailureHandlingMode)
+        && Objects.equals(extendedHeadersEnabled, other.extendedHeadersEnabled)
         && Objects.equals(fieldNameAdjustmentMode, other.fieldNameAdjustmentMode)
         && Objects.equals(flushLsnSource, other.flushLsnSource)
+        && Objects.equals(guardrailCollectionsLimitAction, other.guardrailCollectionsLimitAction)
+        && Objects.equals(guardrailCollectionsMax, other.guardrailCollectionsMax)
         && Objects.equals(heartbeatActionQuery, other.heartbeatActionQuery)
         && Objects.equals(heartbeatIntervalMs, other.heartbeatIntervalMs)
         && Objects.equals(hstoreHandlingMode, other.hstoreHandlingMode)
@@ -909,6 +964,7 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
         && Objects.equals(provideTransactionMetadata, other.provideTransactionMetadata)
         && Objects.equals(publicationAutocreateMode, other.publicationAutocreateMode)
         && Objects.equals(publicationName, other.publicationName)
+        && Objects.equals(publishViaPartitionRoot, other.publishViaPartitionRoot)
         && Objects.equals(readOnly, other.readOnly)
         && Objects.equals(replicaIdentityAutosetValues, other.replicaIdentityAutosetValues)
         && Objects.equals(retriableRestartConnectorWaitMs, other.retriableRestartConnectorWaitMs)
@@ -919,6 +975,7 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
         && Objects.equals(skipMessagesWithoutChange, other.skipMessagesWithoutChange)
         && Objects.equals(skippedOperations, other.skippedOperations)
         && Objects.equals(slotDropOnStop, other.slotDropOnStop)
+        && Objects.equals(slotFailover, other.slotFailover)
         && Objects.equals(slotMaxRetries, other.slotMaxRetries)
         && Objects.equals(slotName, other.slotName)
         && Objects.equals(slotRetryDelayMs, other.slotRetryDelayMs)
@@ -947,7 +1004,7 @@ public class StackGresStreamSourcePostgresDebeziumProperties {
         && Objects.equals(snapshotQueryModeCustomName, other.snapshotQueryModeCustomName)
         && Objects.equals(snapshotSelectStatementOverrides, other.snapshotSelectStatementOverrides)
         && Objects.equals(statusUpdateIntervalMs, other.statusUpdateIntervalMs)
-        && Objects.equals(slotFailover, other.slotFailover)
+        && Objects.equals(streamingDelayMs, other.streamingDelayMs)
         && Objects.equals(timePrecisionMode, other.timePrecisionMode)
         && Objects.equals(tombstonesOnDelete, other.tombstonesOnDelete)
         && Objects.equals(topicCacheSize, other.topicCacheSize)

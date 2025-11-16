@@ -9,7 +9,6 @@ import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGre
 import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForShardingSphereUtil.getShardsCluster;
 import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.stackgres.common.StackGresShardedClusterUtil;
@@ -30,8 +29,6 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresS
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
-import io.stackgres.testutil.ModelTestUtil;
-import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -259,7 +256,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
 
   @Test
   void givedShardedClusterWithMinimalCoordinator_shouldCopyGlobalSettings() {
-    var shardedCluster = createShardedCluster();
+    var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -303,7 +300,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
 
   @Test
   void givedShardedClusterWithMinimalShards_shouldCopyGlobalSettings() {
-    var shardedCluster = createShardedCluster();
+    var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -340,7 +337,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
 
   @Test
   void givedShardedClusterWithCoordinator_shouldCopySettings() {
-    var shardedCluster = createShardedCluster();
+    var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -365,7 +362,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
 
   @Test
   void givedShardedClusterWithShards_shouldCopySettings() {
-    var shardedCluster = createShardedCluster();
+    var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -391,7 +388,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
 
   @Test
   void givedShardedClusterWithShardsOverrides_shouldCopyOverrideSettings() {
-    var shardedCluster = createShardedCluster();
+    var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -533,7 +530,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         shardedCluster.getSpec().getNonProductionOptions(),
         cluster.getSpec().getNonProductionOptions());
     if (shardedCluster.getStatus() != null
-        && shardedCluster.getStatus().getToInstallPostgresExtensions() != null) {
+        && shardedCluster.getStatus().getExtensions() != null) {
       Assertions.assertEquals(
           new StackGresClusterPostgresBuilder(shardedCluster.getSpec().getPostgres())
           .editSsl()
@@ -552,7 +549,7 @@ class StackGresShardedClusterForShardingSphereUtilTest {
                   : shardedCluster.getSpec().getPostgres().getSsl()
                   .getPrivateKeySecretKeySelector())
           .endSsl()
-          .withExtensions(shardedCluster.getStatus().getToInstallPostgresExtensions()
+          .withExtensions(shardedCluster.getStatus().getExtensions()
               .stream()
               .map(extension -> new StackGresClusterExtensionBuilder()
                   .withName(extension.getName())
@@ -603,22 +600,24 @@ class StackGresShardedClusterForShardingSphereUtilTest {
           pod.getCustomInitContainers(),
           cluster.getSpec().getPods().getCustomInitContainers());
       Assertions.assertEquals(
+          pod.getCustomEnv(),
+          cluster.getSpec().getPods().getCustomEnv());
+      Assertions.assertEquals(
+          pod.getCustomInitEnv(),
+          cluster.getSpec().getPods().getCustomInitEnv());
+      Assertions.assertEquals(
+          pod.getCustomEnvFrom(),
+          cluster.getSpec().getPods().getCustomEnvFrom());
+      Assertions.assertEquals(
+          pod.getCustomInitEnvFrom(),
+          cluster.getSpec().getPods().getCustomInitEnvFrom());
+      Assertions.assertEquals(
           pod.getResources(),
           cluster.getSpec().getPods().getResources());
       Assertions.assertEquals(
           pod.getPersistentVolume(),
           cluster.getSpec().getPods().getPersistentVolume());
     }
-  }
-
-  private StackGresShardedCluster createShardedCluster() {
-    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
-    List<String> sgBackups = new ArrayList<String>(
-        shardedCluster.getSpec().getShards().getClusters() + 1);
-    Seq.range(0, shardedCluster.getSpec().getShards().getClusters() + 1)
-        .forEach(index -> sgBackups.add(ModelTestUtil.generateRandom(String.class)));
-    shardedCluster.getStatus().setSgBackups(sgBackups);
-    return shardedCluster;
   }
 
 }

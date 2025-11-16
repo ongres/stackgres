@@ -282,7 +282,7 @@
                                         </router-link>
                                     </span>
                                 </li>
-                                <li v-if="( showDefaults || ( backup.cronSchedule != '0 3 * * *' ) )">
+                                <li v-if="!isNull(backup.cronSchedule) && ( showDefaults || ( backup.cronSchedule != '0 3 * * *' ) )">
                                     <strong class="label">Cron Schedule</strong>
                                      <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.cronSchedule')"></span>
                                     <span class="value"> : {{ tzCrontab(backup.cronSchedule) }} ({{ tzCrontab(backup.cronSchedule) | prettyCRON(false) }})</span>

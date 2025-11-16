@@ -141,10 +141,15 @@ spec:
                       The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                   awsCredentials:
                     type: object
-                    required: ["secretKeySelectors"]
+                    required: []
                     description: |
                       The credentials to access AWS S3 for writing and reading.
                     properties:
+                      useIAMRole:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` the IAM role credentials will be used instead of the secret key selector.
                       secretKeySelectors:
                         type: object
                         required: ["accessKeyId", "secretAccessKey"]

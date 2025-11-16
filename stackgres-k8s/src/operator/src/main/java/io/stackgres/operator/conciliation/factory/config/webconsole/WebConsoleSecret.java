@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.config.webconsole;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -105,7 +106,8 @@ public class WebConsoleSecret
         certInvalid = false;
       } else if (CryptoUtil.isCertificateAndKeyValid(
           previousSecretData.get(ConfigPath.CERTIFICATE_PATH.filename()),
-          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()))) {
+          previousSecretData.get(ConfigPath.CERTIFICATE_KEY_PATH.filename()),
+          Duration.ofDays(1))) {
         certInvalid = false;
       }
     }
@@ -120,7 +122,8 @@ public class WebConsoleSecret
         rsaKeyPairInvalid = false;
       } else if (CryptoUtil.isCertificateAndKeyValid(
           previousSecretData.get("jwt-rsa.crt"),
-          previousSecretData.get("jwt-rsa.key"))
+          previousSecretData.get("jwt-rsa.key"),
+          Duration.ofDays(1))
           && CryptoUtil.isRsaKeyPairValid(
               previousSecretData.get("jwt-rsa.key"),
               previousSecretData.get("jwt-rsa.pub"))) {

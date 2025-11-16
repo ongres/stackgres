@@ -1,0 +1,80 @@
+#!/bin/sh
+
+patroni_ports_check() {
+  if patroni_liveness_check
+  then
+    success "Patroni liveness endpoint is accesible"
+  else
+    fail "Patroni liveness endpoint is not accesible"
+  fi
+
+  if patroni_readiness_check
+  then
+    success "Patroni readiness endpoint is accesible"
+  else
+    fail "Patroni readiness endpoint is not accesible"
+  fi
+}
+
+patroni_management_check(){
+  if patroni_switchover
+  then
+    fail "Patroni switchover was not blocked"
+  else
+    success "Patroni switchover was blocked"
+  fi
+}
+
+patroni_direct_check(){
+  if patroni_direct_switchover_check
+  then
+    fail "Patroni direct access was not blocked"
+  else
+    success "Patroni direct access was blocked"
+  fi
+}
+
+patroni_switchover(){
+  patroni_curl -e "switchover" -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
+}
+
+patroni_direct_switchover_check(){
+  patroni_curl -e "switchover" -p 8009 -XPOST -d '{"leader":"'"$CLUSTER_NAME-0"'"}' > /dev/null
+}
+
+patroni_liveness_check() {
+   patroni_curl -e "cluster" > /dev/null
+}
+
+patroni_readiness_check() {
+  patroni_curl -e "read-only" > /dev/null
+}
+
+get_pod_ip(){
+  kubectl get pods -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -o json | jq -r .status.podIP
+}
+
+patroni_curl(){
+  PORT="${PATRONI_PORT:-8009}"
+  POD_IP="$(get_pod_ip)"
+  ENPOINT="cluster"
+
+  local opt
+  local OPTARG
+  local OPTIND
+
+  while getopts ":e:i:p:" opt; do
+    case $opt in
+      p) PORT="$OPTARG"
+      shift 2
+      ;;
+      i) POD_IP="$OPTARG"
+      shift 2
+      ;;
+      e) ENPOINT="$OPTARG"
+      shift 2
+      ;;
+    esac
+  done
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl --connect-timeout 3 -s "http://$POD_IP:$PORT/$ENPOINT" -f "$@"
+}

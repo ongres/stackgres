@@ -33,9 +33,6 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   private Integer connectionPoolTimeout;
 
-  @JsonProperty("databaseTime_zone")
-  private String databaseTimeZone;
-
   @JsonProperty("useTime_zone")
   private String useTimeZone;
 
@@ -53,8 +50,6 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   private String schemaEvolution;
 
-  private String tableNameFormat;
-
   private String collectionNameFormat;
 
   private String dialectPostgresPostgisSchema;
@@ -70,8 +65,6 @@ public class StreamTargetJdbcSinkDebeziumProperties {
   private Integer flushRetryDelayMs;
 
   private String columnNamingStrategy;
-
-  private String tableNamingStrategy;
 
   private String collectionNamingStrategy;
 
@@ -129,14 +122,6 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   public void setConnectionPoolTimeout(Integer connectionPoolTimeout) {
     this.connectionPoolTimeout = connectionPoolTimeout;
-  }
-
-  public String getDatabaseTimeZone() {
-    return databaseTimeZone;
-  }
-
-  public void setDatabaseTimeZone(String databaseTimeZone) {
-    this.databaseTimeZone = databaseTimeZone;
   }
 
   public String getUseTimeZone() {
@@ -203,14 +188,6 @@ public class StreamTargetJdbcSinkDebeziumProperties {
     this.schemaEvolution = schemaEvolution;
   }
 
-  public String getTableNameFormat() {
-    return tableNameFormat;
-  }
-
-  public void setTableNameFormat(String tableNameFormat) {
-    this.tableNameFormat = tableNameFormat;
-  }
-
   public String getCollectionNameFormat() {
     return collectionNameFormat;
   }
@@ -273,14 +250,6 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   public void setColumnNamingStrategy(String columnNamingStrategy) {
     this.columnNamingStrategy = columnNamingStrategy;
-  }
-
-  public String getTableNamingStrategy() {
-    return tableNamingStrategy;
-  }
-
-  public void setTableNamingStrategy(String tableNamingStrategy) {
-    this.tableNamingStrategy = tableNamingStrategy;
   }
 
   public String getCollectionNamingStrategy() {

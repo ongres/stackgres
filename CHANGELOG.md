@@ -1,3 +1,62 @@
+# :rocket: Release 1.18.0-rc1 (2025-11-11)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.18.0-rc1 is out! :confetti_ball: :champagne: 
+
+Among other features this release will allow you to upgrade your clusters using a strategy and with a renewed rollout implementation that no longer relies on Jobs but is handled directly by the operator. You can still rely on SGDbOps to perform restarts, security upgrades and minor version upgrades operations or configure the clusters to preform them in an automatic fashion.
+
+Another important change is the ability to set the version of your SGCluster or SGShardedCluster directly in the cluster resource. The final Postgres version (and the final extensions versions too) will no longer be changed by the operator, instead it will be set in the status and will be updated by the operator. This change will allow a much better integration with DevOps tools!
+
+So, what you are waiting for! Upgrade now and have a look at the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Allow to change postgres version/extensions/config at any time and have the operator perform the rollout
+* Support replicate from in sharded cluster
+* Improved metadata and added useIAMRole to SGObjectStorage for S3
+* Allow to set patroni failsafe_mode and check_timeline
+* Allow to remove primary keys and not null constraints on snapshot and set metadata on Pod for SGStream
+* Updated default citus versions for sharded cluster
+* PostgreSQL versions 17.5, 16.9, 15.13, 14.18, 13.21 should not be advertized as bugged
+* Support to re-creating the SSL cluster certificate before it expires
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Updated Patroni config to latest version
+* Allow to set null backup paths or null elements in backup paths for sharded clusters
+* Extension cache is not including all extensions when preloading
+* Cluster local controller check extension cache when no changes are performed on extensions
+* SGStream is not using detectInsertMode by default
+* Changing authenticator username breaks PgBouncer
+
+## Web Console
+
+* Allow to unset cronSchedule and backup paths for clusters and sharded clusters
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.18.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.0-rc1)
+
 # :rocket: Release 1.17.4 (2025-11-04)
 
 ## :notepad_spiral: NOTES

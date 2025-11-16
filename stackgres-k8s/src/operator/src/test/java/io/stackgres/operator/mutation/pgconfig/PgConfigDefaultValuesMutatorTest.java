@@ -58,6 +58,9 @@ class PgConfigDefaultValuesMutatorTest
             .withVersion(getDefaultReview().getRequest().getObject().getSpec().getPostgresVersion())
             .endPostgres()
             .endSpec()
+            .withNewStatus()
+            .withPostgresVersion(getDefaultReview().getRequest().getObject().getSpec().getPostgresVersion())
+            .endStatus()
             .build()));
   }
 

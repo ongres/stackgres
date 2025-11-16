@@ -1,0 +1,123 @@
+{
+  "publishers": [{
+    "name": "OnGres",
+    "id": "com.ongres",
+    "url": "https://ongres.com",
+    "publicKey": "dummy value",
+    "email": "stackgres@ongres.com"
+  }],
+  "extensions": [
+    {
+      "name": "citus",
+      "publisher": "com.ongres",
+      "description": "Citus horizontally scales PostgreSQL across commodity servers using sharding and replication. Its query engine parallelizes incoming SQL queries across these servers to enable real-time responses on large datasets.",
+      "abstract": "Scalable PostgreSQL for real-time workloads.",
+      "tags": [
+        "multi-tenant",
+        "sharding",
+        "distributed-database",
+        "citus",
+        "database-cluster",
+        "citus-extension"
+      ],
+      "url": "https://www.citusdata.com",
+      "source": "https://github.com/citusdata/citus",
+      "license": "AGPL-3.0",
+      "channels": {
+        "stable": "11.0.5"
+      },
+      "versions": [
+        {
+          "version": "11.3-1",
+          "availableFor": [
+            {
+              "postgresVersion": "13",
+              "build": "6.24"
+            }
+          ]
+        },
+        {
+          "version": "12.1.6",
+          "availableFor": [
+            {
+              "postgresVersion": "14",
+              "build": "6.39"
+            }
+          ]
+        },
+        {
+          "version": "13.2.0",
+          "availableFor": [
+            {
+              "postgresVersion": "15",
+              "build": "6.43"
+            },
+            {
+              "postgresVersion": "16",
+              "build": "6.43"
+            },
+            {
+              "postgresVersion": "17",
+              "build": "6.43"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "citus_columnar",
+      "publisher": "com.ongres",
+      "description": "Citus horizontally scales PostgreSQL across commodity servers using sharding and replication. Its query engine parallelizes incoming SQL queries across these servers to enable real-time responses on large datasets.",
+      "abstract": "Scalable PostgreSQL for real-time workloads.",
+      "tags": [
+        "multi-tenant",
+        "sharding",
+        "distributed-database",
+        "citus",
+        "database-cluster",
+        "citus-extension"
+      ],
+      "url": "https://www.citusdata.com",
+      "source": "https://github.com/citusdata/citus",
+      "license": "AGPL-3.0",
+      "channels": null,
+      "versions": [
+        {
+          "version": "11.3-1",
+          "availableFor": [
+            {
+              "postgresVersion": "13",
+              "build": "6.24"
+            }
+          ]
+        },
+        {
+          "version": "12.1.6",
+          "availableFor": [
+            {
+              "postgresVersion": "14",
+              "build": "6.39"
+            }
+          ]
+        },
+        {
+          "version": "13.2.0",
+          "availableFor": [
+            {
+              "postgresVersion": "15",
+              "build": "6.43"
+            },
+            {
+              "postgresVersion": "16",
+              "build": "6.43"
+            },
+            {
+              "postgresVersion": "17",
+              "build": "6.43"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

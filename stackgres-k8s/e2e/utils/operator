@@ -36,7 +36,7 @@ export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
 export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.16 12.18 13.9 13.12 14.9 14.10 15.3 15.5 16.1 16.2 ${E2E_POSTGRES_VERSION:-15.3} $E2E_UI_POSTGRES_VERSOIN"
 
-export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.16.3}"
+export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.17.4}"
 
 export E2E_LOCAL_OPERATOR_IP="${E2E_LOCAL_OPERATOR_IP:-172.20.0.1}"
 export E2E_LOCAL_OPERATOR_PORT="${E2E_LOCAL_OPERATOR_PORT:-9080}"
@@ -76,7 +76,6 @@ build_all() {
     common-java \
     operator-java \
     restapi-java \
-    jobs-java \
     cluster-controller-java \
     stream-java \
     admin-ui \
@@ -89,7 +88,6 @@ build_all() {
     cat << EOF
     operator-jvm-image \
     restapi-jvm-image \
-    jobs-jvm-image \
     cluster-controller-jvm-image \
     stream-jvm-image \
     admin-ui-image \
@@ -107,7 +105,6 @@ EOF
       common-java \
       operator-java \
       restapi-java \
-      jobs-java \
       cluster-controller-java \
       stream-java \
       admin-ui \
@@ -122,8 +119,6 @@ EOF
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
     docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" >/dev/null 2>&1 \
@@ -136,7 +131,6 @@ EOF
       || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" "$STREAM_IMAGE_NAME"
     docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
@@ -348,7 +342,6 @@ load_operator_k8s() {
   then
     local ORIGINAL_OPERATOR_IMAGE_NAME="$OPERATOR_IMAGE_NAME"
     local ORIGINAL_RESTAPI_IMAGE_NAME="$RESTAPI_IMAGE_NAME"
-    local ORIGINAL_JOBS_IMAGE_NAME="$JOBS_IMAGE_NAME"
     local ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME="$CLUSTER_CONTROLLER_IMAGE_NAME"
     local ORIGINAL_STREAM_IMAGE_NAME="$STREAM_IMAGE_NAME"
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
@@ -357,7 +350,6 @@ load_operator_k8s() {
     local ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
     local OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%:*}:$IMAGE_TAG"
     local RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME%:*}:$IMAGE_TAG"
-    local JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME%:*}:$IMAGE_TAG"
     local CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
     local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
     local STREAM_IMAGE_NAME="${STREAM_IMAGE_NAME%:*}:$IMAGE_TAG"
@@ -365,7 +357,6 @@ load_operator_k8s() {
     local PGLAMBDA_JAVASCRIPT_IMAGE_NAME="${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_IMAGE_TAG}-javascript"
     docker_tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
-    docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
     docker_tag "$ORIGINAL_CLUSTER_CONTROLLER_IMAGE_NAME" "$CLUSTER_CONTROLLER_IMAGE_NAME"
     docker_tag "$ORIGINAL_STREAM_IMAGE_NAME" "$STREAM_IMAGE_NAME"
     docker_tag "$ORIGINAL_ADMINUI_IMAGE_NAME" "$ADMINUI_IMAGE_NAME"
@@ -382,7 +373,6 @@ load_operator_k8s_only() {
   for IMAGE_NAME in \
     "$OPERATOR_IMAGE_NAME" \
     "$RESTAPI_IMAGE_NAME" \
-    "$JOBS_IMAGE_NAME" \
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
     "$STREAM_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME" \
@@ -410,7 +400,6 @@ push_operator_images() {
   for IMAGE_NAME in \
     "$OPERATOR_IMAGE_NAME" \
     "$RESTAPI_IMAGE_NAME" \
-    "$JOBS_IMAGE_NAME" \
     "$CLUSTER_CONTROLLER_IMAGE_NAME" \
     "$STREAM_IMAGE_NAME" \
     "$ADMINUI_IMAGE_NAME" \
@@ -517,8 +506,6 @@ install_operator_only() {
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "restapi.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
-    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
-    --set-string "jobs.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
@@ -670,8 +657,6 @@ upgrade_operator() {
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "restapi.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
-    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
-    --set-string "jobs.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
@@ -782,7 +767,6 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_REPO_URI
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
-  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
   export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
   export PRIVATE_STREAM_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/stream"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
@@ -792,8 +776,6 @@ upgrade_operator_from_private_repository() {
       --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
       --set-string "restapi.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
-      --set-string jobs.image.name="$PRIVATE_JOBS_IMAGE_NAME" --set-string jobs.image.tag="$IMAGE_TAG" \
-      --set-string "jobs.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
       --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
       --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
       --set serviceAccount.create=true \
@@ -959,13 +941,14 @@ load_operator_images_from() {
 get_operator_images() {
   [ -n "$1" ]
   local VERSION="$1"
-  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1 VERSION_1_13_0_ALPHA1 VERSION_1_14_0_ALPHA1
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2 VERSION_1_12_0_ALPHA1 VERSION_1_13_0_ALPHA1 VERSION_1_14_0_ALPHA1 VERSION_1_18_0_ALPHA1
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
   VERSION_1_12_0_ALPHA1="$(get_version_as_number 1.12.0-alpha1)"
   VERSION_1_13_0_ALPHA1="$(get_version_as_number 1.13.0-alpha1)"
   VERSION_1_14_0_ALPHA1="$(get_version_as_number 1.14.0-alpha1)"
+  VERSION_1_18_0_ALPHA1="$(get_version_as_number 1.18.0-alpha1)"
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1" ]
   then
     get_operator_images_pre_1_0_0_alpha1 "$VERSION"
@@ -986,6 +969,10 @@ get_operator_images() {
   then
     get_operator_images_pre_1_14_0_alpha1 "$VERSION"
     return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_18_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_18_0_alpha1 "$VERSION"
+    return
   fi
   local NATIVE_TAG="$VERSION"
   if [ "$VERSION" = "$STACKGRES_VERSION" ]
@@ -1000,10 +987,21 @@ get_operator_images() {
   fi
   echo "${OPERATOR_IMAGE_NAME%:*}:$TAG"
   echo "${RESTAPI_IMAGE_NAME%:*}:$TAG"
-  echo "${JOBS_IMAGE_NAME%:*}:$TAG"
   echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$TAG"
   echo "${STREAM_IMAGE_NAME%:*}:${NATIVE_TAG}-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
+  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
+}
+
+get_operator_images_pre_1_18_0_alpha1() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
+  echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
+  echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${STREAM_IMAGE_NAME%:*}:$VERSION-jvm"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
   echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
 }
 
@@ -1037,7 +1035,6 @@ get_operator_images_pre_1_12_0_alpha1() {
   local VERSION="$1"
   echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
   echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
-  echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
   echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
   echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
   echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
@@ -1231,7 +1228,7 @@ traceable_get_component_versions() {
     then
       cat "$STACKGRES_PATH/src/common/src/main/resources/versions-${STACKGRES_TARGET_VERSION%.*}.properties"
     else
-      cat "$STACKGRES_PATH/src/common/src/main/resources/versions.properties"
+      cat "$STACKGRES_PATH/src/common/src/main/resources/versions-${STACKGRES_VERSION%.*}.properties"
     fi
   else
     curl -f -s "$(get_versions_url "$VERSION")"
@@ -1244,7 +1241,14 @@ traceable_get_component_versions() {
 
 get_versions_url() {
   [ -n "$1" ]
-  echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions.properties"
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_1_19_0="$(get_version_as_number 1.19.0-SNAPSHOT)"
+  if [ "$VERSION_AS_NUMBER" -ge "$VERSION_1_19_0" ]
+  then
+    echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions-${VERSION%.*}.properties"
+  else
+    echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions.properties"
+  fi
 }
 
 get_component_images_pre_1_0_0_alpha2() {
@@ -1747,6 +1751,7 @@ set_max_length() {
 }
 
 set_helm_values_for_developer() {
+  E2E_OPERATOR_EXTRA_OPTS_INDEX=13
   cat << EOF
     --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER=${CLUSTER_CONTROLLER_IMAGE_NAME} 
     --set-string developer.extraOpts[0]=-Dquarkus.log.category."io.stackgres".level=DEBUG 
@@ -1767,6 +1772,7 @@ set_helm_values_for_developer() {
 EOF
   if [ "$K8S_IP_FAMILY" = ipv6 ]
   then
+  E2E_OPERATOR_EXTRA_OPTS_INDEX=15
   cat << EOF
     --set-string developer.extraOpts[13]=-Djava.net.preferIPv6Addresses=true 
     --set-string developer.extraOpts[14]=-Djava.net.preferIPv4Stack=false 
@@ -1807,20 +1813,6 @@ EOF
     --set-string developer.patches.adminui.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public) 
     --set-string developer.patches.adminui.volumeMounts[0].name=admin 
     --set-string developer.patches.adminui.volumeMounts[0].mountPath=/opt/app-root/src/admin 
-    --set-string developer.patches.jobs.volumes[0].name=app 
-    --set-string developer.patches.jobs.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app) 
-    --set-string developer.patches.jobs.volumeMounts[0].name=app 
-    --set-string developer.patches.jobs.volumeMounts[0].mountPath=/app/app 
-    --set-string developer.patches.jobs.volumeMounts[0].subPath=app 
-    --set-string developer.patches.jobs.volumeMounts[1].name=app 
-    --set-string developer.patches.jobs.volumeMounts[1].mountPath=/app/lib 
-    --set-string developer.patches.jobs.volumeMounts[1].subPath=lib 
-    --set-string developer.patches.jobs.volumeMounts[2].name=app 
-    --set-string developer.patches.jobs.volumeMounts[2].mountPath=/app/quarkus 
-    --set-string developer.patches.jobs.volumeMounts[2].subPath=quarkus 
-    --set-string developer.patches.jobs.volumeMounts[3].name=app 
-    --set-string developer.patches.jobs.volumeMounts[3].mountPath=/app/quarkus-run.jar 
-    --set-string developer.patches.jobs.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.clusterController.volumes[0].name=app 
     --set-string developer.patches.clusterController.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app) 
     --set-string developer.patches.clusterController.volumeMounts[0].name=app 

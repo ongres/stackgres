@@ -17,6 +17,8 @@ public enum DbOpsStatusCondition {
   DBOPS_TIMED_OUT(Type.FAILED, Status.TRUE, "OperationTimedOut"),
   DBOPS_LOCK_LOST(Type.FAILED, Status.TRUE, "OperationLockLost"),
   DBOPS_FALSE_FAILED(Type.FAILED, Status.FALSE, "OperationNotFailed"),
+  DBOPS_ROLLOUT_COMPLETED(Type.ROLLOUT_COMPLETED, Status.TRUE, "RolloutCompleted"),
+  DBOPS_FALSE_ROLLOUT_COMPLETED(Type.ROLLOUT_COMPLETED, Status.FALSE, "RolloutNotCompleted"),
   DBOPS_COMPLETED(Type.COMPLETED, Status.TRUE, "OperationCompleted"),
   DBOPS_FALSE_COMPLETED(Type.COMPLETED, Status.FALSE, "OperationNotCompleted");
 
@@ -43,6 +45,7 @@ public enum DbOpsStatusCondition {
   public enum Type {
     RUNNING("Running"),
     FAILED("Failed"),
+    ROLLOUT_COMPLETED("RolloutCompleted"),
     COMPLETED("Completed");
 
     private final String type;

@@ -28,7 +28,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_15_0="$(get_version_as_number 1.15.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_16_0="$(get_version_as_number 1.16.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_17_0="$(get_version_as_number 1.17.0-SNAPSHOT)"
-  VERSION_AS_NUMBER_1_18_0="$(get_version_as_number 1.18.0-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_17_2="$(get_version_as_number 1.17.2-SNAPSHOT)"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 
@@ -51,7 +51,7 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE="$(printf %s "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
   then
-    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
+    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg17\.')"
   else
     PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
   fi
@@ -83,7 +83,7 @@ e2e_test_install() {
   else
     DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
   fi
-  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION%.*}\.${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION#*.}-")"
+  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION%.*}\.[0-9]\+-")"
   DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
   PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
@@ -675,17 +675,6 @@ spec:
 EOF
 
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
-
-  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq --argjson timestamp "$(date +%s)" ".metadata.annotations[\"stackgres.io/lockTimeout\"] | . // \"0\" | tonumber - \$timestamp")" -gt 0 ]'
-  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
-    >/dev/null 2>&1
-  then
-    fail "Cluster has been updated while locked."
-  else
-    success "Cluster has not been updated while locked."
-  fi
 }
 
 check_sharded_cluster_security_upgrade_start() {
@@ -728,17 +717,6 @@ spec:
 EOF
 
   assert_sharded_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
-
-  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq --argjson timestamp "$(date +%s)" ".metadata.annotations[\"stackgres.io/lockTimeout\"] | . // \"0\" | tonumber - \$timestamp")" -gt 0 ]'
-  if kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
-    >/dev/null 2>&1
-  then
-    fail "Sharded Cluster has been updated while locked."
-  else
-    success "Sharded Cluster has not been updated while locked."
-  fi
 }
 
 check_cluster_before_security_upgrade() {
@@ -806,36 +784,9 @@ check_cluster_before_security_upgrade() {
         | del(.postgresql.pg_hba)
         ')"
     fi
-    jq -Sc '.
-      | if .synchronous_mode then . else del(.synchronous_node_count) end
-      | .postgresql.parameters = (.postgresql.parameters
-        | if .ssl == null then .ssl = "on" else . end
-        | if .ssl_cert_file == null then .ssl_cert_file = "/etc/ssl/tls.crt" else . end
-        | if .ssl_key_file == null then .ssl_key_file = "/etc/ssl/tls.key" else . end
-        | if .port == null then .port = "5432" else . end
-        | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
-        | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
-        | if .log_autovacuum_min_duration == "0" then .log_autovacuum_min_duration = "0ms" else . end
-        | if .log_min_duration_statement == "1000" then .log_min_duration_statement = "1s" else . end
-        | if .log_rotation_age == "30" then .log_rotation_age = "30min" else . end
-        | if .log_rotation_size == "0" then .log_rotation_size = "0kB" else . end
-        | if .log_temp_files == "0" then .log_temp_files = "0kB" else . end
-        | if .track_activity_query_size == "4096" then .track_activity_query_size = "4kB" else . end
-        | if .restore_command != null then .restore_command = null else . end)
-        | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
-          then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
-          else .postgresql.recovery_conf end)
-      | if (.postgresql | has("use_slots"))
-        then .
-        else .postgresql.use_slots = true end
-      ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config-filtered.json"
+    PATRONI_CONFIG="$(printf %s "$PATRONI_CONFIG" | normalize_patroni_config)"
+    normalize_patroni_config "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config-filtered.json"
     PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config-filtered.json")"
-    if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ]
-    then
-      PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
-        | del(.postgresql.recovery_conf)
-        ')"
-    fi
     if [ "$CLUSTER_NAME" = "$DISTRIBUTEDLOGS_NAME" ] \
       && [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_17_0" ]
     then
@@ -850,7 +801,7 @@ check_cluster_before_security_upgrade() {
         | del(.postgresql.parameters.ssl_key_file)
         ')"
     fi
-    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_18_0" ]
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_17_2" ]
     then
         PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
           | .postgresql.parameters.listen_addresses = "localhost,::1"
@@ -878,11 +829,10 @@ check_cluster_before_security_upgrade() {
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
     PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
     cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH" \
-      | sed '\#^auth_user = #a client_tls_cert_file = /etc/ssl/tls.crt\nclient_tls_key_file = /etc/ssl/tls.key\nclient_tls_sslmode = prefer' \
       | sed '/server_check_query = ;/d' \
       | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
-    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_18_0" ]
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_17_2" ]
     then
         PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG" \
           | sed "s/listen_addr = [\"']\?127\.0\.0\.1.*/listen_addr = 127.0.0.1,::1/")"
@@ -954,24 +904,13 @@ check_cluster_after_security_upgrade() {
   else
     fail "Cluster $CLUSTER_NAME is pending upgrade after security upgrade"
   fi
-
-  local STS_UPDATE_REVISION
-  STS_UPDATE_REVISION="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
-  local POD_CONTROLLER_REVISION_HASH
-  local POD_CONTROLLER_REVISION_HASHES
-  POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
-    | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
-    | jq -r '.metadata.labels."controller-revision-hash"')"
-
-  for POD_CONTROLLER_REVISION_HASH in $POD_CONTROLLER_REVISION_HASHES
-  do
-    if [ "$POD_CONTROLLER_REVISION_HASH" != "$STS_UPDATE_REVISION" ]
-    then
-      echo "FAILURE. Cluster $CLUSTER_NAME security upgrade did not updated successfully some pods"
-      return 1
-    fi
-  done
+  local RESULT EXIT_CODE
+  try_function wait_until check_cluster_pods_are_updated
+  if ! "$RESULT"
+  then
+    echo "FAILURE. Cluster $CLUSTER_NAME security upgrade did not updated successfully some pods"
+    return 1
+  fi
 
   if [ -n "$PATRONI_IMAGE" ]
   then
@@ -1007,6 +946,25 @@ check_cluster_after_security_upgrade() {
     echo "FAILURE. Cluster $CLUSTER_NAME primary service is not of type ExternalName"
     return 1
   fi
+}
+
+check_cluster_pods_are_updated() {
+  local STS_UPDATE_REVISION
+  STS_UPDATE_REVISION="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
+  local POD_CONTROLLER_REVISION_HASH
+  local POD_CONTROLLER_REVISION_HASHES
+  POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
+    | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
+    | jq -r '.metadata.labels."controller-revision-hash"')"
+
+  for POD_CONTROLLER_REVISION_HASH in $POD_CONTROLLER_REVISION_HASHES
+  do
+    if [ "$POD_CONTROLLER_REVISION_HASH" != "$STS_UPDATE_REVISION" ]
+    then
+      return 1
+    fi
+  done
 }
 
 check_conversion_webhooks_configured(){
@@ -1280,3 +1238,28 @@ check_returned_namespaces() {
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
 
+normalize_patroni_config() {
+  jq -Sc '.
+    | if .synchronous_mode then . else del(.synchronous_node_count) end
+    | .postgresql.parameters = (.postgresql.parameters
+      | if .ssl == null then .ssl = "on" else . end
+      | if .ssl_cert_file == null then .ssl_cert_file = "/etc/ssl/tls.crt" else . end
+      | if .ssl_key_file == null then .ssl_key_file = "/etc/ssl/tls.key" else . end
+      | if .port == null then .port = "5432" else . end
+      | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
+      | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
+      | if .log_autovacuum_min_duration == "0" then .log_autovacuum_min_duration = "0ms" else . end
+      | if .log_min_duration_statement == "1000" then .log_min_duration_statement = "1s" else . end
+      | if .log_rotation_age == "30" then .log_rotation_age = "30min" else . end
+      | if .log_rotation_size == "0" then .log_rotation_size = "0kB" else . end
+      | if .log_temp_files == "0" then .log_temp_files = "0kB" else . end
+      | if .track_activity_query_size == "4096" then .track_activity_query_size = "4kB" else . end
+      | if .restore_command != null then .restore_command = null else . end)
+      | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
+        then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
+        else .postgresql.recovery_conf end)
+    | if (.postgresql | has("use_slots"))
+      then .
+      else .postgresql.use_slots = true end
+    ' "$@"
+}

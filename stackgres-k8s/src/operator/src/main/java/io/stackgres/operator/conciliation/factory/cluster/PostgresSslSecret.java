@@ -5,7 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import java.time.ZonedDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,10 @@ import org.jetbrains.annotations.NotNull;
 @OperatorVersionBinder
 public class PostgresSslSecret
     implements VolumeFactory<StackGresClusterContext> {
+
+  private static final Duration ONE_DAY = Duration.ofDays(1);
+
+  private static final long DEFAULT_DURATION = 365;
 
   private static final String SSL_SUFFIX = "-ssl";
 
@@ -108,16 +113,46 @@ public class PostgresSslSecret
 
   private void setCertificateAndPrivateKey(StackGresClusterContext context,
       Map<String, String> data) {
-    var certificate = context.getPostgresSslCertificate();
-    var privateKey = context.getPostgresSslPrivateKey();
-    if (certificate.isEmpty() || privateKey.isEmpty()) {
-      var certificateAndPrivateKey = CryptoUtil.generateCertificateAndPrivateKey(
-          ZonedDateTime.now().plusYears(7500).toInstant());
-      certificate = Optional.of(certificateAndPrivateKey.v1);
-      privateKey = Optional.of(certificateAndPrivateKey.v2);
+    if (Optional.ofNullable(context.getSource().getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl)
+        .map(StackGresClusterSsl::getPrivateKeySecretKeySelector)
+        .isEmpty()
+        || Optional.ofNullable(context.getSource().getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl)
+        .map(StackGresClusterSsl::getCertificateSecretKeySelector)
+        .isEmpty()) {
+      final Duration duration = Optional.ofNullable(context.getSource().getSpec())
+          .map(StackGresClusterSpec::getPostgres)
+          .map(StackGresClusterPostgres::getSsl)
+          .map(StackGresClusterSsl::getDuration)
+          .map(Duration::parse)
+          .orElse(Duration.ofDays(DEFAULT_DURATION));
+      boolean certInvalid = true;
+      if (context.getPostgresSslCertificate().isPresent()
+          && context.getPostgresSslPrivateKey().isPresent()) {
+        final Duration validityGap = duration.dividedBy(12);
+        if (CryptoUtil.isCertificateAndKeyValid(
+            context.getPostgresSslCertificate().orElseThrow(),
+            context.getPostgresSslPrivateKey().orElseThrow(),
+            validityGap.compareTo(ONE_DAY) > 0 ? validityGap : ONE_DAY)) {
+          certInvalid = false;
+        }
+      }
+
+      if (certInvalid) {
+        var generated = CryptoUtil.generateCertificateAndPrivateKey(Instant.now().plus(duration));
+        data.put(PatroniUtil.CERTIFICATE_KEY, generated.v1);
+        data.put(PatroniUtil.PRIVATE_KEY_KEY, generated.v2);
+      } else {
+        data.put(PatroniUtil.CERTIFICATE_KEY, context.getPostgresSslCertificate().orElseThrow());
+        data.put(PatroniUtil.PRIVATE_KEY_KEY, context.getPostgresSslPrivateKey().orElseThrow());
+      }
+    } else {
+      data.put(PatroniUtil.CERTIFICATE_KEY, context.getPostgresSslCertificate().orElseThrow());
+      data.put(PatroniUtil.PRIVATE_KEY_KEY, context.getPostgresSslPrivateKey().orElseThrow());
     }
-    data.put(PatroniUtil.CERTIFICATE_KEY, certificate.orElseThrow());
-    data.put(PatroniUtil.PRIVATE_KEY_KEY, privateKey.orElseThrow());
   }
 
 }

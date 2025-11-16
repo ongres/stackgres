@@ -88,6 +88,7 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
+    cluster.getStatus().setPostgresVersion(SECOND_PG_MAJOR_VERSION);
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec().setPostgresVersion(FIRST_PG_MAJOR_VERSION);
     contextAppender = new DbOpsClusterMajorVersionUpgradeContextAppender(
@@ -102,6 +103,7 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
 
     cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
     cluster.setStatus(new StackGresClusterStatus());
+    cluster.getStatus().setPostgresVersion(FIRST_PG_MINOR_VERSION);
     cluster.getStatus().setDbOps(new StackGresClusterDbOpsStatus());
     cluster.getStatus().getDbOps().setMajorVersionUpgrade(
         new StackGresClusterDbOpsMajorVersionUpgradeStatus());
@@ -133,6 +135,7 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
     dbOps.getSpec().getMajorVersionUpgrade().setPostgresVersion(FIRST_PG_MINOR_VERSION);
 
     cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
+    cluster.getStatus().setPostgresVersion(FIRST_PG_MINOR_VERSION);
 
     var ex =
         assertThrows(IllegalArgumentException.class,
@@ -145,6 +148,7 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
     dbOps.getSpec().getMajorVersionUpgrade().setPostgresVersion(FIRST_PG_MINOR_VERSION);
 
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MINOR_VERSION);
+    cluster.getStatus().setPostgresVersion(SECOND_PG_MINOR_VERSION);
 
     var ex =
         assertThrows(IllegalArgumentException.class,
@@ -157,6 +161,7 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
     dbOps.getSpec().getMajorVersionUpgrade().setPostgresVersion(SECOND_PG_MAJOR_VERSION);
 
     cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
+    cluster.getStatus().setPostgresVersion(FIRST_PG_MINOR_VERSION);
 
     var ex =
         assertThrows(IllegalArgumentException.class,

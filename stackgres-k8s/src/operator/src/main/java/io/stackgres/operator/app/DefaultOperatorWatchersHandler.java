@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
@@ -62,6 +63,7 @@ import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsList;
 import io.stackgres.common.crd.sgstream.StackGresStream;
 import io.stackgres.common.crd.sgstream.StackGresStreamList;
+import io.stackgres.operator.common.DbOpsUtil;
 import io.stackgres.operator.common.ResourceWatcherFactory;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.backup.BackupReconciliator;
@@ -77,6 +79,8 @@ import io.stackgres.operatorframework.resource.WatcherMonitor;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
@@ -267,7 +271,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
         Endpoints.class,
         EndpointsList.class,
         onCreateOrUpdate(
-            reconcileEndpointsShardedClusters())));
+            reconcileEndpointsShardedClusters())
+        .andThen(onUpdate(reconcileEndpointsDbOps()))));
 
     monitors.addAll(createWatchers(
         Pod.class,
@@ -330,6 +335,14 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
         .resources(crClass, listClass)
         .inAnyNamespace()
         .watch(watcherFactory.createWatcher(consumer, watcherListener))));
+  }
+
+  private <T> BiConsumer<Action, T> onUpdate(BiConsumer<Action, T> consumer) {
+    return (action, resource) -> {
+      if (action == Action.MODIFIED) {
+        consumer.accept(action, resource);
+      }
+    };
   }
 
   private <T> BiConsumer<Action, T> onCreateOrUpdate(BiConsumer<Action, T> consumer) {
@@ -707,6 +720,33 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             endpoints.getMetadata().getLabels().get(clusterScopeKey),
             shardedCluster.getMetadata().getName()))
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, Endpoints> reconcileEndpointsDbOps() {
+    return (action, endpoints) -> {
+      final var existingClusters = synchronizedCopyOfValues(clusters);
+      synchronizedCopyOfValues(dbOps)
+          .stream()
+          .filter(dbOp -> DbOpsUtil.ROLLOUT_OPS.contains(dbOp.getSpec().getOp()))
+          .filter(dbOp -> Objects.equals(
+              dbOp.getMetadata().getNamespace(),
+              endpoints.getMetadata().getNamespace()))
+          .map(dbOp -> Tuple.tuple(dbOp, existingClusters.stream()
+              .filter(cluster -> Objects.equals(
+                  cluster.getMetadata().getName(),
+                  dbOp.getSpec().getSgCluster())
+                  && Objects.equals(
+                      cluster.getMetadata().getNamespace(),
+                      dbOp.getMetadata().getNamespace()))
+              .findFirst()))
+          .filter(dbOpAndCluster -> dbOpAndCluster.v2.isPresent())
+          .map(dbOpAndCluster -> dbOpAndCluster.map2(Optional::get))
+          .filter(dbOpAndCluster -> Objects.equals(
+              endpoints.getMetadata().getName(),
+              PatroniUtil.failoverName(dbOpAndCluster.v2)))
+          .map(Tuple2::v1)
+          .forEach(dbOps -> reconcileDbOps().accept(action, dbOps));
+    };
   }
 
   private BiConsumer<Action, Pod> reconcilePodClusters() {

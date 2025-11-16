@@ -110,13 +110,6 @@ release restapi jvm image amd64:
     LOCK_FILE: stackgres-restapi-release-jvm-release-image
     IMAGE_MODULE_NAME: restapi-jvm-release-image
 
-release jobs jvm image amd64:
-  extends: .release jvm image amd64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-release-jvm-release-image
-    IMAGE_MODULE_NAME: jobs-jvm-release-image
-
 release cluster-controller jvm image amd64:
   extends: .release jvm image amd64
   variables:
@@ -144,13 +137,6 @@ release restapi native image amd64:
     IMAGE_BASE_NAME: stackgres/restapi
     LOCK_FILE: stackgres-restapi-release-native-release-image
     IMAGE_MODULE_NAME: restapi-native-release-image
-
-release jobs native image amd64:
-  extends: .release native image amd64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-release-native-release-image
-    IMAGE_MODULE_NAME: jobs-native-release-image
 
 release cluster-controller native image amd64:
   extends: .release native image amd64
@@ -238,13 +224,6 @@ release restapi jvm image arm64:
     LOCK_FILE: stackgres-restapi-release-jvm-release-image
     IMAGE_MODULE_NAME: restapi-jvm-release-image
 
-release jobs jvm image arm64:
-  extends: .release jvm image arm64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-release-jvm-release-image
-    IMAGE_MODULE_NAME: jobs-jvm-release-image
-
 release cluster-controller jvm image arm64:
   extends: .release jvm image arm64
   variables:
@@ -272,13 +251,6 @@ release restapi native image arm64:
     IMAGE_BASE_NAME: stackgres/restapi
     LOCK_FILE: stackgres-restapi-release-native-release-image
     IMAGE_MODULE_NAME: restapi-native-release-image
-
-release jobs native image arm64:
-  extends: .release native image arm64
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-    LOCK_FILE: stackgres-jobs-release-native-release-image
-    IMAGE_MODULE_NAME: jobs-native-release-image
 
 release cluster-controller native image arm64:
   extends: .release native image arm64
@@ -357,11 +329,6 @@ release restapi jvm image multi archs:
   variables:
     IMAGE_BASE_NAME: stackgres/restapi
 
-release jobs jvm image multi archs:
-  extends: .release jvm image multi archs
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
-
 release cluster-controller jvm image multi archs:
   extends: .release jvm image multi archs
   variables:
@@ -381,11 +348,6 @@ release restapi native image multi archs:
   extends: .release native image multi archs
   variables:
     IMAGE_BASE_NAME: stackgres/restapi
-
-release jobs native image multi archs:
-  extends: .release native image multi archs
-  variables:
-    IMAGE_BASE_NAME: stackgres/jobs
 
 release cluster-controller native image multi archs:
   extends: .release native image multi archs

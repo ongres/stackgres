@@ -339,6 +339,8 @@ class DebeziumUtilTest {
         assertEntryInProperties(
             props, Map.entry("publication.autocreate.mode", streamProperties.getPublicationAutocreateMode())),
         assertEntryInProperties(
+            props, Map.entry("publish.via.partition.root", streamProperties.getPublishViaPartitionRoot())),
+        assertEntryInProperties(
             props, Map.entry("publication.name", streamProperties.getPublicationName())),
         assertEntryInProperties(props, Map.entry(
             "replica.identity.autoset.values",
@@ -367,6 +369,7 @@ class DebeziumUtilTest {
             .map(e -> e.getKey() + "=" + e.getValue())
             .collect(Collectors.joining(";")))),
         assertEntryInProperties(props, Map.entry("snapshot.delay.ms", streamProperties.getSnapshotDelayMs())),
+        assertEntryInProperties(props, Map.entry("streaming.delay.ms", streamProperties.getStreamingDelayMs())),
         assertEntryInProperties(props, Map.entry("snapshot.fetch.size", streamProperties.getSnapshotFetchSize())),
         assertEntryInProperties(props, Map.entry(
             "snapshot.include.collection.list",
@@ -436,6 +439,12 @@ class DebeziumUtilTest {
             "message.prefix.exclude.list",
             streamProperties.getMessagePrefixExcludeList().stream().collect(Collectors.joining(",")))),
         assertEntryInProperties(props, Map.entry("slot.failover", streamProperties.getSlotFailover())),
+        assertEntryInProperties(props, Map.entry("guardrail.collections.max",
+            streamProperties.getGuardrailCollectionsMax())),
+        assertEntryInProperties(props, Map.entry("guardrail.collections.limit.action",
+            streamProperties.getGuardrailCollectionsLimitAction())),
+        assertEntryInProperties(props, Map.entry("extended.headers.enabled",
+            streamProperties.getExtendedHeadersEnabled())),
         // Leave this so we can order all the properties correctly without bothering for the latest `,`
         Map.entry("|", streamProperties)
         ));
@@ -470,7 +479,6 @@ class DebeziumUtilTest {
             "connection.pool.min.size", streamProperties.getConnectionPoolMinSize())),
         assertEntryInProperties(props, Map.entry(
             "connection.pool.timeout", streamProperties.getConnectionPoolTimeout())),
-        assertEntryInProperties(props, Map.entry("database.time.zone", streamProperties.getDatabaseTimeZone())),
         assertEntryInProperties(props, Map.entry("delete.enabled", streamProperties.getDeleteEnabled())),
         assertEntryInProperties(props, Map.entry(
             "dialect.postgres.postgis.schema", streamProperties.getDialectPostgresPostgisSchema())),
@@ -483,8 +491,6 @@ class DebeziumUtilTest {
         assertEntryInProperties(props, Map.entry("primary.key.mode", streamProperties.getPrimaryKeyMode())),
         assertEntryInProperties(props, Map.entry("quote.identifiers", streamProperties.getQuoteIdentifiers())),
         assertEntryInProperties(props, Map.entry("schema.evolution", streamProperties.getSchemaEvolution())),
-        assertEntryInProperties(props, Map.entry("table.name.format", streamProperties.getTableNameFormat())),
-        assertEntryInProperties(props, Map.entry("table.naming.strategy", streamProperties.getTableNamingStrategy())),
         assertEntryInProperties(props, Map.entry("truncate.enabled", streamProperties.getTruncateEnabled())),
         assertEntryInProperties(
             props, Map.entry("connection.url.parameters", streamProperties.getConnectionUrlParameters())),

@@ -16,15 +16,22 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobConditionBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.Condition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,13 +90,32 @@ class DbOpsStatusManagerTest {
   @Mock
   ResourceFinder<Job> jobFinder;
 
+  @Mock
+  CustomResourceFinder<StackGresCluster> clusterFinder;
+
+  @Mock
+  LabelFactoryForCluster labelFactory;
+
+  @Mock
+  ResourceFinder<StatefulSet> statefulSetFinder;
+
+  @Mock
+  ResourceScanner<Pod> podScanner;
+
+  @Mock
+  ResourceFinder<Endpoints> endpointsFinder;
+
+  @Mock
+  PatroniCtl patroniCtl;
+
   private DbOpsStatusManager statusManager;
 
   @BeforeEach
   void setUp() {
-    statusManager = new DbOpsStatusManager(jobFinder);
-    expectedDbOps = Fixtures.dbOps().loadRestart().get();
-    dbOps = Fixtures.dbOps().loadRestart().get();
+    statusManager = new DbOpsStatusManager(jobFinder, clusterFinder,
+        labelFactory, statefulSetFinder, podScanner, endpointsFinder, patroniCtl);
+    expectedDbOps = Fixtures.dbOps().loadPgbench().get();
+    dbOps = Fixtures.dbOps().loadPgbench().get();
   }
 
   @Test
@@ -135,7 +161,7 @@ class DbOpsStatusManagerTest {
   void failedDbOpsWithCompletedJob_shouldUpdateResource() {
     dbOps.setStatus(new StackGresDbOpsStatus());
     dbOps.getStatus().setConditions(List.of(
-        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition().setLastTransitionTime(),
         DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DBOPS_FAILED.getCondition().setLastTransitionTime()));
 
@@ -158,6 +184,7 @@ class DbOpsStatusManagerTest {
 
   @Test
   void noJob_shouldNotUpdateResource() {
+    dbOps.setStatus(null);
     expectedDbOps.setStatus(new StackGresDbOpsStatus());
     expectedDbOps.getStatus().setOpRetries(0);
 
@@ -172,6 +199,7 @@ class DbOpsStatusManagerTest {
 
   @Test
   void runningJob_shouldNotUpdateResource() {
+    dbOps.setStatus(null);
     expectedDbOps.setStatus(new StackGresDbOpsStatus());
     expectedDbOps.getStatus().setOpRetries(0);
 
@@ -234,7 +262,6 @@ class DbOpsStatusManagerTest {
         DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DBOPS_FALSE_FAILED.getCondition()));
     Condition.setTransitionTimes(dbOps.getStatus().getConditions());
-    dbOps.getStatus().setRestart(new StackGresDbOpsRestartStatus());
     dbOps.getStatus().setOpRetries(0);
     dbOps.getStatus().setOpStarted(Instant.now().toString());
 
@@ -245,7 +272,6 @@ class DbOpsStatusManagerTest {
 
     Assertions.assertEquals(0, dbOps.getStatus().getOpRetries());
     Assertions.assertNotNull(dbOps.getStatus().getOpStarted());
-    Assertions.assertNotNull(dbOps.getStatus().getRestart());
     assertCondition(
         DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
         dbOps.getStatus().getConditions());

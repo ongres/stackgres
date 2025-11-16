@@ -26,13 +26,13 @@ public enum ShardedDbOpsOperation {
     return type;
   }
 
-  public static ShardedDbOpsOperation fromString(String name) {
-    for (ShardedDbOpsOperation shardedDbOps : values()) {
-      if (shardedDbOps.type.equals(name)) {
-        return shardedDbOps;
+  public static ShardedDbOpsOperation fromString(String from) {
+    for (ShardedDbOpsOperation value : values()) {
+      if (value.type.equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("ShardedDbOps operation type is invalid: " + name);
+    throw new IllegalArgumentException("ShardedDbOps operation type is invalid: " + from);
   }
 
 }

@@ -104,6 +104,10 @@ spec:
   initialData:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .Values.shardedCluster.replicateFrom }}
+  replicateFrom:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   coordinator:
     instances: {{ .Values.cluster.instances }}
     {{- with .Values.cluster.autoscaling }}

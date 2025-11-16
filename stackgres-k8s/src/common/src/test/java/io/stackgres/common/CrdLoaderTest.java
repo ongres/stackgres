@@ -8,17 +8,12 @@ package io.stackgres.common;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionNames;
 import org.junit.jupiter.api.Test;
-import org.yaml.snakeyaml.Yaml;
 
 class CrdLoaderTest {
 
@@ -35,17 +30,7 @@ class CrdLoaderTest {
     assertEquals(crdsFolder
         .list((file, name) -> name.endsWith(".yaml")).length, definitions.size());
 
-    List<CustomResourceDefinition> customResourceDefinitions = Arrays
-        .stream(crdsFolder.listFiles((file, name) -> name.endsWith(".yaml")))
-        .map(file -> {
-          try (FileInputStream fis = new FileInputStream(file)) {
-            Object value = new Yaml().load(fis);
-            return mapper.treeToValue(mapper.valueToTree(value),
-                CustomResourceDefinition.class);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }).collect(Collectors.toList());
+    List<CustomResourceDefinition> customResourceDefinitions = crdLoader.scanCrds();
 
     definitions.forEach(def -> {
       var customResourceDefinition = customResourceDefinitions.stream()

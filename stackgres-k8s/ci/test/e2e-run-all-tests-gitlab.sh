@@ -127,7 +127,6 @@ run_all_tests_loop() {
   # shellcheck disable=SC2046
   flock -s /tmp/stackgres-build-operator-native-executable \
     flock -s /tmp/stackgres-build-restapi-native-executable \
-    flock -s /tmp/stackgres-build-jobs-native-executable \
     "$E2E_SHELL" "$0" run_with_e2e_lock \
     timeout -s KILL 3600 \
     "$E2E_SHELL" "$0" run_all_e2e

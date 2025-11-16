@@ -35,7 +35,7 @@ public class PatroniConfig {
   @JsonProperty("maximum_lag_on_failover")
   private Integer maximumLagOnFailover;
 
-  @JsonProperty("maximum_lag_on_sync_node")
+  @JsonProperty("maximum_lag_on_syncnode")
   private Integer maximumLagOnSyncNode;
 
   @JsonProperty("max_timelines_history")
@@ -69,6 +69,9 @@ public class PatroniConfig {
 
   @JsonProperty("synchronous_node_count")
   private Integer synchronousNodeCount;
+
+  @JsonProperty("member_slots_ttl")
+  private String memberSlotsTtl;
 
   private Map<String, Slot> slots;
 
@@ -201,6 +204,14 @@ public class PatroniConfig {
 
   public void setSynchronousNodeCount(Integer synchronousNodeCount) {
     this.synchronousNodeCount = synchronousNodeCount;
+  }
+
+  public String getMemberSlotsTtl() {
+    return memberSlotsTtl;
+  }
+
+  public void setMemberSlotsTtl(String memberSlotsTtl) {
+    this.memberSlotsTtl = memberSlotsTtl;
   }
 
   public Map<String, Slot> getSlots() {

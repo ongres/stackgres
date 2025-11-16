@@ -127,12 +127,16 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        StackGresComponent.POSTGRESQL.get(context.getClusterContext().getCluster())
+        StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
+        .get(context.getClusterContext().getCluster())
         .getVersion(
-            context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
+            context.getClusterContext().getCluster().getStatus().getPostgresVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
-        .getLatestVersion());
+        .getLatestVersion(Map.of(
+            StackGresUtil.getPostgresFlavorComponent(context.getClusterContext().getCluster())
+            .get(context.getClusterContext().getCluster()),
+            context.getClusterContext().getCluster().getStatus().getPostgresVersion())));
   }
 
   @Override

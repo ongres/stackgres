@@ -90,5 +90,8 @@
       }
     }
   },
-  "status": null
+  "status": {
+    "postgresVersion": "13.9",
+    "backupPaths": ["sgbackups.stackgres.io/stackgres/stackgres/11"]
+  }
 }

@@ -564,37 +564,21 @@ store_test_results() {
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
     && true || false
 
-  run_as_root_on_host chown "$(id -u)":"$(id -g)" "$(pwd)" -R
-  cat << EOF > "$TARGET_PATH/Dockerfile.e2e"
-FROM registry.access.redhat.com/ubi8-micro:8.8-7
-  COPY . /project
-EOF
-
   sort "$TARGET_PATH/runned-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-runned-tests"
   sort "$TARGET_PATH/passed-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-passed-tests"
 
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
   # shellcheck disable=SC2046
-  docker build -f "$TARGET_PATH/Dockerfile.e2e" \
-    -t "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM" \
-    $(
-      while read -r SPEC_NAME
-      do
-      IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images" \
-          | cut -d = -f 2-)"
-        printf '%s %s ' '-t' "$IMAGE_NAME"
-      done < "$TARGET_PATH/uniq-passed-tests"
-    ) \
-    "$TARGET_PATH"
-  docker push "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM"
+  docker image registry.access.redhat.com/ubi8-micro:8.8-7 > /dev/null 2>&1 \
+    || docker pull registry.access.redhat.com/ubi8-micro:8.8-7
   while read -r SPEC_NAME
   do
     IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images" \
       | cut -d = -f 2-)"
-    printf '%s\n' "$IMAGE_NAME"
-  done < "$TARGET_PATH/uniq-passed-tests" \
-    | xargs -I % -P "$E2E_PARALLELISM" docker push %
+    docker tag registry.access.redhat.com/ubi8-micro:8.8-7 "$IMAGE_NAME"
+    docker push "$IMAGE_NAME"
+  done < "$TARGET_PATH/uniq-passed-tests"
 }
 
 store_test_result() {
@@ -604,12 +588,6 @@ store_test_result() {
   [ -n "$E2E_TEST_REGISTRY" ] \
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
     && true || false
-
-  run_as_root_on_host chown "$(id -u)":"$(id -g)" "$(pwd)" -R
-  cat << EOF > "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME"
-FROM registry.access.redhat.com/ubi8-micro:8.8-7
-  COPY . /project
-EOF
 
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
@@ -622,9 +600,9 @@ EOF
   fi
   IMAGE_NAME="$(printf %s "$IMAGE_NAME" | cut -d = -f 2-)"
   # shellcheck disable=SC2046
-  docker build -f "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME" \
-    -t "$IMAGE_NAME" \
-    "$TARGET_PATH"
+  docker image registry.access.redhat.com/ubi8-micro:8.8-7 > /dev/null 2>&1 \
+    || docker pull registry.access.redhat.com/ubi8-micro:8.8-7
+  docker tag registry.access.redhat.com/ubi8-micro:8.8-7 "$IMAGE_NAME"
   docker push "$IMAGE_NAME"
 }
 

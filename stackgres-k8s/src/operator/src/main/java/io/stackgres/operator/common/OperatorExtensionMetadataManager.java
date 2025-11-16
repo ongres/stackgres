@@ -11,11 +11,11 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
-@ApplicationScoped
+@Singleton
 public class OperatorExtensionMetadataManager extends ExtensionMetadataManager {
 
   @Inject

@@ -34,6 +34,9 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -81,7 +84,17 @@ public class PatroniRole implements
         .withNewMetadata()
         .withName(serviceAccountName)
         .withNamespace(serviceAccountNamespace)
-        .withLabels(labels)
+        .addToLabels(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getLabels)
+            .map(StackGresClusterSpecLabels::getServiceAccount)
+            .orElse(Map.of()))
+        .addToAnnotations(
+            Optional.ofNullable(cluster.getSpec().getMetadata())
+            .map(StackGresClusterSpecMetadata::getAnnotations)
+            .map(StackGresClusterSpecAnnotations::getServiceAccount)
+            .orElse(Map.of()))
+        .addToLabels(labels)
         .endMetadata()
         .withImagePullSecrets(Optional.ofNullable(context.getConfig().getSpec().getImagePullSecrets())
             .stream()

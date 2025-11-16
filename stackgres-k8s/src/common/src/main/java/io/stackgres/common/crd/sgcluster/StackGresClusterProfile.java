@@ -52,12 +52,12 @@ public enum StackGresClusterProfile {
     return profile;
   }
 
-  public static @NotNull StackGresClusterProfile fromString(@NotNull String name) {
-    return switch (name) {
+  public static @NotNull StackGresClusterProfile fromString(@NotNull String from) {
+    return switch (from) {
       case "production" -> PRODUCTION;
       case "testing" -> TESTING;
       case "development" -> DEVELOPMENT;
-      default -> throw new IllegalArgumentException("Unknown profile " + name);
+      default -> throw new IllegalArgumentException("Unknown profile " + from);
     };
   }
 

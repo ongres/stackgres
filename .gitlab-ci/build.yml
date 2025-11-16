@@ -12,7 +12,6 @@
         --extract common-java-test:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
         --extract operator-java-test:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
         --extract restapi-java-test:'stackgres-k8s/src/restapi/target/surefire-reports/TEST-*.xml' \
-        --extract jobs-java-test:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
         --extract cluster-controller-java-test:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
         --extract stream-java-test:'stackgres-k8s/src/stream/target/surefire-reports/TEST-*.xml' \
         --extract restapi-java:'stackgres-k8s/src/restapi/target/swagger*' \
@@ -22,7 +21,6 @@
         common-java common-java-test \
         operator-java operator-java-test \
         restapi-java restapi-java-test \
-        jobs-java jobs-java-test \
         cluster-controller-java cluster-controller-java-test \
         stream-java stream-java-test
       cp stackgres-k8s/ci/build/target/junit-build.hashes.xml."$(cat stackgres-k8s/ci/build/target/build_hash)" stackgres-k8s/ci/build/target/junit-build.hashes.xml

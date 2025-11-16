@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.dbops.context;
 
 import java.util.Optional;
 
-import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmarkStatus;
@@ -16,6 +15,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSamplingStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.common.DbOpsUtil;
 import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext.Builder;
 import jakarta.enterprise.context.ApplicationScoped;

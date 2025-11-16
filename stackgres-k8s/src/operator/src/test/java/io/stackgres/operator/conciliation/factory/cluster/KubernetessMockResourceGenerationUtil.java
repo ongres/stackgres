@@ -50,6 +50,9 @@ public class KubernetessMockResourceGenerationUtil {
         .withVersion(POSTGRES_VERSION)
         .endPostgres()
         .endSpec()
+        .withNewStatus()
+        .withPostgresVersion(POSTGRES_VERSION)
+        .endStatus()
         .build();
     return buildResources(cluster);
   }
@@ -91,6 +94,8 @@ public class KubernetessMockResourceGenerationUtil {
             .withReplicas(2)
             .withTemplate(
                 new PodTemplateSpecBuilder()
+                    .withNewMetadata()
+                    .endMetadata()
                     .withNewSpec()
                     .addNewContainer()
                     .withName(StackGresContainer.PATRONI.getName())

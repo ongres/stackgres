@@ -19,8 +19,8 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -191,9 +191,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
         .map(StackGresPostgresConfig::getSpec)
         .map(StackGresPostgresConfigSpec::getPostgresVersion)
         .flatMap(postgresMajorVersion -> Optional.of(cluster)
-            .map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getPostgres)
-            .map(StackGresClusterPostgres::getVersion)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getPostgresVersion)
             .filter(postgresVersion -> postgresVersion.startsWith(postgresMajorVersion + ".")))
         .isEmpty()
         && Optional.of(cluster)
@@ -209,7 +208,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
           .map(StackGresPostgresConfigSpec::getPostgresVersion)
           .orElse(null),
           cluster.getSpec().getConfigurations().getSgPostgresConfig(),
-          cluster.getSpec().getPostgres().getVersion());
+          cluster.getStatus().getPostgresVersion());
       config.getSpec().getConfigurations().setSgPostgresConfig(
           cluster.getSpec().getConfigurations().getSgPostgresConfig());
     }

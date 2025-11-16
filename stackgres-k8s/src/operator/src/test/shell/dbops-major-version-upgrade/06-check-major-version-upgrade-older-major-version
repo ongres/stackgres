@@ -16,7 +16,7 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgres.version }}")
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.postgresVersion }}")
     printf '%s' "13.8"
     ;;
     *)

@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.impl.DSL;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
+import org.jooq.lambda.tuple.Tuple3;
 
 @Singleton
 @OperatorVersionBinder
@@ -199,38 +200,59 @@ public class PatroniSecret
       StackGresClusterContext context,
       Map<String, String> previousSecretData,
       Map<String, String> data) {
-    final String authenticatorUsername = context.getAuthenticatorUsername()
-            .orElse(previousSecretData
-                .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
-                    .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME)));
-    data.put(AUTHENTICATOR_USERNAME_KEY, authenticatorUsername);
-    data.put(AUTHENTICATOR_USERNAME_ENV, authenticatorUsername);
-    final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
-        .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
-    final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
-        .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
-    final String authenticatorPassword = context.getAuthenticatorPassword()
-        .orElse(previousSecretData
-            .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
-                .getOrDefault(authenticatorPasswordEnv,
-                  context.getGeneratedAuthenticatorPassword())));
-    data.put(AUTHENTICATOR_PASSWORD_KEY, authenticatorPassword);
-    data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
+    var authenticatorCredentials = getAuthenticatorCredentials(context, previousSecretData);
+    data.put(AUTHENTICATOR_USERNAME_KEY, authenticatorCredentials.v1);
+    data.put(AUTHENTICATOR_USERNAME_ENV, authenticatorCredentials.v1);
+    data.put(AUTHENTICATOR_PASSWORD_KEY, authenticatorCredentials.v2);
+    data.put(authenticatorCredentials.v3, context.getAuthenticatorPassword()
         .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
+    final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
+        .replace(AUTHENTICATOR_USERNAME, authenticatorCredentials.v1);
     data.put(authenticatorOptionsEnv, "SUPERUSER");
     data.put(
         ROLES_UPDATE_SQL_KEY,
         Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
         + "DO $$\n"
         + "BEGIN\n"
-        + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = " + DSL.inline(authenticatorUsername) + ") THEN\n"
-        + "    CREATE USER " + DSL.quotedName(authenticatorUsername)
-        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorPassword) + ";\n"
+        + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = "
+        + DSL.inline(authenticatorCredentials.v1) + ") THEN\n"
+        + "    CREATE USER " + DSL.quotedName(authenticatorCredentials.v1)
+        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorCredentials.v2) + ";\n"
         + "  ELSE\n"
-        + "    ALTER ROLE " + DSL.quotedName(authenticatorUsername)
-        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorPassword) + ";\n"
+        + "    ALTER ROLE " + DSL.quotedName(authenticatorCredentials.v1)
+        + " WITH SUPERUSER PASSWORD " + DSL.inline(authenticatorCredentials.v2) + ";\n"
         + "  END IF;\n"
         + "END$$;");
+  }
+
+  public static Tuple3<String, String, String> getAuthenticatorCredentials(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+
+    return getAuthenticatorCredentials(context, previousSecretData);
+  }
+
+  private static Tuple3<String, String, String> getAuthenticatorCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData) {
+    final String authenticatorUsername = context.getAuthenticatorUsername()
+        .orElse(previousSecretData
+            .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
+                .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME)));
+    final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
+        .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
+    final String authenticatorPassword = context.getAuthenticatorPassword()
+        .orElse(previousSecretData
+            .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
+                .getOrDefault(authenticatorPasswordEnv,
+                  context.getGeneratedAuthenticatorPassword())));
+    return Tuple.tuple(
+        authenticatorUsername,
+        authenticatorPassword,
+        authenticatorPasswordEnv);
   }
 
   private void setBabelfishCredentials(

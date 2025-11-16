@@ -5,7 +5,11 @@
 
 package io.stackgres.operator.validation.objectstorage;
 
+import java.util.Optional;
+
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.storages.AwsCredentials;
+import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.operator.common.StackGresObjectStorageReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -32,6 +36,18 @@ public class ObjectStorageTypeValidator implements ObjectStorageValidator {
         case "s3" -> {
           if (backupStorage.getS3() == null) {
             fail("Invalid object storage. If storage type is s3, the s3 property must be set");
+          }
+          if (backupStorage.getS3() != null
+              && Optional.ofNullable(backupStorage.getS3())
+              .map(AwsS3Storage::getAwsCredentials)
+              .map(AwsCredentials::getUseIamRole)
+              .orElse(false)
+              && Optional.ofNullable(backupStorage.getS3())
+              .map(AwsS3Storage::getAwsCredentials)
+              .map(AwsCredentials::getSecretKeySelectors)
+              .isEmpty()) {
+            fail("Invalid object storage. If storage type is s3,"
+                + " you must set useIamRole or secretKeySelectors under awsCredentials");
           }
           if (backupStorage.getS3Compatible() != null
               || backupStorage.getGcs() != null

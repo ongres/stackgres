@@ -33,16 +33,16 @@ reset_cluster() {
   wait_until check_mock_data_replication "$CLUSTER_NAME"
 
   if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p "$(cat << EOF
+    --dry-run=server -p "$(cat << EOF
 [
   {"op":"replace","path":"/spec/postgres/version","value":"$E2E_MINOR_TARGET_POSTGRES_VERSION"}
 ]
 EOF
         )" >/dev/null 2>&1
   then
-    fail "Changed SGCluster postgres version directly."
+    success "Can changed SGCluster postgres version directly."
   else
-    success "Could not change SGCluster postgres version directly."
+    fail "Can not change SGCluster postgres version directly."
   fi
 }
 
@@ -53,21 +53,6 @@ check_restart() {
   test -n "$RESTARTED_PODS"
 
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
-
-  local DBOPS_JOB_NAME
-  DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
-
-  wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq --argjson timestamp "$(date +%s)" ".metadata.annotations[\"stackgres.io/lockTimeout\"] | . // \"0\" | tonumber - \$timestamp")" -gt 0 ]'
-  if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
-    >/dev/null 2>&1
-  then
-    fail "Cluster has been updated while locked."
-  else
-    success "Cluster has not been updated while locked."
-  fi
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
@@ -108,25 +93,6 @@ check_restart() {
       fail "Pod $POD was restarted"
     fi
   done
-
-  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
-    -o name 2>/dev/null | wc -l)" = 1 ]
-  then
-    success "minor version upgrade job was not removed after completion."
-  else
-    fail "minor version upgrade job was removed after completion."
-  fi
-
-  local FINAL_DBOPS_JOB_NAME
-  FINAL_DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
-  if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
-  then
-    success "minor version upgrade Job was not re-created."
-  else
-    fail "minor version upgrade Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
-  fi
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
     --template '{{ .spec.postgres.version }}')" = "$E2E_MINOR_TARGET_POSTGRES_VERSION" ]

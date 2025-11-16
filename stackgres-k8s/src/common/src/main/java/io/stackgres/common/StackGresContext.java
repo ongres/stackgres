@@ -71,10 +71,25 @@ public interface StackGresContext {
   String CONFIG_NAME_KEY = "config-name";
   String CONFIG_UID_KEY = "config-uid";
   String CONFIG_NAMESPACE_KEY = "config-namespace";
+  String SCRIPT_KEY = "script";
+  String SCRIPT_APP_NAME = "StackGresScript";
+  String SCRIPT_NAME_KEY = "script-name";
+  String SCRIPT_UID_KEY = "script-uid";
+  String SCRIPT_SCOPE_KEY = "script-scope";
+  String SCRIPT_NAMESPACE_KEY = "script-namespace";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
   String REST_PASSWORD_KEY = "password";
+
+  String ROLLOUT_KEY = STACKGRES_KEY_PREFIX + "rollout";
+  String ROLLOUT_SCHEDULE_KEY = STACKGRES_KEY_PREFIX + "rollout-schedule";
+  String ROLLOUT_DBOPS_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops";
+  String ROLLOUT_METHOD_KEY = STACKGRES_KEY_PREFIX + "rollout-method";
+  String ROLLOUT_DBOPS_METHOD_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops-method";
+  String ROLLOUT_ALWAYS_VALUE = "always";
+  String ROLLOUT_SCHEDULE_VALUE = "schedule";
+  String ROLLOUT_NEVER_VALUE = "never";
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
@@ -106,5 +121,9 @@ public interface StackGresContext {
   String LOCK_SERVICE_ACCOUNT_KEY = STACKGRES_KEY_PREFIX + "lockServiceAccount";
   String LOCK_POD_KEY = STACKGRES_KEY_PREFIX + "lockPod";
   String LOCK_TIMEOUT_KEY = STACKGRES_KEY_PREFIX + "lockTimeout";
+
+  String INTERNAL_STACKGRES_KEY_PREFIX = "internal.stackgres.io/";
+
+  String UPDATE_UNOWNED_RESOURCE_KEY = INTERNAL_STACKGRES_KEY_PREFIX + "update-unowned-resource";
 
 }

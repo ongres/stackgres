@@ -64,7 +64,7 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
             .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
             .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getSourcePostgresVersion)
             .map(context.getClusterContext().getCluster()
-                .getSpec().getPostgres().getVersion()::equals)
+                .getStatus().getPostgresVersion()::equals)
             .map(equals -> !equals)
             .orElse(false)
             || Optional.of(context.getClusterContext().getSource())
@@ -84,7 +84,7 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
             .map(StackGresClusterStatus::getDbOps)
             .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
             .orElseThrow();
-    String postgresVersion = clusterContext.getSource().getSpec().getPostgres().getVersion();
+    String postgresVersion = clusterContext.getSource().getStatus().getPostgresVersion();
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();

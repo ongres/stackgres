@@ -61,13 +61,6 @@ build restapi native executable amd64:
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,restapi"
     MODULE: "restapi-native"
 
-build jobs native executable amd64:
-  extends: .build native executable amd64
-  variables:
-    NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
-    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
-    MODULE: "jobs-native"
-
 build cluster-controller native executable amd64:
   extends: .build native executable amd64
   variables:
@@ -111,13 +104,6 @@ build restapi native executable arm64:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,restapi"
     MODULE: "restapi-native"
-
-build jobs native executable arm64:
-  extends: .build native executable arm64
-  variables:
-    NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
-    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
-    MODULE: "jobs-native"
 
 build cluster-controller native executable arm64:
   extends: .build native executable arm64

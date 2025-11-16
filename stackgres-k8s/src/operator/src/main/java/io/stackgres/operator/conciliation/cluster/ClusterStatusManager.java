@@ -6,22 +6,13 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.ClusterPendingRestartUtil;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
-import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.ManagedSqlUtil;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -35,7 +26,14 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.operator.common.ClusterRolloutUtil;
+import io.stackgres.operator.common.ClusterRolloutUtil.RestartReason;
+import io.stackgres.operator.common.ClusterRolloutUtil.RestartReasons;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.ServiceBindingSecret;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
@@ -56,20 +54,28 @@ public class ClusterStatusManager
 
   private final CustomResourceFinder<StackGresScript> scriptFinder;
 
-  private final KubernetesClient client;
+  private final ResourceFinder<StatefulSet> statefulSetFinder;
+
+  private final ResourceScanner<Pod> podScanner;
+
+  private final PatroniCtl patroniCtl;
+
+  private static String getClusterId(StackGresCluster cluster) {
+    return cluster.getMetadata().getNamespace() + "/" + cluster.getMetadata().getName();
+  }
 
   @Inject
   public ClusterStatusManager(
       LabelFactoryForCluster labelFactory,
       CustomResourceFinder<StackGresScript> scriptFinder,
-      KubernetesClient client) {
+      ResourceFinder<StatefulSet> statefulSetFinder,
+      ResourceScanner<Pod> podScanner,
+      PatroniCtl patroniCtl) {
     this.labelFactory = labelFactory;
     this.scriptFinder = scriptFinder;
-    this.client = client;
-  }
-
-  private static String getClusterId(StackGresCluster cluster) {
-    return cluster.getMetadata().getNamespace() + "/" + cluster.getMetadata().getName();
+    this.statefulSetFinder = statefulSetFinder;
+    this.podScanner = podScanner;
+    this.patroniCtl = patroniCtl;
   }
 
   @Override
@@ -80,12 +86,13 @@ public class ClusterStatusManager
     source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
     source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
     StatusContext context = getStatusContext(source);
-    if (isPendingRestart(source, context)) {
+    RestartReasons restartReasons = getRestartReasons(source, context);
+    if (restartReasons.requiresRestart()) {
       updateCondition(getPodRequiresRestart(), source);
     } else {
       updateCondition(getFalsePendingRestart(), source);
     }
-    if (isPendingUpgrade(source)) {
+    if (restartReasons.requiresUpgrade()) {
       updateCondition(getClusterRequiresUpgrade(), source);
     } else {
       updateCondition(getFalsePendingUpgrade(), source);
@@ -155,11 +162,11 @@ public class ClusterStatusManager
         && source.getStatus().getArch() != null
         && source.getStatus().getOs() != null
         && source.getStatus().getPodStatuses() != null
-        && source.getSpec().getToInstallPostgresExtensions() != null) {
+        && source.getStatus().getExtensions() != null) {
       source.getStatus().getPodStatuses()
           .stream()
           .filter(StackGresClusterPodStatus::getPrimary)
-          .flatMap(podStatus -> source.getSpec().getToInstallPostgresExtensions().stream()
+          .flatMap(podStatus -> source.getStatus().getExtensions().stream()
               .filter(toInstallExtension -> podStatus
                   .getInstalledPostgresExtensions().stream()
                   .noneMatch(toInstallExtension::equals))
@@ -174,7 +181,7 @@ public class ClusterStatusManager
           .map(t -> t.map2(Optional::get))
           .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
     }
-    source.getStatus().setInstances(context.clusterPods().size());
+    source.getStatus().setInstances(context.pods().size());
     source.getStatus().setLabelSelector(labelFactory.clusterLabels(source)
         .entrySet()
         .stream()
@@ -186,9 +193,9 @@ public class ClusterStatusManager
   /**
    * Check pending restart status condition.
    */
-  public boolean isPendingRestart(StackGresCluster cluster, StatusContext context) {
-    RestartReasons reasons = ClusterPendingRestartUtil.getRestartReasons(
-        context.clusterPodStatuses(), context.clusterStatefulSet(), context.clusterPods());
+  public RestartReasons getRestartReasons(StackGresCluster cluster, StatusContext context) {
+    RestartReasons reasons = ClusterRolloutUtil.getRestartReasons(
+        context.cluster(), context.statefulSet(), context.pods(), context.patroniMembers());
     for (RestartReason reason : reasons.getReasons()) {
       switch (reason) {
         case PATRONI:
@@ -196,73 +203,32 @@ public class ClusterStatusManager
               getClusterId(cluster));
           break;
         case POD_STATUS:
-          LOGGER.debug("Cluster {} requires restart due to pod status indication",
+          LOGGER.debug("Cluster {} requires restart due to controller indication",
               getClusterId(cluster));
           break;
         case STATEFULSET:
           LOGGER.debug("Cluster {} requires restart due to pod template changes",
               getClusterId(cluster));
           break;
+        case UPGRADE:
+          LOGGER.debug("Cluster {} requires upgrade due to cluster using old version",
+              getClusterId(cluster));
+          break;
         default:
           break;
       }
     }
-    return reasons.requiresRestart();
+    return reasons;
   }
 
   private StatusContext getStatusContext(StackGresCluster cluster) {
-    List<StackGresClusterPodStatus> clusterPodStatuses = Optional
-        .ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getPodStatuses)
-        .orElse(List.of());
-    Optional<StatefulSet> clusterStatefulSet = getClusterStatefulSet(cluster);
-    List<Pod> clusterPods = getClusterPods(cluster);
-    StatusContext context = new StatusContext(clusterPodStatuses, clusterStatefulSet, clusterPods);
+    final Optional<StatefulSet> statefulSet = statefulSetFinder
+        .findByNameAndNamespace(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<Pod> pods = podScanner
+        .getResourcesInNamespaceWithLabels(cluster.getMetadata().getNamespace(), labelFactory.clusterLabels(cluster));
+    final List<PatroniMember> patroniMembers = patroniCtl.instanceFor(cluster).list();
+    StatusContext context = new StatusContext(cluster, statefulSet, pods, patroniMembers);
     return context;
-  }
-
-  /**
-   * Check pending upgrade status condition.
-   */
-  public boolean isPendingUpgrade(StackGresCluster cluster) {
-    if (Optional.of(cluster.getMetadata())
-        .map(ObjectMeta::getAnnotations)
-        .stream()
-        .map(Map::entrySet)
-        .flatMap(Set::stream)
-        .anyMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
-            && !e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))) {
-      LOGGER.debug("Cluster {} requires upgrade since it is using an old operator version",
-          getClusterId(cluster));
-      return true;
-    }
-    return false;
-  }
-
-  private Optional<StatefulSet> getClusterStatefulSet(StackGresCluster cluster) {
-    return Optional.ofNullable(client.apps().statefulSets()
-        .inNamespace(cluster.getMetadata().getNamespace())
-        .withName(cluster.getMetadata().getName())
-        .get())
-        .stream()
-        .filter(sts -> sts.getMetadata().getOwnerReferences()
-            .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                .equals(StackGresCluster.KIND)
-                && ownerReference.getName().equals(cluster.getMetadata().getName())
-                && ownerReference.getUid().equals(cluster.getMetadata().getUid())))
-        .findFirst();
-  }
-
-  private List<Pod> getClusterPods(StackGresCluster cluster) {
-    final Map<String, String> podClusterLabels =
-        labelFactory.clusterLabels(cluster);
-
-    return client.pods().inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(podClusterLabels)
-        .list()
-        .getItems()
-        .stream()
-        .toList();
   }
 
   @Override
@@ -308,9 +274,10 @@ public class ClusterStatusManager
   }
 
   record StatusContext(
-      List<StackGresClusterPodStatus> clusterPodStatuses,
-      Optional<StatefulSet> clusterStatefulSet,
-      List<Pod> clusterPods) {
+      StackGresCluster cluster,
+      Optional<StatefulSet> statefulSet,
+      List<Pod> pods,
+      List<PatroniMember> patroniMembers) {
   }
 
 }

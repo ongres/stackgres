@@ -437,20 +437,20 @@ get_to_install_extensions() {
       | sort_by(if .build == null then 0 else (.build | split(".") 
         | (.[0] | tonumber | . * 10000) + (.[1] | split("-")[0] | tonumber)) end)
       | reduce .[] as $availableFor ({};
-        . as $result | ($availableFor.postgresVersion | if . != null then . else "any" end)
+        . as $result | ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
+          + ($availableFor.postgresVersion | if . != null then . else "any" end)
           + "-" + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
           + "-" + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end) | . as $key
         | $result | .[$key] = $availableFor) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
-    | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
-      | $extension.publisher
+    | select(($extension.publisher
         + "/" + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
         + "/" + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
         + "/" + $extension.name + "-" + $version.version + "-"
         + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
         + $availableFor.postgresVersion
-        + ($availableFor.build | if . != null then "-build-" + . else "" end)
-      | test($test; "")))
+        + ($availableFor.build | if . != null then "-build-" + . else "" end)) as $extension_to_test
+      | '"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test | $extension_to_test | test($test; "")))
     | $extension.repository + " "
       + $extension.publisher + " "
       + $extension.name + " "

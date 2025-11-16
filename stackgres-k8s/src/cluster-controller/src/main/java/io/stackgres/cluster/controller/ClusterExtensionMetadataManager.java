@@ -11,11 +11,11 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
-@ApplicationScoped
+@Singleton
 public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
 
   @Inject

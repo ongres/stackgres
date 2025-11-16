@@ -25,13 +25,13 @@ public enum StackGresAutoscalingMode {
     return type;
   }
 
-  public static @NotNull StackGresAutoscalingMode fromString(@NotNull String value) {
-    for (StackGresAutoscalingMode role : StackGresAutoscalingMode.values()) {
-      if (role.toString().equals(value)) {
-        return role;
+  public static @NotNull StackGresAutoscalingMode fromString(@NotNull String from) {
+    for (StackGresAutoscalingMode value : StackGresAutoscalingMode.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknown autoscaling mode " + value);
+    throw new IllegalArgumentException("Unknown autoscaling mode " + from);
   }
 
 }

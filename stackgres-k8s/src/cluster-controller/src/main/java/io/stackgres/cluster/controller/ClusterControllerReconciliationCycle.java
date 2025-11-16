@@ -24,7 +24,7 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
@@ -197,8 +197,8 @@ public class ClusterControllerReconciliationCycle
       StackGresCluster cluster) {
     return ImmutableStackGresClusterContext.builder()
         .cluster(cluster)
-        .extensions(Optional.ofNullable(cluster.getSpec())
-            .map(StackGresClusterSpec::getToInstallPostgresExtensions)
+        .extensions(Optional.ofNullable(cluster.getStatus())
+            .map(StackGresClusterStatus::getExtensions)
             .orElse(List.of()))
         .labels(labelFactory.genericLabels(cluster))
         .build();

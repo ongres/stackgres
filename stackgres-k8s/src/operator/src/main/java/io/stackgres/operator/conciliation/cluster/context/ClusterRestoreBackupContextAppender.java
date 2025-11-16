@@ -27,7 +27,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext.Builder;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,8 +34,7 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
-public class ClusterRestoreBackupContextAppender
-    extends ContextAppender<StackGresCluster, Builder> {
+public class ClusterRestoreBackupContextAppender {
 
   private final ResourceFinder<Secret> secretFinder;
   private final CustomResourceFinder<StackGresBackup> backupFinder;
@@ -51,8 +49,7 @@ public class ClusterRestoreBackupContextAppender
     this.backupEnvVarFactory = backupEnvVarFactory;
   }
 
-  @Override
-  public void appendContext(StackGresCluster cluster, Builder contextBuilder) {
+  public void appendContext(StackGresCluster cluster, Builder contextBuilder, String version) {
     if (Optional.of(cluster)
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getConditions)
@@ -67,7 +64,8 @@ public class ClusterRestoreBackupContextAppender
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(
         cluster,
-        cluster.getMetadata().getNamespace());
+        cluster.getMetadata().getNamespace(),
+        version);
 
     final Map<String, Secret> restoreSecrets = restoreBackup
         .map(StackGresBackup::getStatus)
@@ -109,7 +107,8 @@ public class ClusterRestoreBackupContextAppender
 
   private Optional<StackGresBackup> findRestoreBackup(
       StackGresCluster cluster,
-      final String clusterNamespace) {
+      final String clusterNamespace,
+      String version) {
     Optional<StackGresBackup> restoreBackup = Optional
         .ofNullable(cluster.getSpec().getInitialData())
         .map(StackGresClusterInitialData::getRestore)
@@ -128,11 +127,9 @@ public class ClusterRestoreBackupContextAppender
           .getBackupInformation()
           .getPostgresMajorVersion();
 
-      String givenPgVersion = cluster.getSpec()
-          .getPostgres().getVersion();
       String givenMajorVersion = getPostgresFlavorComponent(cluster)
           .get(cluster)
-          .getMajorVersion(givenPgVersion);
+          .getMajorVersion(version);
 
       if (!backupMajorVersion.equals(givenMajorVersion)) {
         throw new IllegalArgumentException("Cannot restore from " + StackGresBackup.KIND + " "

@@ -62,8 +62,11 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
             requiredResource.getMetadata().getNamespace()))
         .filter(requiredResource -> inNamespace.stream()
             .noneMatch(resource -> Objects.equals(
-                resource.getMetadata().getName(),
-                requiredResource.getMetadata().getName())))
+                resource.getFullResourceName(),
+                requiredResource.getFullResourceName())
+                && Objects.equals(
+                    resource.getMetadata().getName(),
+                    requiredResource.getMetadata().getName())))
         .filter(requiredResource -> inNamepspaceResourceOperations
             .containsKey(requiredResource.getClass()))
         .<HasMetadata>flatMap(streamResource(requiredResource -> inNamepspaceResourceOperations
@@ -103,8 +106,11 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .stream()
         .filter(requiredResource -> inNamespace.stream()
             .noneMatch(resource -> Objects.equals(
-                resource.getMetadata().getName(),
-                requiredResource.getMetadata().getName())
+                resource.getFullResourceName(),
+                requiredResource.getFullResourceName())
+                && Objects.equals(
+                    resource.getMetadata().getName(),
+                    requiredResource.getMetadata().getName())
                 && Objects.equals(
                     resource.getMetadata().getNamespace(),
                     requiredResource.getMetadata().getNamespace())))

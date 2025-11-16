@@ -17,10 +17,15 @@ spec:
     served: true
     storage: true
     additionalPrinterColumns:
-    - name: version
+    - name: Version
+      description: the PostgreSQL target version
       type: string
-      jsonPath: .spec.postgres.version
-    - name: instances
+      jsonPath: .status.postgresVersion
+    - name: Flavor
+      description: the PostgreSQL target version
+      type: string
+      jsonPath: .spec.flavor
+    - name: Instances
       type: integer
       jsonPath: .spec.instances 
     - name: Profile
@@ -29,17 +34,20 @@ spec:
     - name: Disk
       type: string
       jsonPath: .spec.pods.persistentVolume.size
-    - name: prometheus-autobind
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+    - name: Replication
       type: string
-      jsonPath: .spec.configurations.observability.prometheusAutobind
+      jsonPath: .spec.replication.mode
       priority: 1
-    - name: pool-config
+    - name: Backup Object Storage
       type: string
-      jsonPath: .spec.configurations.sgPoolingConfig
+      jsonPath: .spec.configurations.backups[0].sgObjectStorage
       priority: 1
-    - name: postgres-config
+    - name: Backup Schedule
       type: string
-      jsonPath: .spec.configurations.sgPostgresConfig
+      jsonPath: .spec.configurations.backups[0].cronSchedule
       priority: 1
     subresources:
       # scale enables the scale subresource.
@@ -111,6 +119,13 @@ spec:
                       *  The string 'latest', which automatically sets the latest major.minor Postgres version.
                       *  A major version, like '14' or '13', which sets that major version and the latest minor version.
                       *  A specific major.minor version, like '14.4'.
+                      
+                      Changing this value will trigger an SGCluster's Pods restart with the following conditions:
+                      
+                      * When a restart SGDbOps targeting this SGCluster is created the Pods will be restarted when the SGDbOps is started.
+                      * When SGCluster is annotated with `stackgres.io/rollout` with value `always` the Pods will be restarted ASAP.
+                      * When SGCluster is annotated with `stackgres.io/schedule` with value syntax `<cron  expression>[:<duration>][,...]` the Pods will be restarted in the time windows specified by the cron expressions and durations values defined.
+                      * When SGCluster is annotated with `stackgres.io/rollout` with value `never` the Pods will never be restarted (even creating an SGDbOps).
                   flavor:
                     type: string
                     default: vanilla
@@ -131,6 +146,7 @@ spec:
                       statement. After an extension is deployed correctly it will be present until removed and the cluster restarted.
                       
                       A cluster restart is required for:
+
                       * Extensions that requires to add an entry to [`shared_preload_libraries`](https://postgresqlco.nf/en/doc/param/shared_preload_libraries/) configuration parameter.
                       * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
                       * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
@@ -161,7 +177,7 @@ spec:
                           description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
                         version:
                           type: string
-                          description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
+                          description: The version of the extension to deploy. If not specified latest version will be used by default. If latest version can not be determined (if extension uses non standard versioning) a version will be picked up randomly.
                         repository:
                           type: string
                           description: |
@@ -201,6 +217,14 @@ spec:
                           Allow to enable SSL for connections to Postgres. By default is `true`.
                           
                           If `true` certificate and private key will be auto-generated unless fields `certificateSecretKeySelector` and `privateKeySecretKeySelector` are specified.
+                      duration:
+                        type: string
+                        description: |
+                          An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies the duration of the auto-generated certificate.
+
+                          If not specified the default duration will be of 13 months.
+
+                          The certificate will be re-generated 1 day or, if more, 1/12th of its duration before it expires.
                       certificateSecretKeySelector:
                         type: object
                         description: |
@@ -604,27 +628,32 @@ spec:
                     properties:
                       allResources:
                         type: object
-                        description: Annotations to attach to any resource created or managed by StackGres.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       clusterPods:
                         type: object
-                        description: Annotations to attach to pods created or managed by StackGres.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       services:
                         type: object
-                        description: Annotations to attach to all services created or managed by StackGres.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       primaryService:
                         type: object
-                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                       replicasService:
                         type: object
-                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
+                        additionalProperties:
+                          type: string
+                      serviceAccount:
+                        type: object
+                        description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).
                         additionalProperties:
                           type: string
                   labels:
@@ -648,16 +677,36 @@ spec:
                               customLabel: customLabelValue
                       ```
                     properties:
+                      allResources:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
                       clusterPods:
                         type: object
-                        description: Labels to attach to Pods created or managed by StackGres.
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
                           type: string 
                       services:
                         type: object
-                        description: Labels to attach to Services and Endpoints created or managed by StackGres.
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
-                          type: string 
+                          type: string
+                      primaryService:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
+                      replicasService:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
+                      serviceAccount:
+                        type: object
+                        description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
+                        additionalProperties:
+                          type: string
               postgresServices:
                 type: object
                 description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
@@ -923,6 +972,59 @@ spec:
                         ready before continuing. When scaling down, the pods are removed in the opposite order.
                         The alternative policy is `Parallel` which will create pods in parallel to match the desired
                         scale without waiting, and on scale down will delete all pods at once.
+                  updateStartegy:
+                    type: object
+                    default:
+                      type: SGDbOps
+                    description: |
+                      This section indicates the strategy that the SGCluster controller will use to perform updates.
+                      
+                      It includes any additional parameters necessary to perform the update for the indicated strategy.
+                    properties:
+                      type:
+                        type: string
+                        default: OnlyDbOps
+                        description: |
+                          Indicates the type of the update strategy. Default is `OnlyDbOps`.
+                          
+                          * `Always`: update will be performed as soon as possible.
+                          * `Schedule`: update will be performed as specified in the schedule section where you can configure windows of time where the update can be performed.
+                          * `OnlyDbOps`: update will be performed only when an SGDbOps of type restart, securityUpgrade or minorVersionUpgrade targeting the SGCluster is started.
+                          * `Never`: update will never be performed (even if annotation `stackgres.io/rollout` is present with a different value) unless the Pods are deleted manually.
+                          
+                          Alternatively to this configuration you may specify the following annotations:
+                          
+                          * `stackgres.io/rollout=always`: Same behavior as `Always`.
+                          * `stackgres.io/rollout=schedule`: Same behavior as `Schedule`.
+                          * `stackgres.io/rollout=never`: Same behavior as `Never` (even if type has a different value).
+
+                          Unless `Never` (or the annotation `stackgres.io/rollout=never`) is specified an `SGDbOps` of type restart, securityUpgrade or minorVersionUpgrade targeting the SGCluster
+                           will trigger an update of the Pods.
+                          
+                          The update of the Pods will be performed only if Pods are pending any change. Changes in the configuration may not require restarting the Pod and, in such cases, only
+                           the Postgres instance will be restarted.
+                      method:
+                        type: string
+                        default: InPlace
+                        description: |
+                          Indicates the method of the update strategy. Default is `InPlace`.
+                          
+                          * `InPlace`: update will be performed on the existing instances.
+                          * `ReducedImpact`: before an update is performed on the existing instances a new instance if created to reduce the impact on read-only replicas.
+                      schedule:
+                        type: array
+                        description: Indicates a list of windows of time where an update can be performed.
+                        items:
+                          type: object
+                          description: Indicates a window of time where an update can be performed.
+                          properties:
+                            cron:
+                              type: string
+                              description: A UNIX cron expression indicating the start of the window of time where the update can be performed.
+                            duration:
+                              type: string
+                              description: |
+                                An ISO 8601 duration in the format `PnDTnHnMn.nS`, that, together with the cron expression, indicates the end of the window of time where the update can be performed.
                   customVolumes:
                     type: array
                     description: |
@@ -1055,6 +1157,38 @@ spec:
                       type: array
                       description: Custom Pod volumes to mount into the specified init container's filesystem.
                       items: *volume-mounts-items
+                  customEnv:
+                    type: object
+                    description: Custom Pod environment variables for the specified container.
+                    additionalProperties:
+                      type: array
+                      description: Custom Pod environment variables for the specified container.
+                      items: #!jq_placeholder .definitions["io.k8s.api.core.v1.EnvVar"] #envvar-v1-core
+                        {"description":"EnvVar represents an environment variable present in a Container.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#envvar-v1-core","properties":{"name":{"description":"Name of the environment variable. Must be a C_IDENTIFIER.","type":"string"},"value":{"description":"Variable references $(VAR_NAME) are expanded using the previously defined environment variables in the container and any service environment variables. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. \"$$(VAR_NAME)\" will produce the string literal \"$(VAR_NAME)\". Escaped references will never be expanded, regardless of whether the variable exists or not. Defaults to \"\".","type":"string"},"valueFrom":{"description":"EnvVarSource represents a source for the value of an EnvVar.","properties":{"configMapKeyRef":{"description":"Selects a key from a ConfigMap.","properties":{"key":{"description":"The key to select.","type":"string"},"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the ConfigMap or its key must be defined","type":"boolean"}},"required":["key"],"type":"object"},"fieldRef":{"description":"ObjectFieldSelector selects an APIVersioned field of an object.","properties":{"apiVersion":{"description":"Version of the schema the FieldPath is written in terms of, defaults to \"v1\".","type":"string"},"fieldPath":{"description":"Path of the field to select in the specified API version.","type":"string"}},"required":["fieldPath"],"type":"object"},"resourceFieldRef":{"description":"ResourceFieldSelector represents container resources (cpu, memory) and their output format","properties":{"containerName":{"description":"Container name: required for volumes, optional for env vars","type":"string"},"divisor":{"description":"Quantity is a fixed-point representation of a number. It provides convenient marshaling/unmarshaling in JSON and YAML, in addition to String() and AsInt64() accessors.\n\nThe serialization format is:\n\n``` <quantity>        ::= <signedNumber><suffix>\n\n\t(Note that <suffix> may be empty, from the \"\" case in <decimalSI>.)\n\n<digit>           ::= 0 | 1 | ... | 9 <digits>          ::= <digit> | <digit><digits> <number>          ::= <digits> | <digits>.<digits> | <digits>. | .<digits> <sign>            ::= \"+\" | \"-\" <signedNumber>    ::= <number> | <sign><number> <suffix>          ::= <binarySI> | <decimalExponent> | <decimalSI> <binarySI>        ::= Ki | Mi | Gi | Ti | Pi | Ei\n\n\t(International System of units; See: http://physics.nist.gov/cuu/Units/binary.html)\n\n<decimalSI>       ::= m | \"\" | k | M | G | T | P | E\n\n\t(Note that 1024 = 1Ki but 1000 = 1k; I didn't choose the capitalization.)\n\n<decimalExponent> ::= \"e\" <signedNumber> | \"E\" <signedNumber> ```\n\nNo matter which of the three exponent forms is used, no quantity may represent a number greater than 2^63-1 in magnitude, nor may it have more than 3 decimal places. Numbers larger or more precise will be capped or rounded up. (E.g.: 0.1m will rounded up to 1m.) This may be extended in the future if we require larger or smaller quantities.\n\nWhen a Quantity is parsed from a string, it will remember the type of suffix it had, and will use the same type again when it is serialized.\n\nBefore serializing, Quantity will be put in \"canonical form\". This means that Exponent/suffix will be adjusted up or down (with a corresponding increase or decrease in Mantissa) such that:\n\n- No precision is lost - No fractional digits will be emitted - The exponent (or suffix) is as large as possible.\n\nThe sign will be omitted unless the number is negative.\n\nExamples:\n\n- 1.5 will be serialized as \"1500m\" - 1.5Gi will be serialized as \"1536Mi\"\n\nNote that the quantity will NEVER be internally represented by a floating point number. That is the whole point of this exercise.\n\nNon-canonical values will still parse as long as they are well formed, but will be re-emitted in their canonical form. (So always use canonical form, or don't diff.)\n\nThis format is intended to make it difficult to use these numbers without writing some sort of special handling code in the hopes that that will cause implementors to also use a fixed point implementation.","type":"string"},"resource":{"description":"Required: resource to select","type":"string"}},"required":["resource"],"type":"object"},"secretKeyRef":{"description":"SecretKeySelector selects a key of a Secret.","properties":{"key":{"description":"The key of the secret to select from.  Must be a valid secret key.","type":"string"},"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the Secret or its key must be defined","type":"boolean"}},"required":["key"],"type":"object"}},"type":"object"}},"required":["name"],"type":"object"}
+                  customInitEnv:
+                    type: object
+                    description: Custom Pod environment variables for the specified init container.
+                    additionalProperties:
+                      type: array
+                      description: Custom Pod environment variables for the specified init container.
+                      items: #!jq_placeholder .definitions["io.k8s.api.core.v1.EnvVar"] #envvar-v1-core
+                        {"description":"EnvVar represents an environment variable present in a Container.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#envvar-v1-core","properties":{"name":{"description":"Name of the environment variable. Must be a C_IDENTIFIER.","type":"string"},"value":{"description":"Variable references $(VAR_NAME) are expanded using the previously defined environment variables in the container and any service environment variables. If a variable cannot be resolved, the reference in the input string will be unchanged. Double $$ are reduced to a single $, which allows for escaping the $(VAR_NAME) syntax: i.e. \"$$(VAR_NAME)\" will produce the string literal \"$(VAR_NAME)\". Escaped references will never be expanded, regardless of whether the variable exists or not. Defaults to \"\".","type":"string"},"valueFrom":{"description":"EnvVarSource represents a source for the value of an EnvVar.","properties":{"configMapKeyRef":{"description":"Selects a key from a ConfigMap.","properties":{"key":{"description":"The key to select.","type":"string"},"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the ConfigMap or its key must be defined","type":"boolean"}},"required":["key"],"type":"object"},"fieldRef":{"description":"ObjectFieldSelector selects an APIVersioned field of an object.","properties":{"apiVersion":{"description":"Version of the schema the FieldPath is written in terms of, defaults to \"v1\".","type":"string"},"fieldPath":{"description":"Path of the field to select in the specified API version.","type":"string"}},"required":["fieldPath"],"type":"object"},"resourceFieldRef":{"description":"ResourceFieldSelector represents container resources (cpu, memory) and their output format","properties":{"containerName":{"description":"Container name: required for volumes, optional for env vars","type":"string"},"divisor":{"description":"Quantity is a fixed-point representation of a number. It provides convenient marshaling/unmarshaling in JSON and YAML, in addition to String() and AsInt64() accessors.\n\nThe serialization format is:\n\n``` <quantity>        ::= <signedNumber><suffix>\n\n\t(Note that <suffix> may be empty, from the \"\" case in <decimalSI>.)\n\n<digit>           ::= 0 | 1 | ... | 9 <digits>          ::= <digit> | <digit><digits> <number>          ::= <digits> | <digits>.<digits> | <digits>. | .<digits> <sign>            ::= \"+\" | \"-\" <signedNumber>    ::= <number> | <sign><number> <suffix>          ::= <binarySI> | <decimalExponent> | <decimalSI> <binarySI>        ::= Ki | Mi | Gi | Ti | Pi | Ei\n\n\t(International System of units; See: http://physics.nist.gov/cuu/Units/binary.html)\n\n<decimalSI>       ::= m | \"\" | k | M | G | T | P | E\n\n\t(Note that 1024 = 1Ki but 1000 = 1k; I didn't choose the capitalization.)\n\n<decimalExponent> ::= \"e\" <signedNumber> | \"E\" <signedNumber> ```\n\nNo matter which of the three exponent forms is used, no quantity may represent a number greater than 2^63-1 in magnitude, nor may it have more than 3 decimal places. Numbers larger or more precise will be capped or rounded up. (E.g.: 0.1m will rounded up to 1m.) This may be extended in the future if we require larger or smaller quantities.\n\nWhen a Quantity is parsed from a string, it will remember the type of suffix it had, and will use the same type again when it is serialized.\n\nBefore serializing, Quantity will be put in \"canonical form\". This means that Exponent/suffix will be adjusted up or down (with a corresponding increase or decrease in Mantissa) such that:\n\n- No precision is lost - No fractional digits will be emitted - The exponent (or suffix) is as large as possible.\n\nThe sign will be omitted unless the number is negative.\n\nExamples:\n\n- 1.5 will be serialized as \"1500m\" - 1.5Gi will be serialized as \"1536Mi\"\n\nNote that the quantity will NEVER be internally represented by a floating point number. That is the whole point of this exercise.\n\nNon-canonical values will still parse as long as they are well formed, but will be re-emitted in their canonical form. (So always use canonical form, or don't diff.)\n\nThis format is intended to make it difficult to use these numbers without writing some sort of special handling code in the hopes that that will cause implementors to also use a fixed point implementation.","type":"string"},"resource":{"description":"Required: resource to select","type":"string"}},"required":["resource"],"type":"object"},"secretKeyRef":{"description":"SecretKeySelector selects a key of a Secret.","properties":{"key":{"description":"The key of the secret to select from.  Must be a valid secret key.","type":"string"},"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the Secret or its key must be defined","type":"boolean"}},"required":["key"],"type":"object"}},"type":"object"}},"required":["name"],"type":"object"}
+                  customEnvFrom:
+                    type: object
+                    description: Custom Pod environment variables from a source for the specified container.
+                    additionalProperties:
+                      type: array
+                      description: Custom Pod environment variables from a source for the specified container.
+                      items: #!jq_placeholder .definitions["io.k8s.api.core.v1.EnvFromSource"] #envfromsource-v1-core
+                        {"description":"EnvFromSource represents the source of a set of ConfigMaps or Secrets\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#envfromsource-v1-core","properties":{"configMapRef":{"description":"ConfigMapEnvSource selects a ConfigMap to populate the environment variables with.\n\nThe contents of the target ConfigMap's Data field will represent the key-value pairs as environment variables.","properties":{"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the ConfigMap must be defined","type":"boolean"}},"type":"object"},"prefix":{"description":"Optional text to prepend to the name of each environment variable. Must be a C_IDENTIFIER.","type":"string"},"secretRef":{"description":"SecretEnvSource selects a Secret to populate the environment variables with.\n\nThe contents of the target Secret's Data field will represent the key-value pairs as environment variables.","properties":{"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the Secret must be defined","type":"boolean"}},"type":"object"}},"type":"object"}
+                  customInitEnvFrom:
+                    type: object
+                    description: Custom Pod environment variables from a source for the specified init container.
+                    additionalProperties:
+                      type: array
+                      description: Custom Pod environment variables from a source for the specified init container.
+                      items: #!jq_placeholder .definitions["io.k8s.api.core.v1.EnvFromSource"] #envfromsource-v1-core
+                        {"description":"EnvFromSource represents the source of a set of ConfigMaps or Secrets\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#envfromsource-v1-core","properties":{"configMapRef":{"description":"ConfigMapEnvSource selects a ConfigMap to populate the environment variables with.\n\nThe contents of the target ConfigMap's Data field will represent the key-value pairs as environment variables.","properties":{"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the ConfigMap must be defined","type":"boolean"}},"type":"object"},"prefix":{"description":"Optional text to prepend to the name of each environment variable. Must be a C_IDENTIFIER.","type":"string"},"secretRef":{"description":"SecretEnvSource selects a Secret to populate the environment variables with.\n\nThe contents of the target Secret's Data field will represent the key-value pairs as environment variables.","properties":{"name":{"description":"Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names","type":"string"},"optional":{"description":"Specify whether the Secret must be defined","type":"boolean"}},"type":"object"}},"type":"object"}
               configurations:
                 type: object
                 description: |
@@ -1318,7 +1452,6 @@ spec:
                           
                           * synchronous_mode
                           * synchronous_mode_strict
-                          * failsafe_mode
                           * postgresql (except pg_hba section)
                           * standby_cluster
                           
@@ -1711,7 +1844,7 @@ spec:
                   
                   Changing this section is allowed to fix issues or to change the replication source.
                   
-                  Removing this section convert the cluster in a normal cluster where the standby leader is converted into the a primary instance.
+                  Removing this section convert the cluster in a normal cluster where the standby leader is converted into a primary instance.
 
                   **Example:**
 
@@ -2173,15 +2306,6 @@ spec:
             type: object
             description: Current status of a StackGres cluster.
             properties:
-              instances:
-                type: integer
-                description: Actual number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
-              labelSelector:
-                type: string
-                description: Actual label selector for instances for the StackGres cluster's Pods to be used by autoscaling.
-              replicationInitializationFailedSGBackup:
-                type: string
-                description: Indicates the latest failed backup for the replication initialization.
               conditions:
                 type: array
                 items:
@@ -2202,6 +2326,63 @@ spec:
                     type:
                       description: Type of deployment condition.
                       type: string
+              postgresVersion:
+                type: string
+                description: The Postgres version used to generate the SGCluster's Pods
+              buildVersion:
+                type: string
+                description: The Postgres build version used to generate the SGCluster's Pods
+              extensions:
+                type: array
+                description: |
+                  The list of Postgres extensions to install.
+                  
+                  **This section is filled by the operator.**
+                items:
+                  type: object
+                  required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the extension to install.
+                    publisher:
+                      type: string
+                      description: The id of the publisher of the extension to install.
+                    version:
+                      type: string
+                      description: The version of the extension to install.
+                    repository:
+                      type: string
+                      description: The repository base URL from where the extension will be installed from.
+                    postgresVersion:
+                      type: string
+                      description: The postgres major version of the extension to install.
+                    build:
+                      type: string
+                      description: The build version of the extension to install.
+                    extraMounts:
+                      type: array
+                      description: The extra mounts of the extension to install.
+                      items:
+                        type: string
+                        description: The extra mount of the installed extension.
+              sgPostgresConfig:
+                type: string
+                description: The Postgres configuration that is being used by the SGCluster's Pods
+              backupPaths:
+                type: array
+                description: The backup paths used
+                items:
+                  type: string
+              instances:
+                type: integer
+                description: Actual number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
+              labelSelector:
+                type: string
+                description: Actual label selector for instances for the StackGres cluster's Pods to be used by autoscaling.
+              replicationInitializationFailedSGBackup:
+                type: string
+                description: Indicates the latest failed backup for the replication initialization.
               podStatuses:
                 type: array
                 description: The list of pod statuses.
@@ -2260,6 +2441,9 @@ spec:
                 description: |
                   Used by some [SGDbOps](https://stackgres.io/doc/latest/reference/crd/sgdbops) to indicate the operation configuration and status to the operator.
                 properties:
+                  name:
+                    type: string
+                    description: the name of the SGDbOps resource
                   majorVersionUpgrade:
                     type: object
                     description: |

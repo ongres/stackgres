@@ -23,13 +23,13 @@ public enum DbOpsPgbenchPartitionMethod {
     return type;
   }
 
-  public static DbOpsPgbenchPartitionMethod fromString(String name) {
+  public static DbOpsPgbenchPartitionMethod fromString(String from) {
     for (DbOpsPgbenchPartitionMethod value : values()) {
-      if (value.type.equals(name)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("pgbench partition method is invalid: " + name);
+    throw new IllegalArgumentException("pgbench partition method is invalid: " + from);
   }
 
 }

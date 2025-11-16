@@ -26,6 +26,16 @@ import jakarta.validation.Valid;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterStatus {
 
+  private String postgresVersion;
+
+  private String buildVersion;
+
+  private List<StackGresClusterInstalledExtension> extensions;
+
+  private String sgPostgresConfig;
+
+  private List<String> backupPaths;
+
   private Integer instances;
 
   private String labelSelector;
@@ -54,6 +64,46 @@ public class StackGresClusterStatus {
 
   @Valid
   private StackGresClusterServiceBindingStatus binding;
+
+  public String getPostgresVersion() {
+    return postgresVersion;
+  }
+
+  public void setPostgresVersion(String postgresVersion) {
+    this.postgresVersion = postgresVersion;
+  }
+
+  public String getBuildVersion() {
+    return buildVersion;
+  }
+
+  public void setBuildVersion(String buildVersion) {
+    this.buildVersion = buildVersion;
+  }
+
+  public List<StackGresClusterInstalledExtension> getExtensions() {
+    return extensions;
+  }
+
+  public void setExtensions(List<StackGresClusterInstalledExtension> extensions) {
+    this.extensions = extensions;
+  }
+
+  public String getSgPostgresConfig() {
+    return sgPostgresConfig;
+  }
+
+  public void setSgPostgresConfig(String sgPostgresConfig) {
+    this.sgPostgresConfig = sgPostgresConfig;
+  }
+
+  public List<String> getBackupPaths() {
+    return backupPaths;
+  }
+
+  public void setBackupPaths(List<String> backupPaths) {
+    this.backupPaths = backupPaths;
+  }
 
   public Integer getInstances() {
     return instances;
@@ -145,8 +195,9 @@ public class StackGresClusterStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(arch, binding, conditions, dbOps, instances, labelPrefix, labelSelector, managedSql, os,
-        podStatuses, replicationInitializationFailedSgBackup);
+    return Objects.hash(arch, backupPaths, binding, buildVersion, conditions, dbOps, extensions,
+        instances, labelPrefix, labelSelector, managedSql, os, podStatuses, postgresVersion,
+        replicationInitializationFailedSgBackup, sgPostgresConfig);
   }
 
   @Override
@@ -158,12 +209,20 @@ public class StackGresClusterStatus {
       return false;
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
-    return Objects.equals(arch, other.arch) && Objects.equals(binding, other.binding)
+    return Objects.equals(arch, other.arch) && Objects.equals(backupPaths, other.backupPaths)
+        && Objects.equals(binding, other.binding)
+        && Objects.equals(buildVersion, other.buildVersion)
         && Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
-        && Objects.equals(instances, other.instances) && Objects.equals(labelPrefix, other.labelPrefix)
-        && Objects.equals(labelSelector, other.labelSelector) && Objects.equals(managedSql, other.managedSql)
-        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(replicationInitializationFailedSgBackup, other.replicationInitializationFailedSgBackup);
+        && Objects.equals(extensions, other.extensions)
+        && Objects.equals(instances, other.instances)
+        && Objects.equals(labelPrefix, other.labelPrefix)
+        && Objects.equals(labelSelector, other.labelSelector)
+        && Objects.equals(managedSql, other.managedSql) && Objects.equals(os, other.os)
+        && Objects.equals(podStatuses, other.podStatuses)
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(replicationInitializationFailedSgBackup,
+            other.replicationInitializationFailedSgBackup)
+        && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }
 
   @Override

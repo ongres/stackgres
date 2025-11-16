@@ -22,6 +22,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -65,9 +66,11 @@ class ClusterValidationQuarkusTest {
     var review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getMetadata().setNamespace("test");
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    review.getRequest().getObject().setStatus(new StackGresClusterStatus());
+    StackGresClusterStatus status = review.getRequest().getObject().getStatus();
     spec.getPostgres().setExtensions(
         getExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
-    spec.setToInstallPostgresExtensions(
+    status.setExtensions(
         getInstalledExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
     spec.setDistributedLogs(null);
     spec.setInitialData(null);
@@ -194,22 +197,17 @@ class ClusterValidationQuarkusTest {
   }
 
   @Test
-  void given_withoutInstalledExtensions_shouldFail() {
+  void given_withoutInstalledExtensions_shouldNotFail() {
     StackGresClusterReview clusterReview = getConstraintClusterReview();
-    clusterReview.getRequest().getObject().getSpec().setToInstallPostgresExtensions(null);
+    clusterReview.getRequest().getObject().getStatus().setExtensions(null);
     RestAssured.given()
         .body(clusterReview)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post(ValidationUtil.CLUSTER_VALIDATION_PATH)
         .then()
-        .body("response.allowed", is(false),
-            "kind", is("AdmissionReview"),
-            "response.status.code", is(400),
-            "response.status.message",
-            is("Some extensions were not found: dblink,"
-                + " pg_stat_statements, plpgsql,"
-                + " plpython3u"))
+        .body("response.allowed", is(true),
+            "kind", is("AdmissionReview"))
         .statusCode(200);
   }
 

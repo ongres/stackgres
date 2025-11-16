@@ -279,12 +279,7 @@ collector:
 
 # Section to configure Operator Installation Jobs
 jobs:
-  # Section to configure Operator Installation Jobs image
   image:
-    # -- Operator Installation Jobs image name
-    name: "stackgres/jobs"
-    # -- Operator Installation Jobs image tag
-    tag: "main-jvm"
     # -- Operator Installation Jobs image pull policy
     pullPolicy: "IfNotPresent"
   # -- Operator Installation Jobs annotations
@@ -548,12 +543,6 @@ developer:
       volumeMounts: []
     # Section to define volumes to be used by the adminui container
     adminui:
-      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes: []
-      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts: []
-    # Section to define volumes to be used by the jobs container
-    jobs:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
       volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core

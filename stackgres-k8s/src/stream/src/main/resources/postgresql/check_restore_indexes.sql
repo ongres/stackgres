@@ -1,0 +1,1 @@
+SELECT COUNT(*) FROM __migration__.indexes;

@@ -21,7 +21,8 @@ public enum StreamProperty implements StackGresPropertyReader {
   POD_NAME("stackgres.stream.podName"),
   STREAM_LOCK_POLL_INTERVAL("stackgres.stream.lockPollInterval"),
   STREAM_LOCK_DURATION("stackgres.stream.lockDuration"),
-  STREAM_JMX_COLLECTOR_YAML_CONFIG("stackgres.stream.jmxCollectorYamlConfig");
+  STREAM_JMX_COLLECTOR_YAML_CONFIG("stackgres.stream.jmxCollectorYamlConfig"),
+  STREAM_MBEAN_POLLING_PERIOD("stackgres.stream.mBeanPollingPeriod");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(StreamProperty.class);

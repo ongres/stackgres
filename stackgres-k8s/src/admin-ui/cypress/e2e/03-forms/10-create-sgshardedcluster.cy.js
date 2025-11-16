@@ -286,6 +286,8 @@ describe('Create SGShardedCluster', () => {
             .type('3')
 
         // Base Backup Details
+        cy.get('div#addBackupPath a')
+            .click()
         cy.get('[data-field="spec.configurations.backups.paths[0]"]')
             .clear()    
             .type('/path')
@@ -4121,7 +4123,7 @@ describe('Create SGShardedCluster', () => {
             .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.postgres.extensions')
-            .should('have.lengthOf', 6)
+            .should('have.lengthOf', 4)
             .then((list) => Cypress._.map(list, 'name'))
             .should('include', "pg_repack")
             .and('include', "plpgsql_check")

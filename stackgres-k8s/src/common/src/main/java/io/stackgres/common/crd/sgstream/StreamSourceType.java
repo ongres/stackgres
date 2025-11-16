@@ -23,13 +23,13 @@ public enum StreamSourceType {
     return type;
   }
 
-  public static StreamSourceType fromString(String type) {
+  public static StreamSourceType fromString(String from) {
     for (StreamSourceType value : values()) {
-      if (value.type.equals(type)) {
+      if (value.type.equals(from)) {
         return value;
       }
     }
-    throw new IllegalArgumentException("SGStream source type " + type + " is invalid");
+    throw new IllegalArgumentException("SGStream source type " + from + " is invalid");
   }
 
 }

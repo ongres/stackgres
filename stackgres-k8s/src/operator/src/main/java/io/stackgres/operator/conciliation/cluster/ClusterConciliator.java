@@ -19,14 +19,17 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.common.ClusterRolloutUtil;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResource;
@@ -86,18 +89,21 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
           .map(StackGresClusterPatroni::getInitialConfig)
           .map(StackGresClusterPatroniConfig::isPatroniOnKubernetes)
           .orElse(true);
-      Map<String, String> primaryLabels =
+      final List<PatroniMember> members = patroniCtl.list();
+      final Map<String, String> primaryLabels =
           labelFactory.clusterPrimaryLabelsWithoutUidAndScope(config);
+      final Map<String, String> clusterPodsLabels =
+          labelFactory.clusterLabelsWithoutUidAndScope(config);
       final boolean noPrimaryPod =
           (isPatroniOnKubernetes
-              || patroniCtl.list()
+              || members
               .stream()
               .noneMatch(member -> member.isPrimary()
                   && !member.getMember().startsWith(config.getMetadata().getName() + "-")))
           && deployedResourcesCache
           .stream()
           .map(DeployedResource::foundDeployed)
-          .noneMatch(foundDeployedResource -> isPrimaryPod(foundDeployedResource, primaryLabels));
+          .noneMatch(foundDeployedResource -> isPodWithLabels(foundDeployedResource, primaryLabels));
       if (noPrimaryPod && LOGGER.isDebugEnabled()) {
         LOGGER.debug("Will force StatefulSet reconciliation since no primary pod with labels {} was"
             + " found for SGCluster {}.{}",
@@ -107,7 +113,6 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       }
       final boolean anyPodWithWrongOrMissingRole;
       if (!isPatroniOnKubernetes) {
-        var members = patroniCtl.list();
         anyPodWithWrongOrMissingRole = deployedResourcesCache
             .stream()
             .map(DeployedResource::foundDeployed)
@@ -121,12 +126,40 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
       }
-      return noPrimaryPod || anyPodWithWrongOrMissingRole;
+      final boolean anyPodCanRestart;
+      if (ClusterRolloutUtil.isRolloutAllowed(config)) {
+        anyPodCanRestart = Optional.of(config)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getConditions)
+            .stream()
+            .flatMap(List::stream)
+            .anyMatch(ClusterStatusCondition.POD_REQUIRES_RESTART::isCondition);
+      } else {
+        anyPodCanRestart = false;
+      }
+      if (anyPodCanRestart && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Will force StatefulSet reconciliation since some pod must be restarted for SGCluster {}.{}",
+            config.getMetadata().getNamespace(),
+            config.getMetadata().getName());
+      }
+      final boolean podsCountMismatch = config.getSpec().getInstances()
+          != deployedResourcesCache
+              .stream()
+              .map(DeployedResource::foundDeployed)
+              .filter(foundDeployedResource -> isPodWithLabels(foundDeployedResource, clusterPodsLabels))
+              .count();
+      if (podsCountMismatch && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Will force StatefulSet reconciliation since pods count"
+            + " mismatch with instances for SGCluster {}.{}",
+            config.getMetadata().getNamespace(),
+            config.getMetadata().getName());
+      }
+      return noPrimaryPod || anyPodWithWrongOrMissingRole || anyPodCanRestart || podsCountMismatch;
     }
     return false;
   }
 
-  private boolean isPrimaryPod(
+  private boolean isPodWithLabels(
       HasMetadata foundDeployedResource,
       Map<String, String> primaryLabels) {
     return foundDeployedResource instanceof Pod foundDeployedPod

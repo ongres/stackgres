@@ -23,13 +23,13 @@ public enum StackGresMainReplicationRole {
     return role.toString();
   }
 
-  public static StackGresMainReplicationRole fromString(String value) {
-    for (StackGresMainReplicationRole role : StackGresMainReplicationRole.values()) {
-      if (role.toString().equals(value)) {
-        return role;
+  public static StackGresMainReplicationRole fromString(String from) {
+    for (StackGresMainReplicationRole value : StackGresMainReplicationRole.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException(value + " can not be converted to a "
+    throw new IllegalArgumentException(from + " can not be converted to a "
         + StackGresMainReplicationRole.class.getName());
   }
 

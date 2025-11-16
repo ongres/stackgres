@@ -208,8 +208,6 @@ test_packages() {
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
     --set-string "restapi.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
-    --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
-    --set-string "jobs.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \

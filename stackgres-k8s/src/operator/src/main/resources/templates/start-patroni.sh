@@ -524,4 +524,4 @@ PREPARE_REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
   exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-replication-initialization-from-backup.sh"
 fi
 
-PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_FILE_PATH"
+PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/local/bin/patroni "$PATRONI_CONFIG_FILE_PATH"

@@ -7,13 +7,10 @@ package io.stackgres.operator.conciliation.factory.dbops;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.DbOpsUtil;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
+import io.stackgres.operator.common.DbOpsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
@@ -32,22 +29,14 @@ public class DbOpsJobsGenerator implements ResourceGenerator<StackGresDbOpsConte
     this.jobsDiscoverer = jobsDiscoverer;
   }
 
-  public static Boolean isToRunAfter(StackGresDbOps dbOps, Instant now) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getSpec)
-        .map(StackGresDbOpsSpec::getRunAt)
-        .map(Instant::parse)
-        .map(runAt -> !runAt.isBefore(now))
-        .orElse(false);
-  }
-
   @Override
   public Stream<HasMetadata> generateResource(StackGresDbOpsContext config) {
     Instant now = Instant.now();
     Map<String, DbOpsJobFactory> factories = jobsDiscoverer.discoverFactories(config);
     return Seq.of(config.getSource())
+        .filter(dbOp -> !DbOpsUtil.ROLLOUT_OPS.contains(dbOp.getSpec().getOp()))
+        .filter(dbOp -> !DbOpsUtil.isToRunAfter(dbOp, now))
         .filter(dbOp -> !DbOpsUtil.isAlreadyCompleted(dbOp))
-        .filter(dbOp -> !isToRunAfter(dbOp, now))
         .map(dbOp -> {
           DbOpsJobFactory jobFactory = factories.get(dbOp.getSpec().getOp());
           if (jobFactory == null) {
@@ -57,4 +46,5 @@ public class DbOpsJobsGenerator implements ResourceGenerator<StackGresDbOpsConte
           return jobFactory.createJob(config);
         });
   }
+
 }

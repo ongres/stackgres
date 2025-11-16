@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster.context;
 
+import static io.stackgres.operator.utils.ConciliationUtils.toNumericPostgresVersion;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -115,7 +116,7 @@ class ClusterReplicationInitializationContextAppenderTest {
         .endTiming()
         .endProcess()
         .withNewBackupInformation()
-        .withPostgresVersion(cluster.getSpec().getPostgres().getVersion())
+        .withPostgresVersion(toNumericPostgresVersion(cluster.getSpec().getPostgres().getVersion()))
         .endBackupInformation()
         .withBackupPath(cluster.getSpec().getConfigurations().getBackups().getFirst().getPath())
         .withNewSgBackupConfig()
@@ -138,7 +139,7 @@ class ClusterReplicationInitializationContextAppenderTest {
         .endTiming()
         .endProcess()
         .withNewBackupInformation()
-        .withPostgresVersion(cluster.getSpec().getPostgres().getVersion())
+        .withPostgresVersion(toNumericPostgresVersion(cluster.getSpec().getPostgres().getVersion()))
         .endBackupInformation()
         .withBackupPath(cluster.getSpec().getConfigurations().getBackups().getFirst().getPath())
         .withNewSgBackupConfig()
@@ -181,7 +182,8 @@ class ClusterReplicationInitializationContextAppenderTest {
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
 
-    contextAppender.appendContext(cluster, Optional.of(objectStorage), contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
 
     verify(backupScanner, times(1)).getResources(any());
     verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
@@ -239,7 +241,8 @@ class ClusterReplicationInitializationContextAppenderTest {
             backupCreated,
             failedBackup));
 
-    contextAppender.appendContext(cluster, Optional.of(objectStorage), contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
 
     verify(backupScanner, times(1)).getResources(any());
     verify(secretFinder, never()).findByNameAndNamespace(any(), any());
@@ -272,7 +275,7 @@ class ClusterReplicationInitializationContextAppenderTest {
         .endTiming()
         .endProcess()
         .withNewBackupInformation()
-        .withPostgresVersion(cluster.getSpec().getPostgres().getVersion())
+        .withPostgresVersion(toNumericPostgresVersion(cluster.getSpec().getPostgres().getVersion()))
         .endBackupInformation()
         .withBackupPath(cluster.getSpec().getConfigurations().getBackups().getFirst().getPath())
         .withNewSgBackupConfig()
@@ -304,7 +307,8 @@ class ClusterReplicationInitializationContextAppenderTest {
     when(secretFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(secret));
 
-    contextAppender.appendContext(cluster, Optional.of(objectStorage), contextBuilder);
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
 
     verify(backupScanner, times(1)).getResources(any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());

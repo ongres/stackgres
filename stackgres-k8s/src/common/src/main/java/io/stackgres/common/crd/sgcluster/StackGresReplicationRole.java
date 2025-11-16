@@ -25,12 +25,12 @@ public enum StackGresReplicationRole {
     return type;
   }
 
-  public static StackGresReplicationRole fromString(String value) {
-    for (StackGresReplicationRole role : StackGresReplicationRole.values()) {
-      if (role.toString().equals(value)) {
-        return role;
+  public static StackGresReplicationRole fromString(String from) {
+    for (StackGresReplicationRole value : StackGresReplicationRole.values()) {
+      if (value.toString().equals(from)) {
+        return value;
       }
     }
-    throw new IllegalArgumentException("Unknwon replication role " + value);
+    throw new IllegalArgumentException("Unknwon replication role " + from);
   }
 }
