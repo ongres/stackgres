@@ -296,10 +296,6 @@ public class PatroniConfigEndpoints
 
   private Map<String, String> normalizeParams(String postgresVersion,
       Map<String, String> params) {
-    // TODO: Update when dependency update is available
-    if (postgresVersion.equals("18")) {
-      return Map.copyOf(params);
-    }
     final GucValidator val = GucValidator.forVersion(postgresVersion);
     final var builder = ImmutableMap.<String, String>builderWithExpectedSize(params.size());
     params.forEach((name, setting) -> {

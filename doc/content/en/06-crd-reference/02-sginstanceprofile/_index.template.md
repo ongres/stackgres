@@ -32,6 +32,6 @@ spec:
   memory: 8Gi
 ```
 
-See also [Instance Configuration section]({{% relref "04-administration-guide/04-configuration/02-instance-profile" %}}).
+See also [Instance Configuration section]({{% relref "04-administration-guide/04-configuration/01-instance-profile" %}}).
 
 {{% include "generated/SGInstanceProfile.md" %}}

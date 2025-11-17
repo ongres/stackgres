@@ -6,9 +6,15 @@ description: Red Hat OpenShift is a unified platform to build, modernize, and de
 showToc: true
 ---
 
+[OpenShift Container Platform](https://docs.openshift.com/container-platform/latest/getting_started/openshift-overview.html) is a Kubernetes environment for managing the lifecycle of container-based applications and their dependencies on various computing platforms, such as bare metal, virtualized, on-premise, and in cloud.
+
+> StackGres is actively tested with OpenShift Container Platform (see the [tested versions page]({{% relref "01-introduction/07-tested-environments" %}})), if you find any problem, please [open an issue](https://gitlab.com/ongresinc/stackgres/-/issues/new).
+
+StackGres support OpenShift Container Platform from version {{% openshift-min-version %}} up to version {{% openshift-max-version %}}.
+
 ## Monitoring on Red Hat OpenShift 4.6+
 
-Starting from Red Hat OpenShift 4.6 the prometheus operator is installed by default in the cluster. You will have to configure to [enable the monitoring for user-defined projects](https://docs.openshift.com/container-platform/4.6/monitoring/enabling-monitoring-for-user-defined-projects.html). This can be achieved by creating creating (or editing if already exist) the cluster-monitoring-config ConfigMap (in namespace openshift-monitoring) and setting the parameter `enableUserWorkload` to `true` in the key `config.yaml` as in the following example:
+Starting from Red Hat OpenShift 4.6 the prometheus operator is installed by default in the cluster. You will have to configure to [enable the monitoring for user-defined projects](https://docs.openshift.com/container-platform/4.6/monitoring/enabling-monitoring-for-user-defined-projects.html). This can be achieved by creating (or editing if already exist) the cluster-monitoring-config ConfigMap (in namespace openshift-monitoring) and setting the parameter `enableUserWorkload` to `true` in the key `config.yaml` as in the following example:
 
 ```yaml
 cat << EOF | kubectl create -f -
@@ -111,9 +117,9 @@ cat << 'EOF' | kubectl create -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
-  name: 50-master-local-path-provisioner
+  name: 50-primary-local-path-provisioner
   labels:
-    machineconfiguration.openshift.io/role: master
+    machineconfiguration.openshift.io/role: primary
 spec:
   config:
     ignition:

@@ -11,7 +11,7 @@ It comes with day-2 operation functionalities such as minor & major PostgreSQL v
 Management operations such as version upgrades or restarts can easily create stressful situations, that's why a well-engineered database operator should implement these operations in a reasonable way.
 StackGres performs the day-2 operations in a controlled, production-grade manner.
 
-In general, the engineers define the desired target state in the StackGres CRDs, apply changes via the Kubernetes API (or alternatively the web console), and the StackGres operator takes care of the rest.
+In general, the engineers define the desired target state in the StackGres CRDs, apply changes via the Kubernetes API (or alternatively the Web Console), and the StackGres operator takes care of the rest.
 This approach minimizes careless mistakes from the users side since no procedural steps are required but declarative definitions.
 The StackGres CRDs provide a type-safe way to define resources, configurations, and cluster actions, and are understood and validated by the StackGres operator.
 

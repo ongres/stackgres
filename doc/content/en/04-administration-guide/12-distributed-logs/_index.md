@@ -13,13 +13,12 @@ StackGres has created a technology stack to send Postgres and Patroni logs to a 
 This server is represented by the [SGDistributedLogs]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}) CRD.
 A distributed log server is a separate Postgres instance, optimized for log storage, using the time-series Timescale extension to support high volume injection and automatic partitioning of logs, as well as log rotation.
 
-This is all handled transparently for you, just go ahead and create the file `sgdistributedlogs-server1.yaml` to use this functionality:
+This is all handled transparently for you, just go ahead and create the file `sgdistributedlogs.yaml` to use this functionality:
 
 ```yaml
 apiVersion: stackgres.io/v1
 kind: SGDistributedLogs
 metadata:
-  namespace: demo
   name: distributedlogs
 spec:
   persistentVolume:
@@ -29,14 +28,14 @@ spec:
 and deploy it to Kubernetes:
 
 ```
-kubectl apply -f sgdistributedlogs-server1.yaml
+kubectl apply -f sgdistributedlogs.yaml
 ```
 
 This command will create multiple Kubernetes resources.
 In particular, it will create a pod for storing the mentioned distributed logs:
 
 ```
-kubectl -n demo get pods
+kubectl get pods
 ```
 
 ```
@@ -47,11 +46,11 @@ distributedlogs-0   3/3     Running   1          73s
 Distributed logs server are multi-tenant: you may reference a distributed log server from more than one cluster.
 If a distributed log server is used, Postgres logs will not be stored in the ephemeral pod storage (except temporarily in small buffers).
 
-To see the distributed logs, you may view them in the web console, or connect via `psql` and query them with SQL.
+To see the distributed logs, you may view them in the Web Console, or connect via `psql` and query them with SQL.
 
 ## Accessing Postgres and Patroni Logs
 
-In the admin UI, accessing the logs is easy: go to the web console, navigate to the cluster, and click on the `Logs` pane.
+In the admin UI, accessing the logs is easy: go to the Web Console, navigate to the cluster, and click on the `Logs` pane.
 
 But now, let's do it from the CLI.
 You are able to connect to the distributed logs database and query the logs with SQL.
@@ -62,13 +61,13 @@ For the distributed logs, the host name equals the name specified in the `SGDist
 In the same way as before, we can retrieve the connection password from the `distributedlogs` secret:
 
 ```
-$ PGPASSWORD=$(kubectl -n demo get secret distributedlogs --template '{{ printf "%s" (index .data "superuser-password" | base64decode) }}')
+$ PGPASSWORD=$(kubectl get secret distributedlogs --template '{{ printf "%s" (index .data "superuser-password" | base64decode) }}')
 ```
 
 Then, we can connect to our distributed logs cluster via `psql`:
 
 ```
-$ kubectl -n demo run psql --env $PGPASSWORD --rm -it --image ongres/postgres-util --restart=Never -- psql -h distributedlogs postgres postgres
+$ kubectl run psql --env $PGPASSWORD --rm -it --image ongres/postgres-util --restart=Never -- psql -h distributedlogs postgres postgres
 ```
 
 Now that we're in `psql`, we can query the logs with SQL.

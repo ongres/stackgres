@@ -24,6 +24,10 @@ e2e_test() {
 }
 
 get_api_cluster_info() {
+  wait_until check_api_cluster_info
+}
+
+check_api_cluster_info() {
   local CLUSTER_INFO_PRIMARYDNS CLUSTER_INFO_REPLICADNS \
     CLUSTER_INFO_USERNAME CLUSTER_INFO_SECRETNAME CLUSTER_INFO_PWKEY
   CLUSTER_INFO_PRIMARYDNS="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.info.primaryDns' -r)"

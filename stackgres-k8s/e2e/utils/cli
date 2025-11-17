@@ -45,6 +45,7 @@ Options:
   --upgrade-from-previous-operator Upgrade from a previous version of the
                            operator
   --target-version        The supported target version used to create StackGres CR
+  --k8s-version           The K8s version to use
   --previous-operator-version Set the previous version of the operator to test
   --pull-policy <policy>  Set the pull policy for the operator images
   --skip-load-operator    Skip loading of the operator images
@@ -427,6 +428,11 @@ cli() {
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
       STACKGRES_TARGET_VERSION="$VALUE"
+      ;;
+      ('--k8s-version')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      K8S_VERSION="$VALUE"
       ;;
       ('--previous-operator-version')
       cli_set_parameter_value "$@"

@@ -88,4 +88,4 @@ stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
 
 ```
 
-Now we can continue with [creating a StackGres cluster]({{% relref "04-administration-guide/03-cluster-creation" %}}).
+Now we can continue with [creating a StackGres cluster]({{% relref "04-administration-guide/02-cluster-creation" %}}).

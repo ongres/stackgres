@@ -8,13 +8,13 @@ showToc: true
 
 ## Customizing Your Postgres Sharded Clusters
 
-Refer to [Customizing Your Postgres Clusters]({{% relref "04-administration-guide/03-cluster-creation" %}}#customizing-your-postgres-clusters) section for more details on the configuraion used
+Refer to [Customizing Your Postgres Clusters]({{% relref "04-administration-guide/02-cluster-creation" %}}#customizing-your-postgres-clusters) section for more details on the configuraion used
  for the sharded cluster. In particular you will end up creating the following custom resources in the `my-cluster` namespace:
 
-* An [SGInstanceProfile]({{% relref "04-administration-guide/04-configuration/02-instance-profile" %}}) called `size-small`
-* An [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) called `pgconfig1`
-* An [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}) called `poolconfig1`
-* An [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) called `backupconfig1`
+* An [SGInstanceProfile]({{% relref "04-administration-guide/04-configuration/01-instance-profile" %}}) called `size-small`
+* An [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) called `pgconfig`
+* An [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}) called `poolconfig`
+* An [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) called `backupconfig`
 * An [SGDistributedLogs]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}) called `distributedlogs`
 
 ## Creating a Citus Sharded Cluster
@@ -97,8 +97,8 @@ spec:
       persistentVolume:
         size: '10Gi'
     configurations:
-      sgPostgresConfig: 'pgconfig1'
-      sgPoolingConfig: 'poolconfig1'
+      sgPostgresConfig: 'pgconfig'
+      sgPoolingConfig: 'poolconfig'
     managedSql:
       scripts:
       - sgScript: cluster-scripts
@@ -110,11 +110,11 @@ spec:
       persistentVolume:
         size: '10Gi'
     configurations:
-      sgPostgresConfig: 'pgconfig1'
-      sgPoolingConfig: 'poolconfig1'
+      sgPostgresConfig: 'pgconfig'
+      sgPoolingConfig: 'poolconfig'
   configurations:
     backups:
-    - sgObjectStorage: 'backupconfig1'
+    - sgObjectStorage: 'backupconfig'
       cronSchedule: '*/5 * * * *'
       retention: 6
   distributedLogs:

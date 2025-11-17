@@ -1242,8 +1242,8 @@ traceable_get_component_versions() {
 get_versions_url() {
   [ -n "$1" ]
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
-  VERSION_1_19_0="$(get_version_as_number 1.19.0-SNAPSHOT)"
-  if [ "$VERSION_AS_NUMBER" -ge "$VERSION_1_19_0" ]
+  VERSION_1_18_0RC1="$(get_version_as_number 1.18.0-rc1)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_1_18_0RC1" ]
   then
     echo "https://gitlab.com/ongresinc/stackgres/-/raw/$1/stackgres-k8s/src/common/src/main/resources/versions-${VERSION%.*}.properties"
   else

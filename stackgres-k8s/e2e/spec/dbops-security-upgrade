@@ -29,6 +29,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_16_0="$(get_version_as_number 1.16.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_17_0="$(get_version_as_number 1.17.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_17_2="$(get_version_as_number 1.17.2-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_18_0RC1="$(get_version_as_number 1.18.0-rc1)"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 
@@ -806,6 +807,12 @@ check_cluster_before_security_upgrade() {
         PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
           | .postgresql.parameters.listen_addresses = "localhost,::1"
           | .postgresql.pg_hba = (.postgresql.pg_hba|[.[0:5][], "host all all ::/0 md5", .[5:][], "host replication replicator ::/0 md5"])
+          ')"
+    fi
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -le "$VERSION_AS_NUMBER_1_18_0RC1" ]
+    then
+        PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '. 
+          | del(.postgresql.parameters.invalid_param)
           ')"
     fi
 

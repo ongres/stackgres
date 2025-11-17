@@ -68,7 +68,7 @@ Current cluster topology
 | ongres-db-1 | 10.0.0.10:7433 |        | running |  3 |         0 |
 | ongres-db-2 | 10.0.6.9:7433  |        | running |  3 |         0 |
 +-------------+----------------+--------+---------+----+-----------+
-Are you sure you want to switchover cluster ongres-db, demoting current master ongres-db-0? [y/N]:y
+Are you sure you want to switchover cluster ongres-db, demoting current primary ongres-db-0? [y/N]:y
 
 
 2021-01-15 15:41:11.93457 Successfully switched over to "ongres-db-2"
@@ -266,7 +266,7 @@ Current cluster topology
 | ongres-db-0 | 10.0.7.12:7433 |        | running |  4 |         0 |
 | ongres-db-2 | 10.0.6.9:7433  | Leader | running |  4 |           |
 +-------------+----------------+--------+---------+----+-----------+
-Are you sure you want to switchover cluster ongres-db, demoting current master ongres-db-2? [y/N]: y
+Are you sure you want to switchover cluster ongres-db, demoting current primary ongres-db-2? [y/N]: y
 2021-01-15 16:12:57.14561 Successfully switched over to "ongres-db-0"
 + Cluster: ongres-db (6918002883456245883) -------+----+-----------+
 |    Member   |      Host      |  Role  |  State  | TL | Lag in MB |

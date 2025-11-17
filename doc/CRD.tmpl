@@ -7,7 +7,7 @@
 {{- $onlyOnCreationTypes := dict }}
 {{- $requireRestartTypes := dict }}
 {{- range .Types}}
-{{- $key := regexReplaceAll "\\[index\\]" .Name "" }}
+{{- $key := regexReplaceAll "\\[(index|key)\\]" .Name "" }}
 {{- range .Fields -}}
 {{- $description := .Description }}
 {{- $fieldKey := (print $key "." .Name) }}
@@ -28,7 +28,7 @@
 {{- end }}
 {{- end }}
 {{- range .Types}}
-{{- $key := regexReplaceAll "\\[index\\]" .Name "" }}
+{{- $key := regexReplaceAll "\\[(index|key)\\]" .Name "" }}
 {{- if not (get $hiddenTypes $key) }}
 {{- if not .IsTopLevel}}
 
