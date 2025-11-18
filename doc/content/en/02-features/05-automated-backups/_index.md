@@ -6,7 +6,7 @@ description: Automated backups and backup lifecycle management
 ---
 
 Backups are a critical part of a database, and are key to any Disaster Recovery strategy.
-StackGres includes backups based on continuous archiving, which allows for zero data loss recovery and PITR (Point-in-Time Recovery) to restore a database into an arbitrary past point in time.
+StackGres includes backups based on continuous archiving, which allows for disaster recovery and PITR (Point-in-Time Recovery) to restore a database into an arbitrary past point in time.
 
 StackGres also provides automated lifecycle management of the backups.
 The backups are always stored in the most durable media available today: cloud object storage like [Amazon's S3](https://aws.amazon.com/s3/), [Google Cloud Storage](https://cloud.google.com/products/storage), or [Azure Blob](https://azure.microsoft.com/en-us/services/storage/blobs/).

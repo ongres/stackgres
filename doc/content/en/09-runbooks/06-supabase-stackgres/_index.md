@@ -295,7 +295,7 @@ Saving the JS file will refresh the page and show the updated list of four count
 To double-check, we can of course also log into our Postgres database and query all countries by using the StackGres utilities:
 
 ```
-kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=master -o name)" -c postgres-util -- psql -c 'select * from countries'
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=primary -o name)" -c postgres-util -- psql -c 'select * from countries'
 ```
 
 ```

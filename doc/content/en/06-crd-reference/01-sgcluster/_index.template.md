@@ -35,10 +35,9 @@ spec:
   pods:
     persistentVolume:
       size: '5Gi'
-  sgInstanceProfile: 'size-s'
 ```
 
-See also [Cluster Creation section]({{% relref "04-administration-guide/03-cluster-creation" %}}).
+See also [Cluster Creation section]({{% relref "04-administration-guide/02-cluster-creation" %}}).
 
 {{% include "generated/SGCluster.md" %}}
 
@@ -49,7 +48,7 @@ Currently StackGres implement following sidecar containers:
 
 * `cluster-controller`: this container is always present, and it is not possible to disable it.
  It serves to reconcile local configurations, collects Pod status, and performs local actions (like extensions installation, execution of SGScript entries, etc.).
-* `envoy`: this container is always present, and it is not possible to disable it.
+* `envoy`: this container is disabled by default and will be removed in future versions, you may still enable it.
  It serve as a edge proxy from client to PostgreSQL instances or between PostgreSQL instances.
  It enables network metrics collection to provide connection statistics.
 * `pgbouncer`: PgBouncer that serves as connection pooler for the PostgreSQL instances.
@@ -69,4 +68,5 @@ spec:
     disableConnectionPooling: false
     disableMetricsExporter: false
     disablePostgresUtil: false
+    disableEnvoy: true
 ```

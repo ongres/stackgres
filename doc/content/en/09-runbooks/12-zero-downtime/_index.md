@@ -228,7 +228,7 @@ data:
   on_role_change: |
     #!/bin/sh
     set -x
-    if [ "$#" = 0 ] || [ "x$2" = xmaster ]
+    if [ "$#" = 0 ] || [ "x$2" = xprimary ]
     then
       until psql -tA -c 'SELECT pg_is_in_recovery()' | grep -qxF f
       do

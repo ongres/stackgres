@@ -86,7 +86,7 @@ while kubectl get pod -n "$NAMESPACE" \
 
 ```
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=primary" -o name | head -n 1)"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 
 echo "Restart the primary instance $PRIMARY_POD"
@@ -143,7 +143,7 @@ If you have at least a read-only pod perform a switchover of the primary pod.
 READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name | head -n 1)"
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=primary" -o name | head -n 1)"
 READ_ONLY_POD="${READ_ONLY_POD#pod/}"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 if [ -n "$READ_ONLY_POD" ]

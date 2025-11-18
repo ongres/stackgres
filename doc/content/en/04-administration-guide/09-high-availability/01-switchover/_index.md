@@ -49,7 +49,7 @@ Current cluster topology
 | stackgres | stackgres-1 | 10.244.0.12:5433 |        | running |  2 |       0.0 |
 | stackgres | stackgres-2 | 10.244.0.13:5433 |        | running |  2 |       0.0 |
 +-----------+-------------+------------------+--------+---------+----+-----------+
-Are you sure you want to switchover cluster stackgres, demoting current master stackgres-0? [y/N]:
+Are you sure you want to switchover cluster stackgres, demoting current primary stackgres-0? [y/N]:
 ```
 
 After accept the change Patroni will output the operation status and the new cluster status:

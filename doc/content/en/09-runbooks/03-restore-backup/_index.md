@@ -7,7 +7,7 @@ showToc: true
 ---
 
 This runbook will show you how to restore a StackGres cluster backup.
-All the steps explained here are also possible from the StackGres web console.
+All the steps explained here are also possible from the StackGres Web Console.
 
 ## Checking the Database Size
 
