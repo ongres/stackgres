@@ -178,6 +178,10 @@ public class ClusterStatefulSet
             .build())
         .withServiceName(name)
         .withTemplate(podTemplateSpec.getSpec())
+        .withNewPersistentVolumeClaimRetentionPolicy()
+        .withWhenDeleted("Delete")
+        .withWhenScaled("Retain")
+        .endPersistentVolumeClaimRetentionPolicy()
         .withVolumeClaimTemplates(
             new PersistentVolumeClaimBuilder()
                 .withNewMetadata()

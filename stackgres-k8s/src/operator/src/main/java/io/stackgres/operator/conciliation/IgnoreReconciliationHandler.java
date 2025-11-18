@@ -10,15 +10,16 @@ import io.fabric8.kubernetes.client.CustomResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class IgnorePodReconciliationHandler<T extends CustomResource<?, ?>>
+public abstract class IgnoreReconciliationHandler<T extends CustomResource<?, ?>>
     implements ReconciliationHandler<T> {
 
   protected static final Logger LOGGER =
-      LoggerFactory.getLogger(IgnorePodReconciliationHandler.class);
+      LoggerFactory.getLogger(IgnoreReconciliationHandler.class);
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
-    LOGGER.debug("Skipping creating Pod {}.{}",
+    LOGGER.debug("Skipping creating {} {}.{}",
+        resource.getKind(),
         resource.getMetadata().getNamespace(),
         resource.getMetadata().getName());
     return resource;
@@ -27,7 +28,8 @@ public abstract class IgnorePodReconciliationHandler<T extends CustomResource<?,
   @Override
   public HasMetadata patch(T context, HasMetadata newResource,
       HasMetadata oldResource) {
-    LOGGER.debug("Skipping patching Pod {}.{}",
+    LOGGER.debug("Skipping patching {} {}.{}",
+        oldResource.getKind(),
         oldResource.getMetadata().getNamespace(),
         oldResource.getMetadata().getName());
     return oldResource;
@@ -35,7 +37,8 @@ public abstract class IgnorePodReconciliationHandler<T extends CustomResource<?,
 
   @Override
   public HasMetadata replace(T context, HasMetadata resource) {
-    LOGGER.warn("Skipping replacing Pod {}.{}",
+    LOGGER.warn("Skipping replacing {} {}.{}",
+        resource.getKind(),
         resource.getMetadata().getNamespace(),
         resource.getMetadata().getName());
     return resource;
@@ -43,14 +46,16 @@ public abstract class IgnorePodReconciliationHandler<T extends CustomResource<?,
 
   @Override
   public void delete(T context, HasMetadata resource) {
-    LOGGER.debug("Skipping deleting Pod {}.{}",
+    LOGGER.debug("Skipping deleting {} {}.{}",
+        resource.getKind(),
         resource.getMetadata().getNamespace(),
         resource.getMetadata().getName());
   }
 
   @Override
   public void deleteWithOrphans(T context, HasMetadata resource) {
-    LOGGER.debug("Skipping deleting Pod {}.{}",
+    LOGGER.debug("Skipping deleting {} {}.{}",
+        resource.getKind(),
         resource.getMetadata().getNamespace(),
         resource.getMetadata().getName());
   }
