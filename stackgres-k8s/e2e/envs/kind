@@ -434,8 +434,8 @@ EOF
     if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
         -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
     then
-      kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/tigera-operator.yaml
-      wait_until kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
+      kubectl replace --force -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/tigera-operator.yaml
+      wait_until kubectl  replace --force -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
       kubectl patch installations.operator.tigera.io default --type json \
         -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
     else
@@ -506,12 +506,12 @@ EOF
     
     {
       # Apply VolumeSnapshot CRDs
-      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
-      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
-      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
+      kubectl replace --force -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+      kubectl replace --force -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+      kubectl replace --force -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
       # Create snapshot controller
-      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
-      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
+      kubectl replace --force -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
+      kubectl replace --force -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
       CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
       if [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.20 ]
       then
@@ -567,7 +567,7 @@ EOF
       sed -i "s#kubectl#sh $CSI_DRIVER_HOST_PATH_PATH/kubectlw#" \
         "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
       IMAGE_TAG= bash "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
-      kubectl create -f "$TARGET_PATH/csi-driver-host-path/examples/csi-storageclass.yaml"
+      kubectl replace --force -f "$TARGET_PATH/csi-driver-host-path/examples/csi-storageclass.yaml"
       kubectl get storageclass -o name | xargs -I % kubectl annotate % --overwrite storageclass.kubernetes.io/is-default-class=false
       kubectl annotate storageclass csi-hostpath-sc --overwrite storageclass.kubernetes.io/is-default-class=true
       kubectl annotate volumesnapshotclass csi-hostpath-snapclass --overwrite snapshot.storage.kubernetes.io/is-default-class="true"
