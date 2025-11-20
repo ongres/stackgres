@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
@@ -144,6 +145,7 @@ public class ClusterDeployedResourceScanner
           Map.entry(Endpoints.class, KubernetesClient::endpoints),
           Map.entry(Service.class, KubernetesClient::services),
           Map.entry(Pod.class, client -> client.pods()),
+          Map.entry(PersistentVolumeClaim.class, client -> client.persistentVolumeClaims()),
           Map.entry(Job.class, client -> client.batch().v1().jobs()),
           Map.entry(CronJob.class, client -> client.batch().v1().cronjobs()),
           Map.entry(StatefulSet.class, client -> client.apps().statefulSets()),
