@@ -10,9 +10,8 @@ import io.stackgres.operator.conciliation.IgnoreReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import jakarta.enterprise.context.ApplicationScoped;
 
-@ReconciliationScope(value = StackGresCluster.class, kind = "Pod")
+@ReconciliationScope(value = StackGresCluster.class, kind = "PersistentVolumeClaim")
 @ApplicationScoped
-public class ClusterPodReconciliationHandler
+public class ClusterPvcReconciliationHandler
     extends IgnoreReconciliationHandler<StackGresCluster> {
-
 }

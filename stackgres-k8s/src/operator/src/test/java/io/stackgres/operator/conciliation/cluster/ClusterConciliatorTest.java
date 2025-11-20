@@ -21,11 +21,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngressBuilder;
 import io.fabric8.kubernetes.api.model.LoadBalancerStatusBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.ServiceStatusBuilder;
@@ -177,9 +179,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
 
     assertTrue(result.isUpToDate());
   }
@@ -323,9 +328,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
   }
 
   @Test
@@ -342,6 +350,7 @@ class ClusterConciliatorTest {
 
     var updatedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
+        .filter(Predicate.not(t -> t.v1 instanceof Pod))
         .filter(t -> hasAnotherOwnerReference(t.v1))
         .sorted(shuffle())
         .findFirst()
@@ -356,9 +365,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
   }
 
   @Test
@@ -461,9 +473,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
   }
 
   @Test
@@ -494,9 +509,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
   }
 
   @Test
@@ -531,9 +549,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
   }
 
   @Test
@@ -598,9 +619,12 @@ class ClusterConciliatorTest {
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
 
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
 
     assertTrue(result.isUpToDate());
   }
@@ -647,9 +671,12 @@ class ClusterConciliatorTest {
         foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
-    assertEquals(0, result.getCreations().size());
-    assertEquals(0, result.getDeletions().size());
-    assertEquals(0, result.getPatches().size());
+    assertEquals(0, result.getDeletions().size(),
+        result.getDeletions().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getCreations().size(),
+        result.getCreations().stream().map(t -> t.getKind()).collect(Collectors.joining(", ")));
+    assertEquals(0, result.getPatches().size(),
+        result.getPatches().stream().map(t -> t.v2.getKind()).collect(Collectors.joining(", ")));
 
     assertTrue(result.isUpToDate());
   }
@@ -733,16 +760,16 @@ class ClusterConciliatorTest {
   }
 
   private boolean hasAnotherOwnerReference(HasMetadata resource) {
-    return resource.getMetadata().getOwnerReferences() != null
-        && (resource.getMetadata().getOwnerReferences().isEmpty()
+    return resource.getMetadata().getOwnerReferences() == null
+        || resource.getMetadata().getOwnerReferences().isEmpty()
         || resource.getMetadata().getOwnerReferences().stream()
         .noneMatch(ownerReference -> ownerReference.getKind()
             .equals(HasMetadata.getKind(cluster.getClass()))
             && ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(cluster.getClass()))
             && ownerReference.getName().equals(cluster.getMetadata().getName())
             && ownerReference.getUid().equals(cluster.getMetadata().getUid())
-        && ownerReference.getController() != null
-        && ownerReference.getController()));
+            && ownerReference.getController() != null
+            && ownerReference.getController());
   }
 
   private boolean hasControllerOwnerReference(HasMetadata resource) {

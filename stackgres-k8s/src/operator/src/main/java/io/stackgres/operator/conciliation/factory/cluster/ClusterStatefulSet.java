@@ -37,6 +37,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationInitializationMode;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.operator.conciliation.KubernetesVersionBinder;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -50,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @OperatorVersionBinder
+@KubernetesVersionBinder(from = "1.23")
 public class ClusterStatefulSet
     implements ResourceGenerator<StackGresClusterContext> {
 
@@ -159,7 +161,7 @@ public class ClusterStatefulSet
       instances = Math.max(1, context.getCurrentInstances());
       LOGGER.info("Skipping upscale while waiting for a fresh SGBackup to be created");
     }
-    StatefulSet clusterStatefulSet = new StatefulSetBuilder()
+    StatefulSetBuilder clusterStatefulSetBuilder = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
@@ -188,8 +190,9 @@ public class ClusterStatefulSet
                 .withSpec(volumeClaimSpec.build())
                 .build()
         )
-        .endSpec()
-        .build();
+        .endSpec();
+    applyToStatefulSetBuilder(clusterStatefulSetBuilder);
+    StatefulSet clusterStatefulSet = clusterStatefulSetBuilder.build();
 
     var volumeDependencies = podTemplateSpec.claimedVolumes().stream()
         .map(availableVolumesPairs::get)
@@ -199,6 +202,16 @@ public class ClusterStatefulSet
         .toList();
 
     return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies.stream());
+  }
+
+  protected void applyToStatefulSetBuilder(StatefulSetBuilder clusterStatefulSetBuilder) {
+    clusterStatefulSetBuilder
+        .editSpec()
+        .withNewPersistentVolumeClaimRetentionPolicy()
+        .withWhenDeleted("Delete")
+        .withWhenScaled("Retain")
+        .endPersistentVolumeClaimRetentionPolicy()
+        .endSpec();
   }
 
 }

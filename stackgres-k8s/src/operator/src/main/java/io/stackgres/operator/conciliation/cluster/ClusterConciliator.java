@@ -12,6 +12,8 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -35,6 +37,7 @@ import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResource;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -111,6 +114,9 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
       }
+      if (noPrimaryPod) {
+        return true;
+      }
       final boolean anyPodWithWrongOrMissingRole;
       if (!isPatroniOnKubernetes) {
         anyPodWithWrongOrMissingRole = deployedResourcesCache
@@ -125,6 +131,9 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             + " found for SGCluster {}.{}",
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
+      }
+      if (anyPodWithWrongOrMissingRole) {
+        return true;
       }
       final boolean anyPodCanRestart;
       if (ClusterRolloutUtil.isRolloutAllowed(config)) {
@@ -142,6 +151,9 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
       }
+      if (anyPodCanRestart) {
+        return true;
+      }
       final boolean podsCountMismatch = config.getSpec().getInstances()
           != deployedResourcesCache
               .stream()
@@ -154,7 +166,24 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             config.getMetadata().getNamespace(),
             config.getMetadata().getName());
       }
-      return noPrimaryPod || anyPodWithWrongOrMissingRole || anyPodCanRestart || podsCountMismatch;
+      if (podsCountMismatch) {
+        return true;
+      }
+      final OwnerReference clusterOwnerReference = ResourceUtil.getOwnerReference(config);
+      final boolean anyPodOrPvcWithMissingOwner = deployedResourcesCache
+          .stream()
+          .map(DeployedResource::foundDeployed)
+          .anyMatch(foundDeployedResource -> isPodOrPvcWithMissingOwner(
+              foundDeployedResource, clusterOwnerReference));
+      if (anyPodOrPvcWithMissingOwner && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Will force StatefulSet reconciliation since a pod or pvc is"
+            + " missing owner reference for SGCluster {}.{}",
+            config.getMetadata().getNamespace(),
+            config.getMetadata().getName());
+      }
+      if (anyPodOrPvcWithMissingOwner) {
+        return true;
+      }
     }
     return false;
   }
@@ -189,6 +218,20 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             .orElse(null),
             labels.get(PatroniUtil.ROLE_KEY)))
         .isPresent();
+  }
+
+  private boolean isPodOrPvcWithMissingOwner(
+      HasMetadata foundDeployedResource,
+      OwnerReference clusterOwnerReference) {
+    return (foundDeployedResource instanceof Pod
+        || foundDeployedResource instanceof PersistentVolumeClaim)
+        && !Optional.of(foundDeployedResource.getMetadata())
+        .map(ObjectMeta::getOwnerReferences)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(ownerReference -> Objects.equals(
+            clusterOwnerReference,
+            ownerReference));
   }
 
 }

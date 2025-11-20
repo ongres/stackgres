@@ -88,7 +88,23 @@ public class ConfigDeployedResourceScanner
           ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations(
                   StackGresConfig config) {
-    return IN_NAMESPACE_RESOURCE_OPERATIONS;
+    var inNamespaceResourceOperations = new HashMap<>(IN_NAMESPACE_RESOURCE_OPERATIONS);
+    if (prometheusAutobind && Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getCollector)
+        .map(StackGresConfigCollector::getPrometheusOperator)
+        .map(StackGresConfigCollectorPrometheusOperator::getMonitors)
+        .filter(monitors -> monitors.size() > 0)
+        .map(ignored -> true)
+        .or(() -> Optional.of(config)
+            .map(StackGresConfig::getSpec)
+            .map(StackGresConfigSpec::getCollector)
+            .map(StackGresConfigCollector::getPrometheusOperator)
+            .map(StackGresConfigCollectorPrometheusOperator::getAllowDiscovery))
+        .orElse(false)) {
+      inNamespaceResourceOperations.putAll(PROMETHEUS_RESOURCE_OPERATIONS);
+    }
+    return inNamespaceResourceOperations;
   }
 
   @Override

@@ -154,6 +154,7 @@ public class KubernetessMockResourceGenerationUtil {
         new PodBuilder()
             .withNewMetadata().withName(name + "-0").withNamespace(namespace)
             .withLabels(labelFactory.clusterReplicaLabels(cluster))
+            .withOwnerReferences(List.of(ResourceUtil.getOwnerReference(cluster)))
             .endMetadata()
             .withSpec(new PodSpecBuilder()
                 .addNewContainer()
