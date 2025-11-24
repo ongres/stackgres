@@ -396,6 +396,7 @@
 				const vc = this
 				let cloneCRD = store.state.cloneCRD.data;
 				let cloneKind = store.state.cloneCRD.kind;
+				let cloneOriginalName = store.state.cloneCRD.orignalName;
 
 				if(cloneKind == 'SGPoolingConfigs')
 					cloneKind = 'sgpoolconfigs'
@@ -412,6 +413,12 @@
 							if(vc.hasProp(s, 'scriptFrom.configMapKeyRef')) {
 								delete s.scriptFrom.configMapScript
 							}
+						});
+					}
+
+					if( vc.hasProp(cloneCRD, 'spec.managedSql.scripts') ) {
+						cloneCRD.spec.managedSql.scripts = cloneCRD.spec.managedSql.scripts.filter( s => {
+							return !(vc.hasProp(s, 'sgScript') && s.sgScript == cloneOriginalName + '-default');
 						});
 					}
 
