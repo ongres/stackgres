@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.dbops;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +26,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -65,36 +65,50 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
 
   @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context) {
-    StackGresDbOps dbOps = context.getSource();
-    StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade =
+    final StackGresDbOps dbOps = context.getSource();
+    final StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade =
         dbOps.getSpec().getMajorVersionUpgrade();
+    final String targetPostgresVersion = Optional.ofNullable(majorVersionUpgrade)
+        .map(StackGresDbOpsMajorVersionUpgrade::getPostgresVersion)
+        .map(String::valueOf)
+        .orElseThrow();
+    final var targetExtensions = Seq.seq(
+        Optional.of(context.getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getExtensions)
+        .orElse(List.of()))
+        .filter(extension -> Optional.ofNullable(majorVersionUpgrade)
+            .map(StackGresDbOpsMajorVersionUpgrade::getPostgresExtensions)
+            .stream()
+            .flatMap(List::stream)
+            .map(StackGresClusterExtension::getName)
+            .noneMatch(extension.getName()::equals))
+        .append(Optional.ofNullable(majorVersionUpgrade)
+            .map(StackGresDbOpsMajorVersionUpgrade::getPostgresExtensions)
+            .orElse(List.of()))
+        .toList();
+    final StackGresCluster targetCluster =
+        new StackGresClusterBuilder(context.getCluster())
+        .editSpec()
+        .editPostgres()
+        .withVersion(targetPostgresVersion)
+        .withExtensions(targetExtensions)
+        .endPostgres()
+        .endSpec()
+        .editStatus()
+        .withPostgresVersion(targetPostgresVersion)
+        .endStatus()
+        .build();
     return ImmutableList.<EnvVar>builder()
         .add(
             new EnvVarBuilder()
             .withName("TARGET_VERSION")
-            .withValue(Optional.ofNullable(majorVersionUpgrade)
-                .map(StackGresDbOpsMajorVersionUpgrade::getPostgresVersion)
-                .map(String::valueOf)
-                .orElseThrow())
+            .withValue(targetPostgresVersion)
             .build(),
             new EnvVarBuilder()
             .withName("TARGET_EXTENSIONS")
-            .withValue(Seq.seq(Optional.of(context.getCluster())
-                .map(StackGresCluster::getSpec)
-                .map(StackGresClusterSpec::getPostgres)
-                .map(StackGresClusterPostgres::getExtensions)
-                .orElse(List.of()))
-                .filter(extension -> Optional.ofNullable(majorVersionUpgrade)
-                    .map(StackGresDbOpsMajorVersionUpgrade::getPostgresExtensions)
-                    .stream()
-                    .flatMap(List::stream)
-                    .map(StackGresClusterExtension::getName)
-                    .noneMatch(extension.getName()::equals))
-                .append(Optional.ofNullable(majorVersionUpgrade)
-                    .map(StackGresDbOpsMajorVersionUpgrade::getPostgresExtensions)
-                    .orElse(List.of()))
-                .transform(Optional::of)
-                .map(Stream::toList)
+            .withValue(Optional.of(targetExtensions)
                 .map(jsonMapper::valueToTree)
                 .map(Object::toString)
                 .orElse("[]"))
@@ -188,6 +202,22 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
             new EnvVarBuilder()
             .withName("CLUSTER_PRIMARY_POD_LABELS")
             .withValue(labelFactory.clusterPrimaryLabels(context.getCluster())
+                .entrySet()
+                .stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(",")))
+            .build(),
+            new EnvVarBuilder()
+            .withName("TARGET_CLUSTER_POD_LABELS")
+            .withValue(labelFactory.clusterLabels(targetCluster)
+                .entrySet()
+                .stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(",")))
+            .build(),
+            new EnvVarBuilder()
+            .withName("TARGET_CLUSTER_PRIMARY_POD_LABELS")
+            .withValue(labelFactory.clusterPrimaryLabels(targetCluster)
                 .entrySet()
                 .stream()
                 .map(e -> e.getKey() + "=" + e.getValue())

@@ -5,11 +5,15 @@
 
 package io.stackgres.common.fixture.dbops;
 
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBuilder;
 import io.stackgres.common.fixture.VersionedFixture;
 
 public class DbOpsFixture extends VersionedFixture<StackGresDbOps> {
+
+  public static final String POSTGRES_LATEST_VERSION =
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
 
   public DbOpsFixture loadRestart() {
     fixture = readFromJson(STACKGRES_DB_OPS_RESTART_JSON);
@@ -23,6 +27,12 @@ public class DbOpsFixture extends VersionedFixture<StackGresDbOps> {
 
   public DbOpsFixture loadMajorVersionUpgrade() {
     fixture = readFromJson(STACKGRES_DB_OPS_MAJOR_VERSION_UPGRADE_JSON);
+    return this;
+  }
+
+  public DbOpsFixture loadMajorVersionUpgradeWithLatestPostgresVersion() {
+    fixture = readFromJson(STACKGRES_DB_OPS_MAJOR_VERSION_UPGRADE_JSON);
+    fixture.getSpec().getMajorVersionUpgrade().setPostgresVersion(POSTGRES_LATEST_VERSION);
     return this;
   }
 
