@@ -153,13 +153,9 @@ then
   set -x
 fi
 
-printf %s:%s: \
-  "${PATRONI_READ_ONLY_SERVICE_NAME}" \
-  "${REPLICATION_SERVICE_PORT}" \
-  > "$PG_BASE_PATH/pgpass-replicas"
-cat "$PG_BASE_PATH/pgpass" \
-  | cut -d : -f 3- \
-  >> "$PG_BASE_PATH/pgpass-replicas"
+cat << PGPASS_REPLICAS_EOF > "$PG_BASE_PATH/pgpass-replicas"
+${PATRONI_READ_ONLY_SERVICE_NAME}:${REPLICATION_SERVICE_PORT}:*:${PATRONI_REPLICATION_USERNAME}:${PATRONI_REPLICATION_PASSWORD}
+PGPASS_REPLICAS_EOF
 chmod 600 "$PG_BASE_PATH/pgpass-replicas"
 
 PGPASSFILE="$PG_BASE_PATH/pgpass-replicas" \

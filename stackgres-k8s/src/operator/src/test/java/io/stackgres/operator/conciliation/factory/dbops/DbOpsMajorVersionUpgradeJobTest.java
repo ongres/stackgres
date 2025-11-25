@@ -17,7 +17,7 @@ class DbOpsMajorVersionUpgradeJobTest extends DbOpsJobTestCase {
 
   @Override
   StackGresDbOps getDbOps() {
-    return Fixtures.dbOps().loadMajorVersionUpgrade().get();
+    return Fixtures.dbOps().loadMajorVersionUpgradeWithLatestPostgresVersion().get();
   }
 
 }

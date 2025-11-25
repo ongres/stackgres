@@ -44,6 +44,7 @@ e2e_test_install() {
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTEDLOGS_NAME"
 
+  wait_until eval 'kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template="{{ .spec.template.spec.containers | len }}" | grep -qxF 6'
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
 
   deploy_psql_pod "$CLUSTER_NAMESPACE"

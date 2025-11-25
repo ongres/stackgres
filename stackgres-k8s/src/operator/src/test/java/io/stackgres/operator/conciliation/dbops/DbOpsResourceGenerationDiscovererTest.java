@@ -43,7 +43,7 @@ class DbOpsResourceGenerationDiscovererTest
   @BeforeEach
   public void setup() {
     this.config = Fixtures.config().loadDefault().get();
-    this.resource = Fixtures.dbOps().loadMajorVersionUpgrade().get();
+    this.resource = Fixtures.dbOps().loadMajorVersionUpgradeWithLatestPostgresVersion().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
     this.cluster = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
   }
