@@ -44,7 +44,7 @@ EOF
       root   /opt/app-root/src;
       
       location / {
-        try_files /$host$uri =404;
+        try_files /extensions.stackgres.io$uri =404;
       }
     }
 EOF
