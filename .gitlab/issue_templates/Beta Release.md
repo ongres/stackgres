@@ -3,7 +3,7 @@
 Set title to:
 
 ```
-Release StackGres 1.18.0-beta1
+Release StackGres 1.19.0-beta1
 ```
 
 Generate template using the command:
@@ -16,29 +16,29 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
 # Pre Checks
 
-1. [ ] Make sure all tasks marked with label ~"target_version::1.18.0-beta1" are done.
+1. [ ] Make sure all tasks marked with label ~"target_version::1.19.0-beta1" are done.
 
 # Release steps
 
-1. [ ] Create local branch `release-1.18.0-beta1` from `main-1.18`:
+1. [ ] Create local branch `release-1.19.0-beta1` from `main-1.19`:
     ```
-    git checkout "main-1.18" && git pull && git checkout -b "release-1.18.0-beta1"
+    git checkout "main-1.19" && git pull && git checkout -b "release-1.19.0-beta1"
     ```
-1. [ ] Update project version to `1.18.0-beta1`:
+1. [ ] Update project version to `1.19.0-beta1`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.18.0-beta1"
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.19.0-beta1"
     ```
 1. [ ] Update `CHANGELOG.md` (review commit messages to populate the changelog: `git log`)
-1. [ ] Add 1.18.0-beta1 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions-1.18.properties`
+1. [ ] Add 1.19.0-beta1 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions-1.19.properties`
 1. [ ] Check the changes to ensure everything is correct before commit:
     ```
     git diff
     ```
-1. [ ] Commit changes with message `version: 1.18.0-beta1`:
+1. [ ] Commit changes with message `version: 1.19.0-beta1`:
     ```
-    git commit -S -a -m "version: 1.18.0-beta1"
+    git commit -S -a -m "version: 1.19.0-beta1"
     ```
-1. [ ] Push `release-1.18.0-beta1` branch:
+1. [ ] Push `release-1.19.0-beta1` branch:
 
      **This step requires at least one ARM instance with docker installed and a gitlab runner registered with the StackGres project. All this setup is already built in a template. The only action we need to do is scale up the auto-scaling group `sg-army-builder` auto scaling group.** 
 
@@ -53,9 +53,9 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
      curl -s https://gitlab.com/snippets/1985684/raw | bash -s -- -r "$GITLAB_TOKEN" -t m6gd.4xlarge -i "$AMI" -d $((4 * 60 * 60)) -df internal -dp /dev/nvme1n1 -rn army-builder -tl 'docker-junit-extension-runner, oci-image, ongresinc, stackgres-maven-runner, stackgres-native-build-runner, stackgres-quarkus-test-runner, stackgres-runner-v2, linux-arm64, stackgres-e2e-runner'
      ```
 
-     Now we can push `release-1.18.0-beta1` branch and wait for the pipeline to complete:
+     Now we can push `release-1.19.0-beta1` branch and wait for the pipeline to complete:
     ```
-    git push origin "release-1.18.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
+    git push origin "release-1.19.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     ```
 
 1. [ ] Perform preflight for operator images (make each of them pass pass the index health check by opening each image project):
@@ -66,16 +66,16 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
     ```
     cd stackgres-k8s/install/operator-sdk/openshift-certification/
-    STACKGRES_VERSION="1.18.0-beta1" IMAGE_TAG="$(git rev-parse --short=8 HEAD)" sh get-images.sh | grep -F quay.io/stackgres/ | sed 's#quay\.io/stackgres/#registry.gitlab.com/ongresinc/stackgres/stackgres/#' | xargs -I % sh preflight.sh %
+    STACKGRES_VERSION="1.19.0-beta1" IMAGE_TAG="$(git rev-parse --short=8 HEAD)" sh get-images.sh | grep -F quay.io/stackgres/ | sed 's#quay\.io/stackgres/#registry.gitlab.com/ongresinc/stackgres/stackgres/#' | xargs -I % sh preflight.sh %
     ```
 
-1. [ ] Create tag `1.18.0-beta1`:
+1. [ ] Create tag `1.19.0-beta1`:
     ```
-    git tag "1.18.0-beta1"
+    git tag "1.19.0-beta1"
     ```
-1. [ ] Push tag `1.18.0-beta1` to the origin and wait for the pipeline to complete:
+1. [ ] Push tag `1.19.0-beta1` to the origin and wait for the pipeline to complete:
     ```
-    git push origin "1.18.0-beta1"
+    git push origin "1.19.0-beta1"
     ```
 1. [ ] After pipeline succeeded, scale down the ARM runners (or terminate the instance created with the script):
     ```
@@ -88,7 +88,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
     ```
     cd stackgres-k8s/install/operator-sdk/openshift-certification/
-    STACKGRES_VERSION="1.18.0-beta1" IMAGE_TAG="1.18.0-beta1" sh get-images.sh | grep -F quay.io/stackgres/ | xargs -I % sh preflight.sh %
+    STACKGRES_VERSION="1.19.0-beta1" IMAGE_TAG="1.19.0-beta1" sh get-images.sh | grep -F quay.io/stackgres/ | xargs -I % sh preflight.sh %
     ```
 1. [ ] Create PR on Red Hat Certified Operators (wait for its completion):
     > File that export environment variable `FORK_GIT_URL` with the git URL (make sure user can perform push on such URL) of the project that forks project `https://github.com/redhat-openshift-ecosystem/redhat-marketplace-operators` must be specified in POSIX shell script with path `~/.stackgres/operator-bundle-red-hat-certified-config`
@@ -101,15 +101,15 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
     > 
     > ```
-    > git checkout -b "fix-bundle-1.18.0-beta1"
+    > git checkout -b "fix-bundle-1.19.0-beta1"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-1.18.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
+    > git push origin "fix-bundle-1.19.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
     > 
-    > When PR is merged create a MR to `main-1.18.0-beta1` branch.
+    > When PR is merged create a MR to `main-1.19.0-beta1` branch.
 1. [ ] Create PR on Red Hat Marketplace Operators (wait for its completion):
     > File that export environment variable `FORK_GIT_URL` with the git URL (make sure user can perform push on such URL) of the project that forks project `https://github.com/redhat-openshift-ecosystem/certified-operators` must be specified in POSIX shell script with path `~/.stackgres/operator-bundle-red-hat-certified-config`
 
@@ -121,15 +121,15 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
     > 
     > ```
-    > git checkout -b "fix-bundle-1.18.0-beta1"
+    > git checkout -b "fix-bundle-1.19.0-beta1"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-1.18.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
+    > git push origin "fix-bundle-1.19.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
     > 
-    > When PR is merged create a MR to `main-1.18.0-beta1` branch.
+    > When PR is merged create a MR to `main-1.19.0-beta1` branch.
 1. [ ] Create PR on Red Hat Community Operators (wait for its completion):
     > File that export environment variable `FORK_GIT_URL` with the git URL (make sure user can perform push on such URL) of the project that forks project `https://github.com/redhat-openshift-ecosystem/community-operators-prod` must be specified in POSIX shell script with path `~/.stackgres/operator-bundle-red-hat-community-config`
 
@@ -141,15 +141,15 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
     > 
     > ```
-    > git checkout -b "fix-bundle-1.18.0-beta1"
+    > git checkout -b "fix-bundle-1.19.0-beta1"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-1.18.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
+    > git push origin "fix-bundle-1.19.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
     > 
-    > When PR is merged create a MR to `main-1.18.0-beta1` branch.
+    > When PR is merged create a MR to `main-1.19.0-beta1` branch.
 1. [ ] Create PR on OperatorHub (wait for its completion):
     > File that export environment variable `FORK_GIT_URL` with the git URL (make sure user can perform push on such URL) of the project that forks project `https://github.com/k8s-operatorhub/community-operators` must be specified in POSIX shell script with path `~/.stackgres/operator-bundle-operatorhub-config`
 
@@ -161,37 +161,37 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
     > 
     > ```
-    > git checkout -b "fix-bundle-1.18.0-beta1"
+    > git checkout -b "fix-bundle-1.19.0-beta1"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-1.18.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
+    > git push origin "fix-bundle-1.19.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
     > 
-    > When PR is merged create a MR to `main-1.18.0-beta1` branch.
-1. [ ] Edit the [release notes of tag 1.18.0-beta1](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.18.0-beta1) by Copying and Pasting `CHANGELOG.md` section for version `1.18.0-beta1` (GitLab)
-1. [ ] Merge local branch `release-1.18.0-beta1` into `main-1.18`:
+    > When PR is merged create a MR to `main-1.19.0-beta1` branch.
+1. [ ] Edit the [release notes of tag 1.19.0-beta1](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.19.0-beta1) by Copying and Pasting `CHANGELOG.md` section for version `1.19.0-beta1` (GitLab)
+1. [ ] Merge local branch `release-1.19.0-beta1` into `main-1.19`:
     ```
-    git checkout "main-1.18" && git pull && git merge --ff-only "release-1.18.0-beta1"
+    git checkout "main-1.19" && git pull && git merge --ff-only "release-1.19.0-beta1"
     ```
-1. [ ] Update version to be `1.18.0-SNAPSHOT`:
+1. [ ] Update version to be `1.19.0-SNAPSHOT`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.18.0-SNAPSHOT" "main-1.18"
-    git commit -a -m "version: 1.18.0-SNAPSHOT"
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.19.0-SNAPSHOT" "main-1.19"
+    git commit -a -m "version: 1.19.0-SNAPSHOT"
     git push
     ```
-1. [ ] Create branch `merge-1.18.0-beta1` from `main`:
+1. [ ] Create branch `merge-1.19.0-beta1` from `main`:
     ```
-    git checkout main && git pull && git checkout -b "merge-1.18.0-beta1"
+    git checkout main && git pull && git checkout -b "merge-1.19.0-beta1"
     ```
-1. [ ] Merge branch `main-1.18` into `merge-1.18.0-beta1`:
+1. [ ] Merge branch `main-1.19` into `merge-1.19.0-beta1`:
     ```
-    git merge "main-1.18"
+    git merge "main-1.19"
     ```
-1. [ ] Push `merge-1.18.0-beta1` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
+1. [ ] Push `merge-1.19.0-beta1` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
     ```
-    git push origin "merge-1.18.0-beta1"
+    git push origin "merge-1.19.0-beta1"
     ```
 
 # Deploy Web
@@ -202,10 +202,10 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     git checkout development && git pull
     ```
 1. [ ] Edit `.gitlab-ci.yml`:
-  * Change `STACKGRES_FULL_VERSIONS` by setting `1.18.0-beta1` as the first value.
-1. [ ] Commit changes with message `version: 1.18.0-beta1`:
+  * Change `STACKGRES_FULL_VERSIONS` by setting `1.19.0-beta1` as the first value.
+1. [ ] Commit changes with message `version: 1.19.0-beta1`:
     ```
-    git commit -a -m 'version: 1.18.0-beta1'
+    git commit -a -m 'version: 1.19.0-beta1'
     ```
 1. [ ] Push development to origin:
     ```
@@ -216,17 +216,17 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     ```
     git checkout master && git pull && git merge --ff-only development
     ```
-1. [ ] Create tag `1.18.0-beta1`:
+1. [ ] Create tag `1.19.0-beta1`:
     ```
-    git tag 1.18.0-beta1
+    git tag 1.19.0-beta1
     ```
 1. [ ] Push master to origin:
     ```
     git push
     ```
-1. [ ] Push tag `1.18.0-beta1` to origin:
+1. [ ] Push tag `1.19.0-beta1` to origin:
     ```
-    git push origin 1.18.0-beta1
+    git push origin 1.19.0-beta1
     ```
 
 # Post Checks
@@ -238,11 +238,11 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 # Changelog
 
 ~~~
-# :rocket: Release 1.18.0-beta1 (${DATE})
+# :rocket: Release 1.19.0-beta1 (${DATE})
 
 ## :notepad_spiral: NOTES
 
-StackGres 1.18.0-beta1 is out! :confetti_ball: :champagne: 
+StackGres 1.19.0-beta1 is out! :confetti_ball: :champagne: 
 
 So, what you are waiting for to try this release and have a look to the future of StackGres! 
 
@@ -274,9 +274,9 @@ Alpha or beta version should not be used to upgrade since the upgrade process wi
 
 Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
 
-## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.0-beta1)
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.0-beta1)
 ~~~
 
-/label ~StackGres ~"target_version::1.18.0-beta1" ~"team::DEV" 
-/milestone %"StackGres 1.18.0-beta1"
+/label ~StackGres ~"target_version::1.19.0-beta1" ~"team::DEV" 
+/milestone %"StackGres 1.19.0-beta1"
 /confidential 
