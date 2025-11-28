@@ -965,6 +965,7 @@ export const mixin = {
         
         if(typeof crd !== 'undefined') {
           crd.kind = kind;
+          crd.orignalName = name;
           crd.data.metadata.name = crd.name = 'copy-of-'+crd.data.metadata.name;
           store.commit('setCloneCRD', crd);
 

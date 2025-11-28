@@ -433,7 +433,8 @@ public class Component {
       Map<Component, String> subComponentVersions) {
     return findVersion(version, subComponentVersions)
         .orElseThrow(() -> new IllegalArgumentException(
-            this.name + " version " + version + " not available"));
+            this.name + " version " + version + " not available"
+                + " for " + subComponentVersions));
   }
 
   public Optional<String> findLatestMajorVersion() {

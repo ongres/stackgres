@@ -348,6 +348,8 @@ then
 fi
 EOF
       )"
+    CLUSTER_POD_LABELS="$TARGET_CLUSTER_POD_LABELS"
+    CLUSTER_PRIMARY_POD_LABELS="$TARGET_CLUSTER_PRIMARY_POD_LABELS"
   else
     echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade check..."
     create_event "MajorVersionUpgradeCheckStarted" "Normal" "Major version upgrade check started on instance $PRIMARY_INSTANCE"
@@ -365,14 +367,14 @@ EOF
       return 1
     fi
     create_event "MajorVersionUpgradeCheckCompleted" "Normal" "Major version upgrade check completed on instance $PRIMARY_INSTANCE"
-  fi
 
-  CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
-  CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
-  if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
-  then
-    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-    return 1
+    CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
+    CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"
+    if [ "$PRIMARY_INSTANCE" != "$CURRENT_PRIMARY_INSTANCE" ]
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      return 1
+    fi
   fi
 
   echo "done"
