@@ -22,10 +22,10 @@ public class StatusUpdateValidator implements ClusterValidator {
       case UPDATE: {
         StackGresCluster cluster = review.getRequest().getObject();
         StackGresCluster oldCluster = review.getRequest().getOldObject();
-        if ((cluster.getStatus().getPostgresVersion() != null
-            && oldCluster.getStatus().getPostgresVersion() == null)
-            || (cluster.getStatus().getBuildVersion() != null
-            && oldCluster.getStatus().getBuildVersion() == null)) {
+        if ((cluster.getStatus().getPostgresVersion() == null
+            && oldCluster.getStatus().getPostgresVersion() != null)
+            || (cluster.getStatus().getBuildVersion() == null
+            && oldCluster.getStatus().getBuildVersion() != null)) {
           fail("Setting postgresVersion or buildVersion to null is forbidden.");
         }
         break;
