@@ -1,3 +1,58 @@
+# :rocket: Release 1.18.1 (2025-12-04)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.18.1 is out! :confetti_ball: :champagne: 
+
+This patch release fix two critical bugs that were introduced by StackGres 1.18.0:
+
+* Replica Pod not restarting after the security upgrade leaving the operation in a loop (#3091)
+* AWS S3 object storage access using accessKeyId and secretAccessKey is broken (#3092)
+
+> Please see the issues for the workarounds
+
+If you already installed StackGres 1.18.0 upgrade as soon as possible! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support OpenShift 4.20
+* Add PgBouncer 1.25.1
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Allow to use IPV4 only in nginx and change config at will
+* Avoid previous version of cluster-controller to revert the postgresVersion or buildVersion values
+* When useIamRole is false in s3 accessKeyId and secretAccessKey are not set
+* Allow to unset secretKeySelectors for s3
+* Cluster reconciliation cycle detect false positive changes in StatefulSet
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.18.1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.1)
+
 # :rocket: Release 1.18.0 (2025-11-28)
 
 ## :notepad_spiral: NOTES
