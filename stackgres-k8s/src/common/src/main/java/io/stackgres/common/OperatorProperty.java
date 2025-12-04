@@ -54,7 +54,10 @@ public enum OperatorProperty implements StackGresPropertyReader {
   RECONCILIATION_BACKOFF_VARIATION("stackgres.reconciliationBackoffVariation"),
   RECONCILIATION_DISABLE_FAIRNESS_QUEUE("stackgres.reconciliationDisableFairnessQueue"),
   RECONCILIATION_FAIRNESS_WINDOW("stackgres.reconciliationFairnessWindow"),
-  JMX_COLLECTOR_YAML_CONFIG("stackgres.jmxCollectorYamlConfig");
+  JMX_COLLECTOR_YAML_CONFIG("stackgres.jmxCollectorYamlConfig"),
+  USE_IPV4_ONLY("stackgres.useIpv4Only"),
+  WEBCONSOLE_NGINX_OVERRIDE("stackgres.webconsoleNginxOverride"),
+  WEBCONSOLE_RESTAPI_TEMPLATE_OVERRIDE("stackgres.webconsoleRestapiOverride");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);
