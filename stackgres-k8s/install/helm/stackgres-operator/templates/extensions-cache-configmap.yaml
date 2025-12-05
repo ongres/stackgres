@@ -34,7 +34,9 @@ data:
       server_name  localhost;
       
       listen       8080;
+      {{- if not .Values.useIpv4Only }}
       listen       [::]:8080;
+      {{- end }}
       root   /opt/app-root/src;
       
       location / {

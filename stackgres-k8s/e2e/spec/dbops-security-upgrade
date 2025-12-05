@@ -78,13 +78,7 @@ e2e_test_install() {
   OLDEST_PATRONI_IMAGE="$(printf '%s' "$OLDEST_PATRONI_IMAGE" | tail -n 1)"
   SHARDED_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION-")"
   SHARDED_PATRONI_IMAGE="$(printf '%s' "$SHARDED_PATRONI_IMAGE" | tail -n 1)"
-  if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
-  then
-    DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION%.*}"'\.')"
-  else
-    DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
-  fi
-  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION%.*}\.[0-9]\+-")"
+  DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"${PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE_POSTGRES_VERSION}-")"
   DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
   PATRONI_IMAGE="$(printf %s "$PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"

@@ -159,9 +159,9 @@ public class BackupEnvVarFactory {
             getSecretEntry("AWS_SECRET_ACCESS_KEY",
                 awsConf.getAwsCredentials()
                     .getSecretKeySelectors().getSecretAccessKey(), secrets))
-            .filter(entry -> Optional.ofNullable(awsConf.getAwsCredentials().getUseIamRole())
-                .filter(useIamRole -> !useIamRole)
-                .orElse(true))),
+            .filter(Predicate.not(entry -> Optional.of(awsConf.getAwsCredentials())
+                .map(AwsCredentials::getUseIamRole)
+                .orElse(false)))),
         Optional.of(storage)
         .map(BackupStorage::getS3Compatible)
         .map(awsConf -> Seq.of(

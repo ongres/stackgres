@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
@@ -66,16 +67,30 @@ public class AdminuiNginxConfigMap
             "/webconsole/start-nginx.sh")),
             StandardCharsets.UTF_8)
         .read()).get());
-    data.put("nginx.conf", Unchecked.supplier(() -> Resources
-        .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-            "/webconsole/nginx.conf")),
-            StandardCharsets.UTF_8)
-        .read()).get());
-    data.put("stackgres-restapi.template", Unchecked.supplier(() -> Resources
-        .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-            "/webconsole/stackgres-restapi.template")),
-            StandardCharsets.UTF_8)
-        .read()).get());
+    if (OperatorProperty.WEBCONSOLE_NGINX_OVERRIDE.get().isPresent()) {
+      data.put("nginx.conf", OperatorProperty.WEBCONSOLE_NGINX_OVERRIDE.getString());
+    } else {
+      data.put("nginx.conf", Unchecked.supplier(() -> Resources
+          .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+              "/webconsole/nginx.conf")),
+              StandardCharsets.UTF_8)
+          .read()).get());
+    }
+    if (OperatorProperty.WEBCONSOLE_RESTAPI_TEMPLATE_OVERRIDE.get().isPresent()) {
+      data.put("stackgres-restapi.template", OperatorProperty.WEBCONSOLE_RESTAPI_TEMPLATE_OVERRIDE.getString());
+    } else if (OperatorProperty.USE_IPV4_ONLY.getBoolean()) {
+      data.put("stackgres-restapi.template", Unchecked.supplier(() -> Resources
+          .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+              "/webconsole/stackgres-restapi.ipv4only.template")),
+              StandardCharsets.UTF_8)
+          .read()).get());
+    } else {
+      data.put("stackgres-restapi.template", Unchecked.supplier(() -> Resources
+          .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+              "/webconsole/stackgres-restapi.template")),
+              StandardCharsets.UTF_8)
+          .read()).get());
+    }
 
     return Stream.of(new ConfigMapBuilder()
         .withNewMetadata()

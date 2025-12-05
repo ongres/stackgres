@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -97,6 +98,8 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
           labelFactory.clusterPrimaryLabelsWithoutUidAndScope(config);
       final Map<String, String> clusterPodsLabels =
           labelFactory.clusterLabelsWithoutUidAndScope(config);
+      final Map<String, String> genericLabels =
+          labelFactory.genericLabels(config);
       final boolean noPrimaryPod =
           (isPatroniOnKubernetes
               || members
@@ -173,7 +176,9 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       final boolean anyPodOrPvcWithMissingOwner = deployedResourcesCache
           .stream()
           .map(DeployedResource::foundDeployed)
-          .anyMatch(foundDeployedResource -> isPodOrPvcWithMissingOwner(
+          .filter(this::isPodOrPvc)
+          .filter(foundDeployedResource -> hasLabels(genericLabels, foundDeployedResource))
+          .anyMatch(foundDeployedResource -> isMissingOwner(
               foundDeployedResource, clusterOwnerReference));
       if (anyPodOrPvcWithMissingOwner && LOGGER.isDebugEnabled()) {
         LOGGER.debug("Will force StatefulSet reconciliation since a pod or pvc is"
@@ -220,12 +225,25 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         .isPresent();
   }
 
-  private boolean isPodOrPvcWithMissingOwner(
+  private boolean isPodOrPvc(HasMetadata foundDeployedResource) {
+    return foundDeployedResource instanceof Pod
+        || foundDeployedResource instanceof PersistentVolumeClaim;
+  }
+
+  private boolean hasLabels(final Map<String, String> genericLabels, HasMetadata foundDeployedResource) {
+    return genericLabels.entrySet().stream()
+        .allMatch(genericLabel -> Optional
+            .ofNullable(foundDeployedResource.getMetadata().getLabels())
+            .map(Map::entrySet)
+            .stream()
+            .flatMap(Set::stream)
+            .anyMatch(genericLabel::equals));
+  }
+
+  private boolean isMissingOwner(
       HasMetadata foundDeployedResource,
       OwnerReference clusterOwnerReference) {
-    return (foundDeployedResource instanceof Pod
-        || foundDeployedResource instanceof PersistentVolumeClaim)
-        && !Optional.of(foundDeployedResource.getMetadata())
+    return !Optional.of(foundDeployedResource.getMetadata())
         .map(ObjectMeta::getOwnerReferences)
         .stream()
         .flatMap(List::stream)
