@@ -14,7 +14,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -24,7 +23,6 @@ import jakarta.validation.constraints.NotNull;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class AwsCredentials {
 
-  @NotNull(message = "The secretKeySelectors are required")
   @Valid
   private AwsSecretKeySelector secretKeySelectors;
 
