@@ -73,7 +73,7 @@ public class ClusterRolloutUtil {
     if (Objects.equals(
         annotations.get(StackGresContext.ROLLOUT_KEY),
         StackGresContext.ROLLOUT_ALWAYS_VALUE)
-        || (hasRolloutAnnotation && updateStrategyType == StackGresClusterUpdateStrategyType.ALWAYS)) {
+        || (!hasRolloutAnnotation && updateStrategyType == StackGresClusterUpdateStrategyType.ALWAYS)) {
       return true;
     }
     if (annotations.containsKey(StackGresContext.ROLLOUT_DBOPS_KEY)) {
@@ -83,7 +83,7 @@ public class ClusterRolloutUtil {
         annotations.get(StackGresContext.ROLLOUT_KEY),
         StackGresContext.ROLLOUT_SCHEDULE_VALUE)
         && annotations.containsKey(StackGresContext.ROLLOUT_SCHEDULE_KEY))
-        || (hasRolloutAnnotation && updateStrategyType == StackGresClusterUpdateStrategyType.SCHEDULE
+        || (!hasRolloutAnnotation && updateStrategyType == StackGresClusterUpdateStrategyType.SCHEDULE
         && Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)
