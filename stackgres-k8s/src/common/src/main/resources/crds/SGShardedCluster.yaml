@@ -1695,10 +1695,10 @@ spec:
                             scale without waiting, and on scale down will delete all pods at once.
                   
                           If sharding type is `shardingsphere` then this field is ignored.
-                      updateStartegy: &update-strategy
+                      updateStrategy: &update-strategy
                         type: object
                         default:
-                          type: SGDbOps
+                          type: OnlyDbOps
                         description: |
                           This section indicates the strategy that the SGCluster controller will use to perform updates.
                           
@@ -2571,7 +2571,7 @@ spec:
                             ready before continuing. When scaling down, the pods are removed in the opposite order.
                             The alternative policy is `Parallel` which will create pods in parallel to match the desired
                             scale without waiting, and on scale down will delete all pods at once.
-                      update-strategy: *update-strategy
+                      updateStrategy: *update-strategy
                       customVolumes:
                         type: array
                         description: |
@@ -2960,7 +2960,7 @@ spec:
                                   ready before continuing. When scaling down, the pods are removed in the opposite order.
                                   The alternative policy is `Parallel` which will create pods in parallel to match the desired
                                   scale without waiting, and on scale down will delete all pods at once.
-                            update-strategy: *update-strategy
+                            updateStrategy: *update-strategy
                             customVolumes:
                               type: array
                               description: |

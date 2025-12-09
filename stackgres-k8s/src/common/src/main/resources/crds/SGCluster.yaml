@@ -973,10 +973,10 @@ spec:
                         ready before continuing. When scaling down, the pods are removed in the opposite order.
                         The alternative policy is `Parallel` which will create pods in parallel to match the desired
                         scale without waiting, and on scale down will delete all pods at once.
-                  updateStartegy:
+                  updateStrategy:
                     type: object
                     default:
-                      type: SGDbOps
+                      type: OnlyDbOps
                     description: |
                       This section indicates the strategy that the SGCluster controller will use to perform updates.
                       
