@@ -1,3 +1,50 @@
+# :rocket: Release 1.18.2 (2025-12-09)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.18.2 is out! :confetti_ball: :champagne: 
+
+This patch release fix issues related to the update strategy feature introduced by version 1.18.0.
+
+Please update as soon as possible in order to fix this issue! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+Nothing new here! :eyes:
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Typo in the updateStrategy section of the CRD
+* Non primary Pod with pending restart instance are not restarted
+* Update strategy type only considered if annotation is also present
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.18.2/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.2)
+
 # :rocket: Release 1.18.1 (2025-12-04)
 
 ## :notepad_spiral: NOTES
