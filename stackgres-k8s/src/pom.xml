@@ -106,6 +106,7 @@
     <pgconfig-validator.version>1.7.1</pgconfig-validator.version>
     <auto-service.version>1.1.1</auto-service.version>
     <javapoet.version>1.13.0</javapoet.version>
+    <jamm.version>0.4.0</jamm.version>
     <compile-testing.version>0.23.0</compile-testing.version>
     <bouncycastle.version>1.70</bouncycastle.version>
     <debezium.version>3.3.1.Final</debezium.version>
@@ -290,6 +291,11 @@
         <groupId>com.squareup</groupId>
         <artifactId>javapoet</artifactId>
         <version>${javapoet.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.jbellis</groupId>
+        <artifactId>jamm</artifactId>
+        <version>${jamm.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.testing.compile</groupId>

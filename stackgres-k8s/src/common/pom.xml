@@ -62,6 +62,10 @@
       <artifactId>prometheus-metrics-exposition-formats</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.jbellis</groupId>
+      <artifactId>jamm</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.stackgres</groupId>

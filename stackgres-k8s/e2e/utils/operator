@@ -1751,7 +1751,6 @@ set_max_length() {
 }
 
 set_helm_values_for_developer() {
-  E2E_OPERATOR_EXTRA_OPTS_INDEX=13
   cat << EOF
     --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER=${CLUSTER_CONTROLLER_IMAGE_NAME} 
     --set-string developer.extraOpts[0]=-Dquarkus.log.category."io.stackgres".level=DEBUG 
@@ -1770,13 +1769,25 @@ set_helm_values_for_developer() {
     --set-string developer.extraOpts[11]=-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG 
     --set-string developer.extraOpts[12]=-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE 
 EOF
+  E2E_OPERATOR_EXTRA_OPTS_INDEX=13
+  if [ "${IMAGE_TAG%-jvm}" != "$IMAGE_TAG" ]
+  then
+  cat << EOF
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 0))]=-javaagent:lib/main/com.github.jbellis.jamm-0.4.0.jar
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 1))]=--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 2))]=--add-opens=java.base/java.util.function=ALL-UNNAMED
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 3))]=--add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 3))]=--add-opens=java.base/java.util.regex=ALL-UNNAMED
+EOF
+  E2E_OPERATOR_EXTRA_OPTS_INDEX="$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 1))"
+  fi
   if [ "$K8S_IP_FAMILY" = ipv6 ]
   then
-  E2E_OPERATOR_EXTRA_OPTS_INDEX=15
   cat << EOF
-    --set-string developer.extraOpts[13]=-Djava.net.preferIPv6Addresses=true 
-    --set-string developer.extraOpts[14]=-Djava.net.preferIPv4Stack=false 
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 0))]=-Djava.net.preferIPv6Addresses=true 
+    --set-string developer.extraOpts[$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 1))]=-Djava.net.preferIPv4Stack=false 
 EOF
+  E2E_OPERATOR_EXTRA_OPTS_INDEX="$((E2E_OPERATOR_EXTRA_OPTS_INDEX + 2))"
   fi
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
