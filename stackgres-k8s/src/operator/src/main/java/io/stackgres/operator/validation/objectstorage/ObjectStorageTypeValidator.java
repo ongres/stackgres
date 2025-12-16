@@ -38,7 +38,7 @@ public class ObjectStorageTypeValidator implements ObjectStorageValidator {
             fail("Invalid object storage. If storage type is s3, the s3 property must be set");
           }
           if (backupStorage.getS3() != null
-              && Optional.ofNullable(backupStorage.getS3())
+              && !Optional.ofNullable(backupStorage.getS3())
               .map(AwsS3Storage::getAwsCredentials)
               .map(AwsCredentials::getUseIamRole)
               .orElse(false)
