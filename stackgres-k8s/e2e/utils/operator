@@ -1002,7 +1002,7 @@ get_operator_images_pre_1_18_0_alpha1() {
   echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
   echo "${STREAM_IMAGE_NAME%:*}:$VERSION-jvm"
   echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
-  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${NATIVE_TAG}-javascript"
+  echo "${PGLAMBDA_JAVASCRIPT_IMAGE_NAME%:*}:${VERSION}-javascript"
 }
 
 get_operator_images_pre_1_14_0_alpha1() {

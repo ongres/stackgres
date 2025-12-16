@@ -152,16 +152,18 @@ public class BackupEnvVarFactory {
     return Seq.of(
         Optional.of(storage)
         .map(BackupStorage::getS3)
-        .map(awsConf -> Seq.of(
-            getSecretEntry("AWS_ACCESS_KEY_ID",
-                awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(),
-                secrets),
-            getSecretEntry("AWS_SECRET_ACCESS_KEY",
-                awsConf.getAwsCredentials()
-                    .getSecretKeySelectors().getSecretAccessKey(), secrets))
-            .filter(Predicate.not(entry -> Optional.of(awsConf.getAwsCredentials())
+        .map(awsConf -> Optional.of(true)
+            .filter(Predicate.not(ignored -> Optional.of(awsConf.getAwsCredentials())
                 .map(AwsCredentials::getUseIamRole)
-                .orElse(false)))),
+                .orElse(false)))
+             .stream()
+             .flatMap(ignored -> Seq.of(
+                 getSecretEntry("AWS_ACCESS_KEY_ID",
+                     awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(),
+                     secrets),
+                 getSecretEntry("AWS_SECRET_ACCESS_KEY",
+                     awsConf.getAwsCredentials()
+                     .getSecretKeySelectors().getSecretAccessKey(), secrets)))),
         Optional.of(storage)
         .map(BackupStorage::getS3Compatible)
         .map(awsConf -> Seq.of(
