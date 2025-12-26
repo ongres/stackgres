@@ -220,112 +220,11 @@ spec:
                       type: object
                       description: |
                         An object containing data from the output of pg_controldata on the backup.
-                      properties:
-                        pg_control version number:
-                          type: string
-                        Catalog version number:
-                          type: string
-                        Database system identifier:
-                          type: string
-                        Database cluster state:
-                          type: string
-                        pg_control last modified:
-                          type: string
-                        Latest checkpoint location:
-                          type: string
-                        Latest checkpoint's REDO location:
-                          type: string
-                        Latest checkpoint's REDO WAL file:
-                          type: string
-                        Latest checkpoint's TimeLineID:
-                          type: string
-                        Latest checkpoint's PrevTimeLineID:
-                          type: string
-                        Latest checkpoint's full_page_writes:
-                          type: string
-                        Latest checkpoint's NextXID:
-                          type: string
-                        Latest checkpoint's NextOID:
-                          type: string
-                        Latest checkpoint's NextMultiXactId:
-                          type: string
-                        Latest checkpoint's NextMultiOffset:
-                          type: string
-                        Latest checkpoint's oldestXID:
-                          type: string
-                        Latest checkpoint's oldestXID's DB:
-                          type: string
-                        Latest checkpoint's oldestActiveXID:
-                          type: string
-                        Latest checkpoint's oldestMultiXid:
-                          type: string
-                        Latest checkpoint's oldestMulti's DB:
-                          type: string
-                        "Latest checkpoint's oldestCommitTsXid":
-                          type: string
-                        "Latest checkpoint's newestCommitTsXid":
-                          type: string
-                        Time of latest checkpoint:
-                          type: string
-                        Fake LSN counter for unlogged rels:
-                          type: string
-                        Minimum recovery ending location:
-                          type: string
-                        Min recovery ending loc's timeline:
-                          type: string
-                        Backup start location:
-                          type: string
-                        Backup end location:
-                          type: string
-                        End-of-backup record required:
-                          type: string
-                        wal_level setting:
-                          type: string
-                        wal_log_hints setting:
-                          type: string
-                        max_connections setting:
-                          type: string
-                        max_worker_processes setting:
-                          type: string
-                        max_wal_senders setting:
-                          type: string
-                        max_prepared_xacts setting:
-                          type: string
-                        max_locks_per_xact setting:
-                          type: string
-                        track_commit_timestamp setting:
-                          type: string
-                        Maximum data alignment:
-                          type: string
-                        Database block size:
-                          type: string
-                        Blocks per segment of large relation:
-                          type: string
-                        WAL block size:
-                          type: string
-                        Bytes per WAL segment:
-                          type: string
-                        Maximum length of identifiers:
-                          type: string
-                        Maximum columns in an index:
-                          type: string
-                        Maximum size of a TOAST chunk:
-                          type: string
-                        Size of a large-object chunk:
-                          type: string
-                        Date/time type storage:
-                          type: string
-                        Float4 argument passing:
-                          type: string
-                        Float8 argument passing:
-                          type: string
-                        Data page checksum version:
-                          type: string
-                        Mock authentication nonce:
-                          type: string
+                      "x-kubernetes-preserve-unknown-fields": true
                 sgBackupConfig:
                   type: object
                   description: The backup configuration used to perform this backup.
+                  required: [storage]
                   properties:
                     baseBackups:
                       type: object
@@ -341,6 +240,7 @@ spec:
                       type: object
                       description: |
                         Object Storage configuration
+                      required: [ "type" ]
                       properties:
                         encryption:
                           type: object
@@ -351,25 +251,26 @@ spec:
                               type: string
                               description: |
                                 Select the storage encryption method.
-
+            
                                 Possible options are:
-
+            
                                 * `sodium`: will use libsodium to encrypt the files stored.
                                 * `openpgp`: will use OpenPGP standard to encrypt the files stored.
-
+            
                                 When not set no encryption will be applied to stored files.
                             sodium:
                               type: object
+                              required: [ key ]
                               description: libsodium encryption configuration.
                               properties:
                                 key:
                                   type: object
                                   description: |
                                     To configure encryption and decryption with libsodium an algorithm that only requires
-                                     a secret key is used. libsodium keys are fixed-size keys of 32 bytes. For optimal
-                                     cryptographic security, it is recommened to use a random 32 byte key. To generate a
-                                     random key, you can something like `openssl rand -hex 32` (set `keyTransform` to `hex`)
-                                     or `openssl rand -base64 32` (set `keyTransform` to `base64`).
+                                    a secret key is used. libsodium keys are fixed-size keys of 32 bytes. For optimal
+                                    cryptographic security, it is recommened to use a random 32 byte key. To generate a
+                                    random key, you can something like `openssl rand -hex 32` (set `keyTransform` to `hex`)
+                                    or `openssl rand -base64 32` (set `keyTransform` to `base64`).
                                   properties:
                                     name:
                                       type: string
@@ -379,21 +280,22 @@ spec:
                                       description: The key of the secret to select from. Must be a valid secret key.
                                 keyTransform:
                                   type: string
-                                  default: none
                                   description: |
                                     The transform that will be applied to the `key` to get the required 32 byte key.
-                                     Supported transformations are `base64`, `hex` or `none` (default). The option
-                                     none exists for backwards compatbility, the user input will be converted to 32
-                                     byte either via truncation or by zero-padding.
+                                    Supported transformations are `base64`, `hex` or `none` (default). The option
+                                    none exists for backwards compatbility, the user input will be converted to 32
+                                    byte either via truncation or by zero-padding.
+                                  default: none
                             openpgp:
                               type: object
+                              required: [ key ]
                               description: OpenPGP encryption configuration.
                               properties:
                                 key:
                                   type: object
                                   description: |
                                     To configure encryption and decryption with OpenPGP standard. You can join multiline
-                                     key using `\n` symbols into one line (mostly used in case of daemontools and envdir).
+                                    key using `\n` symbols into one line (mostly used in case of daemontools and envdir).
                                   properties:
                                     name:
                                       type: string
@@ -424,6 +326,7 @@ spec:
                                   *  `azureBlob`: Microsoft Azure Blob Storage.
                         s3:
                           type: object
+                          required: ["bucket", "awsCredentials"]
                           description: |
                             Amazon Web Services S3 configuration.
                           properties:
@@ -442,16 +345,24 @@ spec:
                                 The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                             awsCredentials:
                               type: object
+                              required: []
                               description: |
                                 The credentials to access AWS S3 for writing and reading.
                               properties:
+                                useIAMRole:
+                                  type: boolean
+                                  default: false
+                                  description: |
+                                    When set to `true` the IAM role credentials will be used instead of the secret key selector.
                                 secretKeySelectors:
                                   type: object
+                                  required: ["accessKeyId", "secretAccessKey"]
                                   description: |
                                     Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#secretkeyselector-v1-core)(s) to reference the Secrets that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                                   properties:
                                     accessKeyId:
                                       type: object
+                                      required: ["key", "name"]
                                       description: |
                                         AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
                                       properties:
@@ -463,9 +374,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: ["key", "name"]
                                     secretAccessKey:
                                       type: object
+                                      required: ["key", "name"]
                                       description: |
                                         AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
                                       properties:
@@ -477,12 +388,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: ["key", "name"]
-                                  required: ["accessKeyId", "secretAccessKey"]
-                              required: ["secretKeySelectors"]
-                          required: ["bucket", "awsCredentials"]
                         s3Compatible:
                           type: object
+                          required: ["bucket", "awsCredentials"]
                           description: "AWS S3-Compatible API configuration"
                           properties:
                             bucket:
@@ -511,16 +419,19 @@ spec:
                                 The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
                             awsCredentials:
                               type: object
+                              required: ["secretKeySelectors"]
                               description: |
                                 The credentials to access AWS S3 for writing and reading.
                               properties:
                                 secretKeySelectors:
                                   type: object
+                                  required: ["accessKeyId", "secretAccessKey"]
                                   description: |
                                     Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                                   properties:
                                     accessKeyId:
                                       type: object
+                                      required: ["key", "name"]
                                       description: |
                                         AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
                                       properties:
@@ -532,9 +443,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: ["key", "name"]
                                     secretAccessKey:
                                       type: object
+                                      required: ["key", "name"]
                                       description: |
                                         AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
                                       properties:
@@ -546,9 +457,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: ["key", "name"]
                                     caCertificate:
                                       type: object
+                                      required: ["key", "name"]
                                       description: |
                                         CA Certificate file to be used when connecting to the S3 Compatible Service.
                                       properties:
@@ -560,12 +471,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: ["key", "name"]
-                                  required: ["accessKeyId", "secretAccessKey"]
-                              required: ["secretKeySelectors"]
-                          required: ["bucket", "awsCredentials"]
                         gcs:
                           type: object
+                          required: [ "bucket", "gcpCredentials" ]
                           description: |
                             Google Cloud Storage configuration.
                           properties:
@@ -587,11 +495,13 @@ spec:
                                     This is useful when running StackGres inside a GKE cluster using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
                                 secretKeySelectors:
                                   type: object
+                                  required: [ "serviceAccountJSON" ]
                                   description: |
                                     A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
                                   properties:
                                     serviceAccountJSON:
                                       type: object
+                                      required: [ "key", "name" ]
                                       description: |
                                         A service account key from GCP. In JSON format, as downloaded from the GCP Console.
                                       properties:
@@ -603,11 +513,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: [ "key", "name" ]
-                                  required: [ "serviceAccountJSON" ]
-                          required: [ "bucket", "gcpCredentials" ]
                         azureBlob:
                           type: object
+                          required: [ "bucket", "azureCredentials" ]
                           description: |
                             Azure Blob Storage configuration.
                           properties:
@@ -623,11 +531,13 @@ spec:
                               properties:
                                 secretKeySelectors:
                                   type: object
+                                  required: [ "storageAccount", "accessKey" ]
                                   description: |
                                     Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `azureCredentials`. . Note that you may use the same or different Secrets for the `storageAccount` and the `accessKey`. In the former case, the `keys` that identify each must be, obviously, different.
                                   properties:
                                     storageAccount:
                                       type: object
+                                      required: [ "key", "name" ]
                                       description: |
                                         The [Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview?toc=/azure/storage/blobs/toc.json) that contains the Blob bucket to be used.
                                       properties:
@@ -639,9 +549,9 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: [ "key", "name" ]
                                     accessKey:
                                       type: object
+                                      required: [ "key", "name" ]
                                       description: |
                                         The [storage account access key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal).
                                       properties:
@@ -653,11 +563,6 @@ spec:
                                           type: string
                                           description: |
                                             Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
-                                      required: [ "key", "name" ]
-                                  required: [ "storageAccount", "accessKey" ]
-                          required: [ "bucket", "azureCredentials" ]
-                      required: [ "type" ]
-                  required: [storage]
                 volumeSnapshot:
                   type: object
                   description: The volume snapshot configuration used to restore this backup.
