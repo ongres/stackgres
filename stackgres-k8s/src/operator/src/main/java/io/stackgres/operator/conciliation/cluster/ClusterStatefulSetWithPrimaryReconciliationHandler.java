@@ -224,10 +224,12 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         requiredSts.getMetadata().getNamespace());
     final Map<String, String> appLabel = labelFactory.appLabel();
     final List<Pod> currentPods = findStatefulSetPods(requiredSts, appLabel);
+    final var patroniCtl = this.patroniCtl.instanceFor(context);
+    final List<PatroniMember> patroniMembers = patroniCtl.list();
     final boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(context);
     final boolean isReducedImpact = ClusterRolloutUtil.isRolloutReducedImpact(context);
     final boolean requiresRestart = ClusterRolloutUtil
-        .getRestartReasons(context, currentSts, currentPods, List.of())
+        .getRestartReasons(context, currentSts, currentPods, patroniMembers)
         .requiresRestart();
 
     final int desiredReplicas;
@@ -243,7 +245,6 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     }
     final int lastReplicaIndex = desiredReplicas - 1;
 
-    final var patroniCtl = this.patroniCtl.instanceFor(context);
     final Optional<String> latestPrimaryFromPatroni =
         PatroniUtil.getLatestPrimaryFromPatroni(patroniCtl);
     if (desiredReplicas > 0) {
@@ -346,7 +347,8 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             .getRestartReasons(context, Optional.of(updatedSts), pod, List.of())
             .getReasons().contains(RestartReason.STATEFULSET))
         .findAny();
-    if (anyOtherPodAndPendingRestart.isPresent()) {
+    if (foundPrimaryPod.isEmpty()
+        && anyOtherPodAndPendingRestart.isPresent()) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Restarting non primary Pod {} since pending restart",
             anyOtherPodAndPendingRestart.get().getMetadata().getName());
@@ -387,7 +389,24 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             foundPrimaryPod.get().getMetadata().getName());
       }
       var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
-      patroniCtl.restart(credentials.v1, credentials.v2, foundPrimaryPod.get().getMetadata().getName());
+      patroniCtl.restart(credentials.v1, credentials.v2,
+          foundPrimaryPod.get().getMetadata().getName());
+      return;
+    }
+    var anyOtherPodAndPendingRestartInstance = otherPods
+        .stream()
+        .filter(pod -> patroniMembers.stream()
+            .anyMatch(patroniMember -> patroniMember.getMember().equals(pod.getMetadata().getName())
+                && patroniMember.getPendingRestart() != null))
+        .findFirst();
+    if (anyOtherPodAndPendingRestartInstance.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Restarting Postgres instance of non primary Pod {} since pending restart",
+            anyOtherPodAndPendingRestartInstance.get().getMetadata().getName());
+      }
+      var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+      patroniCtl.restart(credentials.v1, credentials.v2,
+          anyOtherPodAndPendingRestartInstance.get().getMetadata().getName());
       return;
     }
     if (foundPrimaryPod.isPresent()
@@ -408,62 +427,61 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
-    final Optional<PatroniMember> leastLagPatroniMemberAndReady =
-        patroniMembers
-        .stream()
-        .filter(PatroniMember::isReplica)
-        .filter(PatroniMember::isRunning)
-        .filter(member -> Optional.ofNullable(member.getTags())
-            .filter(tags -> tags.entrySet().stream().anyMatch(
-                tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)
-                && tag.getValue() != null && tag.getValue().getValue() != null
-                && Objects.equals(tag.getValue().getValue().toString(), Boolean.TRUE.toString())))
-            .isEmpty())
-        .min((m1, m2) -> {
-          var l1 = Optional.ofNullable(m1.getLagInMb())
-              .map(IntOrString::getIntVal);
-          var l2 = Optional.ofNullable(m2.getLagInMb())
-              .map(IntOrString::getIntVal);
-          if (l1.isPresent() && l2.isPresent()) {
-            return l1.get().compareTo(l2.get());
-          } else if (l1.isPresent() && l2.isEmpty()) {
-            return -1;
-          } else if (l1.isEmpty() && l2.isPresent()) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-    final Optional<Pod> otherLeastLagPodAndReady = leastLagPatroniMemberAndReady
-        .stream()
-        .flatMap(member -> otherPods
-            .stream()
-            .filter(ClusterRolloutUtil::isPodReady)
-            .filter(pod -> member.getMember().equals(pod.getMetadata().getName())))
-        .findFirst();
-    if (foundPrimaryPodAndPendingRestart.isPresent()
-        && otherLeastLagPodAndReady.isPresent()) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Failover primary Pod {} to Pod {} since ready and with least lag",
+    if (foundPrimaryPodAndPendingRestart.isPresent()) {
+      final Optional<PatroniMember> leastLagPatroniMemberAndReady =
+          patroniMembers
+          .stream()
+          .filter(PatroniMember::isReplica)
+          .filter(PatroniMember::isRunning)
+          .filter(member -> Optional.ofNullable(member.getTags())
+              .filter(tags -> tags.entrySet().stream().anyMatch(
+                  tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)
+                  && tag.getValue() != null && tag.getValue().getValue() != null
+                  && Objects.equals(tag.getValue().getValue().toString(), Boolean.TRUE.toString())))
+              .isEmpty())
+          .min((m1, m2) -> {
+            var l1 = Optional.ofNullable(m1.getLagInMb())
+                .map(IntOrString::getIntVal);
+            var l2 = Optional.ofNullable(m2.getLagInMb())
+                .map(IntOrString::getIntVal);
+            if (l1.isPresent() && l2.isPresent()) {
+              return l1.get().compareTo(l2.get());
+            } else if (l1.isPresent() && l2.isEmpty()) {
+              return -1;
+            } else if (l1.isEmpty() && l2.isPresent()) {
+              return 1;
+            } else {
+              return 0;
+            }
+          });
+      final Optional<Pod> otherLeastLagPodAndReady = leastLagPatroniMemberAndReady
+          .stream()
+          .flatMap(member -> otherPods
+              .stream()
+              .filter(ClusterRolloutUtil::isPodReady)
+              .filter(pod -> member.getMember().equals(pod.getMetadata().getName())))
+          .findFirst();
+      if (otherLeastLagPodAndReady.isPresent()) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Failover primary Pod {} to Pod {} since ready and with least lag",
+              foundPrimaryPod.get().getMetadata().getName(),
+              otherLeastLagPodAndReady.get().getMetadata().getName());
+        }
+        var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+        patroniCtl.switchover(
+            credentials.v1,
+            credentials.v2,
             foundPrimaryPod.get().getMetadata().getName(),
             otherLeastLagPodAndReady.get().getMetadata().getName());
+        return;
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Restarting primary Pod {} since pending restart",
+              foundPrimaryPodAndPendingRestart.get().getMetadata().getName());
+        }
+        handler.delete(context, foundPrimaryPodAndPendingRestart.get());
+        return;
       }
-      var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
-      patroniCtl.switchover(
-          credentials.v1,
-          credentials.v2,
-          foundPrimaryPod.get().getMetadata().getName(),
-          otherLeastLagPodAndReady.get().getMetadata().getName());
-      return;
-    }
-    if (foundPrimaryPodAndPendingRestart.isPresent()
-        && otherLeastLagPodAndReady.isEmpty()) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Restarting primary Pod {} since pending restart",
-            foundPrimaryPodAndPendingRestart.get().getMetadata().getName());
-      }
-      handler.delete(context, foundPrimaryPodAndPendingRestart.get());
-      return;
     }
   }
 
