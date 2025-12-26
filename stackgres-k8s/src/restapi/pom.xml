@@ -11,7 +11,7 @@
   <parent>
     <artifactId>stackgres-parent</artifactId>
     <groupId>io.stackgres</groupId>
-    <version>1.18.3</version>
+    <version>1.18.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-restapi</artifactId>
