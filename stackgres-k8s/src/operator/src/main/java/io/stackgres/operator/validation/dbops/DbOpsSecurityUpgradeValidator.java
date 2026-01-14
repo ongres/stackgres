@@ -36,16 +36,29 @@ public class DbOpsSecurityUpgradeValidator implements DbOpsValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE:
         StackGresDbOps dbOps = review.getRequest().getObject();
-        if (dbOps.getSpec().isOpSecurityUpgrade()) {
-          Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
-              dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace());
-          if (cluster.map(c -> getPostgresFlavorComponent(c).get(c).streamOrderedVersions()
-              .noneMatch(c.getSpec().getPostgres().getVersion()::equals))
-              .orElse(false)) {
-            fail("Major version upgrade must be performed on SGCluster before performing"
-                + " the upgrade since Postgres version " + cluster.get().getSpec().getPostgres()
-                .getVersion() + " will not be supported after the upgrade is completed");
-          }
+        if (!dbOps.getSpec().isOpSecurityUpgrade()) {
+          return;
+        }
+        Optional<StackGresCluster> foundCluster = clusterFinder.findByNameAndNamespace(
+            dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace());
+        if (foundCluster.isEmpty()) {
+          return;
+        }
+        StackGresCluster cluster = foundCluster.get();
+        Optional<String> foundVersion = getPostgresFlavorComponent(cluster)
+            .get(cluster)
+            .findVersion(cluster.getSpec().getPostgres().getVersion());
+        if (foundVersion.isEmpty()) {
+          return;
+        }
+        String version = foundVersion.get();
+        if (getPostgresFlavorComponent(cluster)
+            .get(cluster)
+            .streamOrderedVersions()
+            .noneMatch(version::equals)) {
+          fail("Major version upgrade must be performed on SGCluster before performing"
+              + " the upgrade since Postgres version " + version
+              + " will not be supported after the upgrade is completed");
         }
         break;
       default:
