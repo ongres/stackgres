@@ -15,7 +15,7 @@ BEGIN
           'SELECT drop_retention_policy(' || quote_literal(table_name) || ')');
         PERFORM dblink(
           'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=' || quote_literal(database_entry[0]),
-          'SELECT add_retention_policy(' || quote_literal(table_name) || ', CAST(' || quote_literal(database_entry[1]) || ' AS INTERVAL');
+          'SELECT add_retention_policy(' || quote_literal(table_name) || ', CAST(' || quote_literal(database_entry[1]) || ' AS INTERVAL))');
       ELSIF EXISTS (SELECT * FROM pg_extension WHERE extname = 'timescaledb' AND SPLIT_PART(extversion,'.',1) = '1') THEN
         -- next reconciliation will take place on %3$s
         PERFORM dblink(

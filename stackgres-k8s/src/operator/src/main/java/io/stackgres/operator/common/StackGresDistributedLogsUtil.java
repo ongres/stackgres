@@ -6,12 +6,14 @@
 package io.stackgres.operator.common;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
@@ -21,8 +23,9 @@ import org.jooq.lambda.Seq;
 public interface StackGresDistributedLogsUtil {
 
   String POSTGRESQL_VERSION = "17";
-  String TIMESCALEDB_EXTENSION_NAME = "timescaledb";
-  String TIMESCALEDB_EXTENSION_VERSION = "2.17.0";
+  String PREVIOUS_TIMESCALEDB_EXTENSION_NAME = "timescaledb";
+  String TIMESCALEDB_EXTENSION_NAME = "timescaledb_tsl";
+  String TIMESCALEDB_EXTENSION_VERSION = "2.23.1";
 
   static String getPostgresVersion(StackGresDistributedLogs distributedLogs) {
     return Optional.of(distributedLogs)
@@ -52,6 +55,13 @@ public interface StackGresDistributedLogsUtil {
         StackGresPostgresFlavor.VANILLA.toString())).append(
             new ExtensionTuple(TIMESCALEDB_EXTENSION_NAME, TIMESCALEDB_EXTENSION_VERSION))
         .toList();
+  }
+
+  static boolean isNotDeprecatedDistributedLogsExtension(
+      StackGresClusterExtension extension) {
+    return !Objects.equals(
+        extension.getName(),
+        PREVIOUS_TIMESCALEDB_EXTENSION_NAME);
   }
 
 }

@@ -56,6 +56,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.labels.LabelFactoryForDistributedLogs;
+import io.stackgres.operator.common.StackGresDistributedLogsUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -144,10 +145,13 @@ public class DistributedLogsCluster
             .orElse(getPostgresVersion(distributedLogs)))
         .withExtensions(
             Seq.of(previousCluster
-            .map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getPostgres)
-            .map(StackGresClusterPostgres::getExtensions)
-            .orElse(List.of()))
+                .map(StackGresCluster::getSpec)
+                .map(StackGresClusterSpec::getPostgres)
+                .map(StackGresClusterPostgres::getExtensions)
+                .stream()
+                .flatMap(List::stream)
+                .filter(StackGresDistributedLogsUtil::isNotDeprecatedDistributedLogsExtension)
+                .toList())
             .flatMap(extensions -> Seq.seq(extensions)
                 .append(getDefaultDistributedLogsExtensions(distributedLogs)
                     .stream()
