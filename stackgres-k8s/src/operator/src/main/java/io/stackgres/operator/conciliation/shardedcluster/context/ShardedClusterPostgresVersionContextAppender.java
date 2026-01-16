@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.operator.conciliation.ContextAppender;
+import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext.Builder;
 import io.stackgres.operator.validation.ValidationUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,17 +33,8 @@ import org.jooq.lambda.tuple.Tuple2;
 public class ShardedClusterPostgresVersionContextAppender
     extends ContextAppender<StackGresShardedCluster, Builder> {
 
-  private static final String PG_14_CREATE_CONCURRENT_INDEX_BUG =
-      "Please, use PostgreSQL 14.4 since it fixes an issue"
-          + " with CREATE INDEX CONCURRENTLY and REINDEX CONCURRENTLY that"
-          + " could cause silent data corruption of indexes. For more info"
-          + " see https://www.postgresql.org/about/news/postgresql-144-released-2470/.";
-  public static final Map<String, String> BUGGY_PG_VERSIONS = Map.ofEntries(
-      Map.entry("14.0", PG_14_CREATE_CONCURRENT_INDEX_BUG),
-      Map.entry("14.1", PG_14_CREATE_CONCURRENT_INDEX_BUG),
-      Map.entry("14.2", PG_14_CREATE_CONCURRENT_INDEX_BUG),
-      Map.entry("14.3", PG_14_CREATE_CONCURRENT_INDEX_BUG)
-      );
+  public static final Map<String, String> BUGGY_PG_VERSIONS =
+      ClusterPostgresVersionContextAppender.BUGGY_PG_VERSIONS;
 
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
