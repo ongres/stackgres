@@ -39,6 +39,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniDynamicConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -182,6 +183,14 @@ public class PatroniConfigEndpoints
               + " -- wal-g wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
+              .append(Seq.of("custom_replication_method")
+                  .filter(createReplicaMethod -> Optional
+                      .ofNullable(cluster.getSpec())
+                      .map(StackGresClusterSpec::getReplicateFrom)
+                      .map(StackGresClusterReplicateFrom::getInstance)
+                      .map(StackGresClusterReplicateFromInstance::getExternal)
+                      .map(StackGresClusterReplicateFromExternal::getCustomRestoreMethod)
+                      .isPresent()))
               .append(Seq.of("replicate")
                   .filter(createReplicaMethod -> Optional
                       .ofNullable(cluster.getSpec())

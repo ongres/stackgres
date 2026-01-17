@@ -19,6 +19,8 @@ public class ClusterReplicateFromExternal {
 
   private Integer port;
 
+  private ClusterReplicateFromCustomRestoreMethod customRestoreMethod;
+
   public String getHost() {
     return host;
   }
@@ -33,6 +35,14 @@ public class ClusterReplicateFromExternal {
 
   public void setPort(Integer port) {
     this.port = port;
+  }
+
+  public ClusterReplicateFromCustomRestoreMethod getCustomRestoreMethod() {
+    return customRestoreMethod;
+  }
+
+  public void setCustomRestoreMethod(ClusterReplicateFromCustomRestoreMethod customRestoreMethod) {
+    this.customRestoreMethod = customRestoreMethod;
   }
 
   @Override
