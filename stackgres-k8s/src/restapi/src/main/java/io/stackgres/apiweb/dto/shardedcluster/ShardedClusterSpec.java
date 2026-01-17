@@ -40,6 +40,8 @@ public class ShardedClusterSpec {
 
   private ShardedClusterInitalData initialData;
 
+  private ShardedClusterReplicateFrom replicateFrom;
+
   private ClusterNonProductionOptions nonProductionOptions;
 
   public String getProfile() {
@@ -66,22 +68,6 @@ public class ShardedClusterSpec {
     this.database = database;
   }
 
-  public ShardedClusterCoordinator getCoordinator() {
-    return coordinator;
-  }
-
-  public void setCoordinator(ShardedClusterCoordinator coordinator) {
-    this.coordinator = coordinator;
-  }
-
-  public ShardedClusterShards getShards() {
-    return shards;
-  }
-
-  public void setShards(ShardedClusterShards shards) {
-    this.shards = shards;
-  }
-
   public ClusterPostgres getPostgres() {
     return postgres;
   }
@@ -104,14 +90,6 @@ public class ShardedClusterSpec {
 
   public void setConfigurations(ShardedClusterConfigurations configurations) {
     this.configurations = configurations;
-  }
-
-  public ClusterNonProductionOptions getNonProductionOptions() {
-    return nonProductionOptions;
-  }
-
-  public void setNonProductionOptions(ClusterNonProductionOptions nonProductionOptions) {
-    this.nonProductionOptions = nonProductionOptions;
   }
 
   public ShardedClusterSpecMetadata getMetadata() {
@@ -138,12 +116,44 @@ public class ShardedClusterSpec {
     this.postgresServices = postgresServices;
   }
 
+  public ShardedClusterCoordinator getCoordinator() {
+    return coordinator;
+  }
+
+  public void setCoordinator(ShardedClusterCoordinator coordinator) {
+    this.coordinator = coordinator;
+  }
+
+  public ShardedClusterShards getShards() {
+    return shards;
+  }
+
+  public void setShards(ShardedClusterShards shards) {
+    this.shards = shards;
+  }
+
   public ShardedClusterInitalData getInitialData() {
     return initialData;
   }
 
   public void setInitialData(ShardedClusterInitalData initialData) {
     this.initialData = initialData;
+  }
+
+  public ShardedClusterReplicateFrom getReplicateFrom() {
+    return replicateFrom;
+  }
+
+  public void setReplicateFrom(ShardedClusterReplicateFrom replicateFrom) {
+    this.replicateFrom = replicateFrom;
+  }
+
+  public ClusterNonProductionOptions getNonProductionOptions() {
+    return nonProductionOptions;
+  }
+
+  public void setNonProductionOptions(ClusterNonProductionOptions nonProductionOptions) {
+    this.nonProductionOptions = nonProductionOptions;
   }
 
   @Override

@@ -2037,6 +2037,48 @@ spec:
                           port:
                             type: integer
                             description: The port of the PostgreSQL to replicate from.
+                          customRestoreMethod:
+                            type: object
+                            description: Custom restore method. See https://patroni.readthedocs.io/en/latest/replica_bootstrap.html#custom-replica-creation
+                            properties:
+                              command:
+                                type: string
+                                description: A command to be run to restore the leader replica. Mutually exclusive with `script` field.
+                              script:
+                                type: string
+                                description: The path to a shell script to be run to restore the leader replica. Mutually exclusive with `command` field.
+                              no_leader:
+                                type: boolean
+                                description: |
+                                  If set to `true` allows Patroni to call the replica creation method even if there is no running leader or replicas.
+                                   In that case, an empty string will be passed in a connection string. This is useful for restoring the formerly
+                                   running cluster from the binary backup.
+                              keep_data:
+                                type: boolean
+                                description: If set to `true`, will instruct Patroni to not clean PGDATA folder before calling restore.
+                              no_params:
+                                type: boolean
+                                description: If set to `true`, restricts passing parameters to custom command or script.
+                              parameters:
+                                type: object
+                                description: A list of optional parameters to pass to the command or script.
+                                additionalProperties:
+                                  type: string
+                              keep_existing_recovery_conf:
+                                type: boolean
+                                description: |
+                                  If set to `true`, will instruct Patroni to not remove the existing `recovery.conf` file if it exists (PostgreSQL <= 11).
+                                   Similarly, in that case Patroni will not remove the existing `recovery.signal` or `standby.signal` if either exists,
+                                   nor will it override the configured recovery settings (PostgreSQL >= 12). This is useful when bootstrapping from a
+                                   backup with tools like pgBackRest that generate the appropriate recovery configuration for you.
+                              recovery_conf:
+                                type: object
+                                description: |
+                                  When set, Patroni will generate a `recovery.conf` before starting the newly bootstrapped instance (or set the recovery
+                                   settings on Postgres configuration if running PostgreSQL >= 12). Typically, such recovery configuration should contain
+                                   at least one of the `recovery_target_*` parameters, together with the `recovery_target_action` set to promote.
+                                additionalProperties:
+                                  type: string
                   storage:
                     type: object
                     description: |

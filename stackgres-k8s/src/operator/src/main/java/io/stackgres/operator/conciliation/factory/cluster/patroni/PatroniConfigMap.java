@@ -32,6 +32,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromCustomRestoreMethod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -42,6 +46,7 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +148,14 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
             .map(String::valueOf)
             .orElse("0"));
 
+    if (Optional.ofNullable(cluster.getSpec().getReplicateFrom())
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .map(StackGresClusterReplicateFromInstance::getExternal)
+        .map(StackGresClusterReplicateFromExternal::getCustomRestoreMethod)
+        .isPresent()) {
+      setCustomRestoreMethod(cluster, data);
+    }
+
     return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
@@ -151,5 +164,47 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
+  }
+
+  private void setCustomRestoreMethod(final StackGresCluster cluster, Map<String, String> data) {
+    var customRestoreMethod = Optional.ofNullable(cluster.getSpec().getReplicateFrom())
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .map(StackGresClusterReplicateFromInstance::getExternal)
+        .map(StackGresClusterReplicateFromExternal::getCustomRestoreMethod)
+        .get();
+    data.put("CUSTOM_REPLICATION_METHOD", "true");
+    data.put("CUSTOM_REPLICATION_METHOD_COMMAND", Unchecked.supplier(
+        () -> objectMapper.writeValueAsString(
+            Optional.of(customRestoreMethod)
+            .map(StackGresClusterReplicateFromCustomRestoreMethod::getCommand)
+            .orElse(customRestoreMethod.getScript()))).get());
+    data.put("CUSTOM_REPLICATION_METHOD_NO_LEADER", 
+        Optional.of(customRestoreMethod)
+        .map(StackGresClusterReplicateFromCustomRestoreMethod::getNoLeader)
+        .map(Object::toString)
+        .orElse("false"));
+    data.put("CUSTOM_REPLICATION_METHOD_KEEP_DATA", 
+        Optional.of(customRestoreMethod)
+        .map(StackGresClusterReplicateFromCustomRestoreMethod::getKeepData)
+        .map(Object::toString)
+        .orElse("false"));
+    data.put("CUSTOM_REPLICATION_METHOD_NO_PARAMS", 
+        Optional.of(customRestoreMethod)
+        .map(StackGresClusterReplicateFromCustomRestoreMethod::getNoParams)
+        .map(Object::toString)
+        .orElse("false"));
+    data.put("CUSTOM_REPLICATION_METHOD_PARAMETERS", Optional.of(customRestoreMethod)
+        .map(StackGresClusterReplicateFromCustomRestoreMethod::getParameters)
+        .map(Unchecked.function(parameters -> yamlMapper.writeValueAsString(parameters)))
+        .orElse(""));
+    data.put("CUSTOM_REPLICATION_METHOD_EXISTING_RECOVERY_CONF", 
+        Optional.of(customRestoreMethod)
+        .map(StackGresClusterReplicateFromCustomRestoreMethod::getKeepExistingRecoveryConf)
+        .map(Object::toString)
+        .orElse("false"));
+    data.put("CUSTOM_REPLICATION_METHOD_RECOVERY_CONF", Optional.of(customRestoreMethod)
+        .map(StackGresClusterReplicateFromCustomRestoreMethod::getRecoveryConf)
+        .map(Unchecked.function(recoveryConf -> yamlMapper.writeValueAsString(recoveryConf)))
+        .orElse(""));
   }
 }
