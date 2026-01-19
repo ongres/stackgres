@@ -1,3 +1,51 @@
+# :rocket: Release 1.18.3 (2025-12-26)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.18.3 is out! :confetti_ball: :champagne: :christmas_tree: 
+
+This patch release aim to fix some issues and, in particular, a few related to the s3 SGObjectStorage type that were introduced in 1.18.0. See [#3092](https://gitlab.com/ongresinc/stackgres/-/issues/3092).
+
+Please, upgrade as soon as possible! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support for Kubernetes 1.35
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* SGBackup for s3 stop working on 1.18.0
+* Can not remove secretKeySelectors when useIamRole is true in SGObjectStorage
+* When useIamRole is true operator may fail due to secret not found
+* SGShardedCluster Endpoints are not generated in some scenarios
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.18.3/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.3)
+
 # :rocket: Release 1.18.2 (2025-12-09)
 
 ## :notepad_spiral: NOTES

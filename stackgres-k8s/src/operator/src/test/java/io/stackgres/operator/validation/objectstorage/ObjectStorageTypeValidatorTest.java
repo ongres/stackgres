@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.objectstorage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.stackgres.common.crd.storages.AwsCredentials;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
@@ -103,6 +104,8 @@ class ObjectStorageTypeValidatorTest {
         + "If storage type is s3, neither s3Compatible, gcs or azureBlob must be set";
 
     review.getRequest().getObject().getSpec().setS3(new AwsS3Storage());
+    review.getRequest().getObject().getSpec().getS3().setAwsCredentials(new AwsCredentials());
+    review.getRequest().getObject().getSpec().getS3().getAwsCredentials().setUseIamRole(true);
 
     review.getRequest().getObject().getSpec().setS3Compatible(new AwsS3CompatibleStorage());
     assertObjectStorageReviewMessage(review, unwantedS3Message);
@@ -180,6 +183,8 @@ class ObjectStorageTypeValidatorTest {
     setType(review, "s3");
     setNullStorages(review);
     review.getRequest().getObject().getSpec().setS3(new AwsS3Storage());
+    review.getRequest().getObject().getSpec().getS3().setAwsCredentials(new AwsCredentials());
+    review.getRequest().getObject().getSpec().getS3().getAwsCredentials().setUseIamRole(true);
     validator.validate(review);
 
     setType(review, "s3Compatible");
@@ -206,6 +211,8 @@ class ObjectStorageTypeValidatorTest {
     setType(review, "s3");
     setNullStorages(review);
     review.getRequest().getObject().getSpec().setS3(new AwsS3Storage());
+    review.getRequest().getObject().getSpec().getS3().setAwsCredentials(new AwsCredentials());
+    review.getRequest().getObject().getSpec().getS3().getAwsCredentials().setUseIamRole(true);
     validator.validate(review);
 
     setType(review, "s3Compatible");

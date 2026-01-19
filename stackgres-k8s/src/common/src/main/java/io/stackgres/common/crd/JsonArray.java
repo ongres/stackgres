@@ -31,6 +31,23 @@ public class JsonArray implements List<Object> {
     this.list = list;
   }
 
+  public JsonArray deepCopy() {
+    return new JsonArray(stream()
+        .map(this::deepCopy)
+        .toList());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Object deepCopy(Object value) {
+    if (value instanceof Map map) {
+      return new JsonObject((Map<String, Object>) map).deepCopy();
+    }
+    if (value instanceof List list) {
+      return new JsonArray((List<Object>) list).deepCopy();
+    }
+    return value;
+  }
+
   @SuppressWarnings("unchecked")
   public Stream<JsonObject> streamObjects() {
     return stream()

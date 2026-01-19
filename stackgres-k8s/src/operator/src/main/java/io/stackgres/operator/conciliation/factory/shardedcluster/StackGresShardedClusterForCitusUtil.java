@@ -88,12 +88,20 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       if (spec.getConfigurations() == null) {
         spec.setConfigurations(new StackGresClusterConfigurations());
       }
-      if (spec.getConfigurations().getPatroni() == null) {
-        spec.getConfigurations().setPatroni(new StackGresClusterPatroni());
+      StackGresClusterPatroni patroni = spec.getConfigurations().getPatroni();
+      spec.getConfigurations().setPatroni(new StackGresClusterPatroni());
+      if (patroni == null) {
+        patroni = new StackGresClusterPatroni();
       }
-      if (spec.getConfigurations().getPatroni().getInitialConfig() == null) {
+      spec.getConfigurations().getPatroni().setDynamicConfig(patroni.getDynamicConfig());
+      if (patroni.getInitialConfig() == null) {
         spec.getConfigurations().getPatroni()
             .setInitialConfig(new StackGresClusterPatroniConfig());
+      } else {
+        spec.getConfigurations().getPatroni()
+            .setInitialConfig(
+                new StackGresClusterPatroniConfig(
+                    patroni.getInitialConfig().deepCopy()));
       }
       spec.getConfigurations().getPatroni().getInitialConfig()
           .put("scope", cluster.getMetadata().getName());

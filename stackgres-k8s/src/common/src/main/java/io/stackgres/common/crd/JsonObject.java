@@ -30,6 +30,28 @@ public class JsonObject implements Map<String, Object> {
     this.map = map;
   }
 
+  public JsonObject deepCopy() {
+    return new JsonObject(entrySet().stream()
+        .reduce(
+            new HashMap<String, Object>(size()),
+            (map, entry) -> {
+              map.put(entry.getKey(), deepCopy(entry.getValue()));
+              return map;
+            },
+            (u, v) -> v));
+  }
+
+  @SuppressWarnings("unchecked")
+  private Object deepCopy(Object value) {
+    if (value instanceof Map map) {
+      return new JsonObject((Map<String, Object>) map).deepCopy();
+    }
+    if (value instanceof List list) {
+      return new JsonArray((List<Object>) list).deepCopy();
+    }
+    return value;
+  }
+
   public boolean hasObject(String key) {
     Object value = get(key);
     return value != null && value instanceof Map;
