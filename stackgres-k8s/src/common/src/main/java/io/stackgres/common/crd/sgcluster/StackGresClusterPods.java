@@ -12,6 +12,8 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -91,7 +93,18 @@ public class StackGresClusterPods {
   private Probe readinessProbe;
 
   private Probe livenessProbe;
-  
+
+  private String statefulSetServiceName;
+
+  @JsonProperty("setHostnameAsFQDN")
+  private Boolean setHostnameAsFqdn;
+
+  private Boolean hostNetwork;
+
+  private String dnsPolicy;
+
+  private PodDNSConfig dnsConfig;
+
   @ReferencedField("persistentVolume")
   interface PersistentVolume extends FieldReference {
   }
@@ -272,12 +285,53 @@ public class StackGresClusterPods {
     this.livenessProbe = livenessProbe;
   }
 
+  public String getStatefulSetServiceName() {
+    return statefulSetServiceName;
+  }
+
+  public void setStatefulSetServiceName(String statefulSetServiceName) {
+    this.statefulSetServiceName = statefulSetServiceName;
+  }
+
+  public Boolean getSetHostnameAsFqdn() {
+    return setHostnameAsFqdn;
+  }
+
+  public void setSetHostnameAsFqdn(Boolean setHostnameAsFqdn) {
+    this.setHostnameAsFqdn = setHostnameAsFqdn;
+  }
+
+  public Boolean getHostNetwork() {
+    return hostNetwork;
+  }
+
+  public void setHostNetwork(Boolean hostNetwork) {
+    this.hostNetwork = hostNetwork;
+  }
+
+  public String getDnsPolicy() {
+    return dnsPolicy;
+  }
+
+  public void setDnsPolicy(String dnsPolicy) {
+    this.dnsPolicy = dnsPolicy;
+  }
+
+  public PodDNSConfig getDnsConfig() {
+    return dnsConfig;
+  }
+
+  public void setDnsConfig(PodDNSConfig dnsConfig) {
+    this.dnsConfig = dnsConfig;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(customContainers, customEnv, customEnvFrom, customInitContainers,
         customInitEnv, customInitEnvFrom, customInitVolumeMounts, customVolumeMounts, customVolumes,
         disableConnectionPooling, disableEnvoy, disableMetricsExporter, disablePostgresUtil,
-        livenessProbe, managementPolicy, persistentVolume, readinessProbe, resources, scheduling,
+        dnsConfig, dnsPolicy, hostNetwork, livenessProbe, managementPolicy, persistentVolume,
+        readinessProbe, resources, scheduling, setHostnameAsFqdn, statefulSetServiceName,
         terminationGracePeriodSeconds, updateStrategy);
   }
 
@@ -303,12 +357,16 @@ public class StackGresClusterPods {
         && Objects.equals(disableEnvoy, other.disableEnvoy)
         && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
+        && Objects.equals(dnsConfig, other.dnsConfig) && Objects.equals(dnsPolicy, other.dnsPolicy)
+        && Objects.equals(hostNetwork, other.hostNetwork)
         && Objects.equals(livenessProbe, other.livenessProbe)
         && Objects.equals(managementPolicy, other.managementPolicy)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(readinessProbe, other.readinessProbe)
         && Objects.equals(resources, other.resources)
         && Objects.equals(scheduling, other.scheduling)
+        && Objects.equals(setHostnameAsFqdn, other.setHostnameAsFqdn)
+        && Objects.equals(statefulSetServiceName, other.statefulSetServiceName)
         && Objects.equals(terminationGracePeriodSeconds, other.terminationGracePeriodSeconds)
         && Objects.equals(updateStrategy, other.updateStrategy);
   }

@@ -28,12 +28,26 @@ public class ClusterPodsSchedulingBackup {
 
   private PodAffinity podAffinity;
 
+  private String preemptionPolicy;
+
   private String priorityClassName;
+
+  private String runtimeClassName;
+
+  private String schedulerName;
 
   private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
+  }
+
+  public String getPreemptionPolicy() {
+    return preemptionPolicy;
+  }
+
+  public void setPreemptionPolicy(String preemptionPolicy) {
+    this.preemptionPolicy = preemptionPolicy;
   }
 
   public String getPriorityClassName() {
@@ -42,6 +56,22 @@ public class ClusterPodsSchedulingBackup {
 
   public void setPriorityClassName(String priorityClassName) {
     this.priorityClassName = priorityClassName;
+  }
+
+  public String getRuntimeClassName() {
+    return runtimeClassName;
+  }
+
+  public void setRuntimeClassName(String runtimeClassName) {
+    this.runtimeClassName = runtimeClassName;
+  }
+
+  public String getSchedulerName() {
+    return schedulerName;
+  }
+
+  public void setSchedulerName(String schedulerName) {
+    this.schedulerName = schedulerName;
   }
 
   public void setNodeSelector(Map<String, String> nodeSelector) {
