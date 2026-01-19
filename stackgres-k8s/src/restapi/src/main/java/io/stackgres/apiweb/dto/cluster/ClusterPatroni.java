@@ -15,9 +15,19 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterPatroni {
 
+  private Boolean connectUsingFqdn;
+
   private Map<String, Object> dynamicConfig;
 
   private Map<String, Object> initialConfig;
+
+  public Boolean getConnectUsingFqdn() {
+    return connectUsingFqdn;
+  }
+
+  public void setConnectUsingFqdn(Boolean connectUsingFqdn) {
+    this.connectUsingFqdn = connectUsingFqdn;
+  }
 
   public Map<String, Object> getDynamicConfig() {
     return dynamicConfig;

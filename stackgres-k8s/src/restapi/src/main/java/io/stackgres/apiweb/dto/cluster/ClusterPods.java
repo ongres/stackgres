@@ -10,6 +10,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -64,6 +66,17 @@ public class ClusterPods {
   private Probe readinessProbe;
 
   private Probe livenessProbe;
+
+  private String statefulSetServiceName;
+
+  @JsonProperty("setHostnameAsFQDN")
+  private Boolean setHostnameAsFqdn;
+
+  private Boolean hostNetwork;
+
+  private String dnsPolicy;
+
+  private PodDNSConfig dnsConfig;
 
   public ClusterPodsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -224,6 +237,46 @@ public class ClusterPods {
 
   public void setLivenessProbe(Probe livenessProbe) {
     this.livenessProbe = livenessProbe;
+  }
+
+  public String getStatefulSetServiceName() {
+    return statefulSetServiceName;
+  }
+
+  public void setStatefulSetServiceName(String statefulSetServiceName) {
+    this.statefulSetServiceName = statefulSetServiceName;
+  }
+
+  public Boolean getSetHostnameAsFqdn() {
+    return setHostnameAsFqdn;
+  }
+
+  public void setSetHostnameAsFqdn(Boolean setHostnameAsFqdn) {
+    this.setHostnameAsFqdn = setHostnameAsFqdn;
+  }
+
+  public Boolean getHostNetwork() {
+    return hostNetwork;
+  }
+
+  public void setHostNetwork(Boolean hostNetwork) {
+    this.hostNetwork = hostNetwork;
+  }
+
+  public String getDnsPolicy() {
+    return dnsPolicy;
+  }
+
+  public void setDnsPolicy(String dnsPolicy) {
+    this.dnsPolicy = dnsPolicy;
+  }
+
+  public PodDNSConfig getDnsConfig() {
+    return dnsConfig;
+  }
+
+  public void setDnsConfig(PodDNSConfig dnsConfig) {
+    this.dnsConfig = dnsConfig;
   }
 
   @Override

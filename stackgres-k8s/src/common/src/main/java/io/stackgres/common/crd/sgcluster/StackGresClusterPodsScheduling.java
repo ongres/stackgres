@@ -37,7 +37,13 @@ public class StackGresClusterPodsScheduling {
   @Valid
   private NodeAffinity nodeAffinity;
 
+  private String preemptionPolicy;
+
   private String priorityClassName;
+
+  private String runtimeClassName;
+
+  private String schedulerName;
 
   @Valid
   private PodAffinity podAffinity;
@@ -75,12 +81,36 @@ public class StackGresClusterPodsScheduling {
     this.nodeAffinity = nodeAffinity;
   }
 
+  public String getPreemptionPolicy() {
+    return preemptionPolicy;
+  }
+
+  public void setPreemptionPolicy(String preemptionPolicy) {
+    this.preemptionPolicy = preemptionPolicy;
+  }
+
   public String getPriorityClassName() {
     return priorityClassName;
   }
 
   public void setPriorityClassName(String priorityClassName) {
     this.priorityClassName = priorityClassName;
+  }
+
+  public String getRuntimeClassName() {
+    return runtimeClassName;
+  }
+
+  public void setRuntimeClassName(String runtimeClassName) {
+    this.runtimeClassName = runtimeClassName;
+  }
+
+  public String getSchedulerName() {
+    return schedulerName;
+  }
+
+  public void setSchedulerName(String schedulerName) {
+    this.schedulerName = schedulerName;
   }
 
   public PodAffinity getPodAffinity() {
@@ -129,15 +159,19 @@ public class StackGresClusterPodsScheduling {
         && Objects.equals(nodeSelector, other.nodeSelector)
         && Objects.equals(podAffinity, other.podAffinity)
         && Objects.equals(podAntiAffinity, other.podAntiAffinity)
+        && Objects.equals(preemptionPolicy, other.preemptionPolicy)
+        && Objects.equals(priorityClassName, other.priorityClassName)
+        && Objects.equals(runtimeClassName, other.runtimeClassName)
+        && Objects.equals(schedulerName, other.schedulerName)
         && Objects.equals(tolerations, other.tolerations)
-        && Objects.equals(topologySpreadConstraints, other.topologySpreadConstraints)
-        && Objects.equals(priorityClassName, other.priorityClassName);
+        && Objects.equals(topologySpreadConstraints, other.topologySpreadConstraints);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(backup, nodeAffinity, nodeSelector, podAffinity, podAntiAffinity,
-        tolerations, topologySpreadConstraints, priorityClassName);
+        preemptionPolicy, priorityClassName, runtimeClassName, schedulerName, tolerations,
+        topologySpreadConstraints);
   }
 
   @Override

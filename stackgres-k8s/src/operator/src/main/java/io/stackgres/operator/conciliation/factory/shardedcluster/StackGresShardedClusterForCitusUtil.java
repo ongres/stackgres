@@ -93,6 +93,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       if (patroni == null) {
         patroni = new StackGresClusterPatroni();
       }
+      spec.getConfigurations().getPatroni().setConnectUsingFqdn(patroni.getConnectUsingFqdn());
       spec.getConfigurations().getPatroni().setDynamicConfig(patroni.getDynamicConfig());
       if (patroni.getInitialConfig() == null) {
         spec.getConfigurations().getPatroni()

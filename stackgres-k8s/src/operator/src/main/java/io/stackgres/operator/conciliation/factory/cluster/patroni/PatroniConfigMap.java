@@ -123,7 +123,8 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .orElse("60"));
     data.put("PATRONI_POSTGRESQL_LISTEN", (isEnvoyDisabled ? "0.0.0.0,[::]:" : "127.0.0.1,[::1]:") + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
-        "${POD_IP}:" + (isEnvoyDisabled ? EnvoyUtil.PG_PORT : EnvoyUtil.PG_REPL_ENTRY_PORT));
+        PatroniEnvironmentVariables.getPatroniConnectAddressExpansion(cluster)
+        + ":" + (isEnvoyDisabled ? EnvoyUtil.PG_PORT : EnvoyUtil.PG_REPL_ENTRY_PORT));
 
     data.put("PATRONI_RESTAPI_LISTEN", "*:" + EnvoyUtil.PATRONI_PORT);
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());
