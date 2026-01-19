@@ -17,9 +17,19 @@ import io.stackgres.common.StackGresUtil;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StackGresClusterPatroni {
 
+  private Boolean connectUsingFqdn;
+
   private StackGresClusterPatroniDynamicConfig dynamicConfig;
 
   private StackGresClusterPatroniConfig initialConfig;
+
+  public Boolean getConnectUsingFqdn() {
+    return connectUsingFqdn;
+  }
+
+  public void setConnectUsingFqdn(Boolean connectUsingFqdn) {
+    this.connectUsingFqdn = connectUsingFqdn;
+  }
 
   public StackGresClusterPatroniDynamicConfig getDynamicConfig() {
     return dynamicConfig;
@@ -39,7 +49,7 @@ public class StackGresClusterPatroni {
 
   @Override
   public int hashCode() {
-    return Objects.hash(dynamicConfig, initialConfig);
+    return Objects.hash(connectUsingFqdn, dynamicConfig, initialConfig);
   }
 
   @Override
@@ -51,7 +61,8 @@ public class StackGresClusterPatroni {
       return false;
     }
     StackGresClusterPatroni other = (StackGresClusterPatroni) obj;
-    return Objects.equals(dynamicConfig, other.dynamicConfig)
+    return Objects.equals(connectUsingFqdn, other.connectUsingFqdn)
+        && Objects.equals(dynamicConfig, other.dynamicConfig)
         && Objects.equals(initialConfig, other.initialConfig);
   }
 

@@ -25,7 +25,9 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -192,6 +194,14 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
             .endValueFrom()
             .build(),
             new EnvVarBuilder()
+            .withName("POD_NAMESPACE")
+            .withNewValueFrom()
+            .withNewFieldRef()
+            .withFieldPath("metadata.namespace")
+            .endFieldRef()
+            .endValueFrom()
+            .build(),
+            new EnvVarBuilder()
             .withName("CLUSTER_UID")
             .withNewValueFrom()
             .withNewFieldRef()
@@ -202,7 +212,9 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
             .build(),
             new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue("${POD_IP}:" + EnvoyUtil.PATRONI_PORT)
+            .withValue(
+                getPatroniConnectAddressExpansion(cluster)
+                + ":" + EnvoyUtil.PATRONI_PORT)
             .build());
 
     return ImmutableList.<EnvVar>builder()
@@ -210,6 +222,18 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
         .addAll(additionalEnvVars)
         .build();
 
+  }
+
+  public static String getPatroniConnectAddressExpansion(StackGresCluster cluster) {
+    if (Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getConnectUsingFqdn)
+        .orElse(false)) {
+      return "${POD_NAME}.${POD_NAMESPACE}";
+    }
+    return "${POD_IP}";
   }
 
   private <S, T> void appendEnvVarIfPresent(String name,
