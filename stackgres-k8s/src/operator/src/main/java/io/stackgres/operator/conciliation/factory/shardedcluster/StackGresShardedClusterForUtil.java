@@ -216,8 +216,10 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
               cluster.getSpec().getReplicateFrom().getInstance().getExternal().getHosts().get(index));
           spec.getReplicateFrom().getInstance().getExternal().setPort(
               cluster.getSpec().getReplicateFrom().getInstance().getExternal().getPorts().get(index));
-          spec.getReplicateFrom().getInstance().getExternal().setCustomRestoreMethod(
-              cluster.getSpec().getReplicateFrom().getInstance().getExternal().getCustomRestoreMethods().get(index));
+          if (cluster.getSpec().getReplicateFrom().getInstance().getExternal().getCustomRestoreMethods() != null) {
+            spec.getReplicateFrom().getInstance().getExternal().setCustomRestoreMethod(
+                cluster.getSpec().getReplicateFrom().getInstance().getExternal().getCustomRestoreMethods().get(index));
+          }
         }
         if (cluster.getSpec().getReplicateFrom().getInstance().getSgShardedCluster() != null) {
           spec.getReplicateFrom().getInstance().setSgCluster(
