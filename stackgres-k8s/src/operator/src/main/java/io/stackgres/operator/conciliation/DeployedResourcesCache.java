@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,14 +38,22 @@ public class DeployedResourcesCache {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesCache.class);
 
-  private final Cache<ResourceKey, DeployedResource> cache;
+  private final boolean useSsaSnapshot;
   private final ObjectMapper objectMapper;
+  private final Cache<ResourceKey, DeployedResource> cache;
 
   @Inject
   public DeployedResourcesCache(
       OperatorPropertyContext propertyContext,
       ObjectMapper objectMapper) {
     var cacheBuilder = Caffeine.newBuilder();
+    this.useSsaSnapshot = propertyContext.getBoolean(
+        OperatorProperty.RECONCILIATION_USE_SSA_SNAPSHOT);
+    this.objectMapper = objectMapper;
+    if (this.useSsaSnapshot) {
+      this.cache = null;
+      return;
+    }
     propertyContext.get(
         OperatorProperty.RECONCILIATION_CACHE_EXPIRATION)
         .map(Integer::valueOf)
@@ -56,13 +63,15 @@ public class DeployedResourcesCache {
         .map(Integer::valueOf)
         .ifPresent(size -> cacheBuilder.maximumSize(size));
     this.cache = cacheBuilder.build();
-    this.objectMapper = objectMapper;
   }
 
   public void put(
       HasMetadata generator,
       HasMetadata requiredResource,
       HasMetadata deployedResource) {
+    if (this.useSsaSnapshot) {
+      return;
+    }
     final ResourceKey key = ResourceKey.create(generator, requiredResource);
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("{} required resource {} {}.{}",
@@ -86,6 +95,9 @@ public class DeployedResourcesCache {
   public void remove(
       HasMetadata generator,
       HasMetadata deletedResource) {
+    if (this.useSsaSnapshot) {
+      return;
+    }
     final ResourceKey key = ResourceKey.create(generator, deletedResource);
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("Remove {} required resource {} {}.{}",
@@ -99,6 +111,9 @@ public class DeployedResourcesCache {
 
   public void removeAll(
       HasMetadata generator) {
+    if (this.useSsaSnapshot) {
+      return;
+    }
     cache.asMap().keySet().stream()
         .filter(key -> key.isGeneratedBy(generator))
         .forEach(cache::invalidate);
@@ -107,22 +122,25 @@ public class DeployedResourcesCache {
   public DeployedResource get(
       HasMetadata generator,
       HasMetadata requiredResource) {
+    if (this.useSsaSnapshot) {
+      return null;
+    }
     return cache.getIfPresent(ResourceKey.create(generator, requiredResource));
-  }
-
-  public Stream<DeployedResource> stream() {
-    return cache.asMap().values().stream();
   }
 
   public DeployedResourcesSnapshot createDeployedResourcesSnapshot(
       HasMetadata generator,
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources) {
+    if (this.useSsaSnapshot) {
+      return new DeployedResourcesSsaSnapshot(
+          generator, ownedDeployedResources, deployedResources, this.objectMapper);
+    }
     var deployedResourcesMap = new HashMap<>(cache.asMap());
     deployedResources.stream()
         .forEach(resource -> putOrUpdateLatest(generator, resource, deployedResourcesMap));
     putAll(deployedResourcesMap);
-    return new DeployedResourcesSnapshot(
+    return new DeployedResourcesCacheSnapshot(
         generator, ownedDeployedResources, deployedResources, deployedResourcesMap);
   }
 
@@ -189,6 +207,9 @@ public class DeployedResourcesCache {
       HasMetadata generator,
       Map<String, String> genericLabels,
       List<HasMetadata> deployedResources) {
+    if (this.useSsaSnapshot) {
+      return;
+    }
     Set<ResourceKey> deployedKeys = deployedResources
         .stream()
         .map(resource -> ResourceKey.create(generator, resource))

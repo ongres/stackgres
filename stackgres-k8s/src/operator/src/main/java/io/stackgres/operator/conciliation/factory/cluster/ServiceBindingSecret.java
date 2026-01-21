@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -63,19 +64,21 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresClusterC
       .withName(name(cluster))
       .withNamespace(cluster.getMetadata().getNamespace())
       .endMetadata()
-      .addToStringData("type", DEFAULT_SERVICE_BINDING_TYPE)
-      .addToStringData("provider", binding
+      .addToData(ResourceUtil.encodeSecret(Map.ofEntries(
+          Map.entry("type", DEFAULT_SERVICE_BINDING_TYPE),
+          Map.entry("provider", binding
           .map(StackGresClusterServiceBinding::getProvider)
-          .orElse(DEFAULT_SERVICE_BINDING_PROVIDER))
-      .addToStringData("host", getPgHost(context))
-      .addToStringData("port", getPgPort())
-      .addToStringData("username", username)
-      .addToStringData("password", password)
-      .addToStringData("uri", buildPgConnectionUri(context,
-          username,
-          password,
-          binding
-          .map(StackGresClusterServiceBinding::getDatabase)))
+          .orElse(DEFAULT_SERVICE_BINDING_PROVIDER)),
+          Map.entry("host", getPgHost(context)),
+          Map.entry("port", getPgPort()),
+          Map.entry("username", username),
+          Map.entry("password", password),
+          Map.entry("uri", buildPgConnectionUri(
+              context,
+              username,
+              password,
+              binding
+              .map(StackGresClusterServiceBinding::getDatabase))))))
       .build());
   }
 
