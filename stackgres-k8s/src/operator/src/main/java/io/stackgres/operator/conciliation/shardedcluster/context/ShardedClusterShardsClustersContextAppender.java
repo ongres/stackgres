@@ -11,7 +11,6 @@ import java.util.stream.IntStream;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForDdpUtil;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForShardingSphereUtil;
@@ -19,8 +18,7 @@ import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedCluster
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ShardedClusterShardsClustersContextAppender
-    extends ContextAppender<StackGresShardedCluster, Builder> {
+public class ShardedClusterShardsClustersContextAppender {
 
   private final ShardedClusterShardsPrimaryEndpointsContextAppender
       shardedClusterShardsPrimaryEndpointsContextAppender;
@@ -32,7 +30,6 @@ public class ShardedClusterShardsClustersContextAppender
         shardedClusterShardsPrimaryEndpointsContextAppender;
   }
 
-  @Override
   public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder) {
     List<StackGresCluster> shards = getShardsClusters(cluster);
     contextBuilder.shards(shards);

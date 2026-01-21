@@ -106,6 +106,12 @@ class ShardedClusterPostgresVersionContextAppenderTest {
   @Mock
   private ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender;
 
+  @Mock
+  private ShardedClusterCoordinatorClusterContextAppender clusterCoordinatorContextAppender;
+
+  @Mock
+  private ShardedClusterShardsClustersContextAppender clusterShardsContextAppender;
+
   @BeforeEach
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
@@ -117,6 +123,8 @@ class ShardedClusterPostgresVersionContextAppenderTest {
         clusterShardsPostgresConfigContextAppender,
         clusterRestoreBackupContextAppender,
         clusterExtensionsContextAppender,
+        clusterCoordinatorContextAppender,
+        clusterShardsContextAppender,
         ALL_SUPPORTED_POSTGRES_VERSIONS);
   }
 
