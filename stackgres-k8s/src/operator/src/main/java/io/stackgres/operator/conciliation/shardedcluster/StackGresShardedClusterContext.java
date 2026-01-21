@@ -42,6 +42,8 @@ public interface StackGresShardedClusterContext
     return getSource();
   }
 
+  StackGresCluster getCoordinator();
+
   Optional<StackGresProfile> getCoordinatorProfile();
 
   Optional<StackGresPostgresConfig> getCoordinatorPostgresConfig();
@@ -53,6 +55,8 @@ public interface StackGresShardedClusterContext
   Optional<StackGresPostgresConfig> getShardsPostgresConfig();
 
   Optional<StackGresPoolingConfig> getShardsPoolingConfig();
+
+  List<StackGresCluster> getShards();
 
   Optional<Endpoints> getCoordinatorPrimaryEndpoints();
 
