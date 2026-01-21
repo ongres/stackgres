@@ -15,7 +15,7 @@ public class KubernetesClientObjectMapperCustomizerImpl implements KubernetesCli
 
   @Override
   public void customize(ObjectMapper objectMapper) {
-    objectMapper.setSerializationInclusion(Include.NON_EMPTY);
+    objectMapper.setDefaultPropertyInclusion(Include.NON_EMPTY);
   }
 
 }

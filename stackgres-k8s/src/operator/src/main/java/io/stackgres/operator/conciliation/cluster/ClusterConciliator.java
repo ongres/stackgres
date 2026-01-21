@@ -35,8 +35,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.ClusterRolloutUtil;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
-import io.stackgres.operator.conciliation.DeployedResource;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
+import io.stackgres.operator.conciliation.DeployedResourcesSnapshot;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -83,7 +83,10 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   }
 
   @Override
-  protected boolean forceChange(HasMetadata requiredResource, StackGresCluster config) {
+  protected boolean forceChange(
+      HasMetadata requiredResource,
+      StackGresCluster config,
+      DeployedResourcesSnapshot deployedResourcesSnapshot) {
     if (requiredResource instanceof StatefulSet requiredStatefulSet
         && requiredStatefulSet.getMetadata().getName().equals(
             config.getMetadata().getName())) {
@@ -106,9 +109,8 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
               .stream()
               .noneMatch(member -> member.isPrimary()
                   && !member.getMember().startsWith(config.getMetadata().getName() + "-")))
-          && deployedResourcesCache
-          .stream()
-          .map(DeployedResource::foundDeployed)
+          && deployedResourcesSnapshot
+          .streamDeployed()
           .noneMatch(foundDeployedResource -> isPodWithLabels(foundDeployedResource, primaryLabels));
       if (noPrimaryPod && LOGGER.isDebugEnabled()) {
         LOGGER.debug("Will force StatefulSet reconciliation since no primary pod with labels {} was"
@@ -122,9 +124,8 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       }
       final boolean anyPodWithWrongOrMissingRole;
       if (!isPatroniOnKubernetes) {
-        anyPodWithWrongOrMissingRole = deployedResourcesCache
-            .stream()
-            .map(DeployedResource::foundDeployed)
+        anyPodWithWrongOrMissingRole = deployedResourcesSnapshot
+            .streamDeployed()
             .anyMatch(foundDeployedResource -> isPodWithWrongOrMissingRole(config, foundDeployedResource, members));
       } else {
         anyPodWithWrongOrMissingRole = false;
@@ -158,9 +159,8 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         return true;
       }
       final boolean podsCountMismatch = config.getSpec().getInstances()
-          != deployedResourcesCache
-              .stream()
-              .map(DeployedResource::foundDeployed)
+          != deployedResourcesSnapshot
+              .streamDeployed()
               .filter(foundDeployedResource -> isPodWithLabels(foundDeployedResource, clusterPodsLabels))
               .count();
       if (podsCountMismatch && LOGGER.isDebugEnabled()) {
@@ -173,9 +173,8 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
         return true;
       }
       final OwnerReference clusterOwnerReference = ResourceUtil.getOwnerReference(config);
-      final boolean anyPodOrPvcWithMissingOwner = deployedResourcesCache
-          .stream()
-          .map(DeployedResource::foundDeployed)
+      final boolean anyPodOrPvcWithMissingOwner = deployedResourcesSnapshot
+          .streamDeployed()
           .filter(this::isPodOrPvc)
           .filter(foundDeployedResource -> hasLabels(genericLabels, foundDeployedResource))
           .anyMatch(foundDeployedResource -> isMissingOwner(

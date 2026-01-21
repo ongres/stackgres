@@ -38,7 +38,6 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
   private final CustomResourceFinder<T> finder;
   private final RequiredResourceGenerator<T> requiredResourceGenerator;
   private final AbstractDeployedResourcesScanner<T> deployedResourceScanner;
-  protected final DeployedResourcesCache deployedResourcesCache;
 
   protected AbstractConciliator(
       KubernetesClient client,
@@ -50,7 +49,6 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     this.finder = finder;
     this.requiredResourceGenerator = requiredResourceGenerator;
     this.deployedResourceScanner = deployedResourceScanner;
-    this.deployedResourcesCache = deployedResourcesCache;
   }
 
   public AbstractConciliator() {
@@ -59,7 +57,6 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     this.finder = null;
     this.requiredResourceGenerator = null;
     this.deployedResourceScanner = null;
-    this.deployedResourcesCache = null;
   }
 
   public ReconciliationResult evalReconciliationState(T config) {
@@ -267,7 +264,10 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     }
   }
 
-  protected boolean forceChange(HasMetadata requiredResource, T config) {
+  protected boolean forceChange(
+      HasMetadata requiredResource,
+      T config,
+      DeployedResourcesSnapshot deployedResourcesSnapshot) {
     return false;
   }
 
@@ -284,15 +284,15 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     public boolean test(
         Tuple2<HasMetadata, DeployedResource> requiredAndDeployedResourceValue) {
       HasMetadata requiredResource = requiredAndDeployedResourceValue.v1;
-      boolean result = forceChange(requiredResource, config);
+      boolean result = forceChange(requiredResource, config, deployedResourcesSnapshot);
       if (result && LOGGER.isTraceEnabled()) {
         LOGGER.trace("Forced change for resource {} {}.{}",
             requiredResource.getKind(),
             requiredResource.getMetadata().getNamespace(),
             requiredResource.getMetadata().getName());
       }
-      return result || deployedResourcesSnapshot.isRequiredChanged(requiredResource)
-          || deployedResourcesSnapshot.isDeployedChanged(requiredAndDeployedResourceValue.v2);
+      return result
+          || deployedResourcesSnapshot.isChanged(requiredResource, requiredAndDeployedResourceValue.v2);
     }
   }
 
