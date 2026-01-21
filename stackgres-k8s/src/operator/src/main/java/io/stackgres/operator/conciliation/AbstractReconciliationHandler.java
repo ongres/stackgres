@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresContext;
 public abstract class AbstractReconciliationHandler<T extends CustomResource<?, ?>>
     implements ReconciliationHandler<T>, ReconciliationOperations {
 
-  private static final String STACKGRES_FIELD_MANAGER = "StackGres";
+  public static final String STACKGRES_FIELD_MANAGER = "StackGres";
 
   protected final KubernetesClient client;
 
