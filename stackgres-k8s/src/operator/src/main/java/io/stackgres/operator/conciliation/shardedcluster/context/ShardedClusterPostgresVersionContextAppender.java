@@ -44,6 +44,8 @@ public class ShardedClusterPostgresVersionContextAppender
   private final ShardedClusterShardsPostgresConfigContextAppender clusterShardsPostgresConfigContextAppender;
   private final ShardedClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender;
   private final ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender;
+  private final ShardedClusterCoordinatorClusterContextAppender clusterCoordinatorContextAppender;
+  private final ShardedClusterShardsClustersContextAppender clusterShardsContextAppender;
 
   @Inject
   public ShardedClusterPostgresVersionContextAppender(
@@ -51,13 +53,17 @@ public class ShardedClusterPostgresVersionContextAppender
       ShardedClusterCoordinatorPostgresConfigContextAppender clusterCoordinatorPostgresConfigContextAppender,
       ShardedClusterShardsPostgresConfigContextAppender clusterShardsPostgresConfigContextAppender,
       ShardedClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender,
-      ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender) {
+      ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender,
+      ShardedClusterCoordinatorClusterContextAppender clusterCoordinatorContextAppender,
+      ShardedClusterShardsClustersContextAppender clusterShardsContextAppender) {
     this(
         eventController,
         clusterCoordinatorPostgresConfigContextAppender,
         clusterShardsPostgresConfigContextAppender,
         clusterRestoreBackupContextAppender,
         clusterExtensionsContextAppender,
+        clusterCoordinatorContextAppender,
+        clusterShardsContextAppender,
         ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
@@ -67,12 +73,16 @@ public class ShardedClusterPostgresVersionContextAppender
       ShardedClusterShardsPostgresConfigContextAppender clusterShardsPostgresConfigContextAppender,
       ShardedClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender,
       ShardedClusterExtensionsContextAppender clusterExtensionsContextAppender,
+      ShardedClusterCoordinatorClusterContextAppender clusterCoordinatorContextAppender,
+      ShardedClusterShardsClustersContextAppender clusterShardsContextAppender,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
     this.eventController = eventController;
     this.clusterCoordinatorPostgresConfigContextAppender = clusterCoordinatorPostgresConfigContextAppender;
     this.clusterShardsPostgresConfigContextAppender = clusterShardsPostgresConfigContextAppender;
     this.clusterRestoreBackupContextAppender = clusterRestoreBackupContextAppender;
     this.clusterExtensionsContextAppender = clusterExtensionsContextAppender;
+    this.clusterCoordinatorContextAppender = clusterCoordinatorContextAppender;
+    this.clusterShardsContextAppender = clusterShardsContextAppender;
     this.supportedPostgresVersions = supportedPostgresVersions;
   }
 
@@ -160,6 +170,8 @@ public class ShardedClusterPostgresVersionContextAppender
       clusterRestoreBackupContextAppender.appendContext(cluster, contextBuilder, version);
       clusterExtensionsContextAppender.appendContext(cluster, contextBuilder, version,
           buildVersion, previousVersion, previousBuildVersion);
+      clusterCoordinatorContextAppender.appendContext(cluster, contextBuilder);
+      clusterShardsContextAppender.appendContext(cluster, contextBuilder);
     }
 
     if ((version == null && previousVersion.isEmpty())

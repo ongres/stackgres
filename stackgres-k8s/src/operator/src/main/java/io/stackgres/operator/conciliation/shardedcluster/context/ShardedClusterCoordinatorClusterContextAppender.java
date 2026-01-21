@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.shardedcluster.context;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
-import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForDdpUtil;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForShardingSphereUtil;
@@ -16,8 +15,7 @@ import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedCluster
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class ShardedClusterCoordinatorClusterContextAppender
-    extends ContextAppender<StackGresShardedCluster, Builder> {
+public class ShardedClusterCoordinatorClusterContextAppender {
 
   private final ShardedClusterCoordinatorPrimaryEndpointsContextAppender
       shardedClusterCoordinatorPrimaryEndpointsContextAppender;
@@ -29,7 +27,6 @@ public class ShardedClusterCoordinatorClusterContextAppender
         shardedClusterCoordinatorPrimaryEndpointsContextAppender;
   }
 
-  @Override
   public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder) {
     StackGresCluster coordinator = getCoordinatorCluster(cluster);
     contextBuilder.coordinator(coordinator);
