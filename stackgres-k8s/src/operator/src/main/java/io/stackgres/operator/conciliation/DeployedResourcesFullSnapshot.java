@@ -17,16 +17,16 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeployedResourcesCacheSnapshot implements DeployedResourcesSnapshot {
+public class DeployedResourcesFullSnapshot implements DeployedResourcesSnapshot {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesCacheSnapshot.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesFullSnapshot.class);
 
   private final HasMetadata generator;
   private final List<HasMetadata> ownedDeployedResources;
   private final List<HasMetadata> deployedResources;
   private final Map<ResourceKey, DeployedResource> map;
 
-  DeployedResourcesCacheSnapshot(
+  DeployedResourcesFullSnapshot(
       HasMetadata generator,
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources,
