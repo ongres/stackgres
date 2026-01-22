@@ -7,6 +7,8 @@ package io.stackgres.operator.conciliation;
 
 import static io.stackgres.operator.conciliation.AbstractReconciliationHandler.STACKGRES_FIELD_MANAGER;
 
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,80 +16,68 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.inject.Inject;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeployedResourcesSsaSnapshot implements DeployedResourcesSnapshot {
+public class DeployedResourcesSsaCache implements DeployedResourcesCache {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesSsaSnapshot.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesSsaCache.class);
 
-  private final HasMetadata generator;
-  private final List<HasMetadata> ownedDeployedResources;
-  private final List<HasMetadata> deployedResources;
-  private final Map<ResourceKey, DeployedResource> deployedResourcesMap;
-  private final Map<ResourceKindKey, Map<String, JsonNode>> map;
   private final ObjectMapper objectMapper;
+  private final Cache<ResourceKindKey, Map<String, JsonNode>> cache;
 
-  DeployedResourcesSsaSnapshot(
-      HasMetadata generator,
-      List<HasMetadata> ownedDeployedResources,
-      List<HasMetadata> deployedResources,
-      Map<ResourceKindKey, Map<String, JsonNode>> map,
+  @Inject
+  public DeployedResourcesSsaCache(
+      OperatorPropertyContext propertyContext,
       ObjectMapper objectMapper) {
-    this.generator = generator;
-    this.ownedDeployedResources = ownedDeployedResources;
-    this.deployedResources = deployedResources;
-    this.deployedResourcesMap = deployedResources.stream()
-        .map(resource -> Tuple.tuple(
-            ResourceKey.create(generator, resource),
-            DeployedResource.create(resource, objectMapper.valueToTree(resource))))
-        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
-    this.map = map;
+    var cacheBuilder = Caffeine.newBuilder();
     this.objectMapper = objectMapper;
+    propertyContext.get(
+        OperatorProperty.RECONCILIATION_CACHE_EXPIRATION)
+        .map(Integer::valueOf)
+        .ifPresent(duration -> cacheBuilder.expireAfterWrite(Duration.ofSeconds(duration)));
+    propertyContext.get(
+        OperatorProperty.RECONCILIATION_CACHE_SIZE)
+        .map(Integer::valueOf)
+        .ifPresent(size -> cacheBuilder.maximumSize(size));
+    this.cache = cacheBuilder.build();
   }
 
-  @Override
-  public List<HasMetadata> ownedDeployedResources() {
-    return ownedDeployedResources;
-  }
-
-  @Override
-  public List<HasMetadata> deployedResources() {
-    return deployedResources;
-  }
-
-  @Override
-  public DeployedResource get(HasMetadata requiredResource) {
-    return deployedResourcesMap.get(ResourceKey.create(generator, requiredResource));
-  }
-
-  @Override
-  public Stream<HasMetadata> streamDeployed() {
-    return deployedResourcesMap.values().stream()
-        .map(DeployedResource::foundDeployed);
-  }
-
-  @Override
-  public boolean isDeployed(HasMetadata requiredResource) {
-    return deployedResourcesMap.containsKey(ResourceKey.create(generator, requiredResource));
-  }
-
-  @Override
-  public boolean isChanged(HasMetadata requiredResource, DeployedResource deployedResource) {
+  public void put(
+      HasMetadata generator,
+      HasMetadata requiredResource,
+      HasMetadata deployedResource) {
+    final ResourceKindKey key = ResourceKindKey.create(requiredResource);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("{} required resource {} {}.{}",
+          cache.getIfPresent(key) == null ? "Put new" : "Update existing",
+          deployedResource.getKind(),
+          deployedResource.getMetadata().getNamespace(),
+          deployedResource.getMetadata().getName());
+    }
+    if (requiredResource.getMetadata() != null
+        && requiredResource.getMetadata().getManagedFields() != null
+        && requiredResource.getMetadata().getManagedFields().isEmpty()) {
+      requiredResource.getMetadata().setManagedFields(null);
+    }
     ObjectNode requiredResourceNode = objectMapper.valueToTree(requiredResource);
-    ObjectNode deployedResourceNode = deployedResource.foundDeployedNode();
+    ObjectNode deployedResourceNode = objectMapper.valueToTree(deployedResource);
     if (requiredResource instanceof Secret requiredSecret) {
       if (requiredSecret.getStringData() != null
           && !requiredSecret.getStringData().isEmpty()) {
@@ -98,7 +88,7 @@ public class DeployedResourcesSsaSnapshot implements DeployedResourcesSnapshot {
                     requiredSecret.getStringData())));
       }
     }
-    if (deployedResource.foundDeployed() instanceof Secret deployedSecret) {
+    if (deployedResource instanceof Secret deployedSecret) {
       if (deployedSecret.getData() != null
           && !deployedSecret.getData().isEmpty()) {
         deployedResourceNode.set(
@@ -116,11 +106,11 @@ public class DeployedResourcesSsaSnapshot implements DeployedResourcesSnapshot {
         .orElse(null);
     if (managedFields == null) {
       LOGGER.warn("Managed fields array was not found");
-      return true;
+      return;
     }
-    Map<String, JsonNode> defaultsMap =
-        Optional.ofNullable(map.get(ResourceKindKey.create(requiredResource)))
-        .orElse(Map.of());
+    Map<String, JsonNode> defaultsMap = new HashMap<>(
+        Optional.ofNullable(cache.getIfPresent(key))
+        .orElse(Map.of()));
     for (JsonNode managedFieldsEntry : managedFields) {
       JsonNode fieldsType = managedFieldsEntry.get("fieldsType");
       if (fieldsType == null
@@ -128,7 +118,7 @@ public class DeployedResourcesSsaSnapshot implements DeployedResourcesSnapshot {
               fieldsType.asText(),
               "FieldsV1")) {
         LOGGER.warn("Managed fields has missing or unkown type ({})", fieldsType);
-        return true;
+        return;
       }
       JsonNode manager = managedFieldsEntry.get("manager");
       JsonNode subresource = managedFieldsEntry.get("subresource");
@@ -138,55 +128,76 @@ public class DeployedResourcesSsaSnapshot implements DeployedResourcesSnapshot {
           && Objects.equals(
               manager.asText(),
               STACKGRES_FIELD_MANAGER)) {
-        if (anyManagedFieldsDiff(defaultsMap, "", fieldsV1, requiredResourceNode, deployedResourceNode)) {
-          return true;
-        }
+        defaultsMap.putAll(getManagedFieldsDefaults("", fieldsV1, requiredResourceNode, deployedResourceNode).stream()
+            .collect(Collectors.groupingBy(Tuple2::v1))
+            .entrySet()
+            .stream()
+            .filter(entry -> !entry.getValue().isEmpty())
+            .map(entry -> Map.entry(entry.getKey(), entry.getValue().getFirst().v2))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
       }
     }
-    return false;
+    cache.put(key, defaultsMap);
   }
 
-  private boolean anyManagedFieldsDiff(Map<String, JsonNode> defaultsMap, String path, JsonNode fieldsV1, JsonNode required, JsonNode deployed) {
+  public void remove(
+      HasMetadata generator,
+      HasMetadata deletedResource) {
+  }
+
+  public void removeAll(HasMetadata generator) {
+  }
+
+  public DeployedResource get(
+      HasMetadata generator,
+      HasMetadata requiredResource) {
+    return null;
+  }
+
+  public DeployedResourcesSnapshot createDeployedResourcesSnapshot(
+      HasMetadata generator,
+      List<HasMetadata> ownedDeployedResources,
+      List<HasMetadata> deployedResources) {
+    return new DeployedResourcesSsaSnapshot(
+        generator, ownedDeployedResources, deployedResources, new HashMap<>(cache.asMap()), this.objectMapper);
+  }
+
+  public void removeWithLabelsNotIn(
+      HasMetadata generator,
+      Map<String, String> genericLabels,
+      List<HasMetadata> deployedResources) {
+  }
+
+  private List<Tuple2<String, JsonNode>> getManagedFieldsDefaults(String path, JsonNode fieldsV1, JsonNode required, JsonNode deployed) {
     if (fieldsV1.properties().isEmpty()) {
       if (required == null && deployed == null) {
-        return false;
+        return List.of();
       }
       if (required != null && deployed != null) {
         if (required.isArray() || required.isObject()
             || deployed.isArray() || deployed.isObject()) {
-          return false;
+          return List.of();
         }
         if (!Objects.equals(required, deployed)) {
-          return true;
+          return List.of();
         }
-        return false;
+        return List.of();
       }
       if (required == null && deployed != null) {
-        JsonNode defaultValue = defaultsMap.get(path);
-        if (defaultValue != null && Objects.equals(deployed, defaultValue)) {
-          return false;
-        }
-        return true;
+        return List.of(Tuple.tuple(path, deployed));
       }
       if (required != null && deployed == null) {
-        JsonNode defaultValue = defaultsMap.get(path);
-        if (defaultValue != null && Objects.equals(required, defaultValue)) {
-          return false;
-        }
-        return true;
+        return List.of(Tuple.tuple(path, required));
       }
-      return false;
+      return List.of();
     }
-    if (fieldsV1.propertyStream()
-        .anyMatch(property -> anyManagedFieldsDiff(
-            defaultsMap,
+    return fieldsV1.propertyStream()
+        .flatMap(property -> getManagedFieldsDefaults(
             extractManagedFieldsPath(path, property.getKey()),
             property.getValue(),
             extractManagedFieldsKey(property.getKey(), required),
-            extractManagedFieldsKey(property.getKey(), deployed)))) {
-      return true;
-    }
-    return false;
+            extractManagedFieldsKey(property.getKey(), deployed)).stream())
+        .toList();
   }
 
   private String extractManagedFieldsPath(String path, String key) {
