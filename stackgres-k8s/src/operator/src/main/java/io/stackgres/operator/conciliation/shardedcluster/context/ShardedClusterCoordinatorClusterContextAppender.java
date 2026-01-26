@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.shardedcluster.context;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
@@ -19,12 +20,15 @@ public class ShardedClusterCoordinatorClusterContextAppender {
 
   private final ShardedClusterCoordinatorPrimaryEndpointsContextAppender
       shardedClusterCoordinatorPrimaryEndpointsContextAppender;
+  private final ObjectMapper objectMapper;
 
   public ShardedClusterCoordinatorClusterContextAppender(
       ShardedClusterCoordinatorPrimaryEndpointsContextAppender
-          shardedClusterCoordinatorPrimaryEndpointsContextAppender) {
+          shardedClusterCoordinatorPrimaryEndpointsContextAppender,
+      ObjectMapper objectMapper) {
     this.shardedClusterCoordinatorPrimaryEndpointsContextAppender =
         shardedClusterCoordinatorPrimaryEndpointsContextAppender;
+    this.objectMapper = objectMapper;
   }
 
   public void appendContext(StackGresShardedCluster cluster, Builder contextBuilder) {
@@ -33,7 +37,8 @@ public class ShardedClusterCoordinatorClusterContextAppender {
     shardedClusterCoordinatorPrimaryEndpointsContextAppender.appendContext(coordinator, contextBuilder);
   }
 
-  private StackGresCluster getCoordinatorCluster(StackGresShardedCluster cluster) {
+  private StackGresCluster getCoordinatorCluster(StackGresShardedCluster original) {
+    StackGresShardedCluster cluster = objectMapper.convertValue(original, StackGresShardedCluster.class);
     switch (StackGresShardingType.fromString(cluster.getSpec().getType())) {
       case CITUS:
         return StackGresShardedClusterForCitusUtil.getCoordinatorCluster(cluster);
