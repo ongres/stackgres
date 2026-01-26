@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.Optional;
 
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -48,14 +49,12 @@ public class DbOpsSecurityUpgradeValidator implements DbOpsValidator {
         Optional<String> foundVersion = getPostgresFlavorComponent(cluster)
             .get(cluster)
             .findVersion(cluster.getSpec().getPostgres().getVersion());
-        if (foundVersion.isEmpty()) {
-          return;
-        }
-        String version = foundVersion.get();
-        if (getPostgresFlavorComponent(cluster)
-            .get(cluster)
+        if (foundVersion.isEmpty()
+            || getPostgresFlavorComponent(cluster)
+            .getOrThrow(StackGresVersion.LATEST)
             .streamOrderedVersions()
-            .noneMatch(version::equals)) {
+            .noneMatch(foundVersion.get()::equals)) {
+          final String version = foundVersion.orElse(cluster.getSpec().getPostgres().getVersion());
           fail("Major version upgrade must be performed on SGCluster before performing"
               + " the upgrade since Postgres version " + version
               + " will not be supported after the upgrade is completed");
