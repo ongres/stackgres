@@ -1,3 +1,55 @@
+# :rocket: Release 1.18.4 (2026-01-29)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.18.4 is out! :confetti_ball: :champagne: 
+
+This release fixes some bugs and add a few security features aimed at hardening the Postgres clusters.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Allow the `patroni` container to continue working when the `cluster-controller` container experience failures but was already bootstrapped once.
+* Add `fsGroupChangePolicy` to `persisitentVolume` configuration
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Security upgrade SGDbOps can not be created if Postgres version is not final
+* Can not change Postgres version in SGShardedCluster
+* Avoid overwrite sharded cluster objects during creation of dependent clusters
+* SGShardedCluster's SGCluster is not able to bootstrap due to missing citus extension
+* After upgrading the operator to 1.18.3 from any previous 1.18 version the SGCluster can not be updated
+* SGDistributedLogs does not set retention policy for timesacledb 2.x
+* Minor version upgrade SGDbOps fails to perform minor version upgrade
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.18.4/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.4)
+
 # :rocket: Release 1.18.3 (2025-12-26)
 
 ## :notepad_spiral: NOTES
