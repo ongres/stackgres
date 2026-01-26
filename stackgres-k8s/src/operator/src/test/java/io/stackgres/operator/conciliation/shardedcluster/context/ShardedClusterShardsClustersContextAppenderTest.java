@@ -13,6 +13,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +40,8 @@ class ShardedClusterShardsClustersContextAppenderTest {
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
     contextAppender = new ShardedClusterShardsClustersContextAppender(
-        shardedClusterShardsPrimaryEndpointsContextAppender);
+        shardedClusterShardsPrimaryEndpointsContextAppender,
+        JsonUtil.jsonMapper());
   }
 
   @Test
