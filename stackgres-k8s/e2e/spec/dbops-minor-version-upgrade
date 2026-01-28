@@ -78,6 +78,17 @@ check_minor_version_upgrade() {
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
+  if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
+      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+    | grep ".-pg${E2E_MINOR_TARGET_POSTGRES_VERSION}-" \
+    | wc -l)" = 2 ]
+  then
+    success "Postgres minor version was updated"
+  else
+    fail "Postgres minor version was not updated"
+  fi
+
   check_mock_data_samehost "$CLUSTER_NAME"
   wait_until check_mock_data_replication "$CLUSTER_NAME"
 }

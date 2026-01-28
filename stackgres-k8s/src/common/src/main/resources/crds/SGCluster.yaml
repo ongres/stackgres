@@ -2585,14 +2585,6 @@ spec:
                         type: string
                         description: |
                           The primary instance that this operation is targetting
-                      sourcePostgresVersion:
-                        type: string
-                        description: |
-                          Postgres version that is currently running on the cluster
-                      targetPostgresVersion:
-                        type: string
-                        description: |
-                          The desired Postgres version for the cluster
                   securityUpgrade:
                     type: object
                     description: |
