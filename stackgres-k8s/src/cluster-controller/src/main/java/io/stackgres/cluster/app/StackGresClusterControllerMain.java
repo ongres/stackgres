@@ -137,7 +137,7 @@ public class StackGresClusterControllerMain {
                   return exception;
                 },
                 (u, v) -> v);
-        if (ex.getSuppressed().length > 0) {
+        if (!ClusterControllerReconciliationCycle.existsContextResource()) {
           throw ex;
         }
       }

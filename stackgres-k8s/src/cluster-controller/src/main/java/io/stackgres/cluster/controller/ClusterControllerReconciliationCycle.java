@@ -8,11 +8,15 @@ package io.stackgres.cluster.controller;
 import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAME;
 import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAMESPACE;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -23,6 +27,8 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -34,6 +40,8 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jooq.lambda.tuple.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -41,11 +49,14 @@ public class ClusterControllerReconciliationCycle
     extends
     ReconciliationCycle<StackGresClusterContext, StackGresCluster, ClusterResourceHandlerSelector> {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterControllerReconciliationCycle.class);
+
   private final ClusterControllerPropertyContext propertyContext;
   private final EventController eventController;
   private final LabelFactoryForCluster labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final Metrics metrics;
+  private final ObjectMapper objectMapper;
   private long reconciliationStart;
 
   @Dependent
@@ -66,6 +77,8 @@ public class ClusterControllerReconciliationCycle
     CustomResourceFinder<StackGresCluster> clusterFinder;
     @Inject
     Metrics metrics;
+    @Inject
+    ObjectMapper objectMapper;
   }
 
   /**
@@ -81,6 +94,7 @@ public class ClusterControllerReconciliationCycle
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
     this.metrics = parameters.metrics;
+    this.objectMapper = parameters.objectMapper;
   }
 
   public ClusterControllerReconciliationCycle() {
@@ -91,6 +105,7 @@ public class ClusterControllerReconciliationCycle
     this.labelFactory = null;
     this.clusterFinder = null;
     this.metrics = null;
+    this.objectMapper = null;
   }
 
   public static ClusterControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -174,22 +189,24 @@ public class ClusterControllerReconciliationCycle
 
   @Override
   public List<StackGresCluster> getExistingContextResources() {
-    return clusterFinder.findByNameAndNamespace(
-        propertyContext.getString(CLUSTER_NAME),
-        propertyContext.getString(CLUSTER_NAMESPACE))
-        .stream()
-        .toList();
+    return List.of(getExistingCustomResource(
+        LOGGER,
+        clusterFinder,
+        objectMapper,
+        propertyContext.getString(CLUSTER_NAMESPACE),
+        propertyContext.getString(CLUSTER_NAME)));
   }
 
   @Override
   public StackGresCluster getExistingContextResource(StackGresCluster source) {
     final String namespace = source.getMetadata().getNamespace();
     final String name = source.getMetadata().getName();
-    return clusterFinder.findByNameAndNamespace(
-        name,
-        namespace)
-        .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
-            + " " + name + "." + namespace + " not found"));
+    return getExistingCustomResource(
+        LOGGER,
+        clusterFinder,
+        objectMapper,
+        namespace,
+        name);
   }
 
   @Override
@@ -202,6 +219,58 @@ public class ClusterControllerReconciliationCycle
             .orElse(List.of()))
         .labels(labelFactory.genericLabels(cluster))
         .build();
+  }
+
+  static StackGresCluster getExistingCustomResource(
+      final Logger logger,
+      final CustomResourceFinder<StackGresCluster> clusterFinder,
+      final ObjectMapper objectMapper,
+      final String namespace,
+      final String name) {
+    final Path latestCustomResourcePath = getLatestCustomResourcePath(namespace, name);
+    try {
+      return clusterFinder.findByNameAndNamespace(name, namespace)
+          .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
+              + " " + name + "." + namespace + " not found"));
+    } catch (Exception ex) {
+      if (Files.exists(latestCustomResourcePath)) {
+        try {
+          return objectMapper.readValue(latestCustomResourcePath.toFile(), StackGresCluster.class);
+        } catch (Exception jex) {
+          ex.addSuppressed(jex);
+        }
+      }
+      if (ex instanceof RuntimeException rex) {
+        throw rex;
+      }
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public static boolean existsContextResource() {
+    return Files.exists(getLatestCustomResourcePath(
+        ClusterControllerProperty.CLUSTER_NAMESPACE.getString(),
+        ClusterControllerProperty.CLUSTER_NAME.getString()));
+  }
+
+  static void writeCustomResource(
+      final Logger logger,
+      final ObjectMapper objectMapper,
+      final StackGresCluster cluster) {
+    final Path latestCustomResourcePath = getLatestCustomResourcePath(
+        cluster.getMetadata().getNamespace(),
+        cluster.getMetadata().getName());
+    try {
+      objectMapper.writeValue(latestCustomResourcePath.toFile(), cluster);
+    } catch (Exception jex) {
+      logger.warn("Error while trying to store latest value of SGCluster to " + latestCustomResourcePath, jex);
+    }
+  }
+
+  private static Path getLatestCustomResourcePath(final String namespace, final String name) {
+    return Paths.get(
+        ClusterPath.PG_BASE_PATH.path(),
+        ".latest." + namespace + "." + name + ".sgcluster.json");
   }
 
 }

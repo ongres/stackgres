@@ -5,11 +5,14 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.cluster.controller.ClusterControllerReconciliationCycle.writeCustomResource;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -43,6 +46,7 @@ public class ClusterControllerReconciliator
   private final PatroniConfigReconciliator patroniConfigReconciliator;
   private final PatroniMajorVersionUpgradeReconciliator patroniMajorVersionUpgradeReconciliator;
   private final PatroniBackupFailoverRestartReconciliator patroniBackupFailoverRestartReconciliator;
+  private final ObjectMapper objectMapper;
   private final ClusterControllerPropertyContext propertyContext;
   private final String podName;
   private final Optional<String> nodeName;
@@ -61,6 +65,7 @@ public class ClusterControllerReconciliator
     this.patroniConfigReconciliator = parameters.patroniConfigReconciliator;
     this.patroniMajorVersionUpgradeReconciliator = parameters.patroniMajorVersionUpgradeReconciliator;
     this.patroniBackupFailoverRestartReconciliator = parameters.patroniBackupFailoverRestartReconciliator;
+    this.objectMapper = parameters.objectMapper;
     this.propertyContext = parameters.propertyContext;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
@@ -83,6 +88,7 @@ public class ClusterControllerReconciliator
     this.patroniConfigReconciliator = null;
     this.patroniMajorVersionUpgradeReconciliator = null;
     this.patroniBackupFailoverRestartReconciliator = null;
+    this.objectMapper = null;
     this.propertyContext = null;
     this.podName = null;
     this.nodeName = null;
@@ -141,17 +147,18 @@ public class ClusterControllerReconciliator
     ReconciliationResult<Void> patroniBackupFailoverRestartReconciliatorResult =
         patroniBackupFailoverRestartReconciliator.reconcile(client, context);
 
+    StackGresCluster updatedCluster = cluster;
     if (foundPodStatus.isEmpty()
         || nodeNameChanged
         || postgresBootstrapReconciliatorResult.result().orElse(false)
         || extensionReconciliationResult.result().orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
-      clusterScheduler.update(cluster,
+      updatedCluster = clusterScheduler.update(cluster,
           (currentCluster) -> updateClusterPodStatus(currentCluster, cluster));
     }
 
     if (extensionReconciliationResult.result().orElse(false)) {
-      KubernetesClientUtil.retryOnConflict(() -> clusterScheduler.update(cluster,
+      updatedCluster = KubernetesClientUtil.retryOnConflict(() -> clusterScheduler.update(cluster,
           (currentCluster) -> {
             Optional.ofNullable(cluster.getStatus())
                 .map(StackGresClusterStatus::getExtensions)
@@ -178,7 +185,7 @@ public class ClusterControllerReconciliator
 
     var pvcSizeReconciliatorResult = pvcSizeReconciliator.reconcile(client, propertyContext);
 
-    return postgresBootstrapReconciliatorResult
+    var result = postgresBootstrapReconciliatorResult
         .join(extensionReconciliationResult)
         .join(pgbouncerReconciliationResult)
         .join(patroniReconciliationResult)
@@ -189,6 +196,10 @@ public class ClusterControllerReconciliator
         .join(patroniMajorVersionUpgradeReconciliatorResult)
         .join(patroniBackupFailoverRestartReconciliatorResult)
         .join(pvcSizeReconciliatorResult);
+    if (result.success()) {
+      writeCustomResource(logger, objectMapper, updatedCluster);
+    }
+    return result;
   }
 
   private void updateClusterPodStatus(StackGresCluster currentCluster,
@@ -238,6 +249,7 @@ public class ClusterControllerReconciliator
     @Inject PatroniConfigReconciliator patroniConfigReconciliator;
     @Inject PatroniMajorVersionUpgradeReconciliator patroniMajorVersionUpgradeReconciliator;
     @Inject PatroniBackupFailoverRestartReconciliator patroniBackupFailoverRestartReconciliator;
+    @Inject ObjectMapper objectMapper;
   }
 
 }

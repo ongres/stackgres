@@ -5,6 +5,7 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.cluster.controller.ClusterControllerReconciliationCycle.getExistingCustomResource;
 import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAME;
 import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAMESPACE;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -34,6 +36,8 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jooq.lambda.tuple.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -41,11 +45,14 @@ public class PatroniExternalCdsControllerReconciliationCycle
     extends
     ReconciliationCycle<StackGresClusterContext, StackGresCluster, ClusterResourceHandlerSelector> {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(PatroniExternalCdsControllerReconciliationCycle.class);
+
   private final ClusterControllerPropertyContext propertyContext;
   private final EventController eventController;
   private final LabelFactoryForCluster labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final Metrics metrics;
+  private final ObjectMapper objectMapper;
   private long reconciliationStart;
 
   @Dependent
@@ -66,6 +73,8 @@ public class PatroniExternalCdsControllerReconciliationCycle
     CustomResourceFinder<StackGresCluster> clusterFinder;
     @Inject
     Metrics metrics;
+    @Inject
+    ObjectMapper objectMapper;
   }
 
   @Inject
@@ -78,6 +87,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
     this.metrics = parameters.metrics;
+    this.objectMapper = parameters.objectMapper;
   }
 
   public PatroniExternalCdsControllerReconciliationCycle() {
@@ -88,6 +98,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
     this.labelFactory = null;
     this.clusterFinder = null;
     this.metrics = null;
+    this.objectMapper = null;
   }
 
   public static PatroniExternalCdsControllerReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -171,22 +182,24 @@ public class PatroniExternalCdsControllerReconciliationCycle
 
   @Override
   public List<StackGresCluster> getExistingContextResources() {
-    return clusterFinder.findByNameAndNamespace(
-        propertyContext.getString(CLUSTER_NAME),
-        propertyContext.getString(CLUSTER_NAMESPACE))
-        .stream()
-        .toList();
+    return List.of(getExistingCustomResource(
+        LOGGER,
+        clusterFinder,
+        objectMapper,
+        propertyContext.getString(CLUSTER_NAMESPACE),
+        propertyContext.getString(CLUSTER_NAME)));
   }
 
   @Override
   public StackGresCluster getExistingContextResource(StackGresCluster source) {
     final String namespace = source.getMetadata().getNamespace();
     final String name = source.getMetadata().getName();
-    return clusterFinder.findByNameAndNamespace(
-        name,
-        namespace)
-        .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
-            + " " + name + "." + namespace + " not found"));
+    return getExistingCustomResource(
+        LOGGER,
+        clusterFinder,
+        objectMapper,
+        namespace,
+        name);
   }
 
   @Override
