@@ -15,10 +15,6 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsMinorVersionUpgradeStatus {
 
-  private String sourcePostgresVersion;
-
-  private String targetPostgresVersion;
-
   private String primaryInstance;
 
   private List<String> initialInstances;
@@ -32,22 +28,6 @@ public class DbOpsMinorVersionUpgradeStatus {
   private String switchoverFinalized;
 
   private String failure;
-
-  public String getSourcePostgresVersion() {
-    return sourcePostgresVersion;
-  }
-
-  public void setSourcePostgresVersion(String sourcePostgresVersion) {
-    this.sourcePostgresVersion = sourcePostgresVersion;
-  }
-
-  public String getTargetPostgresVersion() {
-    return targetPostgresVersion;
-  }
-
-  public void setTargetPostgresVersion(String targetPostgresVersion) {
-    this.targetPostgresVersion = targetPostgresVersion;
-  }
 
   public String getPrimaryInstance() {
     return primaryInstance;
