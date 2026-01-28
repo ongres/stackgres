@@ -17,6 +17,8 @@ public class ClusterPodsPersistentVolume {
 
   private String storageClass;
 
+  private String fsGroupChangePolicy;
+
   public void setStorageClass(String storageClass) {
     this.storageClass = storageClass;
   }
@@ -31,6 +33,14 @@ public class ClusterPodsPersistentVolume {
 
   public String getSize() {
     return size;
+  }
+
+  public String getFsGroupChangePolicy() {
+    return fsGroupChangePolicy;
+  }
+
+  public void setFsGroupChangePolicy(String fsGroupChangePolicy) {
+    this.fsGroupChangePolicy = fsGroupChangePolicy;
   }
 
   @Override

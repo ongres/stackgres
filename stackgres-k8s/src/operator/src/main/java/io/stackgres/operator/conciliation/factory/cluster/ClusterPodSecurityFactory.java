@@ -24,7 +24,10 @@ public class ClusterPodSecurityFactory extends PodSecurityFactory
 
   @Override
   public PodSecurityContext createResource(StackGresClusterContext source) {
-    return createPodSecurityContext();
+    PodSecurityContext podSecurityContext = createPodSecurityContext();
+    podSecurityContext.setFsGroupChangePolicy(
+        source.getSource().getSpec().getPods().getPersistentVolume().getFsGroupChangePolicy());
+    return podSecurityContext;
   }
 
 }
