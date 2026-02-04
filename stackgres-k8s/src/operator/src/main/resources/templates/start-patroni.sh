@@ -254,7 +254,7 @@ fi
   - 'host replication ${PATRONI_REPLICATION_USERNAME} 0.0.0.0/0 md5'
   - 'host replication ${PATRONI_REPLICATION_USERNAME} ::/0 md5'
 restapi:
-  connect_address: '${PATRONI_KUBERNETES_POD_IP}:8008'
+  connect_address: '${PATRONI_RESTAPI_CONNECT_ADDRESS}'
   listen: "*:8008"
 postgresql:
   use_slots: true
@@ -262,7 +262,7 @@ postgresql:
   remove_data_directory_on_rewind_failure: true
   use_unix_socket: true
   use_unix_socket_repl: true
-  connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
+  connect_address: '${PATRONI_POSTGRESQL_CONNECT_ADDRESS}'
   listen: 0.0.0.0,[::]:5432
   pg_ctl_timeout: $PATRONI_PG_CTL_TIMEOUT
   authentication:

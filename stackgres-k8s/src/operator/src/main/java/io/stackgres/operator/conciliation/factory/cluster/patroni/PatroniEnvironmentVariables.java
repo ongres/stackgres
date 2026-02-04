@@ -202,7 +202,8 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
             .build(),
             new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue("${POD_IP}:" + EnvoyUtil.PATRONI_PORT)
+            // Use FQDN instead of POD_IP for stable node registration in Citus pg_dist_node
+            .withValue("${POD_NAME}.${PATRONI_CONFIG_SERVICE_NAME}.${PATRONI_POD_NAMESPACE}.svc.cluster.local:" + EnvoyUtil.PATRONI_PORT)
             .build());
 
     return ImmutableList.<EnvVar>builder()
