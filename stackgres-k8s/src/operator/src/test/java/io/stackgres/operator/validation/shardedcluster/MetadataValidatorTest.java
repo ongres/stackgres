@@ -12,8 +12,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetad
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetadataBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
-import io.stackgres.operator.common.StackGresShardedClusterReviewBuilder;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ class MetadataValidatorTest {
     validator = new MetadataValidator();
 
     defaultCluster = Fixtures.shardedCluster().loadDefault().get();
-    review = new StackGresShardedClusterReviewBuilder().withRequest(new AdmissionRequest<>()).build();
+    review = AdmissionReviewFixtures.shardedCluster().get();
     review.getRequest().setObject(defaultCluster);
   }
 

@@ -146,7 +146,12 @@ public class DeployedResourcesSsaSnapshot implements DeployedResourcesSnapshot {
     return false;
   }
 
-  private boolean anyManagedFieldsDiff(Map<String, JsonNode> defaultsMap, String path, JsonNode fieldsV1, JsonNode required, JsonNode deployed) {
+  private boolean anyManagedFieldsDiff(
+      Map<String, JsonNode> defaultsMap,
+      String path,
+      JsonNode fieldsV1,
+      JsonNode required,
+      JsonNode deployed) {
     if (fieldsV1.properties().isEmpty()) {
       if (required == null && deployed == null) {
         return false;

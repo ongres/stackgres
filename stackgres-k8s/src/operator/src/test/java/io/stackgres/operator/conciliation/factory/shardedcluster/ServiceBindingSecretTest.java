@@ -84,7 +84,7 @@ public class ServiceBindingSecretTest {
     Secret serviceBindingSecret = (Secret) secrets.getFirst();
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
-    Map<String, String> data = serviceBindingSecret.getStringData();
+    Map<String, String> data = ResourceUtil.decodeSecret(serviceBindingSecret.getData());
     assertEquals("postgresql", data.get("type"));
     assertEquals("stackgres", data.get("provider"));
     assertEquals("stackgres.stackgres", data.get("host"));
@@ -164,15 +164,16 @@ public class ServiceBindingSecretTest {
     Secret serviceBindingSecret = (Secret) secrets.getFirst();
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
-    Map<String, String> data = serviceBindingSecret.getStringData();
-    assertEquals(data.get("type"), "postgresql");
-    assertEquals(data.get("provider"), "stackgres");
-    assertEquals(data.get("host"), "stackgres.stackgres");
-    assertEquals(data.get("port"), "5432");
-    assertEquals(data.get("username"), expectePgUser);
-    assertEquals(data.get("password"), expectedPgUserPassword);
-    assertEquals(data.get("uri"),
+    Map<String, String> data = ResourceUtil.decodeSecret(serviceBindingSecret.getData());
+    assertEquals("postgresql", data.get("type"));
+    assertEquals("stackgres", data.get("provider"));
+    assertEquals("stackgres.stackgres", data.get("host"));
+    assertEquals("5432", data.get("port"));
+    assertEquals(expectePgUser, data.get("username"));
+    assertEquals(expectedPgUserPassword, data.get("password"));
+    assertEquals(
         String.format("postgresql://%s:%s@stackgres.stackgres:5432",
-          expectePgUser, expectedPgUserPassword));
+          expectePgUser, expectedPgUserPassword),
+        data.get("uri"));
   }
 }

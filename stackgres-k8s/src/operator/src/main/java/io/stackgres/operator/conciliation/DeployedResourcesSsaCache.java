@@ -168,7 +168,11 @@ public class DeployedResourcesSsaCache implements DeployedResourcesCache {
       List<HasMetadata> deployedResources) {
   }
 
-  private List<Tuple2<String, JsonNode>> getManagedFieldsDefaults(String path, JsonNode fieldsV1, JsonNode required, JsonNode deployed) {
+  private List<Tuple2<String, JsonNode>> getManagedFieldsDefaults(
+      String path,
+      JsonNode fieldsV1,
+      JsonNode required,
+      JsonNode deployed) {
     if (fieldsV1.properties().isEmpty()) {
       if (required == null && deployed == null) {
         return List.of();
