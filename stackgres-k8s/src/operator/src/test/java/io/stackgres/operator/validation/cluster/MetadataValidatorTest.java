@@ -12,8 +12,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotationsBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabelsBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.common.StackGresClusterReviewBuilder;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +32,7 @@ class MetadataValidatorTest {
     validator = new MetadataValidator();
 
     defaultCluster = Fixtures.cluster().loadDefault().get();
-    review = new StackGresClusterReviewBuilder().withRequest(new AdmissionRequest<>()).build();
+    review = AdmissionReviewFixtures.cluster().get();
     review.getRequest().setObject(defaultCluster);
   }
 

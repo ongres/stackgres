@@ -12,8 +12,7 @@ import io.stackgres.common.crd.sgstream.StackGresStreamSpecAnnotationsBuilder;
 import io.stackgres.common.crd.sgstream.StackGresStreamSpecLabelsBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresStreamReview;
-import io.stackgres.operator.common.StackGresStreamReviewBuilder;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,7 @@ class MetadataValidatorTest {
         .endMetadata()
         .endSpec()
         .build();
-    review = new StackGresStreamReviewBuilder().withRequest(new AdmissionRequest<>()).build();
+    review = AdmissionReviewFixtures.stream().get();
     review.getRequest().setObject(defaultStream);
   }
 

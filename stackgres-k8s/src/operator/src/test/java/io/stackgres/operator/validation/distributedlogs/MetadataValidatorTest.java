@@ -12,8 +12,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
-import io.stackgres.operator.common.StackGresDistributedLogsReviewBuilder;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Assertions;
@@ -35,7 +34,7 @@ class MetadataValidatorTest {
     validator = new MetadataValidator();
 
     defaultCluster = Fixtures.distributedLogs().loadDefault().get();
-    review = new StackGresDistributedLogsReviewBuilder().withRequest(new AdmissionRequest<>()).build();
+    review = AdmissionReviewFixtures.distributedLogs().get();
     review.getRequest().setObject(defaultCluster);
   }
 

@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBindingBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -63,14 +63,14 @@ public class ServiceBindingSecretTest {
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsPresent() {
-    StackGresClusterServiceBinding sgClusterConfigServiceBinding =
-        new StackGresClusterServiceBinding();
-    sgClusterConfigServiceBinding.setProvider("stackgres");
-    sgClusterConfigServiceBinding.setDatabase("postgresdb");
-    sgClusterConfigServiceBinding.setUsername("superuserdb");
-    sgClusterConfigServiceBinding.setPassword(
-      new SecretKeySelector(SUPERUSER_PASSWORD_KEY, SUPERUSER_USERNAME_ENV));
-    context.getCluster().getSpec().getConfigurations().setBinding(sgClusterConfigServiceBinding);
+    context.getCluster().getSpec().getConfigurations().setBinding(
+        new StackGresClusterServiceBindingBuilder()
+        .withProvider("stackgres")
+        .withDatabase("postgresdb")
+        .withUsername("superuserdb")
+        .withPassword(
+          new SecretKeySelector(SUPERUSER_PASSWORD_KEY, SUPERUSER_USERNAME_ENV))
+        .build());
     when(context.getUserPasswordForBinding())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
 
@@ -82,7 +82,7 @@ public class ServiceBindingSecretTest {
     Secret serviceBindingSecret = (Secret) secrets.getFirst();
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
-    Map<String, String> data = serviceBindingSecret.getStringData();
+    Map<String, String> data = ResourceUtil.decodeSecret(serviceBindingSecret.getData());
     assertEquals("postgresql", data.get("type"));
     assertEquals("stackgres", data.get("provider"));
     assertEquals("stackgres.stackgres", data.get("host"));
@@ -97,13 +97,13 @@ public class ServiceBindingSecretTest {
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsPresentAndWhenDbNameIsAbsent() {
-    StackGresClusterServiceBinding sgClusterConfigServiceBinding =
-        new StackGresClusterServiceBinding();
-    sgClusterConfigServiceBinding.setProvider("stackgres");
-    sgClusterConfigServiceBinding.setUsername("superuserdb");
-    sgClusterConfigServiceBinding.setPassword(
-      new SecretKeySelector(SUPERUSER_PASSWORD_KEY, SUPERUSER_USERNAME_ENV));
-    context.getCluster().getSpec().getConfigurations().setBinding(sgClusterConfigServiceBinding);
+    context.getCluster().getSpec().getConfigurations().setBinding(
+        new StackGresClusterServiceBindingBuilder()
+        .withProvider("stackgres")
+        .withUsername("superuserdb")
+        .withPassword(
+          new SecretKeySelector(SUPERUSER_PASSWORD_KEY, SUPERUSER_USERNAME_ENV))
+        .build());
     when(context.getUserPasswordForBinding())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
 
@@ -153,7 +153,8 @@ public class ServiceBindingSecretTest {
         "dummy-generated-superuser-password");
   }
 
-  private void assertSecretDataWithoutConfiguration(Stream<HasMetadata> serviceBindingMetadata,
+  private void assertSecretDataWithoutConfiguration(
+      Stream<HasMetadata> serviceBindingMetadata,
       String expectePgUser, String expectedPgUserPassword) {
     assertNotNull(serviceBindingMetadata);
 
@@ -162,15 +163,16 @@ public class ServiceBindingSecretTest {
     Secret serviceBindingSecret = (Secret) secrets.getFirst();
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
-    Map<String, String> data = serviceBindingSecret.getStringData();
-    assertEquals(data.get("type"), "postgresql");
-    assertEquals(data.get("provider"), "stackgres");
-    assertEquals(data.get("host"), "stackgres.stackgres");
-    assertEquals(data.get("port"), "5432");
-    assertEquals(data.get("username"), expectePgUser);
-    assertEquals(data.get("password"), expectedPgUserPassword);
-    assertEquals(data.get("uri"),
+    Map<String, String> data = ResourceUtil.decodeSecret(serviceBindingSecret.getData());
+    assertEquals("postgresql", data.get("type"));
+    assertEquals("stackgres", data.get("provider"));
+    assertEquals("stackgres.stackgres", data.get("host"));
+    assertEquals("5432", data.get("port"));
+    assertEquals(expectePgUser, data.get("username"));
+    assertEquals(expectedPgUserPassword, data.get("password"));
+    assertEquals(
         String.format("postgresql://%s:%s@stackgres.stackgres:5432",
-          expectePgUser, expectedPgUserPassword));
+          expectePgUser, expectedPgUserPassword),
+        data.get("uri"));
   }
 }

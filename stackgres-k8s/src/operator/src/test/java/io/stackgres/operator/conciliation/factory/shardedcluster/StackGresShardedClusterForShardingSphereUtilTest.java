@@ -20,6 +20,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromCustomRestoreMethod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -265,6 +266,10 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
+    shardedCluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setCustomRestoreMethods(List.of(
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class),
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class)));
     setMinimalCoordinatorAndShards(shardedCluster);
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
     checkClusterWithGlobalSettings(
@@ -309,6 +314,10 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
+    shardedCluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setCustomRestoreMethods(List.of(
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class),
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class)));
     setMinimalCoordinatorAndShards(shardedCluster);
     var cluster = getShardsCluster(JsonUtil.copy(shardedCluster), 0);
     checkClusterWithGlobalSettings(
@@ -346,6 +355,10 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
+    shardedCluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setCustomRestoreMethods(List.of(
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class),
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class)));
     shardedCluster.getSpec().getCoordinator().setReplication(null);
     shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator().setRole(null);
     shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator().setGroups(null);
@@ -371,6 +384,10 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
+    shardedCluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setCustomRestoreMethods(List.of(
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class),
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class)));
     shardedCluster.getSpec().getShards().setReplication(null);
     shardedCluster.getSpec().getShards().getReplicationForShards().setRole(null);
     shardedCluster.getSpec().getShards().getReplicationForShards().setGroups(null);
@@ -397,6 +414,10 @@ class StackGresShardedClusterForShardingSphereUtilTest {
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
+    shardedCluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setCustomRestoreMethods(List.of(
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class),
+            createWithRandomData(StackGresClusterReplicateFromCustomRestoreMethod.class)));
     shardedCluster.getSpec().getShards().getOverrides().get(0)
         .setIndex(0);
     shardedCluster.getSpec().getShards().getOverrides().get(0)

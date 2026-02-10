@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 public class BackupConfigMap extends AbstractBackupConfigMap
     implements VolumeFactory<StackGresClusterContext> {
 
+  static final String BACKUP_CONFIG_RESOURCE_VERSION_KEY = "BACKUP_CONFIG_RESOURCE_VERSION";
+
   private LabelFactoryForCluster labelFactory;
 
   public static String name(ClusterContext clusterContext) {
@@ -65,7 +67,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     final StackGresCluster cluster = context.getCluster();
     context.getBackupConfigurationResourceVersion()
         .ifPresent(resourceVersion -> data.put(
-                "BACKUP_CONFIG_RESOURCE_VERSION", resourceVersion
+                BACKUP_CONFIG_RESOURCE_VERSION_KEY, resourceVersion
             )
         );
 

@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
+import static io.stackgres.operator.conciliation.factory.cluster.backup.BackupConfigMap.BACKUP_CONFIG_RESOURCE_VERSION_KEY;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -68,7 +70,7 @@ public class BackupSecret
 
     context.getBackupConfigurationResourceVersion()
         .ifPresent(resourceVersion ->
-            data.put("BACKUP_CONFIG_RESOURCE_VERSION", resourceVersion)
+            data.put(BACKUP_CONFIG_RESOURCE_VERSION_KEY, resourceVersion)
         );
 
     StackGresCluster cluster = context.getSource();
