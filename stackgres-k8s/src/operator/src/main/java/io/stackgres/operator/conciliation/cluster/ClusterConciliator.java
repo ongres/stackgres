@@ -240,13 +240,11 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   }
 
   private boolean isPod(HasMetadata foundDeployedResource) {
-    return foundDeployedResource instanceof Pod
-        || foundDeployedResource instanceof PersistentVolumeClaim;
+    return foundDeployedResource instanceof Pod;
   }
 
   private boolean isPvc(HasMetadata foundDeployedResource) {
-    return foundDeployedResource instanceof Pod
-        || foundDeployedResource instanceof PersistentVolumeClaim;
+    return foundDeployedResource instanceof PersistentVolumeClaim;
   }
 
   private boolean hasLabels(final Map<String, String> genericLabels, HasMetadata foundDeployedResource) {
