@@ -15,9 +15,9 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
       wget \
       tar
   # RUN [ -e /etc/nsswitch.conf ] && grep '^hosts: files dns' /etc/nsswitch.conf
-  ENV DOCKER_VERSION 24.0.6
+  ENV DOCKER_VERSION 29.2.1
   RUN set -eux; \
-    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.6.tgz"; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-29.2.1.tgz"; \
     tar --extract \
       --file docker.tgz \
       --strip-components 1 \
