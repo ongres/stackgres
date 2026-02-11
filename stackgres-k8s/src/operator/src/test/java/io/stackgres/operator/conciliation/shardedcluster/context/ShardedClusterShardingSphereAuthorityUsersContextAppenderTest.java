@@ -18,7 +18,8 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphere;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereAuthorityBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
@@ -61,15 +62,15 @@ class ShardedClusterShardingSphereAuthorityUsersContextAppenderTest {
 
   @Test
   void givenClusterWithShardingSphereUsersAndSecret_shouldRetrieveItAndPass() {
-    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(
-        new StackGresShardedClusterShardingSphereBuilder()
-        .withNewAuthority()
+    var shardingSphere = new StackGresShardedClusterShardingSphere();
+    var authority = new StackGresShardedClusterShardingSphereAuthorityBuilder()
         .addNewUser()
         .withNewUser("username", "username-secret")
         .withNewPassword("password", "password-secret")
         .endUser()
-        .endAuthority()
-        .build());
+        .build();
+    shardingSphere.setAuthority(authority);
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(shardingSphere);
     final Optional<Secret> secret = Optional.of(new SecretBuilder()
         .withData(ResourceUtil.encodeSecret(Map.of(
             "username", "test",
@@ -92,15 +93,15 @@ class ShardedClusterShardingSphereAuthorityUsersContextAppenderTest {
 
   @Test
   void givenClusterWithShardingSphereUsersAndMissingUserSecret_shouldFail() {
-    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(
-        new StackGresShardedClusterShardingSphereBuilder()
-        .withNewAuthority()
+    var shardingSphere = new StackGresShardedClusterShardingSphere();
+    var authority = new StackGresShardedClusterShardingSphereAuthorityBuilder()
         .addNewUser()
         .withNewUser("username", "username-secret")
         .withNewPassword("password", "password-secret")
         .endUser()
-        .endAuthority()
-        .build());
+        .build();
+    shardingSphere.setAuthority(authority);
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(shardingSphere);
     when(secretFinder.findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
         .getShardingSphere().getAuthority().getUsers().get(0).getUser().getName(),
@@ -114,15 +115,15 @@ class ShardedClusterShardingSphereAuthorityUsersContextAppenderTest {
 
   @Test
   void givenClusterWithShardingSphereUsersAndMissingUserKey_shouldFail() {
-    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(
-        new StackGresShardedClusterShardingSphereBuilder()
-        .withNewAuthority()
+    var shardingSphere = new StackGresShardedClusterShardingSphere();
+    var authority = new StackGresShardedClusterShardingSphereAuthorityBuilder()
         .addNewUser()
         .withNewUser("username", "username-secret")
         .withNewPassword("password", "password-secret")
         .endUser()
-        .endAuthority()
-        .build());
+        .build();
+    shardingSphere.setAuthority(authority);
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(shardingSphere);
     final Optional<Secret> secret = Optional.of(new SecretBuilder()
         .withData(ResourceUtil.encodeSecret(Map.of(
             "password", "1234")))
@@ -141,15 +142,15 @@ class ShardedClusterShardingSphereAuthorityUsersContextAppenderTest {
 
   @Test
   void givenClusterWithShardingSphereUsersAndMissingPasswordSecret_shouldFail() {
-    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(
-        new StackGresShardedClusterShardingSphereBuilder()
-        .withNewAuthority()
+    var shardingSphere = new StackGresShardedClusterShardingSphere();
+    var authority = new StackGresShardedClusterShardingSphereAuthorityBuilder()
         .addNewUser()
         .withNewUser("username", "username-secret")
         .withNewPassword("password", "password-secret")
         .endUser()
-        .endAuthority()
-        .build());
+        .build();
+    shardingSphere.setAuthority(authority);
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(shardingSphere);
     final Optional<Secret> secret = Optional.of(new SecretBuilder()
         .withData(ResourceUtil.encodeSecret(Map.of(
             "username", "test",
@@ -173,15 +174,15 @@ class ShardedClusterShardingSphereAuthorityUsersContextAppenderTest {
 
   @Test
   void givenClusterWithShardingSphereUsersAndMissingPasswordKey_shouldFail() {
-    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(
-        new StackGresShardedClusterShardingSphereBuilder()
-        .withNewAuthority()
+    var shardingSphere = new StackGresShardedClusterShardingSphere();
+    var authority = new StackGresShardedClusterShardingSphereAuthorityBuilder()
         .addNewUser()
         .withNewUser("username", "username-secret")
         .withNewPassword("password", "password-secret")
         .endUser()
-        .endAuthority()
-        .build());
+        .build();
+    shardingSphere.setAuthority(authority);
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setShardingSphere(shardingSphere);
     final Optional<Secret> secret = Optional.of(new SecretBuilder()
         .withData(ResourceUtil.encodeSecret(Map.of(
             "username", "test")))
