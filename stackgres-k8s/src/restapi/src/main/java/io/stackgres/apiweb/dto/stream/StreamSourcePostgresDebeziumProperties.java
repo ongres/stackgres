@@ -24,6 +24,8 @@ public class StreamSourcePostgresDebeziumProperties {
 
   private Boolean slotFailover;
 
+  private String offsetMismatchStrategy;
+
   private String publicationName;
 
   private Boolean skipMessagesWithoutChange;
@@ -142,6 +144,8 @@ public class StreamSourcePostgresDebeziumProperties {
 
   private Boolean flushLsnSource;
 
+  private String lsnFlushMode;
+
   private Integer retriableRestartConnectorWaitMs;
 
   private List<String> skippedOperations;
@@ -214,6 +218,14 @@ public class StreamSourcePostgresDebeziumProperties {
 
   public void setSlotFailover(Boolean slotFailover) {
     this.slotFailover = slotFailover;
+  }
+
+  public String getOffsetMismatchStrategy() {
+    return offsetMismatchStrategy;
+  }
+
+  public void setOffsetMismatchStrategy(String offsetMismatchStrategy) {
+    this.offsetMismatchStrategy = offsetMismatchStrategy;
   }
 
   public String getPublicationName() {
@@ -692,6 +704,14 @@ public class StreamSourcePostgresDebeziumProperties {
 
   public void setFlushLsnSource(Boolean flushLsnSource) {
     this.flushLsnSource = flushLsnSource;
+  }
+
+  public String getLsnFlushMode() {
+    return lsnFlushMode;
+  }
+
+  public void setLsnFlushMode(String lsnFlushMode) {
+    this.lsnFlushMode = lsnFlushMode;
   }
 
   public Integer getRetriableRestartConnectorWaitMs() {

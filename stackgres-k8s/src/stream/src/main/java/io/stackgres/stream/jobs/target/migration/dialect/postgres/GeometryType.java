@@ -5,17 +5,16 @@
  */
 package io.stackgres.stream.jobs.target.migration.dialect.postgres;
 
-import org.apache.kafka.connect.data.Schema;
-
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
-import io.debezium.connector.jdbc.type.AbstractGeoType;
 import io.debezium.connector.jdbc.type.JdbcType;
+import io.debezium.connector.jdbc.type.debezium.AbstractGeometryType;
 import io.debezium.data.geometry.Geometry;
 import io.debezium.sink.SinkConnectorConfig;
 import io.debezium.sink.column.ColumnDescriptor;
+import org.apache.kafka.connect.data.Schema;
 
-public class GeometryType extends AbstractGeoType {
+public class GeometryType extends AbstractGeometryType {
 
   public static final JdbcType INSTANCE = new GeometryType();
 
