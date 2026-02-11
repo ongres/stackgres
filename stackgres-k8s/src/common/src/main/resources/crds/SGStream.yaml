@@ -673,7 +673,7 @@ spec:
                               * `flushLsnSource` set to `true` maps to `lsnFlushMode` set to `connector`
                               * `flushLsnSource` set to `false` maps to `lsnFlushMode` set to `manual` 
                           lsnFlushMode:
-                            type: String
+                            type: string
                             description: |
                               Default `connector`. 
                               Specifies how the connector manages flushing the LSN (Log Sequence Number) to the PostgreSQL replication slot. This property replaces the deprecated `flushLsnSource` property.
