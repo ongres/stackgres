@@ -51,6 +51,8 @@ public class ConfigSpec {
 
   private ConfigCert cert;
 
+  private ConfigRbac rbac;
+
   private ConfigAuthentication authentication;
 
   private ConfigPrometheus prometheus;
@@ -197,6 +199,14 @@ public class ConfigSpec {
 
   public void setCert(ConfigCert cert) {
     this.cert = cert;
+  }
+
+  public ConfigRbac getRbac() {
+    return rbac;
+  }
+
+  public void setRbac(ConfigRbac rbac) {
+    this.rbac = rbac;
   }
 
   public ConfigAuthentication getAuthentication() {

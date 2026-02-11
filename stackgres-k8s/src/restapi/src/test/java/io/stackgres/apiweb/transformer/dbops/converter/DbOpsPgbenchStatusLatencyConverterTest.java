@@ -5,8 +5,8 @@
 
 package io.stackgres.apiweb.transformer.dbops.converter;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.stackgres.apiweb.dto.dbops.DbOpsPgbenchStatusLatency;
 import io.stackgres.apiweb.transformer.dbops.converter.fixture.StackGresDbOpsPgbenchStatusLatencyFixture;

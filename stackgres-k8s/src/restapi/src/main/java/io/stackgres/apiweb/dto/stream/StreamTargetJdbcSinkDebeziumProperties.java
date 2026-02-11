@@ -33,6 +33,8 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   private Integer connectionPoolTimeout;
 
+  private Boolean connectionRestartOnErrors;
+
   @JsonProperty("useTime_zone")
   private String useTimeZone;
 
@@ -122,6 +124,14 @@ public class StreamTargetJdbcSinkDebeziumProperties {
 
   public void setConnectionPoolTimeout(Integer connectionPoolTimeout) {
     this.connectionPoolTimeout = connectionPoolTimeout;
+  }
+
+  public Boolean getConnectionRestartOnErrors() {
+    return connectionRestartOnErrors;
+  }
+
+  public void setConnectionRestartOnErrors(Boolean connectionRestartOnErrors) {
+    this.connectionRestartOnErrors = connectionRestartOnErrors;
   }
 
   public String getUseTimeZone() {

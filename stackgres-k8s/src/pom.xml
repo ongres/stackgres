@@ -86,7 +86,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>3.29.2</quarkus.version>
+    <quarkus.version>3.31.2</quarkus.version>
     <hibernate.version>7.1.7.Final</hibernate.version>
     <jool.version>0.9.15</jool.version>
     <immutables.version>2.11.6</immutables.version>

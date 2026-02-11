@@ -35,6 +35,14 @@ public class ConfigOperator {
 
   private ConfigService service;
 
+  private Integer port;
+
+  private Integer internalHttpPort;
+
+  private Integer internalHttpsPort;
+
+  private Boolean hostNetwork;
+
   public ConfigImage getImage() {
     return image;
   }
@@ -97,6 +105,38 @@ public class ConfigOperator {
 
   public void setService(ConfigService service) {
     this.service = service;
+  }
+
+  public Integer getPort() {
+    return port;
+  }
+
+  public void setPort(Integer port) {
+    this.port = port;
+  }
+
+  public Integer getInternalHttpPort() {
+    return internalHttpPort;
+  }
+
+  public void setInternalHttpPort(Integer internalHttpPort) {
+    this.internalHttpPort = internalHttpPort;
+  }
+
+  public Integer getInternalHttpsPort() {
+    return internalHttpsPort;
+  }
+
+  public void setInternalHttpsPort(Integer internalHttpsPort) {
+    this.internalHttpsPort = internalHttpsPort;
+  }
+
+  public Boolean getHostNetwork() {
+    return hostNetwork;
+  }
+
+  public void setHostNetwork(Boolean hostNetwork) {
+    this.hostNetwork = hostNetwork;
   }
 
   @Override

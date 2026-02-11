@@ -13,9 +13,19 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ConfigDeploy {
 
+  private Boolean operator;
+
   private Boolean restapi;
 
   private Boolean collector;
+
+  public Boolean getOperator() {
+    return operator;
+  }
+
+  public void setOperator(Boolean operator) {
+    this.operator = operator;
+  }
 
   public Boolean getRestapi() {
     return restapi;
