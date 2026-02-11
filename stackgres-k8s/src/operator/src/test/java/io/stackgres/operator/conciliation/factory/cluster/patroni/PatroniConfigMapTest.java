@@ -321,4 +321,42 @@ class PatroniConfigMapTest {
         .findFirst();
     assertTrue(customPortIntValue.isPresent());
   }
+
+  @Test
+  void generateResource_whenBabelfishFlavor_shouldIncludeBabelfishPort() throws Exception {
+    when(context.getCluster()).thenReturn(cluster);
+    cluster.getSpec().getPostgres().setVersion(
+        StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
+    cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
+
+    ConfigMap configMap = generator.buildSource(context);
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(JsonUtil.yamlMapper()
+        .readTree(configMap.getData().get("PATRONI_INITIAL_CONFIG"))
+        .get("kubernetes")
+        .get("ports"), List.class);
+    Optional<Map<String, String>> babelfishPort = kubernetesPorts.stream()
+        .filter(ep -> StackGresPostgresFlavor.BABELFISH.toString().equals(ep.get("name")))
+        .findFirst();
+    assertTrue(babelfishPort.isPresent(),
+        "Babelfish port should be present in the Patroni initial config when flavor is babelfish");
+    assertEquals(babelfishPort.get().get("port"), EnvoyUtil.BF_ENTRY_PORT);
+  }
+
+  @Test
+  void generateResource_whenNullPorts_shouldStillGenerateValidConfig() throws Exception {
+    when(context.getCluster()).thenReturn(cluster);
+    cluster.getSpec().getPostgresServices().getPrimary().setCustomPorts(null);
+
+    ConfigMap configMap = generator.buildSource(context);
+    assertTrue(configMap.getData().containsKey("PATRONI_INITIAL_CONFIG"),
+        "ConfigMap should contain PATRONI_INITIAL_CONFIG even when custom ports are null");
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(JsonUtil.yamlMapper()
+        .readTree(configMap.getData().get("PATRONI_INITIAL_CONFIG"))
+        .get("kubernetes")
+        .get("ports"), List.class);
+    assertTrue(kubernetesPorts.size() >= 2,
+        "Config should still contain at least the default pgport and pgreplication ports");
+  }
 }

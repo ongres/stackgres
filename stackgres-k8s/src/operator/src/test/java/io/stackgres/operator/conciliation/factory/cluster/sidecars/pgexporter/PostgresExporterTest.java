@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -15,6 +16,9 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.Volume;
 import io.stackgres.common.crd.VolumeBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporterQueries;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -144,6 +148,49 @@ class PostgresExporterTest {
         sourceVolumeDataQueriesKeys.stream()
           .anyMatch(key -> key.startsWith(PostgresExporter.POSTGRES_EXPORTER_PGBOUNCER_QUERIES_PREFIX))
     );
+  }
+
+  @Test
+  void isActivated_whenMonitoringDisabled_shouldReturnFalse() {
+    ClusterContainerContext context = getClusterContainerContext();
+    context.getClusterContext().getSource().getSpec().getPods().setDisableMetricsExporter(true);
+    Assertions.assertFalse(postgresExporter.isActivated(context));
+  }
+
+  @Test
+  void getContainer_whenCustomExporterQueries_shouldIncludeCustomQueries() {
+    ClusterContainerContext context = getClusterContainerContext();
+    StackGresCluster cluster = context.getClusterContext().getCluster();
+
+    StackGresClusterPostgresExporterQueries customQueries =
+        new StackGresClusterPostgresExporterQueries(Map.of(
+            "custom_query_test", Map.of(
+                "query", "SELECT 1 AS value",
+                "metrics", List.of(Map.of(
+                    "value", Map.of("usage", "GAUGE", "description", "test custom query"))))));
+
+    StackGresClusterPostgresExporter postgresExporterConfig =
+        new StackGresClusterPostgresExporter();
+    postgresExporterConfig.setQueries(customQueries);
+
+    if (cluster.getSpec().getConfigurations() == null) {
+      cluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
+    }
+    cluster.getSpec().getConfigurations().setPostgresExporter(postgresExporterConfig);
+
+    List<VolumePair> volumes = postgresExporter.buildVolumes(
+        context.getClusterContext()).toList();
+
+    Assertions.assertEquals(1L, volumes.size());
+    Assertions.assertTrue(volumes.getFirst().getSource().isPresent());
+    Assertions.assertInstanceOf(ConfigMap.class, volumes.getFirst().getSource().get());
+
+    var sourceVolumeDataQueriesKeys = getSourceVolumeDataQueriesKeys(volumes);
+
+    Assertions.assertFalse(sourceVolumeDataQueriesKeys.isEmpty());
+    Assertions.assertTrue(
+        sourceVolumeDataQueriesKeys.stream()
+            .anyMatch(key -> key.equals("custom_query_test")));
   }
 
   private ClusterContainerContext getClusterContainerContext() {

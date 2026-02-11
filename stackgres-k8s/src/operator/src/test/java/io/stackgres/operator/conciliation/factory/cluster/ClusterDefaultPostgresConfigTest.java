@@ -108,6 +108,48 @@ class ClusterDefaultPostgresConfigTest {
   }
 
   @Test
+  void generateResource_whenConfigExistsWithPartialLabels_shouldNotGenerate() {
+    Map<String, String> defaultLabels = labelFactory.defaultConfigLabels(cluster);
+    Map<String, String> partialLabels = Map.of(
+        defaultLabels.keySet().iterator().next(),
+        defaultLabels.values().iterator().next());
+    StackGresPostgresConfig existingConfig = new StackGresPostgresConfigBuilder()
+        .withNewMetadata()
+        .withLabels(partialLabels)
+        .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
+        .endMetadata()
+        .build();
+    when(context.getPostgresConfig()).thenReturn(Optional.of(existingConfig));
+
+    List<HasMetadata> resources =
+        clusterDefaultPostgresConfig.generateResource(context).toList();
+
+    assertTrue(resources.isEmpty());
+  }
+
+  @Test
+  void generateResource_whenConfigExistsWithDifferentOwner_shouldNotGenerate() {
+    StackGresPostgresConfig existingConfig = new StackGresPostgresConfigBuilder()
+        .withNewMetadata()
+        .withLabels(Map.copyOf(labelFactory.defaultConfigLabels(cluster)))
+        .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(
+            new StackGresPostgresConfigBuilder()
+                .withNewMetadata()
+                .withName("different-owner")
+                .withUid("different-uid")
+                .endMetadata()
+                .build())))
+        .endMetadata()
+        .build();
+    when(context.getPostgresConfig()).thenReturn(Optional.of(existingConfig));
+
+    List<HasMetadata> resources =
+        clusterDefaultPostgresConfig.generateResource(context).toList();
+
+    assertTrue(resources.isEmpty());
+  }
+
+  @Test
   void generateResource_generatedConfigHasCorrectNameAndNamespace() {
     when(context.getPostgresConfig()).thenReturn(Optional.empty());
 

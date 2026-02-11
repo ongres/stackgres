@@ -5,8 +5,10 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,13 +18,16 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
@@ -154,5 +159,43 @@ class PatroniTest {
     Container patroniContainer = patroni.getContainer(clusterContainerContext);
     assertTrue(patroniContainer.getCommand().contains("/bin/sh"));
     assertTrue(patroniContainer.getPorts().isEmpty());
+  }
+
+  @Test
+  void getContainer_whenEnvoyDisabled_shouldUseDirectPort() {
+    cluster.getSpec().getPods().setDisableEnvoy(true);
+
+    Container patroniContainer = patroni.getContainer(clusterContainerContext);
+
+    assertFalse(patroniContainer.getPorts().isEmpty(),
+        "When envoy is disabled, ports should be exposed directly on the container");
+    assertTrue(patroniContainer.getPorts().stream()
+            .anyMatch(port -> port.getContainerPort() == EnvoyUtil.PATRONI_PORT),
+        "When envoy is disabled, Patroni port should be exposed directly");
+    assertTrue(patroniContainer.getReadinessProbe().getHttpGet()
+            .getPort().getIntVal() == EnvoyUtil.PATRONI_PORT,
+        "When envoy is disabled, readiness probe should use the direct Patroni port");
+  }
+
+  @Test
+  void getContainer_whenBabelfishFlavor_shouldHaveBabelfishPorts() {
+    cluster.getSpec().getPods().setDisableEnvoy(true);
+    cluster.getSpec().getPostgres().setVersion(
+        StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
+    cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
+    lenient().when(patroniEnvironmentVariables.getEnvVars(clusterContext)).thenReturn(List.of());
+    lenient().when(postgresEnvironmentVariables.getEnvVars(clusterContext)).thenReturn(List.of());
+
+    Container patroniContainer = patroni.getContainer(clusterContainerContext);
+
+    List<ContainerPort> ports = patroniContainer.getPorts();
+    assertFalse(ports.isEmpty(),
+        "When Babelfish flavor with envoy disabled, container should have ports");
+    assertTrue(ports.stream()
+            .anyMatch(port -> port.getName().equals(EnvoyUtil.BABELFISH_PORT_NAME)),
+        "When Babelfish flavor, container should have a Babelfish port");
+    assertTrue(ports.stream()
+            .anyMatch(port -> port.getContainerPort() == EnvoyUtil.BF_PORT),
+        "When Babelfish flavor, container should expose the Babelfish port number");
   }
 }

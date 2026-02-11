@@ -188,4 +188,54 @@ class ShardedClusterServicesTest {
 
     shardsAnyPrimary.setNodePorts(nodePorts);
   }
+
+  @Test
+  void generateResource_whenPrimaryServiceDisabled_shouldNotGeneratePrimary() {
+    defaultShardedCluster
+        .getSpec()
+        .getPostgresServices()
+        .getCoordinator()
+        .getPrimary()
+        .setEnabled(false);
+
+    final Stream<HasMetadata> services =
+        shardedClusterServices.generateResource(shardedClusterContext);
+
+    boolean hasPrimaryCoordinatorService = services
+        .filter(Service.class::isInstance)
+        .map(Service.class::cast)
+        .anyMatch(s -> s.getMetadata().getName()
+            .equals(StackGresShardedClusterUtil
+                .primaryCoordinatorServiceName(defaultShardedCluster)));
+
+    Assertions.assertFalse(hasPrimaryCoordinatorService,
+        "Expected no coordinator primary service when disabled");
+  }
+
+  @Test
+  void generateResource_whenCustomExternalIPs_shouldSetExternalIPs() {
+    final StackGresPostgresService coordinatorPrimary = defaultShardedCluster
+        .getSpec()
+        .getPostgresServices()
+        .getCoordinator()
+        .getPrimary();
+    coordinatorPrimary.setExternalIPs(List.of("10.0.0.1", "10.0.0.2"));
+
+    final Stream<HasMetadata> services =
+        shardedClusterServices.generateResource(shardedClusterContext);
+
+    final Service primaryService = services
+        .filter(Service.class::isInstance)
+        .map(Service.class::cast)
+        .filter(s -> s.getMetadata().getName()
+            .equals(StackGresShardedClusterUtil
+                .primaryCoordinatorServiceName(defaultShardedCluster)))
+        .findFirst()
+        .orElseGet(() -> Assertions.fail(
+            "No coordinator primary service found"));
+
+    Assertions.assertNotNull(primaryService.getSpec().getExternalIPs());
+    Assertions.assertEquals(List.of("10.0.0.1", "10.0.0.2"),
+        primaryService.getSpec().getExternalIPs());
+  }
 }

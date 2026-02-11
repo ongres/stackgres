@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +43,7 @@ import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCa
 import io.stackgres.operator.initialization.DefaultProfileFactory;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -227,6 +229,24 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
   protected void enableLimits() {
     cluster.getSpec().getPods().setResources(new StackGresClusterResources());
     cluster.getSpec().getPods().getResources().setEnableClusterLimitsRequirements(true);
+  }
+
+  @Test
+  void withNoMatchingContainersInProfile_shouldNotSetResources() {
+    profile.getSpec().setContainers(new HashMap<>());
+    profile.getSpec().setInitContainers(new HashMap<>());
+    profile.getSpec().getRequests().setContainers(new HashMap<>());
+    profile.getSpec().getRequests().setInitContainers(new HashMap<>());
+
+    decorate();
+
+    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
+        .filter(container -> !Objects.equals(
+            container.getName(), StackGresContainer.PATRONI.getName()))
+        .forEach(container -> assertNull(container.getResources()));
+
+    statefulSet.getSpec().getTemplate().getSpec().getInitContainers()
+        .forEach(container -> assertNull(container.getResources()));
   }
 
 }

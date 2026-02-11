@@ -7,17 +7,23 @@ package io.stackgres.operator.conciliation.factory.backup;
 
 import static io.stackgres.common.StringUtil.generateRandom;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsSchedulingBackup;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForBackup;
@@ -113,6 +119,50 @@ public class BackupJobTest {
     given(backupContext.getObjectStorage()).willReturn(Optional.of(new StackGresObjectStorage()));
 
     given(kubectl.getImageName(sgCluster)).willReturn(generateRandom());
+  }
+
+  @Test
+  public void generateResource_whenTolerationsSet_shouldApplyToJob() {
+    Toleration toleration = new Toleration("NoSchedule", "key1", "Equal", null, "value1");
+    StackGresClusterPodsSchedulingBackup backupScheduling =
+        new StackGresClusterPodsSchedulingBackup();
+    backupScheduling.setTolerations(List.of(toleration));
+    sgCluster.getSpec().getPods().getScheduling().setBackup(backupScheduling);
+
+    givenExpectedBackupConfigAndClusterValues();
+    given(backupContext.getClusterBackupNamespaces()).willReturn(Set.of());
+
+    Stream<HasMetadata> generatedResources = backupJob.generateResource(backupContext);
+    var job = (Job) generatedResources.iterator().next();
+
+    assertNotNull(job.getSpec().getTemplate().getSpec().getTolerations());
+    assertEquals(1, job.getSpec().getTemplate().getSpec().getTolerations().size());
+    assertEquals("key1",
+        job.getSpec().getTemplate().getSpec().getTolerations().get(0).getKey());
+    assertEquals("NoSchedule",
+        job.getSpec().getTemplate().getSpec().getTolerations().get(0).getEffect());
+    assertEquals("value1",
+        job.getSpec().getTemplate().getSpec().getTolerations().get(0).getValue());
+  }
+
+  @Test
+  public void generateResource_whenPerformanceSettings_shouldSetEnvVars() {
+    givenExpectedBackupConfigAndClusterValues();
+    given(backupContext.getClusterBackupNamespaces()).willReturn(Set.of());
+
+    Stream<HasMetadata> generatedResources = backupJob.generateResource(backupContext);
+    var job = (Job) generatedResources.iterator().next();
+
+    var container = job.getSpec().getTemplate().getSpec().getContainers().get(0);
+    assertTrue("Expected COMPRESSION env var",
+        container.getEnv().stream()
+            .anyMatch(e -> "COMPRESSION".equals(e.getName())));
+    assertTrue("Expected RETAIN env var",
+        container.getEnv().stream()
+            .anyMatch(e -> "RETAIN".equals(e.getName())));
+    assertTrue("Expected BACKUP_TIMEOUT env var",
+        container.getEnv().stream()
+            .anyMatch(e -> "BACKUP_TIMEOUT".equals(e.getName())));
   }
 
 }

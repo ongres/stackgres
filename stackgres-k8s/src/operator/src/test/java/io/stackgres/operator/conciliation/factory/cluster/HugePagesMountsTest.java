@@ -8,12 +8,14 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.fixture.Fixtures;
@@ -115,6 +117,71 @@ class HugePagesMountsTest {
     assertTrue(envVars.stream()
         .anyMatch(envVar -> envVar
             .equals(ClusterPath.HUGEPAGES_1G_PATH.envVar())));
+  }
+
+  @Test
+  void getVolumeMounts_whenOnly2MiSet_shouldMountOnly2Mi() {
+    profile.getSpec().setHugePages(new StackGresProfileHugePages());
+    profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
+    when(clusterContext.getProfile()).thenReturn(Optional.of(profile));
+
+    var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
+
+    assertEquals(1, volumeMounts.size(),
+        "Only the 2Mi hugepages volume mount should be present");
+    assertTrue(volumeMounts.stream()
+        .anyMatch(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.HUGEPAGES_2M.getName())),
+        "2Mi hugepages mount should be present");
+    assertTrue(volumeMounts.stream()
+        .filter(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
+        .anyMatch(volumeMount -> volumeMount.getMountPath()
+            .equals(ClusterPath.HUGEPAGES_2M_PATH.path())),
+        "2Mi hugepages mount path should be correct");
+    assertFalse(volumeMounts.stream()
+        .anyMatch(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.HUGEPAGES_1G.getName())),
+        "1Gi hugepages mount should not be present when only 2Mi is set");
+  }
+
+  @Test
+  void getVolumeMounts_whenOnly1GiSet_shouldMountOnly1Gi() {
+    profile.getSpec().setHugePages(new StackGresProfileHugePages());
+    profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
+    when(clusterContext.getProfile()).thenReturn(Optional.of(profile));
+
+    var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
+
+    assertEquals(1, volumeMounts.size(),
+        "Only the 1Gi hugepages volume mount should be present");
+    assertFalse(volumeMounts.stream()
+        .anyMatch(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.HUGEPAGES_2M.getName())),
+        "2Mi hugepages mount should not be present when only 1Gi is set");
+    assertTrue(volumeMounts.stream()
+        .anyMatch(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.HUGEPAGES_1G.getName())),
+        "1Gi hugepages mount should be present");
+    assertTrue(volumeMounts.stream()
+        .filter(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
+        .anyMatch(volumeMount -> volumeMount.getMountPath()
+            .equals(ClusterPath.HUGEPAGES_1G_PATH.path())),
+        "1Gi hugepages mount path should be correct");
+  }
+
+  @Test
+  void getVolumeMounts_whenNullProfile_shouldReturnEmpty() {
+    StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
+    when(clusterContext.getProfile()).thenReturn(Optional.empty());
+    lenient().when(clusterContext.getSource()).thenReturn(cluster);
+
+    var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
+
+    assertTrue(volumeMounts.isEmpty(),
+        "When profile is null (defaults used), volume mounts should be empty "
+            + "since default profile has no hugepages");
   }
 
 }
