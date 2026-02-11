@@ -14,9 +14,12 @@ import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PodSecurityFactory;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,6 +33,14 @@ class ClusterPodSecurityFactoryTest {
 
   @Mock
   private StackGresClusterContext clusterContext;
+
+  private StackGresCluster cluster;
+
+  @BeforeEach
+  void setUp() {
+    cluster = Fixtures.cluster().loadDefault().get();
+    when(clusterContext.getSource()).thenReturn(cluster);
+  }
 
   @Test
   void createResource_whenNotUsingArbitraryUser_shouldSetRunAsNonRoot() {
