@@ -116,7 +116,7 @@
     <prometheus-metrics-exposition-formats.version>1.4.3</prometheus-metrics-exposition-formats.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.15.0</compiler-plugin.version>
-    <jar-plugin.version>3.5.0</jar-plugin.version>
+    <jar-plugin.version>3.4.2</jar-plugin.version>
     <clean-plugin.version>3.5.0</clean-plugin.version>
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <dependency-plugin.version>3.5.0</dependency-plugin.version>
