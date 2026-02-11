@@ -33,7 +33,7 @@ class MetadataValidatorTest {
     validator = new MetadataValidator();
 
     defaultCluster = Fixtures.shardedCluster().loadDefault().get();
-    review = AdmissionReviewFixtures.shardedCluster().get();
+    review = AdmissionReviewFixtures.shardedCluster().loadCreate().get();
     review.getRequest().setObject(defaultCluster);
   }
 
