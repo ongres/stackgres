@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.shardedcluster;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -16,11 +18,23 @@ import io.stackgres.common.StackGresUtil;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ShardedClusterShardingSphere {
 
+  private String version;
+
   private ShardedClusterShardingSphereMode mode;
 
   private ShardedClusterShardingSphereAuthority authority;
 
   private ShardingSphereServiceAccount serviceAccount;
+
+  private Map<String, Object> properties;
+
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(String version) {
+    this.version = version;
+  }
 
   public ShardedClusterShardingSphereMode getMode() {
     return mode;
@@ -44,6 +58,14 @@ public class ShardedClusterShardingSphere {
 
   public void setServiceAccount(ShardingSphereServiceAccount serviceAccount) {
     this.serviceAccount = serviceAccount;
+  }
+
+  public Map<String, Object> getProperties() {
+    return properties;
+  }
+
+  public void setProperties(Map<String, Object> properties) {
+    this.properties = properties;
   }
 
   @Override

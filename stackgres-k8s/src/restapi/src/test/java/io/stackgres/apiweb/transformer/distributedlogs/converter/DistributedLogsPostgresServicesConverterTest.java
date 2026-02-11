@@ -5,8 +5,8 @@
 
 package io.stackgres.apiweb.transformer.distributedlogs.converter;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPostgresServices;

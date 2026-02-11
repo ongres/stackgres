@@ -27,6 +27,14 @@ public class ConfigDeveloper {
 
   private Boolean enableJvmDebugSuspend;
 
+  private String externalOperatorIp;
+
+  private Integer externalOperatorPort;
+
+  private String externalRestApiIp;
+
+  private Integer externalRestApiPort;
+
   private Boolean allowPullExtensionsFromImageRepository;
 
   private Boolean disableArbitraryUser;
@@ -87,6 +95,38 @@ public class ConfigDeveloper {
 
   public void setEnableJvmDebugSuspend(Boolean enableJvmDebugSuspend) {
     this.enableJvmDebugSuspend = enableJvmDebugSuspend;
+  }
+
+  public String getExternalOperatorIp() {
+    return externalOperatorIp;
+  }
+
+  public void setExternalOperatorIp(String externalOperatorIp) {
+    this.externalOperatorIp = externalOperatorIp;
+  }
+
+  public Integer getExternalOperatorPort() {
+    return externalOperatorPort;
+  }
+
+  public void setExternalOperatorPort(Integer externalOperatorPort) {
+    this.externalOperatorPort = externalOperatorPort;
+  }
+
+  public String getExternalRestApiIp() {
+    return externalRestApiIp;
+  }
+
+  public void setExternalRestApiIp(String externalRestApiIp) {
+    this.externalRestApiIp = externalRestApiIp;
+  }
+
+  public Integer getExternalRestApiPort() {
+    return externalRestApiPort;
+  }
+
+  public void setExternalRestApiPort(Integer externalRestApiPort) {
+    this.externalRestApiPort = externalRestApiPort;
   }
 
   public Boolean getAllowPullExtensionsFromImageRepository() {
