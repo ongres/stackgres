@@ -1034,7 +1034,7 @@ spec:
                         description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
                           type: string
-                      cooridnatorAnyService:
+                      coordinatorAnyService:
                         type: object
                         description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).
                         additionalProperties:
@@ -1519,7 +1519,7 @@ spec:
                         description: |
                           Section to configure horizontal Pod autoscaling aspects.
                         properties:
-                          eplicasConnectionsUsageTarget:
+                          replicasConnectionsUsageTarget:
                             type: string
                             default: "0.8"
                             description: |

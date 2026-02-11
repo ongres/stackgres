@@ -19,41 +19,21 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigDeploy {
+public class StackGresConfigRbac {
 
-  private Boolean operator;
+  private Boolean create;
 
-  private Boolean restapi;
-
-  private Boolean collector;
-
-  public Boolean getOperator() {
-    return operator;
+  public Boolean getCreate() {
+    return create;
   }
 
-  public void setOperator(Boolean operator) {
-    this.operator = operator;
-  }
-
-  public Boolean getRestapi() {
-    return restapi;
-  }
-
-  public void setRestapi(Boolean restapi) {
-    this.restapi = restapi;
-  }
-
-  public Boolean getCollector() {
-    return collector;
-  }
-
-  public void setCollector(Boolean collector) {
-    this.collector = collector;
+  public void setCreate(Boolean create) {
+    this.create = create;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(collector, operator, restapi);
+    return Objects.hash(create);
   }
 
   @Override
@@ -61,12 +41,11 @@ public class StackGresConfigDeploy {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresConfigDeploy)) {
+    if (!(obj instanceof StackGresConfigRbac)) {
       return false;
     }
-    StackGresConfigDeploy other = (StackGresConfigDeploy) obj;
-    return Objects.equals(collector, other.collector) && Objects.equals(operator, other.operator)
-        && Objects.equals(restapi, other.restapi);
+    StackGresConfigRbac other = (StackGresConfigRbac) obj;
+    return Objects.equals(create, other.create);
   }
 
   @Override

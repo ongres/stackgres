@@ -27,7 +27,7 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecondOverTime {
 
   private String valuesUnit;
 
-  private Integer intervalDuration;
+  private BigDecimal intervalDuration;
 
   private String intervalDurationUnit;
 
@@ -47,11 +47,11 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecondOverTime {
     this.valuesUnit = valuesUnit;
   }
 
-  public Integer getIntervalDuration() {
+  public BigDecimal getIntervalDuration() {
     return intervalDuration;
   }
 
-  public void setIntervalDuration(Integer intervalDuration) {
+  public void setIntervalDuration(BigDecimal intervalDuration) {
     this.intervalDuration = intervalDuration;
   }
 

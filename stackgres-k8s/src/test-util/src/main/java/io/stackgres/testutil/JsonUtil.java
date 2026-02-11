@@ -17,7 +17,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -110,9 +112,9 @@ public class JsonUtil {
       assertAnyJsonEquals(JsonPointer.empty(), expected, actual);
     } catch (AssertionError ex) {
       if (message != null) {
-        throw new AssertionFailedError(message + "\n\n" + ex.getMessage());
+        throw new AssertionFailedError(message + "\n\n" + ex.getMessage(), ex);
       }
-      throw new AssertionFailedError(ex.getMessage());
+      throw new AssertionFailedError(ex.getMessage(), ex);
     }
   }
 
@@ -171,10 +173,24 @@ public class JsonUtil {
     if (expected instanceof ObjectNode expectedObject
         && actual instanceof ObjectNode actualObject) {
       assertJsonEquals(pointer, expectedObject, actualObject);
+      return;
     }
     if (expected instanceof ArrayNode expectedArray
         && actual instanceof ArrayNode actualArray) {
       assertJsonEquals(pointer, expectedArray, actualArray);
+      return;
+    }
+    if ((expected instanceof IntNode
+        || expected instanceof LongNode)
+        && (actual instanceof IntNode
+            || actual instanceof LongNode)) {
+      if (!Objects.equals(expected.asLong(), actual.asLong())) {
+        throw new AssertionFailedError(
+            "At pointer " + pointer
+            + " expected " + expected
+            + " but was " + actual);
+      }
+      return;
     }
     if (!Objects.equals(expected, actual)) {
       throw new AssertionFailedError(

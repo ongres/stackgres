@@ -42,6 +42,14 @@ public class StackGresConfigOperator {
 
   private StackGresConfigService service;
 
+  private Integer port;
+
+  private Integer internalHttpPort;
+
+  private Integer internalHttpsPort;
+
+  private Boolean hostNetwork;
+
   public StackGresConfigImage getImage() {
     return image;
   }
@@ -106,10 +114,42 @@ public class StackGresConfigOperator {
     this.service = service;
   }
 
+  public Integer getPort() {
+    return port;
+  }
+
+  public void setPort(Integer port) {
+    this.port = port;
+  }
+
+  public Integer getInternalHttpPort() {
+    return internalHttpPort;
+  }
+
+  public void setInternalHttpPort(Integer internalHttpPort) {
+    this.internalHttpPort = internalHttpPort;
+  }
+
+  public Integer getInternalHttpsPort() {
+    return internalHttpsPort;
+  }
+
+  public void setInternalHttpsPort(Integer internalHttpsPort) {
+    this.internalHttpsPort = internalHttpsPort;
+  }
+
+  public Boolean getHostNetwork() {
+    return hostNetwork;
+  }
+
+  public void setHostNetwork(Boolean hostNetwork) {
+    this.hostNetwork = hostNetwork;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(affinity, annotations, image, nodeSelector, resources, service,
-        serviceAccount, tolerations);
+    return Objects.hash(affinity, annotations, hostNetwork, image, internalHttpPort,
+        internalHttpsPort, nodeSelector, port, resources, service, serviceAccount, tolerations);
   }
 
   @Override
@@ -123,7 +163,10 @@ public class StackGresConfigOperator {
     StackGresConfigOperator other = (StackGresConfigOperator) obj;
     return Objects.equals(affinity, other.affinity)
         && Objects.equals(annotations, other.annotations)
-        && Objects.equals(image, other.image) && Objects.equals(nodeSelector, other.nodeSelector)
+        && Objects.equals(hostNetwork, other.hostNetwork) && Objects.equals(image, other.image)
+        && Objects.equals(internalHttpPort, other.internalHttpPort)
+        && Objects.equals(internalHttpsPort, other.internalHttpsPort)
+        && Objects.equals(nodeSelector, other.nodeSelector) && Objects.equals(port, other.port)
         && Objects.equals(resources, other.resources) && Objects.equals(service, other.service)
         && Objects.equals(serviceAccount, other.serviceAccount)
         && Objects.equals(tolerations, other.tolerations);

@@ -1321,9 +1321,6 @@ spec:
               version:
                 type: string
                 description: Latest version of the operator used to check for updates
-              removeOldOperatorBundleResources:
-                type: boolean
-                description: Indicate when the old operator bundle resources has been removed
               grafana:
                 type: object
                 properties:

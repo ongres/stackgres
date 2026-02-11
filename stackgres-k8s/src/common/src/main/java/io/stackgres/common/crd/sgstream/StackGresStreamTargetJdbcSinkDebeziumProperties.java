@@ -44,6 +44,8 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
   private Integer connectionPoolTimeout;
 
+  private Boolean connectionRestartOnErrors;
+
   @JsonProperty("useTimeZone")
   private String useTimeZone;
 
@@ -151,6 +153,14 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
 
   public void setConnectionPoolTimeout(Integer connectionPoolTimeout) {
     this.connectionPoolTimeout = connectionPoolTimeout;
+  }
+
+  public Boolean getConnectionRestartOnErrors() {
+    return connectionRestartOnErrors;
+  }
+
+  public void setConnectionRestartOnErrors(Boolean connectionRestartOnErrors) {
+    this.connectionRestartOnErrors = connectionRestartOnErrors;
   }
 
   public String getUseTimeZone() {
@@ -293,11 +303,11 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
   public int hashCode() {
     return Objects.hash(batchSize, collectionNameFormat, collectionNamingStrategy,
         columnNamingStrategy, connectionPoolAcquireIncrement, connectionPoolMaxSize,
-        connectionPoolMinSize, connectionPoolTimeout, connectionUrlParameters, deleteEnabled,
-        detectInsertMode, dialectPostgresPostgisSchema, dialectSqlserverIdentityInsert,
-        flushMaxRetries, flushRetryDelayMs, insertMode, primaryKeyFields, primaryKeyMode,
-        quoteIdentifiers, removePlaceholders, schemaEvolution, truncateEnabled, useReductionBuffer,
-        useTimeZone);
+        connectionPoolMinSize, connectionPoolTimeout, connectionRestartOnErrors,
+        connectionUrlParameters, deleteEnabled, detectInsertMode, dialectPostgresPostgisSchema,
+        dialectSqlserverIdentityInsert, flushMaxRetries, flushRetryDelayMs, insertMode,
+        primaryKeyFields, primaryKeyMode, quoteIdentifiers, removePlaceholders, schemaEvolution,
+        truncateEnabled, useReductionBuffer, useTimeZone);
   }
 
   @Override
@@ -317,6 +327,7 @@ public class StackGresStreamTargetJdbcSinkDebeziumProperties {
         && Objects.equals(connectionPoolMaxSize, other.connectionPoolMaxSize)
         && Objects.equals(connectionPoolMinSize, other.connectionPoolMinSize)
         && Objects.equals(connectionPoolTimeout, other.connectionPoolTimeout)
+        && Objects.equals(connectionRestartOnErrors, other.connectionRestartOnErrors)
         && Objects.equals(connectionUrlParameters, other.connectionUrlParameters)
         && Objects.equals(deleteEnabled, other.deleteEnabled)
         && Objects.equals(detectInsertMode, other.detectInsertMode)

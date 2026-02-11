@@ -265,14 +265,6 @@ spec:
                         description: Annotations to attach to pods created or managed by StackGres.
                         additionalProperties:
                           type: string
-                      pods:
-                        type: object
-                        description: |
-                          **Deprecated** this field has been replaced by `clusterPods`.
-                          
-                          Annotations to attach to pods created or managed by StackGres.
-                        additionalProperties:
-                          type: string
                       services:
                         type: object
                         description: Annotations to attach to all services created or managed by StackGres.

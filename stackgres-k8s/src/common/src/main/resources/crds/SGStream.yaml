@@ -247,33 +247,31 @@ spec:
                                 columnMaskHash.SHA-256.CzQMA0cB5K=[inventory.orders.customerName,inventory.shipment.customerName]
                                 If necessary, the pseudonym is automatically shortened to the length of the column. The connector configuration can include multiple properties that specify different hash algorithms and salts.
                                 Depending on the hash algorithm used, the salt selected, and the actual data set, the resulting data set might not be completely masked.
+                                
+                                The hash algorithm (e.g. SHA-256) type and configuration.
                             additionalProperties:
                               type: object
-                              description: The hash algorithm (e.g. SHA-256) type and configuration.
+                              description: The salt (e.g. CzQMA0cB5K) value and configuration.
                               additionalProperties:
-                                type: object
-                                description: The salt (e.g. CzQMA0cB5K) value and configuration.
-                                additionalProperties:
-                                  type: array
-                                  items:
-                                    type: string
-                                  description: The list of regular expressions that match the fully-qualified names of character-based columns (e.g. inventory.orders.customerName)
+                                type: array
+                                items:
+                                  type: string
+                                description: The list of regular expressions that match the fully-qualified names of character-based columns (e.g. inventory.orders.customerName)
                           columnMaskHashV2:
                             type: object
                             description: |
                               Similar to also columnMaskHash but using hashing strategy version 2.
                                Hashing strategy version 2 should be used to ensure fidelity if the value is being hashed in different places or systems.
+                              
+                              The hash algorithm (e.g. SHA-256) type and configuration.
                             additionalProperties:
                               type: object
-                              description: The hash algorithm (e.g. SHA-256) type and configuration.
+                              description: The salt (e.g. CzQMA0cB5K) value and configuration.
                               additionalProperties:
-                                type: object
-                                description: The salt (e.g. CzQMA0cB5K) value and configuration.
-                                additionalProperties:
-                                  type: array
-                                  items:
-                                    type: string
-                                  description: The list of regular expressions that match the fully-qualified names of character-based columns (e.g. inventory.orders.customerName)
+                                type: array
+                                items:
+                                  type: string
+                                description: The list of regular expressions that match the fully-qualified names of character-based columns (e.g. inventory.orders.customerName)
                           columnPropagateSourceType:
                             type: array
                             items:
@@ -1409,10 +1407,6 @@ spec:
                   taskManagementTimeoutMs:
                     type: integer
                     description: Default `180000`. Time, in milliseconds, that the engine waits for a task’s lifecycle management operations (starting and stopping) to complete.
-              useDebeziumAsyncEngine:
-                type: boolean
-                description: When `true` use Debezium asyncronous engine. See https://debezium.io/blog/2024/07/08/async-embedded-engine/
-                default: true
           status:
             type: object
             description: |

@@ -58,6 +58,8 @@ public class StackGresConfigSpec {
 
   private StackGresConfigCert cert;
 
+  private StackGresConfigRbac rbac;
+
   private StackGresConfigAuthentication authentication;
 
   private StackGresConfigPrometheus prometheus;
@@ -206,6 +208,14 @@ public class StackGresConfigSpec {
     this.cert = cert;
   }
 
+  public StackGresConfigRbac getRbac() {
+    return rbac;
+  }
+
+  public void setRbac(StackGresConfigRbac rbac) {
+    this.rbac = rbac;
+  }
+
   public StackGresConfigAuthentication getAuthentication() {
     return authentication;
   }
@@ -259,8 +269,8 @@ public class StackGresConfigSpec {
     return Objects.hash(adminui, allowImpersonationForRestApi, allowedNamespaceLabelSelector,
         allowedNamespaces, authentication, cert, collector, containerRegistry, deploy, developer,
         disableClusterRole, disableCrdsAndWebhooksUpdate, extensions, grafana, imagePullPolicy,
-        imagePullSecrets, jobs, operator, prometheus, restapi, serviceAccount, sgConfigNamespace,
-        shardingSphere);
+        imagePullSecrets, jobs, operator, prometheus, rbac, restapi, serviceAccount,
+        sgConfigNamespace, shardingSphere);
   }
 
   @Override
@@ -286,7 +296,8 @@ public class StackGresConfigSpec {
         && Objects.equals(imagePullPolicy, other.imagePullPolicy)
         && Objects.equals(imagePullSecrets, other.imagePullSecrets)
         && Objects.equals(jobs, other.jobs) && Objects.equals(operator, other.operator)
-        && Objects.equals(prometheus, other.prometheus) && Objects.equals(restapi, other.restapi)
+        && Objects.equals(prometheus, other.prometheus) && Objects.equals(rbac, other.rbac)
+        && Objects.equals(restapi, other.restapi)
         && Objects.equals(serviceAccount, other.serviceAccount)
         && Objects.equals(sgConfigNamespace, other.sgConfigNamespace)
         && Objects.equals(shardingSphere, other.shardingSphere);

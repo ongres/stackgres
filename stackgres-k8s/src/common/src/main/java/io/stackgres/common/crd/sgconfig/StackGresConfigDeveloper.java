@@ -35,6 +35,14 @@ public class StackGresConfigDeveloper {
 
   private Boolean enableJvmDebugSuspend;
 
+  private String externalOperatorIp;
+
+  private Integer externalOperatorPort;
+
+  private String externalRestApiIp;
+
+  private Integer externalRestApiPort;
+
   private Boolean allowPullExtensionsFromImageRepository;
 
   private Boolean disableArbitraryUser;
@@ -97,6 +105,38 @@ public class StackGresConfigDeveloper {
     this.enableJvmDebugSuspend = enableJvmDebugSuspend;
   }
 
+  public String getExternalOperatorIp() {
+    return externalOperatorIp;
+  }
+
+  public void setExternalOperatorIp(String externalOperatorIp) {
+    this.externalOperatorIp = externalOperatorIp;
+  }
+
+  public Integer getExternalOperatorPort() {
+    return externalOperatorPort;
+  }
+
+  public void setExternalOperatorPort(Integer externalOperatorPort) {
+    this.externalOperatorPort = externalOperatorPort;
+  }
+
+  public String getExternalRestApiIp() {
+    return externalRestApiIp;
+  }
+
+  public void setExternalRestApiIp(String externalRestApiIp) {
+    this.externalRestApiIp = externalRestApiIp;
+  }
+
+  public Integer getExternalRestApiPort() {
+    return externalRestApiPort;
+  }
+
+  public void setExternalRestApiPort(Integer externalRestApiPort) {
+    this.externalRestApiPort = externalRestApiPort;
+  }
+
   public Boolean getAllowPullExtensionsFromImageRepository() {
     return allowPullExtensionsFromImageRepository;
   }
@@ -125,7 +165,8 @@ public class StackGresConfigDeveloper {
   @Override
   public int hashCode() {
     return Objects.hash(allowPullExtensionsFromImageRepository, disableArbitraryUser,
-        enableJvmDebug, enableJvmDebugSuspend, logLevel, patches, showDebug, showStackTraces,
+        enableJvmDebug, enableJvmDebugSuspend, externalOperatorIp, externalOperatorPort,
+        externalRestApiIp, externalRestApiPort, logLevel, patches, showDebug, showStackTraces,
         useJvmImages, version);
   }
 
@@ -143,8 +184,11 @@ public class StackGresConfigDeveloper {
         && Objects.equals(disableArbitraryUser, other.disableArbitraryUser)
         && Objects.equals(enableJvmDebug, other.enableJvmDebug)
         && Objects.equals(enableJvmDebugSuspend, other.enableJvmDebugSuspend)
-        && Objects.equals(logLevel, other.logLevel)
-        && Objects.equals(patches, other.patches)
+        && Objects.equals(externalOperatorIp, other.externalOperatorIp)
+        && Objects.equals(externalOperatorPort, other.externalOperatorPort)
+        && Objects.equals(externalRestApiIp, other.externalRestApiIp)
+        && Objects.equals(externalRestApiPort, other.externalRestApiPort)
+        && Objects.equals(logLevel, other.logLevel) && Objects.equals(patches, other.patches)
         && Objects.equals(showDebug, other.showDebug)
         && Objects.equals(showStackTraces, other.showStackTraces)
         && Objects.equals(useJvmImages, other.useJvmImages)
