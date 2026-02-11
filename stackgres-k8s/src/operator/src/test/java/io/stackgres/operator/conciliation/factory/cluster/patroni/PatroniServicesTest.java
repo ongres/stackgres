@@ -18,8 +18,10 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
@@ -368,6 +370,43 @@ class PatroniServicesTest {
             .equals(PatroniUtil.readOnlyName(defaultCluster.getMetadata().getName())))
         .map(Service.class::cast)
         .findFirst().orElseGet(() -> fail("No postgres replica service found"));
+  }
+
+  @Test
+  void generateResource_whenConnectionPoolingDisabled_shouldReflectInService() {
+    enablePrimaryService(true);
+    defaultCluster.getSpec().getPods().setDisableConnectionPooling(true);
+    defaultCluster.getSpec().getPods().setDisableEnvoy(true);
+
+    Stream<HasMetadata> services = patroniServices.generateResource(context);
+
+    Service primaryService = getPrimaryService(services);
+
+    List<ServicePort> ports = primaryService.getSpec().getPorts();
+    assertTrue(ports.stream()
+            .anyMatch(port -> port.getName().equals(EnvoyUtil.POSTGRES_PORT_NAME)),
+        "Primary service should have a postgres port");
+    assertTrue(ports.stream()
+            .filter(port -> port.getName().equals(EnvoyUtil.POSTGRES_PORT_NAME))
+            .anyMatch(port -> port.getTargetPort().equals(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))),
+        "When connection pooling is disabled and envoy is disabled, "
+            + "the postgres port target should point to the postgres port name");
+  }
+
+  @Test
+  void generateResource_whenReplicaServiceDisabled_shouldNotGenerateReplicaService() {
+    resetReplicas(false);
+
+    Stream<HasMetadata> services = patroniServices.generateResource(context);
+
+    long replicaServicesCount = services
+        .filter(s -> s.getKind().equals("Service"))
+        .filter(s -> s.getMetadata().getName()
+            .equals(PatroniUtil.readOnlyName(defaultCluster.getMetadata().getName())))
+        .count();
+
+    assertEquals(0, replicaServicesCount,
+        "When replica service is disabled, no replica service should be generated");
   }
 
 }

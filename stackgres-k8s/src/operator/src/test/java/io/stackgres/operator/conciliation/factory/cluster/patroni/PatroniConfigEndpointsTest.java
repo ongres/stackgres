@@ -408,4 +408,25 @@ class PatroniConfigEndpointsTest {
     });
   }
 
+  @Test
+  void generateResource_whenNullPostgresConfig_shouldUseDefaults() {
+    when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
+    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
+    when(context.getBackupStorage()).thenCallRealMethod();
+    when(context.getPostgresConfig()).thenReturn(Optional.empty());
+
+    List<HasMetadata> endpoints = generator.generateResource(context)
+        .collect(Collectors.toUnmodifiableList());
+
+    assertFalse(endpoints.isEmpty(),
+        "When postgresConfig is null, endpoints should still be generated using defaults");
+
+    final Endpoints endpoint = (Endpoints) endpoints.getFirst();
+    assertNotNull(endpoint.getMetadata());
+    assertNotNull(endpoint.getMetadata().getAnnotations());
+    assertTrue(endpoint.getMetadata().getAnnotations().containsKey(PatroniUtil.CONFIG_KEY),
+        "Generated endpoint should contain a Patroni config annotation even without postgresConfig");
+  }
+
 }

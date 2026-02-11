@@ -116,4 +116,40 @@ class WebConsoleDeploymentTest {
     Assertions.assertEquals(1, deployment.getSpec().getReplicas());
   }
 
+  @Test
+  void generateResource_whenGrafanaEmbedded_shouldIncludeGrafanaContainer() {
+    lenient().when(context.isGrafanaEmbedded()).thenReturn(true);
+
+    List<HasMetadata> resources = webConsoleDeployment.generateResource(context).toList();
+
+    Deployment deployment = (Deployment) resources.getFirst();
+    var restapiContainer = deployment.getSpec().getTemplate().getSpec()
+        .getContainers().get(0);
+    var grafanaEmbeddedEnv = restapiContainer.getEnv().stream()
+        .filter(e -> "GRAFANA_EMBEDDED".equals(e.getName()))
+        .findFirst();
+    Assertions.assertTrue(grafanaEmbeddedEnv.isPresent(),
+        "Expected GRAFANA_EMBEDDED env var in restapi container");
+    Assertions.assertEquals("true", grafanaEmbeddedEnv.get().getValue());
+
+    var adminuiContainer = deployment.getSpec().getTemplate().getSpec()
+        .getContainers().get(1);
+    var adminuiGrafanaEnv = adminuiContainer.getEnv().stream()
+        .filter(e -> "GRAFANA_EMBEDDED".equals(e.getName()))
+        .findFirst();
+    Assertions.assertTrue(adminuiGrafanaEnv.isPresent(),
+        "Expected GRAFANA_EMBEDDED env var in adminui container");
+    Assertions.assertEquals("true", adminuiGrafanaEnv.get().getValue());
+  }
+
+  @Test
+  void generateResource_whenAdminuiDisabled_shouldNotIncludeAdminui() {
+    config.getSpec().getDeploy().setRestapi(false);
+
+    List<HasMetadata> resources = webConsoleDeployment.generateResource(context).toList();
+
+    Assertions.assertTrue(resources.isEmpty(),
+        "Expected no deployment when restapi deploy is disabled");
+  }
+
 }

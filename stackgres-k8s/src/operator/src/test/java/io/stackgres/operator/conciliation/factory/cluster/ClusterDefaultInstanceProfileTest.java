@@ -106,6 +106,48 @@ class ClusterDefaultInstanceProfileTest {
   }
 
   @Test
+  void generateResource_whenProfileExistsWithPartialLabels_shouldNotGenerate() {
+    Map<String, String> defaultLabels = labelFactory.defaultConfigLabels(cluster);
+    Map<String, String> partialLabels = Map.of(
+        defaultLabels.keySet().iterator().next(),
+        defaultLabels.values().iterator().next());
+    StackGresProfile existingProfile = new StackGresProfileBuilder()
+        .withNewMetadata()
+        .withLabels(partialLabels)
+        .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
+        .endMetadata()
+        .build();
+    when(context.getProfile()).thenReturn(Optional.of(existingProfile));
+
+    List<HasMetadata> resources =
+        clusterDefaultInstanceProfile.generateResource(context).toList();
+
+    assertTrue(resources.isEmpty());
+  }
+
+  @Test
+  void generateResource_whenProfileExistsWithDifferentOwner_shouldNotGenerate() {
+    StackGresProfile existingProfile = new StackGresProfileBuilder()
+        .withNewMetadata()
+        .withLabels(Map.copyOf(labelFactory.defaultConfigLabels(cluster)))
+        .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(
+            new StackGresProfileBuilder()
+                .withNewMetadata()
+                .withName("different-owner")
+                .withUid("different-uid")
+                .endMetadata()
+                .build())))
+        .endMetadata()
+        .build();
+    when(context.getProfile()).thenReturn(Optional.of(existingProfile));
+
+    List<HasMetadata> resources =
+        clusterDefaultInstanceProfile.generateResource(context).toList();
+
+    assertTrue(resources.isEmpty());
+  }
+
+  @Test
   void generateResource_generatedProfileHasCorrectNameAndNamespace() {
     when(context.getProfile()).thenReturn(Optional.empty());
 

@@ -109,4 +109,36 @@ class DistributedLogsClusterTest {
     assertEquals("128Mi", cluster.getSpec().getPods().getPersistentVolume().getSize());
   }
 
+  @Test
+  void generateResource_shouldHaveCustomContainerWithExpectedVolumeMounts() {
+    StackGresCluster cluster = (StackGresCluster) distributedLogsCluster.generateResource(context)
+        .toList()
+        .get(0);
+
+    var fluentdContainer = cluster.getSpec().getPods().getCustomContainers().stream()
+        .filter(c -> DistributedLogsCluster.NAME.equals(c.getName()))
+        .findFirst()
+        .orElseThrow();
+
+    assertNotNull(fluentdContainer.getVolumeMounts(),
+        "Expected fluentd container to have volume mounts");
+    assertTrue(fluentdContainer.getVolumeMounts().size() > 0,
+        "Expected at least one volume mount in fluentd container");
+    assertTrue(fluentdContainer.getEnv().stream()
+            .anyMatch(e -> "PATRONI_PORT".equals(e.getName())),
+        "Expected PATRONI_PORT env var in fluentd container");
+  }
+
+  @Test
+  void generateResource_shouldUseDefaultPostgresVersion() {
+    StackGresCluster cluster = (StackGresCluster) distributedLogsCluster.generateResource(context)
+        .toList()
+        .get(0);
+
+    assertNotNull(cluster.getSpec().getPostgres().getVersion(),
+        "Expected postgres version to be set");
+    assertTrue(cluster.getSpec().getPostgres().getVersion().length() > 0,
+        "Expected postgres version to be non-empty");
+  }
+
 }

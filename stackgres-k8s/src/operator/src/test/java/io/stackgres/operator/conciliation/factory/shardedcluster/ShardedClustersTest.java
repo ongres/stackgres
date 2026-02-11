@@ -66,4 +66,26 @@ public class ShardedClustersTest {
         clusters.get(2).getMetadata().getLabels());
   }
 
+  @Test
+  public void generateResource_whenEmptyShards_shouldGenerateOnlyCoordinator() {
+    when(context.getShards()).thenReturn(List.of());
+    var clusters = shardedClusters.generateResource(context).toList();
+    assertEquals(1, clusters.size());
+    assertEquals(labelFactory.coordinatorLabels(shardedCluster),
+        clusters.getFirst().getMetadata().getLabels());
+  }
+
+  @Test
+  public void generateResource_whenDifferentTopology_shouldReflectInClusters() {
+    shardedCluster.getSpec().setType("ddp");
+    var clusters = shardedClusters.generateResource(context).toList();
+    assertEquals(3, clusters.size());
+    assertEquals(labelFactory.coordinatorLabels(shardedCluster),
+        clusters.getFirst().getMetadata().getLabels());
+    assertEquals(labelFactory.shardsLabels(shardedCluster),
+        clusters.get(1).getMetadata().getLabels());
+    assertEquals(labelFactory.shardsLabels(shardedCluster),
+        clusters.get(2).getMetadata().getLabels());
+  }
+
 }

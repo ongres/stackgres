@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -119,6 +120,26 @@ class PodTemplateSpecFactoryTest {
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName()
         .equals(usedVolume.getName()));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).equals(usedVolume));
+  }
+
+  @Test
+  void clusterWithEmptyVolumes_shouldProduceEmptyVolumeList() {
+    when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
+    when(clusterContext.getConfig()).thenReturn(config);
+    when(clusterContext.getSource()).thenReturn(cluster);
+    when(clusterContext.getCluster()).thenReturn(cluster);
+    when(labelFactory.labelMapper()).thenReturn(labelMapper);
+    when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
+        .thenReturn(List.of(containerFactory));
+    when(containerFactory.getContainer(clusterContainerContext))
+        .thenReturn(patroniContainer);
+    when(patroniContainer.getVolumeMounts()).thenReturn(List.of());
+
+    var availableVolumes = Map.<String, Volume>of();
+    lenient().when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
+
+    var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().isEmpty());
   }
 
   @Test

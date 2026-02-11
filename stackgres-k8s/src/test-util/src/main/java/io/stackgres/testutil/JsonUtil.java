@@ -118,9 +118,8 @@ public class JsonUtil {
     }
   }
 
-  @SuppressWarnings("resource")
   private static void assertJsonEquals(JsonPointer pointer, ObjectNode expected, ObjectNode actual) {
-    for (var expectedField : Seq.seq(expected.fields()).toList()) {
+    for (var expectedField : Seq.seq(expected.properties()).toList()) {
       if (!actual.has(expectedField.getKey())) {
         throw new AssertionFailedError(
             "At pointer " + pointer
@@ -131,7 +130,7 @@ public class JsonUtil {
           expectedField.getValue(),
           actual.get(expectedField.getKey()));
     }
-    for (var actualField : Seq.seq(actual.fields()).toList()) {
+    for (var actualField : Seq.seq(actual.properties()).toList()) {
       if (!expected.has(actualField.getKey())) {
         throw new AssertionFailedError(
             "At pointer " + pointer
@@ -140,7 +139,6 @@ public class JsonUtil {
     }
   }
 
-  @SuppressWarnings("resource")
   private static void assertJsonEquals(JsonPointer pointer, ArrayNode expected, ArrayNode actual) {
     if (expected.size() != actual.size()) {
       throw new AssertionFailedError(
@@ -163,7 +161,7 @@ public class JsonUtil {
     }
   }
 
-  public static void assertAnyJsonEquals(JsonPointer pointer, JsonNode expected, JsonNode actual) {
+  private static void assertAnyJsonEquals(JsonPointer pointer, JsonNode expected, JsonNode actual) {
     JsonNodeType expectedType = Optional.ofNullable(expected).map(JsonNode::getNodeType).orElse(null);
     JsonNodeType actualType = Optional.ofNullable(actual).map(JsonNode::getNodeType).orElse(null);
     if (!Objects.equals(expectedType, actualType)) {

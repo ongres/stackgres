@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.fixture.Fixtures;
@@ -155,6 +156,67 @@ class PostgresSslSecretTest {
         .map(Secret::getData)
         .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
         .orElseThrow()));
+  }
+
+  @Test
+  void generateResource_whenCustomDuration_shouldUseDuration() throws Exception {
+    cluster.getSpec().getPostgres().setSsl(new StackGresClusterSsl());
+    cluster.getSpec().getPostgres().getSsl().setEnabled(true);
+    cluster.getSpec().getPostgres().getSsl().setDuration("P30D");
+    when(context.getSource()).thenReturn(cluster);
+
+    var secretVolumePairs = postgresSslSecret.buildVolumes(context).toList();
+
+    Assertions.assertEquals(1, secretVolumePairs.size());
+    Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
+        .map(Secret.class::cast)
+        .map(Secret::getData)
+        .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
+        .isPresent(),
+        "SSL secret should contain a certificate when custom duration is set");
+    Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
+        .map(Secret.class::cast)
+        .map(Secret::getData)
+        .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
+        .isPresent(),
+        "SSL secret should contain a private key when custom duration is set");
+  }
+
+  @Test
+  void generateResource_whenExternalCertSelectors_shouldUseExternalCerts() throws Exception {
+    cluster.getSpec().getPostgres().setSsl(new StackGresClusterSsl());
+    cluster.getSpec().getPostgres().getSsl().setEnabled(true);
+    cluster.getSpec().getPostgres().getSsl()
+        .setCertificateSecretKeySelector(new SecretKeySelector("tls.crt", "my-cert-secret"));
+    cluster.getSpec().getPostgres().getSsl()
+        .setPrivateKeySecretKeySelector(new SecretKeySelector("tls.key", "my-key-secret"));
+    when(context.getSource()).thenReturn(cluster);
+
+    var generated = CryptoUtil.generateCertificateAndPrivateKey(Instant.now().plus(Duration.ofDays(365)));
+    final String cert = generated.v1;
+    when(context.getPostgresSslCertificate()).thenReturn(Optional.of(cert));
+    final String key = generated.v2;
+    when(context.getPostgresSslPrivateKey()).thenReturn(Optional.of(key));
+
+    var secretVolumePairs = postgresSslSecret.buildVolumes(context).toList();
+
+    Assertions.assertEquals(1, secretVolumePairs.size());
+    Assertions.assertEquals(cert,
+        ResourceUtil.decodeSecret(
+            secretVolumePairs.getFirst().getSource()
+            .map(Secret.class::cast)
+            .map(Secret::getData)
+            .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
+            .orElseThrow()),
+        "When external cert selectors are set, the certificate from context should be used directly");
+    Assertions.assertEquals(key,
+        ResourceUtil.decodeSecret(
+            secretVolumePairs.getFirst().getSource()
+            .map(Secret.class::cast)
+            .map(Secret::getData)
+            .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
+            .orElseThrow()),
+        "When external cert selectors are set, the private key from context should be used directly");
   }
 
   private void checkCertificateAndPrivateKey(String certificate, String privateKey)
