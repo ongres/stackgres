@@ -45,8 +45,8 @@ import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
+import io.stackgres.operator.conciliation.DeployedResourcesFullCache;
 import io.stackgres.operator.conciliation.DeployedResourcesSnapshot;
-import io.stackgres.operator.conciliation.DeployedResourcesSsaCache;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceKey;
@@ -726,7 +726,7 @@ class ClusterConciliatorTest {
       List<HasMetadata> lastRequired,
       List<HasMetadata> deployed,
       List<HasMetadata> foundDeployed) {
-    deployedResourcesCache = new DeployedResourcesSsaCache(
+    deployedResourcesCache = new DeployedResourcesFullCache(
         new OperatorPropertyContext(), JsonUtil.jsonMapper());
     required.forEach(resource -> resource.getMetadata().setManagedFields(null));
     deployed.stream()

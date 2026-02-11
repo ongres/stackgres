@@ -8,10 +8,10 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import static io.stackgres.common.StringUtil.generateRandom;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -63,14 +63,14 @@ public class KubernetessMockResourceGenerationUtil {
     ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     return Stream.of(
         new SecretBuilder()
-            .withData(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withData(ResourceUtil.encodeSecret(Map.of(generateRandom(), generateRandom())))
             .withNewMetadata()
             .withName(name)
             .withNamespace(namespace)
             .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata().build(),
         new ConfigMapBuilder()
-            .withData(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withData(Map.of(generateRandom(), generateRandom()))
             .withNewMetadata()
             .withName(name)
             .withNamespace(namespace)
@@ -78,7 +78,7 @@ public class KubernetessMockResourceGenerationUtil {
             .endMetadata()
             .build(),
         new ConfigMapBuilder()
-            .withData(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withData(Map.of(generateRandom(), generateRandom()))
             .withNewMetadata().withName(name + "-templates")
             .withNamespace(namespace)
             .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
@@ -124,14 +124,14 @@ public class KubernetessMockResourceGenerationUtil {
         new ServiceBuilder()
             .withNewMetadata()
             .withName(name + PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)
-            .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withLabels(Map.of(generateRandom(), generateRandom()))
             .withNamespace(namespace)
             .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata()
             .build(),
         new ServiceBuilder()
             .withNewMetadata()
-            .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withLabels(Map.of(generateRandom(), generateRandom()))
             .withName(name + PatroniUtil.READ_ONLY_SERVICE)
             .withNamespace(namespace)
             .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
@@ -140,13 +140,13 @@ public class KubernetessMockResourceGenerationUtil {
         new EndpointsBuilder()
             .withNewMetadata()
             .withName(name + PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)
-            .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withLabels(Map.of(generateRandom(), generateRandom()))
             .withNamespace(namespace)
             .endMetadata()
             .build(),
         new EndpointsBuilder()
             .withNewMetadata()
-            .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withLabels(Map.of(generateRandom(), generateRandom()))
             .withName(name + PatroniUtil.READ_ONLY_SERVICE)
             .withNamespace(namespace)
             .endMetadata()
