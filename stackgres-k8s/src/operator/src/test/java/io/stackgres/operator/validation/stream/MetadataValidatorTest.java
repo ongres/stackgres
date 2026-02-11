@@ -37,7 +37,7 @@ class MetadataValidatorTest {
         .endMetadata()
         .endSpec()
         .build();
-    review = AdmissionReviewFixtures.stream().get();
+    review = AdmissionReviewFixtures.stream().loadCreate().get();
     review.getRequest().setObject(defaultStream);
   }
 

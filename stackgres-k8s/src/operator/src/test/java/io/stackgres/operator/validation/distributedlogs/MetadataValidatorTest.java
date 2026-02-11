@@ -34,7 +34,7 @@ class MetadataValidatorTest {
     validator = new MetadataValidator();
 
     defaultCluster = Fixtures.distributedLogs().loadDefault().get();
-    review = AdmissionReviewFixtures.distributedLogs().get();
+    review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();
     review.getRequest().setObject(defaultCluster);
   }
 
