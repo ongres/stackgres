@@ -14,6 +14,7 @@ import io.debezium.connector.jdbc.JdbcSinkRecord;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.relational.TableDescriptor;
 import io.debezium.metadata.CollectionId;
+import io.debezium.openlineage.ConnectorContext;
 import io.debezium.util.Stopwatch;
 import io.stackgres.stream.jobs.target.migration.jdbc.JdbcChangeEventSink;
 import org.hibernate.StatelessSession;
@@ -31,8 +32,9 @@ public class EnhancedJdbcChangeEventSink extends JdbcChangeEventSink {
       JdbcSinkConnectorConfig config,
       StatelessSession session,
       DatabaseDialect dialect,
-      EnhancedRecordWriter recordWriter) {
-    super(config, session, dialect, recordWriter);
+      EnhancedRecordWriter recordWriter,
+      ConnectorContext connectorContext) {
+    super(config, session, dialect, recordWriter, connectorContext);
     this.dialect = dialect;
     this.recordWriter = recordWriter;
   }

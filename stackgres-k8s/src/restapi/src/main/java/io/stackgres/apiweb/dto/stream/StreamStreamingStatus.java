@@ -20,6 +20,8 @@ public class StreamStreamingStatus {
 
   private Integer milliSecondsSinceLastEvent;
 
+  private Long numberOfErroneousEvents;
+
   private Integer totalNumberOfEventsSeen;
 
   private Integer totalNumberOfCreateEventsSeen;
@@ -64,6 +66,14 @@ public class StreamStreamingStatus {
 
   public void setMilliSecondsSinceLastEvent(Integer milliSecondsSinceLastEvent) {
     this.milliSecondsSinceLastEvent = milliSecondsSinceLastEvent;
+  }
+
+  public Long getNumberOfErroneousEvents() {
+    return numberOfErroneousEvents;
+  }
+
+  public void setNumberOfErroneousEvents(Long numberOfErroneousEvents) {
+    this.numberOfErroneousEvents = numberOfErroneousEvents;
   }
 
   public Integer getTotalNumberOfEventsSeen() {

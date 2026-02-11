@@ -27,6 +27,8 @@ public class StackGresStreamStreamingStatus {
 
   private Long milliSecondsSinceLastEvent;
 
+  private Long numberOfErroneousEvents;
+
   private Long totalNumberOfEventsSeen;
 
   private Long totalNumberOfCreateEventsSeen;
@@ -71,6 +73,14 @@ public class StackGresStreamStreamingStatus {
 
   public void setMilliSecondsSinceLastEvent(Long milliSecondsSinceLastEvent) {
     this.milliSecondsSinceLastEvent = milliSecondsSinceLastEvent;
+  }
+
+  public Long getNumberOfErroneousEvents() {
+    return numberOfErroneousEvents;
+  }
+
+  public void setNumberOfErroneousEvents(Long numberOfErroneousEvents) {
+    this.numberOfErroneousEvents = numberOfErroneousEvents;
   }
 
   public Long getTotalNumberOfEventsSeen() {
@@ -197,8 +207,8 @@ public class StackGresStreamStreamingStatus {
   public int hashCode() {
     return Objects.hash(capturedTables, connected, currentQueueSizeInBytes, lastEvent,
         lastTransactionId, maxQueueSizeInBytes, milliSecondsBehindSource,
-        milliSecondsSinceLastEvent, numberOfCommittedTransactions, numberOfEventsFiltered,
-        queueRemainingCapacity, queueTotalCapacity, sourceEventPosition,
+        milliSecondsSinceLastEvent, numberOfCommittedTransactions, numberOfErroneousEvents,
+        numberOfEventsFiltered, queueRemainingCapacity, queueTotalCapacity, sourceEventPosition,
         totalNumberOfCreateEventsSeen, totalNumberOfDeleteEventsSeen, totalNumberOfEventsSeen,
         totalNumberOfUpdateEventsSeen);
   }
@@ -221,6 +231,7 @@ public class StackGresStreamStreamingStatus {
         && Objects.equals(milliSecondsBehindSource, other.milliSecondsBehindSource)
         && Objects.equals(milliSecondsSinceLastEvent, other.milliSecondsSinceLastEvent)
         && Objects.equals(numberOfCommittedTransactions, other.numberOfCommittedTransactions)
+        && Objects.equals(numberOfErroneousEvents, other.numberOfErroneousEvents)
         && Objects.equals(numberOfEventsFiltered, other.numberOfEventsFiltered)
         && Objects.equals(queueRemainingCapacity, other.queueRemainingCapacity)
         && Objects.equals(queueTotalCapacity, other.queueTotalCapacity)

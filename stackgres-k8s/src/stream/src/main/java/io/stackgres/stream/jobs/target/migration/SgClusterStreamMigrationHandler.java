@@ -5,6 +5,8 @@
 
 package io.stackgres.stream.jobs.target.migration;
 
+import static io.debezium.config.ConfigurationNames.TASK_ID_PROPERTY_NAME;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,10 +23,14 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.debezium.config.Configuration;
+import io.debezium.config.ConfigurationNames;
 import io.debezium.connector.AbstractSourceInfo;
 import io.debezium.connector.SnapshotRecord;
 import io.debezium.connector.SnapshotType;
+import io.debezium.connector.common.UUIDUtils;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
+import io.debezium.connector.jdbc.Module;
 import io.debezium.connector.jdbc.QueryBinderResolver;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.dialect.DatabaseDialectResolver;
@@ -35,6 +41,7 @@ import io.debezium.data.Envelope;
 import io.debezium.embedded.Connect;
 import io.debezium.engine.ChangeEvent;
 import io.debezium.engine.DebeziumEngine.RecordCommitter;
+import io.debezium.openlineage.ConnectorContext;
 import io.debezium.pipeline.signal.SignalPayload;
 import io.debezium.pipeline.signal.actions.SignalAction;
 import io.debezium.pipeline.spi.Partition;
@@ -264,9 +271,18 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
       QueryBinderResolver queryBinderResolver = new QueryBinderResolver();
       EnhancedRecordWriter recordWriter =
           new EnhancedRecordWriter(session, queryBinderResolver, config, databaseDialect, this, detectIsertMode);
+      String connectorName = props.getProperty(ConfigurationNames.CONNECTOR_NAME_PROPERTY);
+      String taskId = props.getProperty(TASK_ID_PROPERTY_NAME, "0");
+      ConnectorContext connectorContext = new ConnectorContext(
+          connectorName,
+          Module.name(),
+          taskId,
+          Module.version(),
+          UUIDUtils.generateNewUUID(),
+          Configuration.from(props).withMaskedPasswords().asMap());
 
       changeEventSink = new EnhancedJdbcChangeEventSink(
-          config, session, databaseDialect, recordWriter);
+          config, session, databaseDialect, recordWriter, connectorContext);
 
       if (!Optional.ofNullable(stream.getSpec().getTarget()
           .getSgCluster().getSkipDdlImport()).orElse(false)) {

@@ -27,6 +27,8 @@ public class StackGresStreamSnapshotStatus {
 
   private Long milliSecondsSinceLastEvent;
 
+  private Long numberOfErroneousEvents;
+
   private Long totalNumberOfEventsSeen;
 
   private Long numberOfEventsFiltered;
@@ -48,6 +50,8 @@ public class StackGresStreamSnapshotStatus {
   private Boolean snapshotAborted;
 
   private Boolean snapshotCompleted;
+
+  private Boolean snapshotSkipped;
 
   private Long snapshotDurationInSeconds;
 
@@ -83,6 +87,14 @@ public class StackGresStreamSnapshotStatus {
 
   public void setMilliSecondsSinceLastEvent(Long milliSecondsSinceLastEvent) {
     this.milliSecondsSinceLastEvent = milliSecondsSinceLastEvent;
+  }
+
+  public Long getNumberOfErroneousEvents() {
+    return numberOfErroneousEvents;
+  }
+
+  public void setNumberOfErroneousEvents(Long numberOfErroneousEvents) {
+    this.numberOfErroneousEvents = numberOfErroneousEvents;
   }
 
   public Long getTotalNumberOfEventsSeen() {
@@ -173,6 +185,14 @@ public class StackGresStreamSnapshotStatus {
     this.snapshotCompleted = snapshotCompleted;
   }
 
+  public Boolean getSnapshotSkipped() {
+    return snapshotSkipped;
+  }
+
+  public void setSnapshotSkipped(Boolean snapshotSkipped) {
+    this.snapshotSkipped = snapshotSkipped;
+  }
+
   public Long getSnapshotDurationInSeconds() {
     return snapshotDurationInSeconds;
   }
@@ -256,10 +276,10 @@ public class StackGresStreamSnapshotStatus {
   @Override
   public int hashCode() {
     return Objects.hash(capturedTables, chunkFrom, chunkId, chunkTo, currentQueueSizeInBytes,
-        lastEvent, maxQueueSizeInBytes, milliSecondsSinceLastEvent, numberOfEventsFiltered,
-        queueRemainingCapacity, queueTotalCapacity, remainingTableCount, rowsScanned,
-        snapshotAborted, snapshotCompleted, snapshotDurationInSeconds, snapshotPaused,
-        snapshotPausedDurationInSeconds, snapshotRunning, tableFrom, tableTo,
+        lastEvent, maxQueueSizeInBytes, milliSecondsSinceLastEvent, numberOfErroneousEvents,
+        numberOfEventsFiltered, queueRemainingCapacity, queueTotalCapacity, remainingTableCount,
+        rowsScanned, snapshotAborted, snapshotCompleted, snapshotDurationInSeconds, snapshotPaused,
+        snapshotPausedDurationInSeconds, snapshotRunning, snapshotSkipped, tableFrom, tableTo,
         totalNumberOfEventsSeen, totalTableCount);
   }
 
@@ -279,6 +299,7 @@ public class StackGresStreamSnapshotStatus {
         && Objects.equals(lastEvent, other.lastEvent)
         && Objects.equals(maxQueueSizeInBytes, other.maxQueueSizeInBytes)
         && Objects.equals(milliSecondsSinceLastEvent, other.milliSecondsSinceLastEvent)
+        && Objects.equals(numberOfErroneousEvents, other.numberOfErroneousEvents)
         && Objects.equals(numberOfEventsFiltered, other.numberOfEventsFiltered)
         && Objects.equals(queueRemainingCapacity, other.queueRemainingCapacity)
         && Objects.equals(queueTotalCapacity, other.queueTotalCapacity)
@@ -290,6 +311,7 @@ public class StackGresStreamSnapshotStatus {
         && Objects.equals(snapshotPaused, other.snapshotPaused)
         && Objects.equals(snapshotPausedDurationInSeconds, other.snapshotPausedDurationInSeconds)
         && Objects.equals(snapshotRunning, other.snapshotRunning)
+        && Objects.equals(snapshotSkipped, other.snapshotSkipped)
         && Objects.equals(tableFrom, other.tableFrom) && Objects.equals(tableTo, other.tableTo)
         && Objects.equals(totalNumberOfEventsSeen, other.totalNumberOfEventsSeen)
         && Objects.equals(totalTableCount, other.totalTableCount);

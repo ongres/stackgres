@@ -20,6 +20,8 @@ public class StreamSnapshotStatus {
 
   private Integer milliSecondsSinceLastEvent;
 
+  private Long numberOfErroneousEvents;
+
   private Integer totalNumberOfEventsSeen;
 
   private Integer numberOfEventsFiltered;
@@ -41,6 +43,8 @@ public class StreamSnapshotStatus {
   private Boolean snapshotAborted;
 
   private Boolean snapshotCompleted;
+
+  private Boolean snapshotSkipped;
 
   private Integer snapshotDurationInSeconds;
 
@@ -76,6 +80,14 @@ public class StreamSnapshotStatus {
 
   public void setMilliSecondsSinceLastEvent(Integer milliSecondsSinceLastEvent) {
     this.milliSecondsSinceLastEvent = milliSecondsSinceLastEvent;
+  }
+
+  public Long getNumberOfErroneousEvents() {
+    return numberOfErroneousEvents;
+  }
+
+  public void setNumberOfErroneousEvents(Long numberOfErroneousEvents) {
+    this.numberOfErroneousEvents = numberOfErroneousEvents;
   }
 
   public Integer getTotalNumberOfEventsSeen() {
@@ -164,6 +176,14 @@ public class StreamSnapshotStatus {
 
   public void setSnapshotCompleted(Boolean snapshotCompleted) {
     this.snapshotCompleted = snapshotCompleted;
+  }
+
+  public Boolean getSnapshotSkipped() {
+    return snapshotSkipped;
+  }
+
+  public void setSnapshotSkipped(Boolean snapshotSkipped) {
+    this.snapshotSkipped = snapshotSkipped;
   }
 
   public Integer getSnapshotDurationInSeconds() {

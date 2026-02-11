@@ -6,6 +6,9 @@
 package io.stackgres.stream.jobs.target.migration.jdbc;
 
 import static io.debezium.connector.jdbc.JdbcSinkConnectorConfig.SchemaEvolutionMode.NONE;
+import static io.debezium.openlineage.dataset.DatasetMetadata.TABLE_DATASET_TYPE;
+import static io.debezium.openlineage.dataset.DatasetMetadata.DataStore.DATABASE;
+import static io.debezium.openlineage.dataset.DatasetMetadata.DatasetKind.OUTPUT;
 
 import java.sql.SQLException;
 import java.time.Duration;
@@ -16,8 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.debezium.connector.common.DebeziumTaskState;
 import io.debezium.connector.jdbc.Buffer;
 import io.debezium.connector.jdbc.JdbcKafkaSinkRecord;
 import io.debezium.connector.jdbc.JdbcSinkConnectorConfig;
@@ -27,6 +31,9 @@ import io.debezium.connector.jdbc.ReducedRecordBuffer;
 import io.debezium.connector.jdbc.dialect.DatabaseDialect;
 import io.debezium.connector.jdbc.relational.TableDescriptor;
 import io.debezium.metadata.CollectionId;
+import io.debezium.openlineage.ConnectorContext;
+import io.debezium.openlineage.DebeziumOpenLineageEmitter;
+import io.debezium.openlineage.dataset.DatasetMetadata;
 import io.debezium.sink.DebeziumSinkRecord;
 import io.debezium.sink.field.FieldDescriptor;
 import io.debezium.sink.spi.ChangeEventSink;
@@ -36,6 +43,7 @@ import io.debezium.util.Stopwatch;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.sink.SinkRecord;
+import org.hibernate.JDBCException;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.dialect.DatabaseVersion;
@@ -61,15 +69,17 @@ public class JdbcChangeEventSink implements ChangeEventSink {
   private final RecordWriter recordWriter;
   private final int flushMaxRetries;
   private final Duration flushRetryDelay;
+  private final ConnectorContext connectorContext;
 
   public JdbcChangeEventSink(JdbcSinkConnectorConfig config, StatelessSession session,
-      DatabaseDialect dialect, RecordWriter recordWriter) {
+      DatabaseDialect dialect, RecordWriter recordWriter, ConnectorContext connectorContext) {
     this.config = config;
     this.dialect = dialect;
     this.session = session;
     this.recordWriter = recordWriter;
     this.flushMaxRetries = config.getFlushMaxRetries();
     this.flushRetryDelay = Duration.of(config.getFlushRetryDelayMs(), ChronoUnit.MILLIS);
+    this.connectorContext = connectorContext;
 
     final DatabaseVersion version = this.dialect.getVersion();
     LOGGER.info("Database version {}.{}.{}", version.getMajor(), version.getMinor(),
@@ -116,7 +126,7 @@ public class JdbcChangeEventSink implements ChangeEventSink {
           final TableDescriptor table = checkAndApplyTableChangesIfNeeded(collectionId, record);
           writeTruncate(dialect.getTruncateStatement(table));
           continue;
-        } catch (SQLException e) {
+        } catch (SQLException | JDBCException e) {
           throw new ConnectException("Failed to process a sink record", e);
         }
       }
@@ -133,7 +143,11 @@ public class JdbcChangeEventSink implements ChangeEventSink {
           // When a delete event arrives, update buffer must be flushed to avoid losing
           // the delete
           // for the same record after its update.
-          flushBufferWithRetries(collectionId, upsertBufferToFlush);
+          if (config.isUseReductionBuffer()) {
+            upsertBufferToFlush.remove(record);
+          } else {
+            flushBufferWithRetries(collectionId, upsertBufferToFlush);
+          }
         }
 
         flushBufferRecordsWithRetries(collectionId,
@@ -144,7 +158,11 @@ public class JdbcChangeEventSink implements ChangeEventSink {
           // When an insert arrives, delete buffer must be flushed to avoid losing an
           // insert for the same record after its deletion.
           // this because at the end we will always flush inserts before deletes.
-          flushBufferWithRetries(collectionId, deleteBufferToFlush);
+          if (config.isUseReductionBuffer()) {
+            deleteBufferToFlush.remove(record);
+          } else {
+            flushBufferWithRetries(collectionId, deleteBufferToFlush);
+          }
         }
 
         flushBufferRecordsWithRetries(collectionId,
@@ -194,7 +212,7 @@ public class JdbcChangeEventSink implements ChangeEventSink {
       final TableDescriptor tableDescriptor;
       try {
         tableDescriptor = checkAndApplyTableChangesIfNeeded(collectionId, record);
-      } catch (SQLException e) {
+      } catch (SQLException | JDBCException e) {
         throw new ConnectException(
             "Error while checking and applying table changes for collection '" + collectionId + "'",
             e);
@@ -238,39 +256,13 @@ public class JdbcChangeEventSink implements ChangeEventSink {
     flushBufferWithRetries(collectionId, buffer.flush(), buffer.getTableDescriptor());
   }
 
-  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
-      justification = "Wanted behavior")
   private void flushBufferWithRetries(CollectionId collectionId, List<JdbcSinkRecord> toFlush,
       TableDescriptor tableDescriptor) {
-    int retries = 0;
-    Exception lastException = null;
-
     LOGGER.debug("Flushing records in JDBC Writer for table: {}", collectionId.name());
-    while (retries <= flushMaxRetries) {
-      try {
-        if (retries > 0) {
-          LOGGER.warn("Retry to flush records for table '{}'. Retry {}/{} with delay {} ms",
-              collectionId.name(), retries, flushMaxRetries, flushRetryDelay.toMillis());
-          try {
-            Metronome.parker(flushRetryDelay, Clock.SYSTEM).pause();
-          } catch (InterruptedException e) {
-            throw new ConnectException("Interrupted while waiting to retry flush records", e);
-          }
-        }
-        flushBuffer(collectionId, toFlush, tableDescriptor);
-        return;
-      } catch (Exception e) {
-        lastException = e;
-        if (isRetriable(e)) {
-          retries++;
-        } else {
-          throw new ConnectException("Failed to process a sink record", e);
-        }
-      }
-    }
-    throw new ConnectException(
-        "Exceeded max retries " + flushMaxRetries + " times, failed to process sink records",
-        lastException);
+    executeWithRetries("flush records for table '" + collectionId.name() + "'", () -> {
+      flushBuffer(collectionId, toFlush, tableDescriptor);
+      return null;
+    });
   }
 
   protected void flushBuffer(CollectionId collectionId, List<JdbcSinkRecord> toFlush,
@@ -286,9 +278,26 @@ public class JdbcChangeEventSink implements ChangeEventSink {
       recordWriter.write(toFlush, sqlStatement);
       flushBufferStopwatch.stop();
 
+      DebeziumOpenLineageEmitter.emit(connectorContext, DebeziumTaskState.RUNNING,
+          List.of(extractDatasetMetadata(table)));
+
       LOGGER.trace("[PERF] Flush buffer execution time {}", flushBufferStopwatch.durations());
       LOGGER.trace("[PERF] Table changes execution time {}", tableChangesStopwatch.durations());
     }
+  }
+
+  private DatasetMetadata extractDatasetMetadata(TableDescriptor tableDescriptor) {
+
+    List<DatasetMetadata.FieldDefinition> fieldDefinitions = tableDescriptor.getColumns().stream()
+        .map(c -> new DatasetMetadata.FieldDefinition(c.getColumnName(), c.getTypeName(), ""))
+        .toList();
+    return new DatasetMetadata(getIdentifier(tableDescriptor), OUTPUT, TABLE_DATASET_TYPE, DATABASE,
+        fieldDefinitions);
+  }
+
+  private String getIdentifier(TableDescriptor tableDescriptor) {
+
+    return tableDescriptor.getId().toFullIdentiferString();
   }
 
   @Override
@@ -307,14 +316,14 @@ public class JdbcChangeEventSink implements ChangeEventSink {
       // Table does not exist, lets attempt to create it.
       try {
         return createTable(collectionId, record);
-      } catch (SQLException ce) {
+      } catch (SQLException | JDBCException ce) {
         // It's possible the table may have been created in the interim, so try to
         // alter.
         LOGGER.warn("Table creation failed for '{}', attempting to alter the table",
             collectionId.toFullIdentiferString(), ce);
         try {
           return alterTableIfNeeded(collectionId, record);
-        } catch (SQLException ae) {
+        } catch (SQLException | JDBCException ae) {
           // The alter failed, hard stop.
           LOGGER.error("Failed to alter the table '{}'.", collectionId.toFullIdentiferString(), ae);
           throw ae;
@@ -324,7 +333,7 @@ public class JdbcChangeEventSink implements ChangeEventSink {
       // Table exists, lets attempt to alter it if necessary.
       try {
         return alterTableIfNeeded(collectionId, record);
-      } catch (SQLException ae) {
+      } catch (SQLException | JDBCException ae) {
         LOGGER.error("Failed to alter the table '{}'.", collectionId.toFullIdentiferString(), ae);
         throw ae;
       }
@@ -332,7 +341,8 @@ public class JdbcChangeEventSink implements ChangeEventSink {
   }
 
   private boolean hasTable(CollectionId collectionId) {
-    return session.doReturningWork((connection) -> dialect.tableExists(connection, collectionId));
+    return this.executeWithRetries("check for existence of table", () -> session
+        .doReturningWork((connection) -> dialect.tableExists(connection, collectionId)));
   }
 
   private TableDescriptor readTable(CollectionId collectionId) {
@@ -454,6 +464,39 @@ public class JdbcChangeEventSink implements ChangeEventSink {
 
   public Optional<CollectionId> getCollectionId(String collectionName) {
     return Optional.of(dialect.getCollectionId(collectionName));
+  }
+
+  // Retries the callable operation based on the configured retry settings.
+  // Wraps any exception into a ConnectException if retries are exhausted or if
+  // the exception is not retriable.
+  private <T> T executeWithRetries(String description, Callable<T> callable) {
+    int retries = 0;
+    Exception lastException = null;
+    while (retries <= flushMaxRetries) {
+      try {
+        if (retries > 0) {
+          LOGGER.warn("Retry to {}. Retry {}/{} with delay {} ms", description, retries,
+              flushMaxRetries, flushRetryDelay.toMillis());
+          try {
+            Metronome.parker(flushRetryDelay, Clock.SYSTEM).pause();
+          } catch (InterruptedException e) {
+            throw new ConnectException("Interrupted while waiting to retry " + description, e);
+          }
+        }
+        return callable.call();
+      } catch (Exception e) {
+        lastException = e;
+        if (isRetriable(e)) {
+          retries++;
+        } else {
+          throw new ConnectException("Failed to " + description, e);
+        }
+      }
+    }
+    throw new ConnectException(
+        "Exceeded max retries " + flushMaxRetries + " times, failed to " + description,
+        lastException);
+
   }
 
   private boolean isRetriable(Throwable throwable) {

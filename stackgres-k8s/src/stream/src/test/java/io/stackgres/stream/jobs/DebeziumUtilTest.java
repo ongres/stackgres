@@ -305,12 +305,15 @@ class DebeziumUtilTest {
             "datatype.propagate.source.type",
             streamProperties.getDatatypePropagateSourceType().stream().collect(Collectors.joining(",")))),
         assertEntryInProperties(props, Map.entry("decimal.handling.mode", streamProperties.getDecimalHandlingMode())),
+        assertEntryInProperties(props, Map.entry("offset.mismatch.strategy",
+            streamProperties.getOffsetMismatchStrategy())),
         assertEntryInProperties(props, Map.entry("errors.max.retries", streamProperties.getErrorsMaxRetries())),
         assertEntryInProperties(props, Map.entry(
             "event.processing.failure.handling.mode", streamProperties.getEventProcessingFailureHandlingMode())),
         assertEntryInProperties(
             props, Map.entry("field.name.adjustment.mode", streamProperties.getFieldNameAdjustmentMode())),
         assertEntryInProperties(props, Map.entry("flush.lsn.source", streamProperties.getFlushLsnSource())),
+        assertEntryInProperties(props, Map.entry("lsn.flush.mode", streamProperties.getLsnFlushMode())),
         assertEntryInProperties(props, Map.entry("heartbeat.action.query", streamProperties.getHeartbeatActionQuery())),
         assertEntryInProperties(props, Map.entry("heartbeat.interval.ms", streamProperties.getHeartbeatIntervalMs())),
         assertEntryInProperties(props, Map.entry("hstore.handling.mode", streamProperties.getHstoreHandlingMode())),
@@ -471,6 +474,8 @@ class DebeziumUtilTest {
     Map<String, Object> expectedProperties = new HashMap<>(Map.ofEntries(
         assertEntryInProperties(props, Map.entry("batch.size", streamProperties.getBatchSize())),
         assertEntryInProperties(props, Map.entry("column.naming.strategy", streamProperties.getColumnNamingStrategy())),
+        assertEntryInProperties(props, Map.entry("connection.restart.on.errors",
+            streamProperties.getConnectionRestartOnErrors())),
         assertEntryInProperties(props, Map.entry(
             "connection.pool.acquire.increment", streamProperties.getConnectionPoolAcquireIncrement())),
         assertEntryInProperties(props, Map.entry(
