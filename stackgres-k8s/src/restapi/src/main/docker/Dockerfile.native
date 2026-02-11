@@ -17,6 +17,7 @@ FROM scratch AS copy
     COPY --from=patroni_4_1_0 /usr/lib64/python3.12/site-packages /usr/lib/patroni-4.1.0
     COPY --from=patroni_4_1_0 /usr/lib/python3.12/site-packages /usr/lib/patroni-4.1.0
 
+FROM scratch AS app
     COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
 
     COPY 'target/*.so' '/app/'
@@ -26,8 +27,6 @@ FROM scratch AS copy
 
 FROM "$BASE_IMAGE"
   COPY --from=copy / /
-
-  WORKDIR '/app/'
 
   USER root:root
 
@@ -39,8 +38,13 @@ FROM "$BASE_IMAGE"
     echo 'jboss:!::' >> /etc/gshadow && \
     echo 'jboss:x:1000:1000::/app:/bin/bash' >> /etc/passwd && \
     echo 'jboss:!!:18655:0:99999:7:::' >> /etc/shadow && \
-    echo 'jboss:100000:65536' >> /etc/subgid && \
-    chown -R jboss:jboss '/app' && \
+    echo 'jboss:100000:65536' >> /etc/subgid
+
+  COPY --from=app / /
+
+  WORKDIR '/app/'
+
+  RUN chown -R jboss:jboss '/app' && \
     chmod 755 '/app' && \
     chmod 755 '/app/stackgres-restapi.sh'
 
