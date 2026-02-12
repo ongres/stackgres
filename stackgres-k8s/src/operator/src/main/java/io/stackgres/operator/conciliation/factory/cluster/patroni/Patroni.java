@@ -247,6 +247,10 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
                 Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
                 .map(Probe::getPeriodSeconds)
                 .orElse(20))
+            .withTimeoutSeconds(
+                Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
+                .map(Probe::getTimeoutSeconds)
+                .orElse(5))
             .withFailureThreshold(
                 Optional.ofNullable(cluster.getSpec().getPods().getLivenessProbe())
                 .map(Probe::getFailureThreshold)
