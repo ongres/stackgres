@@ -8,13 +8,14 @@ package io.stackgres.operator.conciliation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 
-@ApplicationScoped
+@Singleton
 public class DeployedResourcesCacheFactory {
 
   @Produces
+  @Singleton
   public DeployedResourcesCache get(
       OperatorPropertyContext propertyContext,
       ObjectMapper objectMapper) {
