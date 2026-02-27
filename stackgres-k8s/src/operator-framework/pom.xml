@@ -10,7 +10,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>1.18.6</version>
+    <version>1.18.7-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-operator-framework</artifactId>
