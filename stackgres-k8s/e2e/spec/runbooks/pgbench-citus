@@ -1,0 +1,140 @@
+#!/bin/sh
+
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(( 1 + ${E2E_PGBENCH_CITUS_SHARDS:-2} ))" 1 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections='"${E2E_PGBENCH_MAX_CONNECTIONS:-104}" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_shared_pool_size='"${E2E_PGBENCH_CITUS_MAX_SHARED_POOL_SIZE:-${E2E_PGBENCH_MAX_CONNECTIONS:-104}}" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_adaptive_executor_pool_size='"${E2E_PGBENCH_MAX_ADAPTIVE_EXECUTOR_POOL_SIZE:-16}" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.executor_slow_start_interval='"${E2E_PGBENCH_EXECUTOR_SLOW_START_INTERVAL:-10ms}" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_cached_conns_per_worker='"${E2E_PGBENCH_MAX_CACHED_CONNS_PER_WORKER:-1}" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.force_max_query_parallelization='"${E2E_PGBENCH_FORCE_MAX_QUERY_PARALLELIZATION:-off}" \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size='"${E2E_PGBENCH_DEFAULT_POOL_SIZE:-100}" \
+    --set-string 'cluster.autoscaling.mode=none'
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ (index .data "superuser-password") | base64decode }}')"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- env "PGPASSWORD=$PGPASSWORD" psql -d citus -q -h "$CLUSTER_NAME" -c "
+        DROP TABLE IF EXISTS public.pgbench_branches;
+        DROP TABLE IF EXISTS public.pgbench_tellers;
+        DROP TABLE IF EXISTS public.pgbench_accounts;
+        DROP TABLE IF EXISTS public.pgbench_history;
+
+        CREATE TABLE public.pgbench_branches (
+            bid integer NOT NULL,
+            bbalance integer,
+            filler character(88)
+        )
+        WITH (fillfactor='100');
+        CREATE TABLE public.pgbench_tellers (
+            bid integer,
+            tid integer NOT NULL,
+            tbalance integer,
+            filler character(84)
+        )
+        WITH (fillfactor='100');
+        CREATE TABLE public.pgbench_accounts (
+            bid integer,
+            aid integer NOT NULL,
+            abalance integer,
+            filler character(84)
+        )
+        WITH (fillfactor='100');
+        CREATE TABLE public.pgbench_history (
+            bid integer,
+            tid integer,
+            aid integer,
+            delta integer,
+            mtime timestamp without time zone,
+            filler character(22)
+        );
+
+        ALTER TABLE ONLY public.pgbench_branches
+            ADD CONSTRAINT pgbench_branches_pkey PRIMARY KEY (bid);
+        ALTER TABLE ONLY public.pgbench_tellers
+            ADD CONSTRAINT pgbench_tellers_pkey PRIMARY KEY (bid, tid);
+        ALTER TABLE ONLY public.pgbench_accounts
+            ADD CONSTRAINT pgbench_accounts_pkey PRIMARY KEY (bid, aid);
+        ALTER TABLE ONLY public.pgbench_history
+            ADD CONSTRAINT pgbench_history_pkey PRIMARY KEY (bid, tid, aid);
+        
+        SELECT create_distributed_table('pgbench_branches', 'bid');
+        SELECT create_distributed_table('pgbench_tellers', 'bid', colocate_with => 'pgbench_branches');
+        SELECT create_distributed_table('pgbench_accounts', 'bid', colocate_with => 'pgbench_branches');
+        SELECT create_distributed_table('pgbench_history', 'bid', colocate_with => 'pgbench_branches');
+        
+        INSERT INTO pgbench_branches (bid, bbalance)
+          SELECT i, 0 FROM generate_series(1, 7) AS i;
+        INSERT INTO pgbench_tellers (tid, bid, tbalance)
+          SELECT i, 1 + ((i - 1) / 10), 0 FROM generate_series(1, 7 * 10) AS i;
+        INSERT INTO pgbench_accounts (aid, bid, abalance)
+          SELECT i, 1 + ((i - 1) / 100000), 0 FROM generate_series(1, 7 * 100000) AS i;
+    "
+}
+
+e2e_test_uninstall() {
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Benchmarking cluster" benchmark_cluster
+}
+
+benchmark_cluster() {
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME -c 'SELECT 1'"
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME-shards -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "printf %s '
+           \set bid random(1, 1 * :scale)
+           \set tid (:bid - 1) * 10 + random(1, 100000)
+           \set aid (:bid - 1) * 100000 + random(1, 100000)
+           \set delta random(-5000, 5000)
+           BEGIN;
+           UPDATE pgbench_accounts SET abalance = abalance + :delta WHERE aid = :aid AND bid = :bid;
+           SELECT abalance FROM pgbench_accounts WHERE aid = :aid AND bid = :bid;
+           UPDATE pgbench_tellers SET tbalance = tbalance + :delta WHERE tid = :tid AND bid = :bid;
+           UPDATE pgbench_branches SET bbalance = bbalance + :delta WHERE bid = :bid;
+           INSERT INTO pgbench_history (tid, bid, aid, delta, mtime)
+             VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
+           END;
+      ' > /tmp/script"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT / 2))' -d citus -C -c 20 -j 20 --file=/tmp/script --progress=5 --log --log-prefix=/tmp/pgbench_log --failures-detailed --aggregate-interval='$((E2E_TIMEOUT / 20))' -h $CLUSTER_NAME" 2>&1 | tee "$LOG_PATH/bench" &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  if wait_until eval '! kill -0 "$BENCH_PID"' \
+    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
+  then
+    echo "success Benchmark terminated succesfully"
+  else
+    echo "FAIL: Benchmark not terminated succesfully"
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
+  echo "Test results"
+  echo
+  cat "$LOG_PATH/bench"
+  echo
+  echo "Transactions"
+  echo
+  cat "$LOG_PATH/pgbench-transactions"
+}
