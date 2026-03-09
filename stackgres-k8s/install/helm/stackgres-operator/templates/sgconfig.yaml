@@ -167,4 +167,5 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            kubectl delete sgconfig --ignore-not-found -n "{{ .Values.sgConfigNamespace | default .Release.Namespace }}" "{{ .Release.Name }}"
+            ! kubectl get crd sgconfigs.stackgres.io >/dev/null 2>&1 \
+              || kubectl delete sgconfig --ignore-not-found -n "{{ .Values.sgConfigNamespace | default .Release.Namespace }}" "{{ .Release.Name }}"
