@@ -4,14 +4,14 @@ export MINIKUBE_NAME="${MINIKUBE_NAME:-minikube}"
 export MINIKUBE_CPUS="${MINIKUBE_CPUS:-8}"
 export MINIKUBE_MEMORY="${MINIKUBE_MEMORY:-8GB}"
 export MINIKUBE_DISK="${MINIKUBE_DISK:-40GB}"
-export MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-virtualbox}"
+export MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
 export MINIKUBE_CONTAINER_RUNTIME="${MINIKUBE_CONTAINER_RUNTIME:-containerd}"
 export MINIKUBE_FEATURE_GATES="${MINIKUBE_FEATURE_GATES:-x}"
 
 check_minikube_version() {
-  if ! minikube version | grep -q -F 'minikube version: v1.34.0'
+  if ! minikube version | grep -q -F 'minikube version: v1.38.1'
   then
-    echo "minikube version v1.34.0 is required"
+    echo "minikube version v1.38.1 is required"
     return 1
   fi
 }
@@ -101,7 +101,6 @@ reset_k8s() {
     --cpus "$MINIKUBE_CPUS" \
     --memory "$MINIKUBE_MEMORY" \
     --disk-size "$MINIKUBE_DISK" \
-    --vm-driver "$MINIKUBE_DRIVER" \
     --container-runtime "$MINIKUBE_CONTAINER_RUNTIME" \
     --feature-gates "$MINIKUBE_FEATURE_GATES"
   minikube -p "$MINIKUBE_NAME" addons enable volumesnapshots
