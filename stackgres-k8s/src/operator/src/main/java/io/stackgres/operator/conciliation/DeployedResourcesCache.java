@@ -12,7 +12,36 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface DeployedResourcesCache {
 
+<<<<<<< Updated upstream
   void put(
+=======
+  protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesCache.class);
+
+  private final Cache<ResourceKey, DeployedResource> cache;
+  private final ObjectMapper objectMapper;
+
+  @Inject
+  public DeployedResourcesCache(
+      OperatorPropertyContext propertyContext,
+      ObjectMapper objectMapper) {
+    var cacheBuilder = Caffeine.newBuilder();
+    propertyContext.get(
+        OperatorProperty.RECONCILIATION_CACHE_EXPIRATION)
+        .map(Integer::valueOf)
+        .or(() -> Optional.of(propertyContext.get(OperatorProperty.RECONCILIATION_PERIOD)
+            .map(Integer::valueOf)
+            .orElse(60) * 10))
+        .ifPresent(duration -> cacheBuilder.expireAfterWrite(Duration.ofSeconds(duration)));
+    propertyContext.get(
+        OperatorProperty.RECONCILIATION_CACHE_SIZE)
+        .map(Integer::valueOf)
+        .ifPresent(size -> cacheBuilder.maximumSize(size));
+    this.cache = cacheBuilder.build();
+    this.objectMapper = objectMapper;
+  }
+
+  public void put(
+>>>>>>> Stashed changes
       HasMetadata generator,
       HasMetadata requiredResource,
       HasMetadata deployedResource);
