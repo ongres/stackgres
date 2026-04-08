@@ -20,7 +20,7 @@ public interface PatroniCommandUtil {
         String.format("kill -s HUP %s", patroniPid)).join();
   }
 
-  private static String findPatroniPid() {
+  static String findPatroniPid() {
     return ProcessHandle.allProcesses()
         .filter(process -> process.info().commandLine()
             .map(command -> PATRONI_COMMAND_PATTERN.matcher(command).matches())

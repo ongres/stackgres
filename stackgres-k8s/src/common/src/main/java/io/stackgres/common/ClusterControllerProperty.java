@@ -12,6 +12,7 @@ public enum ClusterControllerProperty implements StackGresPropertyReader {
   CLUSTER_NAMESPACE("stackgres.clusterNamespace"),
   CLUSTER_NAME("stackgres.clusterName"),
   CLUSTER_CONTROLLER_POD_NAME("stackgres.clusterControllerPodName"),
+  CLUSTER_CONTROLLER_POD_UID("stackgres.clusterControllerPodUid"),
   CLUSTER_CONTROLLER_POD_IP("stackgres.clusterControllerPodIp"),
   CLUSTER_CONTROLLER_NODE_NAME("stackgres.clusterControllerNodeName"),
   CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS(
@@ -28,6 +29,8 @@ public enum ClusterControllerProperty implements StackGresPropertyReader {
       "stackgres.clusterReconcileManagedSql"),
   CLUSTER_CONTROLLER_RECONCILE_PATRONI_AFTER_MAJOR_VERSION_UPGRADE(
       "stackgres.clusterReconcilePatroniAfterMajorVersionUpgrade"),
+  CLUSTER_CONTROLLER_APPLY_IO_LIMITS(
+      "stackgres.clusterApplyIoLimits"),
   CLUSTER_CONTROLLER_JMX_COLLECTOR_YAML_CONFIG(
       "stackgres.cluster.controllerJmxCollectorYamlConfig");
 

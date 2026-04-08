@@ -1585,6 +1585,39 @@ spec:
                               Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
                       
                               If sharding type is `shardingsphere` then this field is ignored.
+                          ioLimits:
+                            type: object
+                            description: |
+                              This section allows to define per-volume I/O limits for nodes using [cgroup v2 `io.max` features](https://docs.kernel.org/admin-guide/cgroup-v2.html).
+                              
+                              When multiple PostgreSQL clusters share the same local storage device on a Kubernetes node, a single cluster running a heavy workload
+                               (for example large COPY, aggressive VACUUM, or an unoptimized query) can saturate the device's I/O bandwidth and degrade performance
+                               for every other cluster on that node. StackGres provides this mechanism to prevent this class of noisy-neighbor problem.
+                              The mechanism operates at the cgroup + block-device layer, not at the PVC abstraction. Since each pod has its own cgroup, limits are
+                               enforced independently across pods even when they share the same physical device — this is the core of the noisy-neighbor protection.
+                              However, if multiple volumes within the same pod share the same backing device, their limits target a single entry in that pod's cgroup
+                               and cannot be enforced independently of each other.
+                              
+                              This feature works on top of existing CSI drivers such as TopoLVM or OpenEBS LocalPV. The primary target is on-premises deployments where
+                               multiple StackGres clusters share local NVMe storage on the same node.
+                              
+                              > **IMPORTANT**: Setting any of the value above will require to create an init container named `setup-io-limits` in each SGCluster's Pods
+                              >  running as root with only the `CHOWN` cabability set. Also both the `setup-io-limits` init container and the `cluster-controller`
+                              >  container will require to mount the host path `/sys/fs/cgroup` in order to be able to set owner of and write to the `io.max` file that
+                              >  will allows to set the io limits.
+                            properties:
+                              readIops:
+                                type: integer
+                                description: Max read IO operations per second. Leave empty to remove this limit.
+                              writeIops:
+                                type: integer
+                                description: Max write IO operations per second. Leave empty to remove this limit.
+                              readMiBps:
+                                type: integer
+                                description: Max read MiB per second. Leave empty to remove this limit.
+                              writeMiBps:
+                                type: integer
+                                description: Max write MiB per second. Leave empty to remove this limit.
                           fsGroupChangePolicy: #!jq_placeholder .definitions["io.k8s.api.core.v1.Pod"].properties.spec.properties.securityContext.properties.fsGroupChangePolicy
                             {"description":"fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod. This field will only apply to volume types which support fsGroup based ownership(and permissions). It will have no effect on ephemeral volume types such as: secret, configmaps and emptydir. Valid values are \"OnRootMismatch\" and \"Always\". If not specified, \"Always\" is used. Note that this field cannot be set when spec.os.name is windows.","type":"string"}
                       disableConnectionPooling:
@@ -2505,6 +2538,39 @@ spec:
                             type: string
                             description: |
                               Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                          ioLimits:
+                            type: object
+                            description: |
+                              This section allows to define per-volume I/O limits for nodes using [cgroup v2 `io.max` features](https://docs.kernel.org/admin-guide/cgroup-v2.html).
+                              
+                              When multiple PostgreSQL clusters share the same local storage device on a Kubernetes node, a single cluster running a heavy workload
+                               (for example large COPY, aggressive VACUUM, or an unoptimized query) can saturate the device's I/O bandwidth and degrade performance
+                               for every other cluster on that node. StackGres provides this mechanism to prevent this class of noisy-neighbor problem.
+                              The mechanism operates at the cgroup + block-device layer, not at the PVC abstraction. Since each pod has its own cgroup, limits are
+                               enforced independently across pods even when they share the same physical device — this is the core of the noisy-neighbor protection.
+                              However, if multiple volumes within the same pod share the same backing device, their limits target a single entry in that pod's cgroup
+                               and cannot be enforced independently of each other.
+                              
+                              This feature works on top of existing CSI drivers such as TopoLVM or OpenEBS LocalPV. The primary target is on-premises deployments where
+                               multiple StackGres clusters share local NVMe storage on the same node.
+                              
+                              > **IMPORTANT**: Setting any of the value above will require to create an init container named `setup-io-limits` in each SGCluster's Pods
+                              >  running as root with only the `CHOWN` cabability set. Also both the `setup-io-limits` init container and the `cluster-controller`
+                              >  container will require to mount the host path `/sys/fs/cgroup` in order to be able to set owner of and write to the `io.max` file that
+                              >  will allows to set the io limits.
+                            properties:
+                              readIops:
+                                type: integer
+                                description: Max read IO operations per second. Leave empty to remove this limit.
+                              writeIops:
+                                type: integer
+                                description: Max write IO operations per second. Leave empty to remove this limit.
+                              readMiBps:
+                                type: integer
+                                description: Max read MiB per second. Leave empty to remove this limit.
+                              writeMiBps:
+                                type: integer
+                                description: Max write MiB per second. Leave empty to remove this limit.
                           fsGroupChangePolicy: #!jq_placeholder .definitions["io.k8s.api.core.v1.Pod"].properties.spec.properties.securityContext.properties.fsGroupChangePolicy
                             {"description":"fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod. This field will only apply to volume types which support fsGroup based ownership(and permissions). It will have no effect on ephemeral volume types such as: secret, configmaps and emptydir. Valid values are \"OnRootMismatch\" and \"Always\". If not specified, \"Always\" is used. Note that this field cannot be set when spec.os.name is windows.","type":"string"}
                       disableConnectionPooling:
@@ -2897,6 +2963,39 @@ spec:
                                   type: string
                                   description: |
                                     Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                                ioLimits:
+                                  type: object
+                                  description: |
+                                    This section allows to define per-volume I/O limits for nodes using [cgroup v2 `io.max` features](https://docs.kernel.org/admin-guide/cgroup-v2.html).
+                                    
+                                    When multiple PostgreSQL clusters share the same local storage device on a Kubernetes node, a single cluster running a heavy workload
+                                     (for example large COPY, aggressive VACUUM, or an unoptimized query) can saturate the device's I/O bandwidth and degrade performance
+                                     for every other cluster on that node. StackGres provides this mechanism to prevent this class of noisy-neighbor problem.
+                                    The mechanism operates at the cgroup + block-device layer, not at the PVC abstraction. Since each pod has its own cgroup, limits are
+                                     enforced independently across pods even when they share the same physical device — this is the core of the noisy-neighbor protection.
+                                    However, if multiple volumes within the same pod share the same backing device, their limits target a single entry in that pod's cgroup
+                                     and cannot be enforced independently of each other.
+                                    
+                                    This feature works on top of existing CSI drivers such as TopoLVM or OpenEBS LocalPV. The primary target is on-premises deployments where
+                                     multiple StackGres clusters share local NVMe storage on the same node.
+                                    
+                                    > **IMPORTANT**: Setting any of the value above will require to create an init container named `setup-io-limits` in each SGCluster's Pods
+                                    >  running as root with only the `CHOWN` cabability set. Also both the `setup-io-limits` init container and the `cluster-controller`
+                                    >  container will require to mount the host path `/sys/fs/cgroup` in order to be able to set owner of and write to the `io.max` file that
+                                    >  will allows to set the io limits.
+                                  properties:
+                                    readIops:
+                                      type: integer
+                                      description: Max read IO operations per second. Leave empty to remove this limit.
+                                    writeIops:
+                                      type: integer
+                                      description: Max write IO operations per second. Leave empty to remove this limit.
+                                    readMiBps:
+                                      type: integer
+                                      description: Max read MiB per second. Leave empty to remove this limit.
+                                    writeMiBps:
+                                      type: integer
+                                      description: Max write MiB per second. Leave empty to remove this limit.
                                 fsGroupChangePolicy: #!jq_placeholder .definitions["io.k8s.api.core.v1.Pod"].properties.spec.properties.securityContext.properties.fsGroupChangePolicy
                                   {"description":"fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod. This field will only apply to volume types which support fsGroup based ownership(and permissions). It will have no effect on ephemeral volume types such as: secret, configmaps and emptydir. Valid values are \"OnRootMismatch\" and \"Always\". If not specified, \"Always\" is used. Note that this field cannot be set when spec.os.name is windows.","type":"string"}
                             disableConnectionPooling:

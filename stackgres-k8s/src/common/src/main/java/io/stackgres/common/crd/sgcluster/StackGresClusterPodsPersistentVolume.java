@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
@@ -29,6 +30,9 @@ public class StackGresClusterPodsPersistentVolume {
   private String size;
 
   private String storageClass;
+
+  @Valid
+  private StackGresClusterPodsPersistentVolumeIoLimits ioLimits;
 
   private String fsGroupChangePolicy;
 
@@ -48,6 +52,14 @@ public class StackGresClusterPodsPersistentVolume {
     this.storageClass = storageClass;
   }
 
+  public StackGresClusterPodsPersistentVolumeIoLimits getIoLimits() {
+    return ioLimits;
+  }
+
+  public void setIoLimits(StackGresClusterPodsPersistentVolumeIoLimits ioLimits) {
+    this.ioLimits = ioLimits;
+  }
+
   public String getFsGroupChangePolicy() {
     return fsGroupChangePolicy;
   }
@@ -58,7 +70,7 @@ public class StackGresClusterPodsPersistentVolume {
 
   @Override
   public int hashCode() {
-    return Objects.hash(fsGroupChangePolicy, size, storageClass);
+    return Objects.hash(fsGroupChangePolicy, ioLimits, size, storageClass);
   }
 
   @Override
@@ -72,6 +84,8 @@ public class StackGresClusterPodsPersistentVolume {
     StackGresClusterPodsPersistentVolume other = (StackGresClusterPodsPersistentVolume) obj;
     return Objects.equals(fsGroupChangePolicy, other.fsGroupChangePolicy)
         && Objects.equals(size, other.size) && Objects.equals(storageClass, other.storageClass);
+        && Objects.equals(ioLimits, other.ioLimits) && Objects.equals(size, other.size)
+        && Objects.equals(storageClass, other.storageClass);
   }
 
   @Override

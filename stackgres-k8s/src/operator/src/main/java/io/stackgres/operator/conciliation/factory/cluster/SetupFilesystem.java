@@ -20,7 +20,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
-import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -36,8 +35,7 @@ public class SetupFilesystem implements ContainerFactory<ClusterContainerContext
   @Inject
   public SetupFilesystem(
       PostgresExtensionMounts postgresExtensionsMounts,
-      TemplatesMounts templateMounts,
-      UserOverrideMounts containerUserOverrideMounts) {
+      TemplatesMounts templateMounts) {
     this.postgresExtensionsMounts = postgresExtensionsMounts;
     this.templateMounts = templateMounts;
   }

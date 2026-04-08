@@ -249,7 +249,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         .map(StackGresClusterPostgresExporter::getQueries)
         .map(yamlMapper::valueToTree);
 
-    customQueriesFound.ifPresent(customQueries -> Seq.seq(customQueries.fields())
+    customQueriesFound.ifPresent(customQueries -> Seq.seq(customQueries.properties())
         .forEach(customQuery -> queries.set(customQuery.getKey(), customQuery.getValue())));
 
     try {

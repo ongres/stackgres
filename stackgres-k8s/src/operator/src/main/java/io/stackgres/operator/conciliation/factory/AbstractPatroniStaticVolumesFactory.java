@@ -7,6 +7,8 @@ package io.stackgres.operator.conciliation.factory;
 
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +25,16 @@ public abstract class AbstractPatroniStaticVolumesFactory<T> implements VolumeFa
         emptyDir(StackGresVolume.LOCAL_BIN.getName()),
         emptyDir(StackGresVolume.LOG.getName()),
         emptyDir(StackGresVolume.PATRONI_CONFIG.getName()),
-        emptyDir(StackGresVolume.POSTGRES_SSL_COPY.getName())
+        emptyDir(StackGresVolume.POSTGRES_SSL_COPY.getName()),
+        ImmutableVolumePair.builder()
+        .volume(new VolumeBuilder()
+            .withName(StackGresVolume.CGROUP.getName())
+            .withNewHostPath()
+            .withPath(ClusterPath.CGROUP_PATH.path())
+            .withType("Directory")
+            .endHostPath()
+            .build())
+        .build()
     );
   }
 }
