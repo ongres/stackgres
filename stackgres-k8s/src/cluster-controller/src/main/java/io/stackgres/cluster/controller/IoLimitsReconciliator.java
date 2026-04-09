@@ -5,11 +5,12 @@
 
 package io.stackgres.cluster.controller;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,8 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
       Paths.get(ClusterPath.PG_BASE_PATH.path());
   private static final Path PROC_PATH = Path.of("/proc");
   private static final Path HOST_CGROUP_PATH = Path.of(ClusterPath.HOST_CGROUP_PATH.path());
+
+  private static final long MEBI_BYTES = 1024L * 1024L;
 
   private final EventController eventController;
   private final boolean isIoLimitsSet;
@@ -93,11 +96,11 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getPersistentVolume)
         .map(StackGresClusterPodsPersistentVolume::getIoLimits);
-    final Integer rbps = ioLimits
+    final Long rbps = ioLimits
         .map(StackGresClusterPodsPersistentVolumeIoLimits::getReadMiBps)
         .map(this::toBps)
         .orElse(null);
-    final Integer wbps = ioLimits
+    final Long wbps = ioLimits
         .map(StackGresClusterPodsPersistentVolumeIoLimits::getWriteMiBps)
         .map(this::toBps)
         .orElse(null);
@@ -116,16 +119,17 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
       LOGGER.info("Found io.max path for Pod with uid " + podUid + " at " + ioMaxPath);
     }
     String desiredLine = formatIoMaxLine(deviceMajMin, rbps, wbps, riops, wiops);
-    if (isAlreadyApplied(ioMaxPath, desiredLine)) {
+    if (isAlreadyApplied(ioMaxPath, desiredLine, deviceMajMin, rbps, wbps, riops, wiops)) {
       return;
     }
-    Files.writeString(ioMaxPath, desiredLine + "\n",
-            StandardOpenOption.WRITE);
+    try (var os = new FileOutputStream(ioMaxPath.toFile())) {
+      os.write((desiredLine + "\n").getBytes(StandardCharsets.UTF_8));
+    }
     LOGGER.info("Set io.max to " + desiredLine);
   }
 
-  private Integer toBps(Integer mbps) {
-    return mbps * 1024 * 1024 * 1024;
+  private Long toBps(Integer mbps) {
+    return mbps * MEBI_BYTES;
   }
 
   /**
@@ -178,7 +182,10 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
     if (bestMajMin == null) {
       throw new RuntimeException("No mount entry found for path: " + mountPath);
     }
-
+    Path partitionFile = Path.of("/sys/dev/block/" + bestMajMin + "/partition");
+    if (Files.exists(partitionFile)) {
+      bestMajMin = Files.readString(Path.of("/sys/dev/block/" + bestMajMin + "/../dev")).trim();
+    }
     // Validate format
     String[] parts = bestMajMin.split(":");
     if (parts.length != 2) {
@@ -218,10 +225,12 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
    * Formats the io.max line.
    * Example: "8:16 rbps=1048576 wbps=max riops=1000 wiops=max"
    */
-  static String formatIoMaxLine(String majMin, Integer rbps, Integer wbps, Integer riops, Integer wiops) {
-    if (rbps == null && wbps == null && riops == null && riops == null) {
-      return "";
-    }
+  static String formatIoMaxLine(
+      String majMin,
+      Long rbps,
+      Long wbps,
+      Integer riops,
+      Integer wiops) {
     return majMin
         + " rbps=" + valueOrMax(rbps)
         + " wbps=" + valueOrMax(wbps)
@@ -229,24 +238,36 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
         + " wiops=" + valueOrMax(wiops);
   }
 
-  private static String valueOrMax(Integer value) {
+  private static String valueOrMax(Number value) {
     return value == null ? "max" : value.toString();
   }
 
   /**
    * Checks if io.max already contains a line matching the desired configuration.
    */
-  private boolean isAlreadyApplied(Path ioMaxPath, String desiredLine) throws IOException {
+  private boolean isAlreadyApplied(
+      Path ioMaxPath,
+      String desiredLine,
+      String majMin,
+      Long rbps,
+      Long wbps,
+      Integer riops,
+      Integer wiops) throws IOException {
     if (!Files.exists(ioMaxPath)) {
       return false;
     }
     List<String> lines = Files.readAllLines(ioMaxPath);
+    boolean deviceFound = false;
+    final String devicePrefix = majMin + " ";
     for (String line : lines) {
+      if (line.startsWith(devicePrefix)) {
+        deviceFound = true;
+      }
       if (line.trim().equals(desiredLine.trim())) {
         return true;
       }
     }
-    return false;
+    return !deviceFound && rbps == null && wbps == null && riops == null && riops == null;
   }
 
 }
