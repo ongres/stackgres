@@ -39,6 +39,12 @@ public class DeployedResourcesCache {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesCache.class);
 
+  // Default cap sized to cover ~10 SGShardedCluster deployments with ~50 resources per shard
+  // across ~32 shards (~16k entries) with headroom; bounded so operator memory cannot grow
+  // unboundedly when the env-var overrides are not set. User-supplied properties override.
+  private static final int DEFAULT_MAX_SIZE = 100_000;
+  private static final Duration DEFAULT_EXPIRE_AFTER_ACCESS = Duration.ofHours(1);
+
   private final Cache<ResourceKey, DeployedResource> cache;
   private final ObjectMapper objectMapper;
 
@@ -47,14 +53,18 @@ public class DeployedResourcesCache {
       OperatorPropertyContext propertyContext,
       ObjectMapper objectMapper) {
     var cacheBuilder = Caffeine.newBuilder();
-    propertyContext.get(
-        OperatorProperty.RECONCILIATION_CACHE_EXPIRATION)
-        .map(Integer::valueOf)
-        .ifPresent(duration -> cacheBuilder.expireAfterWrite(Duration.ofSeconds(duration)));
-    propertyContext.get(
-        OperatorProperty.RECONCILIATION_CACHE_SIZE)
-        .map(Integer::valueOf)
-        .ifPresent(size -> cacheBuilder.maximumSize(size));
+    Optional<Integer> configuredExpiration = propertyContext.get(
+        OperatorProperty.RECONCILIATION_CACHE_EXPIRATION).map(Integer::valueOf);
+    Optional<Integer> configuredSize = propertyContext.get(
+        OperatorProperty.RECONCILIATION_CACHE_SIZE).map(Integer::valueOf);
+    // Apply defaults so the cache can never grow unbounded when the env-var overrides are not
+    // set; user-supplied properties override the defaults.
+    cacheBuilder.maximumSize(configuredSize.orElse(DEFAULT_MAX_SIZE));
+    if (configuredExpiration.isPresent()) {
+      cacheBuilder.expireAfterWrite(Duration.ofSeconds(configuredExpiration.get()));
+    } else {
+      cacheBuilder.expireAfterAccess(DEFAULT_EXPIRE_AFTER_ACCESS);
+    }
     this.cache = cacheBuilder.build();
     this.objectMapper = objectMapper;
   }
@@ -118,10 +128,25 @@ public class DeployedResourcesCache {
       HasMetadata generator,
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources) {
-    var deployedResourcesMap = new HashMap<>(cache.asMap());
+    // Only copy entries belonging to this generator, not the entire cache. Previously the
+    // snapshot copy (and subsequent putAll) was O(total cache size) per reconcile and caused
+    // significant cross-CR allocation coupling.
+    Map<ResourceKey, DeployedResource> deployedResourcesMap = new HashMap<>();
+    cache.asMap().forEach((k, v) -> {
+      if (k.isGeneratedBy(generator)) {
+        deployedResourcesMap.put(k, v);
+      }
+    });
+    // Track only entries that were actually created/updated so we don't re-put unchanged
+    // entries (which would refresh expireAfterWrite for every entry of this generator and
+    // generate unnecessary write traffic on the shared cache).
+    Map<ResourceKey, DeployedResource> modified = new HashMap<>();
     deployedResources.stream()
-        .forEach(resource -> putOrUpdateLatest(generator, resource, deployedResourcesMap));
-    putAll(deployedResourcesMap);
+        .forEach(resource ->
+            putOrUpdateLatest(generator, resource, deployedResourcesMap, modified));
+    if (!modified.isEmpty()) {
+      cache.putAll(modified);
+    }
     return new DeployedResourcesSnapshot(
         generator, ownedDeployedResources, deployedResources, deployedResourcesMap);
   }
@@ -129,7 +154,8 @@ public class DeployedResourcesCache {
   private void putOrUpdateLatest(
       HasMetadata generator,
       HasMetadata foundDeployedResource,
-      Map<ResourceKey, DeployedResource> deployedResourceMap) {
+      Map<ResourceKey, DeployedResource> deployedResourceMap,
+      Map<ResourceKey, DeployedResource> modified) {
     ResourceKey key = ResourceKey.create(generator, foundDeployedResource);
     DeployedResource deployedResource = deployedResourceMap.get(key);
     if (deployedResource != null) {
@@ -146,13 +172,14 @@ public class DeployedResourcesCache {
               foundDeployedResource.getMetadata().getName());
         }
         HasMetadata requiredResource = deployedResource.required().get();
-        deployedResourceMap.put(key,
-            DeployedResource.create(
-                requiredResource,
-                deployedResource.deployed(),
-                deployedResource.deployedNode(),
-                foundDeployedResource,
-                toComparableDeployedNode(requiredResource, foundDeployedResource)));
+        DeployedResource updated = DeployedResource.create(
+            requiredResource,
+            deployedResource.deployed(),
+            deployedResource.deployedNode(),
+            foundDeployedResource,
+            toComparableDeployedNode(requiredResource, foundDeployedResource));
+        deployedResourceMap.put(key, updated);
+        modified.put(key, updated);
       } else {
         if (LOGGER.isTraceEnabled()) {
           LOGGER.trace("Updated already found resource {} {}.{}",
@@ -160,12 +187,13 @@ public class DeployedResourcesCache {
               foundDeployedResource.getMetadata().getNamespace(),
               foundDeployedResource.getMetadata().getName());
         }
-        deployedResourceMap.put(key,
-            DeployedResource.create(
-                deployedResource.deployed(),
-                deployedResource.deployedNode(),
-                foundDeployedResource,
-                null));
+        DeployedResource updated = DeployedResource.create(
+            deployedResource.deployed(),
+            deployedResource.deployedNode(),
+            foundDeployedResource,
+            null);
+        deployedResourceMap.put(key, updated);
+        modified.put(key, updated);
       }
     } else {
       if (LOGGER.isTraceEnabled()) {
@@ -174,15 +202,12 @@ public class DeployedResourcesCache {
             foundDeployedResource.getMetadata().getNamespace(),
             foundDeployedResource.getMetadata().getName());
       }
-      deployedResourceMap.put(key,
-          DeployedResource.create(
-              foundDeployedResource,
-              null));
+      DeployedResource created = DeployedResource.create(
+          foundDeployedResource,
+          null);
+      deployedResourceMap.put(key, created);
+      modified.put(key, created);
     }
-  }
-
-  private void putAll(Map<ResourceKey, DeployedResource> deployedResourcesMap) {
-    cache.putAll(deployedResourcesMap);
   }
 
   public void removeWithLabelsNotIn(
