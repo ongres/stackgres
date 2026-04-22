@@ -22,4 +22,9 @@ public class MockOperatorWatchersHandler implements OperatorWatchersHandler {
     //Do nothing
   }
 
+  @Override
+  public void resync() {
+    // Do nothing
+  }
+
 }

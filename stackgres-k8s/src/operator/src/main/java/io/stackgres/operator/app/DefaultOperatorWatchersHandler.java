@@ -8,11 +8,15 @@ package io.stackgres.operator.app;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -84,6 +88,9 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
+
+  private static final org.slf4j.Logger LOGGER =
+      org.slf4j.LoggerFactory.getLogger(DefaultOperatorWatchersHandler.class);
 
   private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
 
@@ -940,6 +947,107 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   @Override
   public void stopWatchers() {
     monitors.forEach(WatcherMonitor::close);
+  }
+
+  /**
+   * Re-list every CR kind from the API server and reconcile the in-memory maps with the live
+   * state. Entries whose CR is no longer present on the server (e.g. because a DELETE event
+   * was missed while the operator was disconnected - the watch re-list does not synthesize a
+   * DELETED event) are pruned; live entries are refreshed with the latest snapshot.
+   *
+   * <p>Intended to be called periodically (by a scheduler) and is also safe to call ad-hoc
+   * from tests or operational tooling.</p>
+   */
+  @Override
+  public void resync() {
+    resyncMap(StackGresConfig.class, StackGresConfigList.class, configs, deployedResourcesCache::removeAll);
+    resyncMap(StackGresCluster.class, StackGresClusterList.class, clusters, deployedResourcesCache::removeAll);
+    resyncMap(
+        StackGresDistributedLogs.class,
+        StackGresDistributedLogsList.class,
+        distributedLogs,
+        deployedResourcesCache::removeAll);
+    resyncMap(StackGresBackup.class, StackGresBackupList.class, backups, deployedResourcesCache::removeAll);
+    resyncMap(StackGresDbOps.class, StackGresDbOpsList.class, dbOps, deployedResourcesCache::removeAll);
+    resyncMap(
+        StackGresShardedCluster.class,
+        StackGresShardedClusterList.class,
+        shardedClusters,
+        deployedResourcesCache::removeAll);
+    resyncMap(
+        StackGresShardedBackup.class,
+        StackGresShardedBackupList.class,
+        shardedBackups,
+        deployedResourcesCache::removeAll);
+    resyncMap(
+        StackGresShardedDbOps.class,
+        StackGresShardedDbOpsList.class,
+        shardedDbOps,
+        deployedResourcesCache::removeAll);
+    resyncMap(StackGresStream.class, StackGresStreamList.class, streams, deployedResourcesCache::removeAll);
+  }
+
+  private <T extends HasMetadata, L extends KubernetesResourceList<T>> void resyncMap(
+      @NotNull Class<T> crClass,
+      @NotNull Class<L> listClass,
+      @NotNull Map<String, T> map,
+      @NotNull Consumer<T> invalidator) {
+    final List<T> live;
+    try {
+      live = listAcrossAllowedNamespaces(crClass, listClass);
+    } catch (RuntimeException ex) {
+      // If the API server is unreachable or otherwise fails, skip this kind rather than
+      // risk wrongly pruning entries based on an incomplete listing.
+      LOGGER.warn("Resync skipped for {} due to list failure: {}",
+          crClass.getSimpleName(), ex.toString());
+      return;
+    }
+    final Set<String> liveIds = live.stream()
+        .map(this::resourceId)
+        .collect(Collectors.toCollection(HashSet::new));
+    final List<T> removedResources;
+    final Set<String> removedIds;
+    synchronized (map) {
+      final int before = map.size();
+      final List<Map.Entry<String, T>> removedEntries = map.entrySet().stream()
+          .filter(entry -> !liveIds.contains(entry.getKey()))
+          .toList();
+      removedIds = removedEntries.stream()
+          .map(Map.Entry::getKey)
+          .collect(Collectors.toSet());
+      removedResources = removedEntries.stream()
+          .map(Map.Entry::getValue)
+          .toList();
+      if (!removedIds.isEmpty()) {
+        map.keySet().removeAll(removedIds);
+      }
+      live.forEach(cr -> map.put(resourceId(cr), cr));
+      final int after = map.size();
+      if (!removedIds.isEmpty()) {
+        LOGGER.info("Resync pruned {} stale {} entr{} (was {}, now {}); pruned ids: {}",
+            removedIds.size(), crClass.getSimpleName(), removedIds.size() == 1 ? "y" : "ies",
+            before, after, removedIds);
+      }
+    }
+    removedResources.forEach(invalidator);
+  }
+
+  private <T extends HasMetadata, L extends KubernetesResourceList<T>> List<T>
+      listAcrossAllowedNamespaces(@NotNull Class<T> crClass, @NotNull Class<L> listClass) {
+    if (!allowedNamespaces.isEmpty()) {
+      final List<T> aggregated = new ArrayList<>();
+      for (String ns : allowedNamespaces) {
+        aggregated.addAll(client.resources(crClass, listClass)
+            .inNamespace(ns)
+            .list()
+            .getItems());
+      }
+      return aggregated;
+    }
+    return client.resources(crClass, listClass)
+        .inAnyNamespace()
+        .list()
+        .getItems();
   }
 
   private <T> List<T> synchronizedCopyOfValues(Map<?, T> map) {

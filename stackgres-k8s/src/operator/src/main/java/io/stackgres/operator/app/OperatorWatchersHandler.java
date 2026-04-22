@@ -9,4 +9,6 @@ public interface OperatorWatchersHandler {
   void startWatchers();
 
   void stopWatchers();
+
+  void resync();
 }
