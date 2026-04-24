@@ -99,6 +99,10 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
+          "setup-io-limits": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
           "reset-patroni": {
             "cpu": "500m",
             "memory": "512Mi"
@@ -163,6 +167,10 @@
               "memory": "512Mi"
             },
             "setup-filesystem": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "setup-io-limits": {
               "cpu": "500m",
               "memory": "512Mi"
             },
