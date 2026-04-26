@@ -267,7 +267,7 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
         return true;
       }
     }
-    return !deviceFound && rbps == null && wbps == null && riops == null && riops == null;
+    return !deviceFound && rbps == null && wbps == null && riops == null && wiops == null;
   }
 
 }
