@@ -1,0 +1,22 @@
+# Minimal OpenTelemetry Collector config used by verify/e2e_test.sh.
+# Receives OTLP logs over HTTP, prints everything received to stdout via
+# the debug exporter. The harness captures the stdout for assertion.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      exporters: [debug]
+  telemetry:
+    logs:
+      level: info
