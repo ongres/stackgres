@@ -1,0 +1,77 @@
+"""Bazel module for the curated Vector agent OCI image build.
+
+Bazel owns the source pin, the patches layered on top, the toolchain pieces
+(zig + cargo-zigbuild), the protoc dependency, and the OCI image assembly.
+The actual Rust compile runs via `cargo zigbuild` from a //rust:vector
+genrule — cargo handles Vector's large workspace and feature graph natively.
+"""
+
+module(
+    name = "vector-agent",
+    version = "0.0.0-dev",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "protobuf", version = "30.2")  # provides @protobuf//:protoc
+bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+
+# --- Toolchain pieces fetched as content-addressed tarballs ---
+# zig provides per-glibc-version symbol stubs as a drop-in linker via `zig cc`.
+# cargo-zigbuild is the Cargo wrapper that wires zig in as the rustc linker
+# and exposes the `--target=...gnu.2.X` syntax for declarative glibc pinning.
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "zig",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+filegroup(name = "files", srcs = glob(["**"]))
+exports_files(["zig"])
+""",
+    sha256 = "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00",
+    strip_prefix = "zig-x86_64-linux-0.16.0",
+    urls = ["https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz"],
+)
+
+http_archive(
+    name = "cargo_zigbuild",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+exports_files(["cargo-zigbuild"])
+""",
+    sha256 = "9fd7d8136cbf7ab2ae44c046f4985c7a1aa6e2ed483187396df0076bedfa196b",
+    strip_prefix = "cargo-zigbuild-x86_64-unknown-linux-musl",
+    urls = ["https://github.com/rust-cross/cargo-zigbuild/releases/download/v0.22.3/cargo-zigbuild-x86_64-unknown-linux-musl.tar.xz"],
+)
+
+# --- Vector upstream source, pinned to a release tag ---
+# Pinning to a release tag (vs a development commit) gives a stable,
+# documented baseline. GitHub's tarball endpoint for tagged releases is the
+# stable path here; a sha256 mismatch on a re-compression would be caught by
+# the verification below at build time.
+http_archive(
+    name = "vector",
+    build_file = "//rust:BUILD.vector.bazel",
+    sha256 = "f4588029daf8b90fac9d3159bf40abdb109460b9be3831a369cceb8e636c4b79",
+    strip_prefix = "vector-0.55.0",
+    urls = ["https://github.com/vectordotdev/vector/archive/refs/tags/v0.55.0.tar.gz"],
+    # Patches applied to the upstream tree before cargo sees it.
+    # See //rust/patches/ for each patch's rationale.
+    patches = ["//rust/patches:0001-disable-default-features.patch"],
+    patch_args = ["-p1"],
+)
+
+# --- OCI base image (digest-pinned for reproducibility) ---
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "distroless_cc",
+    # Index digest captured 2026-05-01 from
+    # `curl -sIL https://gcr.io/v2/distroless/cc-debian12/manifests/latest`.
+    digest = "sha256:847433844c7e04bcf07a3a0f0f5a8de554c6df6fa9e3e3ab14d3f6b73d780235",
+    # cc-debian12 ships glibc 2.36, which matches the binary's glibc cap set
+    # in //rust:vector via `cargo zigbuild --target=...gnu.2.36`.
+    image = "gcr.io/distroless/cc-debian12",
+    platforms = ["linux/amd64"],
+)
+use_repo(oci, "distroless_cc", "distroless_cc_linux_amd64")

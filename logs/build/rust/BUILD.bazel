@@ -1,0 +1,10 @@
+"""Shared build infrastructure for the curated Vector binary.
+
+The cargo-zigbuild invocation lives in `vector_binary.bzl` as a macro;
+//agent:BUILD.bazel calls it with the agent feature set.
+"""
+
+# Required so MODULE.bazel can reference //rust:BUILD.vector.bazel via build_file.
+exports_files([
+    "BUILD.vector.bazel",
+])

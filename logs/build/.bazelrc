@@ -1,0 +1,23 @@
+# Lockfile + hermeticity. Tighten --lockfile_mode to "error" once stable.
+common --lockfile_mode=update
+build --incompatible_strict_action_env
+
+# Pass through env needed for the cargo-driven Vector build genrule.
+# Cargo + rustup live on the host; the rust-toolchain.toml inside the source
+# tree pins the actual rustc version. Less strictly hermetic than a Bazel
+# toolchain, but cargo's own dep + feature handling is too valuable to lose.
+build --action_env=PATH
+build --action_env=HOME
+build --action_env=CARGO_HOME
+build --action_env=RUSTUP_HOME
+
+# Reproducible build epoch (1980-01-01 UTC, ZIP-safe minimum).
+build --action_env=SOURCE_DATE_EPOCH=315532800
+build --host_action_env=SOURCE_DATE_EPOCH=315532800
+
+# Disable git stamping by default to keep builds reproducible.
+build --workspace_status_command=/bin/true
+build --stamp=no
+
+# Make build-script failures actionable.
+build --verbose_failures

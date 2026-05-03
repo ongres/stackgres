@@ -1,0 +1,2 @@
+# Workspace root. The OCI image target lives in //agent:image; this file
+# is intentionally minimal.

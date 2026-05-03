@@ -1,0 +1,25 @@
+"""BUILD content for the @vector external repo (attached via build_file in
+//:MODULE.bazel's git_repository).
+
+Just exposes the source tree as a filegroup so the local cargo-build genrule
+can stage it. The actual build orchestration lives in //rust:BUILD.bazel.
+"""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "srcs",
+    srcs = glob(
+        ["**"],
+        allow_empty = False,
+        exclude = [
+            "**/.git/**",
+            "**/target/**",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+)
+
+exports_files(glob(["**"], allow_empty = True))

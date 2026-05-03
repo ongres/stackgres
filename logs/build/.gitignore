@@ -1,0 +1,9 @@
+# Bazel workspace symlinks (regenerated each build).
+/bazel-*
+
+# Bazel disk cache, repo cache, etc., if placed in-tree.
+/.bazel/
+
+# Editor / OS noise.
+.DS_Store
+*.swp
