@@ -1,0 +1,21 @@
+Disable Vector's default features so the curated build only activates what
+we explicitly request via crate_features.
+
+Upstream's `default = ["enable-unix", "rdkafka?/gssapi"]` transitively
+activates `enable-unix` → `enable-api-client` → `base` → all sources / sinks
+/ transforms / enrichment-tables / secrets / parquet codecs / etc., which
+drags hundreds of optional crates (rdkafka, sasl2-sys, lz4, zstd, ...) into
+the dep graph. With `default = []`, crate_universe vendors only what our
+four features (sources-file, transforms-remap, sinks-console,
+sinks-opentelemetry) actually need.
+
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -510,6 +510,6 @@
+ [features]
+ # Default features for *-unknown-linux-gnu and *-apple-darwin
+-default = ["enable-unix", "rdkafka?/gssapi"]
++default = []
+ # Default features for `cargo docs`. We're not using `gssapi` which would require installing libsasl2 in our doc environment.
+ docs = ["enable-unix"]
+ # Default features for *-unknown-linux-* which make use of `cmake` for dependencies

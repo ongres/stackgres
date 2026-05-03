@@ -1,0 +1,4 @@
+# Patches we layer on top of the @vector source tree at git_repository fetch
+# time. Listed in MODULE.bazel's git_repository(patches = [...]) — applied in
+# the order they appear there.
+exports_files(glob(["*.patch"]))
