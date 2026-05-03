@@ -1,0 +1,204 @@
+# Vector pipeline: Postgres CSV log -> human-readable console + OTLP/HTTP
+#
+# Tested with the curated agent build (//agent:image), features:
+#   sources-file,transforms-remap,sinks-console,sinks-opentelemetry
+#
+# Multi-tenant: one agent process can service N Postgres instances. Each
+# instance gets its own (source, tag) pair below — the orchestrator
+# duplicates the placeholder pair, fills in the real UUID + log dir, and
+# writes the resulting yaml to /etc/vector/vector.yaml. Components after
+# the fan-in (pg_parse, pg_to_otlp, sinks) are shared.
+#
+# What ships in this file: one placeholder pair tagging records with
+# `00000000-0000-0000-0000-000000000001`. Replace, duplicate, or extend
+# at deploy time.
+
+data_dir: /var/lib/vector
+
+sources:
+  # Per-instance: orchestrator clones this block per Postgres instance,
+  # with a unique component name (`pg_<short-id>`), the instance's log
+  # directory, and the matching tag transform downstream.
+  pg_001:
+    type: file
+    include:
+      - /var/log/postgresql/postgresql-*.csv
+    read_from: end
+    multiline:
+      # Each PG17 csvlog record begins with a UTC timestamp like
+      # "2026-04-30 12:34:56.789 UTC,". Aggregate continuation lines
+      # (embedded newlines inside quoted message/query fields) into a
+      # single event before parse_csv runs.
+      start_pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+ \w+,'
+      mode: halt_before
+      condition_pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+ \w+,'
+      timeout_ms: 1000
+
+transforms:
+  # Per-instance tag: stamps every record from `pg_001` with the instance's
+  # UUID. The orchestrator sets the literal UUID per instance.
+  tag_001:
+    type: remap
+    inputs: [pg_001]
+    source: |
+      .instance_uuid = "00000000-0000-0000-0000-000000000001"
+
+  # Stage 1: CSV parse. PG17+ csvlog has 26 columns, every one populated
+  # (empties land as ""). A different count = format change we should
+  # surface, not silently mis-parse.
+  pg_parse:
+    type: remap
+    # Add more tag transforms here when adding more Postgres instances:
+    #   inputs: [tag_001, tag_002, tag_003, ...]
+    inputs: [tag_001]
+    source: |
+      raw = string!(.message)
+      cols, err = parse_csv(raw)
+      if err != null {
+        .parse_error = "csv parse: " + err
+      } else if length(cols) != 26 {
+        .parse_error = "unexpected csvlog column count: " + to_string(length(cols)) + " (expected 26 for PG17+)"
+      } else {
+        .log_time               = cols[0]
+        .user_name              = cols[1]
+        .database_name          = cols[2]
+        .process_id             = cols[3]
+        .connection_from        = cols[4]
+        .session_id             = cols[5]
+        .session_line_num       = cols[6]
+        .command_tag            = cols[7]
+        .session_start_time     = cols[8]
+        .virtual_transaction_id = cols[9]
+        .transaction_id         = cols[10]
+        .severity               = cols[11]
+        .sql_state_code         = cols[12]
+        .pg_message             = cols[13]
+        .detail                 = cols[14]
+        .hint                   = cols[15]
+        .internal_query         = cols[16]
+        .internal_query_pos     = cols[17]
+        .context                = cols[18]
+        .query                  = cols[19]
+        .query_pos              = cols[20]
+        .location               = cols[21]
+        .application_name       = cols[22]
+        .backend_type           = cols[23]
+        .leader_pid             = cols[24]
+        .query_id               = cols[25]
+
+        # Postgres-stderr-like one-liner for the console sink.
+        .message = .log_time + " [" + .process_id + "] " + .severity + ": " + .pg_message
+      }
+
+  # Stage 2: build a standards-compliant OTLP `ExportLogsServiceRequest`
+  # envelope. Vector's `codec: otlp` keys off the top-level `resourceLogs`
+  # field; this transform replaces the event with that envelope.
+  #
+  # Attribute namespace: OTel-conventional `db.*` keys where the spec has
+  # an equivalent, `pg.*` for Postgres-specific fields without one.
+  pg_to_otlp:
+    type: remap
+    inputs: [pg_parse]
+    source: |
+      parsed_ts = parse_timestamp(string!(.log_time), "%Y-%m-%d %H:%M:%S%.f %Z") ?? now()
+      ts_ns = to_unix_timestamp(parsed_ts, unit: "nanoseconds")
+
+      # PG severity -> OTLP SeverityNumber.
+      # https://opentelemetry.io/docs/specs/otel/logs/data-model/#field-severitynumber
+      sev_text = string!(.severity)
+      sev_num = if sev_text == "DEBUG1" || sev_text == "DEBUG2" || sev_text == "DEBUG3" || sev_text == "DEBUG4" || sev_text == "DEBUG5" {
+        5    # DEBUG
+      } else if sev_text == "INFO" || sev_text == "LOG" {
+        9    # INFO
+      } else if sev_text == "NOTICE" {
+        10   # INFO2
+      } else if sev_text == "WARNING" {
+        13   # WARN
+      } else if sev_text == "ERROR" {
+        17   # ERROR
+      } else if sev_text == "FATAL" || sev_text == "PANIC" {
+        21   # FATAL
+      } else {
+        0    # UNSPECIFIED
+      }
+
+      # All 26 PG17 csvlog fields as per-record attributes. Keys are
+      # unconditional — empty strings are valid and signal "field absent
+      # in this record".
+      attrs = [
+        {"key": "db.user",              "value": {"stringValue": string!(.user_name)}},
+        {"key": "db.process_id",        "value": {"stringValue": string!(.process_id)}},
+        {"key": "client.address",       "value": {"stringValue": string!(.connection_from)}},
+        {"key": "db.session_id",        "value": {"stringValue": string!(.session_id)}},
+        {"key": "pg.session_line_num",  "value": {"stringValue": string!(.session_line_num)}},
+        {"key": "db.operation",         "value": {"stringValue": string!(.command_tag)}},
+        {"key": "pg.session_start_time","value": {"stringValue": string!(.session_start_time)}},
+        {"key": "pg.virtual_xid",       "value": {"stringValue": string!(.virtual_transaction_id)}},
+        {"key": "db.transaction_id",    "value": {"stringValue": string!(.transaction_id)}},
+        {"key": "db.sqlstate",          "value": {"stringValue": string!(.sql_state_code)}},
+        {"key": "pg.detail",            "value": {"stringValue": string!(.detail)}},
+        {"key": "pg.hint",              "value": {"stringValue": string!(.hint)}},
+        {"key": "pg.internal_query",    "value": {"stringValue": string!(.internal_query)}},
+        {"key": "pg.internal_query_pos","value": {"stringValue": string!(.internal_query_pos)}},
+        {"key": "pg.context",           "value": {"stringValue": string!(.context)}},
+        {"key": "db.statement",         "value": {"stringValue": string!(.query)}},
+        {"key": "pg.query_pos",         "value": {"stringValue": string!(.query_pos)}},
+        {"key": "pg.location",          "value": {"stringValue": string!(.location)}},
+        {"key": "db.application",       "value": {"stringValue": string!(.application_name)}},
+        {"key": "db.backend_type",      "value": {"stringValue": string!(.backend_type)}},
+        {"key": "pg.leader_pid",        "value": {"stringValue": string!(.leader_pid)}},
+        {"key": "pg.query_id",          "value": {"stringValue": string!(.query_id)}}
+      ]
+
+      # Replace the event with the OTLP envelope. instance.uuid is at
+      # resource scope (one Postgres instance per logical batch); the
+      # database name is also at resource scope (per OTel db.* spec
+      # semantics — different events from different DBs ship as separate
+      # resourceLogs[] entries which proto3-concatenate cleanly into a
+      # single ExportLogsServiceRequest).
+      . = {
+        "resourceLogs": [{
+          "resource": {
+            "attributes": [
+              {"key": "service.name",  "value": {"stringValue": "postgresql"}},
+              {"key": "db.system",     "value": {"stringValue": "postgresql"}},
+              {"key": "db.namespace",  "value": {"stringValue": string!(.database_name)}},
+              {"key": "instance.uuid", "value": {"stringValue": string!(.instance_uuid)}}
+            ]
+          },
+          "scopeLogs": [{
+            "scope": {"name": "postgresql.csvlog"},
+            "logRecords": [{
+              "timeUnixNano":         to_string(ts_ns),
+              "observedTimeUnixNano": to_string(ts_ns),
+              "severityNumber":       sev_num,
+              "severityText":         sev_text,
+              "body":                 {"stringValue": string!(.pg_message)},
+              "attributes":           attrs
+            }]
+          }]
+        }]
+      }
+
+sinks:
+  console_text:
+    type: console
+    inputs: [pg_parse]      # human-readable text path (NOT the OTLP-shaped event)
+    encoding:
+      codec: text
+
+  otlp_remote:
+    type: opentelemetry
+    inputs: [pg_to_otlp]    # OTLP-shaped events only
+    protocol:
+      type: http
+      uri: https://otel-collector.example.com:4318/v1/logs
+      method: post
+      encoding:
+        codec: otlp         # emits proper OTLP protobuf bodies
+      framing:
+        method: bytes       # one event = one binary body (required for protobuf)
+      request:
+        headers:
+          content-type: application/x-protobuf
+      # auth, tls, batch, request retry policy go here in production

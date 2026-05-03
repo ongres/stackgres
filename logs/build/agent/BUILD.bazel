@@ -1,0 +1,57 @@
+"""Curated Vector agent: tails Postgres csvlog, ships OTLP/HTTP."""
+
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//rust:vector_binary.bzl", "vector_binary")
+
+vector_binary(
+    name = "vector",
+    features = "sources-file,transforms-remap,sinks-console,sinks-opentelemetry",
+    visibility = ["//visibility:public"],
+)
+
+# Layer with just the vector binary, mode 0755. portable_mtime defaults to
+# True in rules_pkg ≥1.0, which gives a deterministic fixed timestamp.
+pkg_tar(
+    name = "vector_layer",
+    srcs = [":vector"],
+    package_dir = "/usr/bin",
+    mode = "0755",
+    # Strip the genrule's output filename ("vector_bin") so it lands as
+    # /usr/bin/vector inside the image.
+    remap_paths = {"/vector_bin": "/vector"},
+)
+
+oci_image(
+    name = "image",
+    base = "@distroless_cc",
+    tars = [":vector_layer"],
+    entrypoint = ["/usr/bin/vector"],
+    cmd = ["--config", "/etc/vector/vector.yaml"],
+    user = "65532:65532",  # nonroot uid/gid in distroless
+    workdir = "/",
+    labels = {
+        "org.opencontainers.image.source": "https://github.com/vectordotdev/vector",
+        "org.opencontainers.image.version": "0.55.0",
+        "org.opencontainers.image.description": "Curated Vector agent (Postgres csvlog -> OTLP)",
+    },
+)
+
+# Convenience: load the image into the local OCI runtime (docker / podman /
+# nerdctl) for ad-hoc smoke tests. `bazel run //agent:image_load` builds
+# and loads.
+oci_load(
+    name = "image_load",
+    image = ":image",
+    repo_tags = ["vector-agent:dev"],
+)
+
+# Push to a registry. Override repository / remote_tags via --repository and
+# --remote_tag on the bazel run invocation, or edit here for the canonical
+# publish target.
+oci_push(
+    name = "image_push",
+    image = ":image",
+    repository = "ghcr.io/example/vector-agent",
+    remote_tags = ["0.55.0", "latest"],
+)
