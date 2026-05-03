@@ -1,0 +1,7 @@
+# Verification harness package. The scripts are invoked manually (not via
+# `bazel test`) because they run docker / `bazel build` themselves —
+# nesting that inside Bazel's action sandbox would be a bad time.
+exports_files([
+    "repro_check.sh",
+    "e2e_agent_test.sh",
+])
