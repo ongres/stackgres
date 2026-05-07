@@ -146,8 +146,8 @@ So:
   * `encoding.codec: otlp` — emits **standards-compliant OTLP protobuf**
     (`application/x-protobuf`). **But** it requires the event to already have
     `resourceLogs` at the top level. For Postgres logs you must build that
-    envelope in a VRL transform first. See `../agent/pipeline.yaml` for the
-    working construction.
+    envelope in a VRL transform first. See `../agent/pipeline.yaml.template`
+    for the working construction.
 * **Batching efficiency**: Vector's HTTP sink concatenates the encoded
   protobuf bodies of all events in a batch into a single POST body. Proto3
   merge semantics make this a valid `ExportLogsServiceRequest` (repeated
@@ -285,7 +285,7 @@ wall-clock**, verified on both CSV and JSON Postgres log fixtures.
 ## 8. Vector OTLP-strict configuration
 
 
-See `../agent/pipeline.yaml` in this directory. Two-stage pipeline:
+See `../agent/pipeline.yaml.template` in this directory. Two-stage pipeline:
 
 1. `pg_parse` — parses CSV into named fields, formats `.message` for the console
    sink.

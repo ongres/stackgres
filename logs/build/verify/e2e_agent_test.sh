@@ -5,9 +5,10 @@
 #  1. Spins up an OpenTelemetry Collector (debug exporter) in a private
 #     docker network.
 #  2. Runs the curated `vector-agent:dev` image in the same network with
-#     agent/pipeline.yaml mounted at /etc/vector/vector.yaml. The yaml
-#     is patched at runtime to read fixtures from the start and to ship
-#     OTLP at the collector's container hostname.
+#     agent/pipeline.yaml.template mounted at /etc/vector/vector.yaml.
+#     The template is patched at runtime to read fixtures from the start;
+#     the ${INSTANCE_UUID} and ${OTLP_ENDPOINT} placeholders are filled
+#     in by Vector's env-var interpolation (passed via `docker run -e`).
 #  3. Feeds verify/fixtures/postgresql-test.csv into Vector's file source.
 #  4. Captures Vector's console output (the human-readable text sink) and
 #     the collector's stdout (the OTLP debug exporter's output).
@@ -56,12 +57,16 @@ cp verify/fixtures/postgresql-test.csv "$WORK/pglogs/postgresql-test.csv"
 # Stage the collector config.
 cp verify/fixtures/collector-config.yaml "$WORK/config/collector.yaml"
 
-# Stage Vector's config: take agent/pipeline.yaml verbatim, except:
-#   * read_from: beginning  — fixture files exist before Vector starts
-#   * otlp_remote URL pointed at the collector by container hostname
+# Stage Vector's config: take agent/pipeline.yaml.template verbatim,
+# except read_from is flipped (fixture files exist before Vector starts).
+# ${INSTANCE_UUID} and ${OTLP_ENDPOINT} placeholders are passed to
+# Vector as env vars on the docker run below — Vector interpolates at
+# config load time.
 sed -e 's|read_from: end|read_from: beginning|' \
-    -e "s|https://otel-collector.example.com:4318/v1/logs|http://${COLLECTOR_NAME}:4318/v1/logs|" \
-    agent/pipeline.yaml > "$WORK/config/vector.yaml"
+    agent/pipeline.yaml.template > "$WORK/config/vector.yaml"
+
+INSTANCE_UUID="00000000-0000-0000-0000-000000000001"
+OTLP_ENDPOINT="http://${COLLECTOR_NAME}:4318/v1/logs"
 
 # --- Run ---
 echo "[setup] private docker network: $NETWORK"
@@ -87,6 +92,8 @@ echo "[setup] starting Vector ($VECTOR_IMAGE)"
 docker run -d --rm \
     --name "$VECTOR_NAME" \
     --network "$NETWORK" \
+    -e "INSTANCE_UUID=${INSTANCE_UUID}" \
+    -e "OTLP_ENDPOINT=${OTLP_ENDPOINT}" \
     -v "$WORK/config/vector.yaml:/etc/vector/vector.yaml:ro" \
     -v "$WORK/pglogs:/var/log/postgresql:ro" \
     -v "$WORK/data:/var/lib/vector" \
@@ -154,10 +161,10 @@ if ! grep -qE 'db\.backend_type: Str\(checkpointer\)' "$WORK/collector.stdout"; 
     fail "db.backend_type attribute should be 'checkpointer' on row 0 (column-shift in fixture?)"
 fi
 
-# 7. instance.uuid resource attribute present. The agent's pipeline.yaml
-#    has a placeholder UUID (00000000-0000-0000-0000-000000000001) set by
-#    the per-instance tag transform; the orchestrator templates this per
-#    Postgres instance at deploy time.
+# 7. instance.uuid resource attribute present. The agent's
+#    pipeline.yaml.template has the slon-substituted ${INSTANCE_UUID}
+#    placeholder; this test sets it to the all-ones-1 fixture UUID via
+#    the agent container's env (Vector interpolates at config load).
 if ! grep -qE 'instance\.uuid: Str\(00000000-0000-0000-0000-000000000001\)' "$WORK/collector.stdout"; then
     fail "instance.uuid resource attribute (placeholder) not present at collector"
 fi
