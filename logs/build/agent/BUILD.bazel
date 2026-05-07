@@ -37,6 +37,36 @@ oci_image(
     },
 )
 
+oci_image(
+    name = "docir_image",
+    base = None,
+    os = "linux",
+    architecture = "amd64",
+    tars = [":vector_layer"],
+    user = "postgres",
+    labels = {
+        "org.opencontainers.image.authors": "OnDB Team <ondb@ongres.com>",
+        "org.opencontainers.image.url": "https://github.com/vectordotdev/vector",
+        "org.opencontainers.image.documentation": "https://github.com/vectordotdev/vector",
+        "org.opencontainers.image.source": "https://github.com/vectordotdev/vector",
+        "org.opencontainers.image.version": "0.55.0",
+        "org.opencontainers.image.revision": "0",
+        "org.opencontainers.image.vendor": "OnGres Inc.",
+        "org.opencontainers.image.licenses": "MPL-2.0",
+        "org.opencontainers.image.title": "Vector 0.55.0",
+        "org.opencontainers.image.description": "Curated Vector agent (Postgres csvlog -> OTLP)",
+        "sh.ondb.containers.metadataVersion": "v1",
+        "sh.ondb.containers.description.long": "Curated Vector agent (Postgres csvlog -> OTLP)",
+        "sh.ondb.containers.homeURL": "https://github.com/vectordotdev/vector",
+        "sh.ondb.containers.type": "addon",
+        "sh.ondb.containers.base.name": "debian",
+        "sh.ondb.containers.base.majorVersion": "13",
+        "sh.ondb.containers.base.minorVersion": "3",
+        "sh.ondb.containers.addon.name": "vector-agent",
+        "sh.ondb.containers.addon.compatibleFlavorVersions": "postgres",
+    },
+)
+
 # Convenience: load the image into the local OCI runtime (docker / podman /
 # nerdctl) for ad-hoc smoke tests. `bazel run //agent:image_load` builds
 # and loads.
@@ -46,6 +76,12 @@ oci_load(
     repo_tags = ["vector-agent:dev"],
 )
 
+oci_load(
+    name = "docir_image_load",
+    image = ":docir_image",
+    repo_tags = ["docir/vector-agent:dev"],
+)
+
 # Push to a registry. Override repository / remote_tags via --repository and
 # --remote_tag on the bazel run invocation, or edit here for the canonical
 # publish target.
@@ -53,5 +89,12 @@ oci_push(
     name = "image_push",
     image = ":image",
     repository = "ghcr.io/example/vector-agent",
+    remote_tags = ["0.55.0", "latest"],
+)
+
+oci_push(
+    name = "docir_image_push",
+    image = ":docir_image",
+    repository = "ghcr.io/example/docir/vector-agent",
     remote_tags = ["0.55.0", "latest"],
 )
