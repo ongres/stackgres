@@ -1,31 +1,53 @@
-# Vector pipeline: Postgres CSV log -> human-readable console + OTLP/HTTP
+# Vector pipeline TEMPLATE: Postgres csvlog -> human-readable console + OTLP/HTTP
 #
-# Tested with the curated agent build (//agent:image), features:
+# Consumed by `slon` at startup: it substitutes the placeholder values
+# (INSTANCE_UUID, OTLP_ENDPOINT — see the body of the file), conditionally
+# includes the remote sink (omitted entirely when the user has not opted
+# into log shipment), and writes the resulting yaml to
+# /etc/vector/vector.yaml.  The placeholders use Vector-native env-var
+# interpolation syntax, so a passthrough mode (slon sets INSTANCE_UUID and
+# OTLP_ENDPOINT in the agent's environment, Vector interpolates at config
+# load) works from this template equivalently — that is what the e2e
+# verify script does.
+#
+# Note: Vector applies env-var interpolation textually across the whole
+# YAML *including comments*, so do not write the literal placeholder
+# syntax in comments — Vector will try to resolve it as a real variable
+# and fail config load if absent.
+#
+# Tested against the curated agent build (//agent:image), features:
 #   sources-file,transforms-remap,sinks-console,sinks-opentelemetry
 #
-# Multi-tenant: one agent process can service N Postgres instances. Each
-# instance gets its own (source, tag) pair below — the orchestrator
-# duplicates the placeholder pair, fills in the real UUID + log dir, and
-# writes the resulting yaml to /etc/vector/vector.yaml. Components after
-# the fan-in (pg_parse, pg_to_otlp, sinks) are shared.
+# Single-tenant by construction: one agent per slon, one slon per
+# Postgres instance. instance.uuid is a slon-level constant — there is
+# no per-event tag-transform clone-pair pattern.
 #
-# What ships in this file: one placeholder pair tagging records with
-# `00000000-0000-0000-0000-000000000001`. Replace, duplicate, or extend
-# at deploy time.
+# Storage layout (set up by slon in the slon container; sizing rationale
+# in the subsystem DESIGN.md "Log buffering" subsection):
+#   /var/log/postgresql   tmpfs, 256 MiB cap. csvlog working set —
+#                         24 hour-of-day slots × 10MB, cycled and
+#                         truncated by log_truncate_on_rotation.
+#   /var/lib/vector       persistent volume. Vector's data_dir holds
+#                         file-source checkpoint state and the OTLP
+#                         sink's disk buffer (outage durability).
+#
+# Postgres-side knobs that this pipeline assumes (slon applies them at
+# PG start; full table with rationale and postgresqlco.nf links in the
+# subsystem DESIGN.md): log_destination=csvlog, logging_collector=on,
+# log_directory=(the tmpfs path below), log_filename=postgresql-%H
+# (PG appends `.csv`), log_rotation_size=10MB, log_rotation_age=1h,
+# log_truncate_on_rotation=on, log_file_mode=0644.
 
 data_dir: /var/lib/vector
 
 sources:
-  # Per-instance: orchestrator clones this block per Postgres instance,
-  # with a unique component name (`pg_<short-id>`), the instance's log
-  # directory, and the matching tag transform downstream.
-  pg_001:
+  pg_csvlog:
     type: file
     include:
       - /var/log/postgresql/postgresql-*.csv
     read_from: end
     multiline:
-      # Each PG17 csvlog record begins with a UTC timestamp like
+      # PG17 csvlog records begin with a UTC timestamp like
       # "2026-04-30 12:34:56.789 UTC,". Aggregate continuation lines
       # (embedded newlines inside quoted message/query fields) into a
       # single event before parse_csv runs.
@@ -33,24 +55,27 @@ sources:
       mode: halt_before
       condition_pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+ \w+,'
       timeout_ms: 1000
+    # Slot-cycle handling: with log_truncate_on_rotation=on, PG
+    # truncates the slot file in-place when reused. Vector's default
+    # fingerprinting (first-bytes content hash) detects the change and
+    # re-tails the slot from the start — no extra config needed.
 
 transforms:
-  # Per-instance tag: stamps every record from `pg_001` with the instance's
-  # UUID. The orchestrator sets the literal UUID per instance.
-  tag_001:
+  # Stamp every record with the slon's instance UUID. slon substitutes
+  # the literal at template-fill time, or sets INSTANCE_UUID in the
+  # agent's env (Vector interpolates at config load either way).
+  tag_instance:
     type: remap
-    inputs: [pg_001]
+    inputs: [pg_csvlog]
     source: |
-      .instance_uuid = "00000000-0000-0000-0000-000000000001"
+      .instance_uuid = "${INSTANCE_UUID}"
 
   # Stage 1: CSV parse. PG17+ csvlog has 26 columns, every one populated
   # (empties land as ""). A different count = format change we should
   # surface, not silently mis-parse.
   pg_parse:
     type: remap
-    # Add more tag transforms here when adding more Postgres instances:
-    #   inputs: [tag_001, tag_002, tag_003, ...]
-    inputs: [tag_001]
+    inputs: [tag_instance]
     source: |
       raw = string!(.message)
       cols, err = parse_csv(raw)
@@ -181,18 +206,40 @@ transforms:
       }
 
 sinks:
+  # Always-on local visibility. slon keeps this sink in every generated
+  # config, regardless of the remote-shipment opt-in.
   console_text:
     type: console
     inputs: [pg_parse]      # human-readable text path (NOT the OTLP-shaped event)
     encoding:
       codec: text
 
+  # Conditional: slon includes this sink iff the user has opted into
+  # remote log shipment; omitted entirely otherwise.
+  # The `uri` is the user-repointable knob — any OTLP/HTTP-compatible
+  # collector (otelcol, Grafana Agent, Datadog Agent, Honeycomb, …)
+  # accepts this same wire format unmodified, so customers who want logs
+  # delivered to their own observability stack just receive a different
+  # OTLP_ENDPOINT value.
+  #
+  # Disk buffer on the persistent volume (Vector's data_dir): rides out
+  # a receiver outage without dropping events; backpressures the file
+  # source when full. max_size is the operator-visible durability
+  # tradeoff — see the subsystem DESIGN.md "Log buffering" subsection.
   otlp_remote:
     type: opentelemetry
     inputs: [pg_to_otlp]    # OTLP-shaped events only
+    buffer:
+      type: disk
+      # 256 MiB working storage. The literal is 32 bytes above 256*2^20:
+      # Vector reserves 32 bytes of internal overhead and rejects any
+      # max_size below that minimum, so the smallest valid "256 MiB-class"
+      # value is 268435488. Tunable per deployment.
+      max_size: 268435488
+      when_full: block
     protocol:
       type: http
-      uri: https://otel-collector.example.com:4318/v1/logs
+      uri: ${OTLP_ENDPOINT}
       method: post
       encoding:
         codec: otlp         # emits proper OTLP protobuf bodies

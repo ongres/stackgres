@@ -49,7 +49,7 @@ logs/build/
 │       └── 0001-disable-default-features.patch
 ├── agent/
 │   ├── BUILD.bazel              # vector_binary + oci_image stack for the agent
-│   └── pipeline.yaml            # agent runtime config (placeholder UUID, one source/tag pair)
+│   └── pipeline.yaml.template   # agent runtime config template; slon substitutes ${INSTANCE_UUID} / ${OTLP_ENDPOINT} at deploy time
 └── verify/
     ├── BUILD.bazel
     ├── repro_check.sh           # double-cold-build manifest-digest comparison
@@ -100,32 +100,41 @@ then assembles the binary into a distroless OCI image via `pkg_tar` +
 
 ## Agent runtime configuration
 
-`agent/pipeline.yaml` ships with **one placeholder source/tag pair**:
+`agent/pipeline.yaml.template` is a **single-tenant** runtime config:
+one source, one tag transform, baked-in at template-fill time. The
+agent runs co-located with `slon`+Patroni+Postgres in a single
+container (one slon = one Postgres instance), so the multi-tenant
+clone-pair pattern earlier drafts considered does not apply. See the
+subsystem `DESIGN.md` for the rationale.
 
 ```yaml
 sources:
-  pg_001:
+  pg_csvlog:
     type: file
     include: [/var/log/postgresql/postgresql-*.csv]
     multiline: { ... }
 
 transforms:
-  tag_001:
+  tag_instance:
     type: remap
-    inputs: [pg_001]
+    inputs: [pg_csvlog]
     source: |
-      .instance_uuid = "00000000-0000-0000-0000-000000000001"
+      .instance_uuid = "${INSTANCE_UUID}"
 
   pg_parse:
-    inputs: [tag_001]   # extend per Postgres instance: [tag_001, tag_002, ...]
+    inputs: [tag_instance]
     ...
 ```
 
-The orchestrator templates this yaml at deploy time: one `(pg_<id>,
-tag_<id>)` pair per Postgres instance, each pair hardcoding the real
-instance UUID and the matching log directory. The shared downstream
-(`pg_parse`, `pg_to_otlp`, sinks) consumes from however many tag
-transforms the orchestrator wrote.
+`slon` consumes the template at startup and produces the runtime
+`/etc/vector/vector.yaml`: substitutes `${INSTANCE_UUID}` (its known
+slon-level constant) and `${OTLP_ENDPOINT}` (from its runtime
+config), and conditionally drops the `otlp_remote` sink if the user
+has not opted into remote log shipment. The `${VAR}` syntax is also
+Vector-native env-var interpolation, so a passthrough mode (slon
+sets the env vars on the agent process; Vector interpolates at
+config load) works from the same template — that is what the e2e
+verify script does.
 
 ### `pg_parse`
 
@@ -138,7 +147,7 @@ loudly.
 
 Builds the `ExportLogsServiceRequest` envelope. Resource attributes:
 `service.name=postgresql`, `db.system=postgresql`, `db.namespace=<from
-record>`, `instance.uuid=<from tag transform>`. Per-record attributes:
+record>`, `instance.uuid=<slon-substituted constant>`. Per-record attributes:
 all 23 fields outside of `log_time` / `severity` / `message` (which go
 into `timeUnixNano` / `severityText` / `body.stringValue`). Keys use
 OTel-conventional `db.*` where the spec has an equivalent and `pg.*`
