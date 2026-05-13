@@ -3567,7 +3567,7 @@
                     sgPostgresConfig: null,
                     sgPoolingConfig: null
                 },
-                enableDistributedLogs: true,
+                enableDistributedLogs: false,
                 restoreBackup: '',
                 enablePITR: false,
                 pitr: '',
@@ -4385,7 +4385,9 @@
                 const vc = this;
                 const timestamp = new Date();
                 const namespace = vc.$route.params.namespace;
-                const name = `generated-for-${vc.name}-${timestamp.getTime()}`;
+                // SGDistributedLog metadata.name is capped at 44 chars; keep the prefix
+                // short and base-36 the timestamp so realistic cluster names still fit.
+                const name = `gen-${vc.name}-${timestamp.getTime().toString(36)}`;
                 
                 if(vc.enableDistributedLogs) {
                     let sgdistributedlog = {
