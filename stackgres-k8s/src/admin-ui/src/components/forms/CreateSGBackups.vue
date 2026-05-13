@@ -117,7 +117,8 @@
                 backupName: 'bk' + vm.getDateString(),
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 backupCluster: (vm.$route.params.hasOwnProperty('name')) ? vm.$route.params.name : '',
-                managedLifecycle: false
+                managedLifecycle: false,
+                previousBackup: null
             }
         },
         computed: {
@@ -153,6 +154,10 @@
                             vm.backupName = bk.name;
                             vm.backupCluster = bk.data.spec.sgCluster;
                             vm.managedLifecycle = bk.data.spec.managedLifecycle
+                            // Keep a clone of the previous CR so the update payload
+                            // can preserve unknown metadata/spec fields and the
+                            // metadata.resourceVersion needed for concurrency control.
+                            vm.previousBackup = JSON.parse(JSON.stringify(bk.data));
                             backup = bk;
                             vm.editReady = true;
                             return false;
@@ -177,16 +182,18 @@
 
                 store.commit('loading', true);
 
+                const previous = vc.previousBackup;
                 let backup = {
                     "metadata": {
+                        ...(vc.hasProp(previous, 'metadata') && previous.metadata),
                         "name": this.backupName,
                         "namespace": this.backupNamespace
                     },
                     "spec": {
+                        ...(vc.hasProp(previous, 'spec') && previous.spec),
                         "sgCluster": this.backupCluster,
                         "managedLifecycle": this.managedLifecycle
-                    },
-                    "status": {}
+                    }
                 };
 
                 if(preview) {
