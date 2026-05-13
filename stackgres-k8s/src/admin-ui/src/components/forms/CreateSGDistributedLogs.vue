@@ -766,6 +766,7 @@
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "profile": this.profile,
                         "persistentVolume": {
+                            ...(this.hasProp(previous, 'spec.persistentVolume') && previous.spec.persistentVolume),
                             "size": this.volumeSize+this.volumeUnit,
                             ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
                         },
@@ -819,15 +820,17 @@
                                 */
                             }
                         },
-                        ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))) && {
+                        ...( (this.hasProp(previous, 'spec.metadata') || !$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))) && {
                             "metadata": {
+                                ...(this.hasProp(previous, 'spec.metadata') && previous.spec.metadata),
                                 "annotations": {
+                                    ...(this.hasProp(previous, 'spec.metadata.annotations') && previous.spec.metadata.annotations),
                                     ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
                                     ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"pods": this.parseProps(this.annotationsPods) }) ),
                                     ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
                                 }
                             }
-                        } || {"metadata": null} ),
+                        }),
 
                     },
                 }
