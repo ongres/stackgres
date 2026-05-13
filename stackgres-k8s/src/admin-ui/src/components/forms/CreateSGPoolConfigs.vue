@@ -216,6 +216,7 @@
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "pgBouncer": {
+                            ...(this.hasProp(previous, 'spec.pgBouncer') && previous.spec.pgBouncer),
                             "pgbouncer.ini": this.editMode ? vc.unifyParams() : this.poolConfigParams
                         }
                     }
