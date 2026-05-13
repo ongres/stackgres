@@ -792,6 +792,7 @@
                         "memory": (this.profileRAM + this.profileRAMUnit),
                         ...( (this.hugePages1Gi.length || this.hugePages2Mi.length) && {
                             "hugePages": {
+                                ...(this.hasProp(previous, 'spec.hugePages') && previous.spec.hugePages),
                                 ...( this.hugePages2Mi.length && {
                                     "hugepages-2Mi": this.hugePages2Mi + this.hugePages2MiUnit
                                 }),
@@ -800,18 +801,19 @@
                                 }),
                             }
                         } || {"hugePages": null} ),
-                        "containers": this.parseContainers(this.containers),
-                        "initContainers": this.parseContainers(this.initContainers),
+                        "containers": this.parseContainers(this.containers, this.hasProp(previous, 'spec.containers') ? previous.spec.containers : null),
+                        "initContainers": this.parseContainers(this.initContainers, this.hasProp(previous, 'spec.initContainers') ? previous.spec.initContainers : null),
                         ...( ( this.requests.RAM.length || this.requests.CPU.length || (this.parseContainers(this.requests.containers) != null) || (this.parseContainers(this.requests.initContainers) != null) ) && {
                             "requests": {
+                                ...(this.hasProp(previous, 'spec.requests') && previous.spec.requests),
                                 ...( this.requests.CPU.length && {
                                     "cpu": (this.requests.CPUUnit !== 'CPU') ? (this.requests.CPU + this.requests.CPUUnit) : this.requests.CPU
                                 }),
                                 ...( this.requests.RAM.length && {
                                     "memory": (this.requests.RAM + this.requests.RAMUnit),
                                 }),
-                                "containers": this.parseContainers(this.requests.containers),
-                                "initContainers": this.parseContainers(this.requests.initContainers),
+                                "containers": this.parseContainers(this.requests.containers, this.hasProp(previous, 'spec.requests.containers') ? previous.spec.requests.containers : null),
+                                "initContainers": this.parseContainers(this.requests.initContainers, this.hasProp(previous, 'spec.requests.initContainers') ? previous.spec.requests.initContainers : null),
                             }
                         } || {"requests": null} )
                     }
@@ -883,13 +885,17 @@
 
             },
 
-            parseContainers(containers) {
+            parseContainers(containers, previousContainers = null) {
 
                 let result = {};
-                
+                const prev = (previousContainers && typeof previousContainers === 'object') ? previousContainers : {};
+
                 containers.forEach( (container) => {
                     if( container.name.length && (container.RAM.length || container.CPU.length || container.hugePages1Gi.length || container.hugePages2Mi.length) ) {
+                        const previousContainer = (prev[container.name] && typeof prev[container.name] === 'object') ? prev[container.name] : {};
+                        const previousHugePages = (previousContainer.hugePages && typeof previousContainer.hugePages === 'object') ? previousContainer.hugePages : {};
                         result[container.name] = {
+                            ...previousContainer,
                             ...( container.CPU.length && {
                                 "cpu": (container.CPUUnit !== 'CPU') ? (container.CPU + container.CPUUnit) : container.CPU
                             }),
@@ -898,6 +904,7 @@
                             }),
                             ...( ( (container.hasOwnProperty('hugePages1Gi') && container.hugePages1Gi.length) || (container.hasOwnProperty('hugePages2Mi') && container.hugePages2Mi.length) ) && {
                                 "hugePages": {
+                                    ...previousHugePages,
                                     ...( (container.hasOwnProperty('hugePages2Mi') && container.hugePages2Mi.length) && {
                                         "hugepages-2Mi": container.hugePages2Mi + container.hugePages2MiUnit
                                     }),
@@ -909,7 +916,7 @@
                         }
                     }
                 })
-                
+
                 return ( Object.keys(result).length ? result : null )
 
             },
