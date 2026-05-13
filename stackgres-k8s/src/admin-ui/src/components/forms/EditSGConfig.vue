@@ -3316,6 +3316,7 @@
                     serviceAccount: 'Service Account'
                 },
                 spec: {},
+                previousMetadata: null,
             }
         },
 
@@ -3333,6 +3334,10 @@
 
                     if(typeof sgConfig !== 'undefined') {
                         vc.$set(vc, 'spec', JSON.parse(JSON.stringify(sgConfig.spec)));
+                        // Keep a clone of the previous metadata so the update payload
+                        // can preserve resourceVersion, labels, annotations and the
+                        // operator-managed lock fields.
+                        vc.$set(vc, 'previousMetadata', JSON.parse(JSON.stringify(sgConfig.metadata)));
 
                         // Parse resources limits and requests
                         ['adminui', 'jobs'].forEach( (prop) => {
@@ -3419,10 +3424,11 @@
                 }
 
                 // Unparse properties
-                const sgConfig = { 
+                const sgConfig = {
                     metadata: {
-                        namespace: 'stackgres',
-                        name: this.$route.params.name
+                        ...(vc.previousMetadata || {}),
+                        name: this.$route.params.name,
+                        namespace: (vc.previousMetadata && vc.previousMetadata.namespace) || 'stackgres'
                     },
                     spec: JSON.parse(JSON.stringify(this.spec))
                 };
