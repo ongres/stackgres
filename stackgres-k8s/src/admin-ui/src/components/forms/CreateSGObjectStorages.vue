@@ -555,7 +555,7 @@
                             } else {
                                 vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgobjectstorages');
 
-                                vc.fetchAPI('sgobjectstorage');
+                                vc.fetchAPI('sgobjectstorages');
                                 router.push('/' + config.metadata.namespace + '/sgobjectstorage/' + config.metadata.name);
                             }
                             store.commit('loading', false);
@@ -583,7 +583,7 @@
                                     vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgobjectstorages');
                                 }
 
-                                vc.fetchAPI('sgobjectstorage');
+                                vc.fetchAPI('sgobjectstorages');
                                 router.push('/' + config.metadata.namespace + '/sgobjectstorages');
                             }
                             store.commit('loading', false);
