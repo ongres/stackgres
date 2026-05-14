@@ -478,11 +478,14 @@
 
                 // Drop any inactive backend block carried over from previous when
                 // the user switched type, but preserve unknown sibling fields.
-                ['s3', 's3Compatible', 'gcs', 'azureBlob'].forEach((backend) => {
+                // Use for/of (rather than a bare array literal + forEach) to avoid
+                // ASI collapsing the previous statement's trailing `}` with the
+                // following `[` into a property access.
+                for (const backend of ['s3', 's3Compatible', 'gcs', 'azureBlob']) {
                     if (backend !== this.type) {
                         delete config.spec[backend];
                     }
-                });
+                }
 
                 switch(this.type) {
                     
