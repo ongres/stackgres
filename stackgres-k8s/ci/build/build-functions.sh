@@ -739,7 +739,7 @@ list_image_tags() {
   local AUTH AUTH_OPTS RESPONSE AUTH_HEADER REALM SERVICE SCOPE TOKEN
 
   # Extract basic auth from Docker config
-  AUTH="$(jq -r ".auths[\"$REGISTRY\"].auth // empty" "$HOME/.docker/config.json" 2>/dev/null)"
+  AUTH="$(jq -r ".auths[\"$REGISTRY\"].auth // empty" "$HOME/.docker/config.json" 2>/dev/null || true)"
   AUTH_OPTS=""
   if [ -n "$AUTH" ]; then
     AUTH_OPTS="-u $(printf %s "$AUTH" | base64 -d)"
