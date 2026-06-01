@@ -831,7 +831,7 @@ get_image_platform() {
   local IMAGE_PLATFORM
   retrieve_image_manifest "$IMAGE_NAME" > /dev/null
   if IMAGE_PLATFORM="$(jq -r \
-    '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Architecture' \
+    '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
     "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
     2>/dev/null)"
   then
@@ -884,8 +884,12 @@ retrieve_image_manifest() {
         REGISTRY_PORT="$(docker_inspect "$REGISTRY_CONTAINER_ID" | jq '.[0].NetworkSettings.Ports["5000/tcp"][0].HostPort' -r)"
         REGISTRY_IMAGE_NAME="localhost:$REGISTRY_PORT/$(printf %s "${IMAGE_NAME%:*}" | tr '/:' '_'):${IMAGE_NAME##*:}"
         docker_tag "$IMAGE_NAME" "$REGISTRY_IMAGE_NAME"
-        REGISTRY_IMAGE_PLATFORM="$(jq -r '"\(.[0].Os)/\(.[0].Architecture)"' \
-          "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}")"
+        docker_inspect "$REGISTRY_IMAGE_NAME" \
+          > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
+        REGISTY_IMAGE_PLATFORM="$(jq -r \
+            '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
+            "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+            2>/dev/null)"
         docker_push --platform "$REGISTRY_IMAGE_PLATFORM" "$REGISTRY_IMAGE_NAME"
         docker_inspect "$REGISTRY_IMAGE_NAME" \
           > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
