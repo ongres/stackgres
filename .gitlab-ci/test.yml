@@ -1,3 +1,25 @@
+build framework tests:
+  image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: test
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  script:
+    - |
+      # Avoid debug break shellspec tests
+      export DEBUG=false
+      cd stackgres-k8s/ci/build/test
+      shellspec --shell sh --format tap --output junit
+  retry:
+    max: 2
+    when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
+     stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ]
+  artifacts:
+    expire_in: 1 week
+    when: always
+    reports:
+      junit:
+        - stackgres-k8s/ci/build/test/report/results_junit.xml
 shell unit tests:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
