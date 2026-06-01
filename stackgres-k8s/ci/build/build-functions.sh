@@ -502,28 +502,45 @@ extract_from_image() {
   local IMAGE_NAME="$1"
   shift
   local IMAGE_PLATFORM
+  local CONTAINER_ID
+  local WORKDIR
+  local DEST="${PROJECT_PATH:-$(pwd)}"
+  local FILE
+  local SRC
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
-  docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
+  # Files are extracted with `docker create` + `docker cp` instead of running
+  # the image, so extraction never executes a binary from the image. This makes
+  # it work regardless of the host architecture (e.g. extracting from an arm64
+  # image on an amd64 runner) without requiring qemu/binfmt emulation.
+  # `docker cp` (without --archive) writes the files owned by the invoking user,
+  # matching the previous `--user $(id -u):$(id -g)` behaviour.
+  CONTAINER_ID="$(docker_create --platform "$IMAGE_PLATFORM" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
-    --user "$(id -u):$(id -g)" \
-    --env HOME=/tmp \
-    -v "${PROJECT_PATH:-$(pwd)}:/out" \
-    "$IMAGE_NAME" \
-    -c "$(cat << EOF
-for FILE in $*
-do
-  if [ -d "\$FILE" ]
-  then
-    mkdir -p "/out/\$FILE"
-    cp -rf "\$FILE/." "/out/\$FILE"
-  elif [ -e "\$FILE" ]
-  then
-    mkdir -p "/out/\${FILE%/*}"
-    cp -f "\$FILE" "/out/\$FILE"
-  fi
-done
-EOF
-      )"
+    "$IMAGE_NAME")"
+  # Relative artifact paths were resolved against the image WORKDIR by the old
+  # in-container `cp`; `docker cp` resolves them against `/`, so prefix WORKDIR.
+  WORKDIR="$(docker_inspect "$CONTAINER_ID" --format '{{.Config.WorkingDir}}' 2>/dev/null || true)"
+  WORKDIR="${WORKDIR:-/}"
+  for FILE in "$@"
+  do
+    case "$FILE" in
+      /*) SRC="$FILE" ;;
+      *)  SRC="${WORKDIR%/}/$FILE" ;;
+    esac
+    mkdir -p "$DEST/$FILE"
+    if docker_cp "$CONTAINER_ID:$SRC/." "$DEST/$FILE" 2>/dev/null
+    then
+      # $FILE is a directory: its contents were merged into $DEST/$FILE
+      :
+    else
+      # $FILE is not a directory: drop the placeholder and copy it as a file
+      # (silently skipping paths that do not exist in the image)
+      rmdir "$DEST/$FILE" 2>/dev/null || true
+      mkdir -p "$DEST/${FILE%/*}"
+      docker_cp "$CONTAINER_ID:$SRC" "$DEST/$FILE" 2>/dev/null || true
+    fi
+  done
+  docker_rm -fv "$CONTAINER_ID" >/dev/null
 }
 
 generate_image_hashes() {
@@ -971,6 +988,14 @@ docker_rmi() {
 
 docker_run() {
   docker run "$@"
+}
+
+docker_create() {
+  docker create "$@"
+}
+
+docker_cp() {
+  docker cp "$@"
 }
 
 docker_build() {
