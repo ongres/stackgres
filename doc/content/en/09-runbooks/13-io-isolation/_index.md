@@ -32,6 +32,15 @@ This runbook walks a Kubernetes cluster administrator through the steps
 No `hostPath` mounts, no privileged init containers in the cluster pods,
  no custom cgroup writes from inside the workload.
 
+> StackGres 1.19 (upcoming) will introduce a complementary mechanism that
+> configures per-pod I/O caps directly in the SGCluster spec, with no
+> node-level preparation. It is simpler to enable, but requires host-cgroup
+> access from the cluster pods, which SCC policies in many OpenShift
+> environments forbid. This runbook covers the alternative path: more
+> upfront node preparation, but using only standard, supported
+> configuration surfaces. Both approaches will coexist; this runbook will
+> link to the in-cluster approach once 1.19 ships.
+
 The runbook covers configuring CRI-O and containerd directly (applicable
  to any Kubernetes distribution), then documents the OpenShift-specific
  path that delivers the same configuration through the Machine Config
@@ -128,7 +137,7 @@ nvme-db-03   Ready    stackgres-db,worker       120d   v1.28.x
 You need a single integer per node hardware profile: the safe IOPS ceiling
  you will advertise as the extended resource and use as the upper bound of
  your BlockIO class ladder. The procedure is run once per hardware profile,
- not per node — identical hardware yields identical numbers.
+ not per node --identical hardware yields identical numbers.
 
 > **Critical: prefill the SSD before measuring.** Empty-SSD performance is
 > 30–50% higher than steady-state because the FTL has not yet allocated
@@ -185,13 +194,22 @@ kubectl label namespace fio \
 > Alternatively, run the `fio` commands directly on the node via
 > `oc debug node/nvme-db-01`.
 
-Wait for the Pod to be `Running` (the apt install takes ~30 seconds):
+Wait for the Pod to be `Running`. `--for=condition=Ready` flips as soon
+ as the container starts --**not** when the in-container `apt-get install`
+ finishes-- so we follow it with a poll for the `fio` binary actually
+ being on `PATH`:
 
 ```bash
 kubectl wait -n fio --for=condition=Ready pod/fio-characterize --timeout=120s
+
+for i in $(seq 1 60); do
+  kubectl exec -n fio fio-characterize -- which fio >/dev/null 2>&1 && break
+  sleep 5
+done
+kubectl exec -n fio fio-characterize -- fio --version
 ```
 
-**Prefill (run once per drive — destroys the data on the device!):**
+**Prefill (run once per drive --destroys the data on the device!):**
 
 ```bash
 kubectl exec -n fio -it fio-characterize -- \
@@ -245,6 +263,20 @@ kubectl exec -n fio -it fio-characterize -- \
       --group_reporting
 ```
 
+> **Why 4k and not Postgres' 8k page size?** The kernel's `blk-throttle`
+> subsystem counts BIOs (block I/O operations), not bytes --and a single
+> Postgres 8k page operation is not necessarily one BIO (it can be split,
+> merged, or aggregated with adjacent I/O depending on alignment,
+> readahead, and the I/O scheduler). 4k is the standard block-layer
+> atomic unit and matches the IOPS numbers vendors quote on NVMe spec
+> sheets, making characterization comparable across hardware. The cap
+> you derive is in BIOs/sec regardless of each BIO's size, so 4k is the
+> right unit. If you want a Postgres-relevant cross-check, repeat
+> tests 1 and 2 at `--bs=8k`; you typically observe ~70-80% of the 4k
+> IOPS number (each operation moves more bytes, fewer fit in the
+> device queue), but the cap derived from 4k is the conservative
+> reference.
+
 Each test ends with a summary block. The relevant lines look like:
 
 ```
@@ -262,7 +294,7 @@ stackgres.io/iops          = floor(0.75 × min(test1_iops, test2_iops))
 stackgres.io/io-bandwidth  = floor(0.75 × min(test3_bw,   test4_bw))   # if used
 ```
 
-The `min()` is conservative — it ensures the cap holds for the worst-case
+The `min()` is conservative --it ensures the cap holds for the worst-case
  read/write mix. The 0.75 factor leaves headroom for system I/O,
  filesystem overhead, and run-to-run variance.
 
@@ -277,13 +309,36 @@ Carry the numbers above into [step 3](#3-author-the-blockio-class-ladder)
  [step 5](#5-advertise-iops-capacity-as-an-extended-resource) (to advertise
  the ceiling itself).
 
+> **A note on `fio` vs Postgres-level tools.** `fio` is the right tool
+> for *drive characterization* --it bypasses Postgres, the page cache,
+> and the filesystem to measure what the kernel and the device can
+> actually sustain in BIOs/sec. That's exactly the layer at which the
+> cap is enforced. **`pgbench` (or replay of your production traffic)
+> has a different role**: once a cap is set, use it to validate that
+> the tier you picked fits your specific workload's tps target. The
+> kernel cap is in BIOs/sec; the resulting Postgres tps depends on your
+> workload's mix (read/write ratio, transaction size, WAL volume,
+> cache hit ratio), and only an end-to-end Postgres benchmark can
+> answer "is this cap tight enough that my application is unhappy?".
+> The two tools answer different questions at different stages of
+> capacity planning.
+
 ## 3. Author the BlockIO class ladder
 
 Write a `blockio.yaml` file that defines the named classes you want to
  offer. The format is shared between CRI-O and containerd. Class names
- and tier values are entirely up to you — StackGres imposes no specific
+ and tier values are entirely up to you --StackGres imposes no specific
  naming convention. Stay below the safe ceiling derived in
  [step 2](#2-characterize-the-drive-with-fio).
+
+**Tier-design guidance.** Three to five classes is the practical range.
+ Fewer leaves too little flexibility for workloads of different
+ intensity; more is over-engineering and creates choice fatigue when
+ placing clusters. The values should span an order of magnitude or so
+ (e.g. 1k / 5k / 20k / 50k IOPS), with the highest tier well below the
+ node's safe ceiling so multiple high-tier pods can coexist on the same
+ node without exceeding the budget enforced by the extended resource
+ in [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
 
 Example ladder (adjust devices and values for your environment):
 
@@ -315,8 +370,19 @@ Classes:
 
 Device globs are expanded by the runtime against the real devices present
  on each node. Classes that reference devices absent on a given node
- simply produce no cgroup entries for that pod on that node — they do not
+ simply produce no cgroup entries for that pod on that node --they do not
  fail.
+
+> **Important: glob expansion is one-shot, at CRI-O / containerd startup.**
+> Each `Devices` glob is evaluated once, when the runtime reads
+> `blockio.yaml`. The class is then stored as a fixed list of
+> `(major:minor, parameter, value)` tuples. Block devices that don't
+> exist at that moment are not in the class; devices that appear later
+> (notably the per-PVC `/dev/dm-N` devices that LVM-based CSI drivers
+> provision on demand) are **not** retroactively added. The annotated
+> pods that need those devices get no throttle --silently, with no
+> event. See [Limitations and caveats](#limitations-and-caveats) below
+> for the operational implications and the recommended workflow.
 
 Save this file locally; the next step places it on the database nodes via
  the path appropriate to your runtime/platform.
@@ -327,12 +393,12 @@ This step has three alternative paths. Pick exactly one per node hardware
  profile, based on the container runtime in use and whether the cluster
  is managed by the OpenShift Machine Config Operator:
 
-- [**4.1**](#41-cri-o-direct-configuration) — CRI-O nodes on any Kubernetes (manual configuration)
-- [**4.2**](#42-containerd-direct-configuration) — containerd nodes on any Kubernetes (manual configuration)
-- [**4.3**](#43-openshift-configure-via-machine-config-operator) — OpenShift (configuration delivered through MCO)
+- [**4.1**](#41-cri-o-direct-configuration) --CRI-O nodes on any Kubernetes (manual configuration)
+- [**4.2**](#42-containerd-direct-configuration) --containerd nodes on any Kubernetes (manual configuration)
+- [**4.3**](#43-openshift-configure-via-machine-config-operator) --OpenShift (configuration delivered through MCO)
 
 How you deliver the configuration files to each node in 4.1 / 4.2 is a
- node-management problem outside the scope of this runbook — typical
+ node-management problem outside the scope of this runbook --typical
  choices are SSH + `scp`, a configuration-management tool
  (Ansible/Salt/Puppet), bakes into a golden node image, or a privileged
  DaemonSet that writes the files and restarts the runtime. The commands
@@ -396,8 +462,22 @@ Inspect the CRI-O journal for the class load message:
 journalctl -u crio --since "5 min ago" | grep -i blockio
 ```
 
-Expected output: lines acknowledging the config file path and the loaded
- class names (`stackgres-io-1k`, `stackgres-io-5k`, ...).
+Expected output: lines acknowledging the config file path and a final
+ `Blockio config successfully loaded` message.
+
+> **Check for `device wildcard does not match` warnings.** If you see
+> lines like:
+>
+> ```
+> [ blockio ] WARN: device wildcard "/dev/dm-[0-9]*" does not match any device nodes
+> [ blockio ] WARN: no matches on any of Devices: [/dev/dm-[0-9]*], parameters ignored
+> ```
+>
+> the class loaded with **empty** parameters for that wildcard, and any
+> annotated pod that needs a matching device will get **no throttle**.
+> This is the symptom of the one-shot expansion described in [step 3](#3-author-the-blockio-class-ladder)
+> and discussed in [Limitations and caveats](#limitations-and-caveats).
+> See that section for the recommended remediation.
 
 Skip to [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
 
@@ -464,10 +544,13 @@ Expected output (subset, exact key names depend on the version):
     blockio_config_file = "/etc/containerd/blockio.yaml"
 ```
 
-Inspect the containerd journal for any parse errors:
+Inspect the containerd journal for parse errors and for `device
+ wildcard ... does not match` warnings --the same one-shot-glob-expansion
+ caveat applies to containerd as to CRI-O. See
+ [Limitations and caveats](#limitations-and-caveats):
 
 ```bash
-journalctl -u containerd --since "5 min ago" | grep -i blockio
+journalctl -u containerd --since "5 min ago" | grep -iE 'blockio|wildcard'
 ```
 
 Skip to [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
@@ -507,7 +590,7 @@ EOF
 ```
 
 Wait for the pool to reconcile. This triggers a rolling drain + reboot of
- existing nodes, one at a time, since they switch pools — make sure the
+ existing nodes, one at a time, since they switch pools --make sure the
  pool has n+1 capacity if you cannot tolerate disruption:
 
 ```bash
@@ -566,7 +649,7 @@ Expected output: the YAML you authored in step 3, verbatim.
 #### 4.3.3 Enable BlockIO in CRI-O
 
 CRI-O has to be told to load `/etc/crio/blockio.yaml`. Ship a CRI-O
- drop-in configuration file via a second `MachineConfig` — it's just
+ drop-in configuration file via a second `MachineConfig` --it's just
  another Ignition file, so MCO delivers it to every node in the pool the
  same way it delivered `/etc/crio/blockio.yaml` in
  [step 4.3.2](#432-deliver-the-blockio-config-via-machineconfig):
@@ -595,7 +678,7 @@ EOF
 ```
 
 MCO restarts CRI-O whenever its config files change, so applying this
- triggers a rolling drain + reboot of the MCP — one node at a time. Watch
+ triggers a rolling drain + reboot of the MCP --one node at a time. Watch
  the rollout:
 
 ```bash
@@ -618,11 +701,17 @@ blockio_config_file = "/etc/crio/blockio.yaml"
 
 If the blockio drop-in was loaded recently, the CRI-O journal will also
  show the load message (this fires only on drop-in reloads, not on every
- restart — an empty result here doesn't necessarily mean failure):
+ restart --an empty result here doesn't necessarily mean failure):
 
 ```bash
-oc debug node/nvme-db-01 -- chroot /host journalctl -u crio --since "10 min ago" | grep -i blockio
+oc debug node/nvme-db-01 -- chroot /host journalctl -u crio --since "10 min ago" | grep -iE 'blockio|wildcard'
 ```
+
+Look out for `WARN: device wildcard ... does not match any device nodes`
+ entries --those mean the class loaded with empty parameters and the
+ annotation will have no effect. See
+ [Limitations and caveats](#limitations-and-caveats) for the cause and
+ the recommended workaround.
 
 Continue to [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
 
@@ -634,7 +723,7 @@ This step is independent of the BlockIO class wiring above. Skip it if you
 
 Patch each node's status capacity with the safe ceiling derived in
  [step 2](#2-characterize-the-drive-with-fio). The path uses JSON Pointer
- escaping — `~1` is the literal escape for `/` and is easy to miss:
+ escaping --`~1` is the literal escape for `/` and is easy to miss:
 
 ```bash
 kubectl patch node nvme-db-01 \
@@ -648,20 +737,28 @@ kubectl patch node nvme-db-01 \
 Repeat per node, substituting the appropriate value if hardware profiles
  differ.
 
-Verify:
+Verify. `kubectl describe` renders resource quantities in the friendly
+ form (e.g. `150k` for `150000`); use `kubectl get -o jsonpath` if you
+ need the exact integer:
 
 ```bash
-kubectl describe node nvme-db-01 | grep -A1 -E 'Capacity|Allocatable' | grep -E 'stackgres.io/iops|---'
+kubectl describe node nvme-db-01 | sed -n '/^Capacity:/,/^System Info:/p' | grep stackgres.io/iops
 ```
 
-Expected output:
+Expected output (two identical lines --`Capacity` and `Allocatable`):
 
 ```
-  stackgres.io/iops:  150000
-  stackgres.io/iops:  150000
+  stackgres.io/iops:  150k
+  stackgres.io/iops:  150k
 ```
 
-(The two lines correspond to `Capacity` and `Allocatable`.)
+For the exact integer:
+
+```bash
+kubectl get node nvme-db-01 -o jsonpath='{.status.capacity.stackgres\.io/iops}{"\n"}'
+```
+
+Expected output: `150000`.
 
 > **Persistence caveat.** `status.capacity` is rewritten by the kubelet
 > periodically. Kubernetes 1.20+ preserves unknown extended resources
@@ -678,15 +775,18 @@ Create a test SGCluster that exercises the full path: the BlockIO class
  mounts the same data PV so I/O performance can be measured against the
  actual storage path Postgres will use.
 
-> **About the storage class.** The example below uses `topolvm-nvme`, an
-> LVM-based local CSI provisioner. The choice of provisioner is not
-> arbitrary — the BlockIO cap has to apply to the device the workload
-> actually writes to:
+> **About the storage class.** The example below uses
+> `local-lvm-nvme` --a placeholder name. Substitute the StorageClass
+> name your provisioner exposes (e.g. `topolvm-default` for TopoLVM,
+> `lvms-vg1` for LVMS, the name you gave to your OpenEBS LVM-LocalPV
+> StorageClass). The choice of *kind* of provisioner is what matters,
+> not the name: the BlockIO cap has to apply to the device the workload
+> actually writes to.
 >
 > - **Per-PVC device-mapper devices.** LVM-based local CSI drivers expose
 >   each PVC as its own `/dev/dm-N` device. That's why the `blockio.yaml`
 >   in [step 3](#3-author-the-blockio-class-ladder) includes
->   `/dev/dm-[0-9]*` in the device globs — the cap is enforced on the
+>   `/dev/dm-[0-9]*` in the device globs --the cap is enforced on the
 >   dm device that the Postgres process writes to.
 > - **Local storage.** I/O stays on the node, so a kernel-block-layer cap
 >   is meaningful. With network-attached storage (Ceph RBD, EBS, GCE PD,
@@ -698,7 +798,7 @@ Create a test SGCluster that exercises the full path: the BlockIO class
 >
 > - **[OpenEBS LVM-LocalPV](https://openebs.io/docs/concepts/local-storage-user-guide/local-pv-lvm)** —
 >   vanilla Kubernetes, same TopoLVM-style semantics.
-> - **Red Hat LVM Storage Operator (LVMS)** — **recommended on OpenShift**.
+> - **Red Hat LVM Storage Operator (LVMS)** --**recommended on OpenShift**.
 >   Available from OperatorHub, it is TopoLVM repackaged with proper SCC
 >   handling and an `LVMCluster` CR that drives VG setup. Installing the
 >   upstream TopoLVM Helm chart on OpenShift requires manual SCC bindings
@@ -706,7 +806,7 @@ Create a test SGCluster that exercises the full path: the BlockIO class
 >   that LVMS avoids. The provisioner StorageClass LVMS creates is
 >   typically named `lvms-<device-class>` (for example `lvms-vg1`).
 > - Any other CSI driver that creates one block device per PVC and lives
->   on the node — Ondat, the Local Storage Operator paired with
+>   on the node --Ondat, the Local Storage Operator paired with
 >   `LocalVolume` raw block PVs, etc.
 >
 > Substitute the `storageClass` field below for whichever provisioner you
@@ -714,8 +814,13 @@ Create a test SGCluster that exercises the full path: the BlockIO class
 
 > If you skipped [step 5](#5-advertise-iops-capacity-as-an-extended-resource)
 > (extended resource layer), remove the `pods.resources` block from the
-> SGCluster spec below — otherwise the cluster pod will stay `Pending`
+> SGCluster spec below --otherwise the cluster pod will stay `Pending`
 > because no node advertises the requested resource.
+
+The `clusterPods` key under `spec.metadata.annotations` is a StackGres
+ convention. Its entries are propagated as annotations on each cluster
+ pod, which is how the BlockIO class selection reaches the container
+ runtime.
 
 Adjust the `storageClass`, `sgInstanceProfile`, and Postgres version to
  values that exist in your environment:
@@ -739,7 +844,7 @@ spec:
         blockio.resources.beta.kubernetes.io/pod: stackgres-io-5k
   pods:
     persistentVolume:
-      storageClass: topolvm-nvme
+      storageClass: local-lvm-nvme
       size: 10Gi
     scheduling:
       nodeSelector:
@@ -765,7 +870,7 @@ EOF
 ```
 
 Note: the custom container declared as `fio` appears in the pod as `custom-fio`
- — StackGres prepends `custom-` to custom container names.
+ --StackGres prepends `custom-` to custom container names.
 
 Wait for the cluster pod to be running:
 
@@ -773,7 +878,7 @@ Wait for the cluster pod to be running:
 kubectl wait -n io-isolation --for=condition=Ready pod/io-isolation-test-0 --timeout=300s
 ```
 
-If the pod stays `Pending`, inspect the events — `Insufficient
+If the pod stays `Pending`, inspect the events --`Insufficient
  stackgres.io/iops` means more capacity needs to be advertised
  ([step 5](#5-advertise-iops-capacity-as-an-extended-resource)) or the
  request needs to be lowered.
@@ -798,22 +903,42 @@ find /sys/fs/cgroup -name 'io.max' -path "*pod${POD_UID//-/_}*" 2>/dev/null
 
 (With the systemd cgroup driver, the path embeds the pod UID with dashes
  replaced by underscores. With the cgroupfs driver, dashes are preserved
- — adjust the substitution if the search returns nothing.)
+ --adjust the substitution if the search returns nothing.)
 
-The `find` returns one cgroup per process structure in the pod, which is
- more than one per workload container. Three categories show up — be
- careful which one you read:
+The `find` returns one cgroup per process structure in the pod. The
+ path where the throttle entries actually land depends on the
+ cgroup-driver and OCI-runtime combination on your nodes:
 
-- `kubepods-burstable-pod<UID>.slice/io.max` — the pod-level cgroup.
-- `kubepods-burstable-pod<UID>.slice/crio-<container-ID>.scope/io.max` —
-  one per workload container. **These should carry the throttle.**
-- `kubepods-burstable-pod<UID>.slice/crio-conmon-<container-ID>.scope/io.max` —
-  CRI-O's container-monitor sidecars (one per workload container).
-  **These are not workload containers and are expected to be empty.**
-  Ignore them when reading.
+- With `cgroup_manager = "systemd"` and `crun` as the runtime (the
+  modern CRI-O default --used by OpenShift 4.x), the throttle is written
+  by `crun` into an **inner** cgroup the runtime itself creates:
+  `kubepods-…-pod<UID>.slice/crio-<container-ID>.scope/container/io.max`.
+  The outer `crio-<container-ID>.scope/io.max` stays empty in this case.
+- With older configurations (`cgroup_manager = "systemd"` + `runc`, or
+  `cgroup_manager = "cgroupfs"`), the throttle lands at
+  `kubepods-…-pod<UID>.slice/crio-<container-ID>.scope/io.max` directly.
+- `kubepods-…-pod<UID>.slice/io.max` is the pod-level cgroup and is
+  always empty in this setup --the throttle is per-container, not
+  per-pod.
+- If `monitor_cgroup = "pod"` is configured (a non-default mode), you
+  may additionally see `crio-conmon-<container-ID>.scope/io.max` siblings
+  --CRI-O's container-monitor sidecars. **These are not workload
+  containers and are expected to be empty.** With the modern default
+  `monitor_cgroup = "system.slice"`, these scopes are not under the pod
+  slice at all and you can ignore this category.
 
-To map the `<container-ID>` values back to container names — so you know
- which scope corresponds to the **patroni** container — run:
+To find the file that actually holds the throttle entries regardless of
+ which layout your node uses, look for the `io.max` files that contain a
+ `riops=` line:
+
+```bash
+# on the node:
+find /sys/fs/cgroup -name 'io.max' -path "*pod${POD_UID//-/_}*" 2>/dev/null \
+  | xargs -r grep -l riops=
+```
+
+To map the `<container-ID>` values back to container names --so you know
+ which scope corresponds to the **patroni** container-- run:
 
 ```bash
 kubectl -n io-isolation get pod io-isolation-test-0 -o json | \
@@ -832,11 +957,16 @@ prometheus-postgres-exporter   a2144dcf8a1e28109f37dd7055340e81c4254d5389cdb0b09
 ```
 
 Dump `io.max` for the patroni container's scope, substituting the
- container ID from the mapping above:
+ container ID from the mapping above. On modern CRI-O + `crun` the file
+ lives one level deeper, under `container/`:
 
 ```bash
 # on the node:
-cat /sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod${POD_UID//-/_}.slice/crio-<patroni-id>.scope/io.max
+PATRONI_ID=<patroni container ID from the mapping above>
+BASE=/sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod${POD_UID//-/_}.slice/crio-${PATRONI_ID}.scope
+
+# try the inner path first (crun creates an inner cgroup):
+cat ${BASE}/container/io.max 2>/dev/null || cat ${BASE}/io.max
 ```
 
 Expected output (exact device numbers depend on your storage stack):
@@ -864,20 +994,23 @@ This confirms:
 - The throttle parameters from the `stackgres-io-5k` class were resolved.
 - The kernel wrote the matching `io.max` entries into the pod's cgroup.
 
-If `io.max` on the **patroni** container's scope (not the conmon ones —
- those are always empty) is absent or contains `max` for every field, the
- annotation was silently ignored — see
- [Troubleshooting](#troubleshooting) below.
+If the `find … | xargs -r grep -l riops=` above returned no files, or
+ the file it returned contains `max` for every field, the annotation was
+ silently ignored. The most common cause is the
+ [one-shot glob expansion described in step 3](#3-author-the-blockio-class-ladder)
+ --see [Limitations and caveats](#limitations-and-caveats) for diagnosis
+ and remediation. If that's not it, see [Troubleshooting](#troubleshooting)
+ below.
 
 ### 6.2 Load-test against the data PV
 
 Run `fio` from inside the `custom-fio` custom container, against a file on the
  same data PV that Patroni uses. The cgroup applies at the pod level so
- the cap that throttles Postgres also throttles `fio` here — the measured
+ the cap that throttles Postgres also throttles `fio` here --the measured
  IOPS therefore reflect exactly the cap Postgres will see at runtime.
 
 Once the pod is `Ready`, the `openeuler/fio` image used in the
- `custom-fio` container has `fio` already on `$PATH` — no startup install
+ `custom-fio` container has `fio` already on `$PATH` --no startup install
  step is needed.
 
 Run a random 4k read test (1 GB file, 60 seconds, direct I/O bypasses
@@ -901,7 +1034,7 @@ Expected output (relevant line):
 
 The reported `IOPS=` should land within a few percent of the
  `stackgres-io-5k` cap (5000), **not** the device's native peak. If the
- number is much higher, the throttle is not applied — re-check
+ number is much higher, the throttle is not applied --re-check
  [section 6.1](#61-verify-the-cgroup-iomax) and the troubleshooting
  section.
 
@@ -923,17 +1056,218 @@ kubectl exec -n io-isolation -it io-isolation-test-0 -c custom-fio -- \
 kubectl delete ns io-isolation
 ```
 
+## Operational considerations
+
+### What triggers a node reboot vs. what doesn't
+
+Once the runbook is applied, day-2 operations fall into two distinct
+ buckets. Knowing which is which matters for change-management and
+ capacity planning.
+
+| Change | Node reboot? | Impact |
+|---|---|---|
+| Edit `blockio.yaml` (add/remove/modify class definitions) | **Yes** | MCO (or your config-management tool) rolls drain + reboot one node at a time. Pods reschedule; the MCP needs n+1 capacity to avoid downtime. |
+| Add/remove `blockio_config_file` in the runtime config | **Yes** | Same as above --runtime config change. |
+| Change which class an SGCluster's pods use (annotation only) | **No** | The operator recreates the pods at the new annotation; no node touch. |
+| Add/remove the `stackgres.io/iops` request/limit on a cluster | **No** | Pod-level change; no node touch. |
+| Patch `status.capacity["stackgres.io/iops"]` on a node | **No** | Online operation on the node object. |
+| Scale a cluster up (new pod, new PVC) | **No reboot** --but the new PVC's `/dev/dm-N` must fall within the seeded slots from initial node provisioning (see [Limitations](#one-shot-device-glob-expansion)). Otherwise the new pod isn't throttled. |
+| Provision a brand-new database node | The BlockIO config is baked in via Ignition at first boot --no rolling restart, no drain. This is the recommended provisioning path. |
+
+The practical implication: **most day-2 changes (tier reassignments,
+ scaling, capacity adjustments) are online and pod-level**. Reboots
+ are confined to the relatively rare event of changing the class ladder
+ itself --which typically only happens when adding a new tier or
+ retuning values after a hardware change.
+
+### Behavior under contention from uncapped workloads
+
+The cap is a **hard upper bound** but only a **soft lower bound**:
+
+- **Hard upper bound**: a capped pod *never* exceeds its configured
+  IOPS/bandwidth limit, regardless of what else runs on the node. This
+  is enforced in the kernel by `blk-throttle` and is independent of any
+  other I/O activity.
+- **Soft lower bound**: a capped pod *achieves* its limit only when the
+  underlying device is not saturated by other I/O. If uncapped pods
+  --or workloads running outside the BlockIO class system entirely
+  --saturate the drive, capped pods can be starved well below their
+  cap. The cap reserves nothing; it only ceilings.
+
+To turn the cap into a *guaranteed share* rather than just an upper
+ bound, the sum of all concurrent I/O on the device must be ≤ the
+ drive's characterized capacity. The
+ [extended resource layer](#5-advertise-iops-capacity-as-an-extended-resource)
+ enforces this **for pods that request `stackgres.io/iops`**. Pods that
+ don't request it (DaemonSets, system workloads, non-StackGres
+ application pods) bypass the budget --the scheduler doesn't know
+ about their I/O.
+
+**Recommended pattern: dedicate database nodes to StackGres
+ workloads.** Use the `node-role.kubernetes.io/stackgres-db` label
+ ([step 1](#1-label-the-database-nodes)) as a `nodeSelector` for
+ SGClusters *and* as a `taint` (e.g.
+ `node-role.kubernetes.io/stackgres-db:NoSchedule`) that StackGres
+ pods tolerate but other workloads do not. The only co-tenants then
+ are system DaemonSets (CNI, kube-proxy, log collectors, monitoring
+ agents) which do negligible disk I/O. The budget model then holds
+ cleanly.
+
+If non-StackGres workloads must coexist on the same nodes, they need
+ to carry BlockIO annotations and request `stackgres.io/iops` on the
+ same terms. Otherwise the guarantee dissolves into "best effort
+ against an unbounded set of contenders."
+
+## Limitations and caveats
+
+### One-shot device glob expansion
+
+The container runtime (CRI-O or containerd) resolves each class's
+ `Devices` globs **once**, when it loads `blockio.yaml` at service
+ startup. Each glob is matched against the block devices that exist on
+ the node at that moment, and the result is stored as a fixed list of
+ `(major:minor → throttle)` entries. Devices that don't exist at
+ startup are not in the class; devices that appear later are **not**
+ retroactively added.
+
+For block-storage stacks where per-PVC devices are created on demand
+ (TopoLVM, LVMS, OpenEBS LVM-LocalPV --any LVM-based CSI driver), this
+ has two practical implications:
+
+1. **Cold-start blind spot.** On a fresh node where no PVCs have been
+   provisioned yet, `/dev/dm-*` matches nothing. Every class loads with
+   empty parameters. The very first PVC's pod gets the annotation, the
+   runtime resolves the class to an empty list, no throttle is applied,
+   and nothing emits an event --it just doesn't work. The CRI-O journal
+   shows `WARN: device wildcard "..." does not match any device nodes`
+   at startup; see [step 4.1 step 4](#41-cri-o-direct-configuration)
+   for the explicit check.
+
+2. **New-device blind spot.** Each new PVC the CSI driver provisions on
+   a node typically gets the next free minor --`/dev/dm-N+1`. Even after
+   a restart that picked up `/dev/dm-0..N`, devices beyond `N` were
+   absent at expansion time and are not in the class. PVCs created later
+   are not throttled until the next runtime restart on that node.
+
+**Mitigation: seed enough dm slots at node-provisioning time so the
+ BlockIO class covers all the devices the node will ever produce in
+ normal operation.** The unit of seeding is **one placeholder per dm
+ device slot**, not one per storage class: each placeholder PVC binds
+ to one `/dev/dm-N`, and the class ends up containing exactly the dm
+ minors that existed at runtime startup. Subsequent production PVCs
+ that the kernel assigns to those same minors (after the placeholders
+ are released) are throttled; PVCs assigned to higher minors are not.
+
+The practical recipe:
+
+1. **Pre-provision a generous number of placeholder PVCs per node**
+   (e.g. 32 --pick a number comfortably above the maximum concurrent
+   StackGres pod count you expect that node to ever host). Each
+   placeholder is a small PVC of the relevant StorageClass, bound by a
+   short-lived placeholder Pod scheduled to that node, just long enough
+   to materialize the LV and therefore the `/dev/dm-N`. Verify with
+   `ls -la /dev/dm-*` that you have 32 dm devices on the node.
+2. **Restart the runtime** (step 4 of this runbook). The BlockIO class
+   now contains 32 dm entries.
+3. **Tear the placeholders down.** The LVs go away, the dm minors are
+   freed --but they remain in the BlockIO class. Production PVCs that
+   the kernel allocates into those freed slots inherit the throttle.
+
+Bundle steps 1--3 into the node-provisioning runbook, before the node
+ is marked "ready for workloads". Treated this way, the seeding is a
+ one-time setup step rather than a recurring operational burden. The
+ only failure mode is "more concurrent dm devices on a node than were
+ seeded", which is bounded by a number you control --pick it
+ generously.
+
+> **Footgun: pin the placeholder Pod with `nodeSelector`, not
+> `nodeName`.** TopoLVM, LVMS, and OpenEBS LVM-LocalPV all create their
+> StorageClass with `volumeBindingMode: WaitForFirstConsumer`, which
+> relies on the scheduler to inform the PVC of the chosen node. A Pod
+> with `spec.nodeName` set directly **bypasses the scheduler**, so the
+> PVC stays `Pending` with a `waiting for first consumer to be created
+> before binding` event --- forever, despite the Pod itself being
+> scheduled. Pin the placeholder Pod with
+> `spec.nodeSelector: { kubernetes.io/hostname: <node-name> }` (or an
+> equivalent `nodeAffinity` block) so the scheduler is the one placing
+> it.
+
+For workloads where 32 (or whatever number you seed) is genuinely not
+ enough --either because pod count is unbounded or because you don't
+ want to trust kernel dm-minor reuse semantics --see
+ [Static provisioning as a robust alternative](#static-provisioning-as-a-robust-alternative)
+ below. The in-cluster approach coming in **StackGres 1.19** also
+ sidesteps this entirely: it writes the cgroup `io.max` entries directly
+ per pod and per device, with no class-load timing dependency.
+
+### conmon and cgroup-path variations
+
+The exact cgroup path where the throttle ends up depends on CRI-O's
+ `cgroup_manager` and `monitor_cgroup` settings (see
+ [step 6.1](#61-verify-the-cgroup-iomax) for the resolution recipe).
+ The recommended diagnostic is to `find` all `io.max` files under the
+ pod's slice and `grep -l riops=` to locate the one with throttle
+ entries, rather than to assume a fixed path.
+
+### Static provisioning as a robust alternative
+
+For workloads where the placeholder-seeding approach above is not a
+ fit --either because the maximum concurrent pod count per node is
+ unbounded, because relying on the kernel's "reuse lowest free dm
+ minor" behavior is uncomfortable, or because the team prefers strict
+ capacity planning over dynamic expansion --**static provisioning is
+ a clean alternative.** Pre-create a fixed number of LVs at known
+ names by hand (or by an Ansible / MachineConfig step at node-prep
+ time):
+
+```bash
+# on each db node, at provisioning time:
+for i in $(seq 1 16); do
+  lvcreate -L 500G -n stackgres-data-${i} myvg
+done
+```
+
+Expose each LV as a static `PersistentVolume` (one per LV) with
+ `volumeMode: Block` or `volumeMode: Filesystem` as appropriate, and
+ a `nodeAffinity` that pins it to the node it lives on. StackGres
+ PVCs then bind to these pre-created PVs (the matching is by capacity
+ and StorageClass; use a dedicated StorageClass with no provisioner,
+ i.e. `provisioner: kubernetes.io/no-provisioner`).
+
+Each LV's `/dev/dm-N` is fixed at LV creation time and doesn't move
+ unless the LV is removed. The BlockIO class is loaded once at runtime
+ startup and binds to all of them deterministically. There is no
+ placeholder dance, no kernel-reuse assumption, no restart-on-growth
+ — but you lose the dynamic-expansion property of CSI provisioning.
+
+This is the right path for environments where the workload's storage
+ layout is known up-front and stable, and where the cost of pre-sizing
+ storage slots is acceptable.
+
+### ZFS-backed PVs
+
+ZFS does not correctly attribute buffered writes to the originating
+ cgroup, so write throttling is ineffective on ZFS-backed PVs. Read
+ throttling still works. This is a kernel/filesystem property, not a
+ runtime configuration error. Use a non-ZFS filesystem under the PV if
+ write throttling is required.
+
 ## Troubleshooting
 
-**Annotation silently ignored — `io.max` shows no throttle.** The most
- common cause is that the container runtime has not loaded the BlockIO
+**Annotation silently ignored --`io.max` shows no throttle.** The most
+ common cause is the
+ [one-shot glob expansion limitation](#one-shot-device-glob-expansion)
+ above. Check the CRI-O journal for `WARN: device wildcard ... does not
+ match any device nodes` first.
+
+If that's not it, the container runtime may not have loaded the BlockIO
  config file. Causes to check, in order:
 
 1. The configuration key is wrong for your runtime/version (see the
    verification notes in [step 4.1](#41-cri-o-direct-configuration),
    [step 4.2](#42-containerd-direct-configuration), and
-   [step 4.3.3](#433-enable-blockio-in-cri-o-via-containerruntimeconfig)).
-2. The runtime was not restarted after the configuration change — for
+   [step 4.3.3](#433-enable-blockio-in-cri-o)).
+2. The runtime was not restarted after the configuration change --for
    CRI-O direct: `systemctl status crio`; for containerd direct:
    `systemctl status containerd`; for OpenShift: `oc get mcp stackgres-db`
    should show `UPDATED=True`.
@@ -953,11 +1287,8 @@ kubectl delete ns io-isolation
  kubelet dropped the value during a status refresh. Re-run the patch from
  [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
 
-**ZFS volumes show no write throttling.** ZFS does not correctly attribute
- buffered writes to the originating cgroup, so write throttling is
- ineffective on ZFS-backed PVs. This is a kernel/filesystem property, not
- a configuration error. Read throttling still works. Use a non-ZFS
- filesystem if write throttling is required.
+For ZFS-backed PVs, see the
+ [ZFS caveat in Limitations](#zfs-backed-pvs).
 
 ## Rollback
 
@@ -1021,7 +1352,7 @@ kubectl patch node nvme-db-01 \
         "path": "/status/capacity/stackgres.io~1iops"}]'
 ```
 
-Each rollback step is independent — for example, you can leave the
+Each rollback step is independent --for example, you can leave the
  BlockIO classes loaded and only remove the extended resource if you want
  to keep noisy-neighbor protection but stop enforcing scheduler-level
  no-overcommit.
