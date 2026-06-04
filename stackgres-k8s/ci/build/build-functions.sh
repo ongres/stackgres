@@ -378,7 +378,7 @@ source_image_name() {
 }
 
 is_source_for_any_module() {
-  [ "$#" -ge 1 ] || false
+  [ "$#" -ge 1 ] || return 0
   local MODULE="$1"
   local HAS_TARGET_MODULE
   HAS_TARGET_MODULE="$(jq -r ".stages | any(to_entries | any(.value == \"$MODULE\"))" stackgres-k8s/ci/build/target/config.json)"
@@ -433,7 +433,7 @@ build_image() {
         && grep -q "^$IMAGE_NAME=" "stackgres-k8s/ci/build/target/image-digests.$BUILD_HASH"
     }
   then
-    if is_source_for_any_module
+    if is_source_for_any_module "$MODULE"
     then
       echo "Already exists on remote repository. Just extracting..."
       copy_from_image "$IMAGE_NAME"
@@ -448,7 +448,7 @@ build_image() {
           && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
       }
     then
-      if is_source_for_any_module
+      if is_source_for_any_module "$MODULE"
       then
         echo "Already exists locally. Just extracting ..."
         copy_from_image "$IMAGE_NAME"
