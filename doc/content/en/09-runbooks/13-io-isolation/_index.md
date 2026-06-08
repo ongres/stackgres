@@ -1110,20 +1110,79 @@ To turn the cap into a *guaranteed share* rather than just an upper
  application pods) bypass the budget --the scheduler doesn't know
  about their I/O.
 
-**Recommended pattern: dedicate database nodes to StackGres
- workloads.** Use the `node-role.kubernetes.io/stackgres-db` label
- ([step 1](#1-label-the-database-nodes)) as a `nodeSelector` for
- SGClusters *and* as a `taint` (e.g.
- `node-role.kubernetes.io/stackgres-db:NoSchedule`) that StackGres
- pods tolerate but other workloads do not. The only co-tenants then
- are system DaemonSets (CNI, kube-proxy, log collectors, monitoring
- agents) which do negligible disk I/O. The budget model then holds
- cleanly.
+### Why you cannot enforce "must request the extended resource" at the node level
 
-If non-StackGres workloads must coexist on the same nodes, they need
- to carry BlockIO annotations and request `stackgres.io/iops` on the
- same terms. Otherwise the guarantee dissolves into "best effort
- against an unbounded set of contenders."
+The budget enforced by the
+ [extended resource layer](#5-advertise-iops-capacity-as-an-extended-resource)
+ constrains **only the pods that actually request `stackgres.io/iops`**. A
+ pod that omits the request is invisible to the scheduler's I/O accounting:
+ it is placed on the node regardless of remaining budget, and -- carrying no
+ BlockIO annotation -- runs with no cgroup `io.max` cap at all. One such pod
+ (a `COPY`-heavy job, a backup tool, an unrelated tenant) can saturate the
+ device and starve the capped pods well below their configured cap. This is
+ the *soft lower bound* described above: the cap ceilings, it never reserves.
+
+It is tempting to look for a node-level admission rule of the form "refuse
+ any pod that does not request `stackgres.io/iops`". **Kubernetes has no such
+ rule.** The closest primitive, a `LimitRange` with a `defaultRequest` (to
+ inject the request) or a `min` (to require it), operates **only at the
+ namespace level** -- it applies to pods created in that one namespace and
+ does nothing for pods created in other namespaces, for DaemonSets, or for
+ any other workload that happens to land on the node. There is no built-in
+ object that says "on these nodes, admit only pods that request this
+ resource". The request is therefore a *convention you must enforce*, not a
+ constraint the platform can guarantee per node.
+
+### Reserve the nodes with a taint and tolerations
+
+Since the request cannot be forced, the practical control is to keep the
+ workloads that would steal IOPS *off the nodes entirely*. Taint the database
+ nodes and grant the matching toleration only to the StackGres pods, so the
+ scheduler refuses everything else:
+
+```bash
+kubectl taint node nvme-db-01 node-role.kubernetes.io/stackgres-db=:NoSchedule
+kubectl taint node nvme-db-02 node-role.kubernetes.io/stackgres-db=:NoSchedule
+kubectl taint node nvme-db-03 node-role.kubernetes.io/stackgres-db=:NoSchedule
+```
+
+Add the toleration to the SGCluster's pod scheduling spec, keeping the
+ `nodeSelector` from [step 1](#1-label-the-database-nodes):
+
+```yaml
+spec:
+  pods:
+    scheduling:
+      nodeSelector:
+        node-role.kubernetes.io/stackgres-db: ""
+      tolerations:
+        - key: node-role.kubernetes.io/stackgres-db
+          operator: Exists
+          effect: NoSchedule
+```
+
+With the taint in place, any pod that does not carry the toleration --
+ uncapped application pods, batch jobs, and other tenants that would
+ otherwise be scheduled here and steal IOPS -- is refused with the usual
+ `node(s) had untolerated taint` event. The only remaining co-tenants are the
+ system DaemonSets (CNI, kube-proxy, log and metrics agents) that tolerate
+ all taints by design; these do negligible disk I/O and do not threaten the
+ budget. The budget model then holds cleanly.
+
+> **OpenShift note.** Apply the taint with `oc adm taint nodes …`, or
+> declaratively through the node's `spec.taints` in the `MachineSet`
+> definition so that newly provisioned nodes come up already tainted.
+
+The taint does not by itself *force* the pods that remain to request
+ `stackgres.io/iops` -- a StackGres pod with the toleration but without the
+ request would still bypass the budget. It removes the much larger risk:
+ arbitrary, unmanaged workloads landing on the node and saturating the
+ device. Combine it with the convention that every SGCluster placed here sets
+ both the BlockIO annotation and the `stackgres.io/iops` request. If
+ non-StackGres workloads genuinely must coexist on these nodes, they have to
+ carry BlockIO annotations and request `stackgres.io/iops` on the same terms;
+ otherwise the guarantee dissolves into "best effort against an unbounded set
+ of contenders."
 
 ## Limitations and caveats
 
