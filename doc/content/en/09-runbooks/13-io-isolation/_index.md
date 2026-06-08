@@ -340,49 +340,57 @@ Write a `blockio.yaml` file that defines the named classes you want to
  node without exceeding the budget enforced by the extended resource
  in [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
 
-Example ladder (adjust devices and values for your environment):
+**Target the underlying physical disks, not the dm devices.** When the
+ PV stack uses LVM-based CSI (TopoLVM, LVMS, OpenEBS LVM-LocalPV), every
+ PVC gets its own `/dev/dm-N` mapping that the Postgres process writes
+ to. It is tempting to glob `/dev/dm-*` in the class so each LV is
+ throttled at its own dm. **Don't.** That path is fragile (see
+ [Limitations](#limitations-and-caveats) for why). Instead, glob the
+ underlying physical block devices (`/dev/sd*`, `/dev/nvme*n*`). The
+ kernel propagates the originating cgroup tag through the
+ device-mapper layer, so blk-throttle on the physical disk caps I/O
+ submitted by the workload via its LV. This was verified end-to-end:
+ with a class globbing `/dev/sd[a-z]*` and a 5000 IOPS cap, fio
+ inside a Postgres pod whose data PV is an LVM-LocalPV LV measured
+ 5006 IOPS read / 5007 IOPS write (within 0.1% of the cap). The
+ physical-disk approach is stable across PVC churn, restarts, and
+ node lifecycle events; the per-dm approach is not.
+
+Example ladder (adjust device paths and values for your environment):
 
 ```yaml
 # blockio.yaml
 Classes:
 
   stackgres-io-1k:
-    - Devices: ["/dev/nvme[0-9]n[0-9]", "/dev/dm-[0-9]*"]
+    - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
       ThrottleReadIOPS: 1k
       ThrottleWriteIOPS: 1k
       ThrottleReadBps: 50M
       ThrottleWriteBps: 50M
 
   stackgres-io-5k:
-    - Devices: ["/dev/nvme[0-9]n[0-9]", "/dev/dm-[0-9]*"]
+    - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
       ThrottleReadIOPS: 5k
       ThrottleWriteIOPS: 5k
       ThrottleReadBps: 200M
       ThrottleWriteBps: 200M
 
   stackgres-io-20k:
-    - Devices: ["/dev/nvme[0-9]n[0-9]", "/dev/dm-[0-9]*"]
+    - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
       ThrottleReadIOPS: 20k
       ThrottleWriteIOPS: 20k
       ThrottleReadBps: 800M
       ThrottleWriteBps: 800M
 ```
 
-Device globs are expanded by the runtime against the real devices present
- on each node. Classes that reference devices absent on a given node
- simply produce no cgroup entries for that pod on that node --they do not
- fail.
-
-> **Important: glob expansion is one-shot, at CRI-O / containerd startup.**
-> Each `Devices` glob is evaluated once, when the runtime reads
-> `blockio.yaml`. The class is then stored as a fixed list of
-> `(major:minor, parameter, value)` tuples. Block devices that don't
-> exist at that moment are not in the class; devices that appear later
-> (notably the per-PVC `/dev/dm-N` devices that LVM-based CSI drivers
-> provision on demand) are **not** retroactively added. The annotated
-> pods that need those devices get no throttle --silently, with no
-> event. See [Limitations and caveats](#limitations-and-caveats) below
-> for the operational implications and the recommended workflow.
+The globs above match SATA/SCSI and NVMe physical devices respectively.
+ Adjust to whatever names the database nodes' kernels actually assign
+ to the physical disks hosting the LVM VG. The glob is expanded by the
+ runtime at startup against the real devices present on each node;
+ entries that don't match anything are silently dropped --but for
+ physical disks this isn't a problem because their device names are
+ stable from boot.
 
 Save this file locally; the next step places it on the database nodes via
  the path appropriate to your runtime/platform.
@@ -783,11 +791,15 @@ Create a test SGCluster that exercises the full path: the BlockIO class
 > not the name: the BlockIO cap has to apply to the device the workload
 > actually writes to.
 >
-> - **Per-PVC device-mapper devices.** LVM-based local CSI drivers expose
->   each PVC as its own `/dev/dm-N` device. That's why the `blockio.yaml`
->   in [step 3](#3-author-the-blockio-class-ladder) includes
->   `/dev/dm-[0-9]*` in the device globs --the cap is enforced on the
->   dm device that the Postgres process writes to.
+> - **Per-PVC LVM devices on top of a stable physical disk.** LVM-based
+>   local CSI drivers expose each PVC as a `/dev/dm-N` mapping over a
+>   physical disk (the one that hosts the LVM VG). The cap from
+>   [step 3](#3-author-the-blockio-class-ladder)'s class targets the
+>   *physical disk*; the kernel propagates the workload's cgroup tag
+>   through the dm layer, so the throttle binds correctly regardless of
+>   which dm minor the PVC happens to land on. See
+>   [Why target physical disks and not dm devices](#why-target-physical-disks-and-not-dm-devices)
+>   for the underlying explanation.
 > - **Local storage.** I/O stays on the node, so a kernel-block-layer cap
 >   is meaningful. With network-attached storage (Ceph RBD, EBS, GCE PD,
 >   etc.) the bottleneck is the network and a per-device cgroup throttle
@@ -969,25 +981,29 @@ BASE=/sys/fs/cgroup/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-p
 cat ${BASE}/container/io.max 2>/dev/null || cat ${BASE}/io.max
 ```
 
-Expected output (exact device numbers depend on your storage stack):
+Expected output (exact device numbers depend on your storage stack;
+ one line per device matched by the class's `Devices:` glob):
 
 ```
 259:0 rbps=209715200 wbps=209715200 riops=5000 wiops=5000
 ```
 
-Device major numbers you might see in the output, depending on the
- backing storage:
+With the recommended physical-disk glob from
+ [step 3](#3-author-the-blockio-class-ladder), `major:minor` corresponds
+ to a physical disk on the node, **not** to the LV's `/dev/dm-N`. That
+ is deliberate: the kernel propagates the cgroup tag through the dm
+ layer, so the throttle on the physical disk caps I/O the workload
+ submits via its LV. Common majors:
 
 | Major | Device type |
 |---|---|
 | `7` | loop devices (lab setups, e.g. file-backed LVM) |
-| `8` | SCSI / SATA |
-| `252`, `253` | device-mapper (LVM logical volumes, dm-thin) |
-| `259` | NVMe |
+| `8` | SCSI / SATA (`/dev/sd*`) |
+| `252`, `253` | device-mapper (only if the class globs `/dev/dm-*` directly) |
+| `259` | NVMe (`/dev/nvme*`) |
 
-If the `major:minor` in the output matches one of the entries the
- `Devices:` glob in your `blockio.yaml` would expand to, the throttle is
- attached to the right device.
+If the `major:minor` matches one of the physical disks underlying your
+ LVM VG, the throttle is attached to the right device.
 
 This confirms:
 - The annotation was recognized by the container runtime on the node.
@@ -1120,7 +1136,7 @@ If non-StackGres workloads must coexist on the same nodes, they need
 
 ## Limitations and caveats
 
-### One-shot device glob expansion
+### Why target physical disks and not dm devices
 
 The container runtime (CRI-O or containerd) resolves each class's
  `Devices` globs **once**, when it loads `blockio.yaml` at service
@@ -1130,9 +1146,15 @@ The container runtime (CRI-O or containerd) resolves each class's
  startup are not in the class; devices that appear later are **not**
  retroactively added.
 
-For block-storage stacks where per-PVC devices are created on demand
- (TopoLVM, LVMS, OpenEBS LVM-LocalPV --any LVM-based CSI driver), this
- has two practical implications:
+That property is benign for **physical block devices** (`/dev/sda`,
+ `/dev/nvme0n1`, ...) because their device names are stable from boot
+ and don't come or go in normal operation. It is hostile to
+ **device-mapper devices created on demand by LVM CSI drivers**
+ (`/dev/dm-N`), which appear when a PVC is bound and disappear when the
+ corresponding LV is removed.
+
+There are two failure modes if you glob `/dev/dm-*` against a dynamic
+ LVM-CSI stack:
 
 1. **Cold-start blind spot.** On a fresh node where no PVCs have been
    provisioned yet, `/dev/dm-*` matches nothing. Every class loads with
@@ -1143,62 +1165,35 @@ For block-storage stacks where per-PVC devices are created on demand
    at startup; see [step 4.1 step 4](#41-cri-o-direct-configuration)
    for the explicit check.
 
-2. **New-device blind spot.** Each new PVC the CSI driver provisions on
-   a node typically gets the next free minor --`/dev/dm-N+1`. Even after
-   a restart that picked up `/dev/dm-0..N`, devices beyond `N` were
-   absent at expansion time and are not in the class. PVCs created later
-   are not throttled until the next runtime restart on that node.
+2. **Stale-entry container-create failure.** If `/dev/dm-*` matches at
+   startup but the matching dm devices later disappear (e.g. the LV is
+   removed or its activating Pod terminates), the class still contains
+   their `(major:minor)` entries. The next container creation will try
+   to write throttle parameters for those stale entries; the kernel
+   returns `ENODEV` and `crun` fails the container create with
+   `write 'rbps': No such device`. The Pod can get stuck in
+   `Init:CreateContainerError` indefinitely. Verified end-to-end during
+   runbook validation.
 
-**Mitigation: seed enough dm slots at node-provisioning time so the
- BlockIO class covers all the devices the node will ever produce in
- normal operation.** The unit of seeding is **one placeholder per dm
- device slot**, not one per storage class: each placeholder PVC binds
- to one `/dev/dm-N`, and the class ends up containing exactly the dm
- minors that existed at runtime startup. Subsequent production PVCs
- that the kernel assigns to those same minors (after the placeholders
- are released) are throttled; PVCs assigned to higher minors are not.
+**Both failure modes vanish if you glob the *underlying physical
+ disks*** (`/dev/sd*`, `/dev/nvme*n*`) as recommended in
+ [step 3](#3-author-the-blockio-class-ladder). The kernel propagates
+ the BIO's cgroup tag through `dm`'s clone/split path, so a throttle
+ on the physical device caps I/O the workload submitted via its LV.
+ Each pod's per-cgroup limit is enforced independently --multiple
+ capped pods on the same node, sharing the same physical disk, each
+ hold their own cap (validated: two pods, 5000 IOPS cap each, fio
+ concurrently, both observed 5003 IOPS).
 
-The practical recipe:
-
-1. **Pre-provision a generous number of placeholder PVCs per node**
-   (e.g. 32 --pick a number comfortably above the maximum concurrent
-   StackGres pod count you expect that node to ever host). Each
-   placeholder is a small PVC of the relevant StorageClass, bound by a
-   short-lived placeholder Pod scheduled to that node, just long enough
-   to materialize the LV and therefore the `/dev/dm-N`. Verify with
-   `ls -la /dev/dm-*` that you have 32 dm devices on the node.
-2. **Restart the runtime** (step 4 of this runbook). The BlockIO class
-   now contains 32 dm entries.
-3. **Tear the placeholders down.** The LVs go away, the dm minors are
-   freed --but they remain in the BlockIO class. Production PVCs that
-   the kernel allocates into those freed slots inherit the throttle.
-
-Bundle steps 1--3 into the node-provisioning runbook, before the node
- is marked "ready for workloads". Treated this way, the seeding is a
- one-time setup step rather than a recurring operational burden. The
- only failure mode is "more concurrent dm devices on a node than were
- seeded", which is bounded by a number you control --pick it
- generously.
-
-> **Footgun: pin the placeholder Pod with `nodeSelector`, not
-> `nodeName`.** TopoLVM, LVMS, and OpenEBS LVM-LocalPV all create their
-> StorageClass with `volumeBindingMode: WaitForFirstConsumer`, which
-> relies on the scheduler to inform the PVC of the chosen node. A Pod
-> with `spec.nodeName` set directly **bypasses the scheduler**, so the
-> PVC stays `Pending` with a `waiting for first consumer to be created
-> before binding` event --- forever, despite the Pod itself being
-> scheduled. Pin the placeholder Pod with
-> `spec.nodeSelector: { kubernetes.io/hostname: <node-name> }` (or an
-> equivalent `nodeAffinity` block) so the scheduler is the one placing
-> it.
-
-For workloads where 32 (or whatever number you seed) is genuinely not
- enough --either because pod count is unbounded or because you don't
- want to trust kernel dm-minor reuse semantics --see
- [Static provisioning as a robust alternative](#static-provisioning-as-a-robust-alternative)
- below. The in-cluster approach coming in **StackGres 1.19** also
- sidesteps this entirely: it writes the cgroup `io.max` entries directly
- per pod and per device, with no class-load timing dependency.
+This is why [step 3](#3-author-the-blockio-class-ladder) recommends
+ physical-disk globs only. If you have an unusual stack where the
+ workload writes to a dm device that is itself the underlying device
+ (no further block layer beneath), see
+ [Static provisioning as an alternative](#static-provisioning-as-an-alternative)
+ below for a dm-stable approach. The in-cluster approach coming in
+ **StackGres 1.19** also sidesteps the class mechanism entirely: it
+ writes the cgroup `io.max` entries directly per pod and per device,
+ with no class-load timing dependency.
 
 ### conmon and cgroup-path variations
 
@@ -1209,16 +1204,19 @@ The exact cgroup path where the throttle ends up depends on CRI-O's
  pod's slice and `grep -l riops=` to locate the one with throttle
  entries, rather than to assume a fixed path.
 
-### Static provisioning as a robust alternative
+### Static provisioning as an alternative
 
-For workloads where the placeholder-seeding approach above is not a
- fit --either because the maximum concurrent pod count per node is
- unbounded, because relying on the kernel's "reuse lowest free dm
- minor" behavior is uncomfortable, or because the team prefers strict
- capacity planning over dynamic expansion --**static provisioning is
- a clean alternative.** Pre-create a fixed number of LVs at known
- names by hand (or by an Ansible / MachineConfig step at node-prep
- time):
+The physical-disk-glob approach from
+ [step 3](#3-author-the-blockio-class-ladder) is the recommended default
+ for LVM-based CSI stacks. **Static provisioning** is an alternative
+ worth considering if your team prefers strict capacity planning over
+ dynamic expansion, or if you have a stack where physical-disk
+ throttling isn't appropriate (e.g. dm-multipath where the workload
+ device is the multipath dm and the underlying paths are several sd
+ devices that you don't want to throttle individually).
+
+Pre-create a fixed number of LVs at known names by hand (or by an
+ Ansible / MachineConfig step at node-prep time):
 
 ```bash
 # on each db node, at provisioning time:
@@ -1235,14 +1233,14 @@ Expose each LV as a static `PersistentVolume` (one per LV) with
  i.e. `provisioner: kubernetes.io/no-provisioner`).
 
 Each LV's `/dev/dm-N` is fixed at LV creation time and doesn't move
- unless the LV is removed. The BlockIO class is loaded once at runtime
- startup and binds to all of them deterministically. There is no
- placeholder dance, no kernel-reuse assumption, no restart-on-growth
- — but you lose the dynamic-expansion property of CSI provisioning.
+ unless the LV is removed. The BlockIO class can then safely glob
+ `/dev/dm-*` and bind deterministically. No restart-on-growth concern,
+ but you lose the dynamic-expansion property of CSI provisioning.
 
-This is the right path for environments where the workload's storage
+This is appropriate for environments where the workload's storage
  layout is known up-front and stable, and where the cost of pre-sizing
- storage slots is acceptable.
+ storage slots is acceptable. For most StackGres deployments with
+ dynamic provisioning, the physical-disk approach in step 3 is simpler.
 
 ### ZFS-backed PVs
 
@@ -1254,11 +1252,21 @@ ZFS does not correctly attribute buffered writes to the originating
 
 ## Troubleshooting
 
-**Annotation silently ignored --`io.max` shows no throttle.** The most
- common cause is the
- [one-shot glob expansion limitation](#one-shot-device-glob-expansion)
- above. Check the CRI-O journal for `WARN: device wildcard ... does not
- match any device nodes` first.
+**Annotation silently ignored --`io.max` shows no throttle.** Most
+ likely the class loaded but its `Devices:` glob matched nothing. Check
+ the CRI-O journal for `WARN: device wildcard ... does not match any
+ device nodes` (see
+ [Why target physical disks and not dm devices](#why-target-physical-disks-and-not-dm-devices)
+ for the underlying explanation and the recommended remedy: glob the
+ physical disks, not the dm devices).
+
+**Pod stuck in `Init:CreateContainerError` with
+ `write 'rbps': No such device`.** A `Devices:` glob matched some
+ device at runtime startup that has since been removed. The kernel
+ rejects the stale entry, container creation fails. This happens
+ mainly when the glob covers dm devices (LV created at boot, removed
+ later); using a physical-disk glob avoids it. See
+ [Why target physical disks and not dm devices](#why-target-physical-disks-and-not-dm-devices).
 
 If that's not it, the container runtime may not have loaded the BlockIO
  config file. Causes to check, in order:
