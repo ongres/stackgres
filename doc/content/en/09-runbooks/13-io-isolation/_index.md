@@ -61,7 +61,7 @@ Three pieces, working together:
 2. **Drive characterization**. `fio` measures the device's sustained
    peak, a conservative fraction of that becomes the node's safe ceiling.
 3. **Scheduler-enforced no-overcommit**. The safe ceiling is advertised
-   as an extended resource (`stackgres.io/iops`); each StackGres pod
+   as an extended resource (`local-lvm-nvme/iops`); each StackGres pod
    requests its share; the kube-scheduler refuses to place a pod that
    would push the node over capacity. The same shape of `FailedScheduling`
    event you already get for `cpu` or `memory`.
@@ -90,37 +90,41 @@ Pieces 1 and 3 are independent layers. You can adopt 1 first
 
 | Layer | Component | Purpose |
 |---|---|---|
-| Node | Node labels | Identify the subset of nodes that will host StackGres clusters. |
+| Node | Node labels | Identify the subset of nodes that host the capped-storage workloads (StackGres clusters and any other tenants sharing the device). |
 | Node | `/etc/crio/blockio.yaml` or `/etc/containerd/blockio.yaml` | Defines the class ladder (named classes mapping to `io.max` values). |
 | Runtime | CRI-O `blockio_config_file` option / containerd CRI plugin BlockIO option | Tells the runtime to load the class ladder. |
 | Pod | Annotation `blockio.resources.beta.kubernetes.io/pod: <class>` | Selects the class for a given pod. The runtime resolves it at container creation and merges throttle parameters into the OCI runtime spec; `runc` writes them as `io.max` entries when it creates the pod's cgroup. |
-| Cluster | Extended resource `stackgres.io/iops` | Node-level capacity advertised on `status.capacity`; pods request a share; the scheduler refuses overcommit. |
+| Cluster | Extended resource `local-lvm-nvme/iops` | Node-level capacity advertised on `status.capacity`; pods request a share; the scheduler refuses overcommit. |
 
 ## 1. Label the database nodes
 
-The label is used as a `nodeSelector` for the StackGres clusters you will
- later place on these nodes, and (on OpenShift) drives `MachineConfigPool`
- membership.
+The label is used as a `nodeSelector` for the workloads you will later
+ place on these nodes -- StackGres clusters and any other tenants that must
+ share the capped device -- and (on OpenShift) drives `MachineConfigPool`
+ membership. Naming the label (and the class ladder, extended resource, and
+ config files) after the StorageClass that provisions the capped devices --
+ `local-lvm-nvme` in this runbook -- keeps the scheme generic: it reflects
+ the device being throttled, not any single workload that happens to use it.
 
 ```bash
-kubectl label node nvme-db-01 node-role.kubernetes.io/stackgres-db=
-kubectl label node nvme-db-02 node-role.kubernetes.io/stackgres-db=
-kubectl label node nvme-db-03 node-role.kubernetes.io/stackgres-db=
+kubectl label node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme=
+kubectl label node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme=
+kubectl label node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme=
 ```
 
 Verify:
 
 ```bash
-kubectl get nodes -l node-role.kubernetes.io/stackgres-db
+kubectl get nodes -l node-role.kubernetes.io/local-lvm-nvme
 ```
 
 Expected output:
 
 ```
-NAME         STATUS   ROLES                     AGE    VERSION
-nvme-db-01   Ready    stackgres-db,worker       120d   v1.28.x
-nvme-db-02   Ready    stackgres-db,worker       120d   v1.28.x
-nvme-db-03   Ready    stackgres-db,worker       120d   v1.28.x
+NAME         STATUS   ROLES                   AGE    VERSION
+nvme-db-01   Ready    local-lvm-nvme,worker   120d   v1.28.x
+nvme-db-02   Ready    local-lvm-nvme,worker   120d   v1.28.x
+nvme-db-03   Ready    local-lvm-nvme,worker   120d   v1.28.x
 ```
 
 ## 2. Characterize the drive with `fio`
@@ -281,8 +285,8 @@ Record `IOPS=` from tests 1 and 2, `BW=` from tests 3 and 4.
 **Derive the safe ceilings:**
 
 ```
-stackgres.io/iops          = floor(0.75 × min(test1_iops, test2_iops))
-stackgres.io/io-bandwidth  = floor(0.75 × min(test3_bw,   test4_bw))   # if used
+local-lvm-nvme/iops          = floor(0.75 × min(test1_iops, test2_iops))
+local-lvm-nvme/io-bandwidth  = floor(0.75 × min(test3_bw,   test4_bw))   # if used
 ```
 
 The `min()` is conservative --it ensures the cap holds for the worst-case
@@ -353,21 +357,21 @@ Example ladder (adjust device paths and values for your environment):
 # blockio.yaml
 Classes:
 
-  stackgres-io-1k:
+  local-lvm-nvme-io-1k:
     - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
       ThrottleReadIOPS: 1k
       ThrottleWriteIOPS: 1k
       ThrottleReadBps: 50M
       ThrottleWriteBps: 50M
 
-  stackgres-io-5k:
+  local-lvm-nvme-io-5k:
     - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
       ThrottleReadIOPS: 5k
       ThrottleWriteIOPS: 5k
       ThrottleReadBps: 200M
       ThrottleWriteBps: 200M
 
-  stackgres-io-20k:
+  local-lvm-nvme-io-20k:
     - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
       ThrottleReadIOPS: 20k
       ThrottleWriteIOPS: 20k
@@ -422,7 +426,7 @@ install -m 0644 blockio.yaml /etc/crio/blockio.yaml
 ```bash
 # on each db node:
 mkdir -p /etc/crio/crio.conf.d
-cat > /etc/crio/crio.conf.d/99-stackgres-blockio.conf << 'EOF'
+cat > /etc/crio/crio.conf.d/99-local-lvm-nvme-blockio.conf << 'EOF'
 [crio.runtime]
 blockio_config_file = "/etc/crio/blockio.yaml"
 EOF
@@ -564,7 +568,7 @@ Applies to OpenShift clusters, where node configuration is managed
 #### 4.3.1 Create the MachineConfigPool
 
 A node can only be in one pool. A custom pool takes precedence over
- `worker`, so labelled nodes leave `worker` and join `stackgres-db`. The
+ `worker`, so labelled nodes leave `worker` and join `local-lvm-nvme`. The
  other workers stay untouched.
 
 ```yaml
@@ -572,18 +576,18 @@ cat << 'EOF' | oc apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: stackgres-db
+  name: local-lvm-nvme
   labels:
-    pools.operator.machineconfiguration.openshift.io/stackgres-db: ""
+    pools.operator.machineconfiguration.openshift.io/local-lvm-nvme: ""
 spec:
   machineConfigSelector:
     matchExpressions:
       - key: machineconfiguration.openshift.io/role
         operator: In
-        values: [worker, stackgres-db]
+        values: [worker, local-lvm-nvme]
   nodeSelector:
     matchLabels:
-      node-role.kubernetes.io/stackgres-db: ""
+      node-role.kubernetes.io/local-lvm-nvme: ""
   maxUnavailable: 1
 EOF
 ```
@@ -593,17 +597,17 @@ Wait for the pool to reconcile. This triggers a rolling drain + reboot of
  pool has n+1 capacity if you cannot tolerate disruption:
 
 ```bash
-oc get mcp stackgres-db -w
+oc get mcp local-lvm-nvme -w
 ```
 
 Expected output once stable:
 
 ```
 NAME            CONFIG                                           UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT
-stackgres-db    rendered-stackgres-db-<hash>                     True      False      False      3              3                   3                     0
+local-lvm-nvme    rendered-local-lvm-nvme-<hash>                     True      False      False      3              3                   3                     0
 ```
 
-> **Tip:** for new nodes provisioned with `node-role.kubernetes.io/stackgres-db=`
+> **Tip:** for new nodes provisioned with `node-role.kubernetes.io/local-lvm-nvme=`
 > set from the start, the BlockIO configuration is baked in at first boot
 > via Ignition. No drain, no rolling restart. This is the recommended
 > provisioning path for greenfield deployments.
@@ -621,9 +625,9 @@ cat << EOF | oc apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
-  name: 50-stackgres-blockio-config
+  name: 50-local-lvm-nvme-blockio-config
   labels:
-    machineconfiguration.openshift.io/role: stackgres-db
+    machineconfiguration.openshift.io/role: local-lvm-nvme
 spec:
   config:
     ignition:
@@ -660,16 +664,16 @@ cat << EOF | oc apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
-  name: 51-stackgres-blockio-crio-config
+  name: 51-local-lvm-nvme-blockio-crio-config
   labels:
-    machineconfiguration.openshift.io/role: stackgres-db
+    machineconfiguration.openshift.io/role: local-lvm-nvme
 spec:
   config:
     ignition:
       version: 3.2.0
     storage:
       files:
-        - path: /etc/crio/crio.conf.d/99-stackgres-blockio.conf
+        - path: /etc/crio/crio.conf.d/99-local-lvm-nvme-blockio.conf
           mode: 0644
           contents:
             source: data:text/plain;base64,${CRIO_CONF_B64}
@@ -681,7 +685,7 @@ MCO restarts CRI-O whenever its config files change, so applying this
  the rollout:
 
 ```bash
-oc get mcp stackgres-db -w
+oc get mcp local-lvm-nvme -w
 ```
 
 Wait until `UPDATED=True` and `UPDATING=False` again.
@@ -729,7 +733,7 @@ kubectl patch node nvme-db-01 \
   --subresource=status \
   --type=json \
   -p '[{"op": "add",
-        "path": "/status/capacity/stackgres.io~1iops",
+        "path": "/status/capacity/local-lvm-nvme~1iops",
         "value": "150000"}]'
 ```
 
@@ -741,20 +745,20 @@ Verify. `kubectl describe` renders resource quantities in the friendly
  need the exact integer:
 
 ```bash
-kubectl describe node nvme-db-01 | sed -n '/^Capacity:/,/^System Info:/p' | grep stackgres.io/iops
+kubectl describe node nvme-db-01 | sed -n '/^Capacity:/,/^System Info:/p' | grep local-lvm-nvme/iops
 ```
 
 Expected output (two identical lines --`Capacity` and `Allocatable`):
 
 ```
-  stackgres.io/iops:  150k
-  stackgres.io/iops:  150k
+  local-lvm-nvme/iops:  150k
+  local-lvm-nvme/iops:  150k
 ```
 
 For the exact integer:
 
 ```bash
-kubectl get node nvme-db-01 -o jsonpath='{.status.capacity.stackgres\.io/iops}{"\n"}'
+kubectl get node nvme-db-01 -o jsonpath='{.status.capacity.local-lvm-nvme/iops}{"\n"}'
 ```
 
 Expected output: `150000`.
@@ -769,7 +773,7 @@ Expected output: `150000`.
 ## 6. Validate end-to-end with an SGCluster
 
 Create a test SGCluster that exercises the full path: the BlockIO class
- annotation is propagated to its pods, the `stackgres.io/iops` resource
+ annotation is propagated to its pods, the `local-lvm-nvme/iops` resource
  request is set on the patroni container, and a custom `fio` sidecar
  mounts the same data PV so I/O performance can be measured against the
  actual storage path Postgres will use.
@@ -844,21 +848,21 @@ spec:
   metadata:
     annotations:
       clusterPods:
-        blockio.resources.beta.kubernetes.io/pod: stackgres-io-5k
+        blockio.resources.beta.kubernetes.io/pod: local-lvm-nvme-io-5k
   pods:
     persistentVolume:
       storageClass: local-lvm-nvme
       size: 10Gi
     scheduling:
       nodeSelector:
-        node-role.kubernetes.io/stackgres-db: ""
+        node-role.kubernetes.io/local-lvm-nvme: ""
     resources:
       containers:
         patroni:
           requests:
-            stackgres.io/iops: "5000"
+            local-lvm-nvme/iops: "5000"
           limits:
-            stackgres.io/iops: "5000"
+            local-lvm-nvme/iops: "5000"
     customContainers:
       - name: fio
         image: openeuler/fio
@@ -882,7 +886,7 @@ kubectl wait -n io-isolation --for=condition=Ready pod/io-isolation-test-0 --tim
 ```
 
 If the pod stays `Pending`, inspect the events --`Insufficient
- stackgres.io/iops` means more capacity needs to be advertised
+ local-lvm-nvme/iops` means more capacity needs to be advertised
  ([step 5](#5-advertise-iops-capacity-as-an-extended-resource)) or the
  request needs to be lowered.
 
@@ -998,7 +1002,7 @@ If the `major:minor` matches one of the physical disks underlying your
 
 This confirms:
 - The annotation was recognized by the container runtime on the node.
-- The throttle parameters from the `stackgres-io-5k` class were resolved.
+- The throttle parameters from the `local-lvm-nvme-io-5k` class were resolved.
 - The kernel wrote the matching `io.max` entries into the pod's cgroup.
 
 If the `find … | xargs -r grep -l riops=` above returned no files, or
@@ -1040,7 +1044,7 @@ Expected output (relevant line):
 ```
 
 The reported `IOPS=` should land within a few percent of the
- `stackgres-io-5k` cap (5000), **not** the device's native peak. If the
+ `local-lvm-nvme-io-5k` cap (5000), **not** the device's native peak. If the
  number is much higher, the throttle is not applied --re-check
  [section 6.1](#61-verify-the-cgroup-iomax) and the troubleshooting
  section.
@@ -1076,8 +1080,8 @@ Once the runbook is applied, day-2 operations fall into two distinct
 | Edit `blockio.yaml` (add/remove/modify class definitions) | **Yes** | MCO (or your config-management tool) rolls drain + reboot one node at a time. Pods reschedule; the MCP needs n+1 capacity to avoid downtime. |
 | Add/remove `blockio_config_file` in the runtime config | **Yes** | Same as above --runtime config change. |
 | Change which class an SGCluster's pods use (annotation only) | **No** | The operator recreates the pods at the new annotation; no node touch. |
-| Add/remove the `stackgres.io/iops` request/limit on a cluster | **No** | Pod-level change; no node touch. |
-| Patch `status.capacity["stackgres.io/iops"]` on a node | **No** | Online operation on the node object. |
+| Add/remove the `local-lvm-nvme/iops` request/limit on a cluster | **No** | Pod-level change; no node touch. |
+| Patch `status.capacity["local-lvm-nvme/iops"]` on a node | **No** | Online operation on the node object. |
 | Scale a cluster up (new pod, new PVC) | **No reboot** --but the new PVC's `/dev/dm-N` must fall within the seeded slots from initial node provisioning (see [Limitations](#one-shot-device-glob-expansion)). Otherwise the new pod isn't throttled. |
 | Provision a brand-new database node | The BlockIO config is baked in via Ignition at first boot --no rolling restart, no drain. This is the recommended provisioning path. |
 
@@ -1105,7 +1109,7 @@ To turn the cap into a *guaranteed share* rather than just an upper
  bound, the sum of all concurrent I/O on the device must be ≤ the
  drive's characterized capacity. The
  [extended resource layer](#5-advertise-iops-capacity-as-an-extended-resource)
- enforces this **for pods that request `stackgres.io/iops`**. Pods that
+ enforces this **for pods that request `local-lvm-nvme/iops`**. Pods that
  don't request it (DaemonSets, system workloads, non-StackGres
  application pods) bypass the budget --the scheduler doesn't know
  about their I/O.
@@ -1114,7 +1118,7 @@ To turn the cap into a *guaranteed share* rather than just an upper
 
 The budget enforced by the
  [extended resource layer](#5-advertise-iops-capacity-as-an-extended-resource)
- constrains **only the pods that actually request `stackgres.io/iops`**. A
+ constrains **only the pods that actually request `local-lvm-nvme/iops`**. A
  pod that omits the request is invisible to the scheduler's I/O accounting:
  it is placed on the node regardless of remaining budget, and -- carrying no
  BlockIO annotation -- runs with no cgroup `io.max` cap at all. One such pod
@@ -1123,7 +1127,7 @@ The budget enforced by the
  the *soft lower bound* described above: the cap ceilings, it never reserves.
 
 It is tempting to look for a node-level admission rule of the form "refuse
- any pod that does not request `stackgres.io/iops`". **Kubernetes has no such
+ any pod that does not request `local-lvm-nvme/iops`". **Kubernetes has no such
  rule.** The closest primitive, a `LimitRange` with a `defaultRequest` (to
  inject the request) or a `min` (to require it), operates **only at the
  namespace level** -- it applies to pods created in that one namespace and
@@ -1141,9 +1145,9 @@ Since the request cannot be forced, the practical control is to keep the
  scheduler refuses everything else:
 
 ```bash
-kubectl taint node nvme-db-01 node-role.kubernetes.io/stackgres-db=:NoSchedule
-kubectl taint node nvme-db-02 node-role.kubernetes.io/stackgres-db=:NoSchedule
-kubectl taint node nvme-db-03 node-role.kubernetes.io/stackgres-db=:NoSchedule
+kubectl taint node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
+kubectl taint node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
+kubectl taint node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
 ```
 
 Add the toleration to the SGCluster's pod scheduling spec, keeping the
@@ -1154,9 +1158,9 @@ spec:
   pods:
     scheduling:
       nodeSelector:
-        node-role.kubernetes.io/stackgres-db: ""
+        node-role.kubernetes.io/local-lvm-nvme: ""
       tolerations:
-        - key: node-role.kubernetes.io/stackgres-db
+        - key: node-role.kubernetes.io/local-lvm-nvme
           operator: Exists
           effect: NoSchedule
 ```
@@ -1174,13 +1178,13 @@ With the taint in place, any pod that does not carry the toleration --
 > definition so that newly provisioned nodes come up already tainted.
 
 The taint does not by itself *force* the pods that remain to request
- `stackgres.io/iops` -- a StackGres pod with the toleration but without the
+ `local-lvm-nvme/iops` -- a StackGres pod with the toleration but without the
  request would still bypass the budget. It removes the much larger risk:
  arbitrary, unmanaged workloads landing on the node and saturating the
  device. Combine it with the convention that every SGCluster placed here sets
- both the BlockIO annotation and the `stackgres.io/iops` request. If
+ both the BlockIO annotation and the `local-lvm-nvme/iops` request. If
  non-StackGres workloads genuinely must coexist on these nodes, they have to
- carry BlockIO annotations and request `stackgres.io/iops` on the same terms;
+ carry BlockIO annotations and request `local-lvm-nvme/iops` on the same terms;
  otherwise the guarantee dissolves into "best effort against an unbounded set
  of contenders."
 
@@ -1268,7 +1272,7 @@ Pre-create a fixed number of LVs at known names by hand (or by an
 ```bash
 # on each db node, at provisioning time:
 for i in $(seq 1 16); do
-  lvcreate -L 500G -n stackgres-data-${i} myvg
+  lvcreate -L 500G -n local-lvm-nvme-data-${i} myvg
 done
 ```
 
@@ -1324,7 +1328,7 @@ If that's not it, the container runtime may not have loaded the BlockIO
    [step 4.3.3](#433-enable-blockio-in-cri-o)).
 2. The runtime was not restarted after the configuration change --for
    CRI-O direct: `systemctl status crio`; for containerd direct:
-   `systemctl status containerd`; for OpenShift: `oc get mcp stackgres-db`
+   `systemctl status containerd`; for OpenShift: `oc get mcp local-lvm-nvme`
    should show `UPDATED=True`.
 3. The class name in the pod annotation does not match any class defined
    in `blockio.yaml`. The runtime ignores unknown class names without
@@ -1333,12 +1337,12 @@ If that's not it, the container runtime may not have loaded the BlockIO
    `journalctl -u crio` or `journalctl -u containerd` on the node will
    show the parse error.
 
-**Pod stays `Pending` with `Insufficient stackgres.io/iops`.** The
+**Pod stays `Pending` with `Insufficient local-lvm-nvme/iops`.** The
  scheduler refuses to overcommit. Either reduce the pod's request, free
  up capacity by deleting/draining another pod, or expand the node's
  advertised capacity (only if your characterization supports it).
 
-**`kubectl describe node` no longer shows `stackgres.io/iops`.** The
+**`kubectl describe node` no longer shows `local-lvm-nvme/iops`.** The
  kubelet dropped the value during a status refresh. Re-run the patch from
  [step 5](#5-advertise-iops-capacity-as-an-extended-resource).
 
@@ -1356,7 +1360,7 @@ The rollback procedure mirrors the configuration path you took in
 On each database node:
 
 ```bash
-rm /etc/crio/crio.conf.d/99-stackgres-blockio.conf
+rm /etc/crio/crio.conf.d/99-local-lvm-nvme-blockio.conf
 rm /etc/crio/blockio.yaml
 systemctl restart crio
 ```
@@ -1382,17 +1386,17 @@ Delete the `ContainerRuntimeConfig` and `MachineConfig`. MCO rolls the
  one node at a time):
 
 ```bash
-oc delete containerruntimeconfig stackgres-db-blockio
-oc delete machineconfig 50-stackgres-blockio-config
+oc delete containerruntimeconfig local-lvm-nvme-blockio
+oc delete machineconfig 50-local-lvm-nvme-blockio-config
 ```
 
 To dismantle the pool entirely and return nodes to the `worker` pool:
 
 ```bash
-oc label node nvme-db-01 node-role.kubernetes.io/stackgres-db-
-oc label node nvme-db-02 node-role.kubernetes.io/stackgres-db-
-oc label node nvme-db-03 node-role.kubernetes.io/stackgres-db-
-oc delete mcp stackgres-db
+oc label node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme-
+oc label node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme-
+oc label node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme-
+oc delete mcp local-lvm-nvme
 ```
 
 ### Rollback for the extended resource (step 5)
@@ -1404,7 +1408,7 @@ kubectl patch node nvme-db-01 \
   --subresource=status \
   --type=json \
   -p '[{"op": "remove",
-        "path": "/status/capacity/stackgres.io~1iops"}]'
+        "path": "/status/capacity/local-lvm-nvme~1iops"}]'
 ```
 
 Each rollback step is independent --for example, you can leave the
