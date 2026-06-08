@@ -32,15 +32,6 @@ This runbook walks a Kubernetes cluster administrator through the steps
 No `hostPath` mounts, no privileged init containers in the cluster pods,
  no custom cgroup writes from inside the workload.
 
-> StackGres 1.19 (upcoming) will introduce a complementary mechanism that
-> configures per-pod I/O caps directly in the SGCluster spec, with no
-> node-level preparation. It is simpler to enable, but requires host-cgroup
-> access from the cluster pods, which SCC policies in many OpenShift
-> environments forbid. This runbook covers the alternative path: more
-> upfront node preparation, but using only standard, supported
-> configuration surfaces. Both approaches will coexist; this runbook will
-> link to the in-cluster approach once 1.19 ships.
-
 The runbook covers configuring CRI-O and containerd directly (applicable
  to any Kubernetes distribution), then documents the OpenShift-specific
  path that delivers the same configuration through the Machine Config
@@ -1190,10 +1181,7 @@ This is why [step 3](#3-author-the-blockio-class-ladder) recommends
  workload writes to a dm device that is itself the underlying device
  (no further block layer beneath), see
  [Static provisioning as an alternative](#static-provisioning-as-an-alternative)
- below for a dm-stable approach. The in-cluster approach coming in
- **StackGres 1.19** also sidesteps the class mechanism entirely: it
- writes the cgroup `io.max` entries directly per pod and per device,
- with no class-load timing dependency.
+ below for a dm-stable approach.
 
 ### conmon and cgroup-path variations
 
