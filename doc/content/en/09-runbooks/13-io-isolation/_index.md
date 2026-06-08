@@ -90,42 +90,62 @@ Pieces 1 and 3 are independent layers. You can adopt 1 first
 
 | Layer | Component | Purpose |
 |---|---|---|
-| Node | Node labels | Identify the subset of nodes that host the capped-storage workloads (StackGres clusters and any other tenants sharing the device). |
+| Node | Node taint | Reserve the nodes for the capped workloads: the taint repels pods that don't tolerate it; the SGClusters placed here carry a matching toleration. (On OpenShift a node label additionally drives `MachineConfigPool` membership.) |
 | Node | `/etc/crio/blockio.yaml` or `/etc/containerd/blockio.yaml` | Defines the class ladder (named classes mapping to `io.max` values). |
 | Runtime | CRI-O `blockio_config_file` option / containerd CRI plugin BlockIO option | Tells the runtime to load the class ladder. |
 | Pod | Annotation `blockio.resources.beta.kubernetes.io/pod: <class>` | Selects the class for a given pod. The runtime resolves it at container creation and merges throttle parameters into the OCI runtime spec; `runc` writes them as `io.max` entries when it creates the pod's cgroup. |
 | Cluster | Extended resource `local-lvm-nvme/iops` | Node-level capacity advertised on `status.capacity`; pods request a share; the scheduler refuses overcommit. |
 
-## 1. Label the database nodes
+## 1. Reserve the database nodes with a taint
 
-The label is used as a `nodeSelector` for the workloads you will later
- place on these nodes -- StackGres clusters and any other tenants that must
- share the capped device -- and (on OpenShift) drives `MachineConfigPool`
- membership. Naming the label (and the class ladder, extended resource, and
- config files) after the StorageClass that provisions the capped devices --
+Reserve the nodes that host the capped devices so that only the workloads you
+ deliberately place there can land on them. A **taint** repels every pod that
+ does not carry a matching **toleration**, which keeps uncapped,
+ IOPS-stealing workloads off the nodes -- the protection that actually makes
+ the budget hold (see
+ [Reserving the nodes for capped workloads](#reserving-the-nodes-for-capped-workloads)
+ for why a taint, and not a `nodeSelector`, is the control that matters).
+
+Naming the taint (and the class ladder, extended resource, and config files)
+ after the StorageClass that provisions the capped devices --
  `local-lvm-nvme` in this runbook -- keeps the scheme generic: it reflects
  the device being throttled, not any single workload that happens to use it.
 
 ```bash
-kubectl label node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme=
-kubectl label node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme=
-kubectl label node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme=
+kubectl taint node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
+kubectl taint node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
+kubectl taint node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
 ```
 
 Verify:
 
 ```bash
-kubectl get nodes -l node-role.kubernetes.io/local-lvm-nvme
+kubectl describe node nvme-db-01 | grep -i taints
 ```
 
 Expected output:
 
 ```
-NAME         STATUS   ROLES                   AGE    VERSION
-nvme-db-01   Ready    local-lvm-nvme,worker   120d   v1.28.x
-nvme-db-02   Ready    local-lvm-nvme,worker   120d   v1.28.x
-nvme-db-03   Ready    local-lvm-nvme,worker   120d   v1.28.x
+Taints:             node-role.kubernetes.io/local-lvm-nvme:NoSchedule
 ```
+
+The SGClusters you place on these nodes carry the matching toleration (see
+ [step 6](#6-validate-end-to-end-with-an-sgcluster)). You do **not** need a
+ `nodeSelector`: a pod that requests the `local-lvm-nvme/iops` extended
+ resource ([step 5](#5-advertise-iops-capacity-as-an-extended-resource)) is
+ already restricted by the scheduler to the nodes that advertise that
+ resource -- which are exactly these nodes -- so the request pins placement on
+ its own. If you adopt only the BlockIO layer and skip
+ [step 5](#5-advertise-iops-capacity-as-an-extended-resource), the request is
+ absent: add a `nodeSelector` or `nodeAffinity` to the pod spec to pin it to
+ the prepared nodes instead.
+
+> **OpenShift.** Apply the taint with `oc adm taint nodes …`, or declaratively
+> through the node's `spec.taints` in the `MachineSet` so new nodes come up
+> already tainted. OpenShift additionally needs a node *label* on these nodes
+> to drive `MachineConfigPool` membership -- that label is applied in
+> [step 4.3](#43-openshift-configure-via-machine-config-operator) and is used
+> only for config delivery, not for scheduling.
 
 ## 2. Characterize the drive with `fio`
 
@@ -567,6 +587,17 @@ Applies to OpenShift clusters, where node configuration is managed
 
 #### 4.3.1 Create the MachineConfigPool
 
+First label the nodes that will join the pool. Unlike the scheduling taint
+ from [step 1](#1-reserve-the-database-nodes-with-a-taint), this *label* is
+ what MCO matches to select pool members -- a taint cannot drive
+ `MachineConfigPool` membership:
+
+```bash
+oc label node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme=
+oc label node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme=
+oc label node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme=
+```
+
 A node can only be in one pool. A custom pool takes precedence over
  `worker`, so labelled nodes leave `worker` and join `local-lvm-nvme`. The
  other workers stay untouched.
@@ -724,6 +755,14 @@ This step is independent of the BlockIO class wiring above. Skip it if you
  only want noisy-neighbor protection without scheduler-enforced
  no-overcommit; come back to it later when you want the full bounded SLA.
 
+> Requesting this resource also constrains scheduling: the kube-scheduler
+> only places a pod on nodes whose `allocatable` advertises enough
+> `local-lvm-nvme/iops`. Because only the prepared nodes advertise it, the
+> request doubles as the placement constraint -- which is why the SGCluster in
+> [step 6](#6-validate-end-to-end-with-an-sgcluster) needs no `nodeSelector`,
+> only a toleration for the
+> [step 1](#1-reserve-the-database-nodes-with-a-taint) taint.
+
 Patch each node's status capacity with the safe ceiling derived in
  [step 2](#2-characterize-the-drive-with-fio). The path uses JSON Pointer
  escaping --`~1` is the literal escape for `/` and is easy to miss:
@@ -822,7 +861,10 @@ Create a test SGCluster that exercises the full path: the BlockIO class
 > If you skipped [step 5](#5-advertise-iops-capacity-as-an-extended-resource)
 > (extended resource layer), remove the `pods.resources` block from the
 > SGCluster spec below --otherwise the cluster pod will stay `Pending`
-> because no node advertises the requested resource.
+> because no node advertises the requested resource. Without that request the
+> pod is no longer pinned to the prepared nodes either, so add a `nodeSelector`
+> (or `nodeAffinity`) to the `scheduling` block alongside the toleration to
+> keep it on the BlockIO-configured nodes.
 
 The `clusterPods` key under `spec.metadata.annotations` is a StackGres
  convention. Its entries are propagated as annotations on each cluster
@@ -854,8 +896,10 @@ spec:
       storageClass: local-lvm-nvme
       size: 10Gi
     scheduling:
-      nodeSelector:
-        node-role.kubernetes.io/local-lvm-nvme: ""
+      tolerations:
+        - key: node-role.kubernetes.io/local-lvm-nvme
+          operator: Exists
+          effect: NoSchedule
     resources:
       containers:
         patroni:
@@ -1137,45 +1181,26 @@ It is tempting to look for a node-level admission rule of the form "refuse
  resource". The request is therefore a *convention you must enforce*, not a
  constraint the platform can guarantee per node.
 
-### Reserve the nodes with a taint and tolerations
+### Reserving the nodes for capped workloads
 
 Since the request cannot be forced, the practical control is to keep the
- workloads that would steal IOPS *off the nodes entirely*. Taint the database
- nodes and grant the matching toleration only to the StackGres pods, so the
- scheduler refuses everything else:
+ workloads that would steal IOPS *off the nodes entirely*, using the taint
+ applied in [step 1](#1-reserve-the-database-nodes-with-a-taint). Any pod that
+ does not carry the matching toleration -- uncapped application pods, batch
+ jobs, other tenants -- is refused with the usual `node(s) had untolerated
+ taint` event. The only remaining co-tenants are the system DaemonSets (CNI,
+ kube-proxy, log and metrics agents) that tolerate all taints by design; these
+ do negligible disk I/O and do not threaten the budget.
 
-```bash
-kubectl taint node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
-kubectl taint node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
-kubectl taint node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme=:NoSchedule
-```
-
-Add the toleration to the SGCluster's pod scheduling spec, keeping the
- `nodeSelector` from [step 1](#1-label-the-database-nodes):
-
-```yaml
-spec:
-  pods:
-    scheduling:
-      nodeSelector:
-        node-role.kubernetes.io/local-lvm-nvme: ""
-      tolerations:
-        - key: node-role.kubernetes.io/local-lvm-nvme
-          operator: Exists
-          effect: NoSchedule
-```
-
-With the taint in place, any pod that does not carry the toleration --
- uncapped application pods, batch jobs, and other tenants that would
- otherwise be scheduled here and steal IOPS -- is refused with the usual
- `node(s) had untolerated taint` event. The only remaining co-tenants are the
- system DaemonSets (CNI, kube-proxy, log and metrics agents) that tolerate
- all taints by design; these do negligible disk I/O and do not threaten the
- budget. The budget model then holds cleanly.
-
-> **OpenShift note.** Apply the taint with `oc adm taint nodes …`, or
-> declaratively through the node's `spec.taints` in the `MachineSet`
-> definition so that newly provisioned nodes come up already tainted.
+A `nodeSelector` is **not** the right tool here, and is not needed. A
+ toleration only *permits* a pod onto a tainted node; it does not *attract* it
+ there. Placement is handled instead by the `local-lvm-nvme/iops` request
+ itself: the scheduler only fits a pod onto nodes whose `allocatable`
+ advertises the requested resource, and only the prepared nodes do, so the
+ request pins the pod to them with no selector. (A `nodeSelector` or
+ `nodeAffinity` is only required in the BlockIO-only configuration that skips
+ [step 5](#5-advertise-iops-capacity-as-an-extended-resource), where no such
+ request exists to do the pinning.)
 
 The taint does not by itself *force* the pods that remain to request
  `local-lvm-nvme/iops` -- a StackGres pod with the toleration but without the
@@ -1409,6 +1434,17 @@ kubectl patch node nvme-db-01 \
   --type=json \
   -p '[{"op": "remove",
         "path": "/status/capacity/local-lvm-nvme~1iops"}]'
+```
+
+### Rollback for the node taint (step 1)
+
+Remove the taint from each node (note the trailing `-`); on OpenShift, if you
+ tainted declaratively through the `MachineSet`, remove it there instead:
+
+```bash
+kubectl taint node nvme-db-01 node-role.kubernetes.io/local-lvm-nvme:NoSchedule-
+kubectl taint node nvme-db-02 node-role.kubernetes.io/local-lvm-nvme:NoSchedule-
+kubectl taint node nvme-db-03 node-role.kubernetes.io/local-lvm-nvme:NoSchedule-
 ```
 
 Each rollback step is independent --for example, you can leave the
