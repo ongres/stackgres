@@ -491,12 +491,10 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   void givenPodLabelsChanges_shouldBeAppliedDirectlyToPods() {
     final int replicas = setUpNoScale(1, false, 0, PrimaryPosition.FIRST);
 
-    final Map<String, String> requiredLabels = Seq.seq(Map
+    final Map<String, String> requiredLabels = Map
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
-            "same-key", "new-value"))
-        .append(Seq.seq(requiredStatefulSet.getSpec().getSelector().getMatchLabels()))
-        .toMap(Tuple2::v1, Tuple2::v2);
-    requiredStatefulSet.getSpec().getSelector().setMatchLabels(requiredLabels);
+            "same-key", "new-value");
+    requiredStatefulSet.getSpec().getTemplate().getMetadata().setLabels(requiredLabels);
     final var deployedLabels = Seq.seq(podList).map(pod -> Tuple
         .tuple(pod, Seq.seq(Map
             .of(StringUtils.getRandomString(), StringUtils.getRandomString(),

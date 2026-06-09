@@ -737,13 +737,13 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
       List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(
           context, deployedStatefulSet, podsToFix);
-      List<Pod> podSelectorMatchLabelsToPatch =
-          fixPodsSelectorMatchLabels(context, statefulSet, podsToFix);
+      List<Pod> podLabelsToPatch =
+          fixPodsLabels(context, statefulSet, podsToFix);
       Seq.seq(disruptablePodsToPatch)
           .append(podPatroniLabelsToPatch)
           .append(podAnnotationsToPatch)
           .append(podOwnerReferencesToPatch)
-          .append(podSelectorMatchLabelsToPatch)
+          .append(podLabelsToPatch)
           .grouped(pod -> pod.getMetadata().getName())
           .map(Tuple2::v2)
           .map(Seq::findFirst)
@@ -930,12 +930,12 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     return pod;
   }
 
-  private List<Pod> fixPodsSelectorMatchLabels(
+  private List<Pod> fixPodsLabels(
       final StackGresCluster context,
       final StatefulSet statefulSet,
       final List<Pod> pods) {
     final var requiredPodLabels =
-        Optional.ofNullable(statefulSet.getSpec().getSelector().getMatchLabels())
+        Optional.ofNullable(statefulSet.getSpec().getTemplate().getMetadata().getLabels())
         .map(labels -> labels.entrySet().stream()
             .filter(label -> !labelFactory.labelMapper().disruptableKey(context)
                 .equals(label.getKey()))
@@ -948,16 +948,16 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
                 .map(Map::entrySet)
                 .flatMap(Set::stream)
                 .noneMatch(podLabel -> Objects.equals(requiredPodLabel, podLabel))))
-        .map(pod -> fixPodSelectorMatchLabels(requiredPodLabels, pod))
+        .map(pod -> fixPodLabels(requiredPodLabels, pod))
         .toList();
   }
 
-  private Pod fixPodSelectorMatchLabels(Map<String, String> requiredPodLabels, Pod pod) {
+  private Pod fixPodLabels(Map<String, String> requiredPodLabels, Pod pod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
       final String name = podName.substring(0, podName.lastIndexOf("-"));
-      LOGGER.debug("Fixing selector match labels for Pod {}.{} for StatefulSet {}.{} to {}",
+      LOGGER.debug("Fixing labels for Pod {}.{} for StatefulSet {}.{} to {}",
           namespace, podName, namespace, name, requiredPodLabels);
     }
     pod.getMetadata().setLabels(Optional.ofNullable(pod.getMetadata().getLabels())
