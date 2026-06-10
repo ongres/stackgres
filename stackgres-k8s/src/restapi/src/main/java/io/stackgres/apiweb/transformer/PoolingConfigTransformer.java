@@ -44,7 +44,7 @@ public class PoolingConfigTransformer
     extends AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig> {
 
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
-      "([^\\s=]+)\\s*=\\s*(:?'([^']+)'|[^ ]+)");
+      "([^\\s=]+)\\s*=\\s*(?:'([^']+)'|([^ ]+))");
 
   private final ObjectMapper mapper;
 
@@ -139,7 +139,8 @@ public class PoolingConfigTransformer
               Matcher matcher = PARAMETER_PATTERN.matcher(value);
               while (matcher.find()) {
                 String keyItem = matcher.group(1);
-                String valueItem = matcher.group(2);
+                String valueItem = matcher.group(2) != null
+                    ? matcher.group(2) : matcher.group(3);
                 databases.put(keyItem, valueItem);
               }
               pgbouncerIni.getDatabases()
@@ -153,7 +154,8 @@ public class PoolingConfigTransformer
               Matcher matcher = PARAMETER_PATTERN.matcher(value);
               while (matcher.find()) {
                 final String keyItem = matcher.group(1);
-                final String valueItem = matcher.group(2);
+                final String valueItem = matcher.group(2) != null
+                    ? matcher.group(2) : matcher.group(3);
                 users.put(keyItem, valueItem);
               }
               pgbouncerIni.getUsers()
@@ -211,7 +213,8 @@ public class PoolingConfigTransformer
     source.stream().sorted(Map.Entry.comparingByKey())
         .forEach(entry -> {
           String params = entry.getValue().entrySet().stream()
-              .map(e -> e.getKey() + "=" + e.getValue())
+              .map(e -> e.getKey() + "=" + (e.getValue() != null && e.getValue().contains(" ")
+                  ? "'" + e.getValue() + "'" : e.getValue()))
               .collect(Collectors.joining(" "));
           target.addProperty(section + "." + entry.getKey(), params);
         });
