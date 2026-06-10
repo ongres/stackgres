@@ -139,13 +139,14 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
     BigDecimal requestedSizeInBytes = Quantity.getAmountInBytes(requestedSize);
     BigDecimal actualRequestedSizeInBytes = Quantity.getAmountInBytes(actualRequestedSize);
 
-    if (requestedSizeInBytes.compareTo(actualRequestedSizeInBytes) != 0) {
+    int sizeComparison = requestedSizeInBytes.compareTo(actualRequestedSizeInBytes);
+    if (sizeComparison > 0) {
       /*
-       * The requested sized in the PVC template is different from the actual PVC.
-       * Therefore, we should update it
+       * The requested size in the PVC template is larger than the actual PVC.
+       * Therefore, we should expand it.
        */
       LOGGER.info(
-          "Detected a change in the PVC size.  Previous size {}, new size {}. Patching...",
+          "Detected an increase in the PVC size.  Previous size {}, new size {}. Patching...",
           actualRequestedSize,
           requestedSize
       );
@@ -154,6 +155,19 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
 
       var pvcWriter = getPvcWriter();
       pvcWriter.update(pvc);
+    } else if (sizeComparison < 0) {
+      /*
+       * The requested size in the PVC template is smaller than the actual PVC.
+       * Kubernetes does not allow shrinking a PVC (spec.resources.requests.storage
+       * can only be expanded), so attempting the update would fail on every
+       * reconciliation cycle. Skip it and warn instead.
+       */
+      LOGGER.warn(
+          "Detected a decrease in the PVC size from {} to {}, but Kubernetes does not"
+              + " support shrinking a persistent volume claim. Skipping.",
+          actualRequestedSize,
+          requestedSize
+      );
     }
 
     return new ReconciliationResult<>();

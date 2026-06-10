@@ -124,32 +124,22 @@ class PersistentVolumeSizeReconciliatorTest {
   }
 
   @Test
-  @DisplayName("Given a valid StatefulSet and PVC it should be able to decrease the PV size it")
-  void testSuccessfulDecrease() throws Exception {
+  @DisplayName("Given a valid StatefulSet and PVC it should not decrease the PV size")
+  void testDecreaseIsSkipped() throws Exception {
     /*
-     * This sections prepares the StatefulSet and Persistent Volume Claims to be found by the
-     * finders and the pvc writer
+     * Kubernetes does not allow shrinking a PVC (spec.resources.requests.storage can only
+     * be expanded). The reconciliator must therefore NOT attempt to write a smaller size,
+     * otherwise the update would be rejected by the API server on every reconciliation cycle.
      */
     prepareSts(clusterName, namespace, "256Mi");
-    var pvc = preparePvcRead(clusterName, podName, namespace, "500Mi");
-    var pvcCaptor = preparePvcWrite(pvc);
+    preparePvcRead(clusterName, podName, namespace, "500Mi");
 
     pvcReconciliator.reconcile(null, podContext);
 
     /*
-     * This section checks that written pvc has the correct volume size
+     * This section verifies that the finders were called but the writer was not.
      */
-    var writtenPvc = pvcCaptor.getValue();
-    assertEquals(
-        new Quantity("256Mi"),
-        writtenPvc.getSpec().getResources().getRequests().get("storage"));
-
-    /*
-     * This section verifies that the readers and writers were called
-     */
-    verify(stsFinder).findByNameAndNamespace(clusterName, namespace);
-    verify(pvcReader).findByNameAndNamespace(pvc.getMetadata().getName(), namespace);
-    verify(pvcWriter).update(any());
+    verifyAbortedWrite();
   }
 
   @Test
