@@ -311,17 +311,21 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
           var queriesFound = Optional.ofNullable(spec.getConfigurations())
               .map(StackGresClusterConfigurations::getPostgresExporter)
               .map(StackGresClusterPostgresExporter::getQueries);
-          spec.getConfigurations().setPostgresExporter(postgresExporter);
-          spec.getConfigurations().getPostgresExporter().setQueries(
-              Optional.of(spec.getConfigurations().getPostgresExporter())
-              .map(StackGresClusterPostgresExporter::getQueries)
+          // Build a fresh exporter per generated sub-cluster instead of storing
+          // and mutating the shared SGShardedCluster postgresExporter object.
+          // The latter is applied to the coordinator, every shard and the query
+          // routers, so mutating it would cross-contaminate their queries and
+          // the last write would retroactively rewrite all of them.
+          var postgresExporterCopy = new StackGresClusterPostgresExporter();
+          postgresExporterCopy.setQueries(
+              Optional.ofNullable(postgresExporter.getQueries())
               .map(queries -> queriesFound
                   .map(q -> mergeMap(queries, q))
                   .orElse(queries))
               .or(() -> queriesFound)
               .map(StackGresClusterPostgresExporterQueries::new)
               .orElse(null));
-          spec.getConfigurations().setPostgresExporter(postgresExporter);
+          spec.getConfigurations().setPostgresExporter(postgresExporterCopy);
         });
   }
 
