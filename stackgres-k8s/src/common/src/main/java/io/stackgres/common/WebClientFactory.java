@@ -93,9 +93,9 @@ public class WebClientFactory {
     final Duration sleepBeforeRetry;
     if (optionalRetry.isPresent()) {
       String[] retryParts = optionalRetry.get().split(":");
-      maxRetries = Integer.parseInt(retryParts[0]);
+      maxRetries = Math.max(1, Integer.parseInt(retryParts[0]));
       sleepBeforeRetry = Optional.of(retryParts)
-          .filter(parts -> parts.length < 2)
+          .filter(parts -> parts.length >= 2)
           .map(parts -> Duration.ofSeconds(Integer.parseInt(parts[1])))
           .orElse(Duration.ZERO);
     } else {
