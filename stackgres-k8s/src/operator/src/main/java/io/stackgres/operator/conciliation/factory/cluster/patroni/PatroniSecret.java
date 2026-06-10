@@ -131,7 +131,8 @@ public class PatroniSecret
     data.put(
         ROLES_UPDATE_SQL_KEY,
         Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
-        + "ALTER ROLE " + superuserCredentials.v1 + " WITH PASSWORD '" + superuserCredentials.v2 + "';");
+        + "ALTER ROLE " + DSL.quotedName(superuserCredentials.v1)
+        + " WITH PASSWORD " + DSL.inline(superuserCredentials.v2) + ";");
   }
 
   public static Tuple2<String, String> getSuperuserCredentials(
@@ -170,7 +171,8 @@ public class PatroniSecret
     data.put(
         ROLES_UPDATE_SQL_KEY,
         Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
-        + "ALTER ROLE " + replicatorCredentials.v1 + " WITH PASSWORD '" + replicatorCredentials.v2 + "';");
+        + "ALTER ROLE " + DSL.quotedName(replicatorCredentials.v1)
+        + " WITH PASSWORD " + DSL.inline(replicatorCredentials.v2) + ";");
   }
 
   public static Tuple2<String, String> getReplicatorCredentials(
