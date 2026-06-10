@@ -114,6 +114,9 @@ public class StackGresExtensionMetadata
           return versionPartNumber - otherVersionPartNumber;
         }
       }
+      // All shared components are equal: the version with more components is
+      // greater (e.g. 1.2.1 > 1.2), otherwise they are equal.
+      return versionParts.length - otherVersionParts.length;
     }
     return compare;
   }
