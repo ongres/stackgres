@@ -66,6 +66,13 @@ spec:
       - name: {{ .Release.Name }}
         image: "{{ include "operator-image" . }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
         env:
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"
