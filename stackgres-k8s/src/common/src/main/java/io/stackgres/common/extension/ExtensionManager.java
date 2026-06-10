@@ -376,20 +376,13 @@ public abstract class ExtensionManager {
         fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
         int fileMode = tarEntry.getMode();
         Set<PosixFilePermission> permissions = parseMode(fileMode);
-        try {
-          fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
-        } catch (IOException ex) {
-          try {
-            fileSystemHandler.deleteIfExists(targetPath);
-            fileSystemHandler.copyOrReplace(tarEntryInputStream, targetPath);
-            fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
-          } catch (IOException dex) {
-            LOGGER.warn("Can not change permission of file {} to {}, cleaning file",
-                targetPath, Integer.toOctalString(fileMode));
-            ex.addSuppressed(dex);
-            throw ex;
-          }
-        }
+        // Permissions are applied to the freshly written file (copyOrReplace
+        // already writes through a temporary file and an atomic move). On
+        // failure we must NOT delete and re-copy from tarEntryInputStream: the
+        // entry stream is already consumed, so a second copy would silently
+        // write an empty, truncated file. Let the failure propagate instead so
+        // the whole entry is re-extracted from a fresh stream.
+        fileSystemHandler.setPosixFilePermissions(targetPath, permissions);
       } else if (tarEntry.isSymbolicLink()) {
         Path linkTarget = Paths.get(tarEntry.getLinkName());
         if (linkTarget.isAbsolute()) {
