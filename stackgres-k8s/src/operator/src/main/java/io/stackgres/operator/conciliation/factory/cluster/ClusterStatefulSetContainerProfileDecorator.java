@@ -111,7 +111,7 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
         .orElse(null);
     final HashMap<String, Quantity> limits =
         Optional.of(patroniResources)
-        .map(ResourceRequirements::getRequests)
+        .map(ResourceRequirements::getLimits)
         .map(HashMap::new)
         .orElseGet(HashMap::new);
     if (cpuLimit != null
