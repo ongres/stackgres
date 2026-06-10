@@ -832,7 +832,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     pod.getMetadata().setLabels(Optional.ofNullable(pod.getMetadata().getLabels())
         .map(Seq::seq)
         .orElse(Seq.of())
-        .filter(label -> PatroniUtil.ROLE_KEY.equals(label.v1))
+        .filter(label -> !PatroniUtil.ROLE_KEY.equals(label.v1))
         .append(Tuple.tuple(PatroniUtil.ROLE_KEY, role))
         .toMap(Tuple2::v1, Tuple2::v2));
     return pod;
@@ -849,7 +849,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     pod.getMetadata().setLabels(Optional.ofNullable(pod.getMetadata().getLabels())
         .map(Seq::seq)
         .orElse(Seq.of())
-        .filter(label -> PatroniUtil.ROLE_KEY.equals(label.v1))
+        .filter(label -> !PatroniUtil.ROLE_KEY.equals(label.v1))
         .toMap(Tuple2::v1, Tuple2::v2));
     return pod;
   }
