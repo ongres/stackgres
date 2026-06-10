@@ -50,7 +50,8 @@ public class PgBouncerAuthFileReconciliator {
   private static final Path AUTH_FILE_PATH =
       Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
   private static final String SELECT_PGBOUNCER_USERS_FROM_PG_SHADOW =
-      "SELECT '\"' || usename || '\" \"' || passwd || '\"'"
+      "SELECT '\"' || replace(usename, '\"', '\"\"') || '\" \"'"
+          + " || replace(passwd, '\"', '\"\"') || '\"'"
           + " FROM pg_shadow where usename = ANY (?)";
 
   private final String podName;
