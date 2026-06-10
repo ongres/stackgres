@@ -71,10 +71,10 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
           + "/last-" + ClusterPath.PATRONI_CONFIG_FILE_PATH.filename());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
-  private static final Pattern PG_CTL_TIMEOUT_LINE_PATTERN = Pattern.compile("^ pg_ctl_timeout:.*$");
-  private static final Pattern CALLBACKS_LINE_PATTERN = Pattern.compile("^ callbacks:.*$");
-  private static final Pattern PRE_PROMOTE_LINE_PATTERN = Pattern.compile("^ pre_promote:.*$");
-  private static final Pattern BEFORE_STOP_LINE_PATTERN = Pattern.compile("^ before_stop:.*$");
+  private static final Pattern PG_CTL_TIMEOUT_LINE_PATTERN = Pattern.compile("^ *pg_ctl_timeout:.*$");
+  private static final Pattern CALLBACKS_LINE_PATTERN = Pattern.compile("^ *callbacks:.*$");
+  private static final Pattern PRE_PROMOTE_LINE_PATTERN = Pattern.compile("^ *pre_promote:.*$");
+  private static final Pattern BEFORE_STOP_LINE_PATTERN = Pattern.compile("^ *before_stop:.*$");
 
   private static final String NOLOADBALANCE_TAG = PatroniUtil.NOLOADBALANCE_TAG;
   private static final String NOFAILOVER_TAG = PatroniUtil.NOFAILOVER_TAG;
