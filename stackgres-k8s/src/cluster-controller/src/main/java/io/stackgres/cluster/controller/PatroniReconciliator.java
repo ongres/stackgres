@@ -372,9 +372,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     var hasCallbacks =
         FluentProcess.start("grep", "-q", "^ *callbacks:.*$",
         PATRONI_CONFIG_PATH.toString()).tryGet();
-    String escapedCallbacks = callbacks
-        .replace("\\", "\\\\")
-        .replace("/", "\\/");
+    String escapedCallbacks = escapeSedReplacement(callbacks);
     if (hasCallbacks.exception().isEmpty()) {
       FluentProcess.start("sed", "-i",
           String.format("s/^ *callbacks:.*$/%s/", escapedCallbacks),
@@ -401,9 +399,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     var hasPrePromote =
         FluentProcess.start("grep", "-q", "^ *pre_promote:.*$",
         PATRONI_CONFIG_PATH.toString()).tryGet();
-    String escapedPrePromote = prePromote
-        .replace("\\", "\\\\")
-        .replace("/", "\\/");
+    String escapedPrePromote = escapeSedReplacement(prePromote);
     if (hasPrePromote.exception().isEmpty()) {
       FluentProcess.start("sed", "-i",
           String.format("s/^ *pre_promote:.*$/%s/", escapedPrePromote),
@@ -430,9 +426,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     var hasBeforeStop =
         FluentProcess.start("grep", "-q", "^ *before_stop:.*$",
         PATRONI_CONFIG_PATH.toString()).tryGet();
-    String escapedBeforeStop = beforeStop
-        .replace("\\", "\\\\")
-        .replace("/", "\\/");
+    String escapedBeforeStop = escapeSedReplacement(beforeStop);
     if (hasBeforeStop.exception().isEmpty()) {
       FluentProcess.start("sed", "-i",
           String.format("s/^ *before_stop:.*$/%s/", escapedBeforeStop),
@@ -442,6 +436,21 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
           String.format("s/^postgresql:$/postgresql:\\n%s/", escapedBeforeStop),
           PATRONI_CONFIG_PATH.toString()).join();
     }
+  }
+
+  /**
+   * Escape a value so it can be safely used as the replacement part of a sed
+   * {@code s/.../<replacement>/} command. Besides the backslash and the {@code /}
+   * delimiter, an unescaped {@code &} would be expanded by sed to the whole matched
+   * text and a literal newline would terminate the command, both corrupting the
+   * generated Patroni config.
+   */
+  static String escapeSedReplacement(String value) {
+    return value
+        .replace("\\", "\\\\")
+        .replace("/", "\\/")
+        .replace("&", "\\&")
+        .replace("\n", "\\n");
   }
 
   private void setPatroniTagsAsPodLabels(
