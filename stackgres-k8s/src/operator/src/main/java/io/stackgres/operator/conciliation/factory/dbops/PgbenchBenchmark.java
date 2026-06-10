@@ -7,8 +7,10 @@ package io.stackgres.operator.conciliation.factory.dbops;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -76,7 +78,8 @@ public class PgbenchBenchmark extends AbstractDbOpsJob {
         .toPlainString();
     final String duration = String.valueOf(Duration.parse(pgbench.getDuration()).getSeconds());
     final String samplingRate = Optional.ofNullable(pgbench.getSamplingRate())
-        .map(new DecimalFormat("#.000000000")::format)
+        .map(new DecimalFormat("#.000000000",
+            DecimalFormatSymbols.getInstance(Locale.ROOT))::format)
         .orElse("1.0");
     return Seq.of(
         new EnvVarBuilder()
