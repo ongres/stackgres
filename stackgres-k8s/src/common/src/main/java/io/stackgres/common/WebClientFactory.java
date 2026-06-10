@@ -77,7 +77,7 @@ public class WebClientFactory {
       String userInfo = proxyUri.getUserInfo();
       if (userInfo != null) {
         extraHeaders.put(HttpHeaders.PROXY_AUTHORIZATION,
-            "Bearer " + Base64.getEncoder().encodeToString(
+            "Basic " + Base64.getEncoder().encodeToString(
                 userInfo.getBytes(StandardCharsets.UTF_8)));
       }
       clientBuilder.property(PROPERTY_PROXY_SCHEME, proxyUri.getScheme());
