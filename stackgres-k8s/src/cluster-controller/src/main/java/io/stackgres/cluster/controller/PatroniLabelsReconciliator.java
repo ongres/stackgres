@@ -120,10 +120,9 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
               .filter(entry -> !PATRONI_FLAG_LABELS.contains(entry.getKey())))
           .append(PATRONI_FLAG_LABELS
               .stream()
-              .flatMap(tag -> Optional.ofNullable(patroniLabels.get(tag))
-                  .flatMap(label -> Optional.<Map.Entry<String, String>>empty())
-                  .or(() -> Optional.of(Map.entry(tag, PatroniUtil.FALSE_TAG_VALUE)))
-                  .stream()))
+              .map(tag -> Map.entry(tag,
+                  Optional.ofNullable(patroniLabels.get(tag))
+                      .orElse(PatroniUtil.FALSE_TAG_VALUE))))
           .toMap(Map.Entry::getKey, Map.Entry::getValue));
       if (!Objects.equals(currentLabels, currentPod.getMetadata().getLabels())) {
         patroniLabelsUpdated.set(true);
