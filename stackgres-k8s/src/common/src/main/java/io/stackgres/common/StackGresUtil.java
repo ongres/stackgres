@@ -522,14 +522,11 @@ public interface StackGresUtil {
   }
 
   static String getPatroniVersion(StackGresCluster cluster) {
-    if (StackGresVersion.getStackGresVersionAsNumber(cluster) <= StackGresVersion.V_1_18.getVersionAsNumber()) {
-      return getPatroniVersion(
-          cluster,
-          Optional.ofNullable(cluster.getStatus().getPostgresVersion())
-          .orElse(cluster.getSpec().getPostgres().getVersion()));
-    }
-
-    return getPatroniVersion(cluster, cluster.getStatus().getPostgresVersion());
+    return getPatroniVersion(
+        cluster,
+        Optional.ofNullable(cluster.getStatus())
+        .map(status -> status.getPostgresVersion())
+        .orElseGet(() -> cluster.getSpec().getPostgres().getVersion()));
   }
 
   static String getPatroniVersion(StackGresCluster cluster, String postgresVersion) {
@@ -541,14 +538,11 @@ public interface StackGresUtil {
   }
 
   static String getPatroniVersion(StackGresShardedCluster cluster) {
-    if (StackGresVersion.getStackGresVersionAsNumber(cluster) <= StackGresVersion.V_1_18.getVersionAsNumber()) {
-      return getPatroniVersion(
-          cluster,
-          Optional.ofNullable(cluster.getStatus())
-          .map(StackGresShardedClusterStatus::getPostgresVersion)
-          .orElse(cluster.getSpec().getPostgres().getVersion()));
-    }
-    return getPatroniVersion(cluster, cluster.getStatus().getPostgresVersion());
+    return getPatroniVersion(
+        cluster,
+        Optional.ofNullable(cluster.getStatus())
+        .map(StackGresShardedClusterStatus::getPostgresVersion)
+        .orElseGet(() -> cluster.getSpec().getPostgres().getVersion()));
   }
 
   static String getPatroniVersion(StackGresShardedCluster cluster, String postgresVersion) {
