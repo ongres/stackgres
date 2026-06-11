@@ -371,7 +371,7 @@ public class SgClusterStreamMigrationHandler implements TargetEventHandler {
             lastLsn = lsn;
             counter = 0L;
           }
-          long kafkaPartition = (lastLsn << 32) & (counter & ((1 << 32) - 1));
+          long kafkaPartition = (lastLsn << 32) | (counter & 0xFFFFFFFFL);
           counter++;
           SinkRecord sinkRecord = new SinkRecord(
               sourceRecord.topic(),
