@@ -70,7 +70,7 @@ public interface StackGresUtil {
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
   Pattern EMPTY_LINE_PATTERN = Pattern.compile(
-      "^\\s*(:?#.*)?$");
+      "^\\s*(?:#.*)?$");
   Pattern PARAMETER_PATTERN = Pattern.compile(
       "^\\s*(?<parameter>[^\\s=]+)"
           + "\\s*[=\\s]\\s*"
