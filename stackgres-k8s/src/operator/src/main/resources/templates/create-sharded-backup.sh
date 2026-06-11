@@ -255,7 +255,7 @@ EOF
             ]'
           exit 1
         fi
-        printf %s "$BACKUP_NAME" >> /tmp/completed-backups
+        printf '%s\n' "$BACKUP_NAME" >> /tmp/completed-backups
         BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
         BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
         echo "...$BACKUP_NAME completed"

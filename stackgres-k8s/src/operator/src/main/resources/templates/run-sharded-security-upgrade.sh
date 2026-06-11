@@ -61,7 +61,7 @@ EOF
           COMPLETED=false
           continue
         fi
-        printf %s "$DBOPS_NAME" >> /tmp/completed-dbops
+        printf '%s\n' "$DBOPS_NAME" >> /tmp/completed-dbops
         update_status
         if printf %s "$DBOPS_STATUS" | grep -q " $DBOPS_FAILED "
         then
