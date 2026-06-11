@@ -16,6 +16,7 @@ run_op() {
 }
 
 run_command() {
+  COMMAND=''
   if "$NO_ORDER"
   then
     COMMAND="$COMMAND"' -n'
@@ -37,7 +38,7 @@ run_command() {
     COMMAND="$COMMAND"' -C'
   fi
   get_primary_instance
-  kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- pg_repack $ARGS "$@"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- pg_repack $COMMAND "$@"
 }
 
 get_primary_instance() {
