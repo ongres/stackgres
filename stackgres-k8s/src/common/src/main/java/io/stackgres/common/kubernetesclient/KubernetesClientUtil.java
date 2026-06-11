@@ -54,8 +54,8 @@ public interface KubernetesClientUtil {
   static <T> T retryOnConflict(Supplier<T> supplier) {
     return retry(supplier, KubernetesClientUtil::isConflict,
         OperatorProperty.CONFLICT_INITIAL_SLEEP_MILLISECONDS.getIntOrDefault(10),
-        OperatorProperty.CONFLICT_SLEEP_MILLISECONDS.getIntOrDefault(600),
-        OperatorProperty.CONFLICT_MAX_SLEEP_MILLISECONDS.getIntOrDefault(10));
+        OperatorProperty.CONFLICT_MAX_SLEEP_MILLISECONDS.getIntOrDefault(600),
+        OperatorProperty.CONFLICT_SLEEP_MILLISECONDS.getIntOrDefault(10));
   }
 
   /**
@@ -74,8 +74,8 @@ public interface KubernetesClientUtil {
   static <T> T retryOnError(Supplier<T> supplier, int retryLimit) {
     return retryWithLimit(supplier, ex -> true, retryLimit,
         OperatorProperty.ERROR_INITIAL_SLEEP_MILLISECONDS.getIntOrDefault(3000),
-        OperatorProperty.ERROR_SLEEP_MILLISECONDS.getIntOrDefault(30000),
-        OperatorProperty.ERROR_MAX_SLEEP_MILLISECONDS.getIntOrDefault(1000));
+        OperatorProperty.ERROR_MAX_SLEEP_MILLISECONDS.getIntOrDefault(30000),
+        OperatorProperty.ERROR_SLEEP_MILLISECONDS.getIntOrDefault(1000));
   }
 
   static <I> List<I> listOrEmptyOnForbiddenOrNotFound(Supplier<List<I>> supplier) {
