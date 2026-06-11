@@ -476,9 +476,9 @@ EOF
       fi
       if is_timeout_expired BACKUP
       then
-        echo "Backup failed due to timeout ($BACKUP_TIMEOUT) while waiting VolumeSpanshot to be ready"
+        echo "Backup failed due to timeout ($BACKUP_TIMEOUT) while waiting VolumeSnapshot to be ready"
         retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-          {"op":"replace","path":"/status/process/failure","value":'"Backup failed due to timeout ($BACKUP_TIMEOUT) while waiting VolumeSpanshot to be ready"'}
+          {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup failed due to timeout (%s) while waiting VolumeSnapshot to be ready' "$BACKUP_TIMEOUT" | to_json_string)"'}
           ]'
         kill "$(cat /tmp/backup-tail-pid)" || true
         exit 1
