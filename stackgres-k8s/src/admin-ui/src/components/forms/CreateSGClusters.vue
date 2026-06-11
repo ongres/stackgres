@@ -4140,7 +4140,7 @@
                                     "privateKeySecretKeySelector": this.ssl.privateKeySecretKeySelector,
                                   } || {}),
                                 }
-                            } || {"ssl": null} )
+                            } || {"ssl": { "enabled": false }} )
                         }
 
                     }
