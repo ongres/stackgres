@@ -154,8 +154,13 @@ public class PatroniMember {
 
   @JsonIgnore
   public void setRoleFromLabel(String role) {
+    if (role == null) {
+      this.role = null;
+      return;
+    }
     this.role = Arrays.asList(role.split("_"))
         .stream()
+        .filter(rolePart -> !rolePart.isEmpty())
         .map(rolePart -> rolePart.substring(0, 1).toUpperCase(Locale.US) + rolePart.substring(1))
         .collect(Collectors.joining(" "));
   }
