@@ -238,7 +238,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
         throw new RuntimeException("Restart operation timed out after "
             + patroniCtlTimeout.getSeconds() + " seconds");
       }
-      Unchecked.runnable(() -> Thread.sleep(1000));
+      Unchecked.runnable(() -> Thread.sleep(1000)).run();
     }
   }
 
@@ -281,7 +281,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
         throw new RuntimeException("Switchover operation timed out after "
             + patroniCtlTimeout.getSeconds() + " seconds");
       }
-      Unchecked.runnable(() -> Thread.sleep(1000));
+      Unchecked.runnable(() -> Thread.sleep(1000)).run();
     }
   }
 
