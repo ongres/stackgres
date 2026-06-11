@@ -111,7 +111,7 @@ public class ClusterControllerReconciliator
     final boolean nodeNameChanged;
     if (foundPodStatus.isPresent()) {
       String nodeName = this.nodeName.orElseGet(foundPodStatus.get()::getNodeName);
-      nodeNameChanged = Objects.equals(foundPodStatus.get().getNodeName(), nodeName);
+      nodeNameChanged = !Objects.equals(foundPodStatus.get().getNodeName(), nodeName);
       foundPodStatus.get().setNodeName(nodeName);
     } else {
       nodeNameChanged = true;
