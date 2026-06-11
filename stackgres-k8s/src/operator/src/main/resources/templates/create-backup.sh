@@ -364,7 +364,7 @@ SELECT
   CASE WHEN pg_is_in_recovery() THEN upper(
     lpad(to_hex((SELECT timeline_id FROM pg_control_checkpoint()))::text, 8, '0')
     || lpad(to_hex(lsn_high)::text, 8, '0')
-    || lpad(to_hex(lsn_low - 1
+    || lpad(to_hex((lsn_low - 1)
       / (SELECT bytes_per_wal_segment::bigint FROM pg_control_init()))::text, 8, '0'))
   ELSE (pg_walfile_name_offset(lsn)).file_name END,
   (lsn_high << 32) | lsn_low
@@ -385,7 +385,7 @@ SELECT
   CASE WHEN pg_is_in_recovery() THEN upper(
     lpad(to_hex((SELECT timeline_id FROM pg_control_checkpoint()))::text, 8, '0')
     || lpad(to_hex(lsn_high)::text, 8, '0')
-    || lpad(to_hex(lsn_low - 1
+    || lpad(to_hex((lsn_low - 1)
       / (SELECT bytes_per_wal_segment::bigint FROM pg_control_init()))::text, 8, '0'))
   ELSE (pg_walfile_name_offset(lsn)).file_name END,
   (lsn_high << 32) | lsn_low
