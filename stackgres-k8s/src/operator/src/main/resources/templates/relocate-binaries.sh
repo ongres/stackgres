@@ -60,9 +60,9 @@ then
       | sed "s|^${EXTENSION_CONTROL_FILE%/*}/\(.* [0-9]\+\)$|${PG_EXTENSIONS_EXTENSION_PATH}/\1|" | sort > "$PG_RELOCATED_PATH/.source"
     find "$PG_EXTENSIONS_EXTENSION_PATH" -printf '%p %s\n' | sort > "$PG_RELOCATED_PATH/.target"
     comm -23 "$PG_RELOCATED_PATH/.source" "$PG_RELOCATED_PATH/.target" \
-      | sed "s|^\(.*\) [0-9]\+$|${PG_EXTENSIONS_EXTENSION_PATH}/\1|" | sort > "$PG_RELOCATED_PATH/.source-diff"
+      | sed "s|^\(.*\) [0-9]\+$|\1|" | sort > "$PG_RELOCATED_PATH/.source-diff"
     comm -13 "$PG_RELOCATED_PATH/.source" "$PG_RELOCATED_PATH/.target" \
-      | sed "s|^\(.*\) [0-9]\+$|${PG_EXTENSIONS_EXTENSION_PATH}/\1|" | sort > "$PG_RELOCATED_PATH/.target-diff"
+      | sed "s|^\(.*\) [0-9]\+$|\1|" | sort > "$PG_RELOCATED_PATH/.target-diff"
     comm -12 "$PG_RELOCATED_PATH/.source-diff" "$PG_RELOCATED_PATH/.target-diff" \
       | xargs rm -f || true
     cp -a -u "$EXTENSION_CONTROL_FILE" "${EXTENSION_CONTROL_FILE%/*}/$EXTENSION_NAME"--*.sql \
