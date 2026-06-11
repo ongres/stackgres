@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -196,7 +197,13 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
               .map(HashMap::new)
               .orElseGet(HashMap::new);
           var patroniOperation = Optional.ofNullable(annotations.get(StackGresContext.PATRONI_OPERATION_KEY))
-              .map(objectMapper::valueToTree)
+              .map(value -> {
+                try {
+                  return objectMapper.readTree(value);
+                } catch (JsonProcessingException ex) {
+                  return null;
+                }
+              })
               .filter(ObjectNode.class::isInstance)
               .map(ObjectNode.class::cast)
               .orElseGet(objectMapper::createObjectNode);
