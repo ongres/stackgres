@@ -152,7 +152,7 @@ public class Metrics extends AbstractMetrics {
       Class<?> customResourceClass,
       String suffix) {
     String singular = HasMetadata.getSingular(customResourceClass);
-    return reconciliations.get(suffix + singular).lastDuration;
+    return reconciliations.get(singular + suffix).lastDuration;
   }
 
 }
