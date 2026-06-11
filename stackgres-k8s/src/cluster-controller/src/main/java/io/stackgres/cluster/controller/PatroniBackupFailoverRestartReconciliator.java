@@ -119,7 +119,7 @@ public class PatroniBackupFailoverRestartReconciliator {
       var changeForReconciliationInitializationBackupName =
           waitChangeForReconciliationInitializationBackupName(
               context, replicaInitializationBackupName);
-      if (!changeForReconciliationInitializationBackupName.isChanged) {
+      if (changeForReconciliationInitializationBackupName.isChanged) {
         if (Files.exists(Paths.get(ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path()))) {
           Files.delete(Paths.get(ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path()));
         }
@@ -149,7 +149,7 @@ public class PatroniBackupFailoverRestartReconciliator {
         replicationInitializationFailed.set(null);
       } else {
         LOGGER.warn("Replica initialization backup failover aborted due to timeout waiting for the operator"
-            + " to change the replicaiton initialization backup from {}. Will retry...",
+            + " to change the replication initialization backup from {}. Will retry...",
             replicaInitializationBackupName);
       }
     }
@@ -161,7 +161,7 @@ public class PatroniBackupFailoverRestartReconciliator {
 
   private ChangeForReconciliationInitializationBackupName waitChangeForReconciliationInitializationBackupName(
       ClusterContext context,
-      String replicaInitializationBackupName) {
+      String replicaInitializationBackupName) throws InterruptedException {
     Instant start = Instant.now();
     Instant later = start.plus(Duration.ofSeconds(30));
     while (later.isAfter(Instant.now())) {
@@ -169,23 +169,25 @@ public class PatroniBackupFailoverRestartReconciliator {
           StackGresVolume.REPLICATION_INITIALIZATION_ENV.getResourceName(
               context.getCluster().getMetadata().getName()),
           context.getCluster().getMetadata().getNamespace());
-      Optional<String> configMapReconciliationInitializationBackup = configMap
-          .map(ConfigMap::getData)
-          .map(Map::entrySet)
-          .stream()
-          .flatMap(Set::stream)
-          .filter(entry -> Objects.equals(
-              entry.getKey(),
-              PatroniUtil.REPLICATION_INITIALIZATION_BACKUP))
-          .map(Map.Entry::getValue)
-          .findAny();
-      if (configMapReconciliationInitializationBackup.isPresent()
-          && configMapReconciliationInitializationBackup
-          .filter(replicaInitializationBackupName::equals)
-          .isEmpty()) {
-        return new ChangeForReconciliationInitializationBackupName(
-            true, configMapReconciliationInitializationBackup);
+      if (configMap.isPresent()) {
+        Optional<String> configMapReconciliationInitializationBackup = configMap
+            .map(ConfigMap::getData)
+            .map(Map::entrySet)
+            .stream()
+            .flatMap(Set::stream)
+            .filter(entry -> Objects.equals(
+                entry.getKey(),
+                PatroniUtil.REPLICATION_INITIALIZATION_BACKUP))
+            .map(Map.Entry::getValue)
+            .findAny();
+        if (configMapReconciliationInitializationBackup
+            .filter(replicaInitializationBackupName::equals)
+            .isEmpty()) {
+          return new ChangeForReconciliationInitializationBackupName(
+              true, configMapReconciliationInitializationBackup);
+        }
       }
+      Thread.sleep(1000);
     }
     return new ChangeForReconciliationInitializationBackupName(
         false, Optional.empty());
