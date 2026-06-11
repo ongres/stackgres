@@ -531,7 +531,7 @@ EOF
     then
       echo 'Backup failed while running pg_backup_stop'
       retry kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while running pg_backup_stop:\n'; cat /tmp/backup-stop; } | to_json_string)"'}
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed while running pg_backup_stop:\n'; cat /tmp/backup-psql-out; } | to_json_string)"'}
         ]'
       kill "$(cat /tmp/backup-tail-pid)" || true
       exit 1
