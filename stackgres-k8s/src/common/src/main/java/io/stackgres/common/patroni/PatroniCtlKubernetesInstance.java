@@ -447,8 +447,9 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
           }
           try {
             return String.valueOf(
-                Integer.parseInt(current.getStrVal())
-                - Integer.parseInt(member.getLagInMb().getStrVal()));
+                (Long.parseLong(current.getStrVal())
+                - Long.parseLong(member.getLagInMb().getStrVal()))
+                / (1024 * 1024));
           } catch (NumberFormatException ex) {
             return null;
           }
