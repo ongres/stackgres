@@ -378,7 +378,7 @@ public class UserResource {
           } else {
             roleBinding.setSubjects(new ArrayList<>(
                 roleBinding.getSubjects().stream()
-                    .filter(userSubject::equals)
+                    .filter(subject -> !userSubject.equals(subject))
                     .toList()));
             roleBindingWriter.update(roleBinding, dryRun);
           }
@@ -461,7 +461,7 @@ public class UserResource {
           } else {
             clusterRoleBinding.setSubjects(new ArrayList<>(
                 clusterRoleBinding.getSubjects().stream()
-                    .filter(userSubject::equals)
+                    .filter(subject -> !userSubject.equals(subject))
                     .toList()));
             clusterRoleBindingWriter.update(clusterRoleBinding, dryRun);
           }

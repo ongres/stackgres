@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -321,6 +322,46 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
     assertEquals(0, roleBindings.getItems().size());
     var clusterRoleBindings = mockServer.getClient().rbac().clusterRoleBindings().list();
     assertEquals(0, clusterRoleBindings.getItems().size());
+  }
+
+  @Test
+  void givenADeletionWithSharedBindings_shouldKeepOtherSubjects() {
+    var otherSubject = new SubjectBuilder()
+        .withApiGroup("rbac.authorization.k8s.io")
+        .withKind("User")
+        .withName("other-user")
+        .build();
+    roleBinding.setSubjects(new ArrayList<>(roleBinding.getSubjects()));
+    roleBinding.getSubjects().add(otherSubject);
+    clusterRoleBinding.setSubjects(new ArrayList<>(clusterRoleBinding.getSubjects()));
+    clusterRoleBinding.getSubjects().add(otherSubject);
+    mockServer.getClient()
+        .resource(user)
+        .createOr(Replaceable::update);
+    mockServer.getClient()
+        .resource(roleBinding)
+        .createOr(Replaceable::update);
+    mockServer.getClient()
+        .resource(clusterRoleBinding)
+        .createOr(Replaceable::update);
+    given()
+        .header(AUTHENTICATION_HEADER)
+        .body(userDto)
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .delete("/stackgres/users")
+        .then()
+        .statusCode(204);
+    var roleBindings = mockServer.getClient().rbac().roleBindings().inAnyNamespace().list();
+    assertEquals(1, roleBindings.getItems().size());
+    assertEquals(
+        List.of(otherSubject),
+        roleBindings.getItems().get(0).getSubjects());
+    var clusterRoleBindings = mockServer.getClient().rbac().clusterRoleBindings().list();
+    assertEquals(1, clusterRoleBindings.getItems().size());
+    assertEquals(
+        List.of(otherSubject),
+        clusterRoleBindings.getItems().get(0).getSubjects());
   }
 
   @Test
