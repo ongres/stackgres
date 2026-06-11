@@ -11,10 +11,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -105,11 +103,10 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
               .stream()
               .flatMap(Set::stream)
               .filter(tag -> PATRONI_LABELS.contains(tag.getKey()))
+              .filter(tag -> tag.getValue() != null && tag.getValue().getValue() != null)
               .collect(Collectors.toMap(
                   Map.Entry::getKey,
-                  Function.<Map.Entry<String, AnyType>>identity()
-                  .andThen(Map.Entry::getValue)
-                  .andThen(AnyType::toString)))
+                  tag -> String.valueOf(tag.getValue().getValue())))
               .entrySet())
           .toMap(Map.Entry::getKey, Map.Entry::getValue);
       Map<String, String> currentLabels = currentPod.getMetadata().getLabels();

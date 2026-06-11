@@ -423,6 +423,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
             "nosync",
             "nostream",
             "failover_priority")
+        .filter(labels::containsKey)
         .map(tag -> Map.entry(tag, new AnyType(labels.get(tag))))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
     .orElse(null);
