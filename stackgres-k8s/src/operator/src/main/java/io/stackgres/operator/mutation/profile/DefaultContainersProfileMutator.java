@@ -24,6 +24,10 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
   public StackGresProfile mutate(StackGresInstanceProfileReview review, StackGresProfile resource) {
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
+      if (review.getRequest().getOperation() == Operation.UPDATE
+          && review.getRequest().getOldObject() != null) {
+        defaultProfileFactory.resetDefaults(resource, review.getRequest().getOldObject());
+      }
       defaultProfileFactory.setDefaults(resource);
     }
 

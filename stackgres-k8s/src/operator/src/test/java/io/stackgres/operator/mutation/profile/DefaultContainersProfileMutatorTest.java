@@ -5,9 +5,13 @@
 
 package io.stackgres.operator.mutation.profile;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.IOException;
 import java.util.Random;
 
+import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
@@ -214,6 +218,39 @@ class DefaultContainersProfileMutatorTest {
     JsonUtil.assertJsonEquals(
         JsonUtil.toJson(expectedProfile),
         JsonUtil.toJson(result));
+  }
+
+  @Test
+  void changedLimits_shouldRecomputeStaleDerivedValuesButKeepCustomizations() throws Exception {
+    review = AdmissionReviewFixtures.instanceProfile().loadUpdate().get();
+    StackGresProfile oldProfile = review.getRequest().getOldObject();
+    oldProfile.getSpec().getContainers().clear();
+    oldProfile.getSpec().getInitContainers().clear();
+    oldProfile.getSpec().getRequests().getContainers().clear();
+    oldProfile.getSpec().getRequests().getInitContainers().clear();
+    new DefaultProfileFactory().setDefaults(oldProfile);
+    StackGresProfile staleProfile = JsonUtil.copy(oldProfile);
+    staleProfile.getSpec().setCpu("500m");
+    staleProfile.getSpec().setMemory("512Mi");
+    staleProfile.getSpec().getRequests().setCpu("500m");
+    staleProfile.getSpec().getRequests().setMemory("512Mi");
+    staleProfile.getSpec().getContainers()
+        .get(StackGresContainer.ENVOY.getNameWithPrefix()).setCpu("750m");
+    review.getRequest().setObject(staleProfile);
+
+    StackGresProfile result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
+
+    assertEquals("500m", result.getSpec().getInitContainers()
+        .get(StackGresInitContainer.SETUP_FILESYSTEM.getNameWithPrefix()).getCpu());
+    assertEquals("512Mi", result.getSpec().getInitContainers()
+        .get(StackGresInitContainer.SETUP_FILESYSTEM.getNameWithPrefix()).getMemory());
+    assertEquals("500m", result.getSpec().getRequests().getInitContainers()
+        .get(StackGresInitContainer.SETUP_FILESYSTEM.getNameWithPrefix()).getCpu());
+    assertEquals("512Mi", result.getSpec().getRequests().getInitContainers()
+        .get(StackGresInitContainer.SETUP_FILESYSTEM.getNameWithPrefix()).getMemory());
+    assertEquals("750m", result.getSpec().getContainers()
+        .get(StackGresContainer.ENVOY.getNameWithPrefix()).getCpu());
   }
 
   @Test

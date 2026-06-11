@@ -7,7 +7,9 @@ package io.stackgres.operator.initialization;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -99,6 +101,92 @@ public class DefaultProfileFactory extends DefaultCustomResourceFactory<StackGre
     resource.getSpec().getRequests().setContainers(containersRequests);
     setInitContainersCpuAndMemory(cpuRequests, memoryRequests, initContainersRequests);
     resource.getSpec().getRequests().setInitContainers(initContainersRequests);
+  }
+
+  /**
+   * Remove containers and init containers entries that still hold the values
+   * derived from the old profile cpu and memory, so that {@link #setDefaults}
+   * recomputes them from the new profile cpu and memory. Entries with values
+   * that do not match the old derived ones are user customizations and are
+   * left untouched.
+   */
+  public void resetDefaults(StackGresProfile resource, StackGresProfile oldResource) {
+    final Optional<BigDecimal> oldCpuLimits = Optional.of(oldResource.getSpec())
+        .map(StackGresProfileSpec::getCpu)
+        .flatMap(this::tryParseQuantity)
+        .map(Quantity::getAmountInBytes);
+    final Optional<BigDecimal> oldMemoryLimits = Optional.of(oldResource.getSpec())
+        .map(StackGresProfileSpec::getMemory)
+        .flatMap(this::tryParseQuantity)
+        .map(Quantity::getAmountInBytes);
+
+    Optional.ofNullable(resource.getSpec().getContainers())
+        .ifPresent(containers -> resetContainersCpuAndMemory(
+            oldCpuLimits, oldMemoryLimits, containerProfiles(), containers));
+    Optional.ofNullable(resource.getSpec().getInitContainers())
+        .ifPresent(initContainers -> resetContainersCpuAndMemory(
+            oldCpuLimits, oldMemoryLimits, initContainerProfiles(), initContainers));
+
+    final Optional<BigDecimal> oldCpuRequests = Optional.of(oldResource.getSpec())
+        .map(StackGresProfileSpec::getRequests)
+        .map(StackGresProfileRequests::getCpu)
+        .or(() -> Optional.ofNullable(oldResource.getSpec().getCpu()))
+        .flatMap(this::tryParseQuantity)
+        .map(Quantity::getAmountInBytes);
+    final Optional<BigDecimal> oldMemoryRequests = Optional.of(oldResource.getSpec())
+        .map(StackGresProfileSpec::getRequests)
+        .map(StackGresProfileRequests::getMemory)
+        .or(() -> Optional.ofNullable(oldResource.getSpec().getMemory()))
+        .flatMap(this::tryParseQuantity)
+        .map(Quantity::getAmountInBytes);
+
+    Optional.ofNullable(resource.getSpec().getRequests())
+        .ifPresent(requests -> {
+          Optional.ofNullable(requests.getContainers())
+              .ifPresent(containers -> resetContainersCpuAndMemory(
+                  oldCpuRequests, oldMemoryRequests, containerProfiles(), containers));
+          Optional.ofNullable(requests.getInitContainers())
+              .ifPresent(initContainers -> resetContainersCpuAndMemory(
+                  oldCpuRequests, oldMemoryRequests, initContainerProfiles(), initContainers));
+        });
+  }
+
+  private List<StackGresContainerProfile> containerProfiles() {
+    return Stream.of(StackGresContainer.values())
+        .filter(Predicates.not(StackGresContainer.PATRONI::equals))
+        .filter(Predicates.not(StackGresContainer.STREAM_CONTROLLER::equals))
+        .map(StackGresContainerProfile.class::cast)
+        .toList();
+  }
+
+  private List<StackGresContainerProfile> initContainerProfiles() {
+    return Stream.of(StackGresInitContainer.values())
+        .map(StackGresContainerProfile.class::cast)
+        .toList();
+  }
+
+  private void resetContainersCpuAndMemory(
+      Optional<BigDecimal> oldCpu, Optional<BigDecimal> oldMemory,
+      List<StackGresContainerProfile> containerProfiles,
+      Map<String, StackGresProfileContainer> containers) {
+    for (var container : containerProfiles) {
+      var containerProfile = containers.get(container.getNameWithPrefix());
+      if (containerProfile == null) {
+        continue;
+      }
+      final String oldDerivedCpu = oldCpu
+          .map(container.getCpuFormula())
+          .map(ResourceUtil::toCpuValue)
+          .orElse(null);
+      final String oldDerivedMemory = oldMemory
+          .map(container.getMemoryFormula())
+          .map(ResourceUtil::toMemoryValue)
+          .orElse(null);
+      if (Objects.equals(containerProfile.getCpu(), oldDerivedCpu)
+          && Objects.equals(containerProfile.getMemory(), oldDerivedMemory)) {
+        containers.remove(container.getNameWithPrefix());
+      }
+    }
   }
 
   private void setContainersCpuAndMemory(
