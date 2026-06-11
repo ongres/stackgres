@@ -92,7 +92,7 @@ EOF
       $(eval_in_place "$CONDITION_DBOPS_FAILED")
     ],
     "$OP_NAME": {
-      "failure": $FAILURE
+      "failure": $(printf %s "$FAILURE" | to_json_string)
     }
   }
 }
@@ -112,10 +112,10 @@ set_result() {
   kill "$READ_EVENTS_SERVICE_PID" || true
   wait "$READ_EVENTS_SERVICE_PID" 2>/dev/null || true
 
-  EXIT_CODE="$(grep '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
-  TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
-  LOCK_LOST="$(grep '^LOCK_LOST=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
-  FAILURE="$(grep '^FAILURE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2 | sed 's/^\(.*\)$/"\1"/')"
+  EXIT_CODE="$(grep '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  LOCK_LOST="$(grep '^LOCK_LOST=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  FAILURE="$(grep '^FAILURE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2-)"
   LAST_TRANSITION_TIME="$(date_iso8601)"
 
   if [ "$EXIT_CODE" = 0 ]
