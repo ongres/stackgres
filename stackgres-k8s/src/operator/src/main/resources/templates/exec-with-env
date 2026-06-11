@@ -83,7 +83,7 @@ do
           [ ! -f "$ENVDIR/$ENVVAR" ] \
             || ! printf %s "$ENVVAR" | grep -q '^[a-zA-Z][a-zA-Z0-9_]*$' \
             || [ "$OVERWRITE" != "true" -a -n "$(eval "echo \"\$$ENVVAR\"")" ] \
-            || eval "export $ENVVAR='$(cat "$ENVDIR/$ENVVAR")'"
+            || export "$ENVVAR=$(cat "$ENVDIR/$ENVVAR")"
           }
         then
           echo "An error occurred while exporting environment variable $ENVVAR" >&2
