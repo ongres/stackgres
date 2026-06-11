@@ -79,7 +79,7 @@ run_sampling() {
     return 1
   fi
   try_function_with_output psql -q -t -A -d "$DATABASE_NAME" \
-    -c "SELECT query_id, to_char(timestamp,'YYYY-MM-DD\"T\"HH:MM:SSZ') AS timestamp, query FROM sampling.queries"
+    -c "SELECT query_id, to_char(timestamp,'YYYY-MM-DD\"T\"HH24:MI:SSZ') AS timestamp, query FROM sampling.queries"
   if [ "$(cat "$SHARED_PATH/exit_code")" != 0 ]
   then
     create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $(cat "$SHARED_PATH/output")"
