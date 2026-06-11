@@ -24,7 +24,7 @@ run() {
   set +x
   while (kill -0 "$PID" && kill -0 "$TRY_LOCK_PID") 2>/dev/null
   do
-    true
+    sleep 1
   done
   )
 
