@@ -187,7 +187,7 @@ public class StreamCloudEventHandler implements TargetEventHandler {
             .header(CLOUDEVENT_SOURCE_HEADER, recordNode.get("source").asText());
         Response response = invocationBuilder
             .post(Entity.json(changeEvent.value()));
-        if (response.getStatus() != 200) {
+        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
           metrics.incrementTotalNumberOfErrorsSeen();
           metrics.setLastEventWasSent(false);
           throw new RuntimeException("Error " + response.getStatus()
