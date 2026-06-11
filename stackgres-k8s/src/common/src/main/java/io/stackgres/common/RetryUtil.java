@@ -97,7 +97,7 @@ public interface RetryUtil {
       } catch (RuntimeException ex) {
         if (predicate.test((E) ex)) {
           try {
-            if (retryLimit != null && retryLimit.intValue() < retry) {
+            if (retryLimit != null && retryLimit.intValue() <= retry) {
               throw ex;
             }
             int delay = calculateExponentialBackoffDelay(initial, maximum, variation, retry++);
