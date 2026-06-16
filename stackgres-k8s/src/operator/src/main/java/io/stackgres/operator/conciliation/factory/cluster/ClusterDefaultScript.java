@@ -69,6 +69,7 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
             .filter(
                 script -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH))
         .append(getPasswordsUpdateScript(cluster, 4))
+        .append(getPostgresExporterGrantsScript(5))
         .toList();
   }
 
@@ -80,6 +81,19 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
         .withScript(Unchecked.supplier(() -> Resources
             .asCharSource(ClusterDefaultScript.class.getResource(
                 "/prometheus-postgres-exporter/init.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get())
+        .build();
+  }
+
+  private StackGresScriptEntry getPostgresExporterGrantsScript(int id) {
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("prometheus-postgres-exporter-grants")
+        .withRetryOnError(true)
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(ClusterDefaultScript.class.getResource(
+                "/prometheus-postgres-exporter/init-grants.sql"),
                 StandardCharsets.UTF_8)
             .read()).get())
         .build();

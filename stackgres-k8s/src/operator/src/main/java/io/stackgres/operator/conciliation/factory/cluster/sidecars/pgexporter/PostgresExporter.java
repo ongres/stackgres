@@ -113,8 +113,8 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   @Override
   public Container getContainer(ClusterContainerContext context) {
     StackGresCluster cluster = context.getClusterContext().getSource();
-    String superuserUsername =
-        PatroniSecret.getSuperuserCredentials(context.getClusterContext()).v1;
+    String monitorUsername =
+        PatroniSecret.getMonitorCredentials(context.getClusterContext()).v1;
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
@@ -130,7 +130,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
                 .build(),
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("postgresql://" + superuserUsername + "@:" + EnvoyUtil.PG_PORT
+                .withValue("postgresql://" + monitorUsername + "@:" + EnvoyUtil.PG_PORT
                     + "/postgres"
                     + "?host=" + ClusterPath.PG_RUN_PATH.path()
                     + "&sslmode=disable")

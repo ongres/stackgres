@@ -31,6 +31,9 @@ public class StackGresClusterUsersCredentials {
   @Valid
   private StackGresClusterUserSecretKeyRef authenticator;
 
+  @Valid
+  private StackGresClusterUserSecretKeyRef monitor;
+
   public StackGresClusterUserSecretKeyRef getSuperuser() {
     return superuser;
   }
@@ -55,9 +58,17 @@ public class StackGresClusterUsersCredentials {
     this.authenticator = authenticator;
   }
 
+  public StackGresClusterUserSecretKeyRef getMonitor() {
+    return monitor;
+  }
+
+  public void setMonitor(StackGresClusterUserSecretKeyRef monitor) {
+    this.monitor = monitor;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(authenticator, replication, superuser);
+    return Objects.hash(authenticator, monitor, replication, superuser);
   }
 
   @Override
@@ -71,6 +82,7 @@ public class StackGresClusterUsersCredentials {
     StackGresClusterUsersCredentials other =
         (StackGresClusterUsersCredentials) obj;
     return Objects.equals(authenticator, other.authenticator)
+        && Objects.equals(monitor, other.monitor)
         && Objects.equals(replication, other.replication)
         && Objects.equals(superuser, other.superuser);
   }
