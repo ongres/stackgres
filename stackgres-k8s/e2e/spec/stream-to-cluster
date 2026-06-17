@@ -658,7 +658,7 @@ COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-o
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --data-only --dbname=postgres --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__"; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' AND line NOT LIKE '\\%' -- Skip comments, empty lines and psql commands
-  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
+  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|monitor|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
   AND line NOT SIMILAR TO 'COMMENT ON EXTENSION (dblink|postgis) %'
   AND line NOT SIMILAR TO '% SET "sgstream.ddl_import_completed" TO ''true'';'
@@ -757,7 +757,7 @@ COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=sakila --exclude-table="(test|spatial_ref_sys)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' AND line NOT LIKE '\\%' -- Skip comments, empty lines and psql commands
-  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
+  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|monitor|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
   AND line NOT SIMILAR TO 'COMMENT ON EXTENSION (dblink|postgis) %'
   AND line NOT SIMILAR TO '% SET "sgstream.ddl_import_completed" TO ''true'';'
@@ -961,7 +961,7 @@ COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dumpall --clean --if-exists --roles
 COPY input FROM PROGRAM $cmd$sh -c '{ { { pg_dump --clean --if-exists --schema-only --dbname=pgbench --exclude-table="(test|spatial_ref_sys|debezium_signal)" --exclude-schema="__migration__" --no-publications --no-subscriptions; echo $? >&3; } | base64 -w 0 >&4; } 3>&1 | { read EXIT_CODE; exit "$EXIT_CODE"; }; } 4>&1'$cmd$ DELIMITER E'\1';
 SELECT line FROM (SELECT regexp_split_to_table(convert_from(decode(line, 'base64'), 'UTF8'), E'\n') AS line FROM input) _
   WHERE line NOT LIKE '-- %' AND line NOT LIKE '--' AND line != '' AND line NOT LIKE '\\%' -- Skip comments, empty lines and psql commands
-  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|authenticator)%' -- Skip SGCluster existing roles
+  AND line NOT SIMILAR TO '(CREATE|ALTER|DROP) ROLE(| IF EXISTS) (postgres|replicator|monitor|authenticator)%' -- Skip SGCluster existing roles
   AND line NOT SIMILAR TO '(DROP|CREATE) EXTENSION(| IF EXISTS| IF NOT EXISTS) (dblink|postgis)(;| %)'
   AND line NOT SIMILAR TO 'COMMENT ON EXTENSION (dblink|postgis) %'
   AND line NOT SIMILAR TO '% SET "sgstream.ddl_import_completed" TO ''true'';'
