@@ -2461,7 +2461,7 @@ describe('Create SGCluster', () => {
             .should('eq', "2Gi")
         cy.get('@putCluster')
             .its('request.body.spec.postgres.ssl')
-            .should('be.null')
+            .should('deep.equal', { enabled: false })
         cy.get('@putCluster')
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 4)
