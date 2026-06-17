@@ -16,42 +16,79 @@ init_config
 if [ "$#" -gt 0 ]
 then
   MODULES="$*"
-
-  ORIGINAL_MODULES="$MODULES"
-
-  COMPLETED_MODULES=""
-
-  for MODULE in $MODULES
-  do
-    CURRENT_MODULE="$MODULE"
-    while true
-    do
-      PARENT_MODULE="$(jq -r ".stages[]|to_entries[]|select(.key == \"$CURRENT_MODULE\").value" stackgres-k8s/ci/build/target/config.json)"
-      if [ -z "$PARENT_MODULE" ]
-      then
-        echo "Module $CURRENT_MODULE stage not defined in stackgres-k8s/ci/build/config.yaml"
-        exit 1
-      fi
-      if [ "$PARENT_MODULE" = null ]
-      then
-        break
-      fi
-      if ! printf ' %s ' "$COMPLETED_MODULES" | tr '\n' ' ' | grep -qF " $PARENT_MODULE "
-      then
-        COMPLETED_MODULES="$PARENT_MODULE $COMPLETED_MODULES"
-      fi
-      CURRENT_MODULE="$PARENT_MODULE"
-    done
-    if ! printf ' %s ' "$COMPLETED_MODULES" | tr '\n' ' ' | grep -qF " $MODULE "
-    then
-      COMPLETED_MODULES="$COMPLETED_MODULES $MODULE"
-    fi
-  done
-
-  MODULES="$COMPLETED_MODULES"
 else
   MODULES="$(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)"
 fi
+
+ORIGINAL_MODULES="$MODULES"
+
+COMPLETED_MODULES=""
+
+for MODULE in $MODULES
+do
+  CURRENT_MODULE="$MODULE"
+  while true
+  do
+    PARENT_MODULE="$(jq -r ".stages[]|to_entries[]|select(.key == \"$CURRENT_MODULE\").value" stackgres-k8s/ci/build/target/config.json)"
+    if [ -z "$PARENT_MODULE" ]
+    then
+      echo "Module $CURRENT_MODULE stage not defined in stackgres-k8s/ci/build/config.yaml"
+      exit 1
+    fi
+    if [ "$PARENT_MODULE" = null ]
+    then
+      break
+    fi
+    if ! printf ' %s ' "$COMPLETED_MODULES" | tr '\n' ' ' | grep -qF " $PARENT_MODULE "
+    then
+      COMPLETED_MODULES="$PARENT_MODULE $COMPLETED_MODULES"
+    fi
+    CURRENT_MODULE="$PARENT_MODULE"
+  done
+  if ! printf ' %s ' "$COMPLETED_MODULES" | tr '\n' ' ' | grep -qF " $MODULE "
+  then
+    COMPLETED_MODULES="$COMPLETED_MODULES $MODULE"
+  fi
+done
+
+ORDERED_MODULES=""
+
+while true
+do
+  for COMPLETED_MODULE in $COMPLETED_MODULES
+  do
+    if printf ' %s ' "$ORDERED_MODULES" | tr '\n' ' ' | grep -qF " $COMPLETED_MODULE "
+    then
+      continue
+    fi
+    PARENT_MODULE="$(jq -r ".stages[]|to_entries[]|select(.key == \"$COMPLETED_MODULE\").value" stackgres-k8s/ci/build/target/config.json)"
+    if [ -z "$PARENT_MODULE" ]
+    then
+      echo "Module $COMPLETED_MODULE stage not defined in stackgres-k8s/ci/build/config.yaml"
+      exit 1
+    fi
+    if [ "$PARENT_MODULE" = null ] \
+      || printf ' %s ' "$ORDERED_MODULES" | tr '\n' ' ' | grep -qF " $PARENT_MODULE "
+    then
+      ORDERED_MODULES="$ORDERED_MODULES $COMPLETED_MODULE"
+    fi
+  done
+  DONE=true
+  for COMPLETED_MODULE in $COMPLETED_MODULES
+  do
+    if ! printf ' %s ' "$ORDERED_MODULES" | tr '\n' ' ' | grep -qF " $COMPLETED_MODULE "
+    then
+      DONE=false
+      break
+    fi
+  done
+  if [ "$DONE" = true ]
+  then
+    break
+  fi
+done
+
+MODULES="$ORDERED_MODULES"
 
 generate_image_hashes $MODULES
 
