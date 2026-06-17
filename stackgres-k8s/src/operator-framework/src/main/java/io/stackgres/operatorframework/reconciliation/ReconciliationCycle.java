@@ -192,7 +192,14 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
           ReconciliationResult<?> reconciliationResult =
               reconciliator.reconcile(client, contextWithExistingAndRequiredResources);
           if (!reconciliationResult.success()) {
-            contextExceptions.put(exisitingContextResource, reconciliationResult.getException());
+            final Exception ex = reconciliationResult.getException();
+            contextExceptions.put(exisitingContextResource, ex);
+            logger.error("{} failed reconciling {}", cycleName, contextId, ex);
+            try {
+              onConfigError(context, exisitingContextResource, ex);
+            } catch (RuntimeException rex) {
+              logger.error("{} failed sending event while reconciling {}", cycleName, contextId, rex);
+            }
           }
         } catch (Exception ex) {
           contextExceptions.put(exisitingContextResource, ex);
