@@ -1,7 +1,8 @@
 #!/bin/sh
 
 e2e_test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string cluster.pods.customInitContainers[0].image=postgres:"${E2E_POSTGRES_VERSION}"
 
   kubectl create configmap -n "$CLUSTER_NAMESPACE" pgadmin --from-literal=config_distro.py="$(cat << EOF
 CA_FILE = '/etc/ssl/certs/ca-certificates.crt'
@@ -22,6 +23,7 @@ EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -80,7 +82,7 @@ custom_container_check() {
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
 
   try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c custom-pg-controldata \
-      | grep -qx "Database cluster state:\s\+shut down"'
+      | grep -q "^Database cluster state:\s\+shut down"'
   if "$RESULT"
   then
     success "pg_controldata init container is running as expected and is aviable on primary service"
@@ -89,7 +91,7 @@ custom_container_check() {
   fi
 
   try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c custom-pg-controldata \
-      | grep -qx "Database cluster state:\s\+shut down in recovery"'
+      | grep -q "^Database cluster state:\s\+shut down in recovery"'
   if "$RESULT"
   then
     success "pg_controldata init container is running as expected and is aviable on primary service"

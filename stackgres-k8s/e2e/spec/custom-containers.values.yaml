@@ -96,7 +96,7 @@ cluster:
         readOnly: true
     customInitContainers:
     - name: pg-controldata
-      image: postgres:13.12
+      image: postgres:18
       command:
       - sh
       - -ecx
