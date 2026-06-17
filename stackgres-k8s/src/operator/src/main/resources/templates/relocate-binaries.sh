@@ -16,6 +16,22 @@ mkdir -p "$PG_EXTENSIONS_LIB64_PATH"
 
 mkdir -p "$PG_RELOCATED_PATH"
 
+# Force relocation again when the architecture changes (the data volume may be
+# reused on a node of a different architecture). Otherwise the stale binaries
+# kept on the data volume would mismatch the running container and fail to
+# execute.
+RELOCATED_ARCH="$(uname -m)"
+if [ ! -f "$PG_RELOCATED_PATH/.arch" ] \
+  || [ "x$(cat "$PG_RELOCATED_PATH/.arch")" != "x$RELOCATED_ARCH" ]
+then
+  if [ -f "$PG_RELOCATED_PATH/.done" ] || [ -f "$PG_RELOCATED_PATH/.extensions-done" ]
+  then
+    echo "Relocated binaries architecture ($(cat "$PG_RELOCATED_PATH/.arch" 2>/dev/null || echo unknown))" \
+      "differs from current architecture ($RELOCATED_ARCH), forcing relocation"
+  fi
+  rm -f "$PG_RELOCATED_PATH/.done" "$PG_RELOCATED_PATH/.extensions-done"
+fi
+
 if [ ! -f "$PG_RELOCATED_PATH/.done" ]
 then
   for RELOCATE_PATH in "$PG_BIN_PATH:$PG_RELOCATED_BIN_PATH" \
@@ -79,6 +95,8 @@ do
   echo "Creating extra mount folder $PG_EXTENSIONS_EXTENSION_PATH/$EXTRA_MOUNT"
   mkdir -p "$PG_EXTENSIONS_EXTENSION_PATH/$EXTRA_MOUNT"
 done
+
+printf '%s' "$RELOCATED_ARCH" > "$PG_RELOCATED_PATH/.arch"
 
 rm -f "$PG_RELOCATED_PATH/.source" "$PG_RELOCATED_PATH/.target" \
   "$PG_RELOCATED_PATH/.source-diff" "$PG_RELOCATED_PATH/.target-diff"
