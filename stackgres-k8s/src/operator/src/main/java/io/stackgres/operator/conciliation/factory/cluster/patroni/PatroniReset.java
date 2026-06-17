@@ -6,11 +6,14 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -50,7 +53,8 @@ public class PatroniReset implements ContainerFactory<ClusterContainerContext> {
 
   @Override
   public Container getContainer(ClusterContainerContext context) {
-    return new ContainerBuilder(singleReconciliationCycle.getContainer(context))
+    final Container sourceContainer = singleReconciliationCycle.getContainer(context);
+    var container = new ContainerBuilder(sourceContainer)
         .withName(StackGresInitContainer.RESET_PATRONI.getName())
         .addToEnv(
             new EnvVarBuilder()
@@ -60,6 +64,15 @@ public class PatroniReset implements ContainerFactory<ClusterContainerContext> {
             .withValue(Boolean.TRUE.toString())
             .build())
         .build();
+    container.getEnv()
+        .stream()
+        .filter(env -> Objects.equals(env.getName(), "MEMORY_REQUEST"))
+        .findFirst()
+        .map(EnvVar::getValueFrom)
+        .map(EnvVarSource::getResourceFieldRef)
+        .ifPresent(resourceFieldRef -> resourceFieldRef
+            .setContainerName(StackGresInitContainer.RESET_PATRONI.getName()));
+    return container;
   }
 
   @Override
