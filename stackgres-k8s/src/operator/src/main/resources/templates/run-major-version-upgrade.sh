@@ -250,12 +250,22 @@ EOF
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
   echo "Running a double CHECKPOINT on the primary instance $PRIMARY_INSTANCE before major version upgrade..."
-  if ! kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
+  # The primary Postgres may still be (re)starting right after the downscale (the
+  # downscale only waits until the replica pods are gone, not until the primary is
+  # accepting connections again), so retry the CHECKPOINT while the primary pod
+  # exists instead of failing the whole upgrade on a transient "could not connect"
+  # error. A genuinely dead primary is still bounded by the operation timeout.
+  until kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" \
       -- psql -q -t -A -c "CHECKPOINT" -c "CHECKPOINT"
-  then
-    echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
-    return 1
-  fi
+  do
+    if ! kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o name > /dev/null 2>&1
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      return 1
+    fi
+    echo "Primary instance $PRIMARY_INSTANCE is not accepting connections yet, retrying CHECKPOINT..."
+    sleep 5
+  done
 
   PHASE="upgrade"
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
