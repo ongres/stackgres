@@ -389,12 +389,11 @@ source_image_name() {
   printf '%s\n' "$SOURCE_IMAGE_NAME"
 }
 
-is_source_for_any_module() {
+is_image_module() {
   [ "$#" -ge 1 ] || return 0
   local MODULE="$1"
-  local HAS_TARGET_MODULE
-  HAS_TARGET_MODULE="$(jq -r ".stages | any(to_entries | any(.value == \"$MODULE\"))" stackgres-k8s/ci/build/target/config.json)"
-  [ "$HAS_TARGET_MODULE" = true ]
+  IS_IMAGE_MODULE="$(jq -r ".modules[\"$MODULE\"]|has(\"dockerfile\")" stackgres-k8s/ci/build/target/config.json)"
+  [ "$IS_IMAGE_MODULE" = true ]
 }
 
 image_name() {
@@ -445,12 +444,12 @@ build_image() {
         && grep -q "^$IMAGE_NAME=" "stackgres-k8s/ci/build/target/image-digests.$BUILD_HASH"
     }
   then
-    if is_source_for_any_module "$MODULE"
+    if is_image_module "$MODULE"
     then
+      echo "Already exists on remote repository."
+    else
       echo "Already exists on remote repository. Just extracting..."
       copy_from_image "$IMAGE_NAME"
-    else
-      echo "Already exists on remote repository."
     fi
     BUILD_SKIPPED=true
   else
@@ -460,12 +459,12 @@ build_image() {
           && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
       }
     then
-      if is_source_for_any_module "$MODULE"
+      if is_image_module "$MODULE"
       then
+        echo "Already exists locally."
+      else
         echo "Already exists locally. Just extracting ..."
         copy_from_image "$IMAGE_NAME"
-      else
-        echo "Already exists locally."
       fi
       BUILD_SKIPPED=true
     else
