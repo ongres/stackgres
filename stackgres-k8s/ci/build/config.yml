@@ -507,6 +507,7 @@ modules:
       DOCUMENTATION_BASE_URL: '$DOCUMENTATION_BASE_URL'
       DOCUMENTATION_EXTRA_PATH: '$DOCUMENTATION_EXTRA_PATH'
     build_commands:
+      - rm -rf "doc/public" "doc/data" "doc/generated"
       - sh -x doc/build.sh
       - |
         STACKGRES_VERSION="$(sh stackgres-k8s/ci/build/version.sh)"
