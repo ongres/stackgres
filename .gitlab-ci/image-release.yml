@@ -18,6 +18,7 @@
           "$IMAGE_MODULE_NAME"
       HASH_IMAGE_NAME="$(sh stackgres-k8s/ci/build/build-functions.sh image_name "$IMAGE_MODULE_NAME")"
       skopeo copy --all --format v2s2 \
+        --authfile="$HOME/.docker/config.json" \
         "docker://$HASH_IMAGE_NAME" \
         "docker://$IMAGE_NAME"
   retry: 2

@@ -23,41 +23,10 @@
       for IMAGE_PUSH_REGISTRY in $TARGET_REGISTRIES
       do
         export IMAGE_PUSH_NAME="$IMAGE_PUSH_REGISTRY/$IMAGE_NAME:$IMAGE_PUSH_TAG"
-        ARCH_LIST="amd64 $(
-          if [ "$DO_ARM" = true ] \
-            || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
-          then
-            echo arm64
-          fi
-          )"
-        for ARCH in $ARCH_LIST
-        do
-          docker pull "$IMAGE_PULL_NAME-$ARCH"
-          docker tag "$IMAGE_PULL_NAME-$ARCH" "$IMAGE_PUSH_NAME-$ARCH"
-        done
-        if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
-        then
-          docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
-          docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
-        fi
-        mv ~/.docker/config.json ~/.docker/gitlab.json
-        cp "$REGISTRY_AUTH_FILE" ~/.docker/config.json
-        for ARCH in $ARCH_LIST
-        do
-          docker push --platform=linux/"$ARCH" "$IMAGE_PUSH_NAME-$ARCH"
-        done
-        if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
-        then
-          docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$IMAGE_PUSH_NAME"
-        fi
-        docker manifest rm "$IMAGE_PUSH_NAME" 2>/dev/null || true
-        docker manifest create "$IMAGE_PUSH_NAME" $(
-          for ARCH in $ARCH_LIST
-          do
-            echo "$IMAGE_PUSH_NAME-$ARCH "
-          done)
-        docker manifest push "$IMAGE_PUSH_NAME"
-        mv ~/.docker/gitlab.json ~/.docker/config.json
+        skopeo copy --all --format v2s2 \
+          --authfile="$HOME/.docker/config.json" \
+          "docker://$IMAGE_PULL_NAME" \
+          "docker://$IMAGE_PUSH_NAME"
       done
   retry: 2
   rules:
