@@ -55,8 +55,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresDbOpsContext context) {
-    if (DbOpsUtil.ROLLOUT_OPS.contains(context.getSource().getSpec().getOp())
-        || DbOpsUtil.isAlreadyCompleted(context.getSource())) {
+    if (DbOpsUtil.ROLLOUT_OPS.contains(context.getSource().getSpec().getOp())) {
       return Stream.of();
     }
 
