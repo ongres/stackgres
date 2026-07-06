@@ -254,10 +254,34 @@ then
   # NOT render catalogs here: the pipeline renders them against the certified
   # image it just published (registry.connect.redhat.com), which is the only
   # image with the correct package name.
-  # Channels the version belongs to: RC -> candidate only; GA -> stable + candidate.
+  # Channels the version belongs to, by the pre-release types each one admits when
+  # searching for the previous version to replace:
+  #   stable    -> GA only
+  #   candidate -> GA + rc
+  #   fast      -> GA + rc + alpha + beta
+  # A version is added to every channel whose regexp it matches.
+  STABLE_REGEXP='^[0-9]\+\.[0-9]\+\.[0-9]\+$'
+  CANDIDATE_REGEXP='^[0-9]\+\.[0-9]\+\.[0-9]\+\(-rc[0-9.]*\)\?$'
+  FAST_REGEXP='^[0-9]\+\.[0-9]\+\.[0-9]\+\(-\(alpha\|beta\|rc\)[0-9.]*\)\?$'
   CHANNELS="$(sh channels.sh "$STACKGRES_VERSION" \
-    'stable:^[0-9]\+\.[0-9]\+\.[0-9]\+$' \
-    'candidate:.')"
+    "stable:$STABLE_REGEXP" \
+    "fast:$FAST_REGEXP" \
+    "candidate:$CANDIDATE_REGEXP")"
+  # Print the head bundle of a channel in a catalog template (the entry that no
+  # other entry replaces or skips). That is the version the new bundle must
+  # replace in that channel; deriving it from the template (the source of truth
+  # for each channel's contents) keeps every channel to a single head. Empty when
+  # the channel is absent from the template.
+  channel_head() {
+    yq -r --arg ch "$1" '
+      .entries[]
+      | select(.schema == "olm.channel" and .name == $ch)
+      | .entries as $e
+      | (($e | map(.replaces // empty)) + ($e | map(.skips // []) | add // [])) as $referenced
+      | (($e | map(.name)) - $referenced)
+      | .[0] // empty
+    ' "$2"
+  }
   BUNDLE_NAME_PREFIX="$([ "$RENAME_CSV" = true ] && printf %s "$PROJECT_NAME" || printf stackgres)"
   CATALOG_NAMES="$(yq -c \
     '.annotations["com.redhat.openshift.versions"] / "-" | map(sub("^v4\\.";"")|tonumber)|[range(.[0];.[1]+1)]|map("v4." + (.|tostring))' \
@@ -271,20 +295,30 @@ then
       TEMPLATE_FILE="$FORK_GIT_PATH/operators/$PROJECT_NAME/catalog-templates/$CATALOG_NAME.yaml"
       # Only target templates that onboarding actually produced for this OCP version.
       [ -f "$TEMPLATE_FILE" ] || continue
-      echo "  - template_name: $CATALOG_NAME.yaml"
-      echo "    channels:"
-      printf '%s\n' "$CHANNELS" | tr ',' '\n' \
-        | while read -r CHANNEL
-          do
-            echo "      - $CHANNEL"
-          done
-      # Set replaces only when the previous version is present in this template;
-      # otherwise the new bundle becomes the channel head in that catalog.
-      if [ "x$PREVIOUS_VERSION" != xnone ] \
-        && grep -qF "name: $BUNDLE_NAME_PREFIX.v$PREVIOUS_VERSION" "$TEMPLATE_FILE"
-      then
-        echo "    replaces: $BUNDLE_NAME_PREFIX.v$PREVIOUS_VERSION"
-      fi
+      # Emit one entry per channel: each channel keeps its own upgrade edge, so the
+      # bundle replaces that channel's own head rather than a single shared version
+      # (which would fork the graph and leave the channel with multiple heads).
+      for CHANNEL in $(printf %s "$CHANNELS" | tr ',' ' ')
+      do
+        echo "  - template_name: $CATALOG_NAME.yaml"
+        echo "    channels:"
+        echo "      - $CHANNEL"
+        # Determine what this bundle replaces in THIS channel: the channel's own
+        # head in the template (unless the caller opted out with PREVIOUS_VERSION=none).
+        if [ "x$PREVIOUS_VERSION" = xnone ]
+        then
+          REPLACES=
+        else
+          REPLACES="$(channel_head "$CHANNEL" "$TEMPLATE_FILE")"
+        fi
+        # Set replaces only when the target is present in this template; otherwise
+        # the new bundle becomes the channel head in that catalog.
+        if [ -n "$REPLACES" ] \
+          && grep -qF "name: $REPLACES" "$TEMPLATE_FILE"
+        then
+          echo "    replaces: $REPLACES"
+        fi
+      done
     done
   } > "$RELEASE_CONFIG"
   echo "Generated release-config.yaml:"
