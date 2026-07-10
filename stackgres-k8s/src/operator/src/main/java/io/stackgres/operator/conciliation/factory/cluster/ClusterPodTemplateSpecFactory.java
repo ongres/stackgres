@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.TopologySpreadConstraintBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
@@ -133,8 +134,17 @@ public class ClusterPodTemplateSpecFactory
         .distinct()
         .toList();
 
+    final List<String> customPersistentVolumeNames = CustomPersistentVolumeUtil
+        .getCustomPersistentVolumes(context.getClusterContext().getSource())
+        .stream()
+        .map(CustomPersistentVolumeUtil::volumeName)
+        .toList();
     claimedVolumes.forEach(rv -> {
-      if (!context.availableVolumes().containsKey(rv) && !context.getDataVolumeName().equals(rv)) {
+      if (!context.availableVolumes().containsKey(rv)
+          && !context.getDataVolumeName().equals(rv)
+          // volumes of custom persistent volumes are created by the StatefulSet controller
+          // from the volume claim templates
+          && !customPersistentVolumeNames.contains(rv)) {
         throw new IllegalArgumentException("Volume " + rv + " is required but not available");
       }
     });

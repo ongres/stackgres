@@ -148,6 +148,10 @@ public class ClusterWalRelocationReconciliator
     return null;
   }
 
+  Optional<Path> translateToController(StackGresCluster cluster, String patroniPath) {
+    return CustomPersistentVolumeUtil.translatePatroniPathToController(cluster, patroniPath);
+  }
+
   private boolean relocateWal(KubernetesClient client, StackGresCluster cluster,
       String actualWalPath, String specWalPath) throws IOException {
     final Path pgWalPath = pgDataPath.resolve(PG_WAL);
@@ -172,8 +176,8 @@ public class ClusterWalRelocationReconciliator
     if (actualWalPath == null) {
       sourcePath = pgWalPath;
     } else {
-      final Optional<Path> translatedSourcePath = CustomPersistentVolumeUtil
-          .translatePatroniPathToController(cluster, actualWalPath);
+      final Optional<Path> translatedSourcePath =
+          translateToController(cluster, actualWalPath);
       if (translatedSourcePath.isEmpty()) {
         blockWithMessage(client, "The applied WAL path " + actualWalPath + " is not under the"
             + " data volume nor under a mount of a custom persistent volume so the WAL"
@@ -189,8 +193,8 @@ public class ClusterWalRelocationReconciliator
     if (specWalPath == null) {
       destinationPath = pgWalNewPath;
     } else {
-      final Optional<Path> translatedDestinationPath = CustomPersistentVolumeUtil
-          .translatePatroniPathToController(cluster, specWalPath);
+      final Optional<Path> translatedDestinationPath =
+          translateToController(cluster, specWalPath);
       if (translatedDestinationPath.isEmpty()) {
         blockWithMessage(client, "The WAL path " + specWalPath + " is not under the data"
             + " volume nor under a mount of a custom persistent volume of the patroni"

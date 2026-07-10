@@ -1,0 +1,180 @@
+#!/bin/sh
+
+e2e_test_install() {
+  DBOPS_NAME="$(get_sgdbops_name restart)"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string 'cluster.pods.customPersistentVolumes[0].name=wal' \
+    --set-string 'cluster.pods.customPersistentVolumes[0].size=512Mi' \
+    --set 'cluster.pods.customPersistentVolumes[0].coherentData=true' \
+    --set-string 'cluster.pods.customVolumeMounts.patroni[0].name=custom-wal' \
+    --set-string 'cluster.pods.customVolumeMounts.patroni[0].mountPath=/custom-wal' \
+    --set-string 'cluster.pods.customVolumeMounts.patroni[0].subPath=wal' \
+    --set-string 'cluster.configurations.postgres.walPath=/custom-wal/pg-wal'
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that the custom persistent volume is created and pg_wal points to walPath" check_wal_custom_persistent_volume
+
+  run_test "Checking that deleting the WAL PVC blocks patroni start" check_data_coherence_guard_blocks
+
+  run_test "Checking that allowCoherentDataRemoval recovers the Pod" check_allow_coherent_data_removal_recovers
+
+  run_test "Checking that changing walPath sets the PendingRestart condition and is applied on restart" check_wal_path_change
+}
+
+check_wal_custom_persistent_volume() {
+  local RESULT EXIT_CODE
+
+  if kubectl get pvc -n "$CLUSTER_NAMESPACE" "custom-wal-$CLUSTER_NAME-0" > /dev/null 2>&1
+  then
+    success "The custom persistent volume claim custom-wal-$CLUSTER_NAME-0 was created"
+  else
+    fail "The custom persistent volume claim custom-wal-$CLUSTER_NAME-0 was not created"
+  fi
+
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    readlink /var/lib/postgresql/data/pg_wal)" = "/custom-wal/pg-wal" ]
+  then
+    success "pg_wal is a symbolic link pointing to the walPath"
+  else
+    fail "pg_wal is not a symbolic link pointing to the walPath"
+  fi
+
+  try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o jsonpath="{.status.podStatuses[?(@.name==\"$CLUSTER_NAME-0\")].walPath}")" = "/custom-wal/pg-wal" ]'
+  if "$RESULT"
+  then
+    success "The applied WAL path is tracked in the pod status"
+  else
+    fail "The applied WAL path is not tracked in the pod status"
+  fi
+
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c cluster-controller -- \
+    test -f /stackgres/custom-persistent-volumes/wal/.data-coherent-id
+  then
+    success "The data coherence markers were created"
+  else
+    fail "The data coherence markers were not created"
+  fi
+}
+
+check_data_coherence_guard_blocks() {
+  local RESULT EXIT_CODE
+
+  kubectl delete pvc -n "$CLUSTER_NAMESPACE" "custom-wal-$CLUSTER_NAME-1" --wait=false
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+
+  try_function wait_until eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c cluster-controller \
+    | grep -q "Data coherence check failed"'
+  if "$RESULT"
+  then
+    success "The data coherence check has detected the deleted WAL PVC"
+  else
+    fail "The data coherence check has not detected the deleted WAL PVC"
+  fi
+
+  try_function wait_until eval 'kubectl get events -n "$CLUSTER_NAMESPACE" \
+    --field-selector reason=ClusterDataCoherenceBlocked -o name | grep -q .'
+  if "$RESULT"
+  then
+    success "The ClusterDataCoherenceBlocked event was emitted"
+  else
+    fail "The ClusterDataCoherenceBlocked event was not emitted"
+  fi
+
+  if [ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" \
+    -o jsonpath='{.status.containerStatuses[?(@.name=="patroni")].ready}')" != "true" ]
+  then
+    success "The patroni container has not started"
+  else
+    fail "The patroni container has started"
+  fi
+}
+
+check_allow_coherent_data_removal_recovers() {
+  local RESULT EXIT_CODE
+
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"replace","path":"/spec/pods/customPersistentVolumes/0/allowCoherentDataRemoval","value":true}]'
+
+  try_function wait_until eval 'kubectl get events -n "$CLUSTER_NAMESPACE" \
+    --field-selector reason=ClusterDataCoherenceReinitialized -o name | grep -q .'
+  if "$RESULT"
+  then
+    success "The ClusterDataCoherenceReinitialized event was emitted"
+  else
+    fail "The ClusterDataCoherenceReinitialized event was not emitted"
+  fi
+
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 2
+  if "$RESULT"
+  then
+    success "All the pods are running after re-initializing the data coherence markers"
+  else
+    fail "Not all the pods are running after re-initializing the data coherence markers"
+  fi
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"replace","path":"/spec/pods/customPersistentVolumes/0/allowCoherentDataRemoval","value":false}]'
+}
+
+check_wal_path_change() {
+  local RESULT EXIT_CODE
+
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"replace","path":"/spec/configurations/postgres/walPath","value":"/custom-wal/pg-wal-2"}]'
+
+  try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o jsonpath="{.status.conditions[?(@.type==\"PendingRestart\")].status}")" = "True" ]'
+  if "$RESULT"
+  then
+    success "The PendingRestart condition is True after changing walPath"
+  else
+    fail "The PendingRestart condition is not True after changing walPath"
+  fi
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
+
+  try_function wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    readlink /var/lib/postgresql/data/pg_wal)" = "/custom-wal/pg-wal-2" ]'
+  if "$RESULT"
+  then
+    success "The WAL directory was relocated to the new walPath"
+  else
+    fail "The WAL directory was not relocated to the new walPath"
+  fi
+
+  try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o jsonpath="{.status.podStatuses[?(@.name==\"$CLUSTER_NAME-0\")].walPath}")" = "/custom-wal/pg-wal-2" ]'
+  if "$RESULT"
+  then
+    success "The applied WAL path was updated in the pod status"
+  else
+    fail "The applied WAL path was not updated in the pod status"
+  fi
+}
+
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}

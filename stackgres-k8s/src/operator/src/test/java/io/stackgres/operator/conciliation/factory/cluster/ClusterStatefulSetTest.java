@@ -200,6 +200,31 @@ class ClusterStatefulSetTest {
   }
 
   @Test
+  void generateResource_withCustomPersistentVolumes_shouldHaveCustomVolumeClaimTemplates() {
+    List<HasMetadata> resources = clusterStatefulSet.generateResource(context).toList();
+
+    StatefulSet sts = (StatefulSet) resources.getFirst();
+    assertEquals(2, sts.getSpec().getVolumeClaimTemplates().size());
+    var customVolumeClaimTemplate = sts.getSpec().getVolumeClaimTemplates().get(1);
+    assertEquals("custom-wal", customVolumeClaimTemplate.getMetadata().getName());
+    assertEquals("1Gi", customVolumeClaimTemplate.getSpec()
+        .getResources().getRequests().get("storage").toString());
+    assertEquals("standard", customVolumeClaimTemplate.getSpec().getStorageClassName());
+    assertTrue(customVolumeClaimTemplate.getSpec().getAccessModes()
+        .contains("ReadWriteOnce"));
+  }
+
+  @Test
+  void generateResource_withoutCustomPersistentVolumes_shouldOnlyHaveTheDataVolumeClaimTemplate() {
+    cluster.getSpec().getPods().setCustomPersistentVolumes(null);
+
+    List<HasMetadata> resources = clusterStatefulSet.generateResource(context).toList();
+
+    StatefulSet sts = (StatefulSet) resources.getFirst();
+    assertEquals(1, sts.getSpec().getVolumeClaimTemplates().size());
+  }
+
+  @Test
   void generateResource_withDefaultCluster_shouldHavePersistentVolumeClaimRetentionPolicy() {
     List<HasMetadata> resources = clusterStatefulSet.generateResource(context).toList();
 

@@ -31,19 +31,42 @@
     "configurations": {
       "sgPostgresConfig": "postgresconf",
       "sgPoolingConfig": "pgbouncerconf",
-      "backups": [{
-        "path": "sgbackups.stackgres.io/stackgres/stackgres/11",
-        "sgObjectStorage": "objstorage"
-      }]
+      "backups": [
+        {
+          "path": "sgbackups.stackgres.io/stackgres/stackgres/11",
+          "sgObjectStorage": "objstorage"
+        }
+      ],
+      "postgres": {
+        "walPath": "/custom-wal/pg-wal"
+      }
     },
-    "pods":{
+    "pods": {
       "persistentVolume": {
         "size": "5Gi",
         "storageClass": "standard"
       },
       "disableConnectionPooling": false,
       "disableMetricsExporter": false,
-      "disablePostgresUtil": false
+      "disablePostgresUtil": false,
+      "customPersistentVolumes": [
+        {
+          "name": "wal",
+          "size": "1Gi",
+          "storageClass": "standard",
+          "coherentData": true,
+          "allowCoherentDataRemoval": false
+        }
+      ],
+      "customVolumeMounts": {
+        "patroni": [
+          {
+            "name": "custom-wal",
+            "mountPath": "/custom-wal",
+            "subPath": "wal"
+          }
+        ]
+      }
     },
     "prometheusAutobind": "true",
     "distributedLogs": {
@@ -54,14 +77,14 @@
         "enabled": true,
         "type": "ClusterIP",
         "externalIPs": [
-        	"13.33.108.129"
+          "13.33.108.129"
         ]
       },
       "replicas": {
         "enabled": true,
         "type": "ClusterIP",
         "externalIPs": [
-        	"13.33.108.129"
+          "13.33.108.129"
         ]
       }
     },
@@ -70,7 +93,7 @@
         "allResources": {
           "allResourcesCustomAnnotation": "allResourcesCustomValue"
         },
-        "clusterPods" : {
+        "clusterPods": {
           "podsCustomAnnotations": "podsCustomValue"
         },
         "primaryService": {
@@ -82,16 +105,18 @@
       },
       "labels": {
         "clusterPods": {
-          "customLabel" : "podsCustomValue"
+          "customLabel": "podsCustomValue"
         },
         "services": {
-          "customLabel" : "servicesCustomValue"
+          "customLabel": "servicesCustomValue"
         }
       }
     }
   },
   "status": {
     "postgresVersion": "13.9",
-    "backupPaths": ["sgbackups.stackgres.io/stackgres/stackgres/11"]
+    "backupPaths": [
+      "sgbackups.stackgres.io/stackgres/stackgres/11"
+    ]
   }
 }

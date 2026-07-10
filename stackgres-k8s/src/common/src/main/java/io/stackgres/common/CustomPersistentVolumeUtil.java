@@ -38,7 +38,9 @@ public interface CustomPersistentVolumeUtil {
 
   static List<StackGresClusterPodsCustomPersistentVolume> getCustomPersistentVolumes(
       StackGresCluster cluster) {
-    return getCustomPersistentVolumes(cluster.getSpec());
+    return getCustomPersistentVolumes(Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
+        .orElse(null));
   }
 
   static List<StackGresClusterPodsCustomPersistentVolume> getCustomPersistentVolumes(
@@ -56,7 +58,9 @@ public interface CustomPersistentVolumeUtil {
   }
 
   static Optional<String> getWalPath(StackGresCluster cluster) {
-    return getWalPath(cluster.getSpec());
+    return getWalPath(Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
+        .orElse(null));
   }
 
   static Optional<String> getWalPath(StackGresClusterSpec spec) {
@@ -145,7 +149,9 @@ public interface CustomPersistentVolumeUtil {
    * {@code SGCluster.spec.pods.customVolumeMounts}.
    */
   static List<CustomVolumeMount> patroniMountsOf(StackGresCluster cluster, String name) {
-    return patroniMountsOf(cluster.getSpec(), name);
+    return patroniMountsOf(Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
+        .orElse(null), name);
   }
 
   static List<CustomVolumeMount> patroniMountsOf(StackGresClusterSpec spec, String name) {
