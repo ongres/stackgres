@@ -7,11 +7,8 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.Optional;
 
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.IoLimitsFeatureGate;
 import io.stackgres.operator.validation.ValidationType;
@@ -35,21 +32,15 @@ public class IoLimitsFeatureGateValidator implements ClusterValidator {
   public void validate(StackGresClusterReview review) throws ValidationFailed {
     boolean hasIoLimits = Optional.of(review.getRequest())
         .map(AdmissionRequest::getObject)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getPersistentVolume)
-        .map(StackGresClusterPodsPersistentVolume::getIoLimits)
-        .map(ioLimits -> ioLimits.getReadIops() != null
-            || ioLimits.getWriteIops() != null
-            || ioLimits.getReadMiBps() != null
-            || ioLimits.getWriteMiBps() != null)
+        .map(CustomPersistentVolumeUtil::hasAnyIoLimits)
         .orElse(false);
     if (hasIoLimits && !ioLimitsFeatureGate.isEnabled()) {
       failWithFields("To enable per-volume I/O limits you must add the \"io-limits\""
           + " feature gate under \".spec.featureGates\" of the SGConfig. This can only be done"
           + " by the operator administrator. Be aware that setting I/O limits requires the Pods"
           + " to run a privileged init container as root and to mount the host cgroup filesystem.",
-          ".spec.pods.persistentVolume.ioLimits");
+          ".spec.pods.persistentVolume.ioLimits",
+          ".spec.pods.customPersistentVolumes");
     }
   }
 

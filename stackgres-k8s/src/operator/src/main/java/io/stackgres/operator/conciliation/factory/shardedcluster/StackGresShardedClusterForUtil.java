@@ -23,6 +23,7 @@ import io.stackgres.common.crd.postgres.service.StackGresPostgresServicesBuilder
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfigurationBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationsPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialDataBuilder;
@@ -704,6 +705,14 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         spec.getConfigurations().setSgPoolingConfig(
             specOverride.getConfigurationsForWorkers().getSgPoolingConfig());
       }
+      if (specOverride.getConfigurationsForWorkers().getPostgres() != null
+          && specOverride.getConfigurationsForWorkers().getPostgres().getWalPath() != null) {
+        if (spec.getConfigurations().getPostgres() == null) {
+          spec.getConfigurations().setPostgres(new StackGresClusterConfigurationsPostgres());
+        }
+        spec.getConfigurations().getPostgres().setWalPath(
+            specOverride.getConfigurationsForWorkers().getPostgres().getWalPath());
+      }
       if (specOverride.getConfigurationsForWorkers().getPostgresExporter() != null) {
         var queriesFound = Optional.ofNullable(spec.getConfigurations())
             .map(StackGresClusterConfigurations::getPostgresExporter)
@@ -844,6 +853,10 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
       }
       if (specOverride.getPodsForWorkers().getCustomVolumes() != null) {
         spec.getPods().setCustomVolumes(specOverride.getPodsForWorkers().getCustomVolumes());
+      }
+      if (specOverride.getPodsForWorkers().getCustomPersistentVolumes() != null) {
+        spec.getPods().setCustomPersistentVolumes(
+            specOverride.getPodsForWorkers().getCustomPersistentVolumes());
       }
       if (specOverride.getPodsForWorkers().getCustomContainers() != null) {
         spec.getPods().setCustomContainers(specOverride.getPodsForWorkers().getCustomContainers());

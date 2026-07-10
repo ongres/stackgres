@@ -38,14 +38,29 @@ public interface CustomPersistentVolumeUtil {
 
   static List<StackGresClusterPodsCustomPersistentVolume> getCustomPersistentVolumes(
       StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
+    return getCustomPersistentVolumes(cluster.getSpec());
+  }
+
+  static List<StackGresClusterPodsCustomPersistentVolume> getCustomPersistentVolumes(
+      StackGresClusterSpec spec) {
+    return getCustomPersistentVolumes(Optional.ofNullable(spec)
         .map(StackGresClusterSpec::getPods)
+        .orElse(null));
+  }
+
+  static List<StackGresClusterPodsCustomPersistentVolume> getCustomPersistentVolumes(
+      StackGresClusterPods pods) {
+    return Optional.ofNullable(pods)
         .map(StackGresClusterPods::getCustomPersistentVolumes)
         .orElse(List.of());
   }
 
   static Optional<String> getWalPath(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
+    return getWalPath(cluster.getSpec());
+  }
+
+  static Optional<String> getWalPath(StackGresClusterSpec spec) {
+    return Optional.ofNullable(spec)
         .map(StackGresClusterSpec::getConfigurations)
         .map(StackGresClusterConfigurations::getPostgres)
         .map(StackGresClusterConfigurationsPostgres::getWalPath);
@@ -130,9 +145,18 @@ public interface CustomPersistentVolumeUtil {
    * {@code SGCluster.spec.pods.customVolumeMounts}.
    */
   static List<CustomVolumeMount> patroniMountsOf(StackGresCluster cluster, String name) {
-    final String volumeName = volumeName(name);
-    return Optional.ofNullable(cluster.getSpec())
+    return patroniMountsOf(cluster.getSpec(), name);
+  }
+
+  static List<CustomVolumeMount> patroniMountsOf(StackGresClusterSpec spec, String name) {
+    return patroniMountsOf(Optional.ofNullable(spec)
         .map(StackGresClusterSpec::getPods)
+        .orElse(null), name);
+  }
+
+  static List<CustomVolumeMount> patroniMountsOf(StackGresClusterPods pods, String name) {
+    final String volumeName = volumeName(name);
+    return Optional.ofNullable(pods)
         .map(StackGresClusterPods::getCustomVolumeMounts)
         .map(customVolumeMounts -> customVolumeMounts
             .get(StackGresContainer.PATRONI.getName()))

@@ -8,8 +8,10 @@ package io.stackgres.operator.validation.shardedcluster;
 import java.util.List;
 import java.util.Optional;
 
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsCustomPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolumeIoLimits;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -79,7 +81,11 @@ public class IoLimitsFeatureGateValidator implements ShardedClusterValidator {
         .map(StackGresClusterPods::getPersistentVolume)
         .map(StackGresClusterPodsPersistentVolume::getIoLimits)
         .map(IoLimitsFeatureGateValidator::hasIoLimits)
-        .orElse(false);
+        .orElse(false)
+        || CustomPersistentVolumeUtil.getCustomPersistentVolumes(pods)
+            .stream()
+            .map(StackGresClusterPodsCustomPersistentVolume::getIoLimits)
+            .anyMatch(CustomPersistentVolumeUtil::hasIoLimits);
   }
 
   private static boolean hasIoLimits(StackGresClusterPodsPersistentVolumeIoLimits ioLimits) {
