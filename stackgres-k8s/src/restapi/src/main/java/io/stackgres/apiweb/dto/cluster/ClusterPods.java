@@ -45,6 +45,8 @@ public class ClusterPods {
 
   private List<CustomVolume> customVolumes;
 
+  private List<ClusterPodsCustomPersistentVolume> customPersistentVolumes;
+
   private List<CustomContainer> customContainers;
 
   private List<CustomContainer> customInitContainers;
@@ -148,6 +150,15 @@ public class ClusterPods {
 
   public void setCustomVolumes(List<CustomVolume> customVolumes) {
     this.customVolumes = customVolumes;
+  }
+
+  public List<ClusterPodsCustomPersistentVolume> getCustomPersistentVolumes() {
+    return customPersistentVolumes;
+  }
+
+  public void setCustomPersistentVolumes(
+      List<ClusterPodsCustomPersistentVolume> customPersistentVolumes) {
+    this.customPersistentVolumes = customPersistentVolumes;
   }
 
   public List<CustomContainer> getCustomContainers() {

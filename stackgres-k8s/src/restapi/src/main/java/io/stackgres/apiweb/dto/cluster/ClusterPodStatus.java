@@ -25,6 +25,8 @@ public class ClusterPodStatus {
 
   private Boolean pendingRestart;
 
+  private String walPath;
+
   private List<ClusterInstalledExtension> installedPostgresExtensions;
 
   public String getName() {
@@ -65,6 +67,14 @@ public class ClusterPodStatus {
 
   public void setPendingRestart(Boolean pendingRestart) {
     this.pendingRestart = pendingRestart;
+  }
+
+  public String getWalPath() {
+    return walPath;
+  }
+
+  public void setWalPath(String walPath) {
+    this.walPath = walPath;
   }
 
   public List<ClusterInstalledExtension> getInstalledPostgresExtensions() {

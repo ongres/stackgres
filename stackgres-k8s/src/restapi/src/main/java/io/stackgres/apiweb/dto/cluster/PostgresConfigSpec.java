@@ -19,12 +19,22 @@ public class PostgresConfigSpec {
   @JsonProperty("postgresql.conf")
   private Map<String, String> postgresqlConf;
 
+  private String walPath;
+
   public Map<String, String> getPostgresqlConf() {
     return postgresqlConf;
   }
 
   public void setPostgresqlConf(Map<String, String> postgresqlConf) {
     this.postgresqlConf = postgresqlConf;
+  }
+
+  public String getWalPath() {
+    return walPath;
+  }
+
+  public void setWalPath(String walPath) {
+    this.walPath = walPath;
   }
 
   @Override
