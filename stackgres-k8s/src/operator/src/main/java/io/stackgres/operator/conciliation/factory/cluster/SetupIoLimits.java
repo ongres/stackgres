@@ -7,20 +7,15 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
-import java.util.Optional;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.CgroupMounts;
@@ -54,16 +49,8 @@ public class SetupIoLimits implements ContainerFactory<ClusterContainerContext> 
 
   @Override
   public boolean isActivated(ClusterContainerContext context) {
-    return Optional.of(context.getClusterContext().getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getPersistentVolume)
-        .map(StackGresClusterPodsPersistentVolume::getIoLimits)
-        .map(ioLimits -> ioLimits.getReadIops() != null
-            || ioLimits.getWriteIops() != null
-            || ioLimits.getReadMiBps() != null
-            || ioLimits.getWriteMiBps() != null)
-        .orElse(false);
+    return CustomPersistentVolumeUtil.hasAnyIoLimits(
+        context.getClusterContext().getCluster());
   }
 
   @Override

@@ -62,6 +62,20 @@ then
   touch "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")"
 else
   wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_NAME"
+
+  if [ -n "${POSTGRES_WAL_PATH:-}" ] && [ -d "$PG_DATA_PATH/pg_wal" ] && ! [ -L "$PG_DATA_PATH/pg_wal" ]
+  then
+    echo "Relocating $PG_DATA_PATH/pg_wal to $POSTGRES_WAL_PATH"
+    if [ -d "$POSTGRES_WAL_PATH" ]
+    then
+      (cd "$POSTGRES_WAL_PATH" && find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +)
+    else
+      mkdir -p "$POSTGRES_WAL_PATH"
+    fi
+    (cd "$PG_DATA_PATH/pg_wal" && find . -mindepth 1 -maxdepth 1 -exec mv -t "$POSTGRES_WAL_PATH" {} +)
+    rmdir "$PG_DATA_PATH/pg_wal"
+    ln -s "$POSTGRES_WAL_PATH" "$PG_DATA_PATH/pg_wal"
+  fi
 fi
 RECOVERY_FROM_BACKUP_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/recovery-from-backup.sh"
@@ -110,6 +124,20 @@ else
   fi
 
   wal-g backup-fetch "$PG_DATA_PATH" "$REPLICATION_INITIALIZATION_BACKUP_NAME"
+
+  if [ -n "${POSTGRES_WAL_PATH:-}" ] && [ -d "$PG_DATA_PATH/pg_wal" ] && ! [ -L "$PG_DATA_PATH/pg_wal" ]
+  then
+    echo "Relocating $PG_DATA_PATH/pg_wal to $POSTGRES_WAL_PATH"
+    if [ -d "$POSTGRES_WAL_PATH" ]
+    then
+      (cd "$POSTGRES_WAL_PATH" && find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +)
+    else
+      mkdir -p "$POSTGRES_WAL_PATH"
+    fi
+    (cd "$PG_DATA_PATH/pg_wal" && find . -mindepth 1 -maxdepth 1 -exec mv -t "$POSTGRES_WAL_PATH" {} +)
+    rmdir "$PG_DATA_PATH/pg_wal"
+    ln -s "$POSTGRES_WAL_PATH" "$PG_DATA_PATH/pg_wal"
+  fi
 fi
 REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
@@ -165,6 +193,12 @@ then
   rm -rf "$PG_DATA_PATH"
 fi
 
+if [ -n "${POSTGRES_WAL_PATH:-}" ] && [ -d "$POSTGRES_WAL_PATH" ]
+then
+  echo "Removing existing content of $POSTGRES_WAL_PATH"
+  (cd "$POSTGRES_WAL_PATH" && find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +)
+fi
+
 cat << PGPASS_REPLICAS_EOF > "$PG_BASE_PATH/pgpass-replicas"
 ${PATRONI_READ_ONLY_SERVICE_NAME}:${REPLICATION_SERVICE_PORT}:*:${PATRONI_REPLICATION_USERNAME}:${PATRONI_REPLICATION_PASSWORD}
 PGPASS_REPLICAS_EOF
@@ -173,6 +207,7 @@ chmod 600 "$PG_BASE_PATH/pgpass-replicas"
 PGPASSFILE="$PG_BASE_PATH/pgpass-replicas" \
   pg_basebackup \
   --pgdata "$PG_DATA_PATH" \
+  $([ -z "${POSTGRES_WAL_PATH:-}" ] || printf %s "--waldir=$POSTGRES_WAL_PATH") \
   -X stream \
   --dbname postgres://${PATRONI_REPLICATION_USERNAME}@${PATRONI_READ_ONLY_SERVICE_NAME}:${REPLICATION_SERVICE_PORT}/postgres \
   $([ "$PATRONI_LOG_LEVEL" != DEVEL ] || printf %s --verbose) \
@@ -261,6 +296,11 @@ fi
   - locale: C.UTF-8
   - data-checksums
 $(
+  [ -z "${POSTGRES_WAL_PATH:-}" ] || cat << INITDB_WALDIR_EOF
+  - waldir: '${POSTGRES_WAL_PATH}'
+INITDB_WALDIR_EOF
+)
+$(
   if [ "${POSTGRES_VERSION%.*}" -ge 17 ]
   then
     cat << LOCAL_PROVIDER_EOF
@@ -311,6 +351,11 @@ REPLICATION_INITIALIZATION_EOF
   basebackup:
 $([ "$PATRONI_LOG_LEVEL" != DEVEL ] || printf %s '- verbose')
     - checkpoint: 'fast'
+$(
+  [ -z "${POSTGRES_WAL_PATH:-}" ] || cat << BASEBACKUP_WALDIR_EOF
+    - waldir: '${POSTGRES_WAL_PATH}'
+BASEBACKUP_WALDIR_EOF
+)
 $(
   [ -z "$REPLICATION_INITIALIZATION_FROM_REPLICA" ] || cat << REPLICATION_INITIALIZATION_EOF
   replica_basebackup:

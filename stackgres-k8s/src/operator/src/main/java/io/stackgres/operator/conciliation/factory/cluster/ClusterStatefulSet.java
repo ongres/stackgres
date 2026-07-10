@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.ImmutableStorageConfig;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StorageConfig;
@@ -182,15 +183,36 @@ public class ClusterStatefulSet
             .orElse(name))
         .withTemplate(podTemplateSpec.getSpec())
         .withVolumeClaimTemplates(
-            new PersistentVolumeClaimBuilder()
-                .withNewMetadata()
-                .withNamespace(namespace)
-                .withName(dataName(context))
-                .withLabels(labels)
-                .endMetadata()
-                .withSpec(volumeClaimSpec.build())
-                .build()
-        )
+            Stream.concat(
+                Stream.of(
+                    new PersistentVolumeClaimBuilder()
+                        .withNewMetadata()
+                        .withNamespace(namespace)
+                        .withName(dataName(context))
+                        .withLabels(labels)
+                        .endMetadata()
+                        .withSpec(volumeClaimSpec.build())
+                        .build()),
+                CustomPersistentVolumeUtil.getCustomPersistentVolumes(cluster)
+                    .stream()
+                    .map(customPersistentVolume -> new PersistentVolumeClaimBuilder()
+                        .withNewMetadata()
+                        .withNamespace(namespace)
+                        .withName(CustomPersistentVolumeUtil.volumeName(customPersistentVolume))
+                        .withLabels(labels)
+                        .endMetadata()
+                        .withNewSpec()
+                        .withAccessModes("ReadWriteOnce")
+                        .withResources(ImmutableStorageConfig.builder()
+                            .size(customPersistentVolume.getSize())
+                            .build()
+                            .getVolumeResourceRequirements())
+                        .withStorageClassName(customPersistentVolume.getStorageClass())
+                        .withVolumeAttributesClassName(
+                            customPersistentVolume.getVolumeAttributesClassName())
+                        .endSpec()
+                        .build()))
+                .toList())
         .endSpec();
     applyToStatefulSetBuilder(clusterStatefulSetBuilder);
     StatefulSet clusterStatefulSet = clusterStatefulSetBuilder.build();

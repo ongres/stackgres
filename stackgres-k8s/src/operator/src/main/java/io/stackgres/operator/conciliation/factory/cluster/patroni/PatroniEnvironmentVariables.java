@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
@@ -149,6 +150,13 @@ public class PatroniEnvironmentVariables implements EnvVarProvider<StackGresClus
             + " " + DateTimeFormatter.ISO_LOCAL_TIME
             .withZone(ZoneId.from(ZoneOffset.UTC))
             .format(restoreToTimestamp)));
+
+    CustomPersistentVolumeUtil.getWalPath(cluster)
+        .map(walPath -> new EnvVarBuilder()
+            .withName("POSTGRES_WAL_PATH")
+            .withValue(walPath)
+            .build())
+        .ifPresent(additionalEnvVars::add);
 
     appendEnvVarIfPresent("INITDB_AUTH_HOST",
         context.getPostgresConfig()

@@ -36,6 +36,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -662,10 +663,16 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
     final String namespace = deployedStatefulSet.getMetadata().getNamespace();
-    Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
-        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
+    List<Pattern> statefulSetPodPersistentVolumeClaimPatterns = Seq.of(
+        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context))
+        .append(CustomPersistentVolumeUtil.getCustomPersistentVolumes(context).stream()
+            .map(customPersistentVolume -> CustomPersistentVolumeUtil
+                .podPersistentVolumeClaimName(context, customPersistentVolume.getName())))
+        .map(ResourceUtil::getNameWithIndexPattern)
+        .toList();
     var pvcsToProtect = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
-        .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
+        .filter(pvc -> statefulSetPodPersistentVolumeClaimPatterns.stream()
+            .anyMatch(pattern -> pattern.matcher(pvc.getMetadata().getName()).matches()))
         .toList();
     var requiredOwnerReferences = List.of(
         ResourceUtil.getOwnerReference(context));

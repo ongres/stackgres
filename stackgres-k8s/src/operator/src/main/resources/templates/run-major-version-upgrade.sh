@@ -380,6 +380,10 @@ EOF
     kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- sh -c "$(
       cat << EOF
 rm -rf "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
+if [ -n "\${POSTGRES_WAL_PATH:-}" ]
+then
+  rm -rf "\$POSTGRES_WAL_PATH.old-$SOURCE_VERSION"
+fi
 if [ -d "$PG_RELOCATED_BASE_PATH/$SOURCE_VERSION" ]
 then
   chmod -R a+rw "$PG_RELOCATED_BASE_PATH/$SOURCE_VERSION"

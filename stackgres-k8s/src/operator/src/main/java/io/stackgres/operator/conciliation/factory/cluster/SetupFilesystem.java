@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -57,6 +58,11 @@ public class SetupFilesystem implements ContainerFactory<ClusterContainerContext
             .withName("HOME")
             .withValue("/tmp")
             .build())
+        .addToEnv(new EnvVarBuilder()
+            .withName("CUSTOM_PERSISTENT_VOLUME_SUB_PATHS")
+            .withValue(String.join(" ", CustomPersistentVolumeUtil
+                .declaredSubPathDirectories(clusterContext.getCluster())))
+            .build())
         .addAllToVolumeMounts(templateMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
@@ -68,6 +74,16 @@ public class SetupFilesystem implements ContainerFactory<ClusterContainerContext
             .withName(context.getDataVolumeName())
             .withMountPath(ClusterPath.PG_BASE_PATH.path())
             .build())
+        .addAllToVolumeMounts(CustomPersistentVolumeUtil
+            .getCustomPersistentVolumes(clusterContext.getCluster())
+            .stream()
+            .map(customPersistentVolume -> new VolumeMountBuilder()
+                .withName(CustomPersistentVolumeUtil.volumeName(customPersistentVolume))
+                .withMountPath(CustomPersistentVolumeUtil
+                    .controllerMountPath(customPersistentVolume)
+                    .toString())
+                .build())
+            .toList())
         .build();
   }
 

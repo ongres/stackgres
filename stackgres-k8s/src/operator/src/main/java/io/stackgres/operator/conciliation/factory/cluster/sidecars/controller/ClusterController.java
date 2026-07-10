@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
@@ -31,7 +32,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
@@ -80,16 +80,8 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
 
   @Override
   public Container getContainer(ClusterContainerContext context) {
-    final boolean isIoLimitsSet = Optional.of(context.getClusterContext().getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getPersistentVolume)
-        .map(StackGresClusterPodsPersistentVolume::getIoLimits)
-        .map(ioLimits -> ioLimits.getReadIops() != null
-            || ioLimits.getWriteIops() != null
-            || ioLimits.getReadMiBps() != null
-            || ioLimits.getWriteMiBps() != null)
-        .orElse(false);
+    final boolean isIoLimitsSet = CustomPersistentVolumeUtil.hasAnyIoLimits(
+        context.getClusterContext().getCluster());
     return new ContainerBuilder()
         .withName(StackGresContainer.CLUSTER_CONTROLLER.getName())
         .withImage(StackGresModules.CLUSTER_CONTROLLER.getImageName())
@@ -184,17 +176,7 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .withName(ClusterControllerProperty
                 .CLUSTER_CONTROLLER_APPLY_IO_LIMITS
                 .getEnvironmentVariableName())
-            .withValue(Optional.of(context.getClusterContext().getCluster())
-                .map(StackGresCluster::getSpec)
-                .map(StackGresClusterSpec::getPods)
-                .map(StackGresClusterPods::getPersistentVolume)
-                .map(StackGresClusterPodsPersistentVolume::getIoLimits)
-                .map(ioLimits -> ioLimits.getReadIops() != null
-                    || ioLimits.getWriteIops() != null
-                    || ioLimits.getReadMiBps() != null
-                    || ioLimits.getWriteMiBps() != null)
-                .orElse(Boolean.FALSE)
-                .toString())
+            .withValue(Boolean.toString(isIoLimitsSet))
             .build(),
             new EnvVarBuilder()
             .withName(ClusterControllerProperty
@@ -294,6 +276,16 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .map(VolumeMount.class::cast)
             .toList())
         .addAllToVolumeMounts(isIoLimitsSet ? cgroupMounts.getVolumeMounts(context) : List.of())
+        .addAllToVolumeMounts(CustomPersistentVolumeUtil
+            .getControllerMountedVolumes(context.getClusterContext().getCluster())
+            .stream()
+            .map(customPersistentVolume -> new VolumeMountBuilder()
+                .withName(CustomPersistentVolumeUtil.volumeName(customPersistentVolume))
+                .withMountPath(CustomPersistentVolumeUtil
+                    .controllerMountPath(customPersistentVolume)
+                    .toString())
+                .build())
+            .toList())
         .build();
   }
 

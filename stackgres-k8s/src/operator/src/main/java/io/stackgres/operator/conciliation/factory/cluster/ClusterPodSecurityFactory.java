@@ -5,13 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import java.util.Optional;
-
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PodSecurityFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -30,16 +25,7 @@ public class ClusterPodSecurityFactory extends PodSecurityFactory
 
   @Override
   public PodSecurityContext createResource(StackGresClusterContext source) {
-    final boolean isIoLimitsSet = Optional.of(source.getCluster())
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPods)
-        .map(StackGresClusterPods::getPersistentVolume)
-        .map(StackGresClusterPodsPersistentVolume::getIoLimits)
-        .map(ioLimits -> ioLimits.getReadIops() != null
-            || ioLimits.getWriteIops() != null
-            || ioLimits.getReadMiBps() != null
-            || ioLimits.getWriteMiBps() != null)
-        .orElse(false);
+    final boolean isIoLimitsSet = CustomPersistentVolumeUtil.hasAnyIoLimits(source.getCluster());
     PodSecurityContext podSecurityContext = createPodSecurityContext();
     podSecurityContext.setRunAsNonRoot(!isIoLimitsSet);
     podSecurityContext.setFsGroupChangePolicy(

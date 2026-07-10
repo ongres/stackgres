@@ -12,6 +12,19 @@ then
     rm -rf "$PG_DATA_PATH"
     mv "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" "$PG_DATA_PATH"
   fi
+  if [ -n "${POSTGRES_WAL_PATH:-}" ]
+  then
+    rm -rf "$POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION"
+    if [ -d "$POSTGRES_WAL_PATH.old-$SOURCE_VERSION" ]
+    then
+      rm -rf "$POSTGRES_WAL_PATH"
+      mv "$POSTGRES_WAL_PATH.old-$SOURCE_VERSION" "$POSTGRES_WAL_PATH"
+    fi
+    if [ -L "$PG_DATA_PATH/pg_wal" ]
+    then
+      ln -sfn "$POSTGRES_WAL_PATH" "$PG_DATA_PATH/pg_wal"
+    fi
+  fi
   if [ -f "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" ]
   then
     cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
@@ -59,6 +72,11 @@ if [ "$PRIMARY_INSTANCE" != "$POD_NAME" ]
 then
   echo "Removing data of non primary instance"
   rm -rf "$PG_DATA_PATH"
+  if [ -n "${POSTGRES_WAL_PATH:-}" ] && [ -d "$POSTGRES_WAL_PATH" ]
+  then
+    echo "Removing existing content of $POSTGRES_WAL_PATH of non primary instance"
+    (cd "$POSTGRES_WAL_PATH" && find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +)
+  fi
   mkdir -p "$PG_UPGRADE_PATH"
   touch "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   echo "Major version upgrade not needed for non primary instance"
@@ -70,8 +88,13 @@ then
   echo "Creating new database"
   rm -rf "$PG_UPGRADE_PATH/$TARGET_VERSION/data"
   mkdir -p "$PG_UPGRADE_PATH/$TARGET_VERSION/data"
+  if [ -n "${POSTGRES_WAL_PATH:-}" ]
+  then
+    rm -rf "$POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION"
+  fi
   initdb \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+    $([ -z "${POSTGRES_WAL_PATH:-}" ] || printf %s "--waldir=$POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION") \
     -E "$ENCODING" \
     --locale "$LOCALE" \
     $("$DATA_CHECKSUM" && echo "-k" || true)
@@ -191,6 +214,25 @@ then
     exit 1
   fi
   mv "$PG_UPGRADE_PATH/$TARGET_VERSION/data" "$PG_DATA_PATH"
+fi
+if [ -n "${POSTGRES_WAL_PATH:-}" ] && [ -L "$PG_DATA_PATH/pg_wal" ] \
+  && [ "$(readlink "$PG_DATA_PATH/pg_wal")" = "$POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION" ]
+then
+  echo "Swapping WAL directory $POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION with $POSTGRES_WAL_PATH"
+  if [ -d "$POSTGRES_WAL_PATH" ]
+  then
+    rm -rf "$POSTGRES_WAL_PATH.old-$SOURCE_VERSION"
+    mv "$POSTGRES_WAL_PATH" "$POSTGRES_WAL_PATH.old-$SOURCE_VERSION"
+  fi
+  if [ -d "$POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION" ]
+  then
+    mv "$POSTGRES_WAL_PATH.upgrade-$TARGET_VERSION" "$POSTGRES_WAL_PATH"
+  fi
+  ln -sfn "$POSTGRES_WAL_PATH" "$PG_DATA_PATH/pg_wal"
+  if [ -L "$PG_UPGRADE_PATH/$SOURCE_VERSION/data/pg_wal" ]
+  then
+    ln -sfn "$POSTGRES_WAL_PATH.old-$SOURCE_VERSION" "$PG_UPGRADE_PATH/$SOURCE_VERSION/data/pg_wal"
+  fi
 fi
 cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
   | cut -d ' ' -f 3 | tr -d "'" \

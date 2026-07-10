@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetStatus;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -253,12 +254,14 @@ public class ClusterRolloutUtil {
     STATEFULSET,
     PATRONI,
     POD_STATUS,
+    WAL_PATH,
     UPGRADE;
   }
 
   public enum PodRestartReason {
     STATEFULSET,
-    POD_STATUS;
+    POD_STATUS,
+    WAL_PATH;
   }
 
   public enum PostgresRestartReason {
@@ -284,6 +287,10 @@ public class ClusterRolloutUtil {
       reasons.addReason(ClusterRestartReason.POD_STATUS);
     }
 
+    if (isAnyPodWalPathPendingRestart(cluster, pods)) {
+      reasons.addReason(ClusterRestartReason.WAL_PATH);
+    }
+
     if (isPendingUpgrade(cluster)) {
       reasons.addReason(ClusterRestartReason.UPGRADE);
     }
@@ -305,6 +312,10 @@ public class ClusterRolloutUtil {
       reasons.addReason(PodRestartReason.POD_STATUS);
     }
 
+    if (isAnyPodWalPathPendingRestart(cluster, pods)) {
+      reasons.addReason(PodRestartReason.WAL_PATH);
+    }
+
     return reasons;
   }
 
@@ -320,6 +331,10 @@ public class ClusterRolloutUtil {
 
     if (isPodPendingRestart(cluster, pod)) {
       reasons.addReason(PodRestartReason.POD_STATUS);
+    }
+
+    if (isPodWalPathPendingRestart(cluster, pod)) {
+      reasons.addReason(PodRestartReason.WAL_PATH);
     }
 
     return reasons;
@@ -409,6 +424,37 @@ public class ClusterRolloutUtil {
   private static boolean isPodPendingRestart(StackGresClusterPodStatus clusterPodStatus, Pod pod) {
     return pod.getMetadata().getName().equals(clusterPodStatus.getName())
         && Objects.equals(clusterPodStatus.getPendingRestart(), Boolean.TRUE);
+  }
+
+  private static boolean isAnyPodWalPathPendingRestart(
+      StackGresCluster cluster, List<Pod> pods) {
+    return Optional.ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(clusterPodStatus -> pods.stream()
+            .anyMatch(pod -> isPodWalPathPendingRestart(cluster, clusterPodStatus, pod)));
+  }
+
+  private static boolean isPodWalPathPendingRestart(StackGresCluster cluster, Pod pod) {
+    return Optional.ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(clusterPodStatus -> isPodWalPathPendingRestart(cluster, clusterPodStatus, pod));
+  }
+
+  private static boolean isPodWalPathPendingRestart(
+      StackGresCluster cluster, StackGresClusterPodStatus clusterPodStatus, Pod pod) {
+    // A pod status without an applied WAL path means either that the WAL directory is placed,
+    // as by default, under the PostgreSQL data directory or that the cluster controller has
+    // not reported the applied WAL path yet: in both cases the pod is not flagged (when
+    // setting walPath the change of the pod template already flags the pod for restart).
+    return pod.getMetadata().getName().equals(clusterPodStatus.getName())
+        && clusterPodStatus.getWalPath() != null
+        && !Objects.equals(
+            CustomPersistentVolumeUtil.getWalPath(cluster).orElse(null),
+            clusterPodStatus.getWalPath());
   }
 
   /**
