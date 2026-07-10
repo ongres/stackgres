@@ -63,6 +63,8 @@ public class StackGresClusterPods {
 
   private List<CustomVolume> customVolumes;
 
+  private List<@Valid StackGresClusterPodsCustomPersistentVolume> customPersistentVolumes;
+
   private List<CustomContainer> customContainers;
 
   private List<CustomContainer> customInitContainers;
@@ -187,6 +189,15 @@ public class StackGresClusterPods {
 
   public void setCustomVolumes(List<CustomVolume> customVolumes) {
     this.customVolumes = customVolumes;
+  }
+
+  public List<StackGresClusterPodsCustomPersistentVolume> getCustomPersistentVolumes() {
+    return customPersistentVolumes;
+  }
+
+  public void setCustomPersistentVolumes(
+      List<StackGresClusterPodsCustomPersistentVolume> customPersistentVolumes) {
+    this.customPersistentVolumes = customPersistentVolumes;
   }
 
   public List<CustomContainer> getCustomContainers() {
@@ -329,7 +340,8 @@ public class StackGresClusterPods {
   @Override
   public int hashCode() {
     return Objects.hash(customContainers, customEnv, customEnvFrom, customInitContainers,
-        customInitEnv, customInitEnvFrom, customInitVolumeMounts, customVolumeMounts, customVolumes,
+        customInitEnv, customInitEnvFrom, customInitVolumeMounts, customPersistentVolumes,
+        customVolumeMounts, customVolumes,
         disableConnectionPooling, disableEnvoy, disableMetricsExporter, disablePostgresUtil,
         dnsConfig, dnsPolicy, hostNetwork, livenessProbe, managementPolicy, persistentVolume,
         readinessProbe, resources, scheduling, setHostnameAsFqdn, startupProbe,
@@ -352,6 +364,7 @@ public class StackGresClusterPods {
         && Objects.equals(customInitEnv, other.customInitEnv)
         && Objects.equals(customInitEnvFrom, other.customInitEnvFrom)
         && Objects.equals(customInitVolumeMounts, other.customInitVolumeMounts)
+        && Objects.equals(customPersistentVolumes, other.customPersistentVolumes)
         && Objects.equals(customVolumeMounts, other.customVolumeMounts)
         && Objects.equals(customVolumes, other.customVolumes)
         && Objects.equals(disableConnectionPooling, other.disableConnectionPooling)

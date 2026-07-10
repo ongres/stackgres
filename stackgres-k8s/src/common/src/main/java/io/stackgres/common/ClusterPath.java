@@ -54,6 +54,7 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH(LOCAL_BIN_PATH, "start-postgres-exporter.sh"),
   HUGEPAGES_2M_PATH("/hugepages-2Mi"),
   HUGEPAGES_1G_PATH("/hugepages-1Gi"),
+  CUSTOM_PERSISTENT_VOLUMES_PATH("/stackgres/custom-persistent-volumes"),
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_EXTENSIONS_BASE_PATH(PG_BASE_PATH, "extensions"),

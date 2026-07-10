@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -33,7 +32,7 @@ public class StackGresClusterConfigurations {
 
   private String sgPoolingConfig;
 
-  private StackGresPostgresConfigSpec postgres;
+  private StackGresClusterConfigurationsPostgres postgres;
 
   private StackGresPoolingConfigSpec pooling;
 
@@ -81,11 +80,11 @@ public class StackGresClusterConfigurations {
     this.sgPoolingConfig = sgPoolingConfig;
   }
 
-  public StackGresPostgresConfigSpec getPostgres() {
+  public StackGresClusterConfigurationsPostgres getPostgres() {
     return postgres;
   }
 
-  public void setPostgres(StackGresPostgresConfigSpec postgres) {
+  public void setPostgres(StackGresClusterConfigurationsPostgres postgres) {
     this.postgres = postgres;
   }
 

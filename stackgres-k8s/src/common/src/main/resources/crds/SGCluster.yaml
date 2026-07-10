@@ -1149,6 +1149,122 @@ spec:
                           {"description":"Adapts a Secret into a volume.\n\nThe contents of the target Secret's Data field will be presented in a volume as files using the keys in the Data field as the file names. Secret volumes support ownership management and SELinux relabeling.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretvolumesource-v1-core","properties":{"defaultMode":{"description":"defaultMode is Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. Defaults to 0644. Directories within the path are not affected by this setting. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.","format":"int32","type":"integer"},"items":{"description":"items If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified which is not present in the Secret, the volume setup will error unless it is marked optional. Paths must be relative and may not contain the '..' path or start with '..'.","items":{"description":"Maps a string key to a path within a volume.","properties":{"key":{"description":"key is the key to project.","type":"string"},"mode":{"description":"mode is Optional: mode bits used to set permissions on this file. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511. YAML accepts both octal and decimal values, JSON requires decimal values for mode bits. If not specified, the volume defaultMode will be used. This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.","format":"int32","type":"integer"},"path":{"description":"path is the relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'.","type":"string"}},"required":["key","path"],"type":"object"},"type":"array"},"optional":{"description":"optional field specify whether the Secret or its keys must be defined","type":"boolean"},"secretName":{"description":"secretName is the name of the secret in the pod's namespace to use. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret","type":"string"}},"type":"object"}
                         persistentVolumeClaim: #!jq_placeholder .definitions["io.k8s.api.core.v1.Volume"].properties.persistentVolumeClaim #persistentvolumeclaimvolumesource-v1-core
                           {"description":"PersistentVolumeClaimVolumeSource references the user's PVC in the same namespace. This volume finds the bound PV and mounts that volume for the pod. A PersistentVolumeClaimVolumeSource is, essentially, a wrapper around another type of volume that is owned by someone else (the system).\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#persistentvolumeclaimvolumesource-v1-core","properties":{"claimName":{"description":"claimName is the name of a PersistentVolumeClaim in the same namespace as the pod using this volume. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims","type":"string"},"readOnly":{"description":"readOnly Will force the ReadOnly setting in VolumeMounts. Default false.","type":"boolean"}},"required":["claimName"],"type":"object"}
+                  customPersistentVolumes:
+                    type: array
+                    x-kubernetes-list-map-keys: [ name ]
+                    x-kubernetes-list-type: map
+                    description: |
+                      A list of custom persistent volumes that will be created as additional `volumeClaimTemplates`
+                        of the StatefulSet, so that each instance of the cluster gets its own PersistentVolumeClaim
+                        for each entry. The generated PersistentVolumeClaims are named `custom-<name>-<pod name>`.
+
+                      The name used in this section will be prefixed with the string `custom-` so that when
+                        referencing the generated volumes in the customVolumeMounts or customInitVolumeMounts
+                        sections the name used have to be prepended with the same prefix.
+
+                      Those volumes may be used to store WAL files (see `.spec.configurations.postgres.walPath`),
+                        tablespaces or for any other custom usage. When used to store data that PostgreSQL
+                        writes alongside the data stored in the volume generated from `.spec.pods.persistentVolume`
+                        (as is the case for WAL files and tablespaces) set `coherentData` to `true` so that the
+                        cluster controller will prevent PostgreSQL from starting if any PersistentVolumeClaim
+                        of the set was deleted and re-created empty, avoiding to corrupt or lose data.
+
+                      It is recommended to mount those volumes using a `subPath` so that the content
+                        PostgreSQL sees is not polluted with filesystem or StackGres internal files
+                        (like `lost+found` or the data coherence marker files).
+
+                      **Changing this field may require a restart.**
+                    items:
+                      type: object
+                      required: [ "name", "size" ]
+                      properties:
+                        name:
+                          type: string
+                          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+                          maxLength: 56
+                          description: |
+                            Name of the custom persistent volume. Used as the key of this list, to reference
+                             the generated volume in the customVolumeMounts and customInitVolumeMounts sections
+                             (prefixed with `custom-`) and as part of the name of the generated
+                             PersistentVolumeClaims (`custom-<name>-<pod name>`).
+                        size:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                          description: |
+                            Size of the PersistentVolume set for each instance of the cluster. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
+                        storageClass:
+                          type: string
+                          description: |
+                            Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                        volumeAttributesClassName:
+                          type: string
+                          description: |
+                            Name of an existing VolumeAttributesClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+
+                            See https://kubernetes.io/docs/concepts/storage/volume-attributes-classes/
+                        ioLimits:
+                          type: object
+                          description: |
+                            This section allows to define per-volume I/O limits for nodes using [cgroup v2 `io.max` features](https://docs.kernel.org/admin-guide/cgroup-v2.html).
+
+                            > **NOTE**: This is an **alpha** feature.
+
+                            See `.spec.pods.persistentVolume.ioLimits` for a complete description of this feature.
+                             As for `.spec.pods.persistentVolume.ioLimits` this feature must be enabled globally by
+                             the operator administrator by adding the `io-limits` feature gate under `.spec.featureGates`
+                             of the SGConfig. Setting any of the value below without the `io-limits` feature gate
+                             enabled will be rejected.
+
+                            If this volume share the same backing device with another volume of the same Pod the
+                             limits of both volumes target a single entry in the Pod's cgroup and cannot be enforced
+                             independently of each other: in such case the most restrictive limits will be applied.
+                          properties:
+                            readIops:
+                              type: integer
+                              description: Max read IO operations per second. Leave empty to remove this limit.
+                            writeIops:
+                              type: integer
+                              description: Max write IO operations per second. Leave empty to remove this limit.
+                            readMiBps:
+                              type: integer
+                              description: Max read MiB per second. Leave empty to remove this limit.
+                            writeMiBps:
+                              type: integer
+                              description: Max write MiB per second. Leave empty to remove this limit.
+                        coherentData:
+                          type: boolean
+                          default: false
+                          description: |
+                            When `true` the volume is considered part of the coherent data set of each instance of
+                             the cluster, formed by the volume generated from `.spec.pods.persistentVolume` and every
+                             custom persistent volume with this flag set to `true`. Volumes of the coherent data set
+                             are written simultaneously by PostgreSQL (as is the case for WAL files and tablespaces)
+                             and none of them can be deleted and re-created empty while the others retain data,
+                             otherwise data will be corrupted or lost.
+
+                            The cluster controller maintains marker files (`.data-coherent-id` and
+                             `.data-coherent-mount-paths`) at the root of each volume of the coherent data set and,
+                             before allowing PostgreSQL to start, checks that all the volumes of the set belong
+                             together. If any volume of the set is detected to have been deleted and re-created
+                             empty (or its declared `subPath` changed) the Pod will refuse to start Patroni,
+                             printing a message in the cluster controller log and emitting a Warning event, unless
+                             `allowCoherentDataRemoval` is set to `true` for the offending volume.
+
+                            A volume with this flag set to `true` must be mounted in the `patroni` container
+                             using the customVolumeMounts section.
+                        allowCoherentDataRemoval:
+                          type: boolean
+                          default: false
+                          description: |
+                            When `true` allows, in a controlled way, the removal of this volume even if
+                             `coherentData` is set to `true`: removing the entry from this list (or setting
+                             `coherentData` to `false`) is rejected unless this flag was previously set to `true`,
+                             and the data coherence check performed by the cluster controller before allowing
+                             PostgreSQL to start will re-initialize the coherence marker files instead of refusing
+                             to start, emitting a Warning event.
+
+                            Set this flag transiently: either right before removing the entry or to recover an
+                             instance stuck by the data coherence check when you know what you are doing.
                   customInitContainers:
                     type: array
                     description: |
@@ -1327,8 +1443,32 @@ spec:
                           type: string
                         description: |
                           The `postgresql.conf` parameters that overwrite those specified in the referenced [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig).
-    
+
                           **Changing this field may require a restart.**
+                      walPath:
+                        type: string
+                        description: |
+                          Absolute path where the PostgreSQL WAL directory will be placed. When set, the
+                           `pg_wal` directory under the PostgreSQL data directory will be created as a symbolic
+                           link pointing to this path (using the `--waldir` option of `initdb` and
+                           `pg_basebackup`). When not set the WAL directory is placed, as by default, under the
+                           PostgreSQL data directory.
+
+                          The path must not be under the PostgreSQL data directory
+                           (`/var/lib/postgresql/data`) and must be either under the path of the volume
+                           generated from `.spec.pods.persistentVolume` (`/var/lib/postgresql`) or under a
+                           path where a custom persistent volume with `coherentData` set to `true` is mounted
+                           in the `patroni` container (see `.spec.pods.customPersistentVolumes`). It is
+                           recommended to use a subdirectory of the mount path (e.g. `/custom-wal/pg-wal` for
+                           a volume mounted at `/custom-wal`) rather than the mount path itself.
+
+                          The WAL path currently applied to each Pod is tracked in
+                           `.status.podStatuses[].walPath`: when this field differs from the applied value
+                           the `PendingRestart` condition becomes `True` and the cluster controller will
+                           move the WAL directory to the new location during the Pod startup, before
+                           PostgreSQL is started, when the Pod is restarted.
+
+                          **Changing this field requires a restart.**
                   pooling:
                     type: object
                     properties:
@@ -2638,6 +2778,12 @@ spec:
                     pendingRestart:
                       type: boolean
                       description: Indicates if the pod requires restart
+                    walPath:
+                      type: string
+                      description: |
+                        The WAL path currently applied to the pod (see
+                         `.spec.configurations.postgres.walPath`). Not set when the WAL directory is
+                         placed, as by default, under the PostgreSQL data directory.
                     installedPostgresExtensions:
                       type: array
                       description: The list of Postgres extensions currently installed.

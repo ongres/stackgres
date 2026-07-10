@@ -36,6 +36,8 @@ public class StackGresClusterPodStatus {
 
   private Boolean pendingRestart;
 
+  private String walPath;
+
   private List<@Valid StackGresClusterInstalledExtension> installedPostgresExtensions;
 
   @JsonIgnore
@@ -86,6 +88,14 @@ public class StackGresClusterPodStatus {
     this.pendingRestart = pendingRestart;
   }
 
+  public String getWalPath() {
+    return walPath;
+  }
+
+  public void setWalPath(String walPath) {
+    this.walPath = walPath;
+  }
+
   public List<StackGresClusterInstalledExtension> getInstalledPostgresExtensions() {
     return installedPostgresExtensions;
   }
@@ -98,7 +108,7 @@ public class StackGresClusterPodStatus {
   @Override
   public int hashCode() {
     return Objects.hash(installedPostgresExtensions, name, nodeName, pendingRestart, primary,
-        replicationGroup);
+        replicationGroup, walPath);
   }
 
   @Override
@@ -114,7 +124,8 @@ public class StackGresClusterPodStatus {
         && Objects.equals(name, other.name) && Objects.equals(nodeName, other.nodeName)
         && Objects.equals(pendingRestart, other.pendingRestart)
         && Objects.equals(primary, other.primary)
-        && Objects.equals(replicationGroup, other.replicationGroup);
+        && Objects.equals(replicationGroup, other.replicationGroup)
+        && Objects.equals(walPath, other.walPath);
   }
 
   @Override
