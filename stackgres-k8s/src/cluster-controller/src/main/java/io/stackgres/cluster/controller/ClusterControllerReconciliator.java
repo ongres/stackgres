@@ -40,6 +40,8 @@ public class ClusterControllerReconciliator
   private final PgBouncerReconciliator pgbouncerReconciliator;
   private final ClusterPersistentVolumeSizeReconciliator pvcSizeReconciliator;
   private final IoLimitsReconciliator ioLimitsReconciliator;
+  private final ClusterDataCoherenceReconciliator dataCoherenceReconciliator;
+  private final ClusterWalRelocationReconciliator walRelocationReconciliator;
   private final PatroniReconciliator patroniReconciliator;
   private final ManagedSqlReconciliator managedSqlReconciliator;
   private final SslReconciliator sslReconciliator;
@@ -61,6 +63,8 @@ public class ClusterControllerReconciliator
     this.pgbouncerReconciliator = parameters.pgbouncerReconciliator;
     this.pvcSizeReconciliator = parameters.clusterPersistentVolumeSizeReconciliator;
     this.ioLimitsReconciliator = parameters.ioLimitsReconciliator;
+    this.dataCoherenceReconciliator = parameters.dataCoherenceReconciliator;
+    this.walRelocationReconciliator = parameters.walRelocationReconciliator;
     this.patroniReconciliator = parameters.patroniReconciliator;
     this.managedSqlReconciliator = parameters.managedSqlReconciliator;
     this.sslReconciliator = parameters.sslReconciliator;
@@ -86,6 +90,8 @@ public class ClusterControllerReconciliator
     this.pgbouncerReconciliator = null;
     this.pvcSizeReconciliator = null;
     this.ioLimitsReconciliator = null;
+    this.dataCoherenceReconciliator = null;
+    this.walRelocationReconciliator = null;
     this.patroniReconciliator = null;
     this.managedSqlReconciliator = null;
     this.sslReconciliator = null;
@@ -142,8 +148,24 @@ public class ClusterControllerReconciliator
         pvcSizeReconciliator.reconcile(client, propertyContext);
     var ioLimitsReconciliatorResult =
         ioLimitsReconciliator.reconcile(client, context);
-    var patroniReconciliationResult =
-        patroniReconciliator.reconcile(client, context);
+    var dataCoherenceReconciliatorResult =
+        dataCoherenceReconciliator.reconcile(client, context);
+    boolean patroniStartAllowed = dataCoherenceReconciliatorResult.result().orElse(false)
+        && dataCoherenceReconciliatorResult.success();
+    var walRelocationReconciliatorResult = patroniStartAllowed
+        ? walRelocationReconciliator.reconcile(client, context)
+        : new ReconciliationResult<ClusterWalRelocationReconciliator.WalRelocationResult>();
+    patroniStartAllowed = patroniStartAllowed
+        && walRelocationReconciliatorResult.result()
+            .map(ClusterWalRelocationReconciliator.WalRelocationResult::patroniStartAllowed)
+            .orElse(false);
+    if (!patroniStartAllowed) {
+      logger.warn("Skipping patroni reconciliation since patroni start is blocked by the data"
+          + " coherence check or the WAL relocation");
+    }
+    var patroniReconciliationResult = patroniStartAllowed
+        ? patroniReconciliator.reconcile(client, context)
+        : new ReconciliationResult<Boolean>(false);
     var managedSqlReconciliationResult =
         managedSqlReconciliator.reconcile(client, context);
     var postgresSslReconciliationResult =
@@ -164,6 +186,9 @@ public class ClusterControllerReconciliator
         || nodeNameChanged
         || postgresBootstrapReconciliatorResult.result().orElse(false)
         || extensionReconciliationResult.result().orElse(false)
+        || walRelocationReconciliatorResult.result()
+            .map(ClusterWalRelocationReconciliator.WalRelocationResult::clusterUpdated)
+            .orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
       updatedCluster = clusterWriter.update(cluster,
           (currentCluster) -> updateClusterPodStatus(currentCluster, cluster));
@@ -207,7 +232,9 @@ public class ClusterControllerReconciliator
         .join(patroniBackupFailoverRestartReconciliatorResult)
         .join(patroniOperationReconciliatorResult)
         .join(pvcSizeReconciliatorResult)
-        .join(ioLimitsReconciliatorResult);
+        .join(ioLimitsReconciliatorResult)
+        .join(dataCoherenceReconciliatorResult)
+        .join(walRelocationReconciliatorResult);
     if (result.success()) {
       writeCustomResource(logger, objectMapper, updatedCluster);
     }
@@ -255,6 +282,8 @@ public class ClusterControllerReconciliator
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject ClusterPersistentVolumeSizeReconciliator clusterPersistentVolumeSizeReconciliator;
     @Inject IoLimitsReconciliator ioLimitsReconciliator;
+    @Inject ClusterDataCoherenceReconciliator dataCoherenceReconciliator;
+    @Inject ClusterWalRelocationReconciliator walRelocationReconciliator;
     @Inject PatroniReconciliator patroniReconciliator;
     @Inject ManagedSqlReconciliator managedSqlReconciliator;
     @Inject SslReconciliator sslReconciliator;

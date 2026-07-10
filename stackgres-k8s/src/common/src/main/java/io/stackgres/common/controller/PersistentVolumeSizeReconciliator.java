@@ -91,34 +91,76 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
 
     StatefulSet sts = stsOpt.get();
 
-    Optional<Quantity> requestedSizeOpt = getPersistentVolumeClaimRequestedSize(sts);
+    final String dataTemplateName = getPersistentVolumeClaimTemplateName(clusterName);
+    if (sts.getSpec().getVolumeClaimTemplates().stream()
+        .noneMatch(template -> template.getMetadata().getName().equals(dataTemplateName))) {
+      /*
+       * If the data PVC template could not be found, it could only mean that StatefulSet
+       * is in an illegal state, or there is a bug somewhere.
+       */
+      throw new IllegalStateException("Illegal StatefulSet, the persistent volume claim template "
+          + dataTemplateName + " could not be found in the StatefulSet "
+          + sts.getMetadata().getName());
+    }
+
+    for (PersistentVolumeClaim template : sts.getSpec().getVolumeClaimTemplates()) {
+      reconcilePersistentVolumeClaimSize(
+          template,
+          template.getMetadata().getName().equals(dataTemplateName),
+          namespace,
+          context.getPodName());
+    }
+
+    return new ReconciliationResult<>();
+  }
+
+  private void reconcilePersistentVolumeClaimSize(
+      PersistentVolumeClaim template,
+      boolean isDataTemplate,
+      String namespace,
+      String podName) {
+    final String templateName = template.getMetadata().getName();
+
+    Optional<Quantity> requestedSizeOpt = getPersistentVolumeRequestedSize(template);
 
     if (requestedSizeOpt.isEmpty()) {
       /*
        * If the PVC template requested size could not be found, it could only mean that StatefulSet
        * is in an illegal state, or there is a bug somewhere.
        */
-
-      String templateName = getPersistentVolumeClaimTemplateName(clusterName);
       throw new IllegalStateException("Illegal StatefulSet, the persistent volume claim template "
-          + templateName + " could not be found in the StatefulSet " + sts.getMetadata().getName());
+          + templateName + " has no requested size");
     }
 
-    String persistentVolumeClaimName = getPersistentVolumeClaimName(
-        clusterName,
-        context.getPodName()
-    );
+    /*
+     * The StatefulSet controller creates the persistent volume claim of each Pod appending the
+     * Pod name to the volume claim template name.
+     */
+    String persistentVolumeClaimName = templateName + "-" + podName;
 
     var pvcFinder = getPvcFinder();
     Optional<PersistentVolumeClaim> pvcOpt = pvcFinder.findByNameAndNamespace(
         persistentVolumeClaimName, namespace);
 
     if (pvcOpt.isEmpty()) {
+      if (isDataTemplate) {
+        /*
+         * If the persistent volume claim could not be found, something nefarious is happening.
+         * It should always be found since is a preconditions for the pod to start.
+         */
+        throw new IllegalStateException(
+            "The persistent volume claim of this pod could not be found");
+      }
       /*
-       * If the persistent volume claim could not be found, something nefarious is happening.
-       * It should always be found since is a preconditions for the pod to start.
+       * A custom persistent volume claim could be legitimately absent for an instant after the
+       * volume claim template has been added and before the Pod has been restarted.
        */
-      throw new IllegalStateException("The persistent volume claim of this pod could not be found");
+      LOGGER.warn(
+          "Persistent volume claim {}/{} not found, skipping its size conciliation",
+          namespace,
+          persistentVolumeClaimName
+      );
+      return;
     }
 
     final PersistentVolumeClaim actualPvc = pvcOpt.get();
@@ -146,15 +188,15 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
        * Therefore, we should expand it.
        */
       LOGGER.info(
-          "Detected an increase in the PVC size.  Previous size {}, new size {}. Patching...",
+          "Detected an increase in the PVC {} size.  Previous size {}, new size {}. Patching...",
+          persistentVolumeClaimName,
           actualRequestedSize,
           requestedSize
       );
-      PersistentVolumeClaim pvc = pvcOpt.get();
-      setNewRequestedSize(pvc, requestedSize);
+      setNewRequestedSize(actualPvc, requestedSize);
 
       var pvcWriter = getPvcWriter();
-      pvcWriter.update(pvc);
+      pvcWriter.update(actualPvc);
     } else if (sizeComparison < 0) {
       /*
        * The requested size in the PVC template is smaller than the actual PVC.
@@ -163,14 +205,13 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
        * reconciliation cycle. Skip it and warn instead.
        */
       LOGGER.warn(
-          "Detected a decrease in the PVC size from {} to {}, but Kubernetes does not"
+          "Detected a decrease in the PVC {} size from {} to {}, but Kubernetes does not"
               + " support shrinking a persistent volume claim. Skipping.",
+          persistentVolumeClaimName,
           actualRequestedSize,
           requestedSize
       );
     }
-
-    return new ReconciliationResult<>();
   }
 
   private void setNewRequestedSize(PersistentVolumeClaim pvc, Quantity requestedSize) {

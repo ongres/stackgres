@@ -104,6 +104,11 @@ public abstract class AbstractCustomPersistentVolumesValidator {
           + ClusterPath.PG_DATA_PATH.path() + ")", field);
       return;
     }
+    if (path.equals(Paths.get(ClusterPath.PG_BASE_PATH.path()))) {
+      failValidation("walPath must be a subdirectory of " + ClusterPath.PG_BASE_PATH.path()
+          + ", not the path itself", field);
+      return;
+    }
     if (path.startsWith(Paths.get(ClusterPath.PG_BASE_PATH.path()))) {
       return;
     }
@@ -122,6 +127,16 @@ public abstract class AbstractCustomPersistentVolumesValidator {
           + fieldPrefix + ".pods.persistentVolume (" + ClusterPath.PG_BASE_PATH.path()
           + ") or under a path where a custom persistent volume is mounted in the patroni"
           + " container", field);
+      return;
+    }
+    if (path.equals(Paths.get(hostingVolume.get().getValue().getMountPath()))) {
+      // The mount path itself may contain filesystem or StackGres internal files (like
+      // lost+found or the data coherence marker files when mounted without a subPath) while
+      // initdb and pg_basebackup require the WAL directory to be empty or to not exist.
+      failValidation("walPath must be a subdirectory of the mount path "
+          + hostingVolume.get().getValue().getMountPath() + " of the custom persistent volume"
+          + " \"" + hostingVolume.get().getKey().getName() + "\", not the mount path itself",
+          field);
       return;
     }
     if (!CustomPersistentVolumeUtil.isCoherentData(hostingVolume.get().getKey())) {

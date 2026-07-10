@@ -11,7 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -20,6 +24,7 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolume;
@@ -49,7 +54,7 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
   private final boolean isIoLimitsSet;
   private final String podUid;
 
-  String deviceMajMin = null;
+  final Map<Path, String> deviceMajMinByMountPath = new HashMap<>();
   Path ioMaxPath = null;
 
   @Dependent
@@ -91,41 +96,125 @@ public class IoLimitsReconciliator extends SafeReconciliator<StackGresClusterCon
 
   private void reconcileIoLimits(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
-    final var ioLimits = Optional.of(context.getCluster())
+    record VolumeIoLimits(String description, Path mountPath,
+        StackGresClusterPodsPersistentVolumeIoLimits ioLimits) {
+    }
+    final List<VolumeIoLimits> volumesIoLimits = new ArrayList<>();
+    // The data volume is always included, even without I/O limits, so that removed limits
+    // are cleared from the io.max file.
+    volumesIoLimits.add(new VolumeIoLimits(
+        "data volume",
+        PG_BASE_PATH,
+        Optional.of(context.getCluster())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getPersistentVolume)
-        .map(StackGresClusterPodsPersistentVolume::getIoLimits);
-    final Long rbps = ioLimits
-        .map(StackGresClusterPodsPersistentVolumeIoLimits::getReadMiBps)
-        .map(this::toBps)
-        .orElse(null);
-    final Long wbps = ioLimits
-        .map(StackGresClusterPodsPersistentVolumeIoLimits::getWriteMiBps)
-        .map(this::toBps)
-        .orElse(null);
-    final Integer riops = ioLimits
-        .map(StackGresClusterPodsPersistentVolumeIoLimits::getReadIops)
-        .orElse(null);
-    final Integer wiops = ioLimits
-        .map(StackGresClusterPodsPersistentVolumeIoLimits::getWriteIops)
-        .orElse(null);
-    if (deviceMajMin == null) {
-      deviceMajMin = resolveDeviceMajMin(PG_BASE_PATH);
-      LOGGER.info("Device mounted at " + PG_BASE_PATH + " has maj:min " + deviceMajMin);
+        .map(StackGresClusterPodsPersistentVolume::getIoLimits)
+        .orElse(null)));
+    for (var customPersistentVolume : CustomPersistentVolumeUtil
+        .getCustomPersistentVolumes(context.getCluster())) {
+      if (!CustomPersistentVolumeUtil.hasIoLimits(customPersistentVolume.getIoLimits())) {
+        continue;
+      }
+      volumesIoLimits.add(new VolumeIoLimits(
+          "custom persistent volume " + customPersistentVolume.getName(),
+          CustomPersistentVolumeUtil.controllerMountPath(customPersistentVolume),
+          customPersistentVolume.getIoLimits()));
     }
+
     if (ioMaxPath == null) {
       ioMaxPath = resolveCgroupIoMaxPath(podUid);
       LOGGER.info("Found io.max path for Pod with uid " + podUid + " at " + ioMaxPath);
     }
-    String desiredLine = formatIoMaxLine(deviceMajMin, rbps, wbps, riops, wiops);
-    if (isAlreadyApplied(ioMaxPath, desiredLine, deviceMajMin, rbps, wbps, riops, wiops)) {
-      return;
+
+    final Map<String, StackGresClusterPodsPersistentVolumeIoLimits> ioLimitsByDevice =
+        new LinkedHashMap<>();
+    for (VolumeIoLimits volumeIoLimits : volumesIoLimits) {
+      final String deviceMajMin;
+      try {
+        deviceMajMin = resolveDeviceMajMinCached(volumeIoLimits.mountPath());
+      } catch (IOException | RuntimeException ex) {
+        LOGGER.warn("Can not resolve the device of the {} mounted at {},"
+            + " skipping its I/O limits: {}",
+            volumeIoLimits.description(), volumeIoLimits.mountPath(), ex.getMessage());
+        continue;
+      }
+      if (ioLimitsByDevice.containsKey(deviceMajMin)) {
+        LOGGER.warn("The {} mounted at {} shares the device {} with another volume of this"
+            + " Pod: their I/O limits target a single entry in the Pod's cgroup and cannot be"
+            + " enforced independently of each other, the most restrictive limits will be"
+            + " applied",
+            volumeIoLimits.description(), volumeIoLimits.mountPath(), deviceMajMin);
+        ioLimitsByDevice.put(deviceMajMin, mergeMostRestrictive(
+            ioLimitsByDevice.get(deviceMajMin), volumeIoLimits.ioLimits()));
+      } else {
+        ioLimitsByDevice.put(deviceMajMin, volumeIoLimits.ioLimits());
+      }
     }
-    try (var os = new FileOutputStream(ioMaxPath.toFile())) {
-      os.write((desiredLine + "\n").getBytes(StandardCharsets.UTF_8));
+
+    for (var deviceIoLimits : ioLimitsByDevice.entrySet()) {
+      final String deviceMajMin = deviceIoLimits.getKey();
+      final var ioLimits = Optional.ofNullable(deviceIoLimits.getValue());
+      final Long rbps = ioLimits
+          .map(StackGresClusterPodsPersistentVolumeIoLimits::getReadMiBps)
+          .map(this::toBps)
+          .orElse(null);
+      final Long wbps = ioLimits
+          .map(StackGresClusterPodsPersistentVolumeIoLimits::getWriteMiBps)
+          .map(this::toBps)
+          .orElse(null);
+      final Integer riops = ioLimits
+          .map(StackGresClusterPodsPersistentVolumeIoLimits::getReadIops)
+          .orElse(null);
+      final Integer wiops = ioLimits
+          .map(StackGresClusterPodsPersistentVolumeIoLimits::getWriteIops)
+          .orElse(null);
+      String desiredLine = formatIoMaxLine(deviceMajMin, rbps, wbps, riops, wiops);
+      if (isAlreadyApplied(ioMaxPath, desiredLine, deviceMajMin, rbps, wbps, riops, wiops)) {
+        continue;
+      }
+      try (var os = new FileOutputStream(ioMaxPath.toFile())) {
+        os.write((desiredLine + "\n").getBytes(StandardCharsets.UTF_8));
+      }
+      LOGGER.info("Set io.max to " + desiredLine);
     }
-    LOGGER.info("Set io.max to " + desiredLine);
+  }
+
+  private String resolveDeviceMajMinCached(Path mountPath) throws IOException {
+    String deviceMajMin = deviceMajMinByMountPath.get(mountPath);
+    if (deviceMajMin == null) {
+      deviceMajMin = resolveDeviceMajMin(mountPath);
+      LOGGER.info("Device mounted at " + mountPath + " has maj:min " + deviceMajMin);
+      deviceMajMinByMountPath.put(mountPath, deviceMajMin);
+    }
+    return deviceMajMin;
+  }
+
+  static StackGresClusterPodsPersistentVolumeIoLimits mergeMostRestrictive(
+      StackGresClusterPodsPersistentVolumeIoLimits left,
+      StackGresClusterPodsPersistentVolumeIoLimits right) {
+    if (left == null) {
+      return right;
+    }
+    if (right == null) {
+      return left;
+    }
+    var merged = new StackGresClusterPodsPersistentVolumeIoLimits();
+    merged.setReadIops(minValue(left.getReadIops(), right.getReadIops()));
+    merged.setWriteIops(minValue(left.getWriteIops(), right.getWriteIops()));
+    merged.setReadMiBps(minValue(left.getReadMiBps(), right.getReadMiBps()));
+    merged.setWriteMiBps(minValue(left.getWriteMiBps(), right.getWriteMiBps()));
+    return merged;
+  }
+
+  private static Integer minValue(Integer left, Integer right) {
+    if (left == null) {
+      return right;
+    }
+    if (right == null) {
+      return left;
+    }
+    return Math.min(left, right);
   }
 
   private Long toBps(Integer mbps) {

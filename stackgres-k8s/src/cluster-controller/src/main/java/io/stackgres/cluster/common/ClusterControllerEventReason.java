@@ -12,7 +12,10 @@ import io.stackgres.operatorframework.resource.EventReason;
 
 public enum ClusterControllerEventReason implements EventReason {
 
-  CLUSTER_CONTROLLER_ERROR(WARNING, "ClusterControllerFailed");
+  CLUSTER_CONTROLLER_ERROR(WARNING, "ClusterControllerFailed"),
+  CLUSTER_DATA_COHERENCE_BLOCKED(WARNING, "ClusterDataCoherenceBlocked"),
+  CLUSTER_DATA_COHERENCE_REINITIALIZED(WARNING, "ClusterDataCoherenceReinitialized"),
+  CLUSTER_WAL_RELOCATION_FAILED(WARNING, "ClusterWalRelocationFailed");
 
   private final Type type;
   private final String reason;

@@ -27,6 +27,7 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.CustomPersistentVolumeUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -137,6 +138,29 @@ public class PatroniBackupFailoverRestartReconciliator {
               LOGGER.warn("PVC already deleted");
             } else {
               throw ex;
+            }
+          }
+          for (var customPersistentVolume : CustomPersistentVolumeUtil
+              .getCustomPersistentVolumes(context.getCluster())) {
+            if (!CustomPersistentVolumeUtil.isCoherentData(customPersistentVolume)) {
+              continue;
+            }
+            LOGGER.info("Deleting PVC of coherent custom persistent volume {} in order"
+                + " to allow restore from volume snapshot", customPersistentVolume.getName());
+            try {
+              pvcWriter.delete(new PersistentVolumeClaimBuilder()
+                  .withNewMetadata()
+                  .withNamespace(context.getCluster().getMetadata().getNamespace())
+                  .withName(CustomPersistentVolumeUtil
+                      .volumeName(customPersistentVolume) + "-" + podName)
+                  .endMetadata()
+                  .build());
+            } catch (KubernetesClientException ex) {
+              if (ex.getCode() == 404) {
+                LOGGER.warn("PVC already deleted");
+              } else {
+                throw ex;
+              }
             }
           }
         }

@@ -23,9 +23,13 @@ spec:
   replicateFrom:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  configurations: 
+  configurations:
     sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
     sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+    {{- with .Values.cluster.configurations.postgres }}
+    postgres:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- with .Values.cluster.configurations.observability }}
     observability:
       {{- toYaml . | nindent 6 }}
@@ -151,6 +155,10 @@ spec:
     {{- end }}
     {{- with .Values.cluster.pods.customVolumes }}
     customVolumes:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.pods.customPersistentVolumes }}
+    customPersistentVolumes:
       {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with .Values.cluster.pods.customContainers }}
