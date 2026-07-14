@@ -354,19 +354,6 @@ cert:
   # -- (integer) The duration in days of the generated RSA key pair for the Web Console / REST API after which it will expire and be regenerated.
   #   If not specified it will be set to 730 (2 years) by default.
   webRsaDuration:
-  # -- (string) The private RSA key used to create the Operator Webhooks certificate issued by the
-  #   Kubernetes cluster CA.
-  key:
-  # -- (string) The Operator Webhooks certificate issued by Kubernetes cluster CA.
-  crt:
-  # -- (string) The private RSA key used to generate JWTs used in REST API authentication.
-  jwtRsaKey:
-  # -- (string) The public RSA key used to verify JWTs used in REST API authentication.
-  jwtRsaPub:
-  # -- (string) The private RSA key used to create the Web Console / REST API certificate
-  webKey:
-  # -- (string) The Web Console / REST API certificate
-  webCrt:
   # Section to configure cert-manager integration to generate Operator certificates
   certManager:
     # -- When set to `true` then Issuer and Certificate for Operator and Web Console / REST API
@@ -460,11 +447,6 @@ grafana:
   #   that will be created in Grafana. If not set the default
   #   StackGres dashboards will be created. (used to embed automatically Grafana)
   dashboardConfigMap:
-  # -- (array) The URLs of the PostgreSQL dashboards created in Grafana (used to embed manually
-  #   Grafana). It must contain an entry for each JSON file under `grafana-dashboards` folder: `archiving.json`, 
-  #   `connection-pooling.json`, `current-activity.json`, `db-info.json`, `db-objects.json`, `db-os.json`, `queries.json`
-  #   and `replication.json`
-  urls:
   # Create and copy/paste grafana API token:
   # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
 
