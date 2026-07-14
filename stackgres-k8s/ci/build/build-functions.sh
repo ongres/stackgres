@@ -112,21 +112,26 @@ copy_from_image() {
   [ "$#" -ge 1 ] || false
   local SOURCE_IMAGE_NAME="$1"
   local SOURCE_IMAGE_PLATFORM
+  local CONTAINER_ID
+  local DEST="${PROJECT_PATH:-$(pwd)}"
   if [ "$SOURCE_IMAGE_NAME" = null ]
   then
     return
   fi
   SOURCE_IMAGE_PLATFORM="$(get_image_platform "$SOURCE_IMAGE_NAME")"
+  # Files are copied with `docker create` + `docker cp` instead of running the
+  # image, so this never executes a binary from the image. This makes it work
+  # regardless of the host architecture (e.g. copying from an arm64 image on an
+  # amd64 runner) without requiring qemu/binfmt emulation. `docker cp` (without
+  # --archive) writes the files owned by the invoking user, matching the
+  # previous `--user $(id -u):$(id -g)` behaviour.
   # shellcheck disable=SC2046
-  docker_run -i $(! test -t 1 || printf %s '-t') --rm \
+  CONTAINER_ID="$(docker_create --platform "$SOURCE_IMAGE_PLATFORM" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
-    --platform "$SOURCE_IMAGE_PLATFORM" \
-    --volume "${PROJECT_PATH:-$(pwd)}:/project-target" \
-    --user "$(id -u):$(id -g)" \
-    --env HOME=/tmp \
-    "$SOURCE_IMAGE_NAME" \
-    sh -ec $(echo "$-" | grep -v -q x || printf %s '-x') \
-      'cp -a /project/. /project-target/.'
+    "$SOURCE_IMAGE_NAME")"
+  mkdir -p "$DEST"
+  docker_cp "$CONTAINER_ID:/project/." "$DEST"
+  docker_rm -fv "$CONTAINER_ID" >/dev/null
 }
 
 pre_build_in_container() {
