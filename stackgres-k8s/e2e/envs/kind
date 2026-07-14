@@ -5,6 +5,14 @@ KIND_NODES="${KIND_NODES:-1}"
 KIND_LOCK_PATH="${KIND_LOCK_PATH:-$TARGET_PATH/kind-lock}"
 KIND_CONTAINERD_CACHE_PATH="${K8S_CACHE_HOST_PATH:-$KIND_CONTAINERD_CACHE_PATH}"
 KIND_CONTAINERD_CACHE_RESET="${K8S_CACHE_RESET:-$KIND_CONTAINERD_CACHE_RESET}"
+if [ "$E2E_DISABLE_CONTAINERD_CACHE" = true ]
+then
+  KIND_CONTAINERD_CACHE_PATH=""
+fi
+KIND_REGISTRY_MIRROR="${E2E_REGISTRY_MIRROR:-${KIND_REGISTRY_MIRROR:-false}}"
+KIND_REGISTRY_MIRROR_HOSTS="${E2E_REGISTRY_MIRROR_HOSTS:-${KIND_REGISTRY_MIRROR_HOSTS:-docker.io quay.io registry.k8s.io ghcr.io}}"
+KIND_REGISTRY_MIRROR_PATH="${E2E_REGISTRY_MIRROR_PATH:-${KIND_REGISTRY_MIRROR_PATH:-/tmp/kind-registry-mirror}}"
+KIND_REGISTRY_MIRROR_IMAGE="${E2E_REGISTRY_MIRROR_IMAGE:-${KIND_REGISTRY_MIRROR_IMAGE:-registry:2}}"
 KIND_LOG_HOST_PATH="${KIND_LOG_HOST_PATH:-$TARGET_PATH/kind-logs}"
 KIND_LOG_RESOURCES_POLICY_HOST_PATH="${KIND_LOG_RESOURCES_POLICY_HOST_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
 KIND_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
@@ -192,7 +200,116 @@ reuse_k8s() {
     k8s_copy_to_extra_mount_build_path
   fi
 
+  if [ "$KIND_REGISTRY_MIRROR" = true ]
+  then
+    setup_kind_registry_mirrors
+    connect_kind_registry_mirrors
+  fi
+
   echo "Reusing kind environment $KIND_NAME"
+}
+
+kind_registry_mirror_name() {
+  printf 'kind-registry-mirror-%s' "$(printf '%s' "$1" | tr '.' '-')"
+}
+
+kind_registry_mirror_upstream() {
+  case "$1" in
+    docker.io) printf 'https://registry-1.docker.io' ;;
+    *) printf 'https://%s' "$1" ;;
+  esac
+}
+
+kind_registry_mirror_auth() {
+  local MIRROR_HOST="$1"
+  if [ "$MIRROR_HOST" = "$CI_REGISTRY" ] \
+    && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ]
+  then
+    printf '%s:%s' "$CI_REGISTRY_USER" "$CI_REGISTRY_PASSWORD"
+    return
+  fi
+  if [ "$MIRROR_HOST" = "$EXTRA_REGISTRY" ] \
+    && [ -n "$EXTRA_REGISTRY_USER" ] && [ -n "$EXTRA_REGISTRY_PASSWORD" ]
+  then
+    printf '%s:%s' "$EXTRA_REGISTRY_USER" "$EXTRA_REGISTRY_PASSWORD"
+    return
+  fi
+  if [ -f "$HOME/.docker/config.json" ]
+  then
+    jq -r '.auths | to_entries | .[] | .key + "|" + (.value.auth // "")' \
+        "$HOME/.docker/config.json" 2>/dev/null \
+      | grep -F "$MIRROR_HOST" | head -n 1 | cut -d '|' -f 2 \
+      | base64 -d 2>/dev/null \
+      || true
+  fi
+}
+
+setup_kind_registry_mirrors() {
+  local MIRROR_HOST
+  local MIRROR_NAME
+  local MIRROR_UPSTREAM
+  local MIRROR_AUTH
+  local MIRROR_SIGNATURE
+  echo "Setting up kind registry mirrors in $KIND_REGISTRY_MIRROR_PATH..."
+  for MIRROR_HOST in $KIND_REGISTRY_MIRROR_HOSTS
+  do
+    MIRROR_NAME="$(kind_registry_mirror_name "$MIRROR_HOST")"
+    MIRROR_UPSTREAM="$(kind_registry_mirror_upstream "$MIRROR_HOST")"
+    MIRROR_AUTH="$(kind_registry_mirror_auth "$MIRROR_HOST")"
+    MIRROR_SIGNATURE="$(printf '%s\n' \
+      "$KIND_REGISTRY_MIRROR_IMAGE" "$MIRROR_UPSTREAM" "$MIRROR_AUTH" \
+      | md5sum | cut -d ' ' -f 1)"
+    docker run --rm -u 0 -v "/:/source" alpine \
+      mkdir -p "/source/$KIND_REGISTRY_MIRROR_PATH/$MIRROR_HOST" \
+        "/source/$KIND_REGISTRY_MIRROR_PATH/certs.d/$MIRROR_HOST"
+    cat << EOF | docker run --rm -i -u 0 \
+      -v "$KIND_REGISTRY_MIRROR_PATH/certs.d/$MIRROR_HOST:/source" alpine \
+      sh -c 'cat > /source/hosts.toml'
+server = "$MIRROR_UPSTREAM"
+
+[host."http://$MIRROR_NAME:5000"]
+  capabilities = ["pull", "resolve"]
+EOF
+    # Recreate the container when the upstream or its credentials change
+    # (e.g. rotated CI job tokens); the cache host path is preserved.
+    if ! docker inspect "$MIRROR_NAME" -f '{{ .State.Status }}' 2>/dev/null \
+        | grep -q -F 'running' \
+      || ! docker inspect "$MIRROR_NAME" \
+          -f '{{ index .Config.Labels "kind-registry-mirror-signature" }}' 2>/dev/null \
+        | grep -q -F "$MIRROR_SIGNATURE"
+    then
+      docker rm -f "$MIRROR_NAME" > /dev/null 2>&1 || true
+      set --
+      if [ -n "$MIRROR_AUTH" ]
+      then
+        set -- "$@" \
+          -e "REGISTRY_PROXY_USERNAME=${MIRROR_AUTH%%:*}" \
+          -e "REGISTRY_PROXY_PASSWORD=${MIRROR_AUTH#*:}"
+      fi
+      # Tolerate a concurrent shard having created the container first
+      docker run -d --restart always --name "$MIRROR_NAME" \
+        --label "kind-registry-mirror-signature=$MIRROR_SIGNATURE" \
+        -v "$KIND_REGISTRY_MIRROR_PATH/$MIRROR_HOST:/var/lib/registry" \
+        -e REGISTRY_PROXY_REMOTEURL="$MIRROR_UPSTREAM" \
+        "$@" \
+        "$KIND_REGISTRY_MIRROR_IMAGE" > /dev/null \
+        || docker inspect "$MIRROR_NAME" -f '{{ .State.Status }}' \
+          | grep -q -F 'running'
+    fi
+  done
+}
+
+connect_kind_registry_mirrors() {
+  local MIRROR_HOST
+  local MIRROR_NAME
+  for MIRROR_HOST in $KIND_REGISTRY_MIRROR_HOSTS
+  do
+    MIRROR_NAME="$(kind_registry_mirror_name "$MIRROR_HOST")"
+    docker network connect kind "$MIRROR_NAME" > /dev/null 2>&1 \
+      || docker inspect "$MIRROR_NAME" \
+        -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
+        | grep -q '^kind$'
+  done
 }
 
 reset_k8s() {
@@ -220,6 +337,11 @@ reset_k8s() {
       docker run --rm -v "$KIND_CONTAINERD_CACHE_PATH:/containerd-cache" alpine \
         sh -c 'rm -rf /containerd-cache/*'
     fi
+  fi
+
+  if [ "$KIND_REGISTRY_MIRROR" = true ]
+  then
+    setup_kind_registry_mirrors
   fi
 
   if [ -n "$K8S_EXTRA_PORT" ]
@@ -264,11 +386,26 @@ INNER_INNER_EOF
   fi
 )
 $(
-  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
+  if [ "$KIND_REGISTRY_MIRROR" = true ] \
+    || [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
     docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
   then
     cat << INNER_EOF
 containerdConfigPatches:
+INNER_EOF
+  fi
+  if [ "$KIND_REGISTRY_MIRROR" = true ]
+  then
+    cat << INNER_EOF
+- |-
+ [plugins."io.containerd.grpc.v1.cri".registry]
+ config_path = "/etc/containerd/certs.d"
+INNER_EOF
+  fi
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
+    docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
+  then
+    cat << INNER_EOF
 - |-
 $(
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
@@ -347,6 +484,7 @@ INNER_EOF
   fi
   if [ -n "$KIND_EXTRA_MOUNTS" ] \
     || [ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+    || [ "$KIND_REGISTRY_MIRROR" = true ] \
     || [ "$KIND_LOG" = true ] \
     || [ "$KIND_LOG_RESOURCES" = true ]
   then
@@ -373,6 +511,14 @@ INNER_EOF
     containerPath: /containerd-cache
 INNER_EOF
   fi
+  if [ "$KIND_REGISTRY_MIRROR" = true ]
+  then
+    cat << INNER_EOF
+  - hostPath: $KIND_REGISTRY_MIRROR_PATH/certs.d
+    containerPath: /etc/containerd/certs.d
+    readOnly: true
+INNER_EOF
+  fi
   if [ "$KIND_LOG" = true ]
   then
     docker run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" alpine \
@@ -395,6 +541,15 @@ INNER_EOF
     cat << INNER_EOF
 - role: worker
 INNER_EOF
+    if [ "$KIND_REGISTRY_MIRROR" = true ]
+    then
+      cat << INNER_EOF
+  extraMounts:
+  - hostPath: $KIND_REGISTRY_MIRROR_PATH/certs.d
+    containerPath: /etc/containerd/certs.d
+    readOnly: true
+INNER_EOF
+    fi
   done
 )
 EOF
@@ -407,6 +562,11 @@ EOF
     echo "Kind failed to create cluster with cache enabled. Resetting cache and retrying!"
     KIND_CONTAINERD_CACHE_RESET=true reset_k8s
     return
+  fi
+
+  if [ "$KIND_REGISTRY_MIRROR" = true ]
+  then
+    connect_kind_registry_mirrors
   fi
 
   if [ "$KIND_INSTALL_NFS" = "true" ]

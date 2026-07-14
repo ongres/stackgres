@@ -70,6 +70,11 @@ Some environment variables allow to control how e2e test behave:
 * `K8S_EXTRA_PORT`: Allow to define a port to expose in the kind docker container with following format: `<node port>:<local port>:<local listening address>:<port protocol>`.
 * `K8S_USE_INTERNAL_REPOSITORY`: Allow to bypass local docker repository and pull images directly to internal Kubernetes repository (only if `$E2E_ENV` support it).
 * `KIND_CONTAINERD_CACHE_PATH`: Allow to set a local path to use as containerd's repository for kind environment. Doing so will allow to re-use the repository among restart of kind even with different versions.
+* `E2E_DISABLE_CONTAINERD_CACHE`: Set to true to disable the kind containerd cache even when `K8S_CACHE_HOST_PATH` or `KIND_CONTAINERD_CACHE_PATH` are set (default: false, but the e2e cli sets it to true unless `--k8s-cache-path` is specified).
+* `E2E_REGISTRY_MIRROR`: Set to true to run local registry pull through cache containers (one per upstream registry) shared by all kind clusters on this host and configure kind nodes to use them, falling back transparently to the upstream registry when a mirror is unavailable (default: false, but the e2e cli sets it to true). Upstream credentials are taken from `CI_REGISTRY_USER`/`CI_REGISTRY_PASSWORD` (when the upstream is `$CI_REGISTRY`), `EXTRA_REGISTRY_USER`/`EXTRA_REGISTRY_PASSWORD` (when the upstream is `$EXTRA_REGISTRY`) or from `$HOME/.docker/config.json`; mirror containers are recreated when the upstream credentials change preserving the cached data.
+* `E2E_REGISTRY_MIRROR_HOSTS`: Space separated list of upstream registries to mirror when `E2E_REGISTRY_MIRROR` is true (default: `docker.io quay.io registry.k8s.io ghcr.io`).
+* `E2E_REGISTRY_MIRROR_PATH`: Host path used to store the registry mirrors data and generated containerd `certs.d` configuration (default: `/tmp/kind-registry-mirror`).
+* `E2E_REGISTRY_MIRROR_IMAGE`: Image used to run the registry mirror containers (default: `registry:2`).
 * `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
  (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
 * `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install` (default: false).

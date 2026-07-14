@@ -82,7 +82,10 @@ Options:
   --extensions-repository-url <url> The extensions repository URL
   --cluster-parameters <parameters> Extra helm chart parameters for cluster
   --enable-cluster-resource-requirements Enable cluster resource requirements
-  --k8s-cache-path <path> If not specified will be ~/.stackgres/kind-cache
+  --k8s-cache-path <path> Enable the kind containerd cache using the specified
+                           path (by default the containerd cache is disabled in
+                           favor of the registry mirrors and the path used for
+                           logs, build and extensions is ~/.stackgres/kind-cache)
   --disable-extensions-cache If set will disable extensions cache and use
                               remote repository directly.
   --use-current-build     If specified will use the current build instead of
@@ -392,6 +395,7 @@ cli() {
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
       K8S_CACHE_HOST_PATH="$VALUE"
+      E2E_DISABLE_CONTAINERD_CACHE=false
       ;;
       ('--disable-extensions-cache')
       cli_set_parameter_boolean_negation "$@"
@@ -533,11 +537,12 @@ cli_init_e2e_variables() {
   K8S_EXTRA_PORT=30100:9443:0.0.0.0:tcp
   K8S_USE_INTERNAL_REPOSITORY=true
   K8S_CACHE_HOST_PATH="${K8S_CACHE_HOST_PATH:-"$HOME/.stackgres/${KIND_NAME:-kind}-cache"}"
+  E2E_DISABLE_CONTAINERD_CACHE="${E2E_DISABLE_CONTAINERD_CACHE:-true}"
+  E2E_REGISTRY_MIRROR="${E2E_REGISTRY_MIRROR:-true}"
   KIND_LOG_HOST_PATH="${K8S_CACHE_HOST_PATH}/logs"
   KIND_LOG_RESOURCES_POLICY_HOST_PATH="${K8S_CACHE_HOST_PATH}/kind-apiserver-audit-policy"
   EXTENSIONS_CACHE_ENABLED=true
   EXTENSIONS_CACHE_HOST_PATH="${EXTENSIONS_CACHE_HOST_PATH:-${K8S_CACHE_HOST_PATH}/extensions}"
-  EXTENSIONS_CACHE_NODE_PATH=/containerd-cache/extensions
   IMAGE_TAG="$(git rev-parse --short=8 HEAD)-jvm"
   E2E_FORCE_IMAGE_PULL=false
   E2E_SKIP_OPERATOR_LOAD=true
@@ -582,7 +587,8 @@ cli_export_e2e_variables() {
     SKIP_PUSH \
     SKIP_REMOTE_MANIFEST \
     EXTENSIONS_CACHE_HOST_PATH \
-    EXTENSIONS_CACHE_NODE_PATH \
+    E2E_DISABLE_CONTAINERD_CACHE \
+    E2E_REGISTRY_MIRROR \
     E2E_EXTRA_MOUNT_BUILD_PATH \
     E2E_BUILD_ONLY_MODULES \
     K8S_EXTRA_PORT \
