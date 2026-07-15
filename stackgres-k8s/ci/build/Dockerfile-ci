@@ -120,7 +120,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   # skopeo is used by the deploy jobs to copy multi-arch images between registries
   RUN microdnf install -y skopeo && skopeo --version
 
-  RUN wget https://ftp.gnu.org/gnu/screen/screen-5.0.0.tar.gz -O - | tar xz -C /tmp && \
+  RUN wget https://ftpmirror.gnu.org/screen/screen-5.0.0.tar.gz -O - | tar xz -C /tmp && \
     cd /tmp/screen-* && \
     ./configure --disable-pam --prefix=/usr && \
     make && \
