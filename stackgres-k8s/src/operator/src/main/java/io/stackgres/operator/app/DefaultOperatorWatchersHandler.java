@@ -782,13 +782,18 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodBackups() {
     String clusterNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+    String backupNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.BACKUP_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(backups)
         .stream()
         .filter(backup -> Objects.equals(
             backup.getMetadata().getNamespace(),
             pod.getMetadata().getNamespace()))
         .filter(backup -> pod.getMetadata().getLabels() != null)
-        .forEach(backup -> synchronizedCopyOfValues(clusters)
+        .filter(backup -> Objects.equals(
+            pod.getMetadata().getLabels().get(backupNameKey),
+            backup.getMetadata().getName())
+            || synchronizedCopyOfValues(clusters)
             .stream()
             .filter(cluster -> Objects.equals(
                 backup.getMetadata().getNamespace(),
@@ -796,22 +801,27 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .filter(cluster -> Objects.equals(
                 backup.getSpec().getSgCluster(),
                 cluster.getMetadata().getName()))
-            .filter(cluster -> Objects.equals(
+            .anyMatch(cluster -> Objects.equals(
                 pod.getMetadata().getLabels().get(clusterNameKey),
-                cluster.getMetadata().getName()))
-            .forEach(cluster -> reconcileBackup().accept(action, backup)));
+                cluster.getMetadata().getName())))
+        .forEach(backup -> reconcileBackup().accept(action, backup));
   }
 
   private BiConsumer<Action, Pod> reconcilePodDbOps() {
     String clusterNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+    String dbOpsNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.DBOPS_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(dbOps)
         .stream()
-        .filter(cluster -> Objects.equals(
-            cluster.getMetadata().getNamespace(),
+        .filter(dbOps -> Objects.equals(
+            dbOps.getMetadata().getNamespace(),
             pod.getMetadata().getNamespace()))
         .filter(dbOps -> pod.getMetadata().getLabels() != null)
-        .forEach(dbOps -> synchronizedCopyOfValues(clusters)
+        .filter(dbOps -> Objects.equals(
+            pod.getMetadata().getLabels().get(dbOpsNameKey),
+            dbOps.getMetadata().getName())
+            || synchronizedCopyOfValues(clusters)
             .stream()
             .filter(cluster -> Objects.equals(
                 dbOps.getMetadata().getNamespace(),
@@ -819,22 +829,27 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .filter(cluster -> Objects.equals(
                 dbOps.getSpec().getSgCluster(),
                 cluster.getMetadata().getName()))
-            .filter(cluster -> Objects.equals(
+            .anyMatch(cluster -> Objects.equals(
                 pod.getMetadata().getLabels().get(clusterNameKey),
-                cluster.getMetadata().getName()))
-            .forEach(cluster -> reconcileDbOps().accept(action, dbOps)));
+                cluster.getMetadata().getName())))
+        .forEach(dbOps -> reconcileDbOps().accept(action, dbOps));
   }
 
   private BiConsumer<Action, Pod> reconcilePodShardedBackups() {
     String clusterNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_CLUSTER_NAME_KEY;
+    String backupNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_BACKUP_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(shardedBackups)
         .stream()
-        .filter(cluster -> Objects.equals(
-            cluster.getMetadata().getNamespace(),
+        .filter(backup -> Objects.equals(
+            backup.getMetadata().getNamespace(),
             pod.getMetadata().getNamespace()))
         .filter(backup -> pod.getMetadata().getLabels() != null)
-        .forEach(backup -> synchronizedCopyOfValues(shardedClusters)
+        .filter(backup -> Objects.equals(
+            pod.getMetadata().getLabels().get(backupNameKey),
+            backup.getMetadata().getName())
+            || synchronizedCopyOfValues(shardedClusters)
             .stream()
             .filter(cluster -> Objects.equals(
                 backup.getMetadata().getNamespace(),
@@ -842,22 +857,27 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .filter(cluster -> Objects.equals(
                 backup.getSpec().getSgShardedCluster(),
                 cluster.getMetadata().getName()))
-            .filter(cluster -> Objects.equals(
+            .anyMatch(cluster -> Objects.equals(
                 pod.getMetadata().getLabels().get(clusterNameKey),
-                cluster.getMetadata().getName()))
-            .forEach(cluster -> reconcileShardedBackup().accept(action, backup)));
+                cluster.getMetadata().getName())))
+        .forEach(backup -> reconcileShardedBackup().accept(action, backup));
   }
 
   private BiConsumer<Action, Pod> reconcilePodShardedDbOps() {
     String clusterNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_CLUSTER_NAME_KEY;
+    String dbOpsNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_DBOPS_NAME_KEY;
     return (action, pod) -> synchronizedCopyOfValues(shardedDbOps)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
             pod.getMetadata().getNamespace()))
         .filter(dbOps -> pod.getMetadata().getLabels() != null)
-        .forEach(dbOps -> synchronizedCopyOfValues(shardedClusters)
+        .filter(dbOps -> Objects.equals(
+            pod.getMetadata().getLabels().get(dbOpsNameKey),
+            dbOps.getMetadata().getName())
+            || synchronizedCopyOfValues(shardedClusters)
             .stream()
             .filter(cluster -> Objects.equals(
                 dbOps.getMetadata().getNamespace(),
@@ -865,10 +885,10 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .filter(cluster -> Objects.equals(
                 dbOps.getSpec().getSgShardedCluster(),
                 cluster.getMetadata().getName()))
-            .filter(cluster -> Objects.equals(
+            .anyMatch(cluster -> Objects.equals(
                 pod.getMetadata().getLabels().get(clusterNameKey),
-                cluster.getMetadata().getName()))
-            .forEach(cluster -> reconcileShardedDbOps().accept(action, dbOps)));
+                cluster.getMetadata().getName())))
+        .forEach(dbOps -> reconcileShardedDbOps().accept(action, dbOps));
   }
 
   private BiConsumer<Action, Pod> reconcilePodStreams() {
