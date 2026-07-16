@@ -36,6 +36,8 @@
   artifacts:
     expire_in: 1 week
     when: always
+    paths:
+    - stackgres-k8s/e2e/target
     reports:
       junit:
         - stackgres-k8s/e2e/target/e2e-tests-junit-report.xml
