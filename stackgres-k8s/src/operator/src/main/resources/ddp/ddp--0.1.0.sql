@@ -179,7 +179,10 @@ $$
 LANGUAGE plpgsql;
 
 
-CREATE TYPE t_shard_status_connection AS (shard_name text, status text) ;
+DO $$ BEGIN
+  CREATE TYPE t_shard_status_connection AS (shard_name text, status text) ;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE OR REPLACE FUNCTION ddp_get_shard_status_connection () RETURNS 
 setof t_shard_status_connection AS 
@@ -540,7 +543,10 @@ $$
 LANGUAGE plpgsql;
 
 
-CREATE TYPE t_partition_size AS (foreign_table text, shard text, tab text, t_size text) ;
+DO $$ BEGIN
+  CREATE TYPE t_partition_size AS (foreign_table text, shard text, tab text, t_size text) ;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 CREATE OR REPLACE FUNCTION ddp_get_partition_size (sch text, tab text) RETURNS 
 setof t_partition_size AS 
 $$
@@ -677,7 +683,10 @@ END;
 $$
 LANGUAGE plpgsql;  
 
-CREATE TYPE t_has_shard_connection AS (shard_name text, status text, pointing_to text) ;
+DO $$ BEGIN
+  CREATE TYPE t_has_shard_connection AS (shard_name text, status text, pointing_to text) ;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 
 CREATE OR REPLACE FUNCTION ddp_has_shard_connection (shard_name text) RETURNS 
