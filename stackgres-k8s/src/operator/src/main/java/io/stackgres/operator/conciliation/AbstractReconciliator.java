@@ -319,7 +319,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       LOGGER.debug("Checking reconciliation status of {}", configId);
       ReconciliationResult result = conciliator.evalReconciliationState(config);
       if (!result.isUpToDate()) {
-        LOGGER.info("{} it's not up to date. Reconciling", configId);
+        LOGGER.debug("{} it's not up to date. Reconciling", configId);
 
         result.getCreations()
             .stream()
