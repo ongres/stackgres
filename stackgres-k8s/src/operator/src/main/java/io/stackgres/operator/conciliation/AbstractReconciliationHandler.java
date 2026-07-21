@@ -13,9 +13,14 @@ import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractReconciliationHandler<T extends CustomResource<?, ?>>
     implements ReconciliationHandler<T>, ReconciliationOperations {
+
+  protected static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractReconciliationHandler.class);
 
   private static final String STACKGRES_FIELD_MANAGER = "StackGres";
 
@@ -32,6 +37,10 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
+    LOGGER.info("Creating {} {}.{}",
+        resource.getKind(),
+        resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
     resource.getMetadata().setManagedFields(null);
     return client.resource(resource)
         .patch(new PatchContext.Builder()
@@ -44,6 +53,10 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
 
   @Override
   public HasMetadata patch(T context, HasMetadata resource, HasMetadata oldResource) {
+    LOGGER.info("Patching {} {}.{}",
+        resource.getKind(),
+        resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
     resource.getMetadata().setManagedFields(null);
     return client.resource(resource)
         .patch(new PatchContext.Builder()
@@ -63,6 +76,10 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
 
   @Override
   public HasMetadata replace(T context, HasMetadata resource) {
+    LOGGER.info("Replacing {} {}.{}",
+        resource.getKind(),
+        resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
     return client.resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
         .update();
@@ -70,11 +87,19 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
 
   @Override
   public void delete(T context, HasMetadata resource) {
+    LOGGER.info("Deleting {} {}.{}",
+        resource.getKind(),
+        resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
     client.resource(resource).delete();
   }
 
   @Override
   public void deleteWithOrphans(T context, HasMetadata resource) {
+    LOGGER.info("Deleting {} {}.{} with orphans",
+        resource.getKind(),
+        resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
     client.resource(resource)
         .withPropagationPolicy(DeletionPropagation.ORPHAN)
         .delete();

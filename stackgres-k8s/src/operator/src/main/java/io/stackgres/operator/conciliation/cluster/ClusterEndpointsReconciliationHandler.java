@@ -81,6 +81,10 @@ public class ClusterEndpointsReconciliationHandler
   }
 
   private HasMetadata updatePatroniConfig(HasMetadata resource) {
+    LOGGER.info("Updating Patroni config {} {}.{}",
+        resource.getKind(),
+        resource.getMetadata().getNamespace(),
+        resource.getMetadata().getName());
     return KubernetesClientUtil
         .retryOnConflict(() -> Optional.ofNullable(client.endpoints()
             .inNamespace(resource.getMetadata().getNamespace())

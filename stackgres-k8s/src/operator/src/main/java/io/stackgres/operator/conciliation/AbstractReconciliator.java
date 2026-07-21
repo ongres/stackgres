@@ -326,7 +326,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
             .sorted(ReconciliationOperations.RESOURCES_COMPARATOR)
             .forEach(resource -> {
               try {
-                LOGGER.info("Creating {} {}.{}",
+                LOGGER.debug("Found resource to create {} {}.{}",
                     resource.getKind(),
                     resource.getMetadata().getNamespace(),
                     resource.getMetadata().getName());
@@ -350,7 +350,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                 Tuple2::v1, ReconciliationOperations.RESOURCES_COMPARATOR))
             .forEach(resource -> {
               try {
-                LOGGER.info("Patching {} {}.{}",
+                LOGGER.debug("Found resource to patch {} {}.{}",
                     resource.v2.getKind(),
                     resource.v2.getMetadata().getNamespace(),
                     resource.v2.getMetadata().getName());
@@ -366,7 +366,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
             .sorted(Collections.reverseOrder(
                 ReconciliationOperations.RESOURCES_COMPARATOR))
             .forEach(resource -> {
-              LOGGER.info("Deleting resource {}.{} of kind: {}",
+              LOGGER.debug("Found resource to delete {}.{} of kind: {}",
                   resource.getMetadata().getNamespace(),
                   resource.getMetadata().getName(),
                   resource.getKind());
