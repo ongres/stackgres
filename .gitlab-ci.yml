@@ -39,6 +39,7 @@ include:
   - local: .gitlab-ci/e2e-test.yml
   - local: .gitlab-ci/image-release.yml
   - local: .gitlab-ci/deploy.yml
+  - local: .gitlab-ci/web.yml
 
 workflow:
   rules:

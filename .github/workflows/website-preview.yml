@@ -1,0 +1,49 @@
+# Preview build of the unified website under web/ (see web/SITES_MERGE_PLAYBOOK.md).
+#
+# Added ahead of the repo's eventual GitHub migration; harmless until then
+# (GitLab is the active CI — see .gitlab-ci/web.yml). Same Pages caveats as the
+# original workflow in ondb-cloud: with Pages unavailable the built site is
+# published as a workflow ARTIFACT instead:
+#   Actions → this run → Artifacts → "website-preview" → download & unzip
+#   cd <unzipped dir> && python3 -m http.server 8000  →  http://localhost:8000
+# Artifact downloads require repo access, so this is effectively members-only.
+name: website-preview
+
+on:
+  push:
+    branches: [wip-unified-stackgres-website]
+    paths:
+      - 'web/**'
+      - '.github/workflows/website-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.152.2'
+          extended: true
+
+      - name: Refresh catalog from stackgres-docir (best effort)
+        # API failure must not fail the build — falls back to the committed snapshot
+        run: python3 web/scripts/fetch-catalog.py || echo "API unreachable — building from committed snapshot"
+
+      - name: Build site
+        # baseURL "/" so the artifact browses correctly from a local web server.
+        # No preview gate: artifact download already requires repo membership.
+        run: hugo --source web --minify --baseURL "/"
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-preview
+          path: web/public
+          retention-days: 14

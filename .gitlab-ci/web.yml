@@ -1,0 +1,39 @@
+# Build of the unified website under web/ (see web/SITES_MERGE_PLAYBOOK.md).
+#
+# Runs only when web/** (or this file) changes, so product pipelines are
+# unaffected. The built site is published as a job artifact — browsable via
+# GitLab's artifact browser as a members-only preview. GitLab Pages can come
+# later.
+#
+# Hugo is installed pinned from GitHub releases instead of using a hugomods
+# image: the build also runs web/scripts/fetch-catalog.py, which needs python3,
+# and the hugomods images don't guarantee it.
+
+build web:
+  image: python:3.12-slim
+  stage: test
+  variables:
+    HUGO_VERSION: "0.152.2"
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  rules:
+    - changes:
+        - web/**/*
+        - .gitlab-ci/web.yml
+  script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates git
+    - curl -fsSL "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" | tar -xz -C /usr/local/bin hugo
+    - hugo version
+    # API failure must not fail the build — falls back to the committed snapshot
+    - python3 web/scripts/fetch-catalog.py || echo "API unreachable — building from committed snapshot"
+    # baseURL "/" so the artifact browses correctly via GitLab's artifact browser
+    - hugo --source web --minify --baseURL "/"
+  retry:
+    max: 2
+    when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
+     stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ]
+  artifacts:
+    expire_in: 14 days
+    paths:
+      - web/public
