@@ -1,0 +1,16 @@
+<div id="ohpen_swagger_ui"></div>
+<script>
+window.onload = function() {
+  const ui = SwaggerUIBundle({
+    url: "{{ .Site.BaseURL }}/sg-swagger.yaml",
+    dom_id: '#ohpen_swagger_ui',
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIStandalonePreset
+    ],
+    docExpansion: "list"
+  })
+
+  window.ui = ui
+}
+</script>		

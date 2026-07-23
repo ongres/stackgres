@@ -1,0 +1,19 @@
+{{- /* Breadcrumbs for catalog pages: Components Catalog › <category> › <component>.
+     Replaced the old catalog subheader (see SITES_MERGE_PLAYBOOK.md step 11). */ -}}
+{{- $category := .Params.category -}}
+{{- $component := .Params.component -}}
+{{- $titles := dict "flavor" "Postgres flavors" "extension" "Extensions" "addon" "Addons" -}}
+{{- if or $category $component -}}
+<nav class="catalog-breadcrumbs" aria-label="Breadcrumb">
+  <a href="{{ "/catalog/" | relURL }}">Components Catalog</a>
+  {{ if $component }}
+    <span class="crumb-sep" aria-hidden="true">›</span>
+    <a href="{{ printf "/catalog/%s/" $category | relURL }}">{{ index $titles $category | default $category }}</a>
+    <span class="crumb-sep" aria-hidden="true">›</span>
+    <span class="crumb-current" aria-current="page">{{ $component }}</span>
+  {{ else }}
+    <span class="crumb-sep" aria-hidden="true">›</span>
+    <span class="crumb-current" aria-current="page">{{ index $titles $category | default $category }}</span>
+  {{ end }}
+</nav>
+{{- end -}}

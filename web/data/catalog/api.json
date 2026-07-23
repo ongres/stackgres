@@ -1,0 +1,7201 @@
+{
+ "fetched_at": "2026-07-16T09:07:12+00:00",
+ "source": "https://42.pga.sh:1443/api/ondb/v1",
+ "flavors": [
+  {
+   "name": "postgres",
+   "description": "PostgreSQL Open Source RDBMS",
+   "versions": [
+    {
+     "major": 16,
+     "minor": 11,
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7557"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7556"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7555"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7554"
+      }
+     ],
+     "tags": [
+      "16.latest",
+      "16.11"
+     ],
+     "sizeRevisions": {
+      "full": "7555",
+      "regular": "7557",
+      "minimal": "7556",
+      "barebones": "7554"
+     }
+    },
+    {
+     "major": 17,
+     "minor": 7,
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7561"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7560"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7559"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7558"
+      }
+     ],
+     "tags": [
+      "17.latest",
+      "17.7"
+     ],
+     "sizeRevisions": {
+      "full": "7559",
+      "regular": "7561",
+      "minimal": "7560",
+      "barebones": "7558"
+     }
+    },
+    {
+     "major": 18,
+     "minor": 1,
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7565"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7564"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7563"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7562"
+      }
+     ],
+     "tags": [
+      "latest",
+      "18.latest",
+      "18.1"
+     ],
+     "sizeRevisions": {
+      "full": "7563",
+      "regular": "7565",
+      "minimal": "7564",
+      "barebones": "7562"
+     }
+    }
+   ]
+  }
+ ],
+ "addons": [
+  {
+   "name": "patroni",
+   "versions": [
+    {
+     "version": "4.1.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7566"
+      }
+     ],
+     "description": "Patroni 4.1.0",
+     "longDescription": "High Availabilty Framework for PostgreSQL",
+     "licenses": "MIT",
+     "repository": {}
+    }
+   ]
+  },
+  {
+   "name": "slon",
+   "versions": [
+    {
+     "version": "0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7572"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7571"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7570"
+      },
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7569"
+      }
+     ],
+     "description": "Slon 0.1",
+     "longDescription": "Manages a single PostgreSQL instance as a wrapper, representing a parent process with an API to control Postgres' lifecycle",
+     "licenses": "Apache-2.0",
+     "repository": {}
+    }
+   ]
+  },
+  {
+   "name": "vector-agent",
+   "versions": [
+    {
+     "version": "0.55.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7568"
+      }
+     ],
+     "description": "Vector 0.55.0",
+     "longDescription": "Curated Vector agent (Postgres csvlog -> OTLP)",
+     "licenses": "MPL-2.0",
+     "repository": {}
+    }
+   ]
+  }
+ ],
+ "extensions": [
+  {
+   "name": "adminpack",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~adminpack~postgres-contrib~16.11",
+    "longDescription": "Extension extension~adminpack~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7157"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~adminpack~postgres-contrib~16.11",
+      "longDescription": "Extension extension~adminpack~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "aggs_for_arrays",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~aggs_for_arrays~1.3.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~aggs_for_arrays~1.3.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.3.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7158"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~aggs_for_arrays~1.3.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~aggs_for_arrays~1.3.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "aggs_for_vecs",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~aggs_for_vecs~1.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~aggs_for_vecs~1.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7161"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~aggs_for_vecs~1.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~aggs_for_vecs~1.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "amcheck",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~amcheck~postgres-contrib~16.11",
+    "longDescription": "Extension extension~amcheck~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7164"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~amcheck~postgres-contrib~16.11",
+      "longDescription": "Extension extension~amcheck~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7165"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~amcheck~postgres-contrib~17.7",
+      "longDescription": "Extension extension~amcheck~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7166"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~amcheck~postgres-contrib~18.1",
+      "longDescription": "Extension extension~amcheck~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "asn1oid",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~asn1oid~1.6.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~asn1oid~1.6.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.6.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7167"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~asn1oid~1.6.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~asn1oid~1.6.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "auth_delay",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~auth_delay~postgres-contrib~16.11",
+    "longDescription": "Extension extension~auth_delay~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7170"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~auth_delay~postgres-contrib~16.11",
+      "longDescription": "Extension extension~auth_delay~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7171"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~auth_delay~postgres-contrib~17.7",
+      "longDescription": "Extension extension~auth_delay~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7172"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~auth_delay~postgres-contrib~18.1",
+      "longDescription": "Extension extension~auth_delay~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "auto_explain",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~auto_explain~postgres-contrib~16.11",
+    "longDescription": "Extension extension~auto_explain~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7173"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~auto_explain~postgres-contrib~16.11",
+      "longDescription": "Extension extension~auto_explain~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7174"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~auto_explain~postgres-contrib~17.7",
+      "longDescription": "Extension extension~auto_explain~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7175"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~auto_explain~postgres-contrib~18.1",
+      "longDescription": "Extension extension~auto_explain~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "base36",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~base36~1.0.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~base36~1.0.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7176"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~base36~1.0.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~base36~1.0.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "basebackup_to_shell",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~basebackup_to_shell~postgres-contrib~16.11",
+    "longDescription": "Extension extension~basebackup_to_shell~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7179"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~basebackup_to_shell~postgres-contrib~16.11",
+      "longDescription": "Extension extension~basebackup_to_shell~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7180"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~basebackup_to_shell~postgres-contrib~17.7",
+      "longDescription": "Extension extension~basebackup_to_shell~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7181"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~basebackup_to_shell~postgres-contrib~18.1",
+      "longDescription": "Extension extension~basebackup_to_shell~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "basic_archive",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~basic_archive~postgres-contrib~16.11",
+    "longDescription": "Extension extension~basic_archive~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7182"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~basic_archive~postgres-contrib~16.11",
+      "longDescription": "Extension extension~basic_archive~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7183"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~basic_archive~postgres-contrib~17.7",
+      "longDescription": "Extension extension~basic_archive~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7184"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~basic_archive~postgres-contrib~18.1",
+      "longDescription": "Extension extension~basic_archive~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "bloom",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~bloom~postgres-contrib~16.11",
+    "longDescription": "Extension extension~bloom~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7185"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~bloom~postgres-contrib~16.11",
+      "longDescription": "Extension extension~bloom~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7186"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~bloom~postgres-contrib~17.7",
+      "longDescription": "Extension extension~bloom~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7187"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~bloom~postgres-contrib~18.1",
+      "longDescription": "Extension extension~bloom~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "bool_plperl",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~bool_plperl~postgres-contrib~16.11",
+    "longDescription": "Extension extension~bool_plperl~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7188"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~bool_plperl~postgres-contrib~16.11",
+      "longDescription": "Extension extension~bool_plperl~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7189"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~bool_plperl~postgres-contrib~17.7",
+      "longDescription": "Extension extension~bool_plperl~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7190"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~bool_plperl~postgres-contrib~18.1",
+      "longDescription": "Extension extension~bool_plperl~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "btree_gin",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~btree_gin~postgres-contrib~16.11",
+    "longDescription": "Extension extension~btree_gin~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7191"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~btree_gin~postgres-contrib~16.11",
+      "longDescription": "Extension extension~btree_gin~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7192"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~btree_gin~postgres-contrib~17.7",
+      "longDescription": "Extension extension~btree_gin~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7193"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~btree_gin~postgres-contrib~18.1",
+      "longDescription": "Extension extension~btree_gin~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "btree_gist",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~btree_gist~postgres-contrib~16.11",
+    "longDescription": "Extension extension~btree_gist~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7194"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~btree_gist~postgres-contrib~16.11",
+      "longDescription": "Extension extension~btree_gist~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7195"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~btree_gist~postgres-contrib~17.7",
+      "longDescription": "Extension extension~btree_gist~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7196"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~btree_gist~postgres-contrib~18.1",
+      "longDescription": "Extension extension~btree_gist~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "citext",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~citext~postgres-contrib~16.11",
+    "longDescription": "Extension extension~citext~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7197"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~citext~postgres-contrib~16.11",
+      "longDescription": "Extension extension~citext~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7198"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~citext~postgres-contrib~17.7",
+      "longDescription": "Extension extension~citext~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7199"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~citext~postgres-contrib~18.1",
+      "longDescription": "Extension extension~citext~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "citus",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~citus~14.0.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~citus~14.0.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "14.0.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7200"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~citus~14.0.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~citus~14.0.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "count_distinct",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~count_distinct~3.0.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~count_distinct~3.0.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "3.0.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7203"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~count_distinct~3.0.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~count_distinct~3.0.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "country",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~country~0.0.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~country~0.0.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.0.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7206"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~country~0.0.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~country~0.0.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "cube",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~cube~postgres-contrib~16.11",
+    "longDescription": "Extension extension~cube~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7209"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~cube~postgres-contrib~16.11",
+      "longDescription": "Extension extension~cube~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7210"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~cube~postgres-contrib~17.7",
+      "longDescription": "Extension extension~cube~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7211"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~cube~postgres-contrib~18.1",
+      "longDescription": "Extension extension~cube~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "currency",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~currency~0.0.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~currency~0.0.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.0.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7212"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~currency~0.0.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~currency~0.0.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "dblink",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~dblink~postgres-contrib~16.11",
+    "longDescription": "Extension extension~dblink~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7215"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~dblink~postgres-contrib~16.11",
+      "longDescription": "Extension extension~dblink~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7216"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~dblink~postgres-contrib~17.7",
+      "longDescription": "Extension extension~dblink~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7217"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~dblink~postgres-contrib~18.1",
+      "longDescription": "Extension extension~dblink~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "ddsketch",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~ddsketch~1.0.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~ddsketch~1.0.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7218"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~ddsketch~1.0.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~ddsketch~1.0.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "dict_int",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~dict_int~postgres-contrib~16.11",
+    "longDescription": "Extension extension~dict_int~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7221"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~dict_int~postgres-contrib~16.11",
+      "longDescription": "Extension extension~dict_int~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7222"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~dict_int~postgres-contrib~17.7",
+      "longDescription": "Extension extension~dict_int~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7223"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~dict_int~postgres-contrib~18.1",
+      "longDescription": "Extension extension~dict_int~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "dict_xsyn",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~dict_xsyn~postgres-contrib~16.11",
+    "longDescription": "Extension extension~dict_xsyn~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7224"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~dict_xsyn~postgres-contrib~16.11",
+      "longDescription": "Extension extension~dict_xsyn~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7225"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~dict_xsyn~postgres-contrib~17.7",
+      "longDescription": "Extension extension~dict_xsyn~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7226"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~dict_xsyn~postgres-contrib~18.1",
+      "longDescription": "Extension extension~dict_xsyn~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "earthdistance",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~earthdistance~postgres-contrib~16.11",
+    "longDescription": "Extension extension~earthdistance~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7227"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~earthdistance~postgres-contrib~16.11",
+      "longDescription": "Extension extension~earthdistance~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7228"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~earthdistance~postgres-contrib~17.7",
+      "longDescription": "Extension extension~earthdistance~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7229"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~earthdistance~postgres-contrib~18.1",
+      "longDescription": "Extension extension~earthdistance~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "envvar",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~envvar~1.0.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~envvar~1.0.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7230"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~envvar~1.0.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~envvar~1.0.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "extra_window_functions",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~extra_window_functions~1.0.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~extra_window_functions~1.0.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7233"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~extra_window_functions~1.0.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~extra_window_functions~1.0.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "file_fdw",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~file_fdw~postgres-contrib~16.11",
+    "longDescription": "Extension extension~file_fdw~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7236"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~file_fdw~postgres-contrib~16.11",
+      "longDescription": "Extension extension~file_fdw~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7237"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~file_fdw~postgres-contrib~17.7",
+      "longDescription": "Extension extension~file_fdw~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7238"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~file_fdw~postgres-contrib~18.1",
+      "longDescription": "Extension extension~file_fdw~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "financial",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~financial~1.0.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~financial~1.0.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7239"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~financial~1.0.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~financial~1.0.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "first_last_agg",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~first_last_agg~0.1.4~postgres-contrib~16.11",
+    "longDescription": "Extension extension~first_last_agg~0.1.4~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.1.4",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7242"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~first_last_agg~0.1.4~postgres-contrib~16.11",
+      "longDescription": "Extension extension~first_last_agg~0.1.4~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "floatfile",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~floatfile~1.3.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~floatfile~1.3.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.3.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7245"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~floatfile~1.3.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~floatfile~1.3.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "floatvec",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~floatvec~1.1.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~floatvec~1.1.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.1.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7248"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~floatvec~1.1.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~floatvec~1.1.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "fuzzystrmatch",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~fuzzystrmatch~postgres-contrib~16.11",
+    "longDescription": "Extension extension~fuzzystrmatch~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7251"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~fuzzystrmatch~postgres-contrib~16.11",
+      "longDescription": "Extension extension~fuzzystrmatch~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7252"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~fuzzystrmatch~postgres-contrib~17.7",
+      "longDescription": "Extension extension~fuzzystrmatch~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7253"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~fuzzystrmatch~postgres-contrib~18.1",
+      "longDescription": "Extension extension~fuzzystrmatch~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "hstore",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~hstore~postgres-contrib~16.11",
+    "longDescription": "Extension extension~hstore~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7260"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~hstore~postgres-contrib~16.11",
+      "longDescription": "Extension extension~hstore~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7261"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~hstore~postgres-contrib~17.7",
+      "longDescription": "Extension extension~hstore~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7262"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~hstore~postgres-contrib~18.1",
+      "longDescription": "Extension extension~hstore~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "hstore_plperl",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~hstore_plperl~postgres-contrib~16.11",
+    "longDescription": "Extension extension~hstore_plperl~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7254"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~hstore_plperl~postgres-contrib~16.11",
+      "longDescription": "Extension extension~hstore_plperl~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7255"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~hstore_plperl~postgres-contrib~17.7",
+      "longDescription": "Extension extension~hstore_plperl~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7256"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~hstore_plperl~postgres-contrib~18.1",
+      "longDescription": "Extension extension~hstore_plperl~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "hstore_plpython",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~hstore_plpython~postgres-contrib~16.11",
+    "longDescription": "Extension extension~hstore_plpython~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7257"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~hstore_plpython~postgres-contrib~16.11",
+      "longDescription": "Extension extension~hstore_plpython~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7258"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~hstore_plpython~postgres-contrib~17.7",
+      "longDescription": "Extension extension~hstore_plpython~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7259"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~hstore_plpython~postgres-contrib~18.1",
+      "longDescription": "Extension extension~hstore_plpython~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "hypopg",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~hypopg~1.4.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~hypopg~1.4.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.4.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7263"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~hypopg~1.4.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~hypopg~1.4.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "intagg",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~intagg~postgres-contrib~16.11",
+    "longDescription": "Extension extension~intagg~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7266"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~intagg~postgres-contrib~16.11",
+      "longDescription": "Extension extension~intagg~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7267"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~intagg~postgres-contrib~17.7",
+      "longDescription": "Extension extension~intagg~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7268"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~intagg~postgres-contrib~18.1",
+      "longDescription": "Extension extension~intagg~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "intarray",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~intarray~postgres-contrib~16.11",
+    "longDescription": "Extension extension~intarray~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7269"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~intarray~postgres-contrib~16.11",
+      "longDescription": "Extension extension~intarray~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7270"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~intarray~postgres-contrib~17.7",
+      "longDescription": "Extension extension~intarray~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7271"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~intarray~postgres-contrib~18.1",
+      "longDescription": "Extension extension~intarray~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "ip4r",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~ip4r~2.4.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~ip4r~2.4.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.4.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7272"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~ip4r~2.4.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~ip4r~2.4.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "isn",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~isn~postgres-contrib~16.11",
+    "longDescription": "Extension extension~isn~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7275"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~isn~postgres-contrib~16.11",
+      "longDescription": "Extension extension~isn~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7276"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~isn~postgres-contrib~17.7",
+      "longDescription": "Extension extension~isn~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7277"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~isn~postgres-contrib~18.1",
+      "longDescription": "Extension extension~isn~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "jsonb_plperl",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~jsonb_plperl~postgres-contrib~16.11",
+    "longDescription": "Extension extension~jsonb_plperl~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7278"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~jsonb_plperl~postgres-contrib~16.11",
+      "longDescription": "Extension extension~jsonb_plperl~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7279"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~jsonb_plperl~postgres-contrib~17.7",
+      "longDescription": "Extension extension~jsonb_plperl~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7280"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~jsonb_plperl~postgres-contrib~18.1",
+      "longDescription": "Extension extension~jsonb_plperl~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "jsonb_plpython",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~jsonb_plpython~postgres-contrib~16.11",
+    "longDescription": "Extension extension~jsonb_plpython~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7281"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~jsonb_plpython~postgres-contrib~16.11",
+      "longDescription": "Extension extension~jsonb_plpython~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7282"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~jsonb_plpython~postgres-contrib~17.7",
+      "longDescription": "Extension extension~jsonb_plpython~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7283"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~jsonb_plpython~postgres-contrib~18.1",
+      "longDescription": "Extension extension~jsonb_plpython~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "lo",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~lo~postgres-contrib~16.11",
+    "longDescription": "Extension extension~lo~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7298"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~lo~postgres-contrib~16.11",
+      "longDescription": "Extension extension~lo~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7299"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~lo~postgres-contrib~17.7",
+      "longDescription": "Extension extension~lo~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7300"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~lo~postgres-contrib~18.1",
+      "longDescription": "Extension extension~lo~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "log_fdw",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~log_fdw~1.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~log_fdw~1.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7"
+   ],
+   "versions": [
+    {
+     "version": "1.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7284"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~log_fdw~1.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~log_fdw~1.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "logerrors",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~logerrors~2.1.5~postgres-contrib~16.11",
+    "longDescription": "Extension extension~logerrors~2.1.5~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.1.5",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7286"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~logerrors~2.1.5~postgres-contrib~16.11",
+      "longDescription": "Extension extension~logerrors~2.1.5~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "login_hook",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~login_hook~1.7.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~login_hook~1.7.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.7.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7289"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~login_hook~1.7.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~login_hook~1.7.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "lolor",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~lolor~1.2.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~lolor~1.2.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7292"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~lolor~1.2.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~lolor~1.2.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "lower_quantile",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~lower_quantile~1.0.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~lower_quantile~1.0.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7295"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~lower_quantile~1.0.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~lower_quantile~1.0.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "ltree",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~ltree~postgres-contrib~16.11",
+    "longDescription": "Extension extension~ltree~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7304"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~ltree~postgres-contrib~16.11",
+      "longDescription": "Extension extension~ltree~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7305"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~ltree~postgres-contrib~17.7",
+      "longDescription": "Extension extension~ltree~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7306"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~ltree~postgres-contrib~18.1",
+      "longDescription": "Extension extension~ltree~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "ltree_plpython",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~ltree_plpython~postgres-contrib~16.11",
+    "longDescription": "Extension extension~ltree_plpython~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7301"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~ltree_plpython~postgres-contrib~16.11",
+      "longDescription": "Extension extension~ltree_plpython~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7302"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~ltree_plpython~postgres-contrib~17.7",
+      "longDescription": "Extension extension~ltree_plpython~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7303"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~ltree_plpython~postgres-contrib~18.1",
+      "longDescription": "Extension extension~ltree_plpython~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "noset",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~noset~0.3.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~noset~0.3.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.3.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7307"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~noset~0.3.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~noset~0.3.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "oid2name",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~oid2name~postgres-contrib~16.11",
+    "longDescription": "Extension extension~oid2name~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7310"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~oid2name~postgres-contrib~16.11",
+      "longDescription": "Extension extension~oid2name~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7311"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~oid2name~postgres-contrib~17.7",
+      "longDescription": "Extension extension~oid2name~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7312"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~oid2name~postgres-contrib~18.1",
+      "longDescription": "Extension extension~oid2name~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "old_snapshot",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~old_snapshot~postgres-contrib~16.11",
+    "longDescription": "Extension extension~old_snapshot~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7313"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~old_snapshot~postgres-contrib~16.11",
+      "longDescription": "Extension extension~old_snapshot~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pageinspect",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pageinspect~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pageinspect~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7314"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pageinspect~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pageinspect~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7315"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pageinspect~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pageinspect~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7316"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pageinspect~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pageinspect~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "passwordcheck",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~passwordcheck~postgres-contrib~16.11",
+    "longDescription": "Extension extension~passwordcheck~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7317"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~passwordcheck~postgres-contrib~16.11",
+      "longDescription": "Extension extension~passwordcheck~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7318"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~passwordcheck~postgres-contrib~17.7",
+      "longDescription": "Extension extension~passwordcheck~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7319"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~passwordcheck~postgres-contrib~18.1",
+      "longDescription": "Extension extension~passwordcheck~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "periods",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~periods~1.2.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~periods~1.2.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7320"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~periods~1.2.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~periods~1.2.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "permuteseq",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~permuteseq~1.2.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~permuteseq~1.2.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7323"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~permuteseq~1.2.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~permuteseq~1.2.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_buffercache",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_buffercache~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_buffercache~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7326"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_buffercache~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_buffercache~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7327"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_buffercache~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_buffercache~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7328"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_buffercache~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_buffercache~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_dbms_errlog",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_dbms_errlog~2.2.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_dbms_errlog~2.2.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.2.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7329"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_dbms_errlog~2.2.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_dbms_errlog~2.2.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_dirtyread",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_dirtyread~2.7.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_dirtyread~2.7.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.7.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7332"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_dirtyread~2.7.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_dirtyread~2.7.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_fact_loader",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_fact_loader~2.0.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_fact_loader~2.0.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7335"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_fact_loader~2.0.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_fact_loader~2.0.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_freespacemap",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_freespacemap~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_freespacemap~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7338"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_freespacemap~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_freespacemap~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7339"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_freespacemap~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_freespacemap~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7340"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_freespacemap~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_freespacemap~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_hashids",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_hashids~1.2.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_hashids~1.2.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7341"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_hashids~1.2.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_hashids~1.2.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_ivm",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_ivm~1.13.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_ivm~1.13.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.13.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7344"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_ivm~1.13.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_ivm~1.13.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_logicalinspect",
+   "metadata": {
+    "description": "PostgreSQL 18.1 Extension extension~pg_logicalinspect~postgres-contrib~18.1",
+    "longDescription": "Extension extension~pg_logicalinspect~postgres-contrib~18.1",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7347"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_logicalinspect~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_logicalinspect~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_overexplain",
+   "metadata": {
+    "description": "PostgreSQL 18.1 Extension extension~pg_overexplain~postgres-contrib~18.1",
+    "longDescription": "Extension extension~pg_overexplain~postgres-contrib~18.1",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7348"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_overexplain~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_overexplain~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_partman",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_partman~5.4.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_partman~5.4.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "5.4.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7349"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_partman~5.4.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_partman~5.4.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_prewarm",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_prewarm~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_prewarm~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7352"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_prewarm~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_prewarm~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7353"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_prewarm~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_prewarm~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7354"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_prewarm~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_prewarm~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_profile",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_profile~4.11.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_profile~4.11.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "4.11.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7355"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_profile~4.11.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_profile~4.11.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_qualstats",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_qualstats~2.1.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_qualstats~2.1.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.1.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7358"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_qualstats~2.1.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_qualstats~2.1.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_rational",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_rational~0.0.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_rational~0.0.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.0.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7361"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_rational~0.0.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_rational~0.0.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_readme",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_readme~0.7.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_readme~0.7.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.7.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7364"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_readme~0.7.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_readme~0.7.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_readonly",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_readonly~1.0.4~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_readonly~1.0.4~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.4",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7367"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_readonly~1.0.4~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_readonly~1.0.4~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_relusage",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_relusage~0.0.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_relusage~0.0.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7370"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_relusage~0.0.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_relusage~0.0.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_rewrite",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_rewrite~2.1.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_rewrite~2.1.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.1.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7373"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_rewrite~2.1.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_rewrite~2.1.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_show_plans",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_show_plans~2.1.7~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_show_plans~2.1.7~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.1.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7376"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_show_plans~2.1.7~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_show_plans~2.1.7~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_squeeze",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_squeeze~1.9.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_squeeze~1.9.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.9.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7379"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_squeeze~1.9.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_squeeze~1.9.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_stat_kcache",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_stat_kcache~2.3.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_stat_kcache~2.3.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.3.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7382"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_stat_kcache~2.3.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_stat_kcache~2.3.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_stat_monitor",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_stat_monitor~2.3.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_stat_monitor~2.3.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.3.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7385"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_stat_monitor~2.3.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_stat_monitor~2.3.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_stat_statements",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_stat_statements~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_stat_statements~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7388"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_stat_statements~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_stat_statements~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7389"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_stat_statements~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_stat_statements~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7390"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_stat_statements~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_stat_statements~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_store_plans",
+   "metadata": {
+    "description": "PostgreSQL 17.7 Extension extension~pg_store_plans~1.9.0~postgres-contrib~17.7",
+    "longDescription": "Extension extension~pg_store_plans~1.9.0~postgres-contrib~17.7",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "17.7"
+   ],
+   "versions": [
+    {
+     "version": "1.9.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7391"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_store_plans~1.9.0~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_store_plans~1.9.0~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_surgery",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_surgery~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_surgery~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7392"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_surgery~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_surgery~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7393"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_surgery~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_surgery~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7394"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_surgery~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_surgery~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_track_optimizer",
+   "metadata": {
+    "description": "PostgreSQL 18.1 Extension extension~pg_track_optimizer~0.9.1~postgres-contrib~18.1",
+    "longDescription": "Extension extension~pg_track_optimizer~0.9.1~postgres-contrib~18.1",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.9.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7395"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_track_optimizer~0.9.1~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_track_optimizer~0.9.1~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_trgm",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_trgm~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_trgm~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7397"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_trgm~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_trgm~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7398"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_trgm~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_trgm~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7399"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_trgm~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_trgm~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_ttl_index",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_ttl_index~2.0.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_ttl_index~2.0.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.0.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7400"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_ttl_index~2.0.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_ttl_index~2.0.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_uuidv7",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_uuidv7~1.7.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_uuidv7~1.7.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.7.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7403"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_uuidv7~1.7.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_uuidv7~1.7.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_visibility",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_visibility~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_visibility~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7406"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_visibility~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_visibility~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7407"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_visibility~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_visibility~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7408"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_visibility~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_visibility~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_wait_sampling",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_wait_sampling~1.1.9~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_wait_sampling~1.1.9~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.1.9",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7409"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_wait_sampling~1.1.9~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_wait_sampling~1.1.9~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pg_walinspect",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pg_walinspect~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pg_walinspect~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7412"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pg_walinspect~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pg_walinspect~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7413"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pg_walinspect~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pg_walinspect~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7414"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pg_walinspect~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pg_walinspect~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgcrypto",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgcrypto~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgcrypto~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7415"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgcrypto~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgcrypto~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7416"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pgcrypto~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pgcrypto~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7417"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pgcrypto~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pgcrypto~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgl_ddl_deploy",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgl_ddl_deploy~2.2.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgl_ddl_deploy~2.2.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7"
+   ],
+   "versions": [
+    {
+     "version": "2.2.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7418"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgl_ddl_deploy~2.2.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgl_ddl_deploy~2.2.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pglogical_ticker",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pglogical_ticker~1.4.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pglogical_ticker~1.4.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11"
+   ],
+   "versions": [
+    {
+     "version": "1.4.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7420"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pglogical_ticker~1.4.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pglogical_ticker~1.4.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgmeminfo",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgmeminfo~1.0.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgmeminfo~1.0.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7421"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgmeminfo~1.0.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgmeminfo~1.0.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgq",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgq~3.5.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgq~3.5.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "3.5.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7424"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgq~3.5.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgq~3.5.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgrowlocks",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgrowlocks~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgrowlocks~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7427"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgrowlocks~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgrowlocks~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7428"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pgrowlocks~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pgrowlocks~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7429"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pgrowlocks~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pgrowlocks~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgsentinel",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgsentinel~1.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgsentinel~1.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7430"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgsentinel~1.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgsentinel~1.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgspider_ext",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgspider_ext~1.3.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgspider_ext~1.3.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7"
+   ],
+   "versions": [
+    {
+     "version": "1.3.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7433"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgspider_ext~1.3.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgspider_ext~1.3.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgstattuple",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgstattuple~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgstattuple~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7435"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgstattuple~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgstattuple~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7436"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~pgstattuple~postgres-contrib~17.7",
+      "longDescription": "Extension extension~pgstattuple~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7437"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~pgstattuple~postgres-contrib~18.1",
+      "longDescription": "Extension extension~pgstattuple~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pgtt",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pgtt~4.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pgtt~4.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "4.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7438"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pgtt~4.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pgtt~4.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "plpgsql_check",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~plpgsql_check~2.8.11~postgres-contrib~16.11",
+    "longDescription": "Extension extension~plpgsql_check~2.8.11~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.8.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7441"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~plpgsql_check~2.8.11~postgres-contrib~16.11",
+      "longDescription": "Extension extension~plpgsql_check~2.8.11~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "plprofiler",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~plprofiler~4.2.5~postgres-contrib~16.11",
+    "longDescription": "Extension extension~plprofiler~4.2.5~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "4.2.5",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7444"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~plprofiler~4.2.5~postgres-contrib~16.11",
+      "longDescription": "Extension extension~plprofiler~4.2.5~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "plsh",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~plsh~1.20220917.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~plsh~1.20220917.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.20220917.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7447"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~plsh~1.20220917.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~plsh~1.20220917.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "postgres_fdw",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~postgres_fdw~postgres-contrib~16.11",
+    "longDescription": "Extension extension~postgres_fdw~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7450"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~postgres_fdw~postgres-contrib~16.11",
+      "longDescription": "Extension extension~postgres_fdw~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7451"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~postgres_fdw~postgres-contrib~17.7",
+      "longDescription": "Extension extension~postgres_fdw~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7452"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~postgres_fdw~postgres-contrib~18.1",
+      "longDescription": "Extension extension~postgres_fdw~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "pre_prepare",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~pre_prepare~0.9.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~pre_prepare~0.9.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.9.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7453"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~pre_prepare~0.9.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~pre_prepare~0.9.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "prefix",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~prefix~1.2.10~postgres-contrib~16.11",
+    "longDescription": "Extension extension~prefix~1.2.10~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.10",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7456"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~prefix~1.2.10~postgres-contrib~16.11",
+      "longDescription": "Extension extension~prefix~1.2.10~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "quantile",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~quantile~1.1.8~postgres-contrib~16.11",
+    "longDescription": "Extension extension~quantile~1.1.8~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.1.8",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7459"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~quantile~1.1.8~postgres-contrib~16.11",
+      "longDescription": "Extension extension~quantile~1.1.8~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "rum",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~rum~1.3.15~postgres-contrib~16.11",
+    "longDescription": "Extension extension~rum~1.3.15~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.3.15",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7462"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~rum~1.3.15~postgres-contrib~16.11",
+      "longDescription": "Extension extension~rum~1.3.15~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "seg",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~seg~postgres-contrib~16.11",
+    "longDescription": "Extension extension~seg~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7465"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~seg~postgres-contrib~16.11",
+      "longDescription": "Extension extension~seg~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7466"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~seg~postgres-contrib~17.7",
+      "longDescription": "Extension extension~seg~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7467"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~seg~postgres-contrib~18.1",
+      "longDescription": "Extension extension~seg~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "semver",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~semver~0.41.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~semver~0.41.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.41.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7468"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~semver~0.41.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~semver~0.41.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "sepgsql",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~sepgsql~postgres-contrib~16.11",
+    "longDescription": "Extension extension~sepgsql~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7471"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~sepgsql~postgres-contrib~16.11",
+      "longDescription": "Extension extension~sepgsql~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7472"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~sepgsql~postgres-contrib~17.7",
+      "longDescription": "Extension extension~sepgsql~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7473"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~sepgsql~postgres-contrib~18.1",
+      "longDescription": "Extension extension~sepgsql~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "sequential_uuids",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~sequential_uuids~1.0.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~sequential_uuids~1.0.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.0.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7474"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~sequential_uuids~1.0.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~sequential_uuids~1.0.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "session_variable",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~session_variable~3.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~session_variable~3.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "3.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7477"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~session_variable~3.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~session_variable~3.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "set_user",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~set_user~4.2.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~set_user~4.2.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "4.2.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7480"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~set_user~4.2.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~set_user~4.2.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "snowflake",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~snowflake~2.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~snowflake~2.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "2.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7483"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~snowflake~2.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~snowflake~2.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "spat",
+   "metadata": {
+    "description": "PostgreSQL 18.1 Extension extension~spat~0.1.0-alpha4~postgres-contrib~18.1",
+    "longDescription": "Extension extension~spat~0.1.0-alpha4~postgres-contrib~18.1",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.1.0-alpha4",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7486"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~spat~0.1.0-alpha4~postgres-contrib~17.7",
+      "longDescription": "Extension extension~spat~0.1.0-alpha4~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "spi",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~spi~postgres-contrib~16.11",
+    "longDescription": "Extension extension~spi~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7488"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~spi~postgres-contrib~16.11",
+      "longDescription": "Extension extension~spi~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7489"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~spi~postgres-contrib~17.7",
+      "longDescription": "Extension extension~spi~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7490"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~spi~postgres-contrib~18.1",
+      "longDescription": "Extension extension~spi~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "sslinfo",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~sslinfo~postgres-contrib~16.11",
+    "longDescription": "Extension extension~sslinfo~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7491"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~sslinfo~postgres-contrib~16.11",
+      "longDescription": "Extension extension~sslinfo~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7492"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~sslinfo~postgres-contrib~17.7",
+      "longDescription": "Extension extension~sslinfo~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7493"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~sslinfo~postgres-contrib~18.1",
+      "longDescription": "Extension extension~sslinfo~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "sslutils",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~sslutils~1.4.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~sslutils~1.4.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.4.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7494"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~sslutils~1.4.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~sslutils~1.4.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "system_stats",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~system_stats~3.2.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~system_stats~3.2.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "3.2.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7497"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~system_stats~3.2.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~system_stats~3.2.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "table_log",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~table_log~0.6.4~postgres-contrib~16.11",
+    "longDescription": "Extension extension~table_log~0.6.4~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.6.4",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7500"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~table_log~0.6.4~postgres-contrib~16.11",
+      "longDescription": "Extension extension~table_log~0.6.4~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "tablefunc",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~tablefunc~postgres-contrib~16.11",
+    "longDescription": "Extension extension~tablefunc~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7503"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~tablefunc~postgres-contrib~16.11",
+      "longDescription": "Extension extension~tablefunc~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7504"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~tablefunc~postgres-contrib~17.7",
+      "longDescription": "Extension extension~tablefunc~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7505"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~tablefunc~postgres-contrib~18.1",
+      "longDescription": "Extension extension~tablefunc~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "tcn",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~tcn~postgres-contrib~16.11",
+    "longDescription": "Extension extension~tcn~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7506"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~tcn~postgres-contrib~16.11",
+      "longDescription": "Extension extension~tcn~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7507"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~tcn~postgres-contrib~17.7",
+      "longDescription": "Extension extension~tcn~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7508"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~tcn~postgres-contrib~18.1",
+      "longDescription": "Extension extension~tcn~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "tdigest",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~tdigest~1.4.3~postgres-contrib~16.11",
+    "longDescription": "Extension extension~tdigest~1.4.3~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.4.3",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7509"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~tdigest~1.4.3~postgres-contrib~16.11",
+      "longDescription": "Extension extension~tdigest~1.4.3~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "test_decoding",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~test_decoding~postgres-contrib~16.11",
+    "longDescription": "Extension extension~test_decoding~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7512"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~test_decoding~postgres-contrib~16.11",
+      "longDescription": "Extension extension~test_decoding~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7513"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~test_decoding~postgres-contrib~17.7",
+      "longDescription": "Extension extension~test_decoding~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7514"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~test_decoding~postgres-contrib~18.1",
+      "longDescription": "Extension extension~test_decoding~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "toastinfo",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~toastinfo~1.5.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~toastinfo~1.5.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.5.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7515"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~toastinfo~1.5.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~toastinfo~1.5.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "tsm_system_rows",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~tsm_system_rows~postgres-contrib~16.11",
+    "longDescription": "Extension extension~tsm_system_rows~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7518"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~tsm_system_rows~postgres-contrib~16.11",
+      "longDescription": "Extension extension~tsm_system_rows~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7519"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~tsm_system_rows~postgres-contrib~17.7",
+      "longDescription": "Extension extension~tsm_system_rows~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7520"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~tsm_system_rows~postgres-contrib~18.1",
+      "longDescription": "Extension extension~tsm_system_rows~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "tsm_system_time",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~tsm_system_time~postgres-contrib~16.11",
+    "longDescription": "Extension extension~tsm_system_time~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7521"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~tsm_system_time~postgres-contrib~16.11",
+      "longDescription": "Extension extension~tsm_system_time~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7522"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~tsm_system_time~postgres-contrib~17.7",
+      "longDescription": "Extension extension~tsm_system_time~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7523"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~tsm_system_time~postgres-contrib~18.1",
+      "longDescription": "Extension extension~tsm_system_time~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "uint128",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~uint128~1.2.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~uint128~1.2.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7524"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~uint128~1.2.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~uint128~1.2.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "unaccent",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~unaccent~postgres-contrib~16.11",
+    "longDescription": "Extension extension~unaccent~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7527"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~unaccent~postgres-contrib~16.11",
+      "longDescription": "Extension extension~unaccent~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7528"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~unaccent~postgres-contrib~17.7",
+      "longDescription": "Extension extension~unaccent~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7529"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~unaccent~postgres-contrib~18.1",
+      "longDescription": "Extension extension~unaccent~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "url_encode",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~url_encode~1.2.5~postgres-contrib~16.11",
+    "longDescription": "Extension extension~url_encode~1.2.5~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "1.2.5",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7530"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~url_encode~1.2.5~postgres-contrib~16.11",
+      "longDescription": "Extension extension~url_encode~1.2.5~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "uuid-ossp",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~uuid-ossp~postgres-contrib~16.11",
+    "longDescription": "Extension extension~uuid-ossp~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7533"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~uuid-ossp~postgres-contrib~16.11",
+      "longDescription": "Extension extension~uuid-ossp~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7534"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~uuid-ossp~postgres-contrib~17.7",
+      "longDescription": "Extension extension~uuid-ossp~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7535"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~uuid-ossp~postgres-contrib~18.1",
+      "longDescription": "Extension extension~uuid-ossp~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "vacuumlo",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~vacuumlo~postgres-contrib~16.11",
+    "longDescription": "Extension extension~vacuumlo~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7536"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~vacuumlo~postgres-contrib~16.11",
+      "longDescription": "Extension extension~vacuumlo~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7537"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~vacuumlo~postgres-contrib~17.7",
+      "longDescription": "Extension extension~vacuumlo~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7538"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~vacuumlo~postgres-contrib~18.1",
+      "longDescription": "Extension extension~vacuumlo~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "vasco",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~vasco~0.1.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~vasco~0.1.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.1.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7539"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~vasco~0.1.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~vasco~0.1.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "vector",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~vector~0.8.2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~vector~0.8.2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.8.2",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7542"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~vector~0.8.2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~vector~0.8.2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "xicor",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~xicor~0.1.0~postgres-contrib~16.11",
+    "longDescription": "Extension extension~xicor~0.1.0~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.1.0",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7545"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~xicor~0.1.0~postgres-contrib~16.11",
+      "longDescription": "Extension extension~xicor~0.1.0~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "xml2",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~xml2~postgres-contrib~16.11",
+    "longDescription": "Extension extension~xml2~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "16.11",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7548"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~xml2~postgres-contrib~16.11",
+      "longDescription": "Extension extension~xml2~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "17.7",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7549"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 17.7 Extension extension~xml2~postgres-contrib~17.7",
+      "longDescription": "Extension extension~xml2~postgres-contrib~17.7",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    },
+    {
+     "version": "18.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7550"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 18.1 Extension extension~xml2~postgres-contrib~18.1",
+      "longDescription": "Extension extension~xml2~postgres-contrib~18.1",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  },
+  {
+   "name": "xxhash",
+   "metadata": {
+    "description": "PostgreSQL 16.11 Extension extension~xxhash~0.0.1~postgres-contrib~16.11",
+    "longDescription": "Extension extension~xxhash~0.0.1~postgres-contrib~16.11",
+    "licenses": "PostgreSQL",
+    "repository": {}
+   },
+   "availableIn": [
+    "16.11",
+    "17.7",
+    "18.1"
+   ],
+   "versions": [
+    {
+     "version": "0.0.1",
+     "platforms": [
+      {
+       "base": "debian",
+       "baseMajor": "13",
+       "baseMinor": "3",
+       "os": "linux",
+       "architecture": "amd64",
+       "revision": "7551"
+      }
+     ],
+     "metadata": {
+      "description": "PostgreSQL 16.11 Extension extension~xxhash~0.0.1~postgres-contrib~16.11",
+      "longDescription": "Extension extension~xxhash~0.0.1~postgres-contrib~16.11",
+      "licenses": "PostgreSQL",
+      "repository": {}
+     }
+    }
+   ]
+  }
+ ],
+ "platforms": [
+  {
+   "os": "linux",
+   "architecture": "amd64"
+  }
+ ]
+}

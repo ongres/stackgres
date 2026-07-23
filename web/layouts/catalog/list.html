@@ -1,0 +1,73 @@
+{{ define "head-seo" }}{{ partial "catalog/seo-meta.html" . }}{{ end }}
+
+{{ define "main" }}
+<div class="catalog-main">
+{{ partial "catalog/breadcrumbs.html" . }}
+{{- $api := site.Data.catalog.api -}}
+{{- $category := .Params.category -}}
+
+{{ if $category }}
+  <h1 class="page-title">{{ .Title }}</h1>
+  {{ with .Content }}<div class="page-subtitle">{{ . }}</div>{{ end }}
+
+  <div class="component-grid">
+    {{ if eq $category "flavor" }}
+      {{ range $api.flavors }}
+        <a class="component-card" href="{{ printf "/catalog/flavor/%s/" .name | relURL }}">
+          <div class="component-card-name">{{ .name }}</div>
+          <p class="component-card-desc">{{ .description }}</p>
+          <div class="component-card-meta">
+            {{ range .versions }}<span class="pill pill-light">{{ .version }}</span>{{ end }}
+          </div>
+        </a>
+      {{ end }}
+    {{ else if eq $category "extension" }}
+      {{ range $api.extensions }}
+        <a class="component-card" href="{{ printf "/catalog/extension/%s/" .name | relURL }}">
+          <div class="component-card-name">{{ .name }}</div>
+          <p class="component-card-desc">{{ .metadata.description }}</p>
+          <div class="component-card-meta">
+            {{ range .availableIn }}<span class="pill">PG {{ . }}</span>{{ end }}
+            {{ with .metadata.licenses }}<span class="pill pill-light">{{ . }}</span>{{ end }}
+          </div>
+        </a>
+      {{ end }}
+    {{ else if eq $category "addon" }}
+      {{ range $api.addons }}
+        <a class="component-card" href="{{ printf "/catalog/addon/%s/" .name | relURL }}">
+          <div class="component-card-name">{{ .name }}</div>
+          {{ with index .versions 0 }}
+            <p class="component-card-desc">{{ .longDescription | default .description }}</p>
+          {{ end }}
+          <div class="component-card-meta">
+            {{ range .versions }}<span class="pill pill-light">{{ .version }}</span>{{ end }}
+          </div>
+        </a>
+      {{ end }}
+    {{ end }}
+  </div>
+{{ else }}
+  {{- /* Catalog landing */ -}}
+  <h1 class="page-title">Components Catalog</h1>
+  <p class="page-subtitle">
+    Components available in OnDB, sourced live from the <code>ondb-docir</code> catalog API.
+    <span class="mono" style="font-size:0.78rem; color:hsl(var(--muted-foreground))">(snapshot: {{ $api.fetched_at }})</span>
+  </p>
+
+  {{ $cards := slice
+    (dict "id" "flavor" "name" "Postgres flavors" "count" (len $api.flavors) "desc" "Community PostgreSQL and Postgres-compatible flavors.")
+    (dict "id" "extension" "name" "Extensions" "count" (len $api.extensions) "desc" "Postgres extensions available per flavor and version.")
+    (dict "id" "addon" "name" "Addons" "count" (len $api.addons) "desc" "Everything else in the stack: HA, backup, pooling, logs, metrics.")
+  }}
+  <div class="category-grid">
+    {{ range $cards }}
+      <a class="category-card" href="{{ printf "/catalog/%s/" .id | relURL }}">
+        <div class="category-card-title">{{ .name }}</div>
+        <div class="category-card-count">{{ .count }} component{{ if ne .count 1 }}s{{ end }}</div>
+        <p style="margin-top:0.6rem; font-size:0.85rem; color:hsl(var(--muted-foreground))">{{ .desc }}</p>
+      </a>
+    {{ end }}
+  </div>
+{{ end }}
+</div>
+{{ end }}

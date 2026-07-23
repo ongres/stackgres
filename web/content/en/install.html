@@ -1,0 +1,70 @@
+---
+title: "Install"
+date: 2020-01-01T01:00:00+02:00
+draft: false
+translationkey: install
+description: "StackGres is designed to be extremely easy to install, you can just type a single one-line command via Helm."
+---
+
+<section id="install" class="sectionPad">
+    <div class="gradientOverlay orangeGradient"></div>
+    <div class="container">
+        <div class="row">
+            <h1 class="textGradient col-sm-12">Install</h1>
+            <div class="col-sm-12 col-md-5">
+                <h2>How to install StackGres</h2>
+                <p>StackGres is designed to be extremely easy to install: type in just one command to have it installed via <em>Helm</em> and you'll have a production-ready/scripted installation.
+                <p>Default settings are already set and there are options to customize it. For further information, please refer to the Install section on the <a href="/doc/latest/install/helm">StackGres Documentation</a>.</p>
+            </div>
+            <div class="col-sm-12 col-md-7">
+                <p>This helm template is fully customizable. You may create your own <em>values.yaml</em> file. Check all the <a href="https://stackgres.io/doc/latest/install/cluster/parameters/">available parameters</a>. Below is a simple form to help you quickly personalize some of the most common ones:</p>
+                <div class="tabs">
+                    <ul class="raw titles inline">
+                        <li class="active">
+                            <a href="#helm-basic">Default parameters</a>
+                        </li>
+                        <li>
+                            <a href="#helm-custom">Customized parameters</a>
+                        </li>
+                    </ul>
+                    <ul class="raw content">
+                        <li class="active" id="helm-basic">
+                            <label>Generated kubectl command:</label>
+                            <div>
+                                <span class="copyValue">helm install --create-namespace --namespace stackgres stackgres-operator --set-string adminui.service.type=LoadBalancer https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz</span>
+                                <button class="btn" onclick="copyValue()">Copy</button>
+                            </div>
+                        </li>
+                        <li id="helm-custom">
+                            <div>
+                                <div class="customizeParams row">
+                                    <div class="col-sm-4">
+                                        <label>Namespace</label>
+                                        <input type="text" placeholder="Namespace" id="helm-namespace" class="namespace">
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label>Service Type</label>
+                                        <select id="helm-serviceType" class="service">
+                                            <option value="" selected>Choose service</option>
+                                            <option value="LoadBalancer">LoadBalancer</option>
+                                            <option value="ClusterIP">ClusterIP</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label>Auto Embed Grafana</label>
+                                        <label for="helm-autoEmbedGrafana" class="switch yes-no">Enable <input type="checkbox" class="switch grafana" id="helm-autoEmbedGrafana" data-switch="NO"></label>
+                                    </div>
+                                </div>
+                                <label>Generated helm command:</label>
+                                <span class="copyValue">
+                                    helm install --create-namespace --namespace stackgres stackgres-operator --set-string adminui.service.type=LoadBalancer https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz
+                                </span>
+                                <button class="btn" onclick="copyValue()">Copy</button>
+                            </div>
+                        </li>                            
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

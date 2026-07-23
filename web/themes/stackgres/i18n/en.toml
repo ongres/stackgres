@@ -1,0 +1,6 @@
+# Header
+[homeTitle]
+    other = "Enterprise Postgres made easy. On Kubernetes."
+
+[siteDescription]
+    other = "StackGres is a fully-featured platform for running PostgreSQL on Kubernetes. Deploy in minutes an Enterprise-Grade Postgres-as-a-Service, in your infrastructure. 100% Open Source."

@@ -1,0 +1,144 @@
+title = "StackGres"
+baseURL = "https://stackgres.io"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = false
+theme = ["stackgres", "sg-doc"]
+enableEmoji = true
+enableRobotsTXT = true
+summaryLength = 30
+# ignoreErrors = ["error-disable-taxonomy"]
+
+[taxonomies]
+    planet = "planet"
+    tag = "tags"
+    author = "author"
+
+[params]
+    placeholder = "img/placeholder.png"
+    # sg-doc (docs) theme params — carried over from the docs site's own config
+    showVisitedLinks = false
+    disableBreadcrumb = false
+    disableNextPrev = true
+    themeVariant = "stackgres"
+    DisableShortcutsTitle = true
+    isDevVersion = false
+    companyname = "OnGres"
+    twitter = "@OnGresINC"
+    projectName = "StackGres"
+
+[languages]
+
+	[languages.en]
+        languageCode = "en-us"
+        languageName = "English"
+        contentDir = "content/en/"
+        title = ""
+        weight = 1
+        
+        [languages.en.permalinks]
+            tags = "/blog/tags/:slug"
+            planet = "/blog/planet/:slug"
+            author = "/blog/author/:slug"
+
+        # Main Menu EN
+        [[languages.en.menu.main]]
+            name    = "StackGres"
+            weight  = 1
+            identifier = "stackgres"
+
+            [[languages.en.menu.main]]
+                name    = "Features"
+                url     = "features"
+                weight  = 1
+                parent = "stackgres"
+            [[languages.en.menu.main]]
+                name    = "Extensions"
+                url     = "extensions"
+                weight  = 2
+                parent = "stackgres"
+        [[languages.en.menu.main]]
+            name    = "Install"
+            url     = "install"
+            weight  = 2
+        [[languages.en.menu.main]]
+            name    = "Support Subscription"
+            url     = "support"
+            weight  = 3
+        [[languages.en.menu.main]]
+            name    = "Components"
+            url     = "catalog"
+            weight  = 4
+        [[languages.en.menu.main]]
+            name    = "Documentation"
+            url     = "doc"
+            weight  = 5
+        [[languages.en.menu.main]]
+            name    = "Containers"
+            url     = "containers"
+            weight  = 6
+        [[languages.en.menu.main]]
+            name    = "Community"
+            url     = "community"
+            weight  = 7
+        [[languages.en.menu.main]]
+            name    = "Blog"
+            url     = "blog"
+            weight  = 8
+
+        # Product EN
+        [[languages.en.menu.product]]
+            name    = "Features"
+            url     = "features"
+            weight  = 1
+        [[languages.en.menu.product]]
+            name    = "Extensions"
+            url     = "extensions"
+            weight  = 2
+        [[languages.en.menu.product]]
+            name    = "Install"
+            url     = "install"
+            weight  = 3
+        [[languages.en.menu.product]]
+            name    = "About"
+            url     = "about"
+            weight  = 4
+        
+        # Resources EN
+        [[languages.en.menu.resources]]
+            name    = "Documentation"
+            url     = "doc/latest"
+            weight  = 1
+        [[languages.en.menu.resources]]
+            name    = "Community"
+            url     = "community"
+            weight  = 2
+        [[languages.en.menu.resources]]
+            name    = "Blog"
+            url     = "blog"
+            weight  = 3
+
+        
+        # More EN
+        [[languages.en.menu.more]]
+            name    = "Star on GitHub"
+            url     = "https://github.com/ongres/stackgres/"
+            weight  = 1
+        [[languages.en.menu.more]]
+            name    = "GitLab Repository"
+            url     = "https://gitlab.com/ongresinc/stackgres/"
+            weight  = 2
+        [[languages.en.menu.more]]
+            name    = "Join our Slack"
+            url     = "https://slack.stackgres.io/"
+            weight  = 3
+        [[languages.en.menu.more]]
+            name    = "Follow us on Twitter"
+            url     = "https://twitter.com/ongresinc"
+            weight  = 4
+        [[languages.en.menu.more]]
+            name    = "Contact"
+            url     = "contact"
+            weight  = 5
+        
+[markup.goldmark.renderer]
+  unsafe= true

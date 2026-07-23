@@ -1,0 +1,113 @@
+{{ define "head-seo" }}{{ partial "catalog/seo-meta.html" . }}{{ end }}
+
+{{ define "main" }}
+<div class="catalog-main">
+{{ partial "catalog/breadcrumbs.html" . }}
+{{- $api := site.Data.catalog.api -}}
+{{- $category := .Params.category -}}
+{{- $name := .Params.component -}}
+
+{{- $c := dict -}}
+{{- if eq $category "flavor" -}}
+  {{- range $api.flavors }}{{ if eq .name $name }}{{ $c = . }}{{ end }}{{ end -}}
+{{- else if eq $category "extension" -}}
+  {{- range $api.extensions }}{{ if eq .name $name }}{{ $c = . }}{{ end }}{{ end -}}
+{{- else if eq $category "addon" -}}
+  {{- range $api.addons }}{{ if eq .name $name }}{{ $c = . }}{{ end }}{{ end -}}
+{{- end -}}
+
+{{ if not $c.name }}
+  <h1>Component not found</h1>
+  <p>The component <strong>{{ $name }}</strong> is not in the current catalog.</p>
+{{ else }}
+  <div class="component-detail-header">
+    <h1 style="margin:0;">{{ $c.name }}</h1>
+    <span class="category-tag">{{ $category }}</span>
+  </div>
+
+  {{ if eq $category "flavor" }}
+    <p class="component-description">{{ $c.description }}</p>
+    <h2 style="margin-top:2rem;">Versions</h2>
+    <table class="versions-table">
+      <thead><tr><th>Version</th><th>Tags</th><th>Platforms</th><th>Size variants</th></tr></thead>
+      <tbody>
+        {{ range $c.versions }}
+          <tr>
+            <td class="mono">{{ .version }}</td>
+            <td>
+              {{ range .tags }}<span class="pill{{ if eq . "latest" }} pill-primary{{ end }} mono">{{ . }}</span> {{ end }}
+            </td>
+            <td>{{ partial "catalog/platform-pills.html" .platforms }}</td>
+            <td>
+              {{ range $size, $rev := .sizeRevisions }}
+                <span class="pill pill-light" title="revision {{ $rev }}">{{ $size }} · r{{ $rev }}</span>
+              {{ end }}
+            </td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+    <p style="font-size:0.8rem; color:hsl(var(--muted-foreground)); margin-top:0.75rem;">
+      Size variants are image builds of the same flavor version with different bundled content
+      (full · regular · minimal · barebones), each with its own build revision.
+    </p>
+
+  {{ else if eq $category "extension" }}
+    <p class="component-description">{{ $c.metadata.longDescription | default $c.metadata.description }}</p>
+    <div class="component-meta-grid">
+      {{ with $c.availableIn }}
+      <div class="meta-block">
+        <h3>Available in Postgres</h3>
+        <ul>{{ range . }}<li><span class="pill">PG {{ . }}</span></li>{{ end }}</ul>
+      </div>
+      {{ end }}
+      {{ with $c.metadata.licenses }}
+      <div class="meta-block">
+        <h3>License</h3>
+        <span class="pill">{{ . }}</span>
+      </div>
+      {{ end }}
+      {{ with $c.metadata.repository.url }}
+      <div class="meta-block">
+        <h3>Repository</h3>
+        <a href="{{ . }}" target="_blank" rel="noopener">{{ . }} ↗</a>
+      </div>
+      {{ end }}
+    </div>
+    {{ with $c.versions }}
+    <h2 style="margin-top:2rem;">Versions</h2>
+    <table class="versions-table">
+      <thead><tr><th>Version</th><th>Platforms</th></tr></thead>
+      <tbody>
+        {{ range . }}
+          <tr>
+            <td class="mono">{{ .version }}</td>
+            <td>{{ partial "catalog/platform-pills.html" .platforms }}</td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+    {{ end }}
+
+  {{ else if eq $category "addon" }}
+    {{ with index $c.versions 0 }}
+      <p class="component-description">{{ .longDescription | default .description }}</p>
+    {{ end }}
+    <h2 style="margin-top:2rem;">Versions</h2>
+    <table class="versions-table">
+      <thead><tr><th>Version</th><th>License</th><th>Platforms</th><th>Repository</th></tr></thead>
+      <tbody>
+        {{ range $c.versions }}
+          <tr>
+            <td class="mono">{{ .version }}</td>
+            <td>{{ .licenses }}</td>
+            <td>{{ partial "catalog/platform-pills.html" .platforms }}</td>
+            <td>{{ with .repository.url }}<a href="{{ . }}" target="_blank" rel="noopener">upstream ↗</a>{{ else }}—{{ end }}</td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  {{ end }}
+{{ end }}
+</div>
+{{ end }}

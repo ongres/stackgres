@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{{ .Site.Params.projectName }}{{ if .Title }} | {{ .Title }}{{ else if .IsHome }} | {{ T "homeTitle" }} {{ end }}</title>
+	<meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ T "siteDescription" }}{{ end }}">
+	<meta name="author" content="https://ongres.com">
+	{{ if and site.Params.previewgate (ne .Type "containers") }}<meta name="robots" content="noindex, nofollow">
+	<script src="{{ "js/preview-gate.js" | relURL }}"></script>
+	{{ end }}{{ block "head-seo" . }}{{ if not site.Params.previewgate }}<meta name="robots" content="index, follow">{{ end }}{{ end }}
+
+	{{ if .IsTranslated }}
+	    {{ range .Translations }}
+	    <link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}" title="{{ .Language.LanguageName }}">
+	    {{ end }}
+	{{ end }}
+
+	<!-- open graph -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="{{ .Site.Params.projectName }}{{ if not .IsHome }} | {{ .Title }}{{ else }} | {{ T "homeTitle" }}{{ end }}"/>
+	<meta property="og:description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ T "siteDescription" }}{{ end }}"/>
+	<meta property="og:site_name" content="{{ .Site.Title }}"/>
+	<meta property="og:url" content="{{ .Permalink }}"/>
+
+	<!-- Twitter -->
+	<meta name="twitter:title" content="{{ .Site.Params.projectName }}{{ if not .IsHome }} | {{ .Title }}{{ else }} | {{ T "homeTitle" }}{{ end }}" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="{{ .Site.Params.Twitter }}" />
+	<meta name="twitter:creator" content="{{ if .Params.authormeta.twitter }} {{ .Params.authormeta.twitter }} {{ else }} {{ .Site.Params.twitter }} {{ end }}" />
+
+	<meta property="og:image" content="{{ if .Params.thumbnail }}{{ .Params.thumbnail | absURL }}{{ else }}{{ .Site.Params.placeholder | absURL }}{{ end }}"/>
+	<meta property="og:image:secure_url" content="{{ if .Params.thumbnail }}{{ .Params.thumbnail | absURL }}{{ else }}{{ .Site.Params.placeholder | absURL }}{{ end }}"/>
+	<meta property="og:image:alt" content="{{ .Site.Params.projectName }}{{ if not .IsHome }} | {{ .Title }}{{ else }} | {{ T "homeTitle" }}{{ end }}"/>
+
+	<meta name="twitter:image" content="{{ if .Params.thumbnail }}{{ .Params.thumbnail | absURL }}{{ else }}{{ .Site.Params.placeholder | absURL }}{{ end }}"/>
+	<meta name="twitter:image:alt" content="{{ .Site.Params.projectName }}{{ if not .IsHome }} | {{ .Title }}{{ else }} | {{ T "homeTitle" }}{{ end }}"/>
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ "img/favicon/apple-touch-icon.png" | relURL }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ "img/favicon/favicon-32x32.png" | relURL }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ "img/favicon/favicon-16x16.png" | relURL }}">
+    <link rel="manifest" href="{{ "img/favicon/site.webmanifest" | relURL }}">
+    <link rel="mask-icon" href="{{ "img/favicon/safari-pinned-tab.svg" | relURL }}" color="#00adb5">
+    <meta name="msapplication-TileColor" content="#00adb5">
+    <meta name="theme-color" content="#f0f0f0">
+
+    <!-- slick css -->
+    <link rel="stylesheet" type="text/css" href="{{ "css/slick.min.css" | relURL }}" />
+
+    <!-- custom css -->
+    <link href="{{ "css/style.css" | relURL }}" rel="stylesheet" />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-151126282-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-151126282-1');
+    </script>
+
+</head>
+
+<body class='{{ $.Param "color" }} {{ if in (slice "blog" "tags" "author") .Section }} blog {{ end }}'>   
+    {{ partial "header" . }}
+    {{ block "main" . }}{{ end }}
+    {{ partial "footer" . }}
+    {{ partial "foot.html" .}}
+</body>
+</html>

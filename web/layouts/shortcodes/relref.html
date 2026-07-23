@@ -1,0 +1,12 @@
+{{- /* Override of the learn-theme ref: merged sections (doc, containers) keep
+     refs rooted at their old standalone site root, so resolve under the page's
+     own top-level content section. Falls back to the raw path so a bad ref
+     degrades to a broken link instead of failing the build.
+     See website/SITES_MERGE_PLAYBOOK.md steps 8 and 13. */ -}}
+{{- $raw := .Get 0 -}}
+{{- $parts := split $raw "#" -}}
+{{- $path := index $parts 0 -}}
+{{- $anchor := cond (gt (len $parts) 1) (printf "#%s" (index $parts 1)) "" -}}
+{{- $root := index (split .Page.File.Path "/") 0 -}}
+{{- $sectionPath := printf "/%s/%s" $root (strings.TrimPrefix "/" (replace $path "_index.md" "")) -}}
+{{- with .Site.GetPage $sectionPath -}}{{- printf "%s%s" .RelPermalink $anchor -}}{{- else -}}{{- printf "%s%s" $sectionPath $anchor -}}{{- end -}}

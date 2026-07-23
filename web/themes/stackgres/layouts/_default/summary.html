@@ -1,0 +1,46 @@
+<article class="post col-sm-12 col-md-4">
+	<div class="whiteGradient border"></div>
+	<div class="postImg">
+		{{ if .Params.thumbnail }}
+			<a href="{{ .Permalink }}" class="pimage">
+				<img src="{{ .Params.thumbnail | relURL }}" alt="{{ .Title }}">
+			</a>
+		{{ end }}
+	</div>
+	<div class="postContent">
+		<div class="postSummary">
+			<div class="postInfo">
+				<div class="postTags">
+					{{ range .Params.tags }}
+						<a href="{{ "/blog/tags/" | relLangURL }}{{ . | urlize }}">{{ . }}</a>
+					{{ end }}
+				</div>
+				<h2 class="h3 postTitle"><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
+				<!-- <time>{{ .Date.Format "02.01.2006 15:04" }}</time> -->
+				<p>
+					{{ with .Param "description" }}
+						{{ . }}
+					{{ else }}
+						{{ .Summary }}
+					{{ end }}
+				</p>
+			</div>
+			<a class="readMore arrow" href="{{ .Permalink }}">Read more</a>
+			<div class="clearfix"></div>
+			
+			{{ range $index, $val := .Params.author }}
+				<div class="postAuthor">
+				{{ with (index $.Site.Data.authors $val) }}
+					<figure class="authorImg">
+						<img src="{{ .pic | relURL  }}" alt="Author: {{ .name }}" />
+					</figure>
+					<p class="authorInfo">
+						<span class="name">{{ .name }}</span><br/>
+						<span class="position">{{ .position }}</span>
+					</p>
+				{{ end }}
+				</div>
+			{{ end }}
+		</div>
+	</div>
+</article>

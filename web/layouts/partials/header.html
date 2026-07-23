@@ -1,0 +1,8 @@
+{{- /* Dispatcher: both source themes define partials/header.html.
+     Docs pages (type "doc") get the sg-doc chrome; everything else gets the main-web chrome.
+     See website/SITES_MERGE_PLAYBOOK.md step 5. */ -}}
+{{- if eq .Type "doc" -}}
+{{ partial "doc/header.html" . }}
+{{- else -}}
+{{ partial "web/header.html" . }}
+{{- end -}}

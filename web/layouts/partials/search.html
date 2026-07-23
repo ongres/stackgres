@@ -1,0 +1,32 @@
+<div class="versionSelector">
+    <form>
+        <label for="sgVersion">Docs Version</label>
+        <select name="sgVersion" id="sgVersion">
+            <option value="https://stackgres.io/doc/0.9">0.9</option>
+            <option value="https://stackgres.io/doc/latest" selected>1.0</option>
+        </select>
+        
+        {{ if .Site.Params.isDevVersion }}
+            <p class="warning textLeft smText">
+                The version you're browsing is currently under development and may be subject to changes in functionality.
+            </p>
+        {{ end }}
+    </form>
+</div>
+<hr/>
+<div class="searchbox">
+    <label for="search-by"><i class="fas fa-search"></i></label>
+    <input data-search-input id="search-by" type="search" placeholder="{{T "Search-placeholder"}}">
+    <span data-search-clear=""><i class="fas fa-times"></i></span>
+</div>
+{{ $assetBusting := not .Site.Params.disableAssetsBusting }}
+<script type="text/javascript" src="{{"js/lunr.min.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
+<script type="text/javascript" src="{{"js/auto-complete.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
+<script type="text/javascript">
+    {{ if hugo.IsMultilingual }}
+        var baseurl = "{{.Site.BaseURL}}{{.Site.LanguagePrefix}}";
+    {{ else }}
+        var baseurl = "{{.Site.BaseURL}}";
+    {{ end }}
+</script>
+<script type="text/javascript" src="{{"js/search.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>

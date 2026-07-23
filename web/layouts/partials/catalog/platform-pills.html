@@ -1,0 +1,10 @@
+{{- /* input: a list of PlatformWithRevision. Dedupe to unique platform combos,
+     annotate with the revision count. */ -}}
+{{- $combos := dict -}}
+{{- range . -}}
+  {{- $key := printf "%s %s.%s · %s/%s" .base .baseMajor .baseMinor .os .architecture -}}
+  {{- $combos = merge $combos (dict $key (add (index $combos $key | default 0) 1)) -}}
+{{- end -}}
+{{- range $combo, $count := $combos -}}
+  <span class="pill" title="{{ $count }} revision{{ if ne $count 1 }}s{{ end }}">{{ $combo }}{{ if gt $count 1 }} ×{{ $count }}{{ end }}</span>
+{{- end -}}

@@ -1,0 +1,5 @@
+---
+title: "STACKGRES: CLOUD-NATIVE POSTGRESQL ON K8S"
+date: 2019-05-04T18:43:47+02:00
+draft: false
+---

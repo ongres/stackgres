@@ -1,0 +1,19 @@
+{{ define "main" }}
+	<section id="blog" class="sectionPad">
+		<div class="gradientOverlay blueGradient inverted"></div>
+		<div class="container">
+			<div class="row">
+				{{ if or .Title .Content }}
+					<h1 class="col-sm-12 textGradient">{{ if ne .Section "blog" }} <span class="capitalize">{{ .Section }}:</span> {{ end }} {{ .Title }}</h1>
+					{{ with .Content }}<div>{{ . }}</div>{{ end }}
+				{{ end }}
+				<div id="postList" class="row columnGap">
+					{{ range .Paginator.Pages }}
+						{{ .Render "summary" }}
+					{{ end }}
+					<!--{{ partial "pagination.html" . }}-->
+				</div>
+			</div>
+		</div>
+	</section>
+{{ end }}

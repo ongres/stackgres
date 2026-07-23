@@ -1,0 +1,33 @@
+<td class="extName">
+    <a href="{{ .url }}" target="_blank">
+        <span>{{ .name }}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11"><path fill="#FFF" d="M8.1 6h1.2v3.3c0 .9-.8 1.7-1.7 1.7h-6C.8 11 0 10.2 0 9.3v-6c0-.9.8-1.7 1.7-1.7H5v1.2H1.7c-.3 0-.5.2-.5.5v6c0 .3.2.5.5.5h6c.3 0 .5-.2.5-.5V6zm2.3-6H7.1v1.2h1.8L4 6.2l.8.8 4.9-4.9v1.8H11V.6c0-.3-.3-.6-.6-.6z"/></svg>
+    </a>
+</td>
+<td class="textRight extVersion">
+    {{ range .versions }}
+        <span>{{ .version }}</span>
+    {{ end }}
+</td>
+<td>{{ .license }}</td>
+<td class="extTags">
+    {{ range .tags }} 
+        <span>{{ . }}</span>
+    {{ end }}
+</td>
+<td class="extDesc"><span>{{ .abstract }}</span></td>
+<td class="versionTree hidden">
+    {{ range .versions }}
+        <ul>
+            <li>{{ .version }}</li>
+
+            <li>
+                <ul>
+                    {{ range .availableFor }}
+                        <li>{{ .postgresVersion }}</li>
+                    {{ end }}
+                </ul>
+            </li>
+        </ul>
+    {{ end }}
+</td>

@@ -1,0 +1,13 @@
+{{ define "head-seo" }}
+<meta name="robots" content="index, follow">
+<link href="{{ "css/bootstrap-grid.min.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+<link href="{{ "css/containers.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+{{ end }}
+
+{{ define "main" }}
+<section id="containers-wrap" class="sectionPad">
+  <div class="container">
+    {{ .Content }}
+  </div>
+</section>
+{{ end }}

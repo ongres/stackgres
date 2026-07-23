@@ -1,0 +1,47 @@
+---
+title: "Extensions"
+date: 2023-05-22T01:00:00+02:00
+draft: false
+translationkey: extensions
+description: "Extensions are Postgres most loved feature. Supporting 100+ extensions, StackGres is the Postgres platform
+with the most extensions available."
+---
+
+<section class="longText sectionPad">
+    <div class="container">
+        <div class="row">
+            <h1 class="textGradient col-sm-12">Extensions</h1>
+            <p>
+                <em>Extensions are Postgres most loved feature.</em> Augment your database functionality in every
+                imaginable way! And benefit from an ecosystem of hundreds of open source extensions.<br /><br />
+                StackGres supports dynamically loading extensions into your Postgres cluster's pods. StackGres supports
+                100+ extensions, with the list growing every day. No <em>allow list</em>, no small set of extensions
+                available. StackGres is the Postgres platform with the most extensions available. Search/browse them
+                below:
+            </p>
+        </div>
+    </div>
+</section>
+
+<section id="extensions" class="longText">
+    <div class="container">
+        <div class="row">
+            {{< extensions-list data="https://extensions.stackgres.io/postgres/repository/v2/index.json">}}
+        </div>
+    </div>
+</section>
+
+
+<section class="longText">
+    <div class="container">
+        <div class="row">
+            <p>
+                Do you feel any extension is missing? Please <a
+                    href="https://gitlab.com/ongresinc/stackgres/-/issues/new" target="_blank">create an issue and let
+                    us know</a>. If you are an extension creator/maintainer and would like to see your extension added,
+                please contact us on the <strong><code>#extensions</code></strong> channel in our <a
+                    href="https://slack.stackgres.io/" target="_blank">Community Slack</a>.
+            </p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,10 @@
+name = "stackgres"
+license = "MIT"
+description = "Stackgres website theme"
+homepage = "https://github.com/vimux/blank/"
+tags = ["blog", "plain", "blank", "starter", "development"]
+features = ["blog"]
+
+[author]
+  name = "Ongres"
+  homepage = "https://ongres.com"

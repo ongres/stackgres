@@ -1,0 +1,61 @@
+{{ if .IsNamedParams }}
+{{ warnf "Downloading %q" $.Params.data }}
+{{ $data := getJSON $.Params.data }}
+<!-- Build Postgres versions array -->
+{{ $pgVersions := slice }}
+{{ range $data.extensions }}
+    {{ warnf "Extension %q" .name }}
+    {{ range .versions }}
+        {{ warnf "Version %q" .version }}
+        {{ range .availableFor }}
+            {{ if not (in $pgVersions (substr .postgresVersion 0 2)) }}
+                {{ $pgVersions = $pgVersions | append (substr .postgresVersion 0 2) }}
+            {{ end }}
+        {{ end }}
+    {{ end }}
+{{ end }}
+
+<div class="pgVersion col-4">
+    <label for="pgVersion"></label>
+    <select name="pgVersion" id="pgVersion">
+        {{ range sort $pgVersions "value" "desc" }}
+            <option value="{{ . }}">{{ . }}</option>
+        {{ end }}
+    </select>
+</div>
+
+<div class="search col-8">
+    <label for="search"></label>
+    <input id="search" placeholder="Search Extension ..." autocomplete="off">
+    <span class="clearSearch">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11">
+            <path fill="#FFF" d="m11 .9-.9-.9-4.6 4.6L.9 0 0 .9l4.6 4.6L0 10.1l.9.9 4.6-4.6 4.6 4.6.9-.9-4.6-4.6z" />
+        </svg>
+    </span>
+</div>
+
+<div class="col-12 extTable">
+    <table id="extensions-table" class=“extensions”>
+        <thead>
+            <tr>
+                <th class="extName">Name</th>
+                <th class="textRight extVersion">Versions</th>
+                <th>License</th>
+                <th class="extTags">Tags</th>
+                <th class="extDesc">Description</th>
+                <th class="hidden"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="noResults textCenter">
+                <td colspan="5">Your request didn't match any extension.</td>
+            </tr>
+            {{ range sort $data.extensions "name" "asc" }}
+                <tr class="base">
+                    {{ partial "extensions" . }}
+                </tr>
+            {{ end }}
+        </tbody>
+    </table>
+</div>
+{{- end -}}

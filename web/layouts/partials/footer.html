@@ -1,0 +1,6 @@
+{{- /* Dispatcher: see partials/header.html */ -}}
+{{- if eq .Type "doc" -}}
+{{ partial "doc/footer.html" . }}
+{{- else -}}
+{{ partial "web/footer.html" . }}
+{{- end -}}
