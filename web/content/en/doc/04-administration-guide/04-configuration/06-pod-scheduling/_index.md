@@ -1,7 +1,7 @@
 ---
 title: Pod Scheduling
 weight: 6
-url: /doc/administration/configuration/pod-scheduling
+url: /doc/latest/administration/configuration/pod-scheduling
 description: How to control pod placement with nodeSelector, affinity, tolerations, and topology spread.
 showToc: true
 ---

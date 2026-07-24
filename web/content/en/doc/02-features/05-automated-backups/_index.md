@@ -1,7 +1,7 @@
 ---
 title: Automated Backups
 weight: 5
-url: /doc/features/automated-backups
+url: /doc/latest/features/automated-backups
 description: Automated backups and backup lifecycle management
 ---
 

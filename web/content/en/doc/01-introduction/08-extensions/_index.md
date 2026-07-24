@@ -1,7 +1,7 @@
 ---
 title: "Extensions"
 weight: 8
-url: /doc/intro/extensions
+url: /doc/latest/intro/extensions
 description: The list of all available PostgreSQL extensions.
 ---
 

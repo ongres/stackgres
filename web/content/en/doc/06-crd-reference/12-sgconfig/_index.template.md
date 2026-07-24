@@ -1,7 +1,7 @@
 ---
 title: SGConfig
 weight: 12
-url: /doc/reference/crd/sgconfig
+url: /doc/latest/reference/crd/sgconfig
 description: Details about SGConfig
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: Graceful Switchover
 weight: 1
-url: /doc/administration/patroni/switchover
+url: /doc/latest/administration/patroni/switchover
 description: Details about how to use Patroni to perform a controlled switchover.
 ---
 

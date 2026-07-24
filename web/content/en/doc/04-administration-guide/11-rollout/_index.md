@@ -1,7 +1,7 @@
 ---
 title: Cluster rollout
 weight: 21
-url: /doc/administration/rollout
+url: /doc/latest/administration/rollout
 description: Details about the rollout of an SGCluster.
 showToc: true
 ---

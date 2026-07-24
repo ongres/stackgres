@@ -1,7 +1,7 @@
 ---
 title: Rancher RKE
 weight: 1
-url: /doc/install/prerequisites/k8s/rke
+url: /doc/latest/install/prerequisites/k8s/rke
 description: Rancher Kubernetes Engine (RKE) is a CNCF-certified Kubernetes distribution that runs entirely within Docker containers.
 ---
 

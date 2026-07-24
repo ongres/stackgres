@@ -1,7 +1,7 @@
 ---
 title: Creating an external cascade replica cluster
 weight: 1
-url: /doc/administration/replication/remote/replicatefrom
+url: /doc/latest/administration/replication/remote/replicatefrom
 description: This section details the cluster cascading replication.
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Citus sharding technology
 weight: 1
-url: /doc/administration/sharded-cluster/citus
+url: /doc/latest/administration/sharded-cluster/citus
 description: Details about citus sharding technology.
 showToc: true
 ---

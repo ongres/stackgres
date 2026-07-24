@@ -1,7 +1,7 @@
 ---
 title: Monitoring Streams
 weight: 3
-url: /doc/administration/cdc-streaming/monitoring-streams
+url: /doc/latest/administration/cdc-streaming/monitoring-streams
 description: How to monitor SGStream progress, health, and performance.
 ---
 

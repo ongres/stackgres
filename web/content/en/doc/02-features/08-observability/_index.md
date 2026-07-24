@@ -1,7 +1,7 @@
 ---
 title: Observability
 weight: 8
-url: /doc/features/observability
+url: /doc/latest/features/observability
 description: "Observability: Prometheus Grafana integration, Envoy proxy"
 ---
 

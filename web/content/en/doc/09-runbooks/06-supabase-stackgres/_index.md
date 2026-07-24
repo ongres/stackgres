@@ -1,7 +1,7 @@
 ---
 title: Run Supabase on top of StackGres
 weight: 6
-url: /doc/runbooks/supabase-stackgres
+url: /doc/latest/runbooks/supabase-stackgres
 description: How to run Supabase on top of Stackgres
 showToc: true
 ---

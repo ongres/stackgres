@@ -1,7 +1,7 @@
 ---
 title: Automatic scaling
 weight: 14
-url: /doc/features/autoscaling
+url: /doc/latest/features/autoscaling
 description: Automatic scaling via KEDA and vertical Pod autoscaler
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: oke
 weight: 3
-url: /doc/administration/backups/oke
+url: /doc/latest/administration/backups/oke
 aliases: [ /install/prerequisites/backups/oke ]
 description: Details about how to set up and configure the backups on OCI Object Storage.
 showToc: true

@@ -2,7 +2,7 @@
 title: Introduction
 weight: 1
 chapter: true
-url: /doc/intro
+url: /doc/latest/intro
 ---
 
 ### Chapter 1

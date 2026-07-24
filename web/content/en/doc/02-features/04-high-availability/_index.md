@@ -1,7 +1,7 @@
 ---
 title: High Availability
 weight: 4
-url: /doc/features/high-availability
+url: /doc/latest/features/high-availability
 description: High availability and automated failover
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Creating Streams
 weight: 1
-url: /doc/administration/cdc-streaming/creating-streams
+url: /doc/latest/administration/cdc-streaming/creating-streams
 description: Step-by-step guide to creating SGStream resources for CDC operations.
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Data Storage
-url: /doc/install/prerequisites/storage
+url: /doc/latest/install/prerequisites/storage
 weight: 2
 chapter: true
 description: Details about how to set up and configure the storage classes

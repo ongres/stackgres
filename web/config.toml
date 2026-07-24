@@ -70,7 +70,7 @@ summaryLength = 30
             weight  = 4
         [[languages.en.menu.main]]
             name    = "Documentation"
-            url     = "doc"
+            url     = "doc/latest"
             weight  = 5
         [[languages.en.menu.main]]
             name    = "Containers"
@@ -89,7 +89,7 @@ summaryLength = 30
         [[languages.en.menu.shortcuts]]
             name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
             identifier = "faq"
-            url = "doc/faq"
+            url = "doc/latest/faq"
             weight = 10
 
         [[languages.en.menu.shortcuts]]

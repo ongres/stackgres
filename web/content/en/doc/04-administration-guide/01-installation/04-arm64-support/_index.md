@@ -1,7 +1,7 @@
 ---
 title: ARM64 Architecture Support
 weight: 4
-url: /doc/administration/installation/arm64
+url: /doc/latest/administration/installation/arm64
 description: Running StackGres on ARM64 architecture (aarch64).
 showToc: true
 ---

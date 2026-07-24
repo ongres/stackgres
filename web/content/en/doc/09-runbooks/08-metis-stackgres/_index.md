@@ -1,7 +1,7 @@
 ---
 title: Run Metis on top of StackGres
 weight: 8
-url: /doc/runbooks/metis-stackgres
+url: /doc/latest/runbooks/metis-stackgres
 description: How to run Metis on top of Stackgres
 showToc: true
 ---

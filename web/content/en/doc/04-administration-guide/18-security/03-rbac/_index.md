@@ -1,7 +1,7 @@
 ---
 title: RBAC and Access Control
 weight: 3
-url: /doc/administration/security/rbac
+url: /doc/latest/administration/security/rbac
 description: Kubernetes RBAC configuration for StackGres operator and clusters.
 showToc: true
 ---

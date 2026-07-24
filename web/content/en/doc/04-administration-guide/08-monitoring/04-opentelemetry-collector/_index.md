@@ -1,7 +1,7 @@
 ---
 title: OpenTelemetry Collector
 weight: 4
-url: /doc/administration/monitoring/opentelemetry-collector
+url: /doc/latest/administration/monitoring/opentelemetry-collector
 description: How to configure the OpenTelemetry Collector for metrics collection.
 showToc: true
 ---

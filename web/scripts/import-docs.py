@@ -8,10 +8,12 @@ Copies doc/content/en/** -> web/content/en/doc/ (wipe + rewrite; the docs
 section is fully derived from the source tree), applying the merge steps
 recorded in SITES_MERGE_PLAYBOOK.md:
 
-  - step 9: every front-matter `url:` field is prefixed with `/doc` so pages
-    group under /doc/ instead of rendering at root-level URLs
+  - step 9: every front-matter `url:` field is prefixed with `/doc/latest` so
+    pages keep the same public URLs as the standalone docs site
   - step 6: the root _index.md gets `cascade: type: "doc"` injected so every
-    docs page routes to the doc-scoped templates and partial dispatchers
+    docs page routes to the doc-scoped templates and partial dispatchers; it
+    also gets `url: /doc/latest/` plus an `/doc/` alias (the live site 301s
+    /doc/ to /doc/latest/)
   - `__trash.md` is excluded (upstream excludes it in its build script)
 """
 import argparse
@@ -34,9 +36,12 @@ def rewrite_markdown(text: str, is_root_index: bool) -> tuple[str, int]:
     if not match:
         return text, 0
     opening, fields, closing = match.groups()
-    fields, count = URL_FIELD.subn(r"url: /doc\1", fields)
-    if is_root_index and "cascade" not in fields:
-        fields += 'cascade:\n  type: "doc"\n'
+    fields, count = URL_FIELD.subn(r"url: /doc/latest\1", fields)
+    if is_root_index:
+        if "url" not in fields:
+            fields += 'url: /doc/latest/\naliases: ["/doc/"]\n'
+        if "cascade" not in fields:
+            fields += 'cascade:\n  type: "doc"\n'
     return opening + fields + closing + text[match.end():], count
 
 
@@ -78,7 +83,7 @@ def main() -> int:
         copied += 1
 
     print(f"imported {copied} files -> {DEST.relative_to(REPO_ROOT)}")
-    print(f"prefixed {urls} url: fields with /doc, skipped {skipped} __trash.md")
+    print(f"prefixed {urls} url: fields with /doc/latest, skipped {skipped} __trash.md")
     return 0
 
 

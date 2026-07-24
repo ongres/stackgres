@@ -1,7 +1,7 @@
 ---
 title: Strict Synchronous All Replication Mode
 weight: 5
-url: /doc/administration/replication/modes/strict-sync-all
+url: /doc/latest/administration/replication/modes/strict-sync-all
 description: This section describes the involved steps and concepts of the strict sync all replication mode.
 ---
 

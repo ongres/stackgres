@@ -1,7 +1,7 @@
 ---
 title: "Upgrade via Helm"
 weight: 1
-url: /doc/administration/upgrade/helm
+url: /doc/latest/administration/upgrade/helm
 description: Details how to use Helm to upgrade the operator.
 showToc: true
 ---

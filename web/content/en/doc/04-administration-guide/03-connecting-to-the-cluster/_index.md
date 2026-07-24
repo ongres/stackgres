@@ -1,7 +1,7 @@
 ---
 title: Connecting to the Cluster
 weight: 3
-url: /doc/administration/cluster/connection
+url: /doc/latest/administration/cluster/connection
 aliases: [ /tutorial/complete-cluster/accessing-cluster ]
 description: This page contains details about how to connect to a StackGres cluster.
 ---

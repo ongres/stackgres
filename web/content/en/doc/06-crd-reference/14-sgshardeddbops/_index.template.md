@@ -1,7 +1,7 @@
 ---
 title: SGShardedDbOps
 weight: 14
-url: /doc/reference/crd/sgshardeddbops
+url: /doc/latest/reference/crd/sgshardeddbops
 description: Details about SGShardedDbOps
 showToc: true
 ---

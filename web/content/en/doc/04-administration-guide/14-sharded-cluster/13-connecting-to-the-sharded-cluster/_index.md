@@ -1,7 +1,7 @@
 ---
 title: Connecting to Sharded Cluster
 weight: 13
-url: /doc/administration/sharded-cluster/connection
+url: /doc/latest/administration/sharded-cluster/connection
 description: This page contains details about how to connect to a StackGres sharded cluster.
 ---
 

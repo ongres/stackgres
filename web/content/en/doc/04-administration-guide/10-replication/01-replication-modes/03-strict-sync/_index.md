@@ -1,7 +1,7 @@
 ---
 title: Strict Synchronous Replication Mode
 weight: 3
-url: /doc/administration/replication/modes/strict-sync
+url: /doc/latest/administration/replication/modes/strict-sync
 description: This section describes the involved steps and concepts under the Strict Sync option.
 ---
 

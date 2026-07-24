@@ -1,7 +1,7 @@
 ---
 title: Patroni Configuration
 weight: 4
-url: /doc/administration/patroni/configuration
+url: /doc/latest/administration/patroni/configuration
 description: How to customize Patroni configuration in StackGres clusters.
 showToc: true
 ---

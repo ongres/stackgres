@@ -1,7 +1,7 @@
 ---
 title: Declarative CRs
 weight: 1
-url: /doc/features/declarative-resources
+url: /doc/latest/features/declarative-resources
 description: Manage your PostgreSQL cluster using declarative StackGres CRs
 ---
 

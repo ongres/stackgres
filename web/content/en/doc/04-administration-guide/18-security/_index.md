@@ -1,7 +1,7 @@
 ---
 title: Security
 weight: 18
-url: /doc/administration/security
+url: /doc/latest/administration/security
 description: Security best practices and configuration for StackGres clusters.
 ---
 

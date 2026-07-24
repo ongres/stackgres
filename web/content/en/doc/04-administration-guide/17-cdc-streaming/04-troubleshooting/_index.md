@@ -1,7 +1,7 @@
 ---
 title: Troubleshooting
 weight: 4
-url: /doc/administration/cdc-streaming/troubleshooting
+url: /doc/latest/administration/cdc-streaming/troubleshooting
 description: Common issues and solutions for SGStream CDC operations.
 ---
 

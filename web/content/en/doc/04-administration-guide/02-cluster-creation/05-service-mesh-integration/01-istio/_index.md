@@ -1,7 +1,7 @@
 ---
 title: Cluster with Istio
 weight: 1
-url: /doc/administration/cluster-creation/services-mesh-integration/istio
+url: /doc/latest/administration/cluster-creation/services-mesh-integration/istio
 aliases: [ /install/prerequisites/services-mesh-integration/istio, /install/services-mesh-integration/istio ]
 description: Details about how to work in a K8s cluster with Istio
 ---

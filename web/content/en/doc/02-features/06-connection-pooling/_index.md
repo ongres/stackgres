@@ -1,7 +1,7 @@
 ---
 title: Server-Side Connection Pooling
 weight: 6
-url: /doc/features/connection-pooling
+url: /doc/latest/features/connection-pooling
 description: Integrated server-side connection pooling
 ---
 

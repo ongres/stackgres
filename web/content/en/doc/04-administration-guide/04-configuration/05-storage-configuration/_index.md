@@ -1,7 +1,7 @@
 ---
 title: Storage Configuration
 weight: 5
-url: /doc/administration/configuration/storage
+url: /doc/latest/administration/configuration/storage
 description: How to configure persistent storage for StackGres clusters.
 showToc: true
 ---

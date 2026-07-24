@@ -1,7 +1,7 @@
 ---
 title: Babelfish Configuration
 weight: 19
-url: /doc/administration/babelfish
+url: /doc/latest/administration/babelfish
 description: How to configure and use Babelfish for PostgreSQL in StackGres.
 showToc: true
 ---

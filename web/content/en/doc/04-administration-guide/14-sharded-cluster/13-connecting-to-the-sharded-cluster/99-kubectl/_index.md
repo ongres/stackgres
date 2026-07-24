@@ -1,7 +1,7 @@
 ---
 title: Connecting to Sharded Cluster with Kubectl
 weight: 1
-url: /doc/administration/sharded-cluster/connection/kubectl
+url: /doc/latest/administration/sharded-cluster/connection/kubectl
 draft: true
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Deprecated Field Migration
 weight: 1
-url: /doc/administration/upgrade/deprecated-fields
+url: /doc/latest/administration/upgrade/deprecated-fields
 description: How to migrate from deprecated fields to their replacements in StackGres.
 showToc: true
 ---

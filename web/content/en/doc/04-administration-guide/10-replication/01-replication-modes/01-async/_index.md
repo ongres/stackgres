@@ -1,7 +1,7 @@
 ---
 title: Asynchronous Replication Mode
 weight: 1
-url: /doc/administration/replication/modes/async
+url: /doc/latest/administration/replication/modes/async
 description: This section describes the involved steps and concepts of the async replication mode.
 ---
 

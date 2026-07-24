@@ -1,7 +1,7 @@
 ---
 title: SGPostgresConfig
 weight: 3
-url: /doc/reference/crd/sgpostgresconfig
+url: /doc/latest/reference/crd/sgpostgresconfig
 description: Details about SGPostgresConfig
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 Title: Maintenance with Zero-Downtime 
 weight: 12
-url: /doc/runbooks/zero-downtime
+url: /doc/latest/runbooks/zero-downtime
 description: Achieve Zero-Downtime for Maintenance Tasks
 showToc: true
 ---

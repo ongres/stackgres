@@ -2,7 +2,7 @@
 title: Developer Documentation
 weight: 7
 chapter: true
-url: /doc/developer
+url: /doc/latest/developer
 ---
 
 ### Chapter 7

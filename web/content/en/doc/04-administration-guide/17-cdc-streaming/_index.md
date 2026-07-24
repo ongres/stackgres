@@ -1,7 +1,7 @@
 ---
 title: CDC Streaming
 weight: 17
-url: /doc/administration/cdc-streaming
+url: /doc/latest/administration/cdc-streaming
 description: How to set up and manage Change Data Capture (CDC) streaming with SGStream.
 ---
 

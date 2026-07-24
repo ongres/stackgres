@@ -1,7 +1,7 @@
 ---
 title: Replication Modes
 weight: 1
-url: /doc/administration/replication/modes
+url: /doc/latest/administration/replication/modes
 description: This section lists the available replication modes
 showToc: true
 ---

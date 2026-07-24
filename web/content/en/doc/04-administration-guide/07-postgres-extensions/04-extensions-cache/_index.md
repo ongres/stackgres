@@ -1,7 +1,7 @@
 ---
 title: Extensions Cache
 weight: 4
-url: /doc/administration/extensions/cache
+url: /doc/latest/administration/extensions/cache
 description: How to configure the extensions cache for faster deployments.
 showToc: true
 ---

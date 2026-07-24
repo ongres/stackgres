@@ -1,7 +1,7 @@
 ---
 title: SGBackup
 weight: 6
-url: /doc/reference/crd/sgbackup
+url: /doc/latest/reference/crd/sgbackup
 description: Details about SGBackup
 showToc: true
 ---

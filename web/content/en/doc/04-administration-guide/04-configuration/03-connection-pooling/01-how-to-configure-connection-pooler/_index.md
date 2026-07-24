@@ -1,7 +1,7 @@
 ---
 title: Configuration of the Connection Pooler Modes
 weight: 1
-url: /doc/administration/cluster/pool/custom/config
+url: /doc/latest/administration/cluster/pool/custom/config
 description: Details about how to configure the connection pooler modes
 showToc: true
 ---

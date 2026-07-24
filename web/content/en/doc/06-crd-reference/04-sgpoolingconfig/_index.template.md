@@ -1,7 +1,7 @@
 ---
 title: SGPoolingConfig
 weight: 4
-url: /doc/reference/crd/sgpoolingconfig
+url: /doc/latest/reference/crd/sgpoolingconfig
 description: Details about SGPoolingConfig
 showToc: true
 ---

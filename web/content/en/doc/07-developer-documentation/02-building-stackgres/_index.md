@@ -1,7 +1,7 @@
 ---
 title: Building StackGres
 weight: 2
-url: /doc/developer/stackgres/build
+url: /doc/latest/developer/stackgres/build
 description: Details about how to build the operator.
 showToc: true
 ---

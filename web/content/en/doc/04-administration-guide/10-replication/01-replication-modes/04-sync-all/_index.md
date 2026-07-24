@@ -1,7 +1,7 @@
 ---
 title: Synchronous All Replication Mode 
 weight: 4
-url: /doc/administration/replication/modes/sync-all
+url: /doc/latest/administration/replication/modes/sync-all
 description: This section describes the involved steps and concepts of the sync-all replication mode.
 ---
 

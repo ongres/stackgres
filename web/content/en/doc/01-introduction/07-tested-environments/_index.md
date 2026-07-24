@@ -1,7 +1,7 @@
 ---
 title: "Tested Environments"
 weight: 7
-url: /doc/intro/tested-environments
+url: /doc/latest/intro/tested-environments
 ---
 
 StackGres was tested and validated in the following environments:

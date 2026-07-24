@@ -1,7 +1,7 @@
 ---
 title: Cluster Best Practices
 weight: 4
-url: /doc/administration/cluster-creation/best-practices
+url: /doc/latest/administration/cluster-creation/best-practices
 aliases: [ /install/best-practices, /install/cluster/best-practices ]
 description: Recommendations about how to organize all configuration files.
 showToc: true

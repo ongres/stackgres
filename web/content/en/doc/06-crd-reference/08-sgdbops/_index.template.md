@@ -1,7 +1,7 @@
 ---
 title: SGDbOps
 weight: 8
-url: /doc/reference/crd/sgdbops
+url: /doc/latest/reference/crd/sgdbops
 description: Details about SGDbOps
 showToc: true
 ---

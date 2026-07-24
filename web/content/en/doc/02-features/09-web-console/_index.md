@@ -1,7 +1,7 @@
 ---
 title: Management Web Console
 weight: 9
-url: /doc/features/admin-console
+url: /doc/latest/features/admin-console
 description: Fully-featured management Web Console
 ---
 

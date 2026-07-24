@@ -2,7 +2,7 @@
 title: Getting Started
 weight: 3
 chapter: true
-url: /doc/quickstart
+url: /doc/latest/quickstart
 aliases: [ /demo/quickstart ]
 ---
 

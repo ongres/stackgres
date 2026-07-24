@@ -333,6 +333,25 @@ Deliberately NOT changed: menu urls pointing at `doc/latest` (e.g. the footer
 Resources menu). Public URLs must keep matching the live standalone site for
 SEO — see the `/doc/latest` item in "Known gaps / open items".
 
+### 18. Docs served at `/doc/latest` (URL parity with the live site)
+
+The flat `/doc/` scheme inherited from the prototype broke URL parity with
+stackgres.io, where canonical docs URLs are `/doc/latest/...` and `/doc/`
+301-redirects to `/doc/latest/`. Now:
+
+- `scripts/import-docs.py` prefixes `url:` fields with `/doc/latest` and gives
+  the root `_index.md` `url: /doc/latest/` plus an `/doc/` alias (Hugo
+  meta-refresh — production should also 301 at the server level like the live
+  site does).
+- `data/doc_versions.yaml` path → `doc/latest/`; main-menu Documentation url
+  restored to `doc/latest` (reverting the step-7 rewrite); FAQ shortcut →
+  `doc/latest/faq`. The footer Resources link (`doc/latest`) now resolves
+  as-is.
+- Cross-links needed no changes: the `ref`/`relref` overrides resolve pages
+  and emit `.RelPermalink`, which follows the `url:` fields.
+
+Re-importing docs re-applies all of this (the rewrite lives in the script).
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
@@ -354,13 +373,13 @@ SEO — see the `/doc/latest` item in "Known gaps / open items".
   longer hardcoded here: `layouts/partials/search.html` renders it from
   `data/doc_versions.yaml` (relURL paths, so it works on any host) — a
   per-version build should append entries there.
-- **`/doc/latest` URL compatibility (SEO).** The live site's canonical docs
-  URLs are `/doc/latest/...` (and `/doc/1.x/...`); the merged site serves docs
-  flat at `/doc/...` and has no `/doc/latest`. Before the unified site replaces
-  stackgres.io, those URLs must keep resolving (server redirects or Hugo
-  aliases), and internal links that point at `doc/latest` (footer Resources
-  menu) must keep working. Do not rewrite such urls to `doc` — public URL
-  parity with the standalone site is the constraint.
+- **Docs URL compatibility (SEO).** `/doc/latest/...` parity is done (step 18:
+  docs serve at `/doc/latest`, `/doc/` alias mirrors the live 301). Still open:
+  `/doc/1.x/...` URLs resolve on the live site but not here (needs the
+  per-version build — see the docs-versioning item), and the `/doc/` alias is
+  a Hugo meta-refresh, not a real 301 — production needs the server-level
+  redirect. Public URL parity with the standalone site is the constraint; never
+  rewrite internal links away from live URLs.
 - **Docs search.** sg-doc ships a lunr search fed by an `index.json` output on the
   docs *home* page. The merged site's home belongs to the main web; the docs
   section's JSON output needs rewiring (outputs config on the `doc` section).

@@ -1,7 +1,7 @@
 ---
 title: Postgres Configuration
 weight: 2
-url: /doc/administration/configuration/postgres
+url: /doc/latest/administration/configuration/postgres
 aliases: [ /administration/custom/postgres/config , /tutorial/complete-cluster/postgres-config ]
 description: Details about how the PostgreSQL configuration works and how to customize it.
 ---

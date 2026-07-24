@@ -1,7 +1,7 @@
 ---
 title: Monitoring
 weight: 6
-url: /doc/administration/monitoring
+url: /doc/latest/administration/monitoring
 aliases: [ /monitoring/metrics , /install/prerequisites/monitoring ]
 description: Details about monitoring and metrics automatically stored on Prometheus.
 showToc: true

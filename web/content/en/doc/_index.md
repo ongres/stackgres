@@ -1,5 +1,7 @@
 ---
 title: "StackGres Docs"
+url: /doc/latest/
+aliases: ["/doc/"]
 cascade:
   type: "doc"
 ---

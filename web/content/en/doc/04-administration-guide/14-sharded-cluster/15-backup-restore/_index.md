@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Backup and Restore
 weight: 15
-url: /doc/administration/sharded-cluster/backup-restore
+url: /doc/latest/administration/sharded-cluster/backup-restore
 description: How to backup and restore sharded clusters using SGShardedBackup.
 showToc: true
 ---

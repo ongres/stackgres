@@ -6,7 +6,7 @@
 # hardcoding absolute stackgres.io URLs like the old theme partial did.
 #
 # Today the merged site builds a single docs version: the current development
-# docs from this branch, flat at /doc/ (see SITES_MERGE_PLAYBOOK.md, "Docs
+# docs from this branch, at /doc/latest/ (see SITES_MERGE_PLAYBOOK.md, "Docs
 # versioning" known gap). When per-version builds are added, append one entry
 # per published version (e.g. name: "1.18", path: "doc/1.18/").
 #
@@ -14,6 +14,6 @@
 # major.minor) when the release cycle moves.
 versions:
   - name: "1.20"
-    path: "doc/"
+    path: "doc/latest/"
     current: true
     development: true

@@ -1,7 +1,7 @@
 ---
 title: Azure Blob Storage
 weight: 6
-url: /doc/administration/backups/azure
+url: /doc/latest/administration/backups/azure
 description: Details about how to set up and configure backups on Azure Blob Storage.
 showToc: true
 ---

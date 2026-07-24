@@ -1,7 +1,7 @@
 ---
 title: Cluster Names and Overrides
 weight: 4
-url: /doc/administration/sharded-cluster/names-and-overrides
+url: /doc/latest/administration/sharded-cluster/names-and-overrides
 description: How to name the SGClusters that compose an SGShardedCluster and how to override the configuration of individual workers.
 showToc: true
 ---

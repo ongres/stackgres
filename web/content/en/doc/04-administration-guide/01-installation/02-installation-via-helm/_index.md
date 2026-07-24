@@ -1,7 +1,7 @@
 ---
 title: Installation via Helm
 weight: 2
-url: /doc/install/helm
+url: /doc/latest/install/helm
 aliases: [ /tutorial/stackgres-installation ]
 description: Details about how to install the StackGres operator using Helm.
 showToc: true

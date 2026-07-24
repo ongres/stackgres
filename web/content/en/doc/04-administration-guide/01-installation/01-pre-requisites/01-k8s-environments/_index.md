@@ -1,7 +1,7 @@
 ---
 title: K8s Environments
 weight: 1
-url: /doc/install/prerequisites/k8s
+url: /doc/latest/install/prerequisites/k8s
 description: Details about how to set up specific Kubernetes environments to work with StackGres.
 ---
 

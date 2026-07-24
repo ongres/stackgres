@@ -1,7 +1,7 @@
 ---
 title: Repack
 weight: 3
-url: /doc/administration/database-operations/repack
+url: /doc/latest/administration/database-operations/repack
 description: How to run pg_repack operations on StackGres clusters.
 showToc: true
 ---

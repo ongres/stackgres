@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Local connection using postgres-util
 weight: 4
-url: /doc/administration/sharded-cluster/connection/pgutil
+url: /doc/latest/administration/sharded-cluster/connection/pgutil
 description: Describes how to connect on the sharded cluster using kubectl and the postgres-util sidecar container.
 ---
 

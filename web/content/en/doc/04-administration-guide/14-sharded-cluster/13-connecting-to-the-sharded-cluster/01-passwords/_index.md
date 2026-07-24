@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Passwords
 weight: 1
-url: /doc/administration/sharded-cluster/connection/passwords
+url: /doc/latest/administration/sharded-cluster/connection/passwords
 description: Describes how to retrieve the generated database passwords.
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: Installation
 weight: 1
-url: /doc/install
+url: /doc/latest/install
 aliases: [ /administration/install ]
 description: Documentation how to install the StackGres operator.
 ---

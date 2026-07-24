@@ -1,7 +1,7 @@
 ---
 title: Sharded Database Operations
 weight: 16
-url: /doc/administration/sharded-cluster/database-operations
+url: /doc/latest/administration/sharded-cluster/database-operations
 description: Day-2 operations for sharded clusters using SGShardedDbOps.
 showToc: true
 ---

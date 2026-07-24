@@ -1,7 +1,7 @@
 ---
 title: Replica Re-initialization
 weight: 3
-url: /doc/administration/patroni/reinit
+url: /doc/latest/administration/patroni/reinit
 description: Details about how to use Patroni to reinit the database replicas nodes.
 ---
 

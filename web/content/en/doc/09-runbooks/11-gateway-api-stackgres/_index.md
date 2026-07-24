@@ -1,7 +1,7 @@
 ---
 Title: Configure Gateway API 
 weight: 11
-url: /doc/runbooks/gateway-api
+url: /doc/latest/runbooks/gateway-api
 description: How to configure Gateway API
 showToc: true
 ---

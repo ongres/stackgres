@@ -1,7 +1,7 @@
 ---
 title: SSL/TLS Configuration
 weight: 1
-url: /doc/administration/security/ssl-tls
+url: /doc/latest/administration/security/ssl-tls
 description: How to configure SSL/TLS encryption for PostgreSQL connections.
 showToc: true
 ---

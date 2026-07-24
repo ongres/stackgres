@@ -1,7 +1,7 @@
 ---
 title: Vacuum
 weight: 2
-url: /doc/administration/database-operations/vacuum
+url: /doc/latest/administration/database-operations/vacuum
 description: How to run vacuum operations on StackGres clusters.
 showToc: true
 ---

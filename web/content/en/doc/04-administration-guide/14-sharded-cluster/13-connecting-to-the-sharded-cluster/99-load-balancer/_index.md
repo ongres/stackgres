@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Load Balancer
 weight: 3
-url: /doc/administration/sharded-cluster/connection/load-balancer
+url: /doc/latest/administration/sharded-cluster/connection/load-balancer
 draft: true
 ---
 

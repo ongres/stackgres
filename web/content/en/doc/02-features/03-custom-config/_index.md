@@ -1,7 +1,7 @@
 ---
 title: Custom Configuration
 weight: 3
-url: /doc/features/custom-config
+url: /doc/latest/features/custom-config
 description: Provide custom configuration on top of vanilla PostgreSQL
 ---
 

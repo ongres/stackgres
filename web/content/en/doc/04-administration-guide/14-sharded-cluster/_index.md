@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster
 weight: 12
-url: /doc/administration/sharded-cluster
+url: /doc/latest/administration/sharded-cluster
 description: Overview of StackGres sharded cluster.
 showToc: true
 ---

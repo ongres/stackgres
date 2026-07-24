@@ -1,7 +1,7 @@
 ---
 title: Cluster Profiles
 weight: 19
-url: /doc/features/cluster-profiles
+url: /doc/latest/features/cluster-profiles
 description: Pre-configured cluster profiles for production, testing, and development environments.
 ---
 

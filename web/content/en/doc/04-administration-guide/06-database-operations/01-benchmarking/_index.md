@@ -1,7 +1,7 @@
 ---
 title: Benchmarking
 weight: 1
-url: /doc/administration/database-operations/benchmarking
+url: /doc/latest/administration/database-operations/benchmarking
 description: How to run benchmarks and sample real queries on StackGres clusters.
 showToc: true
 ---

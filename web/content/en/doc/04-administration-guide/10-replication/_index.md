@@ -1,7 +1,7 @@
 ---
 title: Replication
 weight: 10
-url: /doc/administration/replication
+url: /doc/latest/administration/replication
 aliases: [ /tutorial/admin/replication ]
 description: This page contains details about how to create different cluster architecture topologies by using the replication features.
 ---

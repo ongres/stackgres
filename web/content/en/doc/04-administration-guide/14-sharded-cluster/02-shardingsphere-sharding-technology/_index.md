@@ -1,7 +1,7 @@
 ---
 title: Apache ShardingSphere sharding technology
 weight: 2
-url: /doc/administration/sharded-cluster/shardingsphere
+url: /doc/latest/administration/sharded-cluster/shardingsphere
 description: Details about ShardingSphere sharding technology.
 ---
 

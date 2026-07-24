@@ -1,7 +1,7 @@
 ---
 title: SGStream
 weight: 14
-url: /doc/reference/crd/sgstream
+url: /doc/latest/reference/crd/sgstream
 description: Details about SGStream
 showToc: true
 ---

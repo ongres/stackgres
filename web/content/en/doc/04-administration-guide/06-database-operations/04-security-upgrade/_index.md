@@ -1,7 +1,7 @@
 ---
 title: Security Upgrade
 weight: 4
-url: /doc/administration/database-operations/security-upgrade
+url: /doc/latest/administration/database-operations/security-upgrade
 description: How to perform security upgrades on StackGres clusters.
 showToc: true
 ---

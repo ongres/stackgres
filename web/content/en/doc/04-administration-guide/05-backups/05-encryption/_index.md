@@ -1,7 +1,7 @@
 ---
 title: Backup Encryption
 weight: 5
-url: /doc/administration/backups/encryption
+url: /doc/latest/administration/backups/encryption
 description: How to encrypt backups at rest using libsodium or OpenPGP.
 showToc: true
 ---

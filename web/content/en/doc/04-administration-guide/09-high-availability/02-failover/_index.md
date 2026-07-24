@@ -1,7 +1,7 @@
 ---
 title: Automated Failover
 weight: 2
-url: /doc/administration/patroni/failover
+url: /doc/latest/administration/patroni/failover
 description: Details about how Patroni performs an automated failover.
 ---
 

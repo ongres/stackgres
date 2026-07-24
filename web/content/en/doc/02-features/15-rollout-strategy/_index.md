@@ -1,7 +1,7 @@
 ---
 title: Rollout strategy
 weight: 15
-url: /doc/features/rollout
+url: /doc/latest/features/rollout
 description: Rollout strategy
 ---
 

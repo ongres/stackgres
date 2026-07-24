@@ -1,7 +1,7 @@
 ---
 title: Tuning
 weight: 19
-url: /doc/administration/tuning
+url: /doc/latest/administration/tuning
 description: How to configure your system and PostgreSQL in StackGres to improve performance.
 showToc: true
 ---

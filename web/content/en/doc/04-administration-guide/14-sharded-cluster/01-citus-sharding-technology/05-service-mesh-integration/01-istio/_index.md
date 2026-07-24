@@ -1,7 +1,7 @@
 ---
 title: Istio for Sharded Cluster
 weight: 1
-url: /doc/administration/sharded-cluster/creation/services-mesh-integration/istio
+url: /doc/latest/administration/sharded-cluster/creation/services-mesh-integration/istio
 description: Details about how to work in a K8s cluster with Istio
 ---
 

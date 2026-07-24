@@ -1,7 +1,7 @@
 ---
 title: DDP sharding technology
 weight: 3
-url: /doc/administration/sharded-cluster/ddp
+url: /doc/latest/administration/sharded-cluster/ddp
 description: Details about DDP sharding technology.
 ---
 

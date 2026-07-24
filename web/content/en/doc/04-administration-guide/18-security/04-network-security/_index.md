@@ -1,7 +1,7 @@
 ---
 title: Network Security
 weight: 4
-url: /doc/administration/security/network
+url: /doc/latest/administration/security/network
 description: Network policies and service exposure security for StackGres clusters.
 showToc: true
 ---

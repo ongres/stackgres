@@ -1,7 +1,7 @@
 ---
 title: Log Cluster Upgrade
 weight: 1
-url: /doc/administration/distributed-logs/upgrade
+url: /doc/latest/administration/distributed-logs/upgrade
 aliases: [ /install/distributed-logs-upgrade ]
 description: Details about how to upgrade the database node of a distributed logs.
 ---

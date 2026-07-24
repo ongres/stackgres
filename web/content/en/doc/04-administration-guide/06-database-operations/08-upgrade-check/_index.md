@@ -1,7 +1,7 @@
 ---
 title: Upgrade check
 weight: 15
-url: /doc/administration/database-operations/upgrade-check
+url: /doc/latest/administration/database-operations/upgrade-check
 description: Detecting available component updates
 showToc: true
 ---

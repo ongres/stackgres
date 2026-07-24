@@ -1,7 +1,7 @@
 ---
 title: Minor version upgrade
 weight: 13
-url: /doc/administration/database-operations/minor-version-upgrade
+url: /doc/latest/administration/database-operations/minor-version-upgrade
 aliases: [ /administration/minor-version-upgrade ]
 description: Perform a postgres minor version upgrade
 showToc: true

@@ -1,7 +1,7 @@
 ---
 title: Container Configuration
 weight: 4
-url: /doc/administration/configuration/containers
+url: /doc/latest/administration/configuration/containers
 description: How to configure sidecar containers and optimize resource usage.
 showToc: true
 ---

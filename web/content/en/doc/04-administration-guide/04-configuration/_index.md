@@ -1,7 +1,7 @@
 ---
 title: Configuration
 weight: 4
-url: /doc/administration/configuration
+url: /doc/latest/administration/configuration
 aliases: [ /administration/custom/postgres/config ]
 description: Details about default and custom configurations.
 showToc: true

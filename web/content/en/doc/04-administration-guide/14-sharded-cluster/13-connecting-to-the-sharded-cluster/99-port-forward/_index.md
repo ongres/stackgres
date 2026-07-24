@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Port Forward
 weight: 2
-url: /doc/administration/sharded-cluster/connection/port-forward
+url: /doc/latest/administration/sharded-cluster/connection/port-forward
 draft: true
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster K8s Internal DNS
 weight: 2
-url: /doc/administration/sharded-cluster/connection/dns
+url: /doc/latest/administration/sharded-cluster/connection/dns
 description: Describes how to connect to the sharded cluster inside the K8s environment.
 showToc: true
 ---

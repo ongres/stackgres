@@ -1,7 +1,7 @@
 ---
 title: Managed SQL Scripts
 weight: 4
-url: /doc/administration/sql-scripts
+url: /doc/latest/administration/sql-scripts
 aliases: [ /tutorial/using-initialdata , /tutorial/using-initialdata/scripts , /tutorial/using-managed-sql , /tutorial/using-managed-sql/scripts ]
 description: "Details about how manage state and data using SQL scripts"
 showToc: true

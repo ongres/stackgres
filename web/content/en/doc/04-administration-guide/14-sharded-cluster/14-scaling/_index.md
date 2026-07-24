@@ -1,7 +1,7 @@
 ---
 title: Scaling Sharded Clusters
 weight: 14
-url: /doc/administration/sharded-cluster/scaling
+url: /doc/latest/administration/sharded-cluster/scaling
 description: How to scale sharded clusters by adding workers, replicas, or changing resources.
 showToc: true
 ---

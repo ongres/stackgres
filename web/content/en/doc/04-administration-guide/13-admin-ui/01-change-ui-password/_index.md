@@ -1,7 +1,7 @@
 ---
 title: Change Web Console's user credentials
 weight: 1
-url: /doc/administration/adminui/change/password
+url: /doc/latest/administration/adminui/change/password
 description: Changing the UI password.
 showToc: true
 ---

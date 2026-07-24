@@ -1,7 +1,7 @@
 ---
 title: Run FerretDB on top of StackGres
 weight: 7
-url: /doc/runbooks/ferretdb-stackgres
+url: /doc/latest/runbooks/ferretdb-stackgres
 description: How to run FerretDB on top of Stackgres
 showToc: true
 ---

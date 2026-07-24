@@ -1,7 +1,7 @@
 ---
 title: Extension Versions
 weight: 2
-url: /doc/administration/extensions/versions
+url: /doc/latest/administration/extensions/versions
 description: How extension versioning and channels work in StackGres.
 showToc: true
 ---

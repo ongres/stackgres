@@ -1,7 +1,7 @@
 ---
 title: Error Responses
 weight: 1
-url: /doc/api/responses/error
+url: /doc/latest/api/responses/error
 aliases: 
   - /07-developer-documentation/01-error-types
 description: Details about the Error Codes, PostgreSQL Blocklist settings, and forbidden actions.

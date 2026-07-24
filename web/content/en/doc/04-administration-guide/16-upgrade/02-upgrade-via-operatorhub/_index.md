@@ -1,7 +1,7 @@
 ---
 title: "Upgrade via OperatorHub"
 weight: 2
-url: /doc/administration/upgrade/operatorhub
+url: /doc/latest/administration/upgrade/operatorhub
 description: Details how to upgrade the operator with OperatorHub.
 showToc: true
 ---

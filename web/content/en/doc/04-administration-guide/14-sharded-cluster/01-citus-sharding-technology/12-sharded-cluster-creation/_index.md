@@ -1,7 +1,7 @@
 ---
 title: Creating a Sharded Cluster
 weight: 12
-url: /doc/administration/sharded-cluster/creation
+url: /doc/latest/administration/sharded-cluster/creation
 description: Details about how to create a production StackGres sharded cluster.
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: Customize Pods
 weight: 16
-url: /doc/features/customize-pods
+url: /doc/latest/features/customize-pods
 description: Customize Pods adding containers, env vars, volumes, volume mounts and ports
 ---
 

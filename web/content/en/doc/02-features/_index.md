@@ -2,7 +2,7 @@
 title: "Features"
 weight: 2
 chapter: true
-url: /doc/features
+url: /doc/latest/features
 aliases: [ /intro/features ]
 ---
 

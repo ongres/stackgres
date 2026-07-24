@@ -1,7 +1,7 @@
 ---
 title: Database Operations
 weight: 5
-url: /doc/administration/database-operations
+url: /doc/latest/administration/database-operations
 description: Run database maintenance operations on StackGres clusters using SGDbOps.
 ---
 

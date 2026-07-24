@@ -1,7 +1,7 @@
 ---
 title: Postgres Alerts
 weight: 4
-url: /doc/runbooks/postgres-alerts
+url: /doc/latest/runbooks/postgres-alerts
 description: How to add Postgres alerts to your Prometheus installation
 showToc: true
 ---

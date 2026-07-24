@@ -1,7 +1,7 @@
 ---
 title: SGShardedBackup
 weight: 6
-url: /doc/reference/crd/sgshardedbackup
+url: /doc/latest/reference/crd/sgshardedbackup
 description: Details about SGShardedBackup
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: "What is StackGres?"
 weight: 1
-url: /doc/intro/about
+url: /doc/latest/intro/about
 description: Details about what StackGres is.
 ---
 

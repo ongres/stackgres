@@ -1,7 +1,7 @@
 ---
 title: Exposing Sharded Cluster Services
 weight: 3
-url: /doc/administration/sharded-cluster/connection/exposed
+url: /doc/latest/administration/sharded-cluster/connection/exposed
 description: Describes how to connect on the sharded cluster exposing its services on the internet.
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: Service Binding
 weight: 7
-url: /doc/administration/cluster/connection/service-binding
+url: /doc/latest/administration/cluster/connection/service-binding
 description: How to use Service Binding spec to connect applications to StackGres clusters.
 showToc: true
 ---

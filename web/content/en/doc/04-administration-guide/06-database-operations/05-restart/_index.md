@@ -1,7 +1,7 @@
 ---
 title: Restart
 weight: 5
-url: /doc/administration/database-operations/restart
+url: /doc/latest/administration/database-operations/restart
 description: How to perform controlled restarts on StackGres clusters.
 showToc: true
 ---

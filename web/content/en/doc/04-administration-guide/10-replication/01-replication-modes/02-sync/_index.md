@@ -1,7 +1,7 @@
 ---
 title: Synchronous Replication Mode
 weight: 2
-url: /doc/administration/replication/modes/sync
+url: /doc/latest/administration/replication/modes/sync
 description: This section describes the involved steps and concepts of the sync replication mode.
 ---
 

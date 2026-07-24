@@ -1,7 +1,7 @@
 ---
 title: Sharding
 weight: 11
-url: /doc/features/sharding
+url: /doc/latest/features/sharding
 description: Create horizontally scalable PostgreSQL clusters with automatic sharding.
 ---
 

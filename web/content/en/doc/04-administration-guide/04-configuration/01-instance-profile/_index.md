@@ -1,7 +1,7 @@
 ---
 title: Instance Profile Configuration
 weight: 1
-url: /doc/administration/configuration/instance
+url: /doc/latest/administration/configuration/instance
 aliases: [ /tutorial/complete-cluster/instance-profile ]
 ---
 

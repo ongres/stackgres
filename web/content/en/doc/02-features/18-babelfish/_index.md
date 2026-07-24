@@ -1,7 +1,7 @@
 ---
 title: Babelfish for PostgreSQL
 weight: 18
-url: /doc/features/babelfish
+url: /doc/latest/features/babelfish
 description: T-SQL compatibility layer for PostgreSQL using Babelfish.
 ---
 

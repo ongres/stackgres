@@ -1,7 +1,7 @@
 ---
 title: Backups
 weight: 4
-url: /doc/administration/backups
+url: /doc/latest/administration/backups
 aliases: [ /install/prerequisites/backups , /tutorial/complete-cluster/backup-configuration ]
 description: Details about how to set up and configure backups.
 showToc: true

@@ -1,7 +1,7 @@
 ---
 title: OIDC Authentication
 weight: 5
-url: /doc/administration/security/oidc-authentication
+url: /doc/latest/administration/security/oidc-authentication
 description: How to configure OpenID Connect (OIDC) authentication for the StackGres Web Console.
 showToc: true
 ---

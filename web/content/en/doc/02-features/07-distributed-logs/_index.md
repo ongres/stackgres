@@ -1,7 +1,7 @@
 ---
 title: Distributed Logs
 weight: 7
-url: /doc/features/distributed-logs
+url: /doc/latest/features/distributed-logs
 description: Distributed logs for Postgres and Patroni
 ---
 

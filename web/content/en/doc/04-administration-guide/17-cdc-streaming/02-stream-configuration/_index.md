@@ -1,7 +1,7 @@
 ---
 title: Stream Configuration
 weight: 2
-url: /doc/administration/cdc-streaming/stream-configuration
+url: /doc/latest/administration/cdc-streaming/stream-configuration
 description: Advanced configuration options for SGStream including Debezium properties.
 ---
 

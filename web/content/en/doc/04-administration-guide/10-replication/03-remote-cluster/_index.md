@@ -1,7 +1,7 @@
 ---
 title: Remote Cluster
 weight: 2
-url: /doc/administration/replication/remote
+url: /doc/latest/administration/replication/remote
 description: This section explains how to set up external replication for clusters.
 showToc: true
 ---

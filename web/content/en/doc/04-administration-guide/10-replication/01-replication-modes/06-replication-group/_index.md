@@ -1,7 +1,7 @@
 ---
 title: Replication Group Mode
 weight: 6
-url: /doc/administration/replication/modes/replication-group
+url: /doc/latest/administration/replication/modes/replication-group
 description: This section describes the involved steps and concepts of the replication groups and roles.
 ---
 

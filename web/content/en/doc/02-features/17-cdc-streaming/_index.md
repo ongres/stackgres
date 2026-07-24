@@ -1,7 +1,7 @@
 ---
 title: CDC Streaming
 weight: 17
-url: /doc/features/cdc-streaming
+url: /doc/latest/features/cdc-streaming
 description: Change Data Capture (CDC) streaming with Debezium
 ---
 

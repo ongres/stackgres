@@ -1,7 +1,7 @@
 ---
 title: Credentials Management
 weight: 2
-url: /doc/administration/security/credentials
+url: /doc/latest/administration/security/credentials
 description: How to manage PostgreSQL credentials and secrets in StackGres.
 showToc: true
 ---

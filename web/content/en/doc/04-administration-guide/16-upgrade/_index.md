@@ -1,7 +1,7 @@
 ---
 title: "Upgrade"
 weight: 16
-url: /doc/administration/helm/upgrade
+url: /doc/latest/administration/helm/upgrade
 aliases: [ /install/helm/upgrade, /administration/helm/upgrade ]
 description: Details how to use Helm to upgrade the operator.
 showToc: true

@@ -1,7 +1,7 @@
 ---
 title: postgres_exporter
 weight: 2
-url: /doc/administration/monitoring/postgres_exporter
+url: /doc/latest/administration/monitoring/postgres_exporter
 aliases: [ /monitoring/metrics/postgres_exporter ]
 description: Contains details about the metrics collected by the postgres_exporter.
 showToc: true

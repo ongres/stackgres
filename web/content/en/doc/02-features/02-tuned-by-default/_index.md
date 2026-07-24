@@ -1,7 +1,7 @@
 ---
 title: Tuned by Default
 weight: 2
-url: /doc/features/tuned-by-default
+url: /doc/latest/features/tuned-by-default
 description: Expertly-tuned PostgreSQL by default
 ---
 

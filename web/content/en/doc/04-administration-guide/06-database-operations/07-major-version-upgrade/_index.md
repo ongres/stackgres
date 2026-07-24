@@ -1,7 +1,7 @@
 ---
 title: Major version upgrade
 weight: 14
-url: /doc/administration/database-operations/major-version-upgrade
+url: /doc/latest/administration/database-operations/major-version-upgrade
 aliases: [ /administration/major-version-upgrade ]
 description: Perform a postgres major version upgrade
 showToc: true

@@ -1,7 +1,7 @@
 ---
 title: Cluster Non-Production Options
 weight: 2
-url: /doc/administration/cluster-creation/nonproduction
+url: /doc/latest/administration/cluster-creation/nonproduction
 aliases: [ /install/prerequisites/nonproduction, /install/helm/nonproduction ]
 description: Important notes for non-production options in the production environment.
 ---

@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Non-Production Options
 weight: 2
-url: /doc/administration/sharded-cluster/creation/nonproduction
+url: /doc/latest/administration/sharded-cluster/creation/nonproduction
 description: Important notes for non-production options in the production environment.
 ---
 
