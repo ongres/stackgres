@@ -85,6 +85,19 @@ summaryLength = 30
             url     = "blog"
             weight  = 8
 
+        # Docs sidebar shortcuts EN
+        [[languages.en.menu.shortcuts]]
+            name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
+            identifier = "faq"
+            url = "doc/faq"
+            weight = 10
+
+        [[languages.en.menu.shortcuts]]
+            name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
+            identifier = "ds"
+            url = "https://gitlab.com/ongresinc/stackgres"
+            weight = 11
+
         # Product EN
         [[languages.en.menu.product]]
             name    = "Features"

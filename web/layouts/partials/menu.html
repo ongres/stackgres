@@ -10,15 +10,16 @@
 
   <div class="highlightable">
     <ul class="topics">
-        {{if eq .Site.Params.ordersectionsby "title"}}  
-          {{range .Site.Home.Sections.ByTitle}}
+        {{ $sectionRoot := or .FirstSection .Site.Home }}
+        {{if eq .Site.Params.ordersectionsby "title"}}
+          {{range $sectionRoot.Sections.ByTitle}}
           {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks}}
           {{end}}
         {{else}}
-          {{range .Site.Home.Sections.ByWeight}}
+          {{range $sectionRoot.Sections.ByWeight}}
           {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks}}
           {{end}}
-        {{end}} 
+        {{end}}
     </ul>
 
     {{ $disableShortcutsTitle := .Site.Params.DisableShortcutsTitle}}

@@ -313,6 +313,26 @@ repo**, branch `wip-unified-stackgres-website`, as **`web/`**.
   GitHub Actions (`.github/workflows/website-preview.yml`, for the eventual
   GitHub migration).
 
+### 17. Docs sidebar scoped to the doc section; shortcuts restored
+
+The sg-doc sidebar (`partials/menu.html`, project override) ranged over
+`.Site.Home.Sections` — correct on the standalone docs site where home is the
+docs root, but on the merged site it listed every top-level section (docs,
+Blog, Components Catalog, PGA Containers). Now it ranges over
+`.FirstSection.Sections` (the current page's top-level section), restoring the
+upstream sidebar: chapters only, numbered from "1. Introduction". Same
+section-aware pattern as the `ref`/`relref` overrides (step 13).
+
+The sidebar's shortcuts menu (FAQ, GitLab repo) came from the docs site's own
+config, discarded in the single-config merge (step 7) — re-added to
+`config.toml` as `[[languages.en.menu.shortcuts]]`, with the FAQ url moved
+from `faq` to `doc/faq` (`absLangURL` resolves it against the build's
+baseURL, so it works on any host).
+
+Deliberately NOT changed: menu urls pointing at `doc/latest` (e.g. the footer
+Resources menu). Public URLs must keep matching the live standalone site for
+SEO — see the `/doc/latest` item in "Known gaps / open items".
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
@@ -334,6 +354,13 @@ repo**, branch `wip-unified-stackgres-website`, as **`web/`**.
   longer hardcoded here: `layouts/partials/search.html` renders it from
   `data/doc_versions.yaml` (relURL paths, so it works on any host) — a
   per-version build should append entries there.
+- **`/doc/latest` URL compatibility (SEO).** The live site's canonical docs
+  URLs are `/doc/latest/...` (and `/doc/1.x/...`); the merged site serves docs
+  flat at `/doc/...` and has no `/doc/latest`. Before the unified site replaces
+  stackgres.io, those URLs must keep resolving (server redirects or Hugo
+  aliases), and internal links that point at `doc/latest` (footer Resources
+  menu) must keep working. Do not rewrite such urls to `doc` — public URL
+  parity with the standalone site is the constraint.
 - **Docs search.** sg-doc ships a lunr search fed by an `index.json` output on the
   docs *home* page. The merged site's home belongs to the main web; the docs
   section's JSON output needs rewiring (outputs config on the `doc` section).
