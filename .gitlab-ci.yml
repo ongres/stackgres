@@ -30,15 +30,34 @@ stages:
   - test
   - deploy
 
+# Set BUILD_GL_PAGES=true to create a pipeline that only builds and publishes
+# GitLab Pages (the jobs in .gitlab-ci/web.yml) — the product includes are
+# skipped entirely. See .gitlab-ci/web.yml for usage.
 include:
   - local: .gitlab-ci/pre-build.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/build.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/native-build.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/image-build.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/test.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/e2e-test.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/image-release.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/deploy.yml
+    rules:
+      - if: $BUILD_GL_PAGES != "true"
   - local: .gitlab-ci/web.yml
 
 workflow:

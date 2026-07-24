@@ -8,6 +8,18 @@
 #     publishes to GitLab Pages. Who can view Pages follows the project's
 #     Pages access control (Settings → General → Visibility).
 #
+# BUILD_GL_PAGES flag: by default these jobs run inside the full product
+# pipeline, and "pages" (deploy stage) waits for the earlier stages to
+# succeed. Set BUILD_GL_PAGES=true to get a GitLab-Pages-only pipeline
+# instead — the product includes are skipped at include level (see
+# .gitlab-ci.yml), so Pages builds and publishes without running or waiting on
+# the product jobs. Ways to set it:
+#   - one-off:    CI/CD → Pipelines → "New pipeline" → variable BUILD_GL_PAGES=true
+#   - with push:  git push -o ci.variable="BUILD_GL_PAGES=true"
+#   - permanent:  Settings → CI/CD → Variables → BUILD_GL_PAGES=true
+# The website build has no dependency on product-job artifacts: it uses the
+# committed web/ content plus the catalog API fetch below.
+#
 # Hugo is installed pinned from GitHub releases instead of using a hugomods
 # image: the build also runs web/scripts/fetch-catalog.py, which needs python3,
 # and the hugomods images don't guarantee it.
@@ -33,6 +45,7 @@
 build web:
   extends: .web hugo
   stage: test
+  needs: []
   rules:
     - changes:
         - web/**/*
@@ -48,6 +61,7 @@ build web:
 pages:
   extends: .web hugo
   stage: deploy
+  needs: []
   rules:
     - if: $CI_COMMIT_BRANCH == "wip-unified-stackgres-website"
       changes:
