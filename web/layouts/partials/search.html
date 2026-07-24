@@ -2,8 +2,9 @@
     <form>
         <label for="sgVersion">Docs Version</label>
         <select name="sgVersion" id="sgVersion">
-            <option value="https://stackgres.io/doc/0.9">0.9</option>
-            <option value="https://stackgres.io/doc/latest" selected>1.0</option>
+        {{- range .Site.Data.doc_versions.versions }}
+            <option value="{{ .path | relURL }}"{{ if .current }} selected{{ end }}>{{ .name }}{{ if .development }} (development){{ end }}</option>
+        {{- end }}
         </select>
         
         {{ if .Site.Params.isDevVersion }}

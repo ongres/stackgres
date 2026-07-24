@@ -324,10 +324,16 @@ repo**, branch `wip-unified-stackgres-website`, as **`web/`**.
 
 ## Known gaps / open items
 
-- **Docs versioning.** Upstream publishes docs per StackGres version
-  (`/doc/latest/`, `/doc/1.x/`) via `build.sh` + baseURL tricks. The merge flattens
-  this to a single unversioned `/doc/`. Decide: keep flat, or adopt the catalog's
-  `/v/<version>/` pattern for docs too.
+- **Docs versioning.** Upstream publishes docs per StackGres version: the
+  *web repo*'s `.gitlab-ci/build-doc.sh` clones this repo once per release
+  branch (list hardcoded in its `.gitlab-ci.yml` as `STACKGRES_REFS`), builds
+  the standalone doc site per version under `/doc/<v>/`, and rewrites the
+  theme's `search.html` to inject the version dropdown (stable →
+  `/doc/latest`). The merge flattens this to a single unversioned `/doc/`.
+  Decide: keep flat, or port the per-version build. The dropdown itself is no
+  longer hardcoded here: `layouts/partials/search.html` renders it from
+  `data/doc_versions.yaml` (relURL paths, so it works on any host) — a
+  per-version build should append entries there.
 - **Docs search.** sg-doc ships a lunr search fed by an `index.json` output on the
   docs *home* page. The merged site's home belongs to the main web; the docs
   section's JSON output needs rewiring (outputs config on the `doc` section).

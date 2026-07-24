@@ -1,0 +1,19 @@
+# Documentation versions built into THIS site — the docs version dropdown
+# (layouts/partials/search.html) renders exactly this list, nothing else.
+#
+# `path` is resolved with relURL, so navigation stays on the host serving the
+# site (hugo serve, GitLab Pages, GitHub Pages, stackgres.io) instead of
+# hardcoding absolute stackgres.io URLs like the old theme partial did.
+#
+# Today the merged site builds a single docs version: the current development
+# docs from this branch, flat at /doc/ (see SITES_MERGE_PLAYBOOK.md, "Docs
+# versioning" known gap). When per-version builds are added, append one entry
+# per published version (e.g. name: "1.18", path: "doc/1.18/").
+#
+# Keep `name` in sync with the repo version (stackgres-k8s/src/pom.xml,
+# major.minor) when the release cycle moves.
+versions:
+  - name: "1.20"
+    path: "doc/"
+    current: true
+    development: true
