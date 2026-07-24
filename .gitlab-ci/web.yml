@@ -46,6 +46,9 @@ build web:
   extends: .web hugo
   stage: test
   rules:
+    # an explicit BUILD_GL_PAGES=true always builds, even with no web/** diff
+    # (e.g. re-running a pipeline for an already-pushed commit)
+    - if: $BUILD_GL_PAGES == "true"
     - changes:
         - web/**/*
         - .gitlab-ci/web.yml
@@ -65,6 +68,7 @@ pages:
     # gets <meta name="robots" content="noindex, nofollow">
     HUGO_PARAMS_noindex: "true"
   rules:
+    - if: $CI_COMMIT_BRANCH == "wip-unified-stackgres-website" && $BUILD_GL_PAGES == "true"
     - if: $CI_COMMIT_BRANCH == "wip-unified-stackgres-website"
       changes:
         - web/**/*
