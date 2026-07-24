@@ -40,6 +40,8 @@ def rewrite_markdown(text: str, is_root_index: bool) -> tuple[str, int]:
     if is_root_index:
         if "url" not in fields:
             fields += 'url: /doc/latest/\naliases: ["/doc/"]\n'
+        if "outputs" not in fields:
+            fields += 'outputs: ["html", "searchindex"]\n'
         if "cascade" not in fields:
             fields += 'cascade:\n  type: "doc"\n'
     return opening + fields + closing + text[match.end():], count

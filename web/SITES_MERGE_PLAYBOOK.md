@@ -440,6 +440,25 @@ before `hugo`; outputs are gitignored (`web/.gitignore`). Notes:
   prefixed with the baseURL path (e.g. relref output) are left untouched —
   without it they were double-prefixed under a subpath.
 
+### 22. Docs search rewired to a doc-section index
+
+The lunr search 404'd: sg-doc emits the search index as the *site home's*
+JSON output (`themes/sg-doc/layouts/index.json` → `/index.json`), and the
+merged site's home belongs to the main web. Now the index is an output of the
+**doc section root** instead, named for its purpose:
+
+- `[outputFormats.SearchIndex]` in `config.toml` (baseName `search-index`) +
+  `outputs: ["html", "searchindex"]` on the doc root `_index.md` (injected by
+  `import-docs.py` on re-import) → `/doc/latest/search-index.json`.
+- `layouts/doc/list.searchindex.json` — the theme's index template scoped to
+  `Type == "doc"` pages only (the original indexed all site pages; correct
+  when the site was docs-only, wrong now).
+- `partials/search.html` sets the JS `baseurl` to the doc section root
+  (`.FirstSection.Permalink`) instead of the site base — this also makes
+  search.js's version-aware paths key off `latest` correctly.
+- `static/js/search.js` — project override of the theme copy with the three
+  `index.json` fetch paths renamed to `search-index.json`.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
@@ -468,9 +487,9 @@ before `hugo`; outputs are gitignored (`web/.gitignore`). Notes:
   a Hugo meta-refresh, not a real 301 — production needs the server-level
   redirect. Public URL parity with the standalone site is the constraint; never
   rewrite internal links away from live URLs.
-- **Docs search.** sg-doc ships a lunr search fed by an `index.json` output on the
-  docs *home* page. The merged site's home belongs to the main web; the docs
-  section's JSON output needs rewiring (outputs config on the `doc` section).
+- ~~**Docs search.**~~ — closed in step 22: the index is now a
+  `SearchIndex` output of the doc section root
+  (`/doc/latest/search-index.json`).
 - ~~**`__trash.md`** page in docs content renders as a page~~ — closed in
   step 16: `web/scripts/import-docs.py` excludes it on import.
 - **Absolute links inside content.** Root-relative content links are handled

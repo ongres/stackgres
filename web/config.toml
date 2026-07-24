@@ -11,6 +11,12 @@ summaryLength = 30
 # collide with the generated _index.md)
 ignoreFiles = ['_index\.template\.md$']
 
+# lunr search index of the docs section (fetched by js/search.js), emitted at
+# /doc/latest/search-index.json by the doc root's outputs front matter
+[outputFormats.SearchIndex]
+  mediaType = "application/json"
+  baseName = "search-index"
+
 [taxonomies]
     planet = "planet"
     tag = "tags"

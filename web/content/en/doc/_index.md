@@ -2,6 +2,7 @@
 title: "StackGres Docs"
 url: /doc/latest/
 aliases: ["/doc/"]
+outputs: ["html", "searchindex"]
 cascade:
   type: "doc"
 ---
