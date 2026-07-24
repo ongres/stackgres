@@ -45,7 +45,6 @@
 build web:
   extends: .web hugo
   stage: test
-  needs: []
   rules:
     - changes:
         - web/**/*
@@ -61,7 +60,10 @@ build web:
 pages:
   extends: .web hugo
   stage: deploy
-  needs: []
+  variables:
+    # the Pages preview must never be indexed by search engines — every page
+    # gets <meta name="robots" content="noindex, nofollow">
+    HUGO_PARAMS_noindex: "true"
   rules:
     - if: $CI_COMMIT_BRANCH == "wip-unified-stackgres-website"
       changes:
@@ -80,6 +82,9 @@ pages:
     # Pages serves the site under the project subpath (or a unique domain);
     # $CI_PAGES_URL is correct in both cases.
     - hugo --source web --minify --baseURL "$CI_PAGES_URL"
+    # vendored library demo page — not a rendered page, so the noindex meta
+    # can't reach it; drop it from the preview
+    - rm -f web/public/js/html5lightbox/icons/demo.html
     # GitLab Pages publishes the artifact directory named "public" at repo root
     - mv web/public public
   artifacts:

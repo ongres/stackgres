@@ -7,9 +7,9 @@
 	<title>{{ .Site.Params.projectName }}{{ if .Title }} | {{ .Title }}{{ else if .IsHome }} | {{ T "homeTitle" }} {{ end }}</title>
 	<meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ T "siteDescription" }}{{ end }}">
 	<meta name="author" content="https://ongres.com">
-	{{ if and site.Params.previewgate (ne .Type "containers") }}<meta name="robots" content="noindex, nofollow">
-	<script src="{{ "js/preview-gate.js" | relURL }}"></script>
-	{{ end }}{{ block "head-seo" . }}{{ if not site.Params.previewgate }}<meta name="robots" content="index, follow">{{ end }}{{ end }}
+	{{ if or site.Params.previewgate site.Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ end }}
+	{{ if and site.Params.previewgate (ne .Type "containers") }}<script src="{{ "js/preview-gate.js" | relURL }}"></script>
+	{{ end }}{{ block "head-seo" . }}{{ if not (or site.Params.previewgate site.Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}{{ end }}
 
 	{{ if .IsTranslated }}
 	    {{ range .Translations }}

@@ -1,6 +1,6 @@
 {{- /* head-seo block for catalog pages: canonical + catalog assets + JSON-LD.
      Single live catalog version → everything is indexable. */ -}}
-{{ if not site.Params.previewgate }}<meta name="robots" content="index, follow">{{ end }}
+{{ if not (or site.Params.previewgate site.Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}
 <link rel="canonical" href="{{ .Permalink }}">
 <link rel="stylesheet" href="{{ "catalog/css/main.css" | relURL }}">
 

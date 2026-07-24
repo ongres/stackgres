@@ -459,6 +459,28 @@ merged site's home belongs to the main web. Now the index is an output of the
 - `static/js/search.js` — project override of the theme copy with the three
   `index.json` fetch paths renamed to `search-index.json`.
 
+### 23. Preview builds are never search-indexed
+
+The GitLab Pages preview must not appear in search engines. Pages can't set
+HTTP headers and a project subpath can't own the domain's robots.txt, so the
+guarantee is `<meta name="robots" content="noindex, nofollow">` on **every**
+page, toggled by a new `noindex` site param (set as `HUGO_PARAMS_noindex=true`
+in the `pages` CI job only; production builds are unaffected and identical).
+
+The old `previewgate` param already emitted the meta but is entangled with the
+passcode gate script — the two are now separate concerns (`previewgate`
+implies noindex; `noindex` alone adds no gate). Coverage needed four spots:
+the baseof + catalog `seo-meta.html` + doc header (conditionalized), a
+project `layouts/alias.html` (Hugo's embedded alias template emits no robots
+meta in modern Hugo), and a project `layouts/404.html` (the theme hardcodes
+`index, follow`). The vendored `html5lightbox/icons/demo.html` static file is
+`rm`'d in the pages job (not a rendered page). Verified: preview build has 0
+pages without noindex; production build has 0 pages with it.
+
+Also removed here: leftover unconditional `needs: []` on the web jobs (from
+an earlier iteration — independence from the product pipeline is opt-in via
+`BUILD_GL_PAGES`, step 16's CI note).
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)

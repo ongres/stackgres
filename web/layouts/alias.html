@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.LanguageCode }}">
+  <head>
+    <title>{{ .Permalink }}</title>
+    <link rel="canonical" href="{{ .Permalink }}">
+    <meta charset="utf-8">
+    {{ if or site.Params.previewgate site.Params.noindex }}<meta name="robots" content="noindex, nofollow">
+    {{ end }}<meta http-equiv="refresh" content="0; url={{ .Permalink }}">
+  </head>
+</html>

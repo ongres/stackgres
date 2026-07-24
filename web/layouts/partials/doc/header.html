@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="{{ .Page.Language | default "en" }}" class="js csstransforms3d">
   <head>
-    {{ if site.Params.previewgate }}<meta name="robots" content="noindex, nofollow">
-    <script src="{{ "js/preview-gate.js" | relURL }}"></script>
+    {{ if or site.Params.previewgate site.Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ end }}
+    {{ if site.Params.previewgate }}<script src="{{ "js/preview-gate.js" | relURL }}"></script>
     {{ end }}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
