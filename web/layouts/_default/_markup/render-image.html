@@ -1,5 +1,6 @@
 {{- $dest := .Destination -}}
-{{- if and (hasPrefix $dest "/") (not (hasPrefix $dest "//")) -}}
+{{- $basePath := (urls.Parse site.BaseURL).Path -}}
+{{- if and (hasPrefix $dest "/") (not (hasPrefix $dest "//")) (not (hasPrefix $dest $basePath)) -}}
   {{- $dest = strings.TrimPrefix "/" $dest | relURL -}}
 {{- end -}}
 <img src="{{ $dest | safeURL }}" alt="{{ .PlainText }}"{{ with .Title }} title="{{ . }}"{{ end }}>

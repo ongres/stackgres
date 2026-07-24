@@ -411,6 +411,35 @@ Still open: ~300 absolute `https://stackgres.io/...` self-links in content —
 they always point at the production site, so subpath previews silently jump
 to live (and many target old docs URL schemes). See "Known gaps / open items".
 
+### 21. Generated docs content: CRD reference, helm parameters, data files
+
+The import (step 16) silently lost every docs page that upstream *generates*
+at build time: `doc/build.sh` produces the CRD reference `_index.md` files
+(crdoc over the operator CRDs), the helm operator-parameters page
+(helm-docs), the Hugo data files (`versions.yml`, `crds/`, default values —
+several sg-doc shortcodes read these and were rendering empty), and the
+Operator API swagger (`sg-swagger.yaml`). Those outputs were gitignored in
+`doc/`, so they never traveled.
+
+Fix: `web/scripts/generate-docs.sh` — a port of `doc/build.sh` pointed at
+`web/` (this resolves the "repoint build.sh" follow-up from step 16). Run it
+before `hugo`; outputs are gitignored (`web/.gitignore`). Notes:
+
+- `_index.template.md` files are splice sources, not pages — added
+  `ignoreFiles` to `config.toml`, or their `url:` fields collide with the
+  generated pages (latent upstream too; exposed by modern Hugo).
+- Swagger source order: real `swagger-merged.yaml` from the operator build
+  (production path) → `$SG_SWAGGER_DOWNLOAD_URL` snapshot (PREVIEW ONLY — the
+  GitLab Pages job downloads the live site's copy) → skip with a warning.
+- The `pages` CI job installs pinned yq/crdoc/helm-docs and runs the script;
+  the production build path is unchanged and must supply the real swagger.
+- The generated CRD pages carry the live URL scheme
+  (`/doc/latest/reference/crd/...`), so content links that targeted it now
+  resolve instead of falling back.
+- The markdown render hooks (step 20) gained a guard: destinations already
+  prefixed with the baseURL path (e.g. relref output) are left untouched —
+  without it they were double-prefixed under a subpath.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)

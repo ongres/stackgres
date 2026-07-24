@@ -1,5 +1,6 @@
 {{- $dest := .Destination -}}
-{{- if and (hasPrefix $dest "/") (not (hasPrefix $dest "//")) -}}
+{{- $basePath := (urls.Parse site.BaseURL).Path -}}
+{{- if and (hasPrefix $dest "/") (not (hasPrefix $dest "//")) (not (hasPrefix $dest $basePath)) -}}
   {{- $parts := split $dest "#" -}}
   {{- $path := index $parts 0 -}}
   {{- $anchor := cond (gt (len $parts) 1) (printf "#%s" (index $parts 1)) "" -}}

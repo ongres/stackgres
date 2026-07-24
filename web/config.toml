@@ -7,6 +7,9 @@ enableEmoji = true
 enableRobotsTXT = true
 summaryLength = 30
 # ignoreErrors = ["error-disable-taxonomy"]
+# splice sources for scripts/generate-docs.sh, not pages (their url: would
+# collide with the generated _index.md)
+ignoreFiles = ['_index\.template\.md$']
 
 [taxonomies]
     planet = "planet"
