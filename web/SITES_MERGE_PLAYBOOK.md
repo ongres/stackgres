@@ -365,6 +365,35 @@ both gates now test "is the docs section root" (`.RelPermalink` vs
 home. `layouts/doc/list.html` renders the sidebar-toggle span on the section
 root, as the theme's `index.html` did for the standalone home.
 
+### 20. Template URLs made baseURL-subpath-safe
+
+On GitLab Pages the site serves under a subpath
+(`https://ongresinc.gitlab.io/stackgres/`), which exposed template URLs that
+resolve against the host root instead of the baseURL. Two Hugo pitfalls:
+literal `href="/"` / root-relative hrefs, and `relURL`/`relLangURL` fed a
+path with a **leading slash** (returned unchanged instead of prefixed with
+the baseURL path). Fixed:
+
+- `partials/header-menu.html` — both logo links (`href="/"` →
+  `.Site.Home.RelPermalink`); this was the docs-pages logo pointing at the
+  domain root.
+- `partials/web/footer.html` — OnGres/KCSP logo images, Privacy/Cookies links.
+- `layouts/catalog/list.html` + `partials/catalog/breadcrumbs.html` — all
+  `printf "/catalog/…" | relURL` prefixes lost the subpath; leading slash
+  dropped.
+- Blog tag links (`"/blog/tags/" | relLangURL`) — theme templates, overridden
+  as project copies (`layouts/blog/single.html`, `layouts/_default/summary.html`)
+  with the slash dropped.
+
+Rule for new templates: never pass a leading-slash path to relURL/relLangURL,
+never hardcode root-relative hrefs. Audit after building with a subpath
+baseURL: `grep -rhoE '(href|src|action)="/[^"]*"' public | grep -v '="/<subpath>'`.
+
+Content-level hard-coded root-relative links (~150: blog post images under
+`/img/blog/`, docs links to `/doc/latest/...` or old content paths) are NOT
+templates and were left as-is — they work at domain root and only misbehave on
+subpath previews. See the absolute-link item in "Known gaps / open items".
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
@@ -398,9 +427,13 @@ root, as the theme's `index.html` did for the standalone home.
   section's JSON output needs rewiring (outputs config on the `doc` section).
 - ~~**`__trash.md`** page in docs content renders as a page~~ — closed in
   step 16: `web/scripts/import-docs.py` excludes it on import.
-- **Absolute links inside content.** Some docs/blog pages may hard-code
-  `https://stackgres.io/...` or root-relative paths; only refs via shortcodes were
-  rewritten. Grep pass pending.
+- **Absolute links inside content.** Some docs/blog pages hard-code
+  `https://stackgres.io/...` or root-relative paths; only refs via shortcodes
+  were rewritten. Step 20's audit counted ~150 root-relative refs in content
+  (blog images under `/img/blog/`, docs links to `/doc/latest/...`, plus some
+  pointing at old standalone content paths that 404 everywhere, e.g.
+  `/doc/06-crd-reference/...`). Fine at domain root, broken on subpath
+  previews (GitLab Pages). Grep/rewrite pass pending.
 - **RSS/sitemap dedup** between the three sections was not reviewed.
 - **CI/deploy.** Each source repo had its own pipeline; the umbrella needs one
   (build + link-check + deploy).

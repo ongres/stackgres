@@ -1,0 +1,83 @@
+{{ define "main" }}
+<article id="post" class="sectionPad">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 col-md-4">
+                <strong class="h1 textGradient">Blog</strong><br/><br/><br/>
+                <div class="postDetails fixOnScroll">
+                    <div class="postTags">
+                        {{ range .Params.tags }}
+                            <a href="{{ "blog/tags/" | relLangURL }}{{ . | urlize }}">{{ . }}</a>
+                        {{ end }}
+                    </div>
+                    <h1 class="postTitle h2">{{ .Title }}</h1>
+                    <span class="postDate">Published on <time>{{ .PublishDate.Format "January 2, 2006" }}</time></span>
+                    <div class="postShare">
+                        <a href="http://twitter.com/share?text={{ .Title }}&url={{ .Permalink }}" target="_blank">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63" height="63" viewBox="0 0 63 63"><defs><linearGradient id="a" x1="0.082" x2="0.918" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#fabe25"/><stop offset="1" stop-color="#fffc66"/></linearGradient><filter id="b" x="0" y="0" width="63" height="63" filterUnits="userSpaceOnUse"><feOffset dy="3" input="SourceAlpha"/><feGaussianBlur stdDeviation="3" result="c"/><feFlood flood-opacity="0.149"/><feComposite operator="in" in2="c"/><feComposite in="SourceGraphic"/></filter></defs><g transform="translate(-158 -958)"><g transform="matrix(1, 0, 0, 1, 158, 958)" filter="url(#b)"><circle cx="22.5" cy="22.5" r="22.5" transform="translate(9 6)" fill="url(#a)"/></g><path d="M18.784,7.618c.013.186.013.372.013.558A12.124,12.124,0,0,1,6.589,20.384,12.125,12.125,0,0,1,0,18.458a8.876,8.876,0,0,0,1.036.053,8.593,8.593,0,0,0,5.327-1.833A4.3,4.3,0,0,1,2.351,13.7a5.411,5.411,0,0,0,.81.066,4.538,4.538,0,0,0,1.129-.146A4.291,4.291,0,0,1,.85,9.412V9.359A4.321,4.321,0,0,0,2.79,9.9,4.3,4.3,0,0,1,1.461,4.164a12.2,12.2,0,0,0,8.847,4.49,4.844,4.844,0,0,1-.106-.983,4.295,4.295,0,0,1,7.426-2.936A8.448,8.448,0,0,0,20.351,3.7a4.279,4.279,0,0,1-1.886,2.365A8.6,8.6,0,0,0,20.936,5.4a9.223,9.223,0,0,1-2.152,2.218Z" transform="translate(180 975.619)" fill="#060528"/></g></svg>
+                        </a>
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ .Permalink }}&title={{ .Title }}&summary={{ .Summary }}&source={{ .Site.Params.companyname }}" target="_blank">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63" height="63" viewBox="0 0 63 63"><defs><linearGradient id="a" x1="0.082" x2="0.918" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#fabe25"/><stop offset="1" stop-color="#fffc66"/></linearGradient><filter id="b" x="0" y="0" width="63" height="63" filterUnits="userSpaceOnUse"><feOffset dy="3" input="SourceAlpha"/><feGaussianBlur stdDeviation="3" result="c"/><feFlood flood-opacity="0.149"/><feComposite operator="in" in2="c"/><feComposite in="SourceGraphic"/></filter></defs><g transform="translate(-225 -943)"><g transform="matrix(1, 0, 0, 1, 225, 943)" filter="url(#b)"><circle cx="22.5" cy="22.5" r="22.5" transform="translate(9 6)" fill="url(#a)"/></g><path d="M4.477,20H.33V6.648H4.477ZM2.4,4.826A2.413,2.413,0,1,1,4.8,2.4,2.422,2.422,0,0,1,2.4,4.826ZM20,20H15.858V13.5c0-1.549-.031-3.536-2.156-3.536-2.156,0-2.486,1.683-2.486,3.424V20H7.074V6.648h3.977V8.469h.058a4.357,4.357,0,0,1,3.923-2.156c4.2,0,4.968,2.763,4.968,6.353V20Z" transform="translate(247 960)" fill="#060528"/></g></svg>
+                        </a>
+                        <a data-href="{{ .Permalink }}" class="shareUrl" onclick="copyUrl()" data-tooltip="Copied to Clipboard!">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63" height="63" viewBox="0 0 63 63"><defs><linearGradient id="a" x1="0.082" x2="0.918" y2="1" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#fabe25"/><stop offset="1" stop-color="#fffc66"/></linearGradient><filter id="b" x="0" y="0" width="63" height="63" filterUnits="userSpaceOnUse"><feOffset dy="3" input="SourceAlpha"/><feGaussianBlur stdDeviation="3" result="c"/><feFlood flood-opacity="0.149"/><feComposite operator="in" in2="c"/><feComposite in="SourceGraphic"/></filter></defs><g transform="translate(-286 -939)"><g transform="matrix(1, 0, 0, 1, 286, 939)" filter="url(#b)"><circle cx="22.5" cy="22.5" r="22.5" transform="translate(9 6)" fill="url(#a)"/></g><path d="M12.12,6.88a5.638,5.638,0,0,1,.013,7.963l-.013.014L9.627,17.35A5.641,5.641,0,0,1,1.65,9.373L3.027,8a.593.593,0,0,1,1.013.394,6.838,6.838,0,0,0,.36,1.956.6.6,0,0,1-.14.616l-.486.486a2.672,2.672,0,1,0,3.754,3.8l2.494-2.493a2.671,2.671,0,0,0,0-3.779,2.78,2.78,0,0,0-.384-.318.6.6,0,0,1-.258-.468,1.478,1.478,0,0,1,.434-1.106l.781-.781a.6.6,0,0,1,.764-.064,5.658,5.658,0,0,1,.762.638Zm5.23-5.23a5.647,5.647,0,0,0-7.977,0L6.88,4.143l-.013.014a5.642,5.642,0,0,0,.775,8.6.6.6,0,0,0,.764-.064l.781-.781a1.478,1.478,0,0,0,.434-1.106.6.6,0,0,0-.258-.468,2.78,2.78,0,0,1-.384-.318,2.671,2.671,0,0,1,0-3.779l2.494-2.493a2.672,2.672,0,1,1,3.754,3.8l-.486.486a.6.6,0,0,0-.14.616,6.838,6.838,0,0,1,.36,1.956A.593.593,0,0,0,15.973,11L17.35,9.626a5.647,5.647,0,0,0,0-7.977Z" transform="translate(308 958)" fill="#060528"/></g></svg>
+                        </a>
+                    </div>
+                    
+                    {{ range $index, $val := .Params.author }}
+                        <div class="postAuthor">
+                        {{ with (index $.Site.Data.authors $val) }}
+                            <figure class="authorImg">
+                                <img src="{{ .pic | relURL  }}" alt="Author: {{ .name }}" />
+                            </figure>
+                            <p class="authorInfo">
+                                <span class="name">{{ .name }}</span><br/>
+                                <span class="position">{{ .position }}</span><br/>
+                                
+                                {{ if .twitter }}
+                                    <a href="https://twitter.com/{{ .twitter }}" title="Twitter: {{ .twitter }}" target="_blank" class="arrow">
+                                        Twitter
+                                    </a>
+                                {{ end }}
+
+                                {{ if .linkedin }}
+                                    <a href="https://www.linkedin.com/in/{{ .linkedin }}/" title="LinkedIn: {{ .linkedin }}" target="_blank" class="arrow">
+                                        LinkedIn
+                                    </a>
+                                {{ end }}
+                            </p>
+                            <div class="clearfix"></div>
+                        {{ end }}
+                        </div>
+                    {{ end }}
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-8 postContent">
+                {{ if .Params.thumbnail }}
+                    <img src="{{ .Params.thumbnail | relURL }}" alt="{{ .Title }}" class="fullSize border postImg">
+                {{ end }}
+                <br/><br/>
+                {{ .Content }}
+            </div>
+        </div>
+    </div>
+</article>
+
+{{- partial "foot.html" . -}}
+
+<!-- postgresqlco.nf tooltip -->
+<script src="https://postgresqlco.nf/assets/snippet/postgresqlco.nf.docs.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+
+        // Send any external link to a new tab
+        $("#post a").filter(function() {
+            return this.hostname != window.location.hostname;
+        }).attr('target', '_blank');
+
+        // postgresqlco.nf tooltip
+        document.addEventListener('DOMContentLoaded', () => CONF.init('.postContent'), false);
+    })
+</script>
+{{ end }}

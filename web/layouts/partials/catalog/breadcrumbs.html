@@ -5,10 +5,10 @@
 {{- $titles := dict "flavor" "Postgres flavors" "extension" "Extensions" "addon" "Addons" -}}
 {{- if or $category $component -}}
 <nav class="catalog-breadcrumbs" aria-label="Breadcrumb">
-  <a href="{{ "/catalog/" | relURL }}">Components Catalog</a>
+  <a href="{{ "catalog/" | relURL }}">Components Catalog</a>
   {{ if $component }}
     <span class="crumb-sep" aria-hidden="true">›</span>
-    <a href="{{ printf "/catalog/%s/" $category | relURL }}">{{ index $titles $category | default $category }}</a>
+    <a href="{{ printf "catalog/%s/" $category | relURL }}">{{ index $titles $category | default $category }}</a>
     <span class="crumb-sep" aria-hidden="true">›</span>
     <span class="crumb-current" aria-current="page">{{ $component }}</span>
   {{ else }}

@@ -13,7 +13,7 @@
   <div class="component-grid">
     {{ if eq $category "flavor" }}
       {{ range $api.flavors }}
-        <a class="component-card" href="{{ printf "/catalog/flavor/%s/" .name | relURL }}">
+        <a class="component-card" href="{{ printf "catalog/flavor/%s/" .name | relURL }}">
           <div class="component-card-name">{{ .name }}</div>
           <p class="component-card-desc">{{ .description }}</p>
           <div class="component-card-meta">
@@ -23,7 +23,7 @@
       {{ end }}
     {{ else if eq $category "extension" }}
       {{ range $api.extensions }}
-        <a class="component-card" href="{{ printf "/catalog/extension/%s/" .name | relURL }}">
+        <a class="component-card" href="{{ printf "catalog/extension/%s/" .name | relURL }}">
           <div class="component-card-name">{{ .name }}</div>
           <p class="component-card-desc">{{ .metadata.description }}</p>
           <div class="component-card-meta">
@@ -34,7 +34,7 @@
       {{ end }}
     {{ else if eq $category "addon" }}
       {{ range $api.addons }}
-        <a class="component-card" href="{{ printf "/catalog/addon/%s/" .name | relURL }}">
+        <a class="component-card" href="{{ printf "catalog/addon/%s/" .name | relURL }}">
           <div class="component-card-name">{{ .name }}</div>
           {{ with index .versions 0 }}
             <p class="component-card-desc">{{ .longDescription | default .description }}</p>
@@ -61,7 +61,7 @@
   }}
   <div class="category-grid">
     {{ range $cards }}
-      <a class="category-card" href="{{ printf "/catalog/%s/" .id | relURL }}">
+      <a class="category-card" href="{{ printf "catalog/%s/" .id | relURL }}">
         <div class="category-card-title">{{ .name }}</div>
         <div class="category-card-count">{{ .count }} component{{ if ne .count 1 }}s{{ end }}</div>
         <p style="margin-top:0.6rem; font-size:0.85rem; color:hsl(var(--muted-foreground))">{{ .desc }}</p>
