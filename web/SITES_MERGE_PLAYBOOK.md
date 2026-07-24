@@ -306,9 +306,12 @@ repo**, branch `wip-unified-stackgres-website`, as **`web/`**.
   the full pre-move git history): the superseded `components-catalog/`
   standalone mock and the GitHub-workflow iterations; its
   `.github/workflows/website-preview.yml` was adapted for this repo.
-- CI added here: GitLab (`.gitlab-ci/web.yml` include, build + artifact on
-  `web/**` changes) and GitHub Actions (`.github/workflows/website-preview.yml`,
-  for the eventual GitHub migration).
+- CI added here: GitLab (`.gitlab-ci/web.yml` include — `build web` artifact
+  job on `web/**` changes for every branch, plus a `pages` job on the website
+  branch publishing to GitLab Pages with `--baseURL "$CI_PAGES_URL"`; the
+  templates are subpath-safe, verified with a subpath baseURL build) and
+  GitHub Actions (`.github/workflows/website-preview.yml`, for the eventual
+  GitHub migration).
 
 ## Verified
 

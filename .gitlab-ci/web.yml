@@ -1,39 +1,67 @@
-# Build of the unified website under web/ (see web/SITES_MERGE_PLAYBOOK.md).
+# Build and publish the unified website under web/ (see web/SITES_MERGE_PLAYBOOK.md).
 #
-# Runs only when web/** (or this file) changes, so product pipelines are
-# unaffected. The built site is published as a job artifact — browsable via
-# GitLab's artifact browser as a members-only preview. GitLab Pages can come
-# later.
+# Jobs run only when web/** (or this file) changes, so product pipelines are
+# unaffected:
+#   - "build web": every branch — builds the site and keeps web/public as a
+#     job artifact (browsable via GitLab's artifact browser, members-only).
+#   - "pages": the website branch only — rebuilds against $CI_PAGES_URL and
+#     publishes to GitLab Pages. Who can view Pages follows the project's
+#     Pages access control (Settings → General → Visibility).
 #
 # Hugo is installed pinned from GitHub releases instead of using a hugomods
 # image: the build also runs web/scripts/fetch-catalog.py, which needs python3,
 # and the hugomods images don't guarantee it.
 
-build web:
+.web hugo:
   image: python:3.12-slim
-  stage: test
   variables:
     HUGO_VERSION: "0.152.2"
   tags:
     - stackgres-runner-v2
     - linux-amd64
-  rules:
-    - changes:
-        - web/**/*
-        - .gitlab-ci/web.yml
-  script:
+  before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl ca-certificates git
     - curl -fsSL "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz" | tar -xz -C /usr/local/bin hugo
     - hugo version
     # API failure must not fail the build — falls back to the committed snapshot
     - python3 web/scripts/fetch-catalog.py || echo "API unreachable — building from committed snapshot"
-    # baseURL "/" so the artifact browses correctly via GitLab's artifact browser
-    - hugo --source web --minify --baseURL "/"
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ]
+
+build web:
+  extends: .web hugo
+  stage: test
+  rules:
+    - changes:
+        - web/**/*
+        - .gitlab-ci/web.yml
+  script:
+    # baseURL "/" so the artifact browses correctly via GitLab's artifact browser
+    - hugo --source web --minify --baseURL "/"
   artifacts:
     expire_in: 14 days
     paths:
       - web/public
+
+pages:
+  extends: .web hugo
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "wip-unified-stackgres-website"
+      changes:
+        - web/**/*
+        - .gitlab-ci/web.yml
+  script:
+    # Pages serves the site under the project subpath (or a unique domain);
+    # $CI_PAGES_URL is correct in both cases.
+    - hugo --source web --minify --baseURL "$CI_PAGES_URL"
+    # GitLab Pages publishes the artifact directory named "public" at repo root
+    - mv web/public public
+  artifacts:
+    paths:
+      - public
+  environment:
+    name: web-preview
+    url: $CI_PAGES_URL
