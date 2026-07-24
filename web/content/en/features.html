@@ -25,7 +25,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p>StackGres is a complete Postgres solution, integrating several components, with expertly tuned configurations.</p>
                         <p>For advanced Postgres users, it allows you to further customize the components and configurations. Configurations are fully validated, not a simple ConfigMap that may break your cluster if you set it wrongly. See for example how to tune <a href="https://stackgres.io/doc/latest/reference/crd/sgpgconfig/" target="_blank">Postgres</a> or <a href="https://stackgres.io/doc/latest/reference/crd/sgpoolconfig/" target="_blank">Connection Pool</a> configurations. As for Kubernetes, you can customize <a href="https://stackgres.io/doc/latest/administration/customize/exposed/services/" target="_blank">the services exposed</a>, the pod’s <a href="https://stackgres.io/doc/latest/administration/labels/customize/" target="_blank">labels</a> and <a href="https://stackgres.io/doc/latest/administration/support/tolerations/" target="_blank">node tolerations</a>, among many others.</p>
                         <p>You are in full control.</p>
-                        <a class="btn" href="/doc/latest/administration/custom/postgres/config/">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/administration/custom/postgres/config/" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="automated-failover">
@@ -40,7 +40,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p><strong>StackGres integrates the most renowned and production-tested high availability software for Postgres: <a href="https://github.com/zalando/patroni" target="_blank">Patroni</a>.</strong></p>
                         <p>It’s fully integrated, there’s nothing else to do. If any pod, any node, anything fails, in a matter of seconds the cluster will reheal automatically, without human intervention.</p>
                         <p>StackGres exposes one read-write (always pointing to the master) and one read-only (load balancer distributing load to replicas) connection for the applications, that will automatically be updated after any disruptive event happens.</p>
-                        <a class="btn" href="/doc/latest/administration/patroni/management/">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/administration/patroni/management/" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="automated-backups">
@@ -55,7 +55,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p>Backups are a critical part of a database, and are key to any Disaster Recovery strategy. <strong>StackGres includes backups based on continuous archiving, which allows for zero data loss recovery and PITR</strong> (restore a database into an arbitrary past instant of time).</p>
                         <p>StackGres also provides automated lifecycle management of the backups. And backups are always stored in the most durable media available today: cloud object storage like <a href="https://aws.amazon.com/s3/" target="_blank">Amazon’s S3</a>, <a href="https://cloud.google.com/products/storage" target="_blank">Google Cloud Storage</a> or <a href="https://azure.microsoft.com/en-us/services/storage/blobs/" target="_blank">Azure Blob</a>. If you are running on prem, you can use <a href="https://min.io/" target="_blank">Minio</a> or other S3-compatible software to store your backups.</p>
                         <p>Just provide your bucket access information and credentials, configure the retention window, and everything else is fully transparent and automated. You can also create manual backups with a simple YAML file at any time.</p>
-                        <a class="btn" href="/doc/latest/reference/crd/sgbackupconfig/">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/sgbackupconfig/" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="web-console">
@@ -97,7 +97,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p>All batteries included. StackGres comes with a fully-featured web console that allows you to read any information and perform any operation that you could do with kubectl and the provided CRDs.</p>
                         <p>You just need to decide how to expose it (e.g. as a LoadBalancer) and get the default admin credentials. <a href="https://stackgres.io/doc/latest/install/post/install/" target="_blank">Learn more</a>. Moreover, the web console relies on Kubernetes RBAC for user authentication, so you can trivially give access and permissions to any Kubernetes existing user. </p>
                         <p><strong>Oh, and supports both light and dark modes!</strong></p>
-                        <a class="btn" href="/doc/latest/install/post/install/#connect-to-the-ui">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/install/post/install/#connect-to-the-ui" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="prometheus-integration">
@@ -129,7 +129,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p><strong>Query the logs with SQL, from a centralized location! StackGres supports centralized, distributed logs</strong>. With a simple YAML-based CRD, or from the web console, you can create a <a href="https://stackgres.io/doc/latest/administration/cluster/distributedlogs/" target="_blank">Distributed Log Cluster</a> in seconds. Then <a href="https://stackgres.io/doc/latest/reference/crd/sgcluster/#distributed-logs" target="_blank">reference it from the cluster(s) you create</a>.</p>
                         <p>Both Postgres and Patroni logs will be captured via a <a href="https://fluentbit.io/" target="_blank">FluentBit</a> sidecar, which will forward them to the distributed log server. It contains in turn a <a href="https://www.fluentd.org/" target="_blank">Fluentd</a> collector that <strong> forwards the logs to a dedicated Postgres database! To support high log volume ingestion, this log-dedicated database is enhanced via the great <a href="https://www.timescale.com/" target="_blank">TimescaleDB extension</a></strong> (open source version), on which StackGres also relies to perform log retention policies.</p>
                         <p><strong>Query your logs with SQL to unleash the full DBA potential. Or visualize them on the web console</strong>, which includes search and filter capabilities. All logs are enhanced with very rich metadata. Postgres troubleshooting, we’ve got you covered.</p>
-                        <a class="btn" href="/doc/latest/reference/crd/sgdistributedlogs/">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/sgdistributedlogs/" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="management-crds">
@@ -150,7 +150,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p>Moreover, the CRDs are designed to be very high level, and abstract away (hide) all Postgres complexities. <strong>With StackGres, if you know kubectl and CRDs, you have become a Postgres expert too.</strong></p>
                         <p>Being CRDs the StackGres interface, and not requiring any external tool, enables you to have all your Postgres clusters coded as IaC (Infrastructure as Code), and potentially versioned control on Git. This further enables <a href="https://www.gitops.tech/" target="_blank">GitOps</a>, where your clusters can be managed automatically when you commit changes to the CRDs on the Git repository.</p>
                         <p>Yet if visual UI is preferred over YAML files and command line, every action that you can query or perform with the CRDs, can be also performed from the web console. Likewise, any action performed from the web console will be automatically reflected in the CRDs. Choice is yours.</p>
-                        <a class="btn" href="/doc/latest/reference/crd/">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="connection-pooling">
@@ -166,7 +166,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
                         <p><strong>StackGres comes by default with integrated server-side connection pooling. It is deployed as a sidecar to the Postgres container.</strong> Server-side pooling enables controlling the connections fan-in, that is, the incoming connections to Postgres, and making sure Postgres is not overwhelmed with traffic that may cause significant performance degradation.</p>
                         <p>You can tune the low-level configuration or even entirely disable connection pooling (see <a href="https://stackgres.io/doc/latest/reference/crd/sgpoolconfig/" target="_blank">PoolConfig CRD</a>), and of course manage it from the web console.</p>
                         <p>StackGres also exports relevant connection pooling metrics to Prometheus, and specialized dashboards are shown in the Grafana integrated into the web console.</p>
-                        <a class="btn" href="/DOC/latest/reference/crd/sgpoolconfig/">Learn more</a>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/sgpoolconfig/" >}}">Learn more</a>
                     </div>
                 </li>
                 <li class="row align-items-center" id="envoy-proxy">
@@ -224,7 +224,7 @@ description: "A stack of PostgreSQL components carefully selected and tuned. Dis
         <div class="row sectionPad">
             <div class="col-sm-12 textCenter">
                 <h3 class="h2">Install StackGres now!</h3>
-                <a href="/install" class="btn">Install Stackgres</a>
+                <a href="{{< relurl "install" >}}" class="btn">Install Stackgres</a>
             </div>
         </div>
     </div>

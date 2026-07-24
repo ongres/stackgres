@@ -1,0 +1,12 @@
+{{- $dest := .Destination -}}
+{{- if and (hasPrefix $dest "/") (not (hasPrefix $dest "//")) -}}
+  {{- $parts := split $dest "#" -}}
+  {{- $path := index $parts 0 -}}
+  {{- $anchor := cond (gt (len $parts) 1) (printf "#%s" (index $parts 1)) "" -}}
+  {{- with .Page.Site.GetPage $path -}}
+    {{- $dest = printf "%s%s" .RelPermalink $anchor -}}
+  {{- else -}}
+    {{- $dest = printf "%s%s" (strings.TrimPrefix "/" $path | relLangURL) $anchor -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $dest | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text }}</a>

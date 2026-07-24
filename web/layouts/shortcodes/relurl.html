@@ -1,0 +1,3 @@
+{{- /* Resolve a site-internal path against the build's baseURL so links stay
+     correct when the site is served under a subpath. */ -}}
+{{- .Get 0 | relLangURL -}}

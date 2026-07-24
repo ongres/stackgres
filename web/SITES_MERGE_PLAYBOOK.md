@@ -389,10 +389,27 @@ Rule for new templates: never pass a leading-slash path to relURL/relLangURL,
 never hardcode root-relative hrefs. Audit after building with a subpath
 baseURL: `grep -rhoE '(href|src|action)="/[^"]*"' public | grep -v '="/<subpath>'`.
 
-Content-level hard-coded root-relative links (~150: blog post images under
-`/img/blog/`, docs links to `/doc/latest/...` or old content paths) are NOT
-templates and were left as-is — they work at domain root and only misbehave on
-subpath previews. See the absolute-link item in "Known gaps / open items".
+Content-level root-relative links (~150) were then cleaned too, without
+rewriting URLs (output at domain root is byte-identical):
+
+- **Markdown render hooks** (`layouts/_default/_markup/render-{link,image}.html`)
+  rewrite every markdown link/image at render time: root-relative destinations
+  are resolved via `.Site.GetPage` (content-path links become real page URLs)
+  or, failing that, prefixed with the baseURL path via relLangURL. Covers all
+  blog/docs markdown.
+- **`relurl` shortcode** (`layouts/shortcodes/relurl.html`) for raw-HTML
+  content, where hooks don't reach: 13 links across `features.html`,
+  `support.html`, `install.html` converted to
+  `href="{{</* relurl "install" */>}}"` (also fixing a `/DOC/latest` case typo).
+  Note the older `sitebaseurl` shortcode (used by `features.html` images)
+  already solved the same problem with absolute URLs; `relurl` is the
+  relative-URL equivalent.
+- Zero-offender audit passes with a subpath baseURL; only remnant is the dead
+  `html5shim.googlecode.com` script in an IE<9 conditional (also on live).
+
+Still open: ~300 absolute `https://stackgres.io/...` self-links in content —
+they always point at the production site, so subpath previews silently jump
+to live (and many target old docs URL schemes). See "Known gaps / open items".
 
 ## Verified
 
@@ -427,13 +444,13 @@ subpath previews. See the absolute-link item in "Known gaps / open items".
   section's JSON output needs rewiring (outputs config on the `doc` section).
 - ~~**`__trash.md`** page in docs content renders as a page~~ — closed in
   step 16: `web/scripts/import-docs.py` excludes it on import.
-- **Absolute links inside content.** Some docs/blog pages hard-code
-  `https://stackgres.io/...` or root-relative paths; only refs via shortcodes
-  were rewritten. Step 20's audit counted ~150 root-relative refs in content
-  (blog images under `/img/blog/`, docs links to `/doc/latest/...`, plus some
-  pointing at old standalone content paths that 404 everywhere, e.g.
-  `/doc/06-crd-reference/...`). Fine at domain root, broken on subpath
-  previews (GitLab Pages). Grep/rewrite pass pending.
+- **Absolute links inside content.** Root-relative content links are handled
+  (step 20: render hooks + `relurl` shortcode). Still pending: ~300 unique
+  hard-coded `https://stackgres.io/...` self-links in content — not broken
+  (they always hit production), but subpath previews silently navigate to the
+  live site, and many target old docs URL schemes (`/doc/latest/reference/...`)
+  that only resolve via the live site's redirect-to-docs-home fallback.
+  Converting them to `relurl`/markdown links is a mechanical follow-up pass.
 - **RSS/sitemap dedup** between the three sections was not reviewed.
 - **CI/deploy.** Each source repo had its own pipeline; the umbrella needs one
   (build + link-check + deploy).
