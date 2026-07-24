@@ -1,5 +1,11 @@
 {{ partial "header.html" . }}
 
+{{ if eq .RelPermalink .FirstSection.RelPermalink }}
+<span id="sidebar-toggle-span">
+<a href="#" id="sidebar-toggle" data-sidebar-toggle=""><i class="fas fa-bars"></i> navigation</a>
+</span>
+{{end}}
+
 {{ if eq .Kind "section" }}
 	{{ .Content }}
 {{end}}

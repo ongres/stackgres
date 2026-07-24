@@ -352,6 +352,19 @@ stackgres.io, where canonical docs URLs are `/doc/latest/...` and `/doc/`
 
 Re-importing docs re-applies all of this (the rewrite lives in the script).
 
+### 19. Docs headings/breadcrumbs de-homed
+
+More home-based logic in the sg-doc templates (same family as step 17): the
+doc header partial suppressed the top-bar/breadcrumbs and the `<h1>` page
+title via `.IsHome`, and the breadcrumb recursion climbed to the site home —
+whose empty title rendered a leading `"> "` on every crumb. On the merged site
+the docs root is a section page, not home, so the root wrongly showed a
+breadcrumb and a "StackGres Docs" H1. Fixes in `partials/doc/header.html`:
+both gates now test "is the docs section root" (`.RelPermalink` vs
+`.FirstSection`), and the breadcrumb stops at the section root instead of site
+home. `layouts/doc/list.html` renders the sidebar-toggle span on the section
+root, as the theme's `index.html` did for the standalone home.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)

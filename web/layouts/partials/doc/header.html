@@ -46,7 +46,8 @@
         <section id="body">
           <div id="overlay"></div>
           <div class="padding highlightable">
-                {{if not .IsHome}}
+                {{ $isDocRoot := eq .RelPermalink .FirstSection.RelPermalink }}
+                {{if not $isDocRoot}}
                 <div>
                   <div id="top-bar">
                   {{ if and (or .IsPage .IsSection) .Site.Params.editURL }}
@@ -90,7 +91,7 @@
             <div id="chapter">
           {{ end }}
           <div id="body-inner">
-            {{if and (not .IsHome) (not .Params.chapter) }}
+            {{if and (not $isDocRoot) (not .Params.chapter) }}
               <h1>
                 {{ if eq .Kind "taxonomy" }}
                   {{.Kind}} ::
@@ -101,7 +102,7 @@
 
           {{define "breadcrumb"}}
             {{$parent := .page.Parent }}
-            {{ if $parent }}
+            {{ if and $parent (not $parent.IsHome) }}
               {{ $value := (printf "<a href='%s'>%s</a> > <span class='currentPage'>%s</span>" $parent.RelPermalink $parent.Title .value) }}
               {{ template "breadcrumb" dict "page" $parent "value" $value }} 
             {{else}}
