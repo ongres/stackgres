@@ -481,6 +481,23 @@ Also removed here: leftover unconditional `needs: []` on the web jobs (from
 an earlier iteration — independence from the product pipeline is opt-in via
 `BUILD_GL_PAGES`, step 16's CI note).
 
+### 24. Docs asset diet: conditional swagger/mermaid, one jQuery
+
+sg-doc loaded swagger-ui (two JS bundles + CSS, twice) and mermaid on every
+docs page; exactly one page uses swagger (`sg-swaggerui` shortcode on the API
+reference) and none currently use mermaid. The doc header/footer partials now
+gate those assets with `.HasShortcode`. The docs' jQuery 3.3.1 was replaced by
+the main site's 3.4.1 (one jQuery site-wide; the theme's 3.3.1 file is
+unreferenced). Also fixed the `sg-swaggerui` shortcode (project override): it
+built the spec URL as `BaseURL + "/sg-swagger.yaml"`, which yields the
+protocol-relative `//sg-swagger.yaml` when baseURL is `/` (artifact preview) —
+now `relURL`, correct for every baseURL shape.
+
+Found while verifying, NOT fixed here: the vendored swagger-ui is a 3.x-era
+build and rejects the operator's OpenAPI **3.1** spec ("Unable to render this
+definition") — **the live stackgres.io API reference page is broken the same
+way**. Fix = vendor swagger-ui v5 (supports 3.1). Recorded under known gaps.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
@@ -522,5 +539,11 @@ an earlier iteration — independence from the product pipeline is opt-in via
   that only resolve via the live site's redirect-to-docs-home fallback.
   Converting them to `relurl`/markdown links is a mechanical follow-up pass.
 - **RSS/sitemap dedup** between the three sections was not reviewed.
+- **Operator API reference doesn't render** (pre-existing, also broken on
+  live stackgres.io): the operator's swagger is OpenAPI 3.1, the vendored
+  swagger-ui bundle only supports ≤3.0. Upgrade to swagger-ui v5 (drop-in:
+  `swagger-ui-bundle.js`, `swagger-ui-standalone-preset.js`,
+  `swagger-ui.css` as project static overrides; the shortcode API is
+  unchanged in v5).
 - **CI/deploy.** Each source repo had its own pipeline; the umbrella needs one
   (build + link-check + deploy).

@@ -23,9 +23,9 @@
     {{with .Site.Params.themeVariant}}
       <link href="{{(printf "css/theme-%s.css" .) | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
     {{end}}
-    <link href="{{ "css/swagger-ui.css" | relURL }}" rel="stylesheet" type="text/css">
+    {{ if .HasShortcode "sg-swaggerui" }}<link href="{{ "css/swagger-ui.css" | relURL }}" rel="stylesheet" type="text/css">{{ end }}
 
-    <script src="{{"js/jquery-3.3.1.min.js"| relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
+    <script src="{{"js/jquery-3.4.1.min.js"| relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
 
     <style>
       :root #header + #content > #left > #rlblock_left{
