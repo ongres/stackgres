@@ -493,10 +493,13 @@ built the spec URL as `BaseURL + "/sg-swagger.yaml"`, which yields the
 protocol-relative `//sg-swagger.yaml` when baseURL is `/` (artifact preview) —
 now `relURL`, correct for every baseURL shape.
 
-Found while verifying, NOT fixed here: the vendored swagger-ui is a 3.x-era
-build and rejects the operator's OpenAPI **3.1** spec ("Unable to render this
+Found while verifying: the theme's vendored swagger-ui is a 3.x-era build and
+rejects the operator's OpenAPI **3.1** spec ("Unable to render this
 definition") — **the live stackgres.io API reference page is broken the same
-way**. Fix = vendor swagger-ui v5 (supports 3.1). Recorded under known gaps.
+way**. Fixed by vendoring swagger-ui **5.32.11** as project static overrides
+(`static/js/swagger-ui-bundle.js`, `static/js/swagger-ui-standalone-preset.js`,
+`static/css/swagger-ui.css` — shadowing the theme copies; the shortcode init
+API is unchanged in v5). The API reference renders fully again.
 
 ## Verified
 
@@ -539,11 +542,9 @@ way**. Fix = vendor swagger-ui v5 (supports 3.1). Recorded under known gaps.
   that only resolve via the live site's redirect-to-docs-home fallback.
   Converting them to `relurl`/markdown links is a mechanical follow-up pass.
 - **RSS/sitemap dedup** between the three sections was not reviewed.
-- **Operator API reference doesn't render** (pre-existing, also broken on
-  live stackgres.io): the operator's swagger is OpenAPI 3.1, the vendored
-  swagger-ui bundle only supports ≤3.0. Upgrade to swagger-ui v5 (drop-in:
-  `swagger-ui-bundle.js`, `swagger-ui-standalone-preset.js`,
-  `swagger-ui.css` as project static overrides; the shortcode API is
-  unchanged in v5).
+- ~~**Operator API reference doesn't render**~~ — closed in step 24:
+  swagger-ui upgraded to 5.32.11 (project static overrides), renders the
+  operator's OpenAPI 3.1 spec. Note the live standalone site remains broken
+  until this merges.
 - **CI/deploy.** Each source repo had its own pipeline; the umbrella needs one
   (build + link-check + deploy).
