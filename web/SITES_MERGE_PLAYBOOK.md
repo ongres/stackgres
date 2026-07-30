@@ -501,6 +501,29 @@ way**. Fixed by vendoring swagger-ui **5.32.11** as project static overrides
 `static/css/swagger-ui.css` — shadowing the theme copies; the shortcode init
 API is unchanged in v5). The API reference renders fully again.
 
+### 25. Enterprise pricing calculator → `/enterprise-pricing-calculator/`
+
+The standalone pricing configurator (`pricing/cotizador-stackgres.html` in the
+sibling checkout; single self-contained HTML file) merged as ONE leaf content
+page, `content/en/enterprise-pricing-calculator.html`, rendered through the
+theme's default single template (which is just `.Content` in the site chrome)
+— no new layouts or partials. Transformations applied:
+
+- **Site chrome + styling**: dropped its own topbar brand, aura/grid
+  backgrounds and Google-Fonts loads; all CSS scoped under `#epc` (step-15
+  prefixer method) with the palette remapped BY ROLE to site tokens
+  (`--accent→--lBlue`, `--pg→--blue`, `--surface→--activeBg`, …) and fonts to
+  Exo 2 / Ubuntu Mono. Visual fine-tuning pending.
+- **No-expiry default**: `LINK.validUntil` defaults empty — badges, fine-print
+  and the blocking "expired" overlay only appear when a per-client link sets
+  `?valid=YYYY-MM-DD` (the file used to hard-expire on 2026-08-06). Client-side
+  expiry is presentational only; real gating stays in the (separate) JWT layer.
+- **Per-page noindex**: the baseof now honors a `noindex: true` front-matter
+  param (generic mechanism); this page sets it pending the public-vs-gated
+  pricing decision.
+- All Spanish comments translated to English (i18n UI strings EN/ES kept — a
+  feature). The `/pricing` alias (→ support) is untouched.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)

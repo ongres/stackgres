@@ -1,0 +1,1384 @@
+---
+title: "StackGres Enterprise Pricing"
+url: /enterprise-pricing-calculator/
+description: "StackGres Enterprise pricing configurator"
+noindex: true
+---
+
+<div id="epc">
+<style>
+
+/* =====================================================================
+   OnGres + StackGres pricing configurator, embedded in the website chrome.
+   Styling: site palette and fonts via CSS variables mapped by role below.
+   Price source: official Excel "StackGres_Enterprise-Pricing_Calculator
+   TEMPLATE" (graduated bracket model) + Catalog v1.0.0 (consulting,
+   Non Prod, Marketing Agreement).
+   Three clearly separated service lines:
+   - OnGres PostgreSQL Support -> blue accent (--pg)
+   - StackGres Enterprise      -> cyan accent (--accent)
+   - OnGres Consulting         -> green accent (--ok)
+   Secure access (JWT, unique link) lives in the Next.js layer.
+   ===================================================================== */
+#epc{
+  --bg:var(--darkBlue);
+  --surface:var(--activeBg);
+  --surface-2:var(--inputBg);
+  --border:var(--borderColor);
+  --text:var(--textColor);
+  --text-2:#9BA6B4;
+  --text-3:#5E6875;
+  --accent:var(--lBlue);      /* StackGres */
+  --accent-2:var(--blue);
+  --pg:var(--blue);           /* OnGres PostgreSQL Support */
+  --pg-2:#33A8FF;
+  --ok:var(--green);          /* Consulting / success */
+  --warn:var(--lOrange);
+  --grad:linear-gradient(90deg,var(--accent-2),var(--accent));
+  --grad-pg:linear-gradient(90deg,#0074CC,var(--pg-2));
+  --grad-ok:linear-gradient(90deg,#1FB57C,var(--ok));
+  --f-display:'Exo 2',sans-serif;
+  --f-body:'Exo 2',sans-serif;
+  --f-mono:'Ubuntu Mono',monospace;
+  --r:16px;
+}
+#epc *{box-sizing:border-box;margin:0;padding:0}
+#epc{scroll-behavior:smooth}
+#epc{
+  color:var(--text);font-family:var(--f-body);line-height:1.55;
+}
+#epc a{color:inherit;text-decoration:none}
+#epc button{font-family:inherit}
+#epc ::selection{background:rgba(4,223,253,.28);color:#fff}
+#epc :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+#epc .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+/* ---------- Top toolbar ---------- */
+#epc .topbar{border-bottom:1px solid var(--border)}
+#epc .tb-in{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 24px;max-width:1180px;margin:0 auto}
+#epc .brand{font-family:var(--f-display);font-weight:800;font-size:21px;letter-spacing:.2px;white-space:nowrap;display:flex;align-items:baseline;gap:12px}
+#epc .brand b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+#epc .brand span{color:var(--text-3);font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;transform:translateY(-1px)}
+#epc .tb-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+#epc .badge{font-family:var(--f-mono);font-size:11.5px;color:var(--text-2);border:1px solid var(--border);border-radius:999px;padding:6px 13px;background:var(--surface);white-space:nowrap}
+#epc .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+#epc .seg button{background:transparent;color:var(--text-3);border:none;font-family:var(--f-mono);font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;transition:background .15s,color .15s}
+#epc .seg button:hover{color:var(--text-2)}
+#epc .seg button.on{background:var(--accent);color:#031318;font-weight:700}
+
+/* ---------- Hero ---------- */
+#epc .hero{position:relative;padding:78px 24px 42px}
+#epc .eyebrow{font-family:var(--f-mono);font-size:12.5px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+#epc .eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--text-3);flex:none}
+#epc .eyebrow .muted{color:var(--text-3)}
+#epc .pulse{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none;position:relative}
+#epc .pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--ok);opacity:.6;animation:ping 2.2s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ping{80%,100%{transform:scale(2.1);opacity:0}}
+#epc h1{font-family:var(--f-display);font-weight:800;font-size:clamp(32px,5.2vw,60px);line-height:1.04;letter-spacing:-.02em;margin:22px 0 0;max-width:880px}
+#epc h1 .u{position:relative;white-space:nowrap}
+#epc h1 .u::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:5px;background:var(--grad);border-radius:3px;box-shadow:0 0 22px rgba(4,223,253,.45)}
+#epc h1 .gx{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+#epc .tagline{font-family:var(--f-display);font-weight:700;font-size:clamp(17px,2.4vw,23px);color:var(--text-2);margin-top:20px;letter-spacing:-.01em}
+#epc .tagline + .sub{margin-top:14px}
+#epc .sub{color:var(--text-2);font-size:clamp(15px,1.6vw,17.5px);max-width:700px;margin-top:26px}
+#epc .hero-actions{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}
+#epc .btn-primary{display:inline-flex;align-items:center;gap:9px;background:var(--grad);color:#031318;font-family:var(--f-display);font-weight:800;font-size:15px;letter-spacing:.02em;padding:15px 26px;border-radius:12px;border:none;cursor:pointer;transition:transform .16s,filter .16s;box-shadow:0 10px 34px -14px rgba(4,223,253,.55)}
+#epc .btn-primary:hover{transform:translateY(-2px);filter:brightness(1.07)}
+#epc .btn-ghost{display:inline-flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);color:var(--text-2);font-family:var(--f-display);font-weight:700;font-size:15px;padding:15px 24px;border-radius:12px;cursor:pointer;transition:border-color .16s,color .16s,transform .16s}
+#epc .btn-ghost:hover{border-color:var(--text-3);color:var(--text);transform:translateY(-2px)}
+
+/* Service-line cards in the hero */
+#epc .dual{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:48px;max-width:880px}
+@media(max-width:700px){#epc .dual{grid-template-columns:1fr}}
+#epc .dcard{position:relative;background:rgba(16,19,25,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;overflow:hidden}
+#epc .dcard::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+#epc .dcard.pg::before{background:var(--grad-pg)}
+#epc .dcard.sg::before{background:var(--grad)}
+#epc .dcard .dk{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+#epc .dcard.pg .dk{color:var(--pg-2)}
+#epc .dcard.sg .dk{color:var(--accent)}
+#epc .dcard .dn{font-family:var(--f-display);font-weight:800;font-size:19px}
+#epc .dcard .dd{color:var(--text-2);font-size:13px;margin-top:6px}
+
+/* ---------- Clouds strip ---------- */
+#epc .clouds{padding:26px 24px 8px}
+#epc .clouds-in{border-top:1px solid var(--border);padding-top:26px;padding-bottom:6px}
+#epc .clouds-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:16px}
+#epc .clouds-row{display:flex;gap:10px;flex-wrap:wrap}
+#epc .cloud{font-family:var(--f-display);font-weight:700;font-size:13.5px;color:var(--text-3);border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:9px 16px;transition:color .2s,border-color .2s}
+#epc .cloud:hover{color:var(--text-2);border-color:var(--text-3)}
+
+/* ---------- Configurator ---------- */
+#epc .conf-head{padding:60px 24px 8px}
+#epc .sec-h{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,3.4vw,36px);letter-spacing:-.015em;line-height:1.12}
+#epc .sec-sub{color:var(--text-2);font-size:15.5px;margin-top:12px;max-width:640px}
+#epc .grid{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:26px;padding:28px 24px 90px;align-items:start;max-width:1180px;margin:0 auto}
+@media(max-width:980px){#epc .grid{grid-template-columns:1fr;gap:18px}}
+#epc .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:26px;position:relative;overflow:hidden}
+#epc .card + .card{margin-top:18px}
+#epc .card.pgline::before, #epc .card.sgline::before, #epc .card.okline::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+#epc .card.pgline::before{background:var(--grad-pg)}
+#epc .card.sgline::before{background:var(--grad)}
+#epc .card.okline::before{background:var(--grad-ok)}
+#epc .step{display:flex;align-items:baseline;gap:13px;margin-bottom:20px}
+#epc .step .n{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--accent);border:1px solid rgba(4,223,253,.3);border-radius:8px;padding:3px 9px;background:rgba(4,223,253,.07);flex:none}
+#epc .step h2{font-family:var(--f-display);font-weight:700;font-size:18.5px;letter-spacing:-.01em}
+#epc .hint{color:var(--text-3);font-size:13px;margin-top:3px}
+
+/* Product block header */
+#epc .phead{display:flex;align-items:flex-start;gap:13px;margin-bottom:6px}
+#epc .pico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;border:1px solid var(--border)}
+#epc .pico svg{width:18px;height:18px}
+#epc .pico.pg{color:var(--pg-2);background:rgba(0,146,255,.09);border-color:rgba(0,146,255,.3)}
+#epc .pico.sg{color:var(--accent);background:rgba(4,223,253,.07);border-color:rgba(4,223,253,.3)}
+#epc .pico.ok{color:var(--ok);background:rgba(47,230,160,.07);border-color:rgba(47,230,160,.3)}
+#epc .phead h2{font-family:var(--f-display);font-weight:700;font-size:18.5px}
+#epc .phead .by{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+#epc .phead .by.pg{color:var(--pg-2)}
+#epc .phead .by.sg{color:var(--accent)}
+#epc .phead .by.ok{color:var(--ok)}
+
+/* Step: environment */
+#epc .cores-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+#epc .num{width:138px;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:var(--f-mono);font-size:24px;font-weight:600;padding:12px 14px;text-align:center;transition:border-color .15s}
+#epc .num:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(4,223,253,.14)}
+#epc input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:210px;height:6px;border-radius:6px;background:var(--surface-2);outline:none;border:1px solid var(--border)}
+#epc input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 5px rgba(4,223,253,.16),0 0 18px rgba(4,223,253,.5)}
+#epc input[type=range]::-moz-range-thumb{width:22px;height:22px;border:none;border-radius:50%;background:var(--accent);cursor:pointer}
+#epc .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+#epc .preset{font-family:var(--f-mono);font-size:12.5px;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:6px 13px;cursor:pointer;transition:all .15s}
+#epc .preset:hover{color:var(--text);border-color:var(--text-3)}
+#epc .preset.on{color:var(--accent);border-color:rgba(4,223,253,.45);background:rgba(4,223,253,.08)}
+#epc .bracket-line{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13.5px;color:var(--text-2)}
+#epc .chip{font-family:var(--f-mono);font-size:12px;border:1px solid var(--border);border-radius:8px;padding:5px 11px;background:var(--surface-2);color:var(--text);white-space:nowrap}
+#epc .chip.cy{color:var(--accent);border-color:rgba(4,223,253,.35)}
+#epc .chip.bl{color:var(--pg-2);border-color:rgba(0,146,255,.4)}
+#epc .chip.wr{color:var(--warn);border-color:rgba(255,138,61,.4)}
+#epc .notice{margin-top:14px;font-size:13px;color:var(--warn);display:none;padding:11px 14px;border:1px solid rgba(255,138,61,.35);background:rgba(255,138,61,.07);border-radius:10px}
+#epc .notice.show{display:block}
+
+/* Product selection */
+#epc .prodsel{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:640px){#epc .prodsel{grid-template-columns:1fr}}
+#epc .pcard{position:relative;background:var(--surface-2);border:1.5px solid var(--border);border-radius:13px;padding:18px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s}
+#epc .pcard:hover{transform:translateY(-2px)}
+#epc .pcard .top{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+#epc .pcard .cb{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#031318;transition:all .18s;flex:none}
+#epc .pcard .pn{font-family:var(--f-display);font-weight:700;font-size:16px}
+#epc .pcard .pd{color:var(--text-3);font-size:12.5px}
+#epc .pcard.on{border-width:1.5px}
+#epc .pcard.on.pgp{border-color:rgba(0,146,255,.6);background:linear-gradient(160deg,rgba(0,146,255,.12),var(--surface-2) 70%);box-shadow:0 12px 36px -20px rgba(0,146,255,.55)}
+#epc .pcard.on.pgp .cb{background:var(--pg);border-color:var(--pg)}
+#epc .pcard.on.sgp{border-color:rgba(4,223,253,.6);background:linear-gradient(160deg,rgba(4,223,253,.09),var(--surface-2) 70%);box-shadow:0 12px 36px -20px rgba(4,223,253,.5)}
+#epc .pcard.on.sgp .cb{background:var(--accent);border-color:var(--accent)}
+#epc .pcard.on .pd{color:var(--text-2)}
+
+/* Option cards (SLA / edition) */
+#epc .optgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+@media(max-width:680px){#epc .optgrid{grid-template-columns:1fr}}
+#epc .ed{position:relative;background:var(--surface-2);border:1px solid var(--border);border-radius:13px;padding:17px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s,opacity .18s}
+#epc .ed:hover{transform:translateY(-2px);border-color:#2f3743}
+#epc .ed.disabled{opacity:.38;cursor:not-allowed}
+#epc .ed.disabled:hover{transform:none}
+#epc .ed .tag{display:inline-block;font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);border:1px solid var(--border);border-radius:6px;padding:2.5px 7px;margin-bottom:10px}
+#epc .ed .name{font-family:var(--f-display);font-weight:700;font-size:15.5px}
+#epc .ed .rate{font-family:var(--f-mono);font-size:21px;font-weight:700;margin-top:9px;letter-spacing:-.01em}
+#epc .ed .rate small{font-size:11px;color:var(--text-3);font-weight:500}
+#epc .ed .sla{margin-top:10px;font-size:12px;color:var(--text-2);display:flex;flex-direction:column;gap:4px}
+#epc .ed .sla .b{font-family:var(--f-mono);color:var(--text)}
+#epc .ed .feat{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:12px;display:flex;align-items:flex-start;gap:7px}
+#epc .ed .feat.mut{color:var(--text-3)}
+#epc .ed .check{position:absolute;top:13px;right:13px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:#031318;transition:all .18s}
+/* StackGres variant (cyan) */
+#epc .ed.cy.sel{border-color:rgba(4,223,253,.65);background:linear-gradient(160deg,rgba(0,146,255,.1),rgba(4,223,253,.05) 55%,var(--surface-2));box-shadow:0 0 0 1px rgba(4,223,253,.5) inset,0 14px 40px -20px rgba(4,223,253,.5)}
+#epc .ed.cy.sel .check{background:var(--accent);border-color:var(--accent)}
+#epc .ed.cy.sel .tag{color:var(--accent);border-color:rgba(4,223,253,.4)}
+#epc .ed.cy .feat:not(.mut){color:var(--accent)}
+/* PostgreSQL variant (blue) */
+#epc .ed.bl.sel{border-color:rgba(0,146,255,.7);background:linear-gradient(160deg,rgba(0,146,255,.13),var(--surface-2) 65%);box-shadow:0 0 0 1px rgba(0,146,255,.55) inset,0 14px 40px -20px rgba(0,146,255,.55)}
+#epc .ed.bl.sel .check{background:var(--pg);border-color:var(--pg);color:#fff}
+#epc .ed.bl.sel .tag{color:var(--pg-2);border-color:rgba(0,146,255,.45)}
+#epc .ed.bl .feat:not(.mut){color:var(--pg-2)}
+
+/* Toggle */
+#epc .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+#epc .toggle-row .lbl{font-size:14.5px;font-weight:500}
+#epc .toggle-row .lbl small{display:block;color:var(--text-3);font-size:12.5px;margin-top:4px;font-weight:400;max-width:470px}
+#epc .switch{position:relative;width:54px;height:29px;flex:none;cursor:pointer}
+#epc .switch input{opacity:0;width:0;height:0}
+#epc .track{position:absolute;inset:0;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;transition:.2s}
+#epc .knob{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:var(--text-3);transition:.2s}
+#epc .switch input:checked + .track{background:rgba(255,138,61,.16);border-color:rgba(255,138,61,.55)}
+#epc .switch input:checked + .track .knob{left:28px;background:var(--warn)}
+#epc .switch.cySwitch input:checked + .track{background:rgba(4,223,253,.16);border-color:rgba(4,223,253,.55)}
+#epc .switch.cySwitch input:checked + .track .knob{left:28px;background:var(--accent);box-shadow:0 0 12px rgba(4,223,253,.6)}
+
+/* Bracket breakdown */
+#epc .bd{margin-top:20px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+#epc .bd .bd-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-2);border-bottom:1px solid var(--border);font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+#epc .tbl-scroll{overflow-x:auto}
+#epc table{width:100%;border-collapse:collapse;font-size:13.5px}
+#epc th, #epc td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+#epc th:first-child, #epc td:first-child{text-align:left}
+#epc th{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3)}
+#epc td{color:var(--text-2)}
+#epc td.v{font-family:var(--f-mono);color:var(--text)}
+#epc td.vb{font-family:var(--f-mono);color:var(--pg-2);font-weight:600}
+#epc td.vc{font-family:var(--f-mono);color:var(--accent);font-weight:600}
+#epc td.vw{font-family:var(--f-mono);color:var(--warn);font-weight:600}
+#epc tr:last-child td{border-bottom:none}
+#epc tfoot td{background:var(--surface-2);font-weight:600;color:var(--text)}
+#epc .matrix{margin-top:16px}
+#epc .matrix summary{cursor:pointer;font-family:var(--f-mono);font-size:12.5px;color:var(--text-3);list-style:none;display:inline-flex;align-items:center;gap:8px;transition:color .15s}
+#epc .matrix summary:hover{color:var(--accent)}
+#epc .matrix summary::before{content:"+";font-weight:700;color:var(--accent)}
+#epc .matrix[open] summary::before{content:"-"}
+#epc .matrix .tbl-scroll{margin-top:12px;border:1px solid var(--border);border-radius:12px}
+#epc tr.on td{background:rgba(4,223,253,.05)}
+#epc tr.on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+#epc .matrix-note{color:var(--text-3);font-size:12px;margin-top:10px}
+
+/* Included-hours box */
+#epc .hourbox{display:none;align-items:center;gap:15px;padding:15px 18px;border:1px solid rgba(255,138,61,.4);background:linear-gradient(135deg,rgba(255,138,61,.1),rgba(255,138,61,.04));border-radius:12px;margin-top:16px}
+#epc .hourbox.show{display:flex}
+#epc .hourbox .hnum{font-family:var(--f-mono);font-weight:700;font-size:24px;color:var(--warn);flex:none;min-width:64px;text-align:center;border:1px solid rgba(255,138,61,.4);border-radius:10px;padding:8px 10px;background:rgba(255,138,61,.08)}
+#epc .hourbox .ht{font-size:13px;color:var(--text-2)}
+#epc .hourbox .ht b{display:block;color:var(--text);font-size:13.5px;margin-bottom:2px}
+
+/* Consulting */
+#epc .pkgs{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+@media(max-width:760px){#epc .pkgs{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){#epc .pkgs{grid-template-columns:repeat(2,1fr)}}
+#epc .pkg{border:1px solid var(--border);background:var(--surface-2);border-radius:12px;padding:15px 10px;cursor:pointer;text-align:center;transition:border-color .18s,transform .18s,box-shadow .18s}
+#epc .pkg:hover{transform:translateY(-2px);border-color:#2f3743}
+#epc .pkg.sel{border-color:rgba(47,230,160,.6);box-shadow:0 0 0 1px rgba(47,230,160,.5) inset;background:linear-gradient(160deg,rgba(47,230,160,.09),var(--surface-2))}
+#epc .pkg .h{font-family:var(--f-mono);font-weight:700;font-size:17px}
+#epc .pkg.sel .h{color:var(--ok)}
+#epc .pkg .p{font-family:var(--f-mono);font-size:12px;color:var(--text-2);margin-top:5px}
+#epc .pkg-note{color:var(--text-3);font-size:12.5px;margin-top:14px}
+
+/* ---------- Summary ---------- */
+#epc .side{position:sticky;top:86px}
+@media(max-width:980px){#epc .side{position:static}}
+#epc .summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 30px 80px -40px rgba(0,0,0,.8)}
+#epc .summary::before{content:"";display:block;height:3px;background:var(--grad)}
+#epc .sum-head{padding:20px 24px 16px;border-bottom:1px solid var(--border)}
+#epc .sum-head .k{font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-3)}
+#epc .telemetry{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+#epc .total-wrap{padding:22px 24px 8px}
+#epc .total-lbl{font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-3)}
+#epc .total{font-family:var(--f-mono);font-weight:700;font-size:clamp(30px,6vw,40px);letter-spacing:-.02em;margin-top:6px;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 26px rgba(4,223,253,.28))}
+#epc .per{color:var(--text-3);font-size:12.5px;margin-top:9px}
+#epc .lines{padding:4px 24px 6px}
+#epc .gline{display:flex;align-items:center;gap:8px;padding:12px 0 4px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-3);border-top:1px solid var(--border)}
+#epc .gline:first-child{border-top:none}
+#epc .gdot{width:8px;height:8px;border-radius:50%;flex:none}
+#epc .gdot.pg{background:var(--pg);box-shadow:0 0 8px rgba(0,146,255,.7)}
+#epc .gdot.sg{background:var(--accent);box-shadow:0 0 8px rgba(4,223,253,.7)}
+#epc .gdot.ok{background:var(--ok);box-shadow:0 0 8px rgba(47,230,160,.7)}
+#epc .line{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:8px 0;font-size:13.5px}
+#epc .line .d{color:var(--text-2)}
+#epc .line .v{font-family:var(--f-mono);color:var(--text);white-space:nowrap}
+#epc .line.disc .v{color:var(--ok)}
+#epc .line.muted .d, #epc .line.muted .v{color:var(--text-3);font-size:12.5px}
+#epc .line.hours .d, #epc .line.hours .v{color:var(--warn);font-size:12.5px}
+#epc .line.stotal{border-top:1px dashed var(--border)}
+#epc .line.stotal .d{color:var(--text)}
+#epc .line.stotal.pgc .v{color:var(--pg-2)}
+#epc .line.stotal.sgc .v{color:var(--accent)}
+#epc .line.stotal.okc .v{color:var(--ok)}
+#epc .empty-sum{padding:10px 0 14px;color:var(--text-3);font-size:13px}
+#epc .cta-col{padding:16px 24px 6px;display:flex;flex-direction:column;gap:10px}
+#epc .cta{display:block;width:100%;padding:15px;border-radius:12px;border:none;cursor:pointer;background:var(--grad);color:#031318;font-family:var(--f-display);font-weight:800;font-size:15px;letter-spacing:.02em;transition:transform .15s,filter .15s;box-shadow:0 12px 34px -14px rgba(4,223,253,.55)}
+#epc .cta:hover{transform:translateY(-1px);filter:brightness(1.07)}
+#epc .cta-ghost{display:block;width:100%;padding:13px;border-radius:12px;cursor:pointer;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);font-family:var(--f-display);font-weight:700;font-size:14px;transition:border-color .15s,color .15s}
+#epc .cta-ghost:hover{border-color:var(--text-3);color:var(--text)}
+#epc .linkbtn{background:none;border:none;color:var(--text-3);font-family:var(--f-mono);font-size:11.5px;cursor:pointer;padding:4px;transition:color .15s}
+#epc .linkbtn:hover{color:var(--accent)}
+#epc .fineprint{padding:8px 24px 22px;color:var(--text-3);font-size:11.5px;line-height:1.6}
+
+/* ---------- Comparison ---------- */
+#epc .compare{padding:70px 24px 30px}
+#epc .cmp-card{margin-top:30px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+#epc .cmp-card table th, #epc .cmp-card table td{text-align:left}
+#epc .cmp-card table th:first-child, #epc .cmp-card table td:first-child{position:sticky;left:0;background:var(--surface);min-width:150px;white-space:normal}
+#epc .cmp-card th{padding:15px 16px;border-bottom:1px solid var(--border)}
+#epc .cmp-card th.hl{color:var(--accent)}
+#epc .cmp-card td{padding:13px 16px}
+#epc .cmp-card td.hl{background:rgba(4,223,253,.045);color:var(--text)}
+#epc .cmp-card .rowlbl{color:var(--text-3);font-size:12.5px}
+#epc .yes{color:var(--ok);font-weight:600}
+#epc .no{color:var(--text-3)}
+#epc .free-tag{font-family:var(--f-mono);font-size:10px;color:var(--ok);border:1px solid rgba(47,230,160,.35);border-radius:6px;padding:2px 6px;margin-left:8px;vertical-align:middle}
+#epc .h3s{font-family:var(--f-display);font-weight:700;font-size:19px;margin-top:44px}
+
+#epc footer .f-meta{display:flex;gap:10px 22px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--border);color:var(--text-3)}
+#epc footer .f-meta span{white-space:nowrap}
+
+/* ---------- Expiry overlay ---------- */
+#epc .expired{position:fixed;inset:0;background:rgba(6,7,10,.96);display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:90;backdrop-filter:blur(8px)}
+#epc .expired.show{display:flex}
+#epc .expired .box{max-width:440px}
+#epc .expired .ic{width:52px;height:52px;border-radius:14px;margin:0 auto 18px;background:rgba(255,138,61,.1);border:1px solid rgba(255,138,61,.35);display:flex;align-items:center;justify-content:center;color:var(--warn);font-family:var(--f-mono);font-size:22px}
+#epc .expired h3{font-family:var(--f-display);font-size:26px;font-weight:800;margin-bottom:10px}
+#epc .expired p{color:var(--text-2);font-size:15px}
+
+/* ---------- Reveal and toast ---------- */
+#epc .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+#epc .reveal.in{opacity:1;transform:none}
+#epc .toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,16px);background:var(--surface-2);border:1px solid rgba(4,223,253,.4);color:var(--text);font-family:var(--f-mono);font-size:12.5px;border-radius:10px;padding:11px 18px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:80}
+#epc .toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){
+  #epc *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+  #epc .reveal{opacity:1;transform:none}
+}
+@media print{
+  #epc .aura, #epc .gridbg, #epc .topbar .seg, #epc .hero-actions, #epc .presets, #epc .cta-col, #epc .matrix, #epc .toast{display:none!important}
+  #epc{background:#fff;color:#111}
+  #epc .card, #epc .summary, #epc .cmp-card, #epc .dcard{border-color:#ddd;background:#fff;box-shadow:none}
+  #epc .total{color:#0092FF;-webkit-text-fill-color:#0092FF;filter:none}
+}
+</style>
+
+
+<div class="expired" id="expired" role="alertdialog" aria-modal="true">
+  <div class="box">
+    <div class="ic">!</div>
+    <h3 data-i="exp.h"></h3>
+    <p data-i="exp.p"></p>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="tb-in">
+    <div class="tb-right">
+      <span class="badge" id="validBadge"></span>
+      <div class="seg" id="langSeg" role="group" aria-label="Language">
+        <button data-lang="en" class="on">EN</button><button data-lang="es">ES</button>
+      </div>
+      <div class="seg" id="curSeg" role="group" aria-label="Currency">
+        <button data-cur="USD" class="on">USD</button><button data-cur="EUR">EUR</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero wrap">
+  <div class="eyebrow">
+    <span class="pulse" aria-hidden="true"></span>
+    <span id="preparedFor"></span>
+    <span class="dot" aria-hidden="true"></span>
+    <span class="muted" id="validEyebrow"></span>
+  </div>
+  <h1>Stack<span class="gx">Gres</span><br><span class="u" data-i="hero.h1b"></span></h1>
+  <p class="tagline" data-i="hero.tag"></p>
+  <p class="sub" data-i="hero.sub"></p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="#configurator"><span data-i="hero.cta"></span><span aria-hidden="true">&darr;</span></a>
+    <a class="btn-ghost" href="#compare" data-i="hero.cta2"></a>
+  </div>
+  <div class="dual reveal" style="grid-template-columns:1fr;max-width:600px">
+    <div class="dcard sg">
+      <div class="dk" data-i="dual.sgK"></div>
+      <div class="dn">StackGres Enterprise</div>
+      <div class="dd" data-i="dual.sgD"></div>
+    </div>
+  </div>
+</section>
+
+<section class="clouds wrap reveal">
+  <div class="clouds-in">
+    <div class="clouds-label" data-i="clouds.label"></div>
+    <div class="clouds-row">
+      <span class="cloud">AWS</span><span class="cloud">Google Cloud</span><span class="cloud">Microsoft Azure</span>
+      <span class="cloud">Red Hat OpenShift</span><span class="cloud">DigitalOcean</span><span class="cloud">Nutanix</span>
+      <span class="cloud">Oracle Cloud</span>
+    </div>
+  </div>
+</section>
+
+<div class="conf-head wrap" id="configurator">
+  <h2 class="sec-h reveal" data-i="conf.h"></h2>
+  <p class="sec-sub reveal" data-i="conf.sub"></p>
+</div>
+
+<main class="grid">
+  <section class="steps">
+
+    <!-- 01 · Environment -->
+    <div class="card reveal">
+      <div class="step"><span class="n">01</span>
+        <div><h2 data-i="s1.h"></h2><div class="hint" data-i="s1.hint"></div></div>
+      </div>
+      <div class="cores-row">
+        <input class="num" id="coreNum" type="number" min="1" max="32768" value="128" aria-label="Cores" />
+        <input type="range" id="coreRange" min="1" max="2048" value="128" aria-label="Cores slider" />
+      </div>
+      <div class="presets" id="presets"></div>
+      <div class="bracket-line">
+        <span class="chip cy" id="billedChip"></span>
+        <span id="serverHint" style="font-size:12.5px;color:var(--text-3)"></span>
+      </div>
+      <div class="notice" id="minNotice"></div>
+    </div>
+
+    <!-- Block · StackGres Enterprise (cyan) -->
+    <div class="card sgline reveal" id="sgCard">
+      <div class="phead">
+        <span class="pico sg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7.8 4.5v9L12 20l-7.8-4.5v-9L12 2z"/><circle cx="12" cy="11" r="3"/></svg></span>
+        <div>
+          <h2>StackGres Enterprise</h2>
+          <div class="by sg" data-i="sg.by"></div>
+        </div>
+      </div>
+      <div class="hint" data-i="sg.hint" style="margin-bottom:18px"></div>
+      <div class="optgrid" id="sgEds" role="radiogroup"></div>
+      <div class="notice" id="edNotice"></div>
+      <div class="hourbox" id="sgHours">
+        <span class="hnum" id="sgHoursNum">0 h</span>
+        <span class="ht"><b data-i="sg.hoursT"></b><span data-i="sg.hoursD"></span></span>
+      </div>
+      <div class="bd">
+        <div class="bd-h"><span data-i="bd.title"></span><span id="sgBdBadge"></span></div>
+        <div class="tbl-scroll"><table id="sgBd"></table></div>
+      </div>
+      <details class="matrix">
+        <summary data-i="matrix.open"></summary>
+        <div class="tbl-scroll"><table id="sgMatrix"></table></div>
+        <p class="matrix-note" data-i="matrix.noteSg"></p>
+      </details>
+    </div>
+
+    <!-- Block · OnGres Consulting (green) -->
+    <div class="card okline reveal">
+      <div class="phead">
+        <span class="pico ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M16 4.5c1.7.4 3 1.9 3 3.9 0 1.2-.5 2.3-1.3 3"/><path d="M17.5 14.6c2 .5 3.3 1.9 3.7 4.4"/></svg></span>
+        <div>
+          <h2 data-i="ok.h"></h2>
+          <div class="by ok" data-i="ok.by"></div>
+        </div>
+      </div>
+      <div class="hint" data-i="ok.hint" style="margin-bottom:18px"></div>
+      <div class="pkgs" id="pkgs" role="radiogroup"></div>
+      <p class="pkg-note" data-i="ok.note"></p>
+    </div>
+
+    <!-- Commercial options -->
+    <div class="card reveal">
+      <div class="step"><span class="n">02</span>
+        <div><h2 data-i="s4.h"></h2><div class="hint" data-i="s4.hint"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div class="lbl"><span data-i="mkt.l"></span><small data-i="mkt.s"></small></div>
+        <label class="switch cySwitch"><input type="checkbox" id="mkt" aria-label="Marketing Agreement"><span class="track"><span class="knob"></span></span></label>
+      </div>
+    </div>
+
+  </section>
+
+  <aside class="side">
+    <div class="summary" id="summaryCard">
+      <div class="sum-head">
+        <div class="k" data-i="sum.k"></div>
+        <div class="telemetry" id="telemetry"></div>
+      </div>
+      <div class="total-wrap">
+        <div class="total-lbl" data-i="sum.total"></div>
+        <div class="total" id="total">$0</div>
+        <div class="per" id="perNote"></div>
+      </div>
+      <div class="lines" id="lines"></div>
+      <div class="cta-col">
+        <button class="cta" id="cta"></button>
+        <button class="cta-ghost" id="pdfBtn"></button>
+        <button class="linkbtn" id="copyBtn"></button>
+      </div>
+      <div class="fineprint" id="fineprint"></div>
+    </div>
+  </aside>
+</main>
+
+<section class="compare wrap" id="value">
+  <h2 class="sec-h reveal" data-i="value.h"></h2>
+  <p class="sec-sub reveal" data-i="value.sub"></p>
+  <div class="cmp-card reveal" style="padding:22px">
+    <div class="clouds-row" id="valueChips"></div>
+  </div>
+</section>
+
+<section class="compare wrap" id="compare" style="padding-top:34px">
+  <h2 class="sec-h reveal" data-i="cmp.h"></h2>
+  <p class="sec-sub reveal" data-i="cmp.sub"></p>
+  <div class="cmp-card reveal">
+    <div class="tbl-scroll"><table id="edTable"></table></div>
+  </div>
+  <h3 class="h3s reveal" data-i="cmp.slaH"></h3>
+  <p class="sec-sub reveal" style="margin-top:8px;font-size:13.5px" data-i="cmp.slaSub"></p>
+  <div class="cmp-card reveal">
+    <div class="tbl-scroll"><table id="slaTable"></table></div>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+"use strict";
+/* =======================================================================
+   PER-LINK (per-client) CONFIGURATION
+   Overridable via URL: ?client=Acme&valid=2026-08-06&lang=en&cur=USD
+   In production this is injected by the Next.js layer after validating
+   the JWT. On this website the defaults render the neutral, non-expiring
+   public calculator.
+   ======================================================================= */
+const LINK = {
+  client: "",
+  validUntil: "",              // empty = no expiry; per-client links set ?valid=YYYY-MM-DD
+  currency: "USD",              // "USD" | "EUR" (each currency has its own official price list)
+  lang: "en",
+  proposalEmail: "cesarcp@ongres.com"
+};
+
+/* =======================================================================
+   OFFICIAL CATALOG (independent price list per currency)
+   USD: Excel "TEMPLATE_Dolares" · EUR: Excel "TEMPLATE_Euros-2" (own list
+   set by OnGres, not a market-rate conversion).
+   Non Prod EUR (169/129/89) and EUR consulting (3,450/8,250/15,600/28,600)
+   confirmed on 2026-07-08.
+   Graduated bracket model (the Excel's SUMPRODUCT). Technical note: the
+   Excel's last bracket omits the +1 when counting cores (off-by-one); it
+   is counted correctly here. No amount is invented.
+   ======================================================================= */
+const CFG = {
+  minCores: 32,
+  brackets: [
+    { from:1,    to:32,   label:"1-32" },
+    { from:33,   to:128,  label:"33-128" },
+    { from:129,  to:1024, label:"129-1024" },
+    { from:1025, to:null, label:"1025+" }
+  ],
+  pgSlas: [
+    { id:"10x5",  name:"Support 10x5",         sla:"10x5" },
+    { id:"24x7",  name:"Support 24x7",         sla:"24x7 Enterprise" },
+    { id:"24x7p", name:"Support 24x7 Premium", sla:"24x7 Premium" }
+  ],
+  sgEditions: [
+    { id:"nonprod",    name:"Non Prod",   sla:"10x5",            phone:false },
+    { id:"enterprise", name:"Enterprise", sla:"24x7 Enterprise", phone:false },
+    { id:"platinum",   name:"Platinum",   sla:"24x7 Premium",    phone:true }
+  ],
+  price: {
+    USD: {
+      pg: { "10x5":[149,99,49,19], "24x7":[249,149,99,49], "24x7p":[349,249,149,99] },
+      pgFee: [350,250,100,50],
+      sg: { nonprod:[199,149,99,null], enterprise:[299,199,149,99], platinum:[649,399,249,149] },
+      consulting: { 0:0, 20:4000, 50:9500, 100:18000, 200:33000 }
+    },
+    EUR: {
+      pg: { "10x5":[129,86,42,16], "24x7":[216,129,86,42], "24x7p":[303,216,129,74] },
+      pgFee: [300,215,85,40],
+      sg: { nonprod:[169,129,89,null], enterprise:[259,169,129,89], platinum:[559,339,209,129] },
+      consulting: { 0:0, 20:3450, 50:8250, 100:15600, 200:28600 }
+    }
+  },
+  factor: [2,1.5,1,0.5],
+  consultingHours: [0,20,50,100,200],
+  marketingRate: 0.15,
+  sla: {
+    "10x5":            { response:["1 day","1 día"], update:["2 days","2 días"], resolution:["3 days","3 días"], phone:false },
+    "24x7 Enterprise": { response:["1 hour","1 hora"], update:["6 hours","6 horas"], resolution:["1 day","1 día"], phone:false },
+    "24x7 Premium":    { response:["15 minutes","15 minutos"], update:["2 hours","2 horas"], resolution:["8 hours","8 horas"], phone:true }
+  }
+};
+
+/* ================================ I18N ================================ */
+const T = {
+en: {
+  title:"StackGres Enterprise Pricing",
+  "tb.tag":"Enterprise Pricing",
+  "exp.h":"This estimate has expired",
+  "exp.p":"The shared link is no longer active. Please contact OnGres for an updated quote.",
+  prep:"Prepared for {c}", prepNeutral:"StackGres Enterprise subscription",
+  validBadge:"Valid until {d}", validShort:"Estimate valid until {d}",
+  "hero.h1a":"StackGres",
+  "hero.h1b":"Priced in real time.",
+  "hero.tag":"Enterprise Postgres on Kubernetes.",
+  "hero.sub":"StackGres Enterprise subscriptions priced transparently, plus OnGres consulting packages. Per core-year, with graduated volume brackets and a 32-core minimum.",
+  "hero.cta":"Build your estimate", "hero.cta2":"Compare editions and SLAs",
+  "dual.pgK":"OnGres support service",
+  "dual.pgD":"Expert support for open source PostgreSQL and its ecosystem, with 10x5 to 24x7 Premium SLAs and an optional Proactive package.",
+  "dual.sgK":"Commercial licensing",
+  "dual.sgD":"StackGres Enterprise licensing with included support: Non Prod, Enterprise and Platinum editions.",
+  "clouds.label":"Tested and supported in the cloud and on-premise",
+  "conf.h":"Configure your estimate",
+  "conf.sub":"Set your environment once, enable the service lines you need, and watch each one priced separately in real time.",
+  "s1.h":"Your environment",
+  "s1.hint":"Total CPU cores across the clusters to be covered. The same environment feeds both service lines. Minimum contract: 32 cores.",
+  billed:"{n} billable cores",
+  serverHint:"Fleets over 128 servers: estimate 8 cores per server.",
+  minNotice:"Below the 32-core minimum: the estimate is calculated on 32 cores.",
+  "s2.h":"Service lines",
+  "s2.hint":"Enable the lines you want in this estimate. Each one is priced separately and clearly identified.",
+  "prod.pgD":"OnGres support service for open source PostgreSQL.",
+  "prod.sgD":"Commercial StackGres licensing with included support.",
+  "pg.by":"OnGres support service",
+  "pg.hint":"Choose your SLA. Pricing is per core-year, graduated by volume bracket.",
+  "pro.l":"Proactive Support package",
+  "pro.s":"Adds a per-core fee by bracket and includes expert consulting hours for proactive optimization.",
+  "pg.hoursT":"Consulting hours included with Proactive",
+  "pg.hoursD":"Expert hours for optimization and guidance, computed by volume bracket per the official calculator.",
+  "sg.by":"Commercial licensing",
+  "sg.hint":"Choose the edition. The SLA is tied to the edition; licensing is per core-year, graduated by volume bracket.",
+  "sg.hoursT":"Consulting hours included with Platinum",
+  "sg.hoursD":"Premium expert hours for architecture, optimization and migrations.",
+  "ok.h":"Consulting packages",
+  "ok.by":"OnGres professional services",
+  "ok.hint":"Optional expert hours: optimization, troubleshooting and design. Independent from the support subscriptions.",
+  "ok.note":"One-time purchase. Hours are valid for 12 months from contracting.",
+  "s4.h":"Commercial options",
+  "s4.hint":"Optional agreements that adjust your subscription price.",
+  "mkt.l":"Marketing Agreement",
+  "mkt.s":"15% off StackGres licensing in exchange for logo usage, a public reference or a case study.",
+  "bd.title":"Bracket breakdown",
+  "matrix.open":"View the full price matrix",
+  "matrix.notePg":"Official per core-year list prices for PostgreSQL support in the selected currency, graduated by volume bracket.",
+  "matrix.noteSg":"Official per core-year list prices for StackGres licensing in the selected currency, graduated by volume bracket.",
+  mxCores:"Cores", mxFee:"Proactive fee",
+  bdCols:["Bracket","Cores","Unit price","Subtotal"], bdColsPro:["Proactive fee","Proactive subtotal"],
+  bdSup:"Support subtotal", bdFee:"Proactive subtotal", bdLic:"Licensing subtotal", bdTotal:"Line total per year",
+  edNa:"n/a", rateNa:"not available at this scale", perCore:"/ core-year",
+  edNpTag:"Dev and test", edEntTag:"Production", edPlatTag:"Mission critical",
+  edNpFeat:"Support during business hours, 10:00 to 17:00.",
+  edConsult:"Includes consulting hours.",
+  edPhone:"Dedicated telephone line.",
+  edSwitched:"Non Prod is not offered above 1024 cores. Your selection moved to Enterprise.",
+  slaResp:"Response", slaUpd:"Update", slaReso:"Resolution", slaIssue:"Issue-based", slaPhone:"Dedicated telephone",
+  pkgNone:"None",
+  "sum.k":"Your estimate", "sum.total":"Total per year",
+  sumNote:"Annual subscriptions plus one-time consulting. Official price list in USD and EUR.",
+  grpPg:"PostgreSQL Support", grpSg:"StackGres Enterprise", grpOk:"OnGres Consulting",
+  linePgSup:"Support {s} &middot; {n} cores", linePgPro:"Proactive package",
+  lineSgLic:"{e} licensing &middot; {n} cores",
+  lineMkt:"Marketing Agreement, 15% on licensing",
+  lineHours:"{h} consulting hours included",
+  lineCons:"{h} h package (one-time, 12 months)", lineConsNone:"No package selected",
+  stotal:"Subtotal per year", once:"one-time",
+  hoursChip:"{h} h consulting included",
+  emptySum:"Enable at least one service line to see pricing.",
+  cta:"Request formal proposal", pdfBtn:"Download PDF estimate",
+  copy:"Copy link to this configuration", copied:"Link copied",
+  fine1:"Indicative estimate. The binding offer is the formal proposal issued by OnGres.",
+  "value.h":"Why teams run StackGres",
+  "value.sub":"A fully-featured platform for running production Postgres on any Kubernetes.",
+  valueChips:["Automatic HA with Patroni","Backups and PITR","Full web console","Prometheus and Grafana","130+ Postgres extensions","Any Kubernetes, no lock-in"],
+  "cmp.h":"Editions and SLA, side by side",
+  "cmp.sub":"StackGres editions from the open source core to mission-critical Platinum.",
+  "cmp.slaH":"SLA detail",
+  "cmp.slaSub":"SLA levels for StackGres editions.",
+  cmpRows:["Use","License","SLA","Support","Dedicated telephone","Postgres major versions"],
+  cmpOs:"Open Source", cmpFree:"Free",
+  cmpUse:["Community","Dev and test","Production","Mission critical"],
+  cmpLic:["AGPLv3, open source","Commercial","Commercial","Commercial"],
+  cmpSla:["No SLA","10x5","24x7 Enterprise","24x7 Premium"],
+  cmpSup:["Best-effort (Slack, Discord)","Business hours, 10:00 to 17:00","24x7 with SLA","24x7 premium with SLA"],
+  cmpVer:["2 latest majors","Per contract","5 latest majors","5 latest majors"],
+  yes:"Yes", no:"No",
+  slaCols:["SLA level","Response","Update","Resolution","Issue-based","Dedicated telephone"],
+  slaNames:["10x5","24x7 Enterprise","24x7 Premium"],
+  legalMain:"StackGres is a product of OnGres, Inc. (Delaware, USA). Prices are per core-year in the selected currency, per the official OnGres price list (USD or EUR). This calculator produces an indicative estimate; the binding offer is the formal proposal issued by OnGres.",
+  legalValid:"This estimate is valid until {d}. After that date, please contact OnGres for an updated quote.",
+  legalConf:"Confidential: prepared for the named recipient only.",
+  mSubject:"StackGres formal proposal request", mFor:"Client",
+  mCores:"Cores under support", mBilled:"Billable cores", mPg:"PostgreSQL Support", mPro:"Proactive package",
+  mSg:"StackGres edition", mCons:"Consulting", mMkt:"Marketing Agreement", mHours:"Consulting hours included",
+  mTotal:"Estimated total per year", mValid:"Estimate valid until", mNone:"none", mOff:"not included",
+  pdfTitle:"PRICING ESTIMATE", pdfPrep:"Prepared for", pdfDate:"Date", pdfValid:"Valid until",
+  pdfEnv:"Environment: {n} billable cores",
+  pdfPgT:"PostgreSQL Support (OnGres)", pdfSgT:"StackGres Enterprise licensing",
+  pdfCols:["Bracket","Cores","Unit","Subtotal"], pdfColsPro:["Fee","Fee subtotal"],
+  pdfHours:"{h} consulting hours included",
+  pdfCons:"OnGres consulting, {h} h (one-time, valid 12 months)",
+  pdfMkt:"Marketing Agreement, 15% on StackGres licensing",
+  pdfTotal:"Total per year",
+  pdfSlaPg:"PostgreSQL Support SLA {s}: response {a}, update {b}, resolution {c}.",
+  pdfSlaSg:"StackGres {e} SLA {s}: response {a}, update {b}, resolution {c}.",
+  pdfFile:"StackGres-Estimate"
+},
+es: {
+  title:"Precios StackGres Enterprise",
+  "tb.tag":"Precios Enterprise",
+  "exp.h":"Esta estimación ha caducado",
+  "exp.p":"El enlace compartido ya no está activo. Contacta con OnGres para una cotización actualizada.",
+  prep:"Preparado para {c}", prepNeutral:"Suscripción StackGres Enterprise",
+  validBadge:"Válido hasta el {d}", validShort:"Estimación válida hasta el {d}",
+  "hero.h1a":"StackGres",
+  "hero.h1b":"Con precio en tiempo real.",
+  "hero.tag":"Postgres enterprise sobre Kubernetes.",
+  "hero.sub":"Suscripciones StackGres Enterprise con precio transparente, más paquetes de consultoría de OnGres. Por core-año, con tramos escalonados por volumen y mínimo de 32 cores.",
+  "hero.cta":"Configura tu estimación", "hero.cta2":"Comparar ediciones y SLAs",
+  "dual.pgK":"Servicio de soporte OnGres",
+  "dual.pgD":"Soporte experto para PostgreSQL open source y su ecosistema, con SLAs de 10x5 a 24x7 Premium y paquete Proactive opcional.",
+  "dual.sgK":"Licencia comercial",
+  "dual.sgD":"Licencias StackGres Enterprise con soporte incluido: ediciones Non Prod, Enterprise y Platinum.",
+  "clouds.label":"Probado y soportado en la nube y on-premise",
+  "conf.h":"Configura tu estimación",
+  "conf.sub":"Define tu entorno una vez, activa las líneas de servicio que necesites y ve cada una cotizada por separado en tiempo real.",
+  "s1.h":"Tu entorno",
+  "s1.hint":"Total de cores de CPU de los clústeres a cubrir. El mismo entorno alimenta ambas líneas de servicio. Contratación mínima: 32 cores.",
+  billed:"{n} cores facturables",
+  serverHint:"Flotas de más de 128 servidores: estima 8 cores por servidor.",
+  minNotice:"Por debajo del mínimo de 32 cores: la estimación se calcula sobre 32 cores.",
+  "s2.h":"Líneas de servicio",
+  "s2.hint":"Activa las líneas que quieras en esta estimación. Cada una se cotiza por separado y queda claramente identificada.",
+  "prod.pgD":"Servicio de soporte de OnGres para PostgreSQL open source.",
+  "prod.sgD":"Licencia comercial de StackGres con soporte incluido.",
+  "pg.by":"Servicio de soporte OnGres",
+  "pg.hint":"Elige tu SLA. El precio es por core-año, escalonado por tramo de volumen.",
+  "pro.l":"Paquete Proactive Support",
+  "pro.s":"Añade una cuota por core según tramo e incluye horas de consultoría experta para optimización proactiva.",
+  "pg.hoursT":"Horas de consultoría incluidas con Proactive",
+  "pg.hoursD":"Horas expertas de optimización y acompañamiento, calculadas por tramo según el calculador oficial.",
+  "sg.by":"Licencia comercial",
+  "sg.hint":"Elige la edición. La SLA va ligada a la edición; la licencia es por core-año, escalonada por tramo de volumen.",
+  "sg.hoursT":"Horas de consultoría incluidas con Platinum",
+  "sg.hoursD":"Horas expertas premium para arquitectura, optimización y migraciones.",
+  "ok.h":"Paquetes de consultoría",
+  "ok.by":"Servicios profesionales OnGres",
+  "ok.hint":"Horas de expertos opcionales: optimización, troubleshooting y diseño. Independientes de las suscripciones de soporte.",
+  "ok.note":"Pago único. Las horas tienen una validez de 12 meses desde la contratación.",
+  "s4.h":"Opciones comerciales",
+  "s4.hint":"Acuerdos opcionales que ajustan el precio de tu suscripción.",
+  "mkt.l":"Acuerdo de Marketing",
+  "mkt.s":"15% de descuento en la licencia StackGres a cambio de uso de logo, referencia pública o caso de estudio.",
+  "bd.title":"Desglose por tramos",
+  "matrix.open":"Ver la matriz completa de precios",
+  "matrix.notePg":"Precios de lista oficiales por core-año del soporte PostgreSQL en la moneda seleccionada, escalonados por tramo de volumen.",
+  "matrix.noteSg":"Precios de lista oficiales por core-año de la licencia StackGres en la moneda seleccionada, escalonados por tramo de volumen.",
+  mxCores:"Cores", mxFee:"Cuota Proactive",
+  bdCols:["Tramo","Cores","Precio unidad","Subtotal"], bdColsPro:["Cuota Proactive","Subtotal Proactive"],
+  bdSup:"Subtotal soporte", bdFee:"Subtotal Proactive", bdLic:"Subtotal licencia", bdTotal:"Total línea por año",
+  edNa:"n/d", rateNa:"no disponible a esta escala", perCore:"/ core-año",
+  edNpTag:"Desarrollo y pruebas", edEntTag:"Producción", edPlatTag:"Misión crítica",
+  edNpFeat:"Soporte en horario laboral, de 10:00 a 17:00.",
+  edConsult:"Incluye horas de consultoría.",
+  edPhone:"Línea de teléfono dedicada.",
+  edSwitched:"Non Prod no se ofrece por encima de 1024 cores. Tu selección ha pasado a Enterprise.",
+  slaResp:"Respuesta", slaUpd:"Actualización", slaReso:"Resolución", slaIssue:"Basado en incidencias", slaPhone:"Teléfono dedicado",
+  pkgNone:"Ninguno",
+  "sum.k":"Tu estimación", "sum.total":"Total anual",
+  sumNote:"Suscripciones anuales más consultoría de pago único. Lista de precios oficial en USD y EUR.",
+  grpPg:"Soporte PostgreSQL", grpSg:"StackGres Enterprise", grpOk:"Consultoría OnGres",
+  linePgSup:"Soporte {s} &middot; {n} cores", linePgPro:"Paquete Proactive",
+  lineSgLic:"Licencia {e} &middot; {n} cores",
+  lineMkt:"Acuerdo de Marketing, 15% sobre licencia",
+  lineHours:"{h} horas de consultoría incluidas",
+  lineCons:"Paquete de {h} h (pago único, 12 meses)", lineConsNone:"Sin paquete seleccionado",
+  stotal:"Subtotal anual", once:"pago único",
+  hoursChip:"{h} h de consultoría incluidas",
+  emptySum:"Activa al menos una línea de servicio para ver precios.",
+  cta:"Solicitar propuesta formal", pdfBtn:"Descargar estimación en PDF",
+  copy:"Copiar enlace de esta configuración", copied:"Enlace copiado",
+  fine1:"Estimación indicativa. La oferta vinculante es la propuesta formal emitida por OnGres.",
+  "value.h":"Por qué los equipos eligen StackGres",
+  "value.sub":"Una plataforma completa para ejecutar Postgres en producción sobre cualquier Kubernetes.",
+  valueChips:["HA automática con Patroni","Backups y PITR","Consola web completa","Prometheus y Grafana","Más de 130 extensiones","Cualquier Kubernetes, sin lock-in"],
+  "cmp.h":"Ediciones y SLA, frente a frente",
+  "cmp.sub":"Ediciones StackGres, del núcleo open source al Platinum de misión crítica.",
+  "cmp.slaH":"Detalle de SLA",
+  "cmp.slaSub":"Niveles de SLA de las ediciones StackGres.",
+  cmpRows:["Uso","Licencia","SLA","Soporte","Teléfono dedicado","Versiones mayores de Postgres"],
+  cmpOs:"Open Source", cmpFree:"Gratis",
+  cmpUse:["Comunidad","Desarrollo y pruebas","Producción","Misión crítica"],
+  cmpLic:["AGPLv3, open source","Comercial","Comercial","Comercial"],
+  cmpSla:["Sin SLA","10x5","24x7 Enterprise","24x7 Premium"],
+  cmpSup:["Best-effort (Slack, Discord)","Horario de 10:00 a 17:00","24x7 con SLA","24x7 premium con SLA"],
+  cmpVer:["2 últimas mayores","Según contrato","5 últimas mayores","5 últimas mayores"],
+  yes:"Sí", no:"No",
+  slaCols:["Nivel de SLA","Respuesta","Actualización","Resolución","Basado en incidencias","Teléfono dedicado"],
+  slaNames:["10x5","24x7 Enterprise","24x7 Premium"],
+  legalMain:"StackGres es un producto de OnGres, Inc. (Delaware, EE. UU.). Los precios son por core-año en la moneda seleccionada, según la lista de precios oficial de OnGres (USD o EUR). Esta calculadora ofrece una estimación indicativa; la oferta vinculante es la propuesta formal emitida por OnGres.",
+  legalValid:"Esta estimación es válida hasta el {d}. Pasada esa fecha, contacte con OnGres para una cotización actualizada.",
+  legalConf:"Confidencial: preparado únicamente para el destinatario indicado.",
+  mSubject:"Solicitud de propuesta formal StackGres", mFor:"Cliente",
+  mCores:"Cores bajo soporte", mBilled:"Cores facturables", mPg:"Soporte PostgreSQL", mPro:"Paquete Proactive",
+  mSg:"Edición StackGres", mCons:"Consultoría", mMkt:"Acuerdo de Marketing", mHours:"Horas de consultoría incluidas",
+  mTotal:"Total anual estimado", mValid:"Estimación válida hasta", mNone:"ninguna", mOff:"no incluido",
+  pdfTitle:"ESTIMACIÓN DE PRECIOS", pdfPrep:"Preparado para", pdfDate:"Fecha", pdfValid:"Válido hasta",
+  pdfEnv:"Entorno: {n} cores facturables",
+  pdfPgT:"Soporte PostgreSQL (OnGres)", pdfSgT:"Licencia StackGres Enterprise",
+  pdfCols:["Tramo","Cores","Unidad","Subtotal"], pdfColsPro:["Cuota","Subtotal cuota"],
+  pdfHours:"{h} horas de consultoría incluidas",
+  pdfCons:"Consultoría OnGres, {h} h (pago único, validez 12 meses)",
+  pdfMkt:"Acuerdo de Marketing, 15% sobre licencia StackGres",
+  pdfTotal:"Total anual",
+  pdfSlaPg:"SLA Soporte PostgreSQL {s}: respuesta {a}, actualización {b}, resolución {c}.",
+  pdfSlaSg:"SLA StackGres {e} {s}: respuesta {a}, actualización {b}, resolución {c}.",
+  pdfFile:"StackGres-Estimacion"
+}};
+
+/* =============================== ESTADO =============================== */
+const state = { cores:128, pg:false, pgSla:"24x7", pro:false, sg:true, ed:"enterprise", pkg:0, mkt:false, cur:"USD", lang:"en" };
+let edSwitched = false;
+
+/* ============================== HELPERS ============================== */
+const $ = s => document.querySelector(s);
+const t = k => (T[state.lang] && T[state.lang][k] !== undefined) ? T[state.lang][k] : T.en[k];
+const tpl = (s,o) => s.replace(/\{(\w+)\}/g,(m,k)=> o[k]!==undefined ? o[k] : m);
+
+function fmt(v){
+  const dec = Math.abs(v - Math.round(v)) > 1e-9 ? 2 : 0;
+  const eur = state.cur === "EUR";
+  return new Intl.NumberFormat(eur ? "es-ES" : "en-US", {
+    style:"currency", currency: eur ? "EUR" : "USD",
+    minimumFractionDigits:dec, maximumFractionDigits:dec
+  }).format(v);
+}
+const PR = () => CFG.price[state.cur];
+function dateNice(iso){
+  const d = new Date(iso + "T23:59:59");
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString(state.lang === "es" ? "es-ES" : "en-US", {year:"numeric",month:"short",day:"numeric"});
+}
+function slaTimes(slaKey){
+  const s = CFG.sla[slaKey], i = state.lang === "es" ? 1 : 0;
+  return { r:s.response[i], u:s.update[i], x:s.resolution[i], phone:s.phone };
+}
+const pgSlaOf = id => CFG.pgSlas.find(s => s.id === id);
+const sgEdOf  = id => CFG.sgEditions.find(e => e.id === id);
+
+/* ============================== COMPUTE ==============================
+   Modelo escalonado del Excel oficial: los cores se reparten por tramos
+   (SUMPRODUCT). Horas incluidas = round(sum(cores_tramo x factor)/10). */
+function distribute(billed){
+  return CFG.brackets.map(b => {
+    if(billed < b.from) return 0;
+    const hi = b.to === null ? billed : Math.min(b.to, billed);
+    return hi - b.from + 1;
+  });
+}
+function compute(){
+  const billed = Math.max(state.cores || 0, CFG.minCores);
+  const dist = distribute(billed);
+  const topIdx = CFG.brackets.reduce((a,b,i)=> dist[i] > 0 ? i : a, 0);
+
+  const P = CFG.price[state.cur];
+
+  // PostgreSQL Support (OnGres)
+  let pgSub = 0, pgFee = 0, pgHours = 0;
+  if(state.pg){
+    const rates = P.pg[state.pgSla];
+    dist.forEach((c,i) => {
+      pgSub += c * rates[i];
+      if(state.pro){ pgFee += c * P.pgFee[i]; pgHours += c * CFG.factor[i]; }
+    });
+    pgHours = state.pro ? Math.round(pgHours / 10) : 0;
+  }
+  const pgTotal = pgSub + pgFee;
+
+  // StackGres Enterprise (licensing)
+  let sgSub = 0, sgHours = 0, sgAvailable = true;
+  if(state.sg){
+    const rates = P.sg[state.ed];
+    if(rates[topIdx] === null){ sgAvailable = false; }
+    else {
+      dist.forEach((c,i) => {
+        sgSub += c * (rates[i] || 0);
+        if(state.ed === "platinum") sgHours += c * CFG.factor[i];
+      });
+      sgHours = state.ed === "platinum" ? Math.round(sgHours / 10) : 0;
+    }
+  }
+  const discount = (state.sg && state.mkt) ? sgSub * CFG.marketingRate : 0;
+
+  const consulting = P.consulting[state.pkg] || 0;
+
+  const total = (state.pg ? pgTotal : 0) + (state.sg ? sgSub - discount : 0) + consulting;
+  const totalHours = (state.pg ? pgHours : 0) + (state.sg ? sgHours : 0);
+  return { billed, dist, topIdx, pgSub, pgFee, pgTotal, pgHours, sgSub, sgHours, sgAvailable, discount, consulting, total, totalHours };
+}
+
+/* =============================== RENDER =============================== */
+function applyStatic(){
+  document.documentElement.lang = state.lang;
+  document.title = t("title");
+  document.querySelectorAll("[data-i]").forEach(el => { el.textContent = t(el.dataset.i); });
+  if(LINK.validUntil){
+    const vd = dateNice(LINK.validUntil);
+    $("#validBadge").textContent = tpl(t("validBadge"), {d:vd});
+    $("#validEyebrow").textContent = tpl(t("validShort"), {d:vd});
+  } else {
+    $("#validBadge").style.display = "none";
+    $("#validEyebrow").textContent = "";
+  }
+  $("#preparedFor").textContent = LINK.client ? tpl(t("prep"), {c:LINK.client}) : t("prepNeutral");
+  $("#cta").textContent = t("cta");
+  $("#pdfBtn").textContent = t("pdfBtn");
+  $("#copyBtn").textContent = t("copy");
+  $("#minNotice").textContent = t("minNotice");
+  if($("#edNotice")) $("#edNotice").textContent = t("edSwitched");
+  $("#serverHint").textContent = t("serverHint");
+  document.querySelectorAll("#langSeg button").forEach(b => b.classList.toggle("on", b.dataset.lang === state.lang));
+  document.querySelectorAll("#curSeg button").forEach(b => b.classList.toggle("on", b.dataset.cur === state.cur));
+  if($("#valueChips")) $("#valueChips").innerHTML = t("valueChips").map(v => `<span class="cloud">${v}</span>`).join("");
+}
+
+function renderPresets(){
+  const presets = [32,64,128,256,512,1024,2048];
+  $("#presets").innerHTML = presets.map(v =>
+    `<button type="button" class="preset ${state.cores===v?'on':''}" data-v="${v}">${v}</button>`).join("");
+}
+
+function slaRows(st){
+  return `
+    <span>${t("slaResp")} <span class="b">${st.r}</span></span>
+    <span>${t("slaUpd")} <span class="b">${st.u}</span></span>
+    <span>${t("slaReso")} <span class="b">${st.x}</span></span>`;
+}
+
+function renderPgSlas(){
+  $("#pgSlas").innerHTML = CFG.pgSlas.map(s => {
+    const sel = state.pgSla === s.id;
+    const st = slaTimes(s.sla);
+    return `<div class="ed bl ${sel?'sel':''}" role="radio" aria-checked="${sel}" tabindex="0" data-sla="${s.id}">
+      <span class="check" aria-hidden="true">${sel?'&#10003;':''}</span>
+      <div class="name">${s.name}</div>
+      <div class="sla" style="margin-top:12px">${slaRows(st)}</div>
+      <div class="feat ${st.phone?'':'mut'}"><span>${st.phone?'&#10003;':'&bull;'}</span><span>${t("slaPhone")}: ${st.phone?t("yes"):t("no")}</span></div>
+    </div>`;
+  }).join("");
+}
+
+function renderSgEds(r){
+  const tags = { nonprod:t("edNpTag"), enterprise:t("edEntTag"), platinum:t("edPlatTag") };
+  $("#sgEds").innerHTML = CFG.sgEditions.map(e => {
+    const disabled = PR().sg[e.id][r.topIdx] === null;
+    const sel = state.ed === e.id && !disabled;
+    const st = slaTimes(e.sla);
+    let feat = "";
+    if(e.id === "nonprod") feat = `<div class="feat mut"><span>&bull;</span><span>${t("edNpFeat")}</span></div>`;
+    else if(e.id === "platinum") feat = `<div class="feat"><span>&#10003;</span><span>${t("edConsult")}</span></div><div class="feat"><span>&#10003;</span><span>${t("edPhone")}</span></div>`;
+    else feat = `<div class="feat mut"><span>&bull;</span><span>${t("slaPhone")}: ${t("no")}</span></div>`;
+    return `<div class="ed cy ${sel?'sel':''} ${disabled?'disabled':''}" role="radio" aria-checked="${sel}" tabindex="${disabled?-1:0}" data-ed="${e.id}">
+      <span class="check" aria-hidden="true">${sel?'&#10003;':''}</span>
+      <span class="tag">${tags[e.id]}</span>
+      <div class="name">${e.name}</div>
+      <div class="sla" style="margin-top:10px"><span><span class="b">SLA ${e.sla}</span></span>${disabled?`<span>${t("rateNa")}</span>`:slaRows(st)}</div>
+      ${feat}
+    </div>`;
+  }).join("");
+  $("#edNotice").classList.toggle("show", edSwitched);
+}
+
+function renderPkgs(){
+  $("#pkgs").innerHTML = CFG.consultingHours.map(h => {
+    const sel = state.pkg === h;
+    return `<div class="pkg ${sel?'sel':''}" role="radio" aria-checked="${sel}" tabindex="0" data-pkg="${h}">
+      <div class="h">${h===0 ? t("pkgNone") : h+" h"}</div>
+      <div class="p">${h===0 ? "&nbsp;" : fmt(PR().consulting[h])}</div>
+    </div>`;
+  }).join("");
+}
+
+function bdTable(el, rows, foots, pro){
+  const cols = [...t("bdCols"), ...(pro ? t("bdColsPro") : [])];
+  let h = `<thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>`;
+  h += rows.map(rw => `<tr><td class="v">${rw.label}</td><td class="v">${rw.cores}</td><td>${rw.unit}</td><td class="${rw.cls}">${rw.sub}</td>${pro?`<td>${rw.feeU}</td><td class="vw">${rw.feeS}</td>`:""}</tr>`).join("");
+  h += "</tbody><tfoot>";
+  h += foots.map(f => `<tr><td colspan="${pro?4:3}" style="text-align:right;color:var(--text-2)">${f.label}</td><td class="${f.cls}" ${pro?'colspan="2"':''} style="text-align:right">${f.value}</td></tr>`).join("");
+  h += "</tfoot>";
+  el.innerHTML = h;
+}
+
+function renderBreakdowns(r){
+  // PostgreSQL
+  if(state.pg){
+    const rates = PR().pg[state.pgSla];
+    const rows = [];
+    CFG.brackets.forEach((b,i) => {
+      if(r.dist[i] <= 0) return;
+      rows.push({
+        label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i]), cls:"vb",
+        feeU:fmt(PR().pgFee[i]), feeS:fmt(r.dist[i]*PR().pgFee[i])
+      });
+    });
+    const foots = [{label:t("bdSup"), value:fmt(r.pgSub), cls:"vb"}];
+    if(state.pro){
+      foots.push({label:t("bdFee"), value:fmt(r.pgFee), cls:"vw"});
+      foots.push({label:t("bdTotal"), value:fmt(r.pgTotal), cls:"vb"});
+    }
+    bdTable($("#pgBd"), rows, foots, state.pro);
+    $("#pgBdBadge").textContent = pgSlaOf(state.pgSla).name + (state.pro ? " + Proactive" : "");
+  }
+  // StackGres
+  if(state.sg){
+    const rates = PR().sg[state.ed];
+    const rows = [];
+    CFG.brackets.forEach((b,i) => {
+      if(r.dist[i] <= 0 || rates[i] === null) return;
+      rows.push({ label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i]), cls:"vc" });
+    });
+    bdTable($("#sgBd"), rows, [{label:t("bdLic"), value:fmt(r.sgSub), cls:"vc"}], false);
+    $("#sgBdBadge").textContent = "StackGres " + sgEdOf(state.ed).name;
+  }
+}
+
+function renderMatrices(r){
+  const P = PR();
+  // PG: Cores | 10x5 | 24x7 | 24x7 Premium | Proactive fee
+  let h = `<thead><tr><th>${t("mxCores")}</th>${CFG.pgSlas.map(s=>`<th>${s.name.replace("Support ","")}</th>`).join("")}<th>${t("mxFee")}</th></tr></thead><tbody>`;
+  h += CFG.brackets.map((b,i) =>
+    `<tr class="${i===r.topIdx?'on':''}"><td class="v">${b.label}</td>${CFG.pgSlas.map(s=>`<td class="v">${fmt(P.pg[s.id][i])}</td>`).join("")}<td class="v">${fmt(P.pgFee[i])}</td></tr>`).join("");
+  if($("#pgMatrix")) $("#pgMatrix").innerHTML = h + "</tbody>";
+  // SG: Cores | Non Prod | Enterprise | Platinum
+  let g = `<thead><tr><th>${t("mxCores")}</th>${CFG.sgEditions.map(e=>`<th>${e.name}</th>`).join("")}</tr></thead><tbody>`;
+  g += CFG.brackets.map((b,i) =>
+    `<tr class="${i===r.topIdx?'on':''}"><td class="v">${b.label}</td>${CFG.sgEditions.map(e=>{
+      const v = P.sg[e.id][i];
+      return `<td class="v">${v===null?`<span class="no">${t("edNa")}</span>`:fmt(v)}</td>`;
+    }).join("")}</tr>`).join("");
+  if($("#sgMatrix")) $("#sgMatrix").innerHTML = g + "</tbody>";
+}
+
+function renderCompare(){
+  const sel = state.sg ? state.ed : "";
+  const hl = i => (i===1 && sel==="nonprod") || (i===2 && sel==="enterprise") || (i===3 && sel==="platinum");
+  const names = [t("cmpOs")+` <span class="free-tag">${t("cmpFree")}</span>`, "Non Prod", "Enterprise", "Platinum"];
+  const rows = [
+    { l:t("cmpRows")[0], v:t("cmpUse") },
+    { l:t("cmpRows")[1], v:t("cmpLic") },
+    { l:t("cmpRows")[2], v:t("cmpSla") },
+    { l:t("cmpRows")[3], v:t("cmpSup") },
+    { l:t("cmpRows")[4], v:[false,false,false,true].map(b => b?`<span class="yes">${t("yes")}</span>`:`<span class="no">${t("no")}</span>`) },
+    { l:t("cmpRows")[5], v:t("cmpVer") }
+  ];
+  let h = `<thead><tr><th></th>${names.map((n,i)=>`<th class="${hl(i)?'hl':''}">${n}</th>`).join("")}</tr></thead><tbody>`;
+  h += rows.map(row => `<tr><td class="rowlbl">${row.l}</td>${row.v.map((v,i)=>`<td class="${hl(i)?'hl':''}">${v}</td>`).join("")}</tr>`).join("");
+  if($("#edTable")) $("#edTable").innerHTML = h + "</tbody>";
+
+  const keys = ["10x5","24x7 Enterprise","24x7 Premium"];
+  let s = `<thead><tr>${t("slaCols").map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>`;
+  s += keys.map((k,i) => {
+    const st = slaTimes(k);
+    return `<tr><td class="v">${t("slaNames")[i]}</td><td>${st.r}</td><td>${st.u}</td><td>${st.x}</td><td><span class="yes">${t("yes")}</span></td><td>${st.phone?`<span class="yes">${t("yes")}</span>`:`<span class="no">${t("no")}</span>`}</td></tr>`;
+  }).join("");
+  if($("#slaTable")) $("#slaTable").innerHTML = s + "</tbody>";
+}
+
+let shownTotal = 0;
+function tween(to){
+  const el = $("#total");
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches){ shownTotal = to; el.textContent = fmt(to); return; }
+  const from = shownTotal, t0 = performance.now(), dur = 420;
+  function step(now){
+    const k = Math.min(1,(now-t0)/dur), e = 1-Math.pow(1-k,3);
+    shownTotal = from + (to-from)*e;
+    el.textContent = fmt(shownTotal);
+    if(k<1) requestAnimationFrame(step); else { shownTotal = to; el.textContent = fmt(to); }
+  }
+  requestAnimationFrame(step);
+}
+
+function render(){
+  // Guard: Non Prod no existe por encima de 1024 cores
+  const billedGuard = Math.max(state.cores || 0, CFG.minCores);
+  if(state.ed === "nonprod" && billedGuard > 1024){ state.ed = "enterprise"; edSwitched = true; }
+  const r = compute();
+
+  // Step 1
+  if(document.activeElement !== $("#coreNum")) $("#coreNum").value = state.cores;
+  $("#coreRange").value = Math.min(state.cores, 2048);
+  $("#billedChip").textContent = tpl(t("billed"), {n:r.billed});
+  $("#minNotice").classList.toggle("show", (state.cores || 0) < CFG.minCores);
+  renderPresets();
+
+  // Bloques de producto
+  if(state.sg){
+    renderSgEds(r);
+    $("#sgHours").classList.toggle("show", state.ed === "platinum" && r.sgHours > 0);
+    $("#sgHoursNum").textContent = r.sgHours + " h";
+  }
+  renderBreakdowns(r);
+  renderMatrices(r);
+  renderPkgs();
+  renderCompare();
+
+  // Summary
+  const chips = [`<span class="chip cy">${tpl(t("billed"),{n:r.billed})}</span>`];
+  if(state.pg) chips.push(`<span class="chip bl">PG ${pgSlaOf(state.pgSla).name.replace("Support ","")}${state.pro?" +Pro":""}</span>`);
+  if(state.sg) chips.push(`<span class="chip cy">SG ${sgEdOf(state.ed).name}</span>`);
+  if(r.totalHours > 0) chips.push(`<span class="chip wr">${tpl(t("hoursChip"),{h:r.totalHours})}</span>`);
+  $("#telemetry").innerHTML = chips.join("");
+
+  const L = [];
+  if(!state.pg && !state.sg && state.pkg === 0){
+    L.push(`<div class="empty-sum">${t("emptySum")}</div>`);
+  } else {
+    if(state.pg){
+      L.push(`<div class="gline"><span class="gdot pg"></span>${t("grpPg")}</div>`);
+      L.push(`<div class="line"><span class="d">${tpl(t("linePgSup"),{s:pgSlaOf(state.pgSla).name.replace("Support ",""),n:r.billed})}</span><span class="v">${fmt(r.pgSub)}</span></div>`);
+      if(state.pro){
+        L.push(`<div class="line"><span class="d">${t("linePgPro")}</span><span class="v">${fmt(r.pgFee)}</span></div>`);
+        L.push(`<div class="line hours"><span class="d">${tpl(t("lineHours"),{h:r.pgHours})}</span><span class="v">&#10003;</span></div>`);
+      }
+      L.push(`<div class="line stotal pgc"><span class="d">${t("stotal")}</span><span class="v">${fmt(r.pgTotal)}</span></div>`);
+    }
+    if(state.sg){
+      L.push(`<div class="gline"><span class="gdot sg"></span>${t("grpSg")}</div>`);
+      L.push(`<div class="line"><span class="d">${tpl(t("lineSgLic"),{e:sgEdOf(state.ed).name,n:r.billed})}</span><span class="v">${fmt(r.sgSub)}</span></div>`);
+      if(state.mkt) L.push(`<div class="line disc"><span class="d">${t("lineMkt")}</span><span class="v">&minus; ${fmt(r.discount)}</span></div>`);
+      if(state.ed === "platinum") L.push(`<div class="line hours"><span class="d">${tpl(t("lineHours"),{h:r.sgHours})}</span><span class="v">&#10003;</span></div>`);
+      L.push(`<div class="line stotal sgc"><span class="d">${t("stotal")}</span><span class="v">${fmt(r.sgSub - r.discount)}</span></div>`);
+    }
+    L.push(`<div class="gline"><span class="gdot ok"></span>${t("grpOk")}</div>`);
+    if(state.pkg > 0){
+      L.push(`<div class="line stotal okc"><span class="d">${tpl(t("lineCons"),{h:state.pkg})}</span><span class="v">${fmt(r.consulting)}</span></div>`);
+    } else {
+      L.push(`<div class="line muted"><span class="d">${t("lineConsNone")}</span><span class="v">&middot;</span></div>`);
+    }
+  }
+  $("#lines").innerHTML = L.join("");
+
+  tween(r.total);
+  $("#perNote").textContent = t("sumNote");
+  $("#fineprint").textContent = t("fine1") + (LINK.validUntil ? " " + tpl(t("legalValid"),{d:dateNice(LINK.validUntil)}) : "");
+  syncUrl();
+}
+
+/* ============================ URL COMPARTIBLE ============================ */
+function syncUrl(){
+  try{
+    const p = new URLSearchParams(location.search);
+    p.set("cores", state.cores);
+    p.set("ed", state.ed);
+    p.set("pkg", state.pkg); p.set("mkt", state.mkt?1:0);
+    p.set("cur", state.cur); p.set("lang", state.lang);
+    history.replaceState(null, "", location.pathname + "?" + p.toString());
+  }catch(e){}
+}
+
+/* ================================ PDF ================================ */
+function downloadPDF(){
+  if(!window.jspdf) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"a4"});
+  const r = compute();
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 16;
+  const vd = LINK.validUntil ? dateNice(LINK.validUntil) : "";
+  const today = new Date().toLocaleDateString(state.lang==="es"?"es-ES":"en-US",{year:"numeric",month:"short",day:"numeric"});
+  let y = 0;
+
+  doc.setFillColor(8,9,12); doc.rect(0,0,W,36,"F");
+  doc.setFillColor(0,146,255); doc.rect(0,36,W/2,1.4,"F");
+  doc.setFillColor(4,223,253); doc.rect(W/2,36,W/2,1.4,"F");
+  doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(19);
+  doc.text("StackGres", M, 15);
+  doc.setFontSize(8.5); doc.setFont("helvetica","normal"); doc.setTextColor(4,223,253);
+  doc.text(t("pdfTitle"), M, 22);
+  doc.setTextColor(155,166,180); doc.setFontSize(9);
+  doc.text(t("pdfDate") + ": " + today, W-M, 13, {align:"right"});
+  if(vd) doc.text(t("pdfValid") + ": " + vd, W-M, 19, {align:"right"});
+  if(LINK.client) doc.text(t("pdfPrep") + ": " + LINK.client, W-M, 25, {align:"right"});
+
+  y = 48;
+  doc.setTextColor(20,28,36); doc.setFont("helvetica","bold"); doc.setFontSize(14);
+  doc.text(LINK.client ? tpl(t("prep"),{c:LINK.client}) : t("prepNeutral"), M, y);
+  y += 6;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(94,104,117);
+  doc.text(tpl(t("pdfEnv"),{n:r.billed}), M, y);
+  y += 9;
+
+  function sectionTitle(txt, rgb){
+    if(y > 250){ doc.addPage(); y = 20; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(11.5);
+    doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+    doc.text(txt, M, y); y += 6;
+  }
+  function miniTable(rows, pro, accent){
+    const cols = [...t("pdfCols"), ...(pro ? t("pdfColsPro") : [])];
+    const xs = pro ? [M+2, M+34, M+58, M+86, M+120, M+146] : [M+2, M+58, M+92, M+130];
+    doc.setFillColor(238,244,248); doc.rect(M, y-4, W-2*M, 7, "F");
+    doc.setFontSize(7.5); doc.setFont("helvetica","bold"); doc.setTextColor(94,104,117);
+    cols.forEach((c,i)=>doc.text(c, xs[i], y));
+    y += 6;
+    doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
+    rows.forEach(rw => {
+      doc.setTextColor(94,104,117); doc.text(rw.label, xs[0], y);
+      doc.setTextColor(20,28,36); doc.text(String(rw.cores), xs[1], y);
+      doc.setTextColor(94,104,117); doc.text(rw.unit, xs[2], y);
+      doc.setTextColor(accent[0],accent[1],accent[2]); doc.text(rw.sub, xs[3], y);
+      if(pro){
+        doc.setTextColor(94,104,117); doc.text(rw.feeU, xs[4], y);
+        doc.setTextColor(210,110,30); doc.text(rw.feeS, xs[5], y);
+      }
+      doc.setDrawColor(228,234,240); doc.line(M, y+2, W-M, y+2);
+      y += 7;
+    });
+  }
+  function totLine(label, value, rgb){
+    doc.setFont("helvetica","bold"); doc.setFontSize(9.5);
+    doc.setTextColor(94,104,117); doc.text(label + ":", W-M-42, y, {align:"right"});
+    doc.setTextColor(rgb[0],rgb[1],rgb[2]); doc.text(value, W-M, y, {align:"right"});
+    y += 7;
+  }
+
+  const BLUE=[0,116,204], CYAN=[0,150,175], GREEN=[22,160,110], ORANGE=[210,110,30];
+
+  if(state.pg){
+    const rates = PR().pg[state.pgSla];
+    sectionTitle(t("pdfPgT") + " · " + pgSlaOf(state.pgSla).name + (state.pro?" + Proactive":""), BLUE);
+    const rows = [];
+    CFG.brackets.forEach((b,i)=>{ if(r.dist[i]>0) rows.push({label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i]), feeU:fmt(PR().pgFee[i]), feeS:fmt(r.dist[i]*PR().pgFee[i])}); });
+    miniTable(rows, state.pro, BLUE);
+    totLine(t("bdSup"), fmt(r.pgSub), BLUE);
+    if(state.pro){
+      totLine(t("bdFee"), fmt(r.pgFee), ORANGE);
+      doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(210,110,30);
+      doc.text(tpl(t("pdfHours"),{h:r.pgHours}), M, y-7);
+    }
+    y += 4;
+  }
+  if(state.sg){
+    const rates = PR().sg[state.ed];
+    sectionTitle(t("pdfSgT") + " · " + sgEdOf(state.ed).name, CYAN);
+    const rows = [];
+    CFG.brackets.forEach((b,i)=>{ if(r.dist[i]>0 && rates[i]!==null) rows.push({label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i])}); });
+    miniTable(rows, false, CYAN);
+    totLine(t("bdLic"), fmt(r.sgSub), CYAN);
+    if(state.mkt) totLine(t("pdfMkt"), "- " + fmt(r.discount), GREEN);
+    if(state.ed === "platinum"){
+      doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(210,110,30);
+      doc.text(tpl(t("pdfHours"),{h:r.sgHours}), M, y-7);
+    }
+    y += 4;
+  }
+  if(state.pkg > 0){
+    sectionTitle(tpl(t("pdfCons"),{h:state.pkg}), GREEN);
+    totLine(t("stotal"), fmt(r.consulting), GREEN);
+    y += 2;
+  }
+
+  if(y > 240){ doc.addPage(); y = 20; }
+  doc.setFillColor(8,9,12); doc.roundedRect(M, y, W-2*M, 20, 2.5, 2.5, "F");
+  doc.setTextColor(155,166,180); doc.setFontSize(9); doc.setFont("helvetica","normal");
+  doc.text(t("pdfTotal"), M+7, y+12.5);
+  if(r.totalHours > 0){
+    doc.setTextColor(255,138,61); doc.setFontSize(8);
+    doc.text(tpl(t("pdfHours"),{h:r.totalHours}), M+55, y+12.5);
+  }
+  doc.setTextColor(4,223,253); doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text(fmt(r.total), W-M-7, y+13, {align:"right"});
+  y += 29;
+
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(60,74,88);
+  if(state.pg){ const st = slaTimes(pgSlaOf(state.pgSla).sla); doc.text(tpl(t("pdfSlaPg"),{s:pgSlaOf(state.pgSla).name.replace("Support ",""),a:st.r,b:st.u,c:st.x}), M, y); y += 6; }
+  if(state.sg){ const e = sgEdOf(state.ed), st = slaTimes(e.sla); doc.text(tpl(t("pdfSlaSg"),{e:e.name,s:e.sla,a:st.r,b:st.u,c:st.x}), M, y); y += 6; }
+
+  y += 3;
+  doc.setDrawColor(4,223,253); doc.setLineWidth(0.6); doc.line(M, y, W-M, y); y += 7;
+  doc.setTextColor(120,132,145); doc.setFontSize(7.8);
+  const legal = doc.splitTextToSize(t("legalMain") + (vd ? " " + tpl(t("legalValid"),{d:vd}) : "") + " " + t("legalConf"), W-2*M);
+  doc.text(legal, M, y);
+
+  doc.setFillColor(8,9,12); doc.rect(0, H-12, W, 12, "F");
+  doc.setTextColor(120,132,145); doc.setFontSize(7.5);
+  doc.text("OnGres, Inc. · ongres.com · stackgres.io", M, H-4.5);
+  doc.text("Confidential", W-M, H-4.5, {align:"right"});
+
+  const slug = (LINK.client || "internal").replace(/[^a-z0-9]+/gi,"-");
+  doc.save(t("pdfFile") + "-" + slug + "-" + new Date().toISOString().slice(0,10) + ".pdf");
+}
+
+/* =============================== EVENTOS =============================== */
+function setCores(v){ v = parseInt(v,10); if(isNaN(v)) v = 0; state.cores = Math.max(1, Math.min(32768, v)); render(); }
+
+function showToast(msg){
+  const el = $("#toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(showToast._t); showToast._t = setTimeout(()=> el.classList.remove("show"), 1900);
+}
+function radioKey(e, fn){
+  if(e.key !== "Enter" && e.key !== " ") return;
+  e.preventDefault(); fn();
+}
+
+function wire(){
+  $("#coreNum").addEventListener("input", e => { if(e.target.value !== "") setCores(e.target.value); });
+  $("#coreNum").addEventListener("blur", e => setCores(e.target.value || 32));
+  $("#coreRange").addEventListener("input", e => setCores(e.target.value));
+  $("#presets").addEventListener("click", e => { const b = e.target.closest(".preset"); if(b) setCores(b.dataset.v); });
+
+  $("#sgEds").addEventListener("click", e => {
+    const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
+    state.ed = el.dataset.ed; edSwitched = false; render();
+  });
+  $("#sgEds").addEventListener("keydown", e => {
+    const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
+    radioKey(e, () => { state.ed = el.dataset.ed; edSwitched = false; render(); });
+  });
+
+  $("#pkgs").addEventListener("click", e => { const el = e.target.closest(".pkg"); if(el){ state.pkg = parseInt(el.dataset.pkg,10); render(); } });
+  $("#pkgs").addEventListener("keydown", e => { const el = e.target.closest(".pkg"); if(el) radioKey(e, () => { state.pkg = parseInt(el.dataset.pkg,10); render(); }); });
+
+  $("#mkt").addEventListener("change", e => { state.mkt = e.target.checked; render(); });
+  $("#curSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.cur = b.dataset.cur; applyStatic(); render(); } });
+  $("#langSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.lang = b.dataset.lang; applyStatic(); render(); } });
+
+  $("#copyBtn").addEventListener("click", () => {
+    const done = () => showToast(t("copied"));
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done, done);
+    else done();
+  });
+  $("#pdfBtn").addEventListener("click", downloadPDF);
+  $("#cta").addEventListener("click", () => {
+    const r = compute();
+    const nl = "\n";
+    const subject = encodeURIComponent(t("mSubject") + (LINK.client ? " · " + LINK.client : ""));
+    let b = "";
+    if(LINK.client) b += t("mFor") + ": " + LINK.client + nl;
+    b += t("mCores") + ": " + state.cores + nl + t("mBilled") + ": " + r.billed + nl;
+    if(state.pg) b += t("mPg") + ": " + pgSlaOf(state.pgSla).name + " = " + fmt(r.pgSub) + nl;
+    if(state.pg && state.pro) b += t("mPro") + ": " + fmt(r.pgFee) + " (+" + r.pgHours + " h)" + nl;
+    if(state.sg) b += t("mSg") + ": StackGres " + sgEdOf(state.ed).name + " = " + fmt(r.sgSub) + nl;
+    if(state.sg && state.mkt) b += t("mMkt") + ": -" + fmt(r.discount) + nl;
+    b += t("mCons") + ": " + (state.pkg > 0 ? state.pkg + " h = " + fmt(r.consulting) : t("mNone")) + nl;
+    if(r.totalHours > 0) b += t("mHours") + ": " + r.totalHours + " h" + nl;
+    b += t("mTotal") + ": " + fmt(r.total) + nl;
+    if(LINK.validUntil) b += t("mValid") + ": " + dateNice(LINK.validUntil) + nl;
+    b += nl + location.href;
+    location.href = "mailto:" + LINK.proposalEmail + "?subject=" + subject + "&body=" + encodeURIComponent(b);
+  });
+}
+
+/* ================================ INIT ================================ */
+(function init(){
+  const P = new URLSearchParams(location.search);
+  if(P.get("client")) LINK.client = P.get("client").slice(0,80);
+  if(P.get("valid") && /^\d{4}-\d{2}-\d{2}$/.test(P.get("valid"))) LINK.validUntil = P.get("valid");
+  if(P.get("lang") === "es" || P.get("lang") === "en") LINK.lang = P.get("lang");
+  if((P.get("cur")||"").toUpperCase() === "EUR") LINK.currency = "EUR";
+  state.lang = LINK.lang; state.cur = LINK.currency;
+  if(P.get("cores")) state.cores = Math.max(1, Math.min(32768, parseInt(P.get("cores"),10) || 128));
+  if(["nonprod","enterprise","platinum"].includes(P.get("ed"))) state.ed = P.get("ed");
+  const pkgP = parseInt(P.get("pkg"),10);
+  if(CFG.consultingHours.includes(pkgP)) state.pkg = pkgP;
+  if(P.get("mkt") === "1") state.mkt = true;
+
+  if(!window.jspdf) $("#pdfBtn").style.display = "none";
+
+  applyStatic();
+  wire();
+  render();
+
+  if(LINK.validUntil && new Date() > new Date(LINK.validUntil + "T23:59:59")) $("#expired").classList.add("show");
+
+  if("IntersectionObserver" in window){
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => { if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); } });
+    }, {threshold:.12});
+    document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+  } else {
+    document.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
+  }
+})();
+</script>
+</div>
