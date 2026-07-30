@@ -53,14 +53,7 @@ noindex: true
 #epc :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 #epc .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
 
-/* ---------- Top toolbar ---------- */
-#epc .topbar{border-bottom:1px solid var(--border)}
-#epc .tb-in{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 24px;max-width:1180px;margin:0 auto}
-#epc .brand{font-family:var(--f-display);font-weight:800;font-size:21px;letter-spacing:.2px;white-space:nowrap;display:flex;align-items:baseline;gap:12px}
-#epc .brand b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
-#epc .brand span{color:var(--text-3);font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;transform:translateY(-1px)}
-#epc .tb-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-#epc .badge{font-family:var(--f-mono);font-size:11.5px;color:var(--text-2);border:1px solid var(--border);border-radius:999px;padding:6px 13px;background:var(--surface);white-space:nowrap}
+/* ---------- Segmented controls ---------- */
 #epc .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
 #epc .seg button{background:transparent;color:var(--text-3);border:none;font-family:var(--f-mono);font-size:12px;font-weight:600;padding:8px 13px;cursor:pointer;transition:background .15s,color .15s}
 #epc .seg button:hover{color:var(--text-2)}
@@ -110,6 +103,7 @@ noindex: true
 
 /* ---------- Configurator ---------- */
 #epc .conf-head{padding:60px 24px 8px}
+#epc .conf-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 #epc .sec-h{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,3.4vw,36px);letter-spacing:-.015em;line-height:1.12}
 #epc .sec-sub{color:var(--text-2);font-size:15.5px;margin-top:12px;max-width:640px}
 #epc .grid{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:26px;padding:28px 24px 90px;align-items:start;max-width:1180px;margin:0 auto}
@@ -315,13 +309,6 @@ noindex: true
 #epc footer .f-meta{display:flex;gap:10px 22px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--border);color:var(--text-3)}
 #epc footer .f-meta span{white-space:nowrap}
 
-/* ---------- Expiry overlay ---------- */
-#epc .expired{position:fixed;inset:0;background:rgba(6,7,10,.96);display:none;align-items:center;justify-content:center;text-align:center;padding:24px;z-index:90;backdrop-filter:blur(8px)}
-#epc .expired.show{display:flex}
-#epc .expired .box{max-width:440px}
-#epc .expired .ic{width:52px;height:52px;border-radius:14px;margin:0 auto 18px;background:rgba(255,138,61,.1);border:1px solid rgba(255,138,61,.35);display:flex;align-items:center;justify-content:center;color:var(--warn);font-family:var(--f-mono);font-size:22px}
-#epc .expired h3{font-family:var(--f-display);font-size:26px;font-weight:800;margin-bottom:10px}
-#epc .expired p{color:var(--text-2);font-size:15px}
 
 /* ---------- Reveal and toast ---------- */
 #epc .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
@@ -334,7 +321,7 @@ noindex: true
   #epc .reveal{opacity:1;transform:none}
 }
 @media print{
-  #epc .aura, #epc .gridbg, #epc .topbar .seg, #epc .hero-actions, #epc .presets, #epc .cta-col, #epc .matrix, #epc .toast{display:none!important}
+  #epc .aura, #epc .gridbg, #epc .seg, #epc .hero-actions, #epc .presets, #epc .cta-col, #epc .matrix, #epc .toast{display:none!important}
   #epc{background:#fff;color:#111}
   #epc .card, #epc .summary, #epc .cmp-card, #epc .dcard{border-color:#ddd;background:#fff;box-shadow:none}
   #epc .total{color:#0092FF;-webkit-text-fill-color:#0092FF;filter:none}
@@ -342,34 +329,10 @@ noindex: true
 </style>
 
 
-<div class="expired" id="expired" role="alertdialog" aria-modal="true">
-  <div class="box">
-    <div class="ic">!</div>
-    <h3 data-i="exp.h"></h3>
-    <p data-i="exp.p"></p>
-  </div>
-</div>
-
-<header class="topbar">
-  <div class="tb-in">
-    <div class="tb-right">
-      <span class="badge" id="validBadge"></span>
-      <div class="seg" id="langSeg" role="group" aria-label="Language">
-        <button data-lang="en" class="on">EN</button><button data-lang="es">ES</button>
-      </div>
-      <div class="seg" id="curSeg" role="group" aria-label="Currency">
-        <button data-cur="USD" class="on">USD</button><button data-cur="EUR">EUR</button>
-      </div>
-    </div>
-  </div>
-</header>
-
 <section class="hero wrap">
   <div class="eyebrow">
     <span class="pulse" aria-hidden="true"></span>
     <span id="preparedFor"></span>
-    <span class="dot" aria-hidden="true"></span>
-    <span class="muted" id="validEyebrow"></span>
   </div>
   <h1>Stack<span class="gx">Gres</span><br><span class="u" data-i="hero.h1b"></span></h1>
   <p class="tagline" data-i="hero.tag"></p>
@@ -399,7 +362,12 @@ noindex: true
 </section>
 
 <div class="conf-head wrap" id="configurator">
-  <h2 class="sec-h reveal" data-i="conf.h"></h2>
+  <div class="conf-top">
+    <h2 class="sec-h reveal" data-i="conf.h"></h2>
+    <div class="seg" id="curSeg" role="group" aria-label="Currency">
+      <button data-cur="USD" class="on">USD</button><button data-cur="EUR">EUR</button>
+    </div>
+  </div>
   <p class="sec-sub reveal" data-i="conf.sub"></p>
 </div>
 
@@ -534,7 +502,6 @@ noindex: true
    ======================================================================= */
 const LINK = {
   client: "",
-  validUntil: "",              // empty = no expiry; per-client links set ?valid=YYYY-MM-DD
   currency: "USD",              // "USD" | "EUR" (each currency has its own official price list)
   lang: "en",
   proposalEmail: "cesarcp@ongres.com"
@@ -597,10 +564,7 @@ const T = {
 en: {
   title:"StackGres Enterprise Pricing",
   "tb.tag":"Enterprise Pricing",
-  "exp.h":"This estimate has expired",
-  "exp.p":"The shared link is no longer active. Please contact OnGres for an updated quote.",
   prep:"Prepared for {c}", prepNeutral:"StackGres Enterprise subscription",
-  validBadge:"Valid until {d}", validShort:"Estimate valid until {d}",
   "hero.h1a":"StackGres",
   "hero.h1b":"Priced in real time.",
   "hero.tag":"Enterprise Postgres on Kubernetes.",
@@ -687,13 +651,12 @@ en: {
   slaCols:["SLA level","Response","Update","Resolution","Issue-based","Dedicated telephone"],
   slaNames:["10x5","24x7 Enterprise","24x7 Premium"],
   legalMain:"StackGres is a product of OnGres, Inc. (Delaware, USA). Prices are per core-year in the selected currency, per the official OnGres price list (USD or EUR). This calculator produces an indicative estimate; the binding offer is the formal proposal issued by OnGres.",
-  legalValid:"This estimate is valid until {d}. After that date, please contact OnGres for an updated quote.",
   legalConf:"Confidential: prepared for the named recipient only.",
   mSubject:"StackGres formal proposal request", mFor:"Client",
   mCores:"Cores under support", mBilled:"Billable cores", mPg:"PostgreSQL Support", mPro:"Proactive package",
   mSg:"StackGres edition", mCons:"Consulting", mMkt:"Marketing Agreement", mHours:"Consulting hours included",
-  mTotal:"Estimated total per year", mValid:"Estimate valid until", mNone:"none", mOff:"not included",
-  pdfTitle:"PRICING ESTIMATE", pdfPrep:"Prepared for", pdfDate:"Date", pdfValid:"Valid until",
+  mTotal:"Estimated total per year", mNone:"none", mOff:"not included",
+  pdfTitle:"PRICING ESTIMATE", pdfPrep:"Prepared for", pdfDate:"Date",
   pdfEnv:"Environment: {n} billable cores",
   pdfPgT:"PostgreSQL Support (OnGres)", pdfSgT:"StackGres Enterprise licensing",
   pdfCols:["Bracket","Cores","Unit","Subtotal"], pdfColsPro:["Fee","Fee subtotal"],
@@ -708,10 +671,7 @@ en: {
 es: {
   title:"Precios StackGres Enterprise",
   "tb.tag":"Precios Enterprise",
-  "exp.h":"Esta estimación ha caducado",
-  "exp.p":"El enlace compartido ya no está activo. Contacta con OnGres para una cotización actualizada.",
   prep:"Preparado para {c}", prepNeutral:"Suscripción StackGres Enterprise",
-  validBadge:"Válido hasta el {d}", validShort:"Estimación válida hasta el {d}",
   "hero.h1a":"StackGres",
   "hero.h1b":"Con precio en tiempo real.",
   "hero.tag":"Postgres enterprise sobre Kubernetes.",
@@ -798,13 +758,12 @@ es: {
   slaCols:["Nivel de SLA","Respuesta","Actualización","Resolución","Basado en incidencias","Teléfono dedicado"],
   slaNames:["10x5","24x7 Enterprise","24x7 Premium"],
   legalMain:"StackGres es un producto de OnGres, Inc. (Delaware, EE. UU.). Los precios son por core-año en la moneda seleccionada, según la lista de precios oficial de OnGres (USD o EUR). Esta calculadora ofrece una estimación indicativa; la oferta vinculante es la propuesta formal emitida por OnGres.",
-  legalValid:"Esta estimación es válida hasta el {d}. Pasada esa fecha, contacte con OnGres para una cotización actualizada.",
   legalConf:"Confidencial: preparado únicamente para el destinatario indicado.",
   mSubject:"Solicitud de propuesta formal StackGres", mFor:"Cliente",
   mCores:"Cores bajo soporte", mBilled:"Cores facturables", mPg:"Soporte PostgreSQL", mPro:"Paquete Proactive",
   mSg:"Edición StackGres", mCons:"Consultoría", mMkt:"Acuerdo de Marketing", mHours:"Horas de consultoría incluidas",
-  mTotal:"Total anual estimado", mValid:"Estimación válida hasta", mNone:"ninguna", mOff:"no incluido",
-  pdfTitle:"ESTIMACIÓN DE PRECIOS", pdfPrep:"Preparado para", pdfDate:"Fecha", pdfValid:"Válido hasta",
+  mTotal:"Total anual estimado", mNone:"ninguna", mOff:"no incluido",
+  pdfTitle:"ESTIMACIÓN DE PRECIOS", pdfPrep:"Preparado para", pdfDate:"Fecha",
   pdfEnv:"Entorno: {n} cores facturables",
   pdfPgT:"Soporte PostgreSQL (OnGres)", pdfSgT:"Licencia StackGres Enterprise",
   pdfCols:["Tramo","Cores","Unidad","Subtotal"], pdfColsPro:["Cuota","Subtotal cuota"],
@@ -835,11 +794,6 @@ function fmt(v){
   }).format(v);
 }
 const PR = () => CFG.price[state.cur];
-function dateNice(iso){
-  const d = new Date(iso + "T23:59:59");
-  if(isNaN(d)) return iso;
-  return d.toLocaleDateString(state.lang === "es" ? "es-ES" : "en-US", {year:"numeric",month:"short",day:"numeric"});
-}
 function slaTimes(slaKey){
   const s = CFG.sla[slaKey], i = state.lang === "es" ? 1 : 0;
   return { r:s.response[i], u:s.update[i], x:s.resolution[i], phone:s.phone };
@@ -903,14 +857,6 @@ function applyStatic(){
   document.documentElement.lang = state.lang;
   document.title = t("title");
   document.querySelectorAll("[data-i]").forEach(el => { el.textContent = t(el.dataset.i); });
-  if(LINK.validUntil){
-    const vd = dateNice(LINK.validUntil);
-    $("#validBadge").textContent = tpl(t("validBadge"), {d:vd});
-    $("#validEyebrow").textContent = tpl(t("validShort"), {d:vd});
-  } else {
-    $("#validBadge").style.display = "none";
-    $("#validEyebrow").textContent = "";
-  }
   $("#preparedFor").textContent = LINK.client ? tpl(t("prep"), {c:LINK.client}) : t("prepNeutral");
   $("#cta").textContent = t("cta");
   $("#pdfBtn").textContent = t("pdfBtn");
@@ -918,7 +864,6 @@ function applyStatic(){
   $("#minNotice").textContent = t("minNotice");
   if($("#edNotice")) $("#edNotice").textContent = t("edSwitched");
   $("#serverHint").textContent = t("serverHint");
-  document.querySelectorAll("#langSeg button").forEach(b => b.classList.toggle("on", b.dataset.lang === state.lang));
   document.querySelectorAll("#curSeg button").forEach(b => b.classList.toggle("on", b.dataset.cur === state.cur));
   if($("#valueChips")) $("#valueChips").innerHTML = t("valueChips").map(v => `<span class="cloud">${v}</span>`).join("");
 }
@@ -1141,7 +1086,7 @@ function render(){
 
   tween(r.total);
   $("#perNote").textContent = t("sumNote");
-  $("#fineprint").textContent = t("fine1") + (LINK.validUntil ? " " + tpl(t("legalValid"),{d:dateNice(LINK.validUntil)}) : "");
+  $("#fineprint").textContent = t("fine1");
   syncUrl();
 }
 
@@ -1164,7 +1109,6 @@ function downloadPDF(){
   const doc = new jsPDF({unit:"mm", format:"a4"});
   const r = compute();
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 16;
-  const vd = LINK.validUntil ? dateNice(LINK.validUntil) : "";
   const today = new Date().toLocaleDateString(state.lang==="es"?"es-ES":"en-US",{year:"numeric",month:"short",day:"numeric"});
   let y = 0;
 
@@ -1177,7 +1121,6 @@ function downloadPDF(){
   doc.text(t("pdfTitle"), M, 22);
   doc.setTextColor(155,166,180); doc.setFontSize(9);
   doc.text(t("pdfDate") + ": " + today, W-M, 13, {align:"right"});
-  if(vd) doc.text(t("pdfValid") + ": " + vd, W-M, 19, {align:"right"});
   if(LINK.client) doc.text(t("pdfPrep") + ": " + LINK.client, W-M, 25, {align:"right"});
 
   y = 48;
@@ -1277,7 +1220,7 @@ function downloadPDF(){
   y += 3;
   doc.setDrawColor(4,223,253); doc.setLineWidth(0.6); doc.line(M, y, W-M, y); y += 7;
   doc.setTextColor(120,132,145); doc.setFontSize(7.8);
-  const legal = doc.splitTextToSize(t("legalMain") + (vd ? " " + tpl(t("legalValid"),{d:vd}) : "") + " " + t("legalConf"), W-2*M);
+  const legal = doc.splitTextToSize(t("legalMain") + " " + t("legalConf"), W-2*M);
   doc.text(legal, M, y);
 
   doc.setFillColor(8,9,12); doc.rect(0, H-12, W, 12, "F");
@@ -1321,7 +1264,6 @@ function wire(){
 
   $("#mkt").addEventListener("change", e => { state.mkt = e.target.checked; render(); });
   $("#curSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.cur = b.dataset.cur; applyStatic(); render(); } });
-  $("#langSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.lang = b.dataset.lang; applyStatic(); render(); } });
 
   $("#copyBtn").addEventListener("click", () => {
     const done = () => showToast(t("copied"));
@@ -1343,7 +1285,6 @@ function wire(){
     b += t("mCons") + ": " + (state.pkg > 0 ? state.pkg + " h = " + fmt(r.consulting) : t("mNone")) + nl;
     if(r.totalHours > 0) b += t("mHours") + ": " + r.totalHours + " h" + nl;
     b += t("mTotal") + ": " + fmt(r.total) + nl;
-    if(LINK.validUntil) b += t("mValid") + ": " + dateNice(LINK.validUntil) + nl;
     b += nl + location.href;
     location.href = "mailto:" + LINK.proposalEmail + "?subject=" + subject + "&body=" + encodeURIComponent(b);
   });
@@ -1353,7 +1294,6 @@ function wire(){
 (function init(){
   const P = new URLSearchParams(location.search);
   if(P.get("client")) LINK.client = P.get("client").slice(0,80);
-  if(P.get("valid") && /^\d{4}-\d{2}-\d{2}$/.test(P.get("valid"))) LINK.validUntil = P.get("valid");
   if(P.get("lang") === "es" || P.get("lang") === "en") LINK.lang = P.get("lang");
   if((P.get("cur")||"").toUpperCase() === "EUR") LINK.currency = "EUR";
   state.lang = LINK.lang; state.cur = LINK.currency;
@@ -1368,8 +1308,6 @@ function wire(){
   applyStatic();
   wire();
   render();
-
-  if(LINK.validUntil && new Date() > new Date(LINK.validUntil + "T23:59:59")) $("#expired").classList.add("show");
 
   if("IntersectionObserver" in window){
     const io = new IntersectionObserver(entries => {
