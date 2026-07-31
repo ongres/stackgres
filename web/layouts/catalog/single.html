@@ -89,6 +89,74 @@
     </table>
     {{ end }}
 
+    {{ with index (site.Data.catalog.extension_meta | default dict) $c.name }}
+      {{ with .control }}
+      <h2 style="margin-top:2rem;">Control file</h2>
+      <table class="versions-table">
+        <tbody>
+          {{ range $k, $v := .fields }}
+            <tr><td class="mono">{{ $k }}</td><td class="mono">{{ $v }}</td></tr>
+          {{ end }}
+        </tbody>
+      </table>
+      {{ with .source }}
+      <p style="font-size:0.8rem; color:hsl(var(--muted-foreground)); margin-top:0.75rem;">
+        Source: <a href="{{ . }}" target="_blank" rel="noopener">{{ $c.name }}.control ↗</a>
+      </p>
+      {{ end }}
+      {{ end }}
+
+      {{ with .meta }}
+      <h2 style="margin-top:2rem;">Distribution metadata (META.json){{ if .mock }} <span class="pill pill-light">mock</span>{{ end }}</h2>
+      <div class="component-meta-grid">
+        <div class="meta-block">
+          <h3>Distribution</h3>
+          <p>{{ .abstract }}</p>
+          <span class="pill mono">v{{ .version }}</span>
+          <span class="pill">{{ .release_status }}</span>
+        </div>
+        <div class="meta-block">
+          <h3>Maintainer</h3>
+          <p>{{ .maintainer }}</p>
+        </div>
+        <div class="meta-block">
+          <h3>License</h3>
+          <span class="pill mono">{{ .license }}</span>
+        </div>
+        {{ with .resources }}
+        <div class="meta-block">
+          <h3>Resources</h3>
+          <ul>
+            {{ with .repository }}<li><a href="{{ . }}" target="_blank" rel="noopener">Repository ↗</a></li>{{ end }}
+            {{ with .documentation }}<li><a href="{{ . }}" target="_blank" rel="noopener">Documentation ↗</a></li>{{ end }}
+          </ul>
+        </div>
+        {{ end }}
+        {{ with .tags }}
+        <div class="meta-block">
+          <h3>Tags</h3>
+          {{ range . }}<span class="pill">{{ . }}</span> {{ end }}
+        </div>
+        {{ end }}
+      </div>
+      {{ with .provides }}
+      <h3 style="margin-top:1.5rem;">Provides</h3>
+      <table class="versions-table">
+        <thead><tr><th>Extension</th><th>Version</th><th>File</th></tr></thead>
+        <tbody>
+          {{ range $name, $p := . }}
+            <tr>
+              <td class="mono">{{ $name }}</td>
+              <td class="mono">{{ $p.version }}</td>
+              <td class="mono">{{ $p.file }}</td>
+            </tr>
+          {{ end }}
+        </tbody>
+      </table>
+      {{ end }}
+      {{ end }}
+    {{ end }}
+
   {{ else if eq $category "addon" }}
     {{ with index $c.versions 0 }}
       <p class="component-description">{{ .longDescription | default .description }}</p>

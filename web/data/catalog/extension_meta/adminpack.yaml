@@ -1,0 +1,43 @@
+# Extension packaging metadata shown on the catalog detail page.
+# One file per extension under data/catalog/extension_meta/<name>.yaml;
+# the extension template renders these blocks when a file exists.
+#
+# control: fetched verbatim from the PostgreSQL source tree (REL_16_STABLE —
+#   adminpack was removed in PostgreSQL 17):
+#   https://raw.githubusercontent.com/postgres/postgres/REL_16_STABLE/contrib/adminpack/adminpack.control
+#
+# meta: MOCK. adminpack is a core contrib module and is NOT distributed on
+#   PGXN, so no META.json exists upstream. This block is synthesized following
+#   the PGXN Meta Spec v1.0.0 with adminpack's real facts, as a shape preview
+#   for extensions that do ship one.
+
+control:
+  source: https://github.com/postgres/postgres/blob/REL_16_STABLE/contrib/adminpack/adminpack.control
+  fields:
+    comment: administrative functions for PostgreSQL
+    default_version: "2.1"
+    module_pathname: "$libdir/adminpack"
+    relocatable: "false"
+    schema: pg_catalog
+
+meta:
+  mock: true
+  name: adminpack
+  abstract: administrative functions for PostgreSQL
+  version: "2.1.0"
+  maintainer: PostgreSQL Global Development Group
+  license: postgresql
+  release_status: stable
+  provides:
+    adminpack:
+      file: adminpack--1.0.sql
+      version: "2.1.0"
+      abstract: administrative functions for PostgreSQL
+  resources:
+    repository: https://github.com/postgres/postgres/tree/REL_16_STABLE/contrib/adminpack
+    documentation: https://www.postgresql.org/docs/16/adminpack.html
+  tags:
+    - admin
+    - administration
+    - files
+    - contrib
