@@ -197,7 +197,8 @@ main {
   margin-top: 1.5rem;
 }
 
-.category-card {
+.category-card,
+.category-card:visited {
   display: block;
   padding: 1.25rem;
   background: hsl(var(--muted) / 0.5);
@@ -231,7 +232,8 @@ main {
   gap: 1rem;
 }
 
-.component-card {
+.component-card,
+.component-card:visited {
   display: block;
   padding: 1rem 1.15rem;
   background: hsl(var(--card));
