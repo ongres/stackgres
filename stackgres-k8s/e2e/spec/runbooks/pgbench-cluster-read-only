@@ -9,9 +9,9 @@ e2e_test_extra_hash() {
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
-  pgbench_create_cluster 2
+  pgbench_create_cluster "${E2E_PGBENCH_INSTANCES:-2}"
 
-  pgbench_init_cluster 3
+  pgbench_init_cluster "$(( ${E2E_PGBENCH_INSTANCES:-2} + 1 ))"
 }
 
 e2e_test_uninstall() {
