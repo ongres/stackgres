@@ -1,0 +1,467 @@
+#!/bin/sh
+
+# Code shared by the pgbench runbooks.
+#
+# On top of running pgbench itself it collects, before the benchmark starts, the
+# performance of the disk backing each Postgres data volume using iostat and fio
+# from a custom container declared in the SGCluster and, once the benchmark has
+# completed, the checkpoint statistics Postgres wrote to its log thanks to
+# log_checkpoints. Every collected statistic is presented at the end of the test.
+
+export E2E_PGBENCH_SCALE="${E2E_PGBENCH_SCALE:-10}"
+export E2E_PGBENCH_CLIENTS="${E2E_PGBENCH_CLIENTS:-20}"
+export E2E_PGBENCH_JOBS="${E2E_PGBENCH_JOBS:-20}"
+export E2E_PGBENCH_MAX_CONNECTIONS="${E2E_PGBENCH_MAX_CONNECTIONS:-104}"
+export E2E_PGBENCH_DEFAULT_POOL_SIZE="${E2E_PGBENCH_DEFAULT_POOL_SIZE:-100}"
+export E2E_PGBENCH_DISK_BENCHMARK="${E2E_PGBENCH_DISK_BENCHMARK:-true}"
+# Neither the patroni nor the postgres-util image ship fio and iostat and the Pod
+# runs unprivileged, so a dedicated image providing both tools is required.
+export E2E_PGBENCH_DISK_BENCHMARK_IMAGE="${E2E_PGBENCH_DISK_BENCHMARK_IMAGE:-nixery.dev/shell/fio/sysstat:nixos-25.05}"
+export E2E_PGBENCH_FIO_SIZE="${E2E_PGBENCH_FIO_SIZE:-32m}"
+export E2E_PGBENCH_FIO_RUNTIME="${E2E_PGBENCH_FIO_RUNTIME:-10}"
+export E2E_PGBENCH_IOSTAT_INTERVAL="${E2E_PGBENCH_IOSTAT_INTERVAL:-1}"
+export E2E_PGBENCH_IOSTAT_COUNT="${E2E_PGBENCH_IOSTAT_COUNT:-5}"
+
+PGBENCH_DISK_BENCHMARK_CONTAINER=disk-benchmark
+# Name the operator gives to a custom container (see StackGresContainer.CUSTOM)
+PGBENCH_DISK_BENCHMARK_CONTAINER_NAME="custom-$PGBENCH_DISK_BENCHMARK_CONTAINER"
+# Where the Postgres data volume is mounted (see ClusterPath.PG_BASE_PATH)
+PGBENCH_DISK_BENCHMARK_MOUNT_PATH=/var/lib/postgresql
+PGBENCH_DISK_BENCHMARK_PATH="$PGBENCH_DISK_BENCHMARK_MOUNT_PATH/fio"
+
+pgbench_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/runbooks/abstract/pgbench")"
+}
+
+# Options shared by every pgbench runbook. log_checkpoints makes Postgres report
+# the statistics of each checkpoint that pgbench triggers.
+pgbench_cluster_options() {
+  cat << EOF
+--set-string
+instanceProfiles[0].name=size-s
+--set-string
+instanceProfiles[0].cpu=500m
+--set-string
+instanceProfiles[0].memory=2Gi
+--set
+nonProductionOptions.disablePatroniResourceRequirements=false
+--set
+nonProductionOptions.disableClusterResourceRequirements=true
+--set-string
+configurations.postgresconfig.postgresql\.conf.max_connections=$E2E_PGBENCH_MAX_CONNECTIONS
+--set-string
+configurations.postgresconfig.postgresql\.conf.log_checkpoints=on
+--set-string
+configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=$E2E_PGBENCH_DEFAULT_POOL_SIZE
+--set-string
+cluster.autoscaling.mode=none
+EOF
+}
+
+# Declare the custom container used to measure the disk performance of a cluster.
+# The first parameter is the path of the pods section to set (`cluster.pods` for a
+# SGCluster or for the coordinator of a SGShardedCluster) and the second one the
+# name of the volume holding the Postgres data directory of that cluster.
+pgbench_disk_benchmark_options() {
+  local PODS_PATH="$1"
+  local DATA_VOLUME_NAME="$2"
+
+  if [ "$E2E_PGBENCH_DISK_BENCHMARK" != true ]
+  then
+    return
+  fi
+
+  cat << EOF
+--set-string
+$PODS_PATH.customContainers[0].name=$PGBENCH_DISK_BENCHMARK_CONTAINER
+--set-string
+$PODS_PATH.customContainers[0].image=$E2E_PGBENCH_DISK_BENCHMARK_IMAGE
+--set-string
+$PODS_PATH.customContainers[0].imagePullPolicy=IfNotPresent
+--set-string
+$PODS_PATH.customContainers[0].command[0]=/bin/sleep
+--set-string
+$PODS_PATH.customContainers[0].command[1]=infinity
+--set-string
+$PODS_PATH.customContainers[0].volumeMounts[0].name=$DATA_VOLUME_NAME
+--set-string
+$PODS_PATH.customContainers[0].volumeMounts[0].mountPath=$PGBENCH_DISK_BENCHMARK_MOUNT_PATH
+EOF
+}
+
+# Same as pgbench_disk_benchmark_options but for the shards of a SGShardedCluster.
+# Each shard is a distinct SGCluster with its own data volume, so a per shard
+# override is required in order to mount the correct volume.
+pgbench_shards_disk_benchmark_options() {
+  local SHARDS="$1"
+  local INDEX=0
+
+  if [ "$E2E_PGBENCH_DISK_BENCHMARK" != true ]
+  then
+    return
+  fi
+
+  while [ "$INDEX" -lt "$SHARDS" ]
+  do
+    cat << EOF
+--set
+shardedCluster.workers.overrides[$INDEX].index=$INDEX
+EOF
+    pgbench_disk_benchmark_options \
+      "shardedCluster.workers.overrides[$INDEX].pods" \
+      "$CLUSTER_NAME-worker$INDEX-data"
+    INDEX="$((INDEX + 1))"
+  done
+}
+
+pgbench_create_cluster() {
+  local INSTANCES="$1"
+  shift
+
+  # shellcheck disable=SC2046
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$INSTANCES" \
+    $(pgbench_cluster_options) \
+    $(pgbench_disk_benchmark_options cluster.pods "$CLUSTER_NAME-data") \
+    "$@"
+}
+
+pgbench_init_cluster() {
+  local PODS="$1"
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "$PODS"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  pgbench_read_password
+
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q \
+    -- env PGPASSWORD="$PGPASSWORD" pgbench -i -h "$CLUSTER_NAME" -s "$E2E_PGBENCH_SCALE"
+}
+
+pgbench_read_password() {
+  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ (index .data "superuser-password") | base64decode }}')"
+}
+
+pgbench_wait_service() {
+  local HOST="$1"
+
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q \
+    -- env PGPASSWORD="$PGPASSWORD" psql -q -h "$HOST" -c 'SELECT 1'
+}
+
+pgbench_start() {
+  PGBENCH_LOG="$1"
+  shift
+
+  # Checkpoint statistics are only extracted from the logs written since the
+  # first benchmark started
+  PGBENCH_LOGS_SINCE="${PGBENCH_LOGS_SINCE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q \
+    -- env PGPASSWORD="$PGPASSWORD" pgbench \
+      -T "$((E2E_TIMEOUT / 2))" \
+      -C -c "$E2E_PGBENCH_CLIENTS" -j "$E2E_PGBENCH_JOBS" \
+      --progress=5 \
+      --log --log-prefix=/tmp/pgbench_log \
+      --failures-detailed \
+      --aggregate-interval="$((E2E_TIMEOUT / 20))" \
+      "$@" 2>&1 | tee "$LOG_PATH/$PGBENCH_LOG" &
+  PGBENCH_PID="$!"
+  trap_kill "$PGBENCH_PID"
+}
+
+pgbench_running() {
+  kill -0 "$PGBENCH_PID" 2>/dev/null
+}
+
+pgbench_stop() {
+  kill "$PGBENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+}
+
+pgbench_collect_transactions() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q -- bash -c 'cat /tmp/pgbench_log*' \
+    > "$LOG_PATH/$PGBENCH_LOG-transactions"
+}
+
+pgbench_wait_completion() {
+  if wait_until eval '! kill -0 "$PGBENCH_PID"' \
+    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/$PGBENCH_LOG"
+  then
+    echo "success Benchmark terminated succesfully"
+  else
+    echo "FAIL: Benchmark not terminated succesfully"
+    pgbench_stop
+    return 1
+  fi
+  pgbench_stop
+  pgbench_collect_transactions
+  pgbench_collect_checkpoint_stats
+}
+
+# Pods running the custom container used to measure the disk performance
+pgbench_disk_benchmark_pods() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -o json \
+    | jq -r --arg container "$PGBENCH_DISK_BENCHMARK_CONTAINER_NAME" \
+      '.items[]|select(.spec.containers|any(.name == $container))|.metadata.name'
+}
+
+pgbench_exec_disk_benchmark() {
+  local POD="$1"
+  shift
+
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$POD" \
+    -c "$PGBENCH_DISK_BENCHMARK_CONTAINER_NAME" -- "$@"
+}
+
+# Measure the disk backing the Postgres data volume of each cluster Pod. Must be
+# called before pgbench is started so that the benchmark itself is not perturbed
+# and the disk is measured while otherwise idle.
+pgbench_collect_disk_performance() {
+  local POD
+
+  rm -f "$LOG_PATH/disk-performance-pods"
+
+  if [ "$E2E_PGBENCH_DISK_BENCHMARK" != true ]
+  then
+    echo "Skipping disk performance collection since E2E_PGBENCH_DISK_BENCHMARK is not true"
+    return
+  fi
+
+  for POD in $(pgbench_disk_benchmark_pods)
+  do
+    echo "Collecting disk performance of Pod $POD"
+    pgbench_collect_iostat "$POD"
+    pgbench_collect_fio "$POD"
+    echo "$POD" >> "$LOG_PATH/disk-performance-pods"
+  done
+
+  if [ ! -s "$LOG_PATH/disk-performance-pods" ]
+  then
+    echo "WARNING: no Pod is running the $PGBENCH_DISK_BENCHMARK_CONTAINER_NAME container"
+  fi
+}
+
+pgbench_collect_iostat() {
+  local POD="$1"
+
+  {
+    pgbench_exec_disk_benchmark "$POD" df -h "$PGBENCH_DISK_BENCHMARK_MOUNT_PATH"
+    echo
+    pgbench_exec_disk_benchmark "$POD" \
+      iostat -x -m "$E2E_PGBENCH_IOSTAT_INTERVAL" "$E2E_PGBENCH_IOSTAT_COUNT"
+  } > "$LOG_PATH/iostat-$POD" 2>&1 || true
+}
+
+pgbench_collect_fio() {
+  local RESULT
+  local EXIT_CODE
+  local POD="$1"
+
+  # Direct I/O is not available on every filesystem a PersistentVolume may use,
+  # fallback to buffered I/O when it is not supported.
+  try_function pgbench_run_fio "$POD" 1
+  if "$RESULT"
+  then
+    return
+  fi
+  echo "fio failed using direct I/O on Pod $POD, retrying using buffered I/O"
+  try_function pgbench_run_fio "$POD" 0
+  if "$RESULT"
+  then
+    return
+  fi
+  echo "WARNING: unable to collect fio statistics of Pod $POD"
+  cat "$LOG_PATH/fio-$POD.err" || true
+  rm -f "$LOG_PATH/fio-$POD.json"
+}
+
+pgbench_run_fio() {
+  local POD="$1"
+  local DIRECT="$2"
+
+  pgbench_exec_disk_benchmark "$POD" sh -ec '
+    DIRECTORY="$1"
+    SIZE="$2"
+    RUNTIME="$3"
+    DIRECT="$4"
+    mkdir -p "$DIRECTORY"
+    trap "rm -rf \"$DIRECTORY\"" EXIT
+    fio --output-format=json \
+      --directory="$DIRECTORY" \
+      --ioengine=psync --direct="$DIRECT" --unlink=1 \
+      --time_based --ramp_time=1 --runtime="$RUNTIME" --size="$SIZE" \
+      --group_reporting=1 \
+      --name=seq-write --rw=write --bs=1m \
+      --name=rand-read --rw=randread --bs=8k --stonewall \
+      --name=rand-write --rw=randwrite --bs=8k --stonewall \
+      --name=wal-fsync --rw=write --bs=8k --fdatasync=1 --direct=0 --stonewall
+    ' _ "$PGBENCH_DISK_BENCHMARK_PATH" "$E2E_PGBENCH_FIO_SIZE" "$E2E_PGBENCH_FIO_RUNTIME" "$DIRECT" \
+    > "$LOG_PATH/fio-$POD.json" 2> "$LOG_PATH/fio-$POD.err"
+}
+
+# Extract the checkpoint statistics Postgres logged during the benchmark. Replicas
+# log restartpoints instead of checkpoints, both are collected.
+pgbench_collect_checkpoint_stats() {
+  local POD
+
+  rm -f "$LOG_PATH/checkpoint-pods"
+
+  for POD in $(kubectl get pod -n "$CLUSTER_NAMESPACE" -l app=StackGresCluster \
+    -o name | cut -d / -f 2)
+  do
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$POD" -c patroni \
+      ${PGBENCH_LOGS_SINCE:+--since-time="$PGBENCH_LOGS_SINCE"} 2>/dev/null \
+      | grep -E '(checkpoint|restartpoint) (starting|complete):' \
+      > "$LOG_PATH/checkpoints-$POD" || true
+    echo "$POD" >> "$LOG_PATH/checkpoint-pods"
+  done
+}
+
+pgbench_print_benchmark() {
+  local SUFFIX="$1"
+  local BENCH_LOG="${2:-bench}"
+
+  if [ ! -f "$LOG_PATH/$BENCH_LOG" ]
+  then
+    return
+  fi
+
+  echo "Test results$SUFFIX"
+  echo
+  cat "$LOG_PATH/$BENCH_LOG"
+  echo
+  echo "Transactions$SUFFIX"
+  echo
+  cat "$LOG_PATH/$BENCH_LOG-transactions"
+}
+
+pgbench_print_disk_performance() {
+  local POD
+
+  if [ ! -s "$LOG_PATH/disk-performance-pods" ]
+  then
+    return
+  fi
+
+  echo
+  echo "Disk performance collected before the benchmark"
+  while IFS="$NEWLINE_IFS" read -r POD
+  do
+    echo
+    echo "Pod $POD, iostat"
+    echo
+    # Loop, ram and cdrom devices are never backing a PersistentVolume and would
+    # only make the report unreadable, they are still kept in the collected file
+    grep -v '^\(loop\|ram\|sr\)[0-9]' "$LOG_PATH/iostat-$POD" | sed 's/^/  /'
+    echo
+    echo "Pod $POD, fio"
+    echo
+    pgbench_print_fio "$POD" | sed 's/^/  /'
+  done < "$LOG_PATH/disk-performance-pods"
+}
+
+pgbench_print_fio() {
+  local POD="$1"
+
+  if [ ! -s "$LOG_PATH/fio-$POD.json" ]
+  then
+    echo "Not available"
+    return
+  fi
+
+  jq -r '.jobs[]
+    | [ .jobname,
+        (.read.bw_bytes / 1048576 * 100 | round / 100),
+        (.read.iops | round),
+        (.read.clat_ns.mean / 1000 | round),
+        (.write.bw_bytes / 1048576 * 100 | round / 100),
+        (.write.iops | round),
+        (.write.clat_ns.mean / 1000 | round),
+        ((.sync.lat_ns.mean // 0) / 1000 | round) ]
+    | @tsv' "$LOG_PATH/fio-$POD.json" \
+    | awk -F "$(printf '\t')" '
+      BEGIN {
+        format = "%-11s %11s %10s %12s %11s %11s %13s %13s\n"
+        printf format, "job", "read MiB/s", "read IOPS", "read lat us", \
+          "write MiB/s", "write IOPS", "write lat us", "fsync lat us"
+      }
+      { printf format, $1, $2, $3, $4, $5, $6, $7, $8 }'
+}
+
+pgbench_print_checkpoint_statistics() {
+  local POD
+
+  if [ ! -s "$LOG_PATH/checkpoint-pods" ]
+  then
+    return
+  fi
+
+  echo
+  echo "Postgres checkpoint statistics collected during the benchmark"
+  while IFS="$NEWLINE_IFS" read -r POD
+  do
+    echo
+    echo "Pod $POD"
+    echo
+    pgbench_print_checkpoints "$POD" | sed 's/^/  /'
+  done < "$LOG_PATH/checkpoint-pods"
+}
+
+pgbench_print_checkpoints() {
+  local POD="$1"
+
+  if [ ! -s "$LOG_PATH/checkpoints-$POD" ]
+  then
+    echo "No checkpoint has been logged"
+    return
+  fi
+
+  awk '
+    / (checkpoint|restartpoint) starting: / {
+      reason = $0
+      sub(/^.* starting: /, "", reason)
+      started[reason]++
+      started_count++
+    }
+    / (checkpoint|restartpoint) complete: / {
+      completed_count++
+      for (i = 1; i <= NF; i++) {
+        if ($i == "wrote") { buffers += $(i + 1) + 0 }
+        if ($i ~ /^write=/) { value = substr($i, 7) + 0; write_time += value; if (value > write_max) write_max = value }
+        if ($i ~ /^sync=/) { value = substr($i, 6) + 0; sync_time += value; if (value > sync_max) sync_max = value }
+        if ($i ~ /^total=/) { value = substr($i, 7) + 0; total_time += value; if (value > total_max) total_max = value }
+      }
+    }
+    END {
+      printf "started:   %d\n", started_count
+      for (reason in started) {
+        printf "  %-24s %d\n", reason, started[reason]
+      }
+      printf "completed: %d\n", completed_count
+      if (completed_count > 0) {
+        printf "  %-24s %d (%d per checkpoint)\n", "buffers written", buffers, buffers / completed_count
+        printf "  %-24s avg %.3f s, max %.3f s\n", "write time", write_time / completed_count, write_max
+        printf "  %-24s avg %.3f s, max %.3f s\n", "sync time", sync_time / completed_count, sync_max
+        printf "  %-24s avg %.3f s, max %.3f s\n", "total time", total_time / completed_count, total_max
+      }
+    }' "$LOG_PATH/checkpoints-$POD"
+  echo
+  echo "Logged checkpoints"
+  echo
+  sed 's/^/  /' "$LOG_PATH/checkpoints-$POD"
+}
+
+pgbench_print_results() {
+  local SUFFIX="$1"
+  local BENCH_LOG="${2:-bench}"
+
+  echo
+  pgbench_print_benchmark "$SUFFIX" "$BENCH_LOG"
+  pgbench_print_disk_performance
+  pgbench_print_checkpoint_statistics
+}

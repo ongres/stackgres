@@ -1,25 +1,27 @@
 #!/bin/sh
 
+. "$SPEC_PATH/runbooks/abstract/pgbench"
+
+e2e_test_extra_hash() {
+  pgbench_extra_hash
+}
+
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   install_prometheus_operator
 
+  # shellcheck disable=SC2046
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(( 1 + ${E2E_PGBENCH_CITUS_SHARDS:-2} + ${E2E_PGBENCH_CITUS_QUERY_ROUTERS:-0} ))" 1 0 \
-    --set-string instanceProfiles[0].name=size-s \
-    --set-string instanceProfiles[0].cpu=500m \
-    --set-string instanceProfiles[0].memory=2Gi \
-    --set nonProductionOptions.disablePatroniResourceRequirements=false \
-    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    $(pgbench_cluster_options) \
+    $(pgbench_disk_benchmark_options cluster.pods "$CLUSTER_NAME-coord-data") \
+    $(pgbench_shards_disk_benchmark_options "$(( ${E2E_PGBENCH_CITUS_SHARDS:-2} + ${E2E_PGBENCH_CITUS_QUERY_ROUTERS:-0} ))") \
     --set cluster.configurations.observability.prometheusAutobind=true \
-    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections='"${E2E_PGBENCH_MAX_CONNECTIONS:-104}" \
-    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_shared_pool_size='"${E2E_PGBENCH_CITUS_MAX_SHARED_POOL_SIZE:-${E2E_PGBENCH_MAX_CONNECTIONS:-104}}" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_shared_pool_size='"${E2E_PGBENCH_CITUS_MAX_SHARED_POOL_SIZE:-$E2E_PGBENCH_MAX_CONNECTIONS}" \
     --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_adaptive_executor_pool_size='"${E2E_PGBENCH_MAX_ADAPTIVE_EXECUTOR_POOL_SIZE:-16}" \
     --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.executor_slow_start_interval='"${E2E_PGBENCH_CITUS_EXECUTOR_SLOW_START_INTERVAL:-10ms}" \
     --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.max_cached_conns_per_worker='"${E2E_PGBENCH_CITUS_MAX_CACHED_CONNS_PER_WORKER:-1}" \
     --set-string 'configurations.postgresconfig.postgresql\.conf.citus\.force_max_query_parallelization='"${E2E_PGBENCH_CITUS_FORCE_MAX_QUERY_PARALLELIZATION:-off}" \
-    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size='"${E2E_PGBENCH_DEFAULT_POOL_SIZE:-100}" \
-    --set-string 'cluster.autoscaling.mode=none' \
     --set-string 'configurations.postgresconfig.postgresql\.conf.cron\.database_name=postgres' \
     --set-string 'configurations.postgresconfig.postgresql\.conf.cron\.host=/var/run/postgresql' \
     --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_cron' \
@@ -73,8 +75,8 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template '{{ (index .data "superuser-password") | base64decode }}')"
+  pgbench_read_password
+
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- env "PGPASSWORD=$PGPASSWORD" psql -d citus -q -h "$CLUSTER_NAME" -c "
         DROP TABLE IF EXISTS public.pgbench_branches;
@@ -119,12 +121,12 @@ EOF
             ADD CONSTRAINT pgbench_accounts_pkey PRIMARY KEY (bid, aid);
         ALTER TABLE ONLY public.pgbench_history
             ADD CONSTRAINT pgbench_history_pkey PRIMARY KEY (bid, tid, aid);
-        
+
         SELECT create_distributed_table('pgbench_branches', 'bid');
         SELECT create_distributed_table('pgbench_tellers', 'bid', colocate_with => 'pgbench_branches');
         SELECT create_distributed_table('pgbench_accounts', 'bid', colocate_with => 'pgbench_branches');
         SELECT create_distributed_table('pgbench_history', 'bid', colocate_with => 'pgbench_branches');
-        
+
         INSERT INTO pgbench_branches (bid, bbalance)
           SELECT i, 0 FROM generate_series(1, 7) AS i;
         INSERT INTO pgbench_tellers (tid, bid, tbalance)
@@ -143,10 +145,9 @@ e2e_test() {
 }
 
 benchmark_cluster() {
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME -c 'SELECT 1'"
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME-workers -c 'SELECT 1'"
+  pgbench_wait_service "$CLUSTER_NAME"
+  pgbench_wait_service "$CLUSTER_NAME-workers"
+
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c "printf %s '
            \set bid random(1, 1 * :scale)
@@ -183,38 +184,16 @@ benchmark_cluster() {
             END;
         ' > /tmp/script2"
   fi
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- env PGPASSWORD="$PGPASSWORD" pgbench -T "$((E2E_TIMEOUT / 2))" -d citus \
-    -C -c 20 -j 20 \
+
+  pgbench_collect_disk_performance
+
+  # shellcheck disable=SC2046
+  pgbench_start bench -d citus \
     --file=/tmp/script@100 \
     $([ "$E2E_PGBENCH_CITUS_MODE" != aggregated_queries ] || printf %s "--file=/tmp/script2@${E2E_PGBENCH_CITUS_AGGREGATED_QUERIES_WEIGHT:-10}") \
-    --progress=5 \
-    --log --log-prefix=/tmp/pgbench_log \
-    --failures-detailed \
-    --aggregate-interval="$((E2E_TIMEOUT / 20))" \
-    -h "$CLUSTER_NAME" 2>&1 | tee "$LOG_PATH/bench" &
-  BENCH_PID="$!"
-  trap_kill "$BENCH_PID"
-  if wait_until eval '! kill -0 "$BENCH_PID"' \
-    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
-  then
-    echo "success Benchmark terminated succesfully"
-  else
-    echo "FAIL: Benchmark not terminated succesfully"
-    kill "$BENCH_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-    return 1
-  fi
-  kill "$BENCH_PID" || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
-  echo "Test results"
-  echo
-  cat "$LOG_PATH/bench"
-  echo
-  echo "Transactions"
-  echo
-  cat "$LOG_PATH/pgbench-transactions"
+    -h "$CLUSTER_NAME"
+
+  pgbench_wait_completion
+
+  pgbench_print_results
 }

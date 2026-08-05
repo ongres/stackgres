@@ -1,5 +1,11 @@
 #!/bin/sh
 
+. "$SPEC_PATH/runbooks/abstract/pgbench"
+
+e2e_test_extra_hash() {
+  pgbench_extra_hash
+}
+
 e2e_test_install() {
   install_metric_server
   install_keda
@@ -8,25 +14,10 @@ e2e_test_install() {
     --set-string recommender.extraArgs.recommendation-margin-fraction=1.5
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string instanceProfiles[0].name=size-s \
-    --set-string instanceProfiles[0].cpu=500m \
-    --set-string instanceProfiles[0].memory=2Gi \
-    --set nonProductionOptions.disablePatroniResourceRequirements=false \
-    --set nonProductionOptions.disableClusterResourceRequirements=true \
-    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
-    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
-    --set-string 'cluster.autoscaling.mode=none'
 
-  deploy_psql_pod "$CLUSTER_NAMESPACE"
+  pgbench_create_cluster 2
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template '{{ (index .data "superuser-password") | base64decode }}')"
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME -s 10"
+  pgbench_init_cluster 3
 }
 
 e2e_test_uninstall() {
@@ -38,24 +29,16 @@ e2e_test() {
 }
 
 benchmark_cluster_vertical_autoscaling() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string instanceProfiles[0].name=size-s \
-    --set-string instanceProfiles[0].cpu=500m \
-    --set-string instanceProfiles[0].memory=2Gi \
-    --set nonProductionOptions.disablePatroniResourceRequirements=false \
-    --set nonProductionOptions.disableClusterResourceRequirements=true \
-    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
-    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+  pgbench_create_cluster 2 \
     --set-string 'cluster.autoscaling.mode=vertical' \
     --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
     --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT / 2))' -C -c 20 -j 20 --max-tries=1000000 --progress=5 --log --log-prefix=/tmp/pgbench_log --failures-detailed --aggregate-interval='$((E2E_TIMEOUT / 20))' -h $CLUSTER_NAME" 2>&1 | tee "$LOG_PATH/bench" &
-  BENCH_PID="$!"
-  trap_kill "$BENCH_PID"
+  pgbench_wait_service "$CLUSTER_NAME-replicas"
+
+  pgbench_collect_disk_performance
+
+  pgbench_start bench --max-tries=1000000 -h "$CLUSTER_NAME"
 
   LATEST_CPU_QUANTITY='0.5'
   while true
@@ -67,10 +50,11 @@ benchmark_cluster_vertical_autoscaling() {
       -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" -o json \
       | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-X-cpu.jq" \
       | wc -l | grep -qxF 2 \
-      || ! kill -0 "$BENCH_PID"'
+      || ! kill -0 "$PGBENCH_PID"'
     then
-      if ! kill -0 "$BENCH_PID" >/dev/null 2>&1 \
-        && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench-autoscaled"
+      # The benchmark completed before the cluster could be autoscaled again,
+      # pgbench_wait_completion below reports whether it did so succesfully
+      if ! pgbench_running
       then
         break
       fi
@@ -87,54 +71,27 @@ benchmark_cluster_vertical_autoscaling() {
     else
       echo "FAIL: VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
       kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
-      kill "$BENCH_PID" || true
-      kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-        -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+      pgbench_stop
       return 1
     fi
-    kill "$BENCH_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
+    pgbench_stop
+    pgbench_collect_transactions
 
-    wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT / 2))' -C -c 20 -j 20 --max-tries=1000000 --progress=5 --log --log-prefix=/tmp/pgbench_log --failures-detailed --aggregate-interval='$((E2E_TIMEOUT / 20))' -h $CLUSTER_NAME" 2>&1 | tee "$LOG_PATH/bench-autoscaled" &
-    BENCH_PID="$!"
-    trap_kill "$BENCH_PID"
+    pgbench_wait_service "$CLUSTER_NAME-replicas"
+
+    pgbench_start bench-autoscaled --max-tries=1000000 -h "$CLUSTER_NAME"
   done
 
-  if wait_until eval '! kill -0 "$BENCH_PID"' \
-    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench-autoscaled"
-  then
-    echo "success Benchmark terminated succesfully"
-  else
-    echo "FAIL: Benchmark not terminated succesfully"
-    kill "$BENCH_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-    return 1
-  fi
-  kill "$BENCH_PID" || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/bench-autoscaled-transactions"
-  echo "Test results before autoscaling"
+  pgbench_wait_completion
+
   echo
-  cat "$LOG_PATH/bench"
+  pgbench_print_benchmark ' before autoscaling' bench
   echo
-  echo "Transactions before autoscaling"
+  pgbench_print_benchmark ' after autoscaling' bench-autoscaled
+  pgbench_print_disk_performance
+  pgbench_print_checkpoint_statistics
   echo
-  cat "$LOG_PATH/pgbench-transactions"
+  echo "Autoscaling changes"
   echo
-  echo "Test results before autoscaling"
-  echo
-  cat "$LOG_PATH/bench-autoscaled"
-  echo
-  echo "Transactions before autoscaling"
-  echo
-  cat "$LOG_PATH/bench-autoscaled-transactions"
-  echo
-  echo "Autoscaling completed at $AUTOSCALE_START"
+  cat "$LOG_PATH/autoscale-changed" 2>/dev/null || echo "The cluster has not been autoscaled"
 }
