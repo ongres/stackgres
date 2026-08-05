@@ -133,6 +133,9 @@ spec:
       storageClass: {{ . }}
       {{- end }}
       {{- end }}
+      {{- with .Values.cluster.pods.persistentVolume.volumeAttributesClassName }}
+      volumeAttributesClassName: {{ . }}
+      {{- end }}
     {{- with .Values.cluster.pods.disableConnectionPooling }}
     disableConnectionPooling: {{ . }}
     {{- end }}

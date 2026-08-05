@@ -143,6 +143,9 @@ spec:
         storageClass: {{ quote .Values.cluster.pods.persistentVolume.storageClass }}
         {{- end }}
         {{- end }}
+        {{- with .Values.cluster.pods.persistentVolume.volumeAttributesClassName }}
+        volumeAttributesClassName: {{ quote . }}
+        {{- end }}
       {{- with .Values.cluster.pods.disableConnectionPooling }}
       disableConnectionPooling: {{ . }}
       {{- end }}
@@ -205,6 +208,9 @@ spec:
         {{- else }}
         storageClass: {{ quote .Values.shardedCluster.workers.pods.persistentVolume.storageClass }}
         {{- end }}
+        {{- end }}
+        {{- with .Values.shardedCluster.workers.pods.persistentVolume.volumeAttributesClassName }}
+        volumeAttributesClassName: {{ quote . }}
         {{- end }}
       {{- with .Values.shardedCluster.workers.pods.disableConnectionPooling }}
       disableConnectionPooling: {{ . }}

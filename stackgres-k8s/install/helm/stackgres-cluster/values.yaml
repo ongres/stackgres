@@ -114,6 +114,12 @@ cluster:
       ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
       ##   GKE, AWS & OpenStack)
       # storageClass: "-"
+      ## If defined, volumeAttributesClassName: <volumeAttributesClass>
+      ## Name of an existing VolumeAttributesClass, that holds the mutable
+      ##   attributes of a volume (for instance the IOPS or the throughput on
+      ##   the CSI drivers supporting them), applied to the PersistentVolumes
+      ##   without having to change the storageClass.
+      # volumeAttributesClassName: high-iops
     disableConnectionPooling: false
     disablePostgresUtil: false
     disableEnvoy: false
@@ -220,6 +226,10 @@ shardedCluster:
     pods:
       persistentVolume:
         size: 5Gi
+        ## Same as cluster.pods.persistentVolume but for the workers of a
+        ##   SGShardedCluster
+        # storageClass: "-"
+        # volumeAttributesClassName: high-iops
 
 instanceProfiles:
   - name: size-s
