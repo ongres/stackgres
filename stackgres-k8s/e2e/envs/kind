@@ -492,7 +492,7 @@ EOF
       1.26) CSI_DRIVER_HOST_PATH_DIR=v1.12.0-k8s-1.26; SNAPSHOTTER_VERSION=v6.3.2 ;;
       # v1.12.0 has no deploy/kubernetes-1.28 dir; reuse the 1.27 layout for 1.28.
       1.27|1.28) CSI_DRIVER_HOST_PATH_DIR=v1.12.0-k8s-1.27; SNAPSHOTTER_VERSION=v6.3.2 ;;
-      1.29|1.30|1.31|1.32|1.33|1.34|1.35) CSI_DRIVER_HOST_PATH_DIR=master-k8s-1.30; SNAPSHOTTER_VERSION=v6.3.2 ;;
+      1.29|1.30|1.31|1.32|1.33|1.34|1.35|1.36) CSI_DRIVER_HOST_PATH_DIR=master-k8s-1.30; SNAPSHOTTER_VERSION=v6.3.2 ;;
     esac
     if [ -z "$CSI_DRIVER_HOST_PATH_DIR" ]
     then
