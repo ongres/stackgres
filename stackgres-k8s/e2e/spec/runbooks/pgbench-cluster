@@ -23,13 +23,12 @@ e2e_test() {
 }
 
 benchmark_cluster() {
-  pgbench_wait_service "$CLUSTER_NAME-replicas"
+  pgbench_wait_service "$CLUSTER_NAME"
 
   pgbench_collect_disk_performance
 
-  pgbench_start bench -h "$CLUSTER_NAME"
-
-  pgbench_wait_completion
+  # shellcheck disable=SC2046
+  pgbench_run_load_steps bench $(pgbench_builtin_workload) -h "$CLUSTER_NAME"
 
   pgbench_print_results
 }

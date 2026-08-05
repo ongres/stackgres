@@ -27,9 +27,8 @@ benchmark_cluster() {
 
   pgbench_collect_disk_performance
 
-  pgbench_start bench -h "$CLUSTER_NAME-replicas" -S
-
-  pgbench_wait_completion
+  # The benchmark targets the replicas, that only accept read-only transactions
+  pgbench_run_load_steps bench -h "$CLUSTER_NAME-replicas" -S
 
   pgbench_print_results
 }

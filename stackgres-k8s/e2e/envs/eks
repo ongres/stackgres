@@ -7,11 +7,17 @@ K8S_EKS_NODES="${K8S_EKS_NODES:-1}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_USE_SPOT="${K8S_EKS_USE_SPOT:-true}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
+# Type of the EBS volumes backing the PersistentVolumes (not the node disks, see
+# K8S_EKS_DISK_SIZE). It is also the name of the default storage class created by
+# config_k8s. gp3 is used instead of the gp2 storage class EKS creates since it is
+# the only type allowing to set both the IOPS and the throughput independently of
+# the volume size.
+K8S_EKS_PERSISTENT_VOLUME_TYPE="${K8S_EKS_PERSISTENT_VOLUME_TYPE:-gp3}"
 EKSCTL=eksctl
 EKSCTL_0_210_0=eksctl-0.210.0
 EKS_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 
-export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
+export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS K8S_EKS_PERSISTENT_VOLUME_TYPE
 
 get_k8s_env_version() {
   echo "eksctl version $(eksctl version)"
@@ -58,7 +64,6 @@ reuse_k8s() {
 }
 
 config_k8s() {
-  kubectl annotate storageclass gp2 storageclass.kubernetes.io/is-default-class=true
   eksctl utils associate-iam-oidc-provider --region="$K8S_EKS_REGION" --cluster="$K8S_EKS_NAME" --approve
   eksctl create iamserviceaccount \
       --region "$K8S_EKS_REGION" \
@@ -79,6 +84,8 @@ config_k8s() {
       --cluster="$K8S_EKS_NAME" \
       --service-account-role-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/AmazonEKS_EBS_CSI_DriverRole \
       --force || true
+
+  config_default_storage_class_k8s
 
   kubectl create sa cluster-admin-fast 2>/dev/null || true
   kubectl create clusterrolebinding cluster-admin-fast --clusterrole=cluster-admin --serviceaccount=default:cluster-admin-fast 2>/dev/null || true
@@ -229,4 +236,57 @@ create_expandable_storage_class_k8s() {
     "$EKS_EXPANDABLE_STORAGE_CLASSNAME" \
     | kubectl apply -f - > /dev/null
   printf '%s' "$EKS_EXPANDABLE_STORAGE_CLASSNAME"
+}
+
+# Make a storage class provisioning EBS volumes of type
+# K8S_EKS_PERSISTENT_VOLUME_TYPE through the AWS EBS CSI driver installed by
+# config_k8s the default one, replacing the gp2 storage class EKS creates. The
+# in-tree provisioner of that storage class can neither set the IOPS and the
+# throughput nor be targeted by a VolumeAttributesClass.
+config_default_storage_class_k8s() {
+  if [ "$K8S_EKS_PERSISTENT_VOLUME_TYPE" != gp2 ] \
+    && kubectl get storageclasses.storage.k8s.io gp2 > /dev/null 2>&1
+  then
+    kubectl annotate storageclass gp2 \
+      storageclass.kubernetes.io/is-default-class=false --overwrite
+  fi
+
+  if ! kubectl get storageclasses.storage.k8s.io "$K8S_EKS_PERSISTENT_VOLUME_TYPE" > /dev/null 2>&1
+  then
+    cat << EOF | kubectl create -f - > /dev/null
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: $K8S_EKS_PERSISTENT_VOLUME_TYPE
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: $K8S_EKS_PERSISTENT_VOLUME_TYPE
+EOF
+  fi
+
+  kubectl annotate storageclass "$K8S_EKS_PERSISTENT_VOLUME_TYPE" \
+    storageclass.kubernetes.io/is-default-class=true --overwrite
+}
+
+# Generate a volume attributes class requesting the specified IOPS and throughput (in
+# MiB/s) from the AWS EBS CSI driver, that supports them since version 1.19.0. An
+# empty value leaves the corresponding setting to the default of the volume type.
+generate_disk_performance_volume_attributes_class_k8s() {
+  local API_VERSION="$1"
+  local NAME="$2"
+  local IOPS="$3"
+  local THROUGHPUT="$4"
+
+  cat << EOF
+apiVersion: $API_VERSION
+kind: VolumeAttributesClass
+metadata:
+  name: $NAME
+driverName: ebs.csi.aws.com
+parameters:
+EOF
+  [ -z "$IOPS" ] || printf '  iops: "%s"\n' "$IOPS"
+  [ -z "$THROUGHPUT" ] || printf '  throughput: "%s"\n' "$THROUGHPUT"
 }

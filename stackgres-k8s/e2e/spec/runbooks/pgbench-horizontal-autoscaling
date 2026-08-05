@@ -28,7 +28,7 @@ e2e_test() {
 }
 
 benchmark_cluster_horizontal_autoscaling() {
-  pgbench_create_cluster 2 \
+  pgbench_create_cluster "${E2E_PGBENCH_INSTANCES:-2}" \
     --set-string 'cluster.autoscaling.mode=horizontal' \
     --set 'cluster.autoscaling.minInstances=2' \
     --set 'cluster.autoscaling.maxInstances=3' \
@@ -40,21 +40,30 @@ benchmark_cluster_horizontal_autoscaling() {
 
   pgbench_collect_disk_performance
 
-  pgbench_start bench -h "$CLUSTER_NAME-replicas" -S
+  # The connections of the lightest load step are already enough to scale the
+  # cluster, the heavier ones only keep benchmarking the cluster once scaled
+  AUTOSCALE_START=
+  for STEP in $(pgbench_load_steps)
+  do
+    pgbench_start_load_step bench "$STEP" -h "$CLUSTER_NAME-replicas" -S
 
-  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
-    | wc -l | grep -qxF 2'
-  then
-    AUTOSCALE_START="$(date +%s)"
-    echo "success KEDA can scale the cluster based on connections"
-  else
-    echo "FAIL: KEDA can not scale the cluster based on connections"
-    pgbench_stop
-    return 1
-  fi
+    if [ -z "$AUTOSCALE_START" ]
+    then
+      if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+        -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
+        | wc -l | grep -qxF 2'
+      then
+        AUTOSCALE_START="$(date +%s)"
+        echo "success KEDA can scale the cluster based on connections"
+      else
+        echo "FAIL: KEDA can not scale the cluster based on connections"
+        pgbench_stop
+        return 1
+      fi
+    fi
 
-  pgbench_wait_completion
+    pgbench_wait_completion
+  done
 
   pgbench_print_results
   echo

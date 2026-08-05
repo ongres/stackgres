@@ -1,6 +1,8 @@
 #!/bin/sh
 
 DEFAULT_EXPANDABLE_STORAGE_CLASSNAME="expandable-sc"
+DEFAULT_DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME="disk-performance"
+DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME=""
 
 init_expandable_storage_class(){
   EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_configured)"
@@ -19,6 +21,58 @@ init_expandable_storage_class(){
       EXPANDABLE_STORAGE_CLASSNAME="$(create_expandable_storage_class_k8s)"
     fi 
   fi
+}
+
+# Set DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME to the name of a volume attributes
+# class requesting the specified IOPS and throughput (in MiB/s), creating it if it
+# does not exist yet. An empty value leaves the corresponding setting to the default
+# of the environment. A volume attributes class only holds the mutable attributes of
+# a volume, so the cluster keeps using the default storage class, and the attributes
+# are applied both when the volume is provisioned and when the class of an existing
+# volume is changed. The parameters are part of the name since they can not be changed
+# once the class has been created, so distinct values do not conflict and a class can
+# safely be reused by any test requiring the same performance.
+init_disk_performance_volume_attributes_class(){
+  local IOPS="$1"
+  local THROUGHPUT="$2"
+  local API_VERSION
+
+  if ! command -v generate_disk_performance_volume_attributes_class_k8s >/dev/null 2>&1
+  then
+    echo "Environment $E2E_ENV can not create a volume attributes class with a specific disk IOPS or throughput."
+    return 1
+  fi
+
+  API_VERSION="$(get_volume_attributes_class_api_version)"
+  if [ -z "$API_VERSION" ]
+  then
+    echo "The Kubernetes cluster does not serve the VolumeAttributesClass resource, that is only enabled by default since Kubernetes 1.34."
+    return 1
+  fi
+
+  DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME="$DEFAULT_DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME${IOPS:+-iops-$IOPS}${THROUGHPUT:+-throughput-$THROUGHPUT}"
+
+  if kubectl get volumeattributesclasses.storage.k8s.io "$DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME" >/dev/null 2>&1
+  then
+    echo "Volume attributes class $DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME already exists, skipping creation."
+    return
+  fi
+
+  echo "Creating volume attributes class $DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME with${IOPS:+ $IOPS IOPS}${IOPS:+${THROUGHPUT:+ and}}${THROUGHPUT:+ $THROUGHPUT MiB/s of throughput}."
+  generate_disk_performance_volume_attributes_class_k8s \
+    "$API_VERSION" "$DISK_PERFORMANCE_VOLUME_ATTRIBUTES_CLASSNAME" "$IOPS" "$THROUGHPUT" \
+    | kubectl apply -f - > /dev/null
+}
+
+# Print the api version at which the Kubernetes cluster serves the
+# VolumeAttributesClass resource, that is storage.k8s.io/v1 since Kubernetes 1.34 and
+# storage.k8s.io/v1beta1 before, or nothing if the resource is not served. The kind is
+# always the last column of the output and the api version the third to last one, so
+# the missing short names of the resource do not shift the extracted column.
+get_volume_attributes_class_api_version(){
+  kubectl api-resources --api-group storage.k8s.io --no-headers 2>/dev/null \
+    | awk '$1 == "volumeattributesclasses" { print $(NF - 2) }' \
+    | head -n 1
 }
 
 get_expandable_storage_class_configured(){

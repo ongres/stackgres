@@ -29,16 +29,46 @@ e2e_test() {
 }
 
 benchmark_cluster_vertical_autoscaling() {
-  pgbench_create_cluster 2 \
+  pgbench_create_cluster "${E2E_PGBENCH_INSTANCES:-2}" \
     --set-string 'cluster.autoscaling.mode=vertical' \
     --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
     --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
-  pgbench_wait_service "$CLUSTER_NAME-replicas"
+  pgbench_wait_service "$CLUSTER_NAME"
 
   pgbench_collect_disk_performance
 
-  pgbench_start bench --max-tries=1000000 -h "$CLUSTER_NAME"
+  # Only the lightest load step drives the autoscaling assertions, once the
+  # VerticalPodAutoscaler has scaled the primary up to maxAllowed there is
+  # nothing left to observe and the heavier steps simply benchmark it as it is
+  FIRST_STEP=true
+  for STEP in $(pgbench_load_steps)
+  do
+    if [ "$FIRST_STEP" = true ]
+    then
+      FIRST_STEP=false
+      benchmark_load_step_with_vertical_autoscaling "$STEP" || return 1
+    else
+      # shellcheck disable=SC2046
+      pgbench_start_load_step bench-autoscaled "$STEP" $(pgbench_builtin_workload) \
+        --max-tries=1000000 -h "$CLUSTER_NAME"
+      pgbench_wait_completion
+    fi
+  done
+
+  pgbench_print_results
+  echo
+  echo "Autoscaling changes"
+  echo
+  cat "$LOG_PATH/autoscale-changed" 2>/dev/null || echo "The cluster has not been autoscaled"
+}
+
+benchmark_load_step_with_vertical_autoscaling() {
+  local STEP="$1"
+
+  # shellcheck disable=SC2046
+  pgbench_start_load_step bench "$STEP" $(pgbench_builtin_workload) \
+    --max-tries=1000000 -h "$CLUSTER_NAME"
 
   LATEST_CPU_QUANTITY='0.5'
   while true
@@ -77,21 +107,12 @@ benchmark_cluster_vertical_autoscaling() {
     pgbench_stop
     pgbench_collect_transactions
 
-    pgbench_wait_service "$CLUSTER_NAME-replicas"
+    pgbench_wait_service "$CLUSTER_NAME"
 
-    pgbench_start bench-autoscaled --max-tries=1000000 -h "$CLUSTER_NAME"
+    # shellcheck disable=SC2046
+    pgbench_start_load_step bench-autoscaled "$STEP" $(pgbench_builtin_workload) \
+      --max-tries=1000000 -h "$CLUSTER_NAME"
   done
 
   pgbench_wait_completion
-
-  echo
-  pgbench_print_benchmark ' before autoscaling' bench
-  echo
-  pgbench_print_benchmark ' after autoscaling' bench-autoscaled
-  pgbench_print_disk_performance
-  pgbench_print_checkpoint_statistics
-  echo
-  echo "Autoscaling changes"
-  echo
-  cat "$LOG_PATH/autoscale-changed" 2>/dev/null || echo "The cluster has not been autoscaled"
 }

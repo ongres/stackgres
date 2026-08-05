@@ -72,7 +72,7 @@ EOF
 
   deploy_psql_pod "$CLUSTER_NAMESPACE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" "$(( 2 + ${E2E_PGBENCH_CITUS_SHARDS:-2} + ${E2E_PGBENCH_CITUS_QUERY_ROUTERS:-0} ))"
   wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   pgbench_read_password
@@ -163,6 +163,15 @@ benchmark_cluster() {
              VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
            END;
       ' > /tmp/script"
+  # Read-only counterpart of the script above. It derives its keys the same way
+  # so that it reads the very rows the read-write script writes, and filters on
+  # the distribution column so that Citus routes it to a single shard.
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "printf %s '
+           \set bid random(1, 1 * :scale)
+           \set aid (:bid - 1) * 100000 + random(1, 100000)
+           SELECT abalance FROM pgbench_accounts WHERE aid = :aid AND bid = :bid;
+      ' > /tmp/script-read"
   if [ "$E2E_PGBENCH_CITUS_MODE" = aggregated_queries ]
   then
     kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
@@ -188,12 +197,10 @@ benchmark_cluster() {
   pgbench_collect_disk_performance
 
   # shellcheck disable=SC2046
-  pgbench_start bench -d citus \
-    --file=/tmp/script@100 \
+  pgbench_run_load_steps bench -d citus \
+    $(pgbench_script_workload /tmp/script /tmp/script-read) \
     $([ "$E2E_PGBENCH_CITUS_MODE" != aggregated_queries ] || printf %s "--file=/tmp/script2@${E2E_PGBENCH_CITUS_AGGREGATED_QUERIES_WEIGHT:-10}") \
     -h "$CLUSTER_NAME"
-
-  pgbench_wait_completion
 
   pgbench_print_results
 }
