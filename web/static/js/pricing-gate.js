@@ -20,6 +20,9 @@
     content.hidden = false;
     var actions = document.querySelector('.hero-actions');
     if (actions) actions.hidden = false;
+    // the commercial-licensing card takes the gate's spot beside the hero
+    var aside = document.getElementById('heroAside');
+    if (aside) aside.hidden = false;
     if (typeof window.syncUrl === 'function') {
       try { window.syncUrl(); } catch (e) {}
     }

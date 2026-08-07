@@ -19,6 +19,17 @@
     min-width: 0;
 }
 
+/* after unlock the commercial-licensing card replaces the gate on the right,
+   bottom-aligned with the hero's CTA row */
+#epc .hero-aside {
+    flex: 0 0 400px;
+    min-width: 0;
+    align-self: flex-end;
+    /* cancel the hero's 42px bottom padding so the card's bottom edge
+       lines up with the CTA row */
+    margin-bottom: 42px;
+}
+
 #epc #pricing-gate.gate-card {
     flex: 0 0 400px;
     margin-top: 60px;
@@ -175,5 +186,10 @@
         width: 100%;
         margin-top: 0;
         margin-bottom: 40px;
+    }
+    #epc .hero-aside {
+        flex: none;
+        width: 100%;
+        margin-top: 0;
     }
 }

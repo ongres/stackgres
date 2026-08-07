@@ -290,6 +290,8 @@ layout: gated
 #epc .cta-ghost:hover{border-color:var(--text-3);color:var(--text)}
 #epc .linkbtn{background:none;border:none;color:var(--text-3);font-family:var(--f-mono);font-size:11.5px;cursor:pointer;padding:4px;transition:color .15s}
 #epc .linkbtn:hover{color:var(--accent)}
+#epc .cta-share{display:block;width:100%;padding:13px;border-radius:12px;cursor:pointer;background:rgba(4,223,253,.06);border:1px solid rgba(4,223,253,.45);color:var(--accent);font-family:var(--f-display);font-weight:700;font-size:14px;transition:border-color .15s,background .15s}
+#epc .cta-share:hover{border-color:var(--accent);background:rgba(4,223,253,.13)}
 #epc .fineprint{padding:8px 24px 22px;color:var(--text-3);font-size:11.5px;line-height:1.6}
 
 /* ---------- Comparison ---------- */
@@ -370,6 +372,15 @@ layout: gated
   </div>
 </section>
 {{< pricing-gate >}}
+<aside class="hero-aside" id="heroAside" hidden>
+  <div class="dual" style="grid-template-columns:1fr">
+    <div class="dcard sg">
+      <div class="dk" data-i="dual.sgK"></div>
+      <div class="dn">StackGres Enterprise</div>
+      <div class="dd" data-i="dual.sgD"></div>
+    </div>
+  </div>
+</aside>
 </div>
 
 <div id="gated-content" hidden>
@@ -377,15 +388,6 @@ layout: gated
   <span data-i="ro.note"></span>
   <a id="roEditLink" data-i="ro.edit"></a>
 </div>
-<section class="hero wrap" style="padding-top:0">
-  <div class="dual reveal" style="grid-template-columns:1fr;max-width:600px">
-    <div class="dcard sg">
-      <div class="dk" data-i="dual.sgK"></div>
-      <div class="dn">StackGres Enterprise</div>
-      <div class="dd" data-i="dual.sgD"></div>
-    </div>
-  </div>
-</section>
 
 <section class="clouds wrap reveal">
   <div class="clouds-in">
@@ -497,7 +499,7 @@ layout: gated
       <div class="cta-col">
         <button class="cta" id="cta"></button>
         <button class="cta-ghost" id="pdfBtn"></button>
-        <button class="linkbtn" id="shareBtn"></button>
+        <button class="cta-share" id="shareBtn"></button>
       </div>
       <div class="fineprint" id="fineprint"></div>
     </div>
