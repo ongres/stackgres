@@ -832,14 +832,20 @@ after_operator_install_or_upgrade() {
   wait_until eval 'kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator -o json \
     | jq ".webhooks|any(.clientConfig.caBundle == null)" \
     | grep -qxF false'
-  wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
+  if [ "$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq -r '.deploy.restapi')" != false ]
+  then
+    wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
+  fi
   wait_until eval 'kubectl get job -n "$OPERATOR_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
   if [ "$OPERATOR_FROM" != true ] && [ "$EXTENSIONS_CACHE_ENABLED" = true ]
   then
     wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator-extensions-cache$'
   fi
   set_max_length
-  update_ui_clear_password
+  if [ "$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq -r '.deploy.restapi')" != false ]
+  then
+    update_ui_clear_password
+  fi
 }
 
 update_ui_clear_password() {
