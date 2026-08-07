@@ -3,6 +3,7 @@ title: "StackGres Enterprise Pricing"
 url: /enterprise-pricing-calculator/
 description: "StackGres Enterprise pricing configurator"
 noindex: true
+layout: gated
 ---
 
 <div id="epc">
@@ -329,7 +330,8 @@ noindex: true
 </style>
 
 
-<section class="hero wrap">
+<div class="hero-gate-row wrap">
+<section class="hero">
   <div class="eyebrow">
     <span class="pulse" aria-hidden="true"></span>
     <span id="preparedFor"></span>
@@ -341,6 +343,12 @@ noindex: true
     <a class="btn-primary" href="#configurator"><span data-i="hero.cta"></span><span aria-hidden="true">&darr;</span></a>
     <a class="btn-ghost" href="#compare" data-i="hero.cta2"></a>
   </div>
+</section>
+{{< pricing-gate >}}
+</div>
+
+<div id="gated-content" hidden>
+<section class="hero wrap" style="padding-top:0">
   <div class="dual reveal" style="grid-template-columns:1fr;max-width:600px">
     <div class="dcard sg">
       <div class="dk" data-i="dual.sgK"></div>
@@ -492,6 +500,9 @@ noindex: true
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+/* wrapped in an IIFE so helpers like `$` don't leak into the global scope
+   and shadow jQuery for the site's scripts.js */
+(function(){
 "use strict";
 /* =======================================================================
    PER-LINK (per-client) CONFIGURATION
@@ -1093,6 +1104,9 @@ function render(){
 /* ============================ URL COMPARTIBLE ============================ */
 function syncUrl(){
   try{
+    /* don't touch the URL while the calculator is gated */
+    const gated = document.getElementById("gated-content");
+    if (gated && gated.hidden) return;
     const p = new URLSearchParams(location.search);
     p.set("cores", state.cores);
     p.set("ed", state.ed);
@@ -1318,5 +1332,10 @@ function wire(){
     document.querySelectorAll(".reveal").forEach(el => el.classList.add("in"));
   }
 })();
+
+/* exposed for pricing-gate.js to re-sync the URL after unlock */
+window.syncUrl = syncUrl;
+})();
 </script>
+</div>
 </div>

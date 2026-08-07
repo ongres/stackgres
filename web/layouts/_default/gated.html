@@ -1,0 +1,12 @@
+{{ define "head-seo" }}
+{{ if not (or site.Params.previewgate site.Params.noindex .Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}
+{{ with site.Params.hubspot.portalId }}
+<script src="https://js-{{ site.Params.hubspot.region | default "na1" }}.hs-scripts.com/{{ . }}.js" async defer></script>
+{{ end }}
+<link href="{{ "css/pricing-gate.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+<script src="{{ "js/pricing-gate.js" | relURL }}?{{ now.Unix }}" defer></script>
+{{ end }}
+
+{{ define "main" }}
+{{ .Content }}
+{{ end }}

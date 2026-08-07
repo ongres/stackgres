@@ -1,0 +1,39 @@
+{{- /* Email gate for the pricing calculator, rendered beside the page hero.
+     Custom form → HubSpot Forms API. Logic in static/js/pricing-gate.js. */ -}}
+<aside id="pricing-gate" class="gate-card" hidden
+       data-portal-id="{{ site.Params.hubspot.portalId }}"
+       data-form-id="{{ site.Params.hubspot.formId }}"
+       data-region="{{ site.Params.hubspot.region | default "na1" }}">
+  <h3>Access the pricing calculator</h3>
+  <p class="gate-lead">Enter your email to build your estimate.</p>
+  <form id="pricing-gate-form" novalidate>
+    <div class="gate-field-row">
+      <div class="gate-field">
+        <label for="gate-firstname">First name <span class="req">*</span></label>
+        <input id="gate-firstname" name="firstname" type="text" required
+               autocomplete="given-name" placeholder="Ada">
+      </div>
+      <div class="gate-field">
+        <label for="gate-lastname">Last name <span class="req">*</span></label>
+        <input id="gate-lastname" name="lastname" type="text" required
+               autocomplete="family-name" placeholder="Lovelace">
+      </div>
+    </div>
+    <div class="gate-field">
+      <label for="gate-email">Work email <span class="req">*</span></label>
+      <input id="gate-email" name="email" type="email" required
+             autocomplete="email" placeholder="you@company.com">
+    </div>
+    <div class="gate-consent">
+      <label>
+        <input id="gate-consent" type="checkbox">
+        <span id="gate-consent-text">I agree to be contacted by OnGres about StackGres
+        Enterprise and accept the <a href="{{ "privacy-policy" | relURL }}" target="_blank">privacy policy</a>.</span>
+      </label>
+    </div>
+    <p id="gate-error" class="gate-error" hidden></p>
+    <button type="submit" class="btn" id="gate-submit">
+      <strong class="uppercase">Access the calculator</strong>
+    </button>
+  </form>
+</aside>

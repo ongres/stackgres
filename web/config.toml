@@ -23,6 +23,11 @@ ignoreFiles = ['_index\.template\.md$']
     author = "author"
 
 [params]
+    [params.hubspot]
+        portalId = "149027957"
+        formId = "2d7f94a7-acd0-4cbc-8c3e-c39fd1ae14bd"
+        region = "eu1"
+
     placeholder = "img/placeholder.png"
     # sg-doc (docs) theme params — carried over from the docs site's own config
     showVisitedLinks = false

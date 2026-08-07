@@ -1,0 +1,179 @@
+/* Email gate for the pricing calculator — hero left, gate card right.
+   Controls are fully specified at #epc-level specificity: the gate lives inside
+   the calculator's #epc scope AND under the main style.css — self-contained
+   rules keep both sheets from distorting the form. */
+/* the hidden attribute must always win — the calculator's own CSS sets
+   display:flex/grid on several of these elements */
+#epc [hidden] {
+    display: none !important;
+}
+
+#epc .hero-gate-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+}
+
+#epc .hero-gate-row .hero {
+    flex: 1;
+    min-width: 0;
+}
+
+#epc #pricing-gate.gate-card {
+    flex: 0 0 400px;
+    margin-top: 60px;
+    /* only rendered while the gate is locked, so this never pushes the
+       calculator content down after unlock */
+    margin-bottom: 80px;
+    padding: 32px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, .15);
+    background: transparent linear-gradient(97deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.03) 100%) 0% 0% no-repeat padding-box;
+}
+
+#epc #pricing-gate h3 {
+    margin: 0 0 6px;
+    font-size: 1.4rem;
+    line-height: 1.25;
+}
+
+#epc #pricing-gate .gate-lead {
+    color: rgba(255, 255, 255, .75);
+    margin: 0 0 20px;
+    font-size: .95rem;
+}
+
+#epc #pricing-gate .gate-field-row {
+    display: flex;
+    gap: 12px;
+}
+
+#epc #pricing-gate .gate-field-row .gate-field {
+    flex: 1;
+    min-width: 0;
+}
+
+#epc #pricing-gate .gate-field {
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+#epc #pricing-gate .gate-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+#epc #pricing-gate input[type="email"],
+#epc #pricing-gate input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #fff;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 8px;
+    line-height: 1.4;
+    appearance: none;
+}
+
+#epc #pricing-gate input[type="email"]::placeholder,
+#epc #pricing-gate input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, .35);
+}
+
+#epc #pricing-gate input[type="email"]:focus,
+#epc #pricing-gate input[type="text"]:focus {
+    border-color: #1CE8FF;
+    outline: none;
+}
+
+#epc #pricing-gate .gate-consent {
+    text-align: left;
+    font-size: .8rem;
+    margin-bottom: 18px;
+}
+
+#epc #pricing-gate .gate-consent label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+    line-height: 1.45;
+}
+
+#epc #pricing-gate input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, .06);
+    cursor: pointer;
+    position: relative;
+}
+
+#epc #pricing-gate input[type="checkbox"]:checked {
+    background: #1CE8FF;
+    border-color: #1CE8FF;
+}
+
+#epc #pricing-gate input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid #0B031C;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+#epc #pricing-gate .gate-error {
+    color: #F87171;
+    font-size: .85rem;
+    margin-bottom: 12px;
+}
+
+#epc #pricing-gate button.btn {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 32px;
+    border: 0;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: .95rem;
+    color: #0B031C;
+    background: linear-gradient(90deg, #369AFF 0%, #1CE8FF 100%);
+    cursor: pointer;
+    text-align: center;
+}
+
+#epc #pricing-gate button.btn strong {
+    color: #0B031C;
+    letter-spacing: .4px;
+}
+
+#epc #pricing-gate button.btn[disabled] {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+    #epc .hero-gate-row {
+        flex-direction: column;
+    }
+    #epc #pricing-gate.gate-card {
+        flex: none;
+        width: 100%;
+        margin-top: 0;
+        margin-bottom: 40px;
+    }
+}
