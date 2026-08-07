@@ -75,8 +75,7 @@
   var heroActions = document.querySelector('.hero-actions');
   if (heroActions) heroActions.hidden = true;
 
-  var firstNameInput = document.getElementById('gate-firstname');
-  var lastNameInput = document.getElementById('gate-lastname');
+  var fullNameInput = document.getElementById('gate-fullname');
   var emailInput = document.getElementById('gate-email');
   var form = document.getElementById('pricing-gate-form');
   var consentInput = document.getElementById('gate-consent');
@@ -92,17 +91,11 @@
     ev.preventDefault();
     errorEl.hidden = true;
 
-    var firstName = (firstNameInput.value || '').trim();
-    var lastName = (lastNameInput.value || '').trim();
+    var fullName = (fullNameInput.value || '').trim();
     var email = (emailInput.value || '').trim();
-    if (!firstName) {
-      showError('Please enter your first name.');
-      firstNameInput.focus();
-      return;
-    }
-    if (!lastName) {
-      showError('Please enter your last name.');
-      lastNameInput.focus();
+    if (!fullName) {
+      showError('Please enter your full name.');
+      fullNameInput.focus();
       return;
     }
     if (!EMAIL_RE.test(email)) {
@@ -120,8 +113,8 @@
     var consentText = document.getElementById('gate-consent-text').textContent.replace(/\s+/g, ' ').trim();
     var payload = {
       fields: [
-        { objectTypeId: '0-1', name: 'firstname', value: firstName },
-        { objectTypeId: '0-1', name: 'lastname', value: lastName },
+        // the form's renamed "Full name" field still maps to firstname
+        { objectTypeId: '0-1', name: 'firstname', value: fullName },
         { objectTypeId: '0-1', name: 'email', value: email }
       ],
       context: {

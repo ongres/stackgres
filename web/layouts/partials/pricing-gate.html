@@ -9,17 +9,10 @@
   <h3>Access the pricing calculator</h3>
   <p class="gate-lead">Enter your email to build your estimate.</p>
   <form id="pricing-gate-form" novalidate>
-    <div class="gate-field-row">
-      <div class="gate-field">
-        <label for="gate-firstname">First name <span class="req">*</span></label>
-        <input id="gate-firstname" name="firstname" type="text" required
-               autocomplete="given-name" placeholder="Ada">
-      </div>
-      <div class="gate-field">
-        <label for="gate-lastname">Last name <span class="req">*</span></label>
-        <input id="gate-lastname" name="lastname" type="text" required
-               autocomplete="family-name" placeholder="Lovelace">
-      </div>
+    <div class="gate-field">
+      <label for="gate-fullname">Full name <span class="req">*</span></label>
+      <input id="gate-fullname" name="fullname" type="text" required
+             autocomplete="name" placeholder="Your full name">
     </div>
     <div class="gate-field">
       <label for="gate-email">Work email <span class="req">*</span></label>

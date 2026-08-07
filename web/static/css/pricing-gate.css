@@ -54,16 +54,6 @@
     font-size: .95rem;
 }
 
-#epc #pricing-gate .gate-field-row {
-    display: flex;
-    gap: 12px;
-}
-
-#epc #pricing-gate .gate-field-row .gate-field {
-    flex: 1;
-    min-width: 0;
-}
-
 #epc #pricing-gate .gate-field {
     text-align: left;
     margin-bottom: 16px;
