@@ -3,7 +3,9 @@
 <aside id="pricing-gate" class="gate-card" hidden
        data-portal-id="{{ site.Params.hubspot.portalId }}"
        data-form-id="{{ site.Params.hubspot.formId }}"
-       data-region="{{ site.Params.hubspot.region | default "na1" }}">
+       data-region="{{ site.Params.hubspot.region | default "na1" }}"
+       data-shared-title="View this shared estimate"
+       data-shared-lead="Someone shared a pricing estimate with you. Enter your details to view it.">
   <h3>Access the pricing calculator</h3>
   <p class="gate-lead">Enter your email to build your estimate.</p>
   <form id="pricing-gate-form" novalidate>

@@ -48,12 +48,27 @@
   var region = gate.getAttribute('data-region') || 'na1';
   var apiHost = region === 'na1' ? 'https://api.hsforms.com' : 'https://api-' + region + '.hsforms.com';
 
+  // shared estimate links (?e=<token>, or legacy plain params) preload the
+  // shared configuration, but the gate still applies — every viewer is
+  // captured before the pricing is revealed
+  var params = new URLSearchParams(location.search);
+  var isSharedLink = params.has('e') || params.has('cores') || params.has('view');
+
   // no portal configured → gate disabled entirely (safety valve)
   if (!portalId || isUnlocked()) {
     reveal();
+    if (isSharedLink) content.scrollIntoView();
     return;
   }
   gate.hidden = false;
+  if (isSharedLink) {
+    var sharedTitle = gate.getAttribute('data-shared-title');
+    var sharedLead = gate.getAttribute('data-shared-lead');
+    var titleEl = gate.querySelector('h3');
+    var leadEl = gate.querySelector('.gate-lead');
+    if (titleEl && sharedTitle) titleEl.textContent = sharedTitle;
+    if (leadEl && sharedLead) leadEl.textContent = sharedLead;
+  }
   var heroActions = document.querySelector('.hero-actions');
   if (heroActions) heroActions.hidden = true;
 

@@ -317,12 +317,37 @@ layout: gated
 #epc .toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,16px);background:var(--surface-2);border:1px solid rgba(4,223,253,.4);color:var(--text);font-family:var(--f-mono);font-size:12.5px;border-radius:10px;padding:11px 18px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:80}
 #epc .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* ---------- Share modal and read-only (shared link) mode ---------- */
+#epc .ro-banner{display:flex;gap:8px 18px;flex-wrap:wrap;align-items:baseline;margin-top:26px;padding:13px 18px;border:1px solid rgba(4,223,253,.35);border-radius:10px;background:rgba(4,223,253,.06);font-family:var(--f-mono);font-size:12.5px;color:var(--text-2)}
+#epc .ro-banner a{color:var(--accent);text-decoration:underline;cursor:pointer}
+#epc.ro .presets, #epc.ro #sgEds .ed, #epc.ro #pkgs .pkg, #epc.ro .cySwitch, #epc.ro #curSeg,
+#epc.ro #coreRange, #epc.ro #coreNum{pointer-events:none;opacity:.55}
+
+#epc .share-modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:20px}
+#epc .share-modal[hidden]{display:none!important}
+#epc .share-backdrop{position:absolute;inset:0;background:rgba(3,6,10,.72);backdrop-filter:blur(3px)}
+#epc .share-panel{position:relative;width:min(440px,100%);background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 26px 22px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
+#epc .share-panel h3{font-family:var(--f-display);font-weight:800;font-size:19px;margin:0 34px 6px 0}
+#epc .share-sub{color:var(--text-2);font-size:13.5px;margin:0 0 18px}
+#epc .share-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text-3);font-size:22px;line-height:1;cursor:pointer;padding:4px}
+#epc .share-x:hover{color:var(--text)}
+#epc .share-opt{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:10px;transition:border-color .15s,background .15s}
+#epc .share-opt:hover{border-color:var(--text-3)}
+#epc .share-opt:has(input:checked){border-color:var(--accent);background:rgba(4,223,253,.05)}
+#epc .share-opt input{appearance:none;-webkit-appearance:none;width:17px;height:17px;flex:none;margin:2px 0 0;border:1.5px solid var(--text-3);border-radius:50%;background:transparent;cursor:pointer;position:relative}
+#epc .share-opt input:checked{border-color:var(--accent)}
+#epc .share-opt input:checked::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
+#epc .share-opt-t strong{display:block;font-size:14px;color:var(--text)}
+#epc .share-opt-t small{display:block;font-size:12.5px;color:var(--text-2);margin-top:2px;line-height:1.45}
+#epc .share-copy{margin-top:8px}
+#epc .share-copy:disabled{opacity:.45;cursor:not-allowed;transform:none;filter:none}
+
 @media(prefers-reduced-motion:reduce){
   #epc *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
   #epc .reveal{opacity:1;transform:none}
 }
 @media print{
-  #epc .aura, #epc .gridbg, #epc .seg, #epc .hero-actions, #epc .presets, #epc .cta-col, #epc .matrix, #epc .toast{display:none!important}
+  #epc .aura, #epc .gridbg, #epc .seg, #epc .hero-actions, #epc .presets, #epc .cta-col, #epc .matrix, #epc .toast, #epc .share-modal, #epc .ro-banner{display:none!important}
   #epc{background:#fff;color:#111}
   #epc .card, #epc .summary, #epc .cmp-card, #epc .dcard{border-color:#ddd;background:#fff;box-shadow:none}
   #epc .total{color:#0092FF;-webkit-text-fill-color:#0092FF;filter:none}
@@ -348,6 +373,10 @@ layout: gated
 </div>
 
 <div id="gated-content" hidden>
+<div class="ro-banner wrap" id="roBanner" hidden>
+  <span data-i="ro.note"></span>
+  <a id="roEditLink" data-i="ro.edit"></a>
+</div>
 <section class="hero wrap" style="padding-top:0">
   <div class="dual reveal" style="grid-template-columns:1fr;max-width:600px">
     <div class="dcard sg">
@@ -468,7 +497,7 @@ layout: gated
       <div class="cta-col">
         <button class="cta" id="cta"></button>
         <button class="cta-ghost" id="pdfBtn"></button>
-        <button class="linkbtn" id="copyBtn"></button>
+        <button class="linkbtn" id="shareBtn"></button>
       </div>
       <div class="fineprint" id="fineprint"></div>
     </div>
@@ -495,6 +524,24 @@ layout: gated
     <div class="tbl-scroll"><table id="slaTable"></table></div>
   </div>
 </section>
+
+<div class="share-modal" id="shareModal" hidden role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="share-backdrop" data-close></div>
+  <div class="share-panel">
+    <button class="share-x" type="button" data-close aria-label="Close">&times;</button>
+    <h3 id="shareTitle" data-i="share.h"></h3>
+    <p class="share-sub" data-i="share.sub"></p>
+    <label class="share-opt">
+      <input type="radio" name="shareMode" value="view">
+      <span class="share-opt-t"><strong data-i="share.viewL"></strong><small data-i="share.viewD"></small></span>
+    </label>
+    <label class="share-opt">
+      <input type="radio" name="shareMode" value="edit">
+      <span class="share-opt-t"><strong data-i="share.editL"></strong><small data-i="share.editD"></small></span>
+    </label>
+    <button class="cta share-copy" id="shareCopy" disabled data-i="share.copy"></button>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -642,7 +689,16 @@ en: {
   hoursChip:"{h} h consulting included",
   emptySum:"Enable at least one service line to see pricing.",
   cta:"Request formal proposal", pdfBtn:"Download PDF estimate",
-  copy:"Copy link to this configuration", copied:"Link copied",
+  "share.open":"Share this estimate", copied:"Link copied",
+  "share.h":"Share this estimate",
+  "share.sub":"Recipients will be asked for their email, then see this exact configuration. Choose what they can do with it.",
+  "share.viewL":"View only",
+  "share.viewD":"Recipients can review the estimate but cannot change the configuration.",
+  "share.editL":"Can edit",
+  "share.editD":"Recipients can adjust the configuration and share their own version.",
+  "share.copy":"Copy link",
+  "ro.note":"You are viewing a shared estimate in read-only mode.",
+  "ro.edit":"Create an editable copy",
   fine1:"Indicative estimate. The binding offer is the formal proposal issued by OnGres.",
   "value.h":"Why teams run StackGres",
   "value.sub":"A fully-featured platform for running production Postgres on any Kubernetes.",
@@ -749,7 +805,16 @@ es: {
   hoursChip:"{h} h de consultoría incluidas",
   emptySum:"Activa al menos una línea de servicio para ver precios.",
   cta:"Solicitar propuesta formal", pdfBtn:"Descargar estimación en PDF",
-  copy:"Copiar enlace de esta configuración", copied:"Enlace copiado",
+  "share.open":"Compartir esta estimación", copied:"Enlace copiado",
+  "share.h":"Compartir esta estimación",
+  "share.sub":"Se pedirá el email a los destinatarios y verán esta misma configuración. Elige qué podrán hacer.",
+  "share.viewL":"Solo lectura",
+  "share.viewD":"Los destinatarios pueden revisar la estimación, pero no modificar la configuración.",
+  "share.editL":"Puede editar",
+  "share.editD":"Los destinatarios pueden ajustar la configuración y compartir su propia versión.",
+  "share.copy":"Copiar enlace",
+  "ro.note":"Estás viendo una estimación compartida en modo de solo lectura.",
+  "ro.edit":"Crear una copia editable",
   fine1:"Estimación indicativa. La oferta vinculante es la propuesta formal emitida por OnGres.",
   "value.h":"Por qué los equipos eligen StackGres",
   "value.sub":"Una plataforma completa para ejecutar Postgres en producción sobre cualquier Kubernetes.",
@@ -789,6 +854,8 @@ es: {
 
 /* =============================== ESTADO =============================== */
 const state = { cores:128, pg:false, pgSla:"24x7", pro:false, sg:true, ed:"enterprise", pkg:0, mkt:false, cur:"USD", lang:"en" };
+/* read-only mode: entered via a shared "view only" link (?view=1) */
+let RO = false;
 let edSwitched = false;
 
 /* ============================== HELPERS ============================== */
@@ -871,7 +938,7 @@ function applyStatic(){
   $("#preparedFor").textContent = LINK.client ? tpl(t("prep"), {c:LINK.client}) : t("prepNeutral");
   $("#cta").textContent = t("cta");
   $("#pdfBtn").textContent = t("pdfBtn");
-  $("#copyBtn").textContent = t("copy");
+  $("#shareBtn").textContent = t("share.open");
   $("#minNotice").textContent = t("minNotice");
   if($("#edNotice")) $("#edNotice").textContent = t("edSwitched");
   $("#serverHint").textContent = t("serverHint");
@@ -1107,13 +1174,28 @@ function syncUrl(){
     /* don't touch the URL while the calculator is gated */
     const gated = document.getElementById("gated-content");
     if (gated && gated.hidden) return;
+    /* read-only shared view: keep the shared link in the bar untouched */
+    if (RO) return;
     const p = new URLSearchParams(location.search);
+    p.delete("e");
     p.set("cores", state.cores);
     p.set("ed", state.ed);
     p.set("pkg", state.pkg); p.set("mkt", state.mkt?1:0);
     p.set("cur", state.cur); p.set("lang", state.lang);
     history.replaceState(null, "", location.pathname + "?" + p.toString());
   }catch(e){}
+}
+
+/* Shareable link for the current configuration. mode: "view" | "edit".
+   The config travels as an opaque base64url token (?e=...) so plain URL
+   params can't be hand-crafted to look like a shared estimate. */
+function shareUrl(mode){
+  const cfg = { cores:state.cores, ed:state.ed, pkg:state.pkg, mkt:state.mkt?1:0, cur:state.cur, lang:state.lang };
+  if(mode === "view") cfg.view = 1;
+  if(LINK.client) cfg.client = LINK.client;
+  const token = btoa(unescape(encodeURIComponent(JSON.stringify(cfg))))
+    .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  return location.origin + location.pathname + "?e=" + token;
 }
 
 /* ================================ PDF ================================ */
@@ -1259,31 +1341,55 @@ function radioKey(e, fn){
 }
 
 function wire(){
-  $("#coreNum").addEventListener("input", e => { if(e.target.value !== "") setCores(e.target.value); });
-  $("#coreNum").addEventListener("blur", e => setCores(e.target.value || 32));
-  $("#coreRange").addEventListener("input", e => setCores(e.target.value));
-  $("#presets").addEventListener("click", e => { const b = e.target.closest(".preset"); if(b) setCores(b.dataset.v); });
+  if(!RO){
+    $("#coreNum").addEventListener("input", e => { if(e.target.value !== "") setCores(e.target.value); });
+    $("#coreNum").addEventListener("blur", e => setCores(e.target.value || 32));
+    $("#coreRange").addEventListener("input", e => setCores(e.target.value));
+    $("#presets").addEventListener("click", e => { const b = e.target.closest(".preset"); if(b) setCores(b.dataset.v); });
 
-  $("#sgEds").addEventListener("click", e => {
-    const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
-    state.ed = el.dataset.ed; edSwitched = false; render();
+    $("#sgEds").addEventListener("click", e => {
+      const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
+      state.ed = el.dataset.ed; edSwitched = false; render();
+    });
+    $("#sgEds").addEventListener("keydown", e => {
+      const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
+      radioKey(e, () => { state.ed = el.dataset.ed; edSwitched = false; render(); });
+    });
+
+    $("#pkgs").addEventListener("click", e => { const el = e.target.closest(".pkg"); if(el){ state.pkg = parseInt(el.dataset.pkg,10); render(); } });
+    $("#pkgs").addEventListener("keydown", e => { const el = e.target.closest(".pkg"); if(el) radioKey(e, () => { state.pkg = parseInt(el.dataset.pkg,10); render(); }); });
+
+    $("#mkt").addEventListener("change", e => { state.mkt = e.target.checked; render(); });
+    $("#curSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.cur = b.dataset.cur; applyStatic(); render(); } });
+  }
+
+  /* ------------------------------ share ------------------------------ */
+  const shareModal = $("#shareModal"), shareCopy = $("#shareCopy");
+  const shareMode = () => { const r = document.querySelector('input[name="shareMode"]:checked'); return r ? r.value : null; };
+  const closeShare = () => { shareModal.hidden = true; };
+  $("#shareBtn").addEventListener("click", () => {
+    /* read-only viewers can only pass the link on as-is: skip the mode
+       dialog and copy the view-only link directly */
+    if(RO){
+      const done = () => showToast(t("copied"));
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareUrl("view")).then(done, done);
+      else done();
+      return;
+    }
+    shareCopy.disabled = !shareMode();
+    shareModal.hidden = false;
   });
-  $("#sgEds").addEventListener("keydown", e => {
-    const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
-    radioKey(e, () => { state.ed = el.dataset.ed; edSwitched = false; render(); });
-  });
-
-  $("#pkgs").addEventListener("click", e => { const el = e.target.closest(".pkg"); if(el){ state.pkg = parseInt(el.dataset.pkg,10); render(); } });
-  $("#pkgs").addEventListener("keydown", e => { const el = e.target.closest(".pkg"); if(el) radioKey(e, () => { state.pkg = parseInt(el.dataset.pkg,10); render(); }); });
-
-  $("#mkt").addEventListener("change", e => { state.mkt = e.target.checked; render(); });
-  $("#curSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.cur = b.dataset.cur; applyStatic(); render(); } });
-
-  $("#copyBtn").addEventListener("click", () => {
-    const done = () => showToast(t("copied"));
-    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done, done);
+  shareModal.addEventListener("click", e => { if(e.target.closest("[data-close]")) closeShare(); });
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && !shareModal.hidden) closeShare(); });
+  document.querySelectorAll('input[name="shareMode"]').forEach(r =>
+    r.addEventListener("change", () => { shareCopy.disabled = false; }));
+  shareCopy.addEventListener("click", () => {
+    const mode = shareMode(); if(!mode) return;
+    const done = () => { showToast(t("copied")); closeShare(); };
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareUrl(mode)).then(done, done);
     else done();
   });
+
   $("#pdfBtn").addEventListener("click", downloadPDF);
   $("#cta").addEventListener("click", () => {
     const r = compute();
@@ -1307,6 +1413,13 @@ function wire(){
 /* ================================ INIT ================================ */
 (function init(){
   const P = new URLSearchParams(location.search);
+  /* opaque share token: decodes to the same keys as the plain URL params */
+  if(P.get("e")){
+    try{
+      const cfg = JSON.parse(decodeURIComponent(escape(atob(P.get("e").replace(/-/g,"+").replace(/_/g,"/")))));
+      Object.keys(cfg).forEach(k => P.set(k, String(cfg[k])));
+    }catch(err){ /* malformed token → fall back to plain params/defaults */ }
+  }
   if(P.get("client")) LINK.client = P.get("client").slice(0,80);
   if(P.get("lang") === "es" || P.get("lang") === "en") LINK.lang = P.get("lang");
   if((P.get("cur")||"").toUpperCase() === "EUR") LINK.currency = "EUR";
@@ -1316,6 +1429,15 @@ function wire(){
   const pkgP = parseInt(P.get("pkg"),10);
   if(CFG.consultingHours.includes(pkgP)) state.pkg = pkgP;
   if(P.get("mkt") === "1") state.mkt = true;
+
+  RO = P.get("view") === "1";
+  if(RO){
+    document.getElementById("epc").classList.add("ro");
+    $("#roBanner").hidden = false;
+    const p = new URLSearchParams(P); p.delete("view"); p.delete("e");
+    $("#roEditLink").href = location.pathname + "?" + p.toString();
+    ["coreNum","coreRange","mkt"].forEach(id => { const el = document.getElementById(id); if(el) el.disabled = true; });
+  }
 
   if(!window.jspdf) $("#pdfBtn").style.display = "none";
 
