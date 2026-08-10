@@ -18,8 +18,40 @@ BUILDER_VERSION=1.0.0
 
 set -e
 
-export BUILD_UID="${BUILD_UID:-$(id -u):$(ls -n /var/run/docker.sock | cut -d ' ' -f 4)}"
+# Command used to build and run the containers. It is used as a command prefix,
+# so values with arguments like `podman --remote` are supported. It defaults to
+# docker in order to not change the behaviour of the existing runners.
+export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
+
+container_engine_is_podman() {
+  case "${CONTAINER_ENGINE%% *}" in
+    podman|*/podman) return 0 ;;
+  esac
+  return 1
+}
+
+# The build containers are run as the user that owns the docker socket so that
+# the files they create belong to the invoking user.
+#
+# podman is daemonless and has no socket. A rootless podman maps the root of the
+# container to the invoking user and every other id of the container to an
+# unrelated subordinate id, so the root of the container is the only id that can
+# read and write the mounted project. A rootful podman runs as root anyway.
+if [ -z "$BUILD_UID" ]
+then
+  if container_engine_is_podman
+  then
+    BUILD_UID=0:0
+  else
+    BUILD_UID="$(id -u):$(ls -n /var/run/docker.sock | cut -d ' ' -f 4)"
+  fi
+fi
+export BUILD_UID
 export DOCKER_CLI_HINTS=false
+# podman reads the registries credentials from the file pointed by
+# REGISTRY_AUTH_FILE. Point it to the file docker uses so that both engines and
+# the code that reads it directly (see list_image_tags) are interchangeable.
+export REGISTRY_AUTH_FILE="${REGISTRY_AUTH_FILE:-$HOME/.docker/config.json}"
 
 [ "$DEBUG" != true ] || set -x
 
@@ -200,7 +232,7 @@ EOF
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
     --platform "$(docker_platform "${BUILD_PLATFORM:-$(get_platform)}")" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
-    --volume "/var/run/docker.sock:/var/run/docker.sock" \
+    $(container_engine_socket_volume) \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
     --user "$BUILD_UID" \
@@ -914,17 +946,30 @@ retrieve_image_manifest() {
         >/dev/null 2>&1
       then
         echo "Using a local image registry to calculate digest for $IMAGE_NAME" >&2
-        REGISTRY_CONTAINER_ID="$(docker_run -d -p 5000 --stop-timeout 300 registry:2)"
-        REGISTRY_PORT="$(docker_inspect "$REGISTRY_CONTAINER_ID" | jq '.[0].NetworkSettings.Ports["5000/tcp"][0].HostPort' -r)"
+        if container_engine_is_podman
+        then
+          # podman runs the containers in the network namespace of the host, so
+          # the published ports are ignored and can not be read back from the
+          # container. Pick the port up front and let the registry bind to it.
+          REGISTRY_PORT="$(get_free_port)"
+          REGISTRY_CONTAINER_ID="$(docker_run -d --stop-timeout 300 \
+            -e "REGISTRY_HTTP_ADDR=:$REGISTRY_PORT" docker.io/library/registry:2)"
+        else
+          REGISTRY_CONTAINER_ID="$(docker_run -d -p 5000 --stop-timeout 300 docker.io/library/registry:2)"
+          REGISTRY_PORT="$(docker_inspect "$REGISTRY_CONTAINER_ID" | jq '.[0].NetworkSettings.Ports["5000/tcp"][0].HostPort' -r)"
+        fi
         REGISTRY_IMAGE_NAME="localhost:$REGISTRY_PORT/$(printf %s "${IMAGE_NAME%:*}" | tr '/:' '_'):${IMAGE_NAME##*:}"
         docker_tag "$IMAGE_NAME" "$REGISTRY_IMAGE_NAME"
         docker_inspect "$REGISTRY_IMAGE_NAME" \
           > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
-        REGISTY_IMAGE_PLATFORM="$(jq -r \
+        REGISTRY_IMAGE_PLATFORM="$(jq -r \
             '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
             "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
             2>/dev/null)"
-        docker_push --platform "$REGISTRY_IMAGE_PLATFORM" "$REGISTRY_IMAGE_NAME"
+        # The local registry is plain HTTP, podman refuses that unless told to
+        # shellcheck disable=SC2046
+        docker_push $(! container_engine_is_podman || printf %s '--tls-verify=false') \
+          --platform "$REGISTRY_IMAGE_PLATFORM" "$REGISTRY_IMAGE_NAME"
         docker_inspect "$REGISTRY_IMAGE_NAME" \
           > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
         docker_rm -fv "$REGISTRY_CONTAINER_ID"
@@ -991,36 +1036,91 @@ path_hash() {
   git --git-dir "stackgres-k8s/ci/build/target/.git" rev-parse HEAD:"$FILE"
 }
 
+# Every invocation of the container engine goes through the functions below.
+# CONTAINER_ENGINE is expanded unquoted on purpose: it is a command prefix, so
+# values with arguments like `podman --remote` are supported.
+
+# shellcheck disable=SC2086
 docker_inspect() {
-  docker inspect "$@"
+  $CONTAINER_ENGINE inspect "$@"
 }
 
+# shellcheck disable=SC2086
 docker_images() {
-  docker images "$@"
+  $CONTAINER_ENGINE images "$@"
 }
 
+# shellcheck disable=SC2086
 docker_rmi() {
-  docker rmi "$@"
+  $CONTAINER_ENGINE rmi "$@"
 }
 
+# shellcheck disable=SC2086
 docker_run() {
-  docker run "$@"
+  $CONTAINER_ENGINE run "$@"
 }
 
+# shellcheck disable=SC2086
 docker_create() {
-  docker create "$@"
+  $CONTAINER_ENGINE create "$@"
 }
 
+# shellcheck disable=SC2086
 docker_cp() {
-  docker cp "$@"
+  $CONTAINER_ENGINE cp "$@"
 }
 
+# shellcheck disable=SC2086
 docker_build() {
-  docker build "$@"
+  $CONTAINER_ENGINE build "$@"
+}
+
+# shellcheck disable=SC2086
+docker_login() {
+  $CONTAINER_ENGINE login "$@"
+}
+
+# shellcheck disable=SC2086
+docker_pull() {
+  $CONTAINER_ENGINE pull "$@"
+}
+
+# shellcheck disable=SC2086
+docker_save() {
+  $CONTAINER_ENGINE save "$@"
 }
 
 docker_push() {
-  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$@"
+  if container_engine_is_podman
+  then
+    # podman push has no --platform option since a local podman image is always
+    # single arch. Drop any --platform <value> or --platform=<value> the caller
+    # passed by rotating the arguments.
+    local COUNT="$#"
+    local INDEX=0
+    local SKIP=false
+    local ARG
+    while [ "$INDEX" -lt "$COUNT" ]
+    do
+      INDEX="$((INDEX + 1))"
+      ARG="$1"
+      shift
+      if [ "$SKIP" = true ]
+      then
+        SKIP=false
+        continue
+      fi
+      case "$ARG" in
+        --platform) SKIP=true; continue ;;
+        --platform=*) continue ;;
+      esac
+      set -- "$@" "$ARG"
+    done
+    # shellcheck disable=SC2086
+    $CONTAINER_ENGINE push "$@"
+  else
+    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$@"
+  fi
 }
 
 docker_platform() {
@@ -1028,20 +1128,86 @@ docker_platform() {
   printf "${PLATFORM%/*}/$(printf %s "${PLATFORM#*/}" | grep -qxF aarch64 && printf arm64 || printf amd64)"
 }
 
+docker_engine_platform() {
+  if container_engine_is_podman
+  then
+    # podman version does not expose the server architecture
+    # shellcheck disable=SC2086
+    $CONTAINER_ENGINE info --format '{{.Version.OsArch}}'
+  else
+    docker version --format '{{ .Server.Os }}/{{ .Server.Arch }}'
+  fi
+}
+
+# shellcheck disable=SC2086
 docker_tag() {
-  docker tag "$@"
+  $CONTAINER_ENGINE tag "$@"
 }
 
+# shellcheck disable=SC2086
 docker_rm() {
-  docker rm "$@"
+  $CONTAINER_ENGINE rm "$@"
 }
 
+# shellcheck disable=SC2086
 docker_manifest_inspect() {
-  docker manifest inspect "$@"
+  $CONTAINER_ENGINE manifest inspect "$@"
+}
+
+# shellcheck disable=SC2086
+docker_manifest_create() {
+  $CONTAINER_ENGINE manifest create "$@"
+}
+
+# shellcheck disable=SC2086
+docker_manifest_push() {
+  $CONTAINER_ENGINE manifest push "$@"
+}
+
+# shellcheck disable=SC2086
+docker_manifest_rm() {
+  $CONTAINER_ENGINE manifest rm "$@"
 }
 
 docker_buildx_inspect() {
-  docker buildx inspect "$@"
+  if container_engine_is_podman
+  then
+    # podman has no buildx. Without emulation it can only build for the host
+    # platform, that is exactly what the caller of this function needs to know.
+    printf 'Platforms: %s\n' "$(docker_engine_platform)"
+  else
+    docker buildx inspect "$@"
+  fi
+}
+
+container_engine_socket_volume() {
+  # A build container may need to access the container engine. Only docker
+  # requires (and is able to use) a socket in order to do so.
+  if ! container_engine_is_podman && [ -S /var/run/docker.sock ]
+  then
+    printf %s '--volume /var/run/docker.sock:/var/run/docker.sock'
+  fi
+}
+
+get_free_port() {
+  local PORT
+  local ATTEMPT=0
+  local EXIT_CODE
+  while [ "$ATTEMPT" -lt 100 ]
+  do
+    ATTEMPT="$((ATTEMPT + 1))"
+    PORT="$(( 32768 + ( ( $$ + ATTEMPT * 7919 ) % 28000 ) ))"
+    EXIT_CODE=0
+    curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/" || EXIT_CODE="$?"
+    # 7 is the curl exit code for a refused connection
+    if [ "$EXIT_CODE" = 7 ]
+    then
+      printf %s "$PORT"
+      return
+    fi
+  done
+  >&2 echo "Could not find a free port"
+  return 1
 }
 
 if [ "$(basename "$0")" = "build-functions.sh" ] && [ "$#" -ge 1 ]

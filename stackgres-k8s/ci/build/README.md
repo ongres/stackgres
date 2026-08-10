@@ -45,17 +45,51 @@ Environment variables:
 * DO_BUILD: if set to `true` will run the build despite having it in the registry or docker cache
 * SKIP_PUSH: if set to `true` skip pushing docker images to remote registry
 * SKIP_REMOTE_MANIFEST: if set to `true` will not use remote registry to check for cache, just docker.
+* CONTAINER_ENGINE: the container engine to use, either `docker` (the default) or `podman`.
+
+## Container engine
+
+The build scripts work with both docker and podman. The engine is selected with the
+`CONTAINER_ENGINE` environment variable, that defaults to `docker`:
+
+```
+CONTAINER_ENGINE=podman sh stackgres-k8s/ci/build/build.sh hashes
+```
+
+`CONTAINER_ENGINE` is used as a command prefix, so an engine with arguments like
+`podman --remote` is also supported.
 
 ## ciw
 
 You can use ciw as a wrapper to execute the build.sh script or other commands that require ci tools with proper versions.
 
-It will require Docker Engine or Docker Desktop to run.
+It will require Docker Engine, Docker Desktop or Podman to run.
 
 Here a sample usage:
 
 ```
 sh stackgres-k8s/ci/build/ciw sh stackgres-k8s/ci/build/build.sh hashes
+```
+
+To test the podman code paths locally, podman runs inside the CI container, the same way it
+does inside a CI job pod:
+
+```
+CONTAINER_ENGINE=podman sh stackgres-k8s/ci/build/ciw sh stackgres-k8s/ci/build/build.sh hashes
+```
+
+The container storage is bind mounted from `${STACKGRES_HOME:-/var/lib/stackgres}/containers`,
+so the image cache survives across runs. The engine used to run the CI container itself is
+selected with `CIW_ENGINE` and defaults to the value of `CONTAINER_ENGINE`. Running the CI
+container with podman is preferred, since a rootless podman maps the root of the container to
+the invoking user: the files created in the mounted volumes still belong to that user and the
+nested podman gets the whole range of subordinate ids that it needs to build images that create
+users or change the owner of files.
+
+The container storage holds files owned by subordinate ids, so removing it requires:
+
+```
+podman unshare rm -rf "${STACKGRES_HOME:-/var/lib/stackgres}/containers"
 ```
 
 ## config.yml

@@ -2,23 +2,83 @@
 PROJECT_PATH="$(realpath "$(dirname "$0")/../../..")"
 CONTAINER_NAME="${CONTAINER_NAME:-buildw-$(printf '%x' "$(date +%s)")}"
 export PATH=/bin:/usr/bin:/usr/local/bin
+# Container engine used by the build scripts inside the CI container. Exported
+# so that it is passed along with the rest of the environment.
+CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
+export CONTAINER_ENGINE
+# Container engine used to run the CI container itself. Defaults to the engine
+# used inside it.
+CIW_ENGINE="${CIW_ENGINE:-${CONTAINER_ENGINE%% *}}"
 env > "/tmp/$CONTAINER_NAME.env"
 if [ -z "$IMAGE" ]
 then
   IMAGE="registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.SG_CI_IMAGE_NAME' "$PROJECT_PATH"/.gitlab-ci.yml 2>/dev/null || sed -n 's/ *SG_CI_IMAGE_NAME: "\([^"]\+\)" */\1/p' .gitlab-ci.yml || printf latest)-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
 fi
+
+# Options that give the CI container access to a container engine.
+#
+# docker is a daemon, so the CI container only needs its socket.
+#
+# podman is daemonless and runs inside the CI container, the same way it does
+# inside a CI job pod. It needs:
+# * the container storage bind mounted from the host, so that the image cache
+#   survives across runs and podman uses the overlay driver (the filesystem of a
+#   container is already an overlay and podman can not stack overlay on overlay,
+#   it would fall back to the vfs driver that is unusably slow and large)
+# * a relaxed seccomp profile, required to create user namespaces
+# * /dev/fuse, used by fuse-overlayfs when the kernel can not mount an overlay
+#   filesystem from a user namespace
+ENGINE_OPTS='-v /var/run/docker.sock:/var/run/docker.sock:rw'
+ENGINE_USER_OPTS="-u $(id -u):$(id -g) $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/')"
+if [ "${CONTAINER_ENGINE%% *}" = podman ]
+then
+  CONTAINERS_HOST_PATH="${STACKGRES_HOME:-/var/lib/stackgres}/containers"
+  if ! mkdir -p "$CONTAINERS_HOST_PATH"
+  then
+    echo "Can not create $CONTAINERS_HOST_PATH, set STACKGRES_HOME to a writable path" >&2
+    exit 1
+  fi
+  if [ "$CIW_ENGINE" = podman ]
+  then
+    # A rootless podman maps the root of the container to the user running it,
+    # so the files created in the mounted volumes still belong to that user and
+    # the nested podman gets the whole range of subordinate ids that it needs in
+    # order to build images that create users or change the owner of files.
+    CONTAINERS_PATH=/var/lib/containers
+    ENGINE_USER_OPTS='--security-opt label=disable'
+  else
+    # The CI container runs as the invoking user, so the nested podman is
+    # rootless and reads the range of subordinate ids of that user from the
+    # /etc/subuid and /etc/subgid of the host. docker masks some paths under
+    # /proc, that prevents the nested podman from mounting its own /proc.
+    CONTAINERS_PATH="$HOME/.local/share/containers"
+    ENGINE_USER_OPTS="$ENGINE_USER_OPTS
+      --security-opt apparmor=unconfined --security-opt systempaths=unconfined
+      -v /etc/subuid:/etc/subuid:ro -v /etc/subgid:/etc/subgid:ro"
+  fi
+  # /tmp is shared with the container, so podman finds the directory it expects
+  mkdir -p "/tmp/$CONTAINER_NAME.run"
+  chmod 700 "/tmp/$CONTAINER_NAME.run"
+  ENGINE_OPTS="--security-opt seccomp=unconfined
+    $(! test -e /dev/fuse || printf '%s' '--device /dev/fuse')
+    -v $CONTAINERS_HOST_PATH:$CONTAINERS_PATH:rw
+    -e XDG_RUNTIME_DIR=/tmp/$CONTAINER_NAME.run
+    -e REGISTRY_AUTH_FILE=$HOME/.docker/config.json"
+fi
+
 # shellcheck disable=SC2046
+# shellcheck disable=SC2086
 if [ "$(uname -s)" != Darwin ]
 then
-  docker run $(docker run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
+  "$CIW_ENGINE" run $("$CIW_ENGINE" run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
     --network bridge \
     --rm --name "$CONTAINER_NAME" \
     -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
     -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
-    -u "$(id -u):$(id -g)" $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
+    $ENGINE_USER_OPTS \
     --env-file "/tmp/$CONTAINER_NAME.env" \
     -v /tmp:/tmp \
-    -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
+    $ENGINE_OPTS \
     -v "$HOME:$HOME:rw" \
     -v "${STACKGRES_HOME:-/var/lib/stackgres}:$HOME/.stackgres:rw" \
     -e "K8S_CACHE_HOST_PATH=${STACKGRES_HOME:-/var/lib/stackgres}/kind-cache" \
@@ -29,14 +89,14 @@ then
     "$IMAGE" \
     sh -ec "$*"
 else
-  docker run $(docker run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
+  "$CIW_ENGINE" run $("$CIW_ENGINE" run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
     --network bridge \
     --rm --name "$CONTAINER_NAME" \
     -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
     -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
     --env-file "/tmp/$CONTAINER_NAME.env" \
     -v /tmp:/tmp \
-    -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
+    $ENGINE_OPTS \
     -v "$HOME:$HOME":rw \
     -v "${STACKGRES_HOME:-/var/lib/stackgres}:$HOME/.stackgres:rw" \
     -e "K8S_CACHE_HOST_PATH=${STACKGRES_HOME:-/var/lib/stackgres}/kind-cache" \

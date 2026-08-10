@@ -35,7 +35,7 @@ The system is organized in three layers:
 +-----------------------------------------------------------------------+
 |                         CI Integration Layer                          |
 |  build-gitlab.sh    Registry auth, --extract post-processing          |
-|  ciw                Docker wrapper for reproducible CI environment     |
+|  ciw                Container wrapper for reproducible CI environment  |
 +-----------------------------------------------------------------------+
         |  invokes
         v
@@ -56,7 +56,7 @@ The system is organized in three layers:
 |    copy_from_image      Artifact extraction from parent images        |
 |    module_image_name    Hash computation for a single module          |
 |    source_image_name    Parent image resolution via stages            |
-|    docker_*             Thin wrappers around Docker CLI               |
+|    docker_*             Thin wrappers around the container engine CLI |
 +-----------------------------------------------------------------------+
         |  reads
         v
@@ -487,24 +487,33 @@ Docker commands, allowing cross-platform builds.
 
 ## 10. Extension Points
 
-### Docker Wrapper Functions
+### Container Engine Wrapper Functions
 
-All Docker CLI calls go through thin wrapper functions (lines 799-837):
+All container engine CLI calls go through thin wrapper functions:
 
 ```sh
-docker_inspect()          { docker inspect "$@"; }
-docker_run()              { docker run "$@"; }
-docker_build()            { docker build "$@"; }
-docker_push()             { docker push --platform=... "$@"; }
-docker_tag()              { docker tag "$@"; }
-docker_rm()               { docker rm "$@"; }
-docker_manifest_inspect() { docker manifest inspect "$@"; }
-docker_buildx_inspect()   { docker buildx inspect "$@"; }
+docker_inspect()          { $CONTAINER_ENGINE inspect "$@"; }
+docker_run()              { $CONTAINER_ENGINE run "$@"; }
+docker_build()            { $CONTAINER_ENGINE build "$@"; }
+docker_tag()              { $CONTAINER_ENGINE tag "$@"; }
+docker_rm()               { $CONTAINER_ENGINE rm "$@"; }
+docker_manifest_inspect() { $CONTAINER_ENGINE manifest inspect "$@"; }
 ```
 
-These can be overridden by sourcing `build-functions.sh` and redefining the
-functions, enabling dry-run modes, test mocking, or alternative container
-runtimes.
+`CONTAINER_ENGINE` defaults to `docker` and is expanded unquoted, so it is a
+command prefix and values with arguments like `podman --remote` are supported.
+
+A few wrappers can not be a plain delegation, since the two engines differ:
+
+| Function | Difference |
+|----------|------------|
+| `docker_push` | podman has no `--platform` option, since a local podman image is always single arch. Any `--platform` passed by the caller is dropped. |
+| `docker_buildx_inspect` | podman has no buildx. The `Platforms:` line its caller parses is emulated from `podman info`. |
+| `docker_engine_platform` | `docker version --format '{{ .Server.Arch }}'` has no podman equivalent, `podman info --format '{{.Version.OsArch}}'` is used instead. |
+| `container_engine_socket_volume` | Only docker needs (and is able to use) a socket to give a build container access to the engine. |
+
+The wrappers can also be overridden by sourcing `build-functions.sh` and
+redefining the functions, enabling dry-run modes and test mocking.
 
 ### Direct Function Invocation
 
@@ -558,7 +567,10 @@ variants.
 | `BUILD_SKIP_PRE_BUILD` | (unset)                        | Set to `true` to skip `pre_build_commands` execution. |
 | `BUILD_SKIP_BUILD`     | (unset)                        | Set to `true` to skip `build_commands` execution. |
 | `BUILD_SKIP_POST_BUILD`| (unset)                        | Set to `true` to skip `post_build_commands` execution. |
-| `BUILD_UID`            | `$(id -u):$(docker socket gid)`| UID:GID used for build container commands. Derived from current user and Docker socket group. |
+| `BUILD_UID`            | `$(id -u):$(docker socket gid)`| UID:GID used for build container commands. Derived from current user and Docker socket group, or `0:0` when `CONTAINER_ENGINE` is podman, since a rootless podman maps the root of the container to the invoking user. |
+| `CONTAINER_ENGINE`     | `docker`                       | Command used to build and run containers. Used as a command prefix, so values with arguments like `podman --remote` are supported. |
+| `CIW_ENGINE`           | `${CONTAINER_ENGINE%% *}`      | Container engine used by `ciw` to run the CI wrapper container itself. |
+| `REGISTRY_AUTH_FILE`   | `$HOME/.docker/config.json`    | File podman reads the registries credentials from. Pointed to the file docker uses so that both engines are interchangeable. |
 | `DEBUG`                | (unset)                        | Set to `true` to enable shell trace (`set -x`) for all build operations. |
 | `SHELL_XTRACE`         | (unset)                        | Passed into build containers; set to `-x` when `DEBUG=true`. Used by build scripts that accept trace flags. |
 | `PROJECT_PATH`         | `$(pwd)`                       | Absolute path to the project root. Used for volume mounts in Docker commands. |

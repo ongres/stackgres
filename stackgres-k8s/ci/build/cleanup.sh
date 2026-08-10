@@ -2,12 +2,16 @@
 
 set -e
 
-DOCKER_IMAGES="$(docker images --format '{{ .ID }}' | sort | uniq | xargs docker inspect --format '{{ .Id }} {{ .Parent }}')"
+# Container engine used to list and remove the images. Used as a command prefix,
+# so values with arguments like `podman --remote` are supported.
+: "${CONTAINER_ENGINE:=docker}"
+
+DOCKER_IMAGES="$($CONTAINER_ENGINE images --format '{{ .ID }}' | sort | uniq | xargs $CONTAINER_ENGINE inspect --format '{{ .Id }} {{ .Parent }}')"
 DOCKER_IMAGES_PARENTS="$(echo "$DOCKER_IMAGES" | cut -d ' ' -f 2 | grep -v '^$' | sort | uniq)"
 echo "Found $(echo "$DOCKER_IMAGES" | wc -l) images with $(echo "$DOCKER_IMAGES_PARENTS" | wc -l) parents"
 while [ -n "$DOCKER_IMAGES_PARENTS" ]
 do
-    NEW_DOCKER_IMAGES="$(echo "$DOCKER_IMAGES_PARENTS" | xargs docker inspect --format '{{ .Id }} {{ .Parent }}')"
+    NEW_DOCKER_IMAGES="$(echo "$DOCKER_IMAGES_PARENTS" | xargs $CONTAINER_ENGINE inspect --format '{{ .Id }} {{ .Parent }}')"
     DOCKER_IMAGES="$(echo "$DOCKER_IMAGES"; echo "$NEW_DOCKER_IMAGES")"
     DOCKER_IMAGES_PARENTS="$(echo "$NEW_DOCKER_IMAGES" | cut -d ' ' -f 2 | grep -v '^$' | sort | uniq)"
     echo "Found $(echo "$NEW_DOCKER_IMAGES" | wc -l) images with $(echo "$DOCKER_IMAGES_PARENTS" | wc -l) parents"
@@ -16,7 +20,7 @@ DOCKER_IMAGES="$(echo "$DOCKER_IMAGES" | sort | uniq)"
 
 echo "Cleanup all build images ..."
 
-docker images | grep '^registry\.gitlab\.com/ongresinc/stackgres/build/' \
+$CONTAINER_ENGINE images | grep '^registry\.gitlab\.com/ongresinc/stackgres/build/' \
   | sed 's/ \+/ /g' | cut -d ' ' -f 3 \
   | while read -r ID
     do
@@ -34,9 +38,9 @@ docker images | grep '^registry\.gitlab\.com/ongresinc/stackgres/build/' \
       done
       for CHILD in $CHILDS
       do 
-        docker rmi "$CHILD" 2>/dev/null || true
+        $CONTAINER_ENGINE rmi "$CHILD" 2>/dev/null || true
       done
-      docker rmi "$ID" 2>/dev/null || true
+      $CONTAINER_ENGINE rmi "$ID" 2>/dev/null || true
     done
 
 echo "done"
@@ -45,7 +49,7 @@ echo
 
 echo "Cleanup all build intermediate images ..."
 
-docker images --filter label=build-of \
+$CONTAINER_ENGINE images --filter label=build-of \
   | sed 's/ \+/ /g' | cut -d ' ' -f 3 \
   | while read -r ID
     do
@@ -63,9 +67,9 @@ docker images --filter label=build-of \
       done
       for CHILD in $CHILDS
       do 
-        docker rmi "$CHILD" 2>/dev/null || true
+        $CONTAINER_ENGINE rmi "$CHILD" 2>/dev/null || true
       done
-      docker rmi "$ID" 2>/dev/null || true
+      $CONTAINER_ENGINE rmi "$ID" 2>/dev/null || true
     done
 
 echo "done"

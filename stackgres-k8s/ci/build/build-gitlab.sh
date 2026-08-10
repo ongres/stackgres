@@ -32,8 +32,8 @@ then
   fi
   if [ "x$CI_REGISTRY" != x ]
   then
-    echo | docker login "$CI_REGISTRY" || \
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    echo | sh stackgres-k8s/ci/build/build-functions.sh docker_login "$CI_REGISTRY" || \
+      sh stackgres-k8s/ci/build/build-functions.sh docker_login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   fi
   set +e
   sh stackgres-k8s/ci/build/build.sh "$@"
@@ -74,8 +74,8 @@ then
   fi
   if [ "x$CI_REGISTRY" != x ]
   then
-    echo | docker login "$CI_REGISTRY" || \
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    echo | sh stackgres-k8s/ci/build/build-functions.sh docker_login "$CI_REGISTRY" || \
+      sh stackgres-k8s/ci/build/build-functions.sh docker_login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   fi
   sh stackgres-k8s/ci/build/build-functions.sh generate_image_hashes
   sh stackgres-k8s/ci/build/build-functions.sh extract "$@"

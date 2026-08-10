@@ -172,3 +172,40 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   RUN wget -O /bin/kind-0.32.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.32.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind-0.32.0
 
+  # podman builds and runs containers without a daemon. It is required to run the
+  # CI jobs as pods, where no docker daemon is reachable and mounting the socket
+  # of the host is not an option. See CONTAINER_ENGINE in stackgres-k8s/ci/build.
+  RUN microdnf install -y podman fuse-overlayfs slirp4netns shadow-utils crun && podman --version
+  # The containers are run in the namespaces of the pod they run into:
+  # * creating a network namespace requires /dev/net/tun, that an unprivileged
+  #   pod does not have, and the namespace of the pod avoids a nested NAT and an
+  #   MTU mismatch with the overlay network of the cluster
+  # * a pod has no systemd user session, so the cgroups can neither be delegated
+  #   nor managed by systemd
+  RUN printf '%s\n' \
+    '[containers]' \
+    'netns="host"' \
+    'userns="host"' \
+    'ipcns="host"' \
+    'utsns="host"' \
+    'cgroupns="host"' \
+    'cgroups="disabled"' \
+    '' \
+    '[engine]' \
+    'cgroup_manager="cgroupfs"' \
+    'events_logger="file"' \
+    'runtime="crun"' \
+    > /etc/containers/containers.conf
+  # The filesystem of a container is already an overlay and podman can not stack
+  # overlay on overlay: without a volume for the container storage it would fall
+  # back to the vfs driver, that is unusably slow and large. Pin the driver so
+  # that such a misconfiguration fails instead of silently crawling.
+  # podman requires runroot and graphroot to be set as soon as this file exists.
+  # A rootless podman ignores them and uses the ones under the home of the user.
+  RUN printf '%s\n' \
+    '[storage]' \
+    'driver="overlay"' \
+    'runroot="/run/containers/storage"' \
+    'graphroot="/var/lib/containers/storage"' \
+    > /etc/containers/storage.conf
+

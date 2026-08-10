@@ -61,9 +61,10 @@ REAL_BUILD_FUNCTIONS="${SHELLSPEC_SPECDIR}/../../build-functions.sh"
 REAL_BUILD_SH="${SHELLSPEC_SPECDIR}/../../build.sh"
 
 # Source build-functions.sh with the problematic lines neutralized.
-# - Line 9: BUILD_UID default uses docker.sock (we pre-set BUILD_UID)
-# - Line 21: cd to project root (we cd ourselves)
-# - Lines 839-842: dispatch block (not needed when sourcing)
+# - the cd to the project root (we cd ourselves)
+# - the dispatch block at the end (not needed when sourcing)
+# The BUILD_UID default is not neutralized: pre-setting BUILD_UID is enough to
+# skip the docker socket lookup.
 source_build_functions() {
   cd "$TEST_PROJECT_DIR" || return 1
 
@@ -73,10 +74,34 @@ source_build_functions() {
 
   # shellcheck disable=SC1090
   eval "$(sed \
-    -e '/^export BUILD_UID=.*docker\.sock/s/^/#TEST_SKIP# /' \
     -e '/^cd "\$(dirname/s/^/#TEST_SKIP# /' \
     -e '/^if \[ "\$(basename "\$0")" = "build-functions.sh" \]/,/^fi$/s/^/#TEST_SKIP# /' \
     "$REAL_BUILD_FUNCTIONS")"
+}
+
+# Fake docker and podman executables that record the arguments they are called
+# with. Used to test the container engine shims themselves, that are mocked away
+# by mock_docker_commands.
+ENGINE_CALL_LOG=""
+
+mock_container_engine() {
+  ENGINE_CALL_LOG="$TEST_PROJECT_DIR/engine_calls.log"
+  : > "$ENGINE_CALL_LOG"
+  mkdir -p "$TEST_PROJECT_DIR/bin"
+  local ENGINE
+  for ENGINE in docker podman
+  do
+    cat << EOF > "$TEST_PROJECT_DIR/bin/$ENGINE"
+#!/bin/sh
+echo "$ENGINE \$*" >> "$ENGINE_CALL_LOG"
+case " \$* " in
+  *' info --format '*|*' version --format '*) echo linux/amd64 ;;
+esac
+EOF
+    chmod a+x "$TEST_PROJECT_DIR/bin/$ENGINE"
+  done
+  PATH="$TEST_PROJECT_DIR/bin:$PATH"
+  export PATH
 }
 
 # Mock docker commands - these record calls and return success
