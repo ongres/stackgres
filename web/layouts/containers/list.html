@@ -1,5 +1,5 @@
 {{ define "head-seo" }}
-<meta name="robots" content="index, follow">
+{{ if or site.Params.previewgate site.Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ else }}<meta name="robots" content="index, follow">{{ end }}
 <link href="{{ "css/bootstrap-grid.min.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
 <link href="{{ "css/containers.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
 {{ end }}

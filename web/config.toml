@@ -23,6 +23,8 @@ ignoreFiles = ['_index\.template\.md$']
     author = "author"
 
 [params]
+    # draft site: keep search engines out — remove before production launch
+    noindex = true
     [params.hubspot]
         portalId = "149027957"
         formId = "2d7f94a7-acd0-4cbc-8c3e-c39fd1ae14bd"
