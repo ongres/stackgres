@@ -1,37 +1,38 @@
 .pre build image:
-  image: docker:29.2.1
+  image: $SG_CONTAINER_ENGINE_IMAGE
   stage: pre build
   timeout: 1 hour
   script:
     - |
       [ "$DEBUG" != true ] || set -x
+      BUILD_FUNCTIONS="sh $CI_PROJECT_DIR/stackgres-k8s/ci/build/build-functions.sh"
       TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/$IMAGE_NAME-$ARCH"
       LATEST_TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/${IMAGE_NAME%:*}:latest-$ARCH"
       mkdir -p $HOME/.docker
       cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"
       unset DOCKER_AUTH_CONFIG
-      echo | docker login "$CI_REGISTRY" || \
-        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo | $BUILD_FUNCTIONS docker_login "$CI_REGISTRY" || \
+        $BUILD_FUNCTIONS docker_login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       cat << EOF > build-image.sh
-      if docker manifest inspect "$TARGET_IMAGE_NAME" 2>/dev/null \
+      if $BUILD_FUNCTIONS docker_manifest_inspect "$TARGET_IMAGE_NAME" 2>/dev/null \
         && [ "$DO_IMAGES" != true ]
       then
         echo "$TARGET_IMAGE_NAME" already exists
         exit
       fi
       echo Building...
-      docker build -f "$IMAGE_DOCKERFILE" -t "$TARGET_IMAGE_NAME" -t "$LATEST_TARGET_IMAGE_NAME" .
+      $BUILD_FUNCTIONS docker_build -f "$IMAGE_DOCKERFILE" -t "$TARGET_IMAGE_NAME" -t "$LATEST_TARGET_IMAGE_NAME" .
       echo ...done
       echo Pushing...
-      docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$TARGET_IMAGE_NAME"
-      docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$LATEST_TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_push "$TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_push "$LATEST_TARGET_IMAGE_NAME"
       echo ...done
       EOF
       flock "/tmp/stackgres-build-$IMAGE_NAME" sh -xe build-image.sh
   retry: 2
 
 .pre build image multi archs:
-  image: docker:29.2.1
+  image: $SG_CONTAINER_ENGINE_IMAGE
   tags:
     - stackgres-runner-v2
   stage: pre build multi archs
@@ -39,13 +40,14 @@
   script:
     - |
       [ "$DEBUG" != true ] || set -x
+      BUILD_FUNCTIONS="sh $CI_PROJECT_DIR/stackgres-k8s/ci/build/build-functions.sh"
       TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/$IMAGE_NAME"
       LATEST_TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/${IMAGE_NAME%:*}:latest"
       mkdir -p $HOME/.docker
       cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"
       unset DOCKER_AUTH_CONFIG
-      echo | docker login "$CI_REGISTRY" || \
-        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo | $BUILD_FUNCTIONS docker_login "$CI_REGISTRY" || \
+        $BUILD_FUNCTIONS docker_login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       ARCH_LIST="amd64 $(
         if [ "$DO_ARM" = true ] \
           || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
@@ -53,35 +55,35 @@
           echo arm64
         fi
         )"
-      if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1 \
+      if $BUILD_FUNCTIONS docker_manifest_inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1 \
         && [ "$DO_IMAGES" != true ]
       then
         exit
       fi
       for ARCH in $ARCH_LIST
       do
-        docker pull "$TARGET_IMAGE_NAME-$ARCH"
-        docker pull "$LATEST_TARGET_IMAGE_NAME-$ARCH"
+        $BUILD_FUNCTIONS docker_pull "$TARGET_IMAGE_NAME-$ARCH"
+        $BUILD_FUNCTIONS docker_pull "$LATEST_TARGET_IMAGE_NAME-$ARCH"
       done
-      docker pull "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder"
-      docker tag "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder" "$TARGET_IMAGE_NAME"
-      docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$TARGET_IMAGE_NAME"
-      docker tag "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder" "$LATEST_TARGET_IMAGE_NAME"
-      docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$LATEST_TARGET_IMAGE_NAME"
-      docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
-      docker manifest create "$TARGET_IMAGE_NAME" $(
+      $BUILD_FUNCTIONS docker_pull "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder"
+      $BUILD_FUNCTIONS docker_tag "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder" "$TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_push "$TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_tag "$CI_REGISTRY/$SG_CI_PROJECT_PATH/placeholder" "$LATEST_TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_push "$LATEST_TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_manifest_rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
+      $BUILD_FUNCTIONS docker_manifest_create "$TARGET_IMAGE_NAME" $(
         for ARCH in $ARCH_LIST
         do
           echo "$TARGET_IMAGE_NAME-$ARCH "
         done)
-      docker manifest push "$TARGET_IMAGE_NAME"
-      docker manifest rm "$LATEST_TARGET_IMAGE_NAME" 2>/dev/null || true
-      docker manifest create "$LATEST_TARGET_IMAGE_NAME" $(
+      $BUILD_FUNCTIONS docker_manifest_push "$TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_manifest_rm "$LATEST_TARGET_IMAGE_NAME" 2>/dev/null || true
+      $BUILD_FUNCTIONS docker_manifest_create "$LATEST_TARGET_IMAGE_NAME" $(
         for ARCH in $ARCH_LIST
         do
           echo "$LATEST_TARGET_IMAGE_NAME-$ARCH "
         done)
-      docker manifest push "$LATEST_TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_manifest_push "$LATEST_TARGET_IMAGE_NAME"
   retry: 2
 
 build ci image amd64:

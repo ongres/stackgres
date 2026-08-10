@@ -6,37 +6,39 @@
   script:
     - |
       [ "$DEBUG" != true ] || set -x
+      BUILD_FUNCTIONS="sh $CI_PROJECT_DIR/stackgres-k8s/ci/build/build-functions.sh"
       export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"
       export IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/$IMAGE_BASE_NAME:$IMAGE_TAG"
       mkdir -p $HOME/.docker
       cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"
       unset DOCKER_AUTH_CONFIG
-      echo | docker login "$CI_REGISTRY" || \
-        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo | $BUILD_FUNCTIONS docker_login "$CI_REGISTRY" || \
+        $BUILD_FUNCTIONS docker_login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       flock "$LOCK_FILE" \
         sh stackgres-k8s/ci/build/build-gitlab.sh build \
           "$IMAGE_MODULE_NAME"
-      HASH_IMAGE_NAME="$(sh stackgres-k8s/ci/build/build-functions.sh image_name "$IMAGE_MODULE_NAME")"
-      docker pull "$HASH_IMAGE_NAME"
-      docker tag "$HASH_IMAGE_NAME" "$IMAGE_NAME"
-      docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$IMAGE_NAME"
+      HASH_IMAGE_NAME="$($BUILD_FUNCTIONS image_name "$IMAGE_MODULE_NAME")"
+      $BUILD_FUNCTIONS docker_pull "$HASH_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_tag "$HASH_IMAGE_NAME" "$IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_push "$IMAGE_NAME"
   retry: 2
 
 .build image multi archs:
-  image: docker:29.2.1
+  image: $SG_CONTAINER_ENGINE_IMAGE
   stage: image build multi archs
   timeout: 1 hour
   script:
     - |
       [ "$DEBUG" != true ] || set -x
+      BUILD_FUNCTIONS="sh $CI_PROJECT_DIR/stackgres-k8s/ci/build/build-functions.sh"
       export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"
       export IMAGE_NAME="$IMAGE_BASE_NAME:$IMAGE_TAG"
       export TARGET_IMAGE_NAME="$CI_REGISTRY/$SG_CI_PROJECT_PATH/$IMAGE_NAME"
       mkdir -p $HOME/.docker
       cat "$DOCKER_AUTH_CONFIG" > "$HOME/.docker/config.json"
       unset DOCKER_AUTH_CONFIG
-      echo | docker login "$CI_REGISTRY" || \
-        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo | $BUILD_FUNCTIONS docker_login "$CI_REGISTRY" || \
+        $BUILD_FUNCTIONS docker_login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       cd stackgres-k8s/src
       ARCH_LIST="amd64 $(
         if [ "$DO_ARM" = true ] \
@@ -45,19 +47,19 @@
           echo arm64
         fi
         )"
-      if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
+      if $BUILD_FUNCTIONS docker_manifest_inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
       then
-        docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
-        docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$TARGET_IMAGE_NAME"
-        docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$TARGET_IMAGE_NAME"
+        $BUILD_FUNCTIONS docker_pull registry.gitlab.com/ongresinc/stackgres/placeholder
+        $BUILD_FUNCTIONS docker_tag registry.gitlab.com/ongresinc/stackgres/placeholder "$TARGET_IMAGE_NAME"
+        $BUILD_FUNCTIONS docker_push "$TARGET_IMAGE_NAME"
       fi
-      docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
-      docker manifest create "$TARGET_IMAGE_NAME" $(
+      $BUILD_FUNCTIONS docker_manifest_rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
+      $BUILD_FUNCTIONS docker_manifest_create "$TARGET_IMAGE_NAME" $(
         for ARCH in $ARCH_LIST
         do
           echo "$TARGET_IMAGE_NAME-$ARCH "
         done)
-      docker manifest push "$TARGET_IMAGE_NAME"
+      $BUILD_FUNCTIONS docker_manifest_push "$TARGET_IMAGE_NAME"
   retry: 2
 
 .build jvm image amd64:

@@ -1,7 +1,13 @@
 image: null
 
 variables:
-  SG_CI_IMAGE_NAME: "ci:1.37"
+  SG_CI_IMAGE_NAME: "ci:1.38"
+  # Container engine used by the jobs. Set to podman for the runners that have
+  # no docker daemon reachable, like the ones running the jobs as pods.
+  CONTAINER_ENGINE: docker
+  # Image used by the jobs that only need a container engine CLI. Must be
+  # overridden along with CONTAINER_ENGINE.
+  SG_CONTAINER_ENGINE_IMAGE: "docker:29.2.1"
   BUILDER_IMAGE_NAME: "builder:1.10"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
