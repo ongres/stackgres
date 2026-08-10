@@ -30,6 +30,17 @@ PROJECT_PATH=../../../../
 
 cd "$(dirname "$0")"
 
+# Container engine used to pull and extract the bundle image. Used as a command
+# prefix, so values with arguments like `podman --remote` are supported.
+: "${CONTAINER_ENGINE:=docker}"
+
+container_engine_is_podman() {
+  case "${CONTAINER_ENGINE%% *}" in
+    podman|*/podman) return 0 ;;
+  esac
+  return 1
+}
+
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh "$PROJECT_PATH"/stackgres-k8s/ci/build/version.sh)}"
 
 mkdir -p target
@@ -109,19 +120,26 @@ then
   echo "Onboarding $PROJECT_NAME to file-based catalogs"
   cp ci-"$UPSTREAM_SUFFIX".yaml "$FORK_GIT_PATH/operators/$PROJECT_NAME/ci.yaml"
   wget https://raw.githubusercontent.com/redhat-openshift-ecosystem/operator-pipelines/main/fbc/Makefile -O "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
-  sed -i 's/podman run/docker run/' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
-  # Upstream Makefile bug: '--user $(id -u):$(id -g)' is consumed by make as
-  # (undefined) variables and becomes 'docker run --user :', so the container
-  # runs as root and writes root-owned files. Double the '$' so the shell does
-  # the substitution instead of make.
-  sed -i 's/--user $(id -u):$(id -g)/--user $$(id -u):$$(id -g)/' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
-  # The Makefile mounts the registry credentials under /root, but the container
-  # now runs as the host user (uid != 0) which cannot traverse the root-owned
-  # /root (mode 700), so opm falls back to anonymous and gets 401 on
-  # registry.redhat.io. Mount the credentials under $HOME instead and point opm
-  # there via HOME.
-  sed -i 's#/root/.docker/config.json#$${HOME}/.docker/config.json#g' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
-  sed -i 's#--security-opt label=disable#--security-opt label=disable -e HOME=$${HOME}#' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
+  # The upstream Makefile is podman native and needs no adjustment: '--user
+  # $(id -u):$(id -g)' is consumed by make as (undefined) variables and becomes
+  # '--user :', and a rootless podman maps the root of the container to the
+  # invoking user, so the files are written with the right owner and the
+  # credentials mounted under /root are readable.
+  if ! container_engine_is_podman
+  then
+    sed -i 's/podman run/docker run/' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
+    # Once rewritten to docker, '--user :' makes the container run as root and
+    # write root-owned files. Double the '$' so the shell does the substitution
+    # instead of make.
+    sed -i 's/--user $(id -u):$(id -g)/--user $$(id -u):$$(id -g)/' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
+    # The Makefile mounts the registry credentials under /root, but the container
+    # now runs as the host user (uid != 0) which cannot traverse the root-owned
+    # /root (mode 700), so opm falls back to anonymous and gets 401 on
+    # registry.redhat.io. Mount the credentials under $HOME instead and point opm
+    # there via HOME.
+    sed -i 's#/root/.docker/config.json#$${HOME}/.docker/config.json#g' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
+    sed -i 's#--security-opt label=disable#--security-opt label=disable -e HOME=$${HOME}#' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
+  fi
   make -C "$FORK_GIT_PATH/operators/$PROJECT_NAME" fbc-onboarding
   # Onboarding embeds each bundle's full manifests ("olm.bundle.object"), so the
   # StackGres catalogs (huge CRDs x many versions) blow past GitHub's 100 MB
@@ -182,22 +200,22 @@ echo "Copying new files to path operators/$PROJECT_NAME/$STACKGRES_VERSION from 
 rm -rf "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 mkdir -p "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 cd "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
-docker pull quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG
-if docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -qF layer.tar
+$CONTAINER_ENGINE pull quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG
+if $CONTAINER_ENGINE save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -qF layer.tar
 then
-  docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F layer.tar \
+  $CONTAINER_ENGINE save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F layer.tar \
     | while read LAYER
       do
-        docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xzv
+        $CONTAINER_ENGINE save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xzv
       done
 else
-  docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F manifest.json \
+  $CONTAINER_ENGINE save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F manifest.json \
     | while read MANIFEST
       do
-        docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$MANIFEST" | jq -r '.[]|.Layers[]' \
+        $CONTAINER_ENGINE save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$MANIFEST" | jq -r '.[]|.Layers[]' \
           | while read LAYER
             do
-              docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xzv
+              $CONTAINER_ENGINE save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xzv
             done
       done
 fi
@@ -224,7 +242,8 @@ then
   echo "$IMAGES" \
     | while read -r IMAGE
       do
-        DIGEST="$(docker buildx imagetools inspect "$IMAGE" | grep '^Digest:' | tr -d ' ' | cut -d : -f 2-)"
+        # buildx is docker only, skopeo works the same with both engines
+        DIGEST="$(skopeo inspect --format '{{.Digest}}' "docker://$IMAGE" | cut -d : -f 2-)"
         if [ -z "$DIGEST" ]
         then
           >&2 echo "Digest not found for image $IMAGE"

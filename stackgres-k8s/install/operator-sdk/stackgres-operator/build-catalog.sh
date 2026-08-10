@@ -5,9 +5,13 @@ TARGET_PATH=target
 
 cd "$(dirname "$0")"
 
+# Container engine used to build and push the catalog image. Used as a command
+# prefix, so values with arguments like `podman --remote` are supported.
+: "${CONTAINER_ENGINE:=docker}"
+
 mkdir -p "$TARGET_PATH"
 
-STACKGRES_ALL_VERSIONS="$(docker run --rm regclient/regctl tag ls quay.io/stackgres/operator-bundle)"
+STACKGRES_ALL_VERSIONS="$($CONTAINER_ENGINE run --rm docker.io/regclient/regctl tag ls quay.io/stackgres/operator-bundle)"
 STACKGRES_VERSIONS="$({ printf '%s\n' "$STACKGRES_ALL_VERSIONS"; } 2>/dev/null \
   | grep '^1\.[0-9]\+\.[0-9]\+$' | sort -V)"
 STACKGRES_RC_VERSIONS="$({ printf '%s\n' "$STACKGRES_ALL_VERSIONS"; } 2>/dev/null \
@@ -92,7 +96,7 @@ build_catalog() {
   opm validate "$CATALOG_PATH/operator-catalog"
   (
   cd "$CATALOG_PATH"
-  docker build . \
+  $CONTAINER_ENGINE build . \
     -f "operator-catalog.Dockerfile" \
     -t "$CATALOG_IMAGE_NAME"
   )
@@ -220,7 +224,7 @@ EOF
 push_catalog() {
   BUNDLE_TYPE="${1:-}"
   CATALOG_IMAGE_NAME="quay.io/stackgres/operator-catalog:$LATEST_STACKGRES_VERSION$BUNDLE_TYPE"
-  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$CATALOG_IMAGE_NAME"
+  sh "$PROJECT_PATH"/stackgres-k8s/ci/build/build-functions.sh docker_push "$CATALOG_IMAGE_NAME"
 }
 
 create_catalog_source() {
