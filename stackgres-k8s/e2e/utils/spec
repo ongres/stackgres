@@ -579,14 +579,14 @@ store_test_results() {
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
   # shellcheck disable=SC2046
-  docker image registry.access.redhat.com/ubi8-micro:8.8-7 > /dev/null 2>&1 \
-    || docker pull registry.access.redhat.com/ubi8-micro:8.8-7
+  $CONTAINER_ENGINE image inspect registry.access.redhat.com/ubi8-micro:8.8-7 > /dev/null 2>&1 \
+    || $CONTAINER_ENGINE pull registry.access.redhat.com/ubi8-micro:8.8-7
   while read -r SPEC_NAME
   do
     IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images" \
       | cut -d = -f 2-)"
-    docker tag registry.access.redhat.com/ubi8-micro:8.8-7 "$IMAGE_NAME"
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$IMAGE_NAME"
+    $CONTAINER_ENGINE tag registry.access.redhat.com/ubi8-micro:8.8-7 "$IMAGE_NAME"
+    docker_push "$IMAGE_NAME"
   done < "$TARGET_PATH/uniq-passed-tests"
 }
 
@@ -605,10 +605,10 @@ store_test_result() {
   fi
   IMAGE_NAME="$(printf %s "$IMAGE_NAME" | cut -d = -f 2-)"
   # shellcheck disable=SC2046
-  docker image registry.access.redhat.com/ubi8-micro:8.8-7 > /dev/null 2>&1 \
-    || docker pull registry.access.redhat.com/ubi8-micro:8.8-7
-  docker tag registry.access.redhat.com/ubi8-micro:8.8-7 "$IMAGE_NAME"
-  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$IMAGE_NAME"
+  $CONTAINER_ENGINE image inspect registry.access.redhat.com/ubi8-micro:8.8-7 > /dev/null 2>&1 \
+    || $CONTAINER_ENGINE pull registry.access.redhat.com/ubi8-micro:8.8-7
+  $CONTAINER_ENGINE tag registry.access.redhat.com/ubi8-micro:8.8-7 "$IMAGE_NAME"
+  docker_push "$IMAGE_NAME"
 }
 
 add_already_passed_tests_to_report() {

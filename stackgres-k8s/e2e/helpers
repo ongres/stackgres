@@ -2,6 +2,24 @@
 
 export NEWLINE_IFS="$(printf '\n')"
 
+# Container engine used to build, pull, push and inspect the images. It is used
+# as a command prefix, so values with arguments like `podman --remote` are
+# supported. It defaults to docker in order to not change the behaviour of the
+# existing runners. Note that the kind environment does not support podman yet,
+# see stackgres-k8s/e2e/envs/kind.
+export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
+# podman reads the registries credentials from the file pointed by
+# REGISTRY_AUTH_FILE. Point it to the file docker uses so that both engines and
+# the code that reads it directly are interchangeable.
+export REGISTRY_AUTH_FILE="${REGISTRY_AUTH_FILE:-$HOME/.docker/config.json}"
+
+container_engine_is_podman() {
+  case "${CONTAINER_ENGINE%% *}" in
+    podman|*/podman) return 0 ;;
+  esac
+  return 1
+}
+
 try_function() {
   local E_UNSET=true
   if echo "$-" | grep -q e

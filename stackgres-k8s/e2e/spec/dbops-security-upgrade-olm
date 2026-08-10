@@ -37,7 +37,7 @@ e2e_load_images() {
 
   # The operator-registry check the bundle image from the remote repository
   BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
-  docker pull "$BUNDLE_IMAGE_NAME"
+  $CONTAINER_ENGINE pull "$BUNDLE_IMAGE_NAME"
   mkdir -p "$LOG_PATH/operator-bundle"
   cat << EOF > "$LOG_PATH/operator-bundle.Dockerfile"
 FROM "$BUNDLE_IMAGE_NAME" AS bundle
@@ -56,14 +56,14 @@ FROM debian AS overwrites
 FROM scratch
   COPY --from=overwrites /bundle /
 $(
-    docker inspect "$BUNDLE_IMAGE_NAME" -f json \
+    $CONTAINER_ENGINE inspect "$BUNDLE_IMAGE_NAME" -f json \
       | jq -r '.[0].Config.Labels|to_entries|.[]|"LABEL \"" + .key + "\"=\"" + .value + "\""' \
       | sed 's/^/  /'
 )
 EOF
   BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden-$(date +%s)-$RANDOM"
-  docker build -t "$BUNDLE_IMAGE_NAME" -f "$LOG_PATH/operator-bundle.Dockerfile" "$LOG_PATH/operator-bundle" 
-  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$BUNDLE_IMAGE_NAME"
+  $CONTAINER_ENGINE build -t "$BUNDLE_IMAGE_NAME" -f "$LOG_PATH/operator-bundle.Dockerfile" "$LOG_PATH/operator-bundle" 
+  docker_push "$BUNDLE_IMAGE_NAME"
 }
 
 e2e_install_previous_operator() {
@@ -120,11 +120,11 @@ EOF
   opm validate "$LOG_PATH/operator-catalog"
   (
   cd "$LOG_PATH"
-  docker build . \
+  $CONTAINER_ENGINE build . \
     -f "operator-catalog.Dockerfile" \
     -t "$CATALOG_IMAGE_NAME"
   )
-  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$CATALOG_IMAGE_NAME"
+  docker_push "$CATALOG_IMAGE_NAME"
 
   if [ "$E2E_SKIP_LOAD_OPERATOR_BUNDLE" != true ]
   then

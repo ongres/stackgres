@@ -43,15 +43,15 @@ set_up_private_repository() {
 
   if ! use_alternative_registry
   then
-    get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
+    get_private_repository_password | $CONTAINER_ENGINE login --username AWS --password-stdin "$PRIVATE_REPO_URI"
 
-    docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
-    docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
-    docker tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
-    docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
-    docker tag "$CLUSTER_CONTROLLER_IMAGE_NAME" "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker tag "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    docker tag "$STREAM_IMAGE_NAME" "$PRIVATE_STREAM_IMAGE_NAME"
+    docker_local_tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
+    docker_local_tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
+    docker_local_tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
+    docker_local_tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
+    docker_local_tag "$CLUSTER_CONTROLLER_IMAGE_NAME" "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
+    docker_local_tag "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker_local_tag "$STREAM_IMAGE_NAME" "$PRIVATE_STREAM_IMAGE_NAME"
 
     local NAME
     for NAME in operator restapi admin-ui jobs \
@@ -63,13 +63,13 @@ set_up_private_repository() {
       fi
     done
 
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_OPERATOR_IMAGE_NAME"
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_RESTAPI_IMAGE_NAME"
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_JOBS_IMAGE_NAME"
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_ADMINUI_IMAGE_NAME"  
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PRIVATE_STREAM_IMAGE_NAME"
+    docker_push "$PRIVATE_OPERATOR_IMAGE_NAME"
+    docker_push "$PRIVATE_RESTAPI_IMAGE_NAME"
+    docker_push "$PRIVATE_JOBS_IMAGE_NAME"
+    docker_push "$PRIVATE_ADMINUI_IMAGE_NAME"
+    docker_push "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
+    docker_push "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker_push "$PRIVATE_STREAM_IMAGE_NAME"
   fi
 
   if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1
@@ -177,7 +177,7 @@ load_cached_images_from_local_repository() {
 }
 
 load_cached_image_from_local_repository() {
-  if docker image inspect "$1" >/dev/null 2>&1
+  if $CONTAINER_ENGINE image inspect "$1" >/dev/null 2>&1
   then
     try_function load_image_k8s "$1"
     if ! "$RESULT"
@@ -231,7 +231,7 @@ load_failed_images_pull_from_local_repository() {
       while read IMAGE_NAME
       do
         echo "Detected failed to pull image $IMAGE_NAME to k8s env $E2E_ENV"
-        if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
+        if $CONTAINER_ENGINE image inspect "$IMAGE_NAME" >/dev/null 2>&1
         then
           load_image_k8s "$IMAGE_NAME"
         else
@@ -263,7 +263,7 @@ docker_pull() {
   then
     echo "Using $MAPPED_IMAGE_NAME as $IMAGE_NAME"
   fi
-  docker pull -q "$MAPPED_IMAGE_NAME"
+  $CONTAINER_ENGINE pull -q "$MAPPED_IMAGE_NAME"
   if [ "$K8S_USE_INTERNAL_REPOSITORY" = true ]
   then
     local RESULT EXIT_CODE
@@ -281,7 +281,14 @@ docker_pull() {
 
 docker_push() {
   local IMAGE_NAME="$1"
-  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" -q "$IMAGE_NAME"
+  if container_engine_is_podman
+  then
+    # podman push has no --platform option since a local podman image is always
+    # single arch
+    $CONTAINER_ENGINE push -q "$IMAGE_NAME"
+  else
+    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" -q "$IMAGE_NAME"
+  fi
 }
 
 docker_tag() {
@@ -293,5 +300,5 @@ docker_tag() {
 }
 
 docker_local_tag() {
-  docker tag "$1" "$2"
+  $CONTAINER_ENGINE tag "$1" "$2"
 }

@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# This environment only works with docker and ignores CONTAINER_ENGINE. kind
+# creates its own bridge network, that requires /dev/net/tun, and its rootless
+# mode requires the cgroups to be delegated by systemd. Neither is available in
+# an unprivileged pod, so running it with podman needs its own analysis.
+
 KIND_NAME="${KIND_NAME:-kind}"
 KIND_NODES="${KIND_NODES:-1}"
 KIND_LOCK_PATH="${KIND_LOCK_PATH:-$TARGET_PATH/kind-lock}"
