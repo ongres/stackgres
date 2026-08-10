@@ -55,7 +55,7 @@
   // shared configuration, but the gate still applies — every viewer is
   // captured before the pricing is revealed
   var params = new URLSearchParams(location.search);
-  var isSharedLink = params.has('e') || params.has('cores') || params.has('view');
+  var isSharedLink = params.has('e') || params.has('envs') || params.has('cores') || params.has('view');
 
   // no portal configured → gate disabled entirely (safety valve)
   if (!portalId || isUnlocked()) {

@@ -313,6 +313,22 @@ layout: gated
 #epc footer .f-meta span{white-space:nowrap}
 
 
+/* ---------- Environments ---------- */
+#epc .env-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+#epc .env-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text-2);font-family:var(--f-mono);font-size:12px;cursor:pointer;transition:border-color .15s,color .15s}
+#epc .env-chip:hover{border-color:var(--text-3)}
+#epc .env-chip.on{border-color:var(--accent);color:var(--text);background:rgba(4,223,253,.07)}
+#epc .env-chip .env-cores{color:var(--text-3);font-size:11px}
+#epc .env-chip.on .env-cores{color:var(--accent)}
+#epc .env-x{margin-left:2px;color:var(--text-3);font-size:14px;line-height:1;padding:0 2px;border-radius:4px}
+#epc .env-x:hover{color:#F87171}
+#epc .env-add{padding:7px 12px;border:1px dashed var(--border);border-radius:10px;background:transparent;color:var(--text-3);font-family:var(--f-mono);font-size:12px;cursor:pointer;transition:border-color .15s,color .15s}
+#epc .env-add:hover{border-color:var(--accent);color:var(--accent)}
+#epc .env-name-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+#epc .env-name-row label{font-family:var(--f-mono);font-size:12.5px;color:var(--text-3);white-space:nowrap}
+#epc .env-name-row input{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;font-family:var(--f-body);font-size:14px}
+#epc .env-name-row input:focus{outline:none;border-color:var(--accent)}
+
 /* ---------- Reveal and toast ---------- */
 #epc .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
 #epc .reveal.in{opacity:1;transform:none}
@@ -323,7 +339,7 @@ layout: gated
 #epc .ro-banner{display:flex;gap:8px 18px;flex-wrap:wrap;align-items:baseline;margin-top:26px;padding:13px 18px;border:1px solid rgba(4,223,253,.35);border-radius:10px;background:rgba(4,223,253,.06);font-family:var(--f-mono);font-size:12.5px;color:var(--text-2)}
 #epc .ro-banner a{color:var(--accent);text-decoration:underline;cursor:pointer}
 #epc.ro .presets, #epc.ro #sgEds .ed, #epc.ro #pkgs .pkg, #epc.ro .cySwitch, #epc.ro #curSeg,
-#epc.ro #coreRange, #epc.ro #coreNum{pointer-events:none;opacity:.55}
+#epc.ro #coreRange, #epc.ro #coreNum, #epc.ro .env-name-row input{pointer-events:none;opacity:.55}
 
 #epc .share-modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:20px}
 #epc .share-modal[hidden]{display:none!important}
@@ -418,6 +434,11 @@ layout: gated
       <div class="step"><span class="n">01</span>
         <div><h2 data-i="s1.h"></h2><div class="hint" data-i="s1.hint"></div></div>
       </div>
+      <div class="env-bar" id="envBar"></div>
+      <div class="env-name-row">
+        <label for="envName" data-i="env.nameL"></label>
+        <input id="envName" type="text" maxlength="40" autocomplete="off">
+      </div>
       <div class="cores-row">
         <input class="num" id="coreNum" type="number" min="1" max="32768" value="128" aria-label="Cores" />
         <input type="range" id="coreRange" min="1" max="2048" value="128" aria-label="Cores slider" />
@@ -438,6 +459,7 @@ layout: gated
           <h2>StackGres Enterprise</h2>
           <div class="by sg" data-i="sg.by"></div>
         </div>
+        <span class="chip cy" id="sgEnvChip" style="margin-left:auto"></span>
       </div>
       <div class="hint" data-i="sg.hint" style="margin-bottom:18px"></div>
       <div class="optgrid" id="sgEds" role="radiogroup"></div>
@@ -636,11 +658,17 @@ en: {
   "dual.sgD":"StackGres Enterprise licensing with included support: Non Prod, Enterprise and Platinum editions.",
   "clouds.label":"Tested and supported in the cloud and on-premise",
   "conf.h":"Configure your estimate",
-  "conf.sub":"Set your environment once, enable the service lines you need, and watch each one priced separately in real time.",
-  "s1.h":"Your environment",
-  "s1.hint":"Total CPU cores across the clusters to be covered. The same environment feeds both service lines. Minimum contract: 32 cores.",
+  "conf.sub":"Add your environments, size each one and pick its edition, and watch the estimate priced in real time.",
+  "s1.h":"Your environments",
+  "s1.hint":"Model each environment separately: name it, set its CPU cores and choose its edition below. Each environment is priced on its own volume brackets, with a 32-core minimum per environment.",
   billed:"{n} billable cores",
   serverHint:"Fleets over 128 servers: estimate 8 cores per server.",
+  "env.nameL":"Environment name",
+  "env.add":"Add environment",
+  "env.defaultN":"Environment {n}",
+  "env.configuring":"Configuring: {n}",
+  "env.count":"{n} environments",
+  lineEnv:"{env} &middot; {e} &middot; {n} cores",
   minNotice:"Below the 32-core minimum: the estimate is calculated on 32 cores.",
   "s2.h":"Service lines",
   "s2.hint":"Enable the lines you want in this estimate. Each one is priced separately and clearly identified.",
@@ -722,11 +750,11 @@ en: {
   legalMain:"StackGres is a product of OnGres, Inc. (Delaware, USA). Prices are per core-year in the selected currency, per the official OnGres price list (USD or EUR). This calculator produces an indicative estimate; the binding offer is the formal proposal issued by OnGres.",
   legalConf:"Confidential: prepared for the named recipient only.",
   mSubject:"StackGres formal proposal request", mFor:"Client",
-  mCores:"Cores under support", mBilled:"Billable cores", mPg:"PostgreSQL Support", mPro:"Proactive package",
+  mCores:"Cores under support", mBilled:"Billable cores", mEnv:"{env}: {n} cores ({b} billed), {e}", mPg:"PostgreSQL Support", mPro:"Proactive package",
   mSg:"StackGres edition", mCons:"Consulting", mMkt:"Marketing Agreement", mHours:"Consulting hours included",
   mTotal:"Estimated total per year", mNone:"none", mOff:"not included",
   pdfTitle:"PRICING ESTIMATE", pdfPrep:"Prepared for", pdfDate:"Date",
-  pdfEnv:"Environment: {n} billable cores",
+  pdfEnv:"{n} billable cores across {c} environment(s)",
   pdfPgT:"PostgreSQL Support (OnGres)", pdfSgT:"StackGres Enterprise licensing",
   pdfCols:["Bracket","Cores","Unit","Subtotal"], pdfColsPro:["Fee","Fee subtotal"],
   pdfHours:"{h} consulting hours included",
@@ -752,11 +780,17 @@ es: {
   "dual.sgD":"Licencias StackGres Enterprise con soporte incluido: ediciones Non Prod, Enterprise y Platinum.",
   "clouds.label":"Probado y soportado en la nube y on-premise",
   "conf.h":"Configura tu estimación",
-  "conf.sub":"Define tu entorno una vez, activa las líneas de servicio que necesites y ve cada una cotizada por separado en tiempo real.",
-  "s1.h":"Tu entorno",
-  "s1.hint":"Total de cores de CPU de los clústeres a cubrir. El mismo entorno alimenta ambas líneas de servicio. Contratación mínima: 32 cores.",
+  "conf.sub":"Añade tus entornos, dimensiona cada uno y elige su edición, y ve la estimación cotizada en tiempo real.",
+  "s1.h":"Tus entornos",
+  "s1.hint":"Modela cada entorno por separado: ponle nombre, define sus cores de CPU y elige su edición más abajo. Cada entorno se cotiza con sus propios tramos de volumen, con un mínimo de 32 cores por entorno.",
   billed:"{n} cores facturables",
   serverHint:"Flotas de más de 128 servidores: estima 8 cores por servidor.",
+  "env.nameL":"Nombre del entorno",
+  "env.add":"Añadir entorno",
+  "env.defaultN":"Entorno {n}",
+  "env.configuring":"Configurando: {n}",
+  "env.count":"{n} entornos",
+  lineEnv:"{env} &middot; {e} &middot; {n} cores",
   minNotice:"Por debajo del mínimo de 32 cores: la estimación se calcula sobre 32 cores.",
   "s2.h":"Líneas de servicio",
   "s2.hint":"Activa las líneas que quieras en esta estimación. Cada una se cotiza por separado y queda claramente identificada.",
@@ -838,11 +872,11 @@ es: {
   legalMain:"StackGres es un producto de OnGres, Inc. (Delaware, EE. UU.). Los precios son por core-año en la moneda seleccionada, según la lista de precios oficial de OnGres (USD o EUR). Esta calculadora ofrece una estimación indicativa; la oferta vinculante es la propuesta formal emitida por OnGres.",
   legalConf:"Confidencial: preparado únicamente para el destinatario indicado.",
   mSubject:"Solicitud de propuesta formal StackGres", mFor:"Cliente",
-  mCores:"Cores bajo soporte", mBilled:"Cores facturables", mPg:"Soporte PostgreSQL", mPro:"Paquete Proactive",
+  mCores:"Cores bajo soporte", mBilled:"Cores facturables", mEnv:"{env}: {n} cores ({b} facturables), {e}", mPg:"Soporte PostgreSQL", mPro:"Paquete Proactive",
   mSg:"Edición StackGres", mCons:"Consultoría", mMkt:"Acuerdo de Marketing", mHours:"Horas de consultoría incluidas",
   mTotal:"Total anual estimado", mNone:"ninguna", mOff:"no incluido",
   pdfTitle:"ESTIMACIÓN DE PRECIOS", pdfPrep:"Preparado para", pdfDate:"Fecha",
-  pdfEnv:"Entorno: {n} cores facturables",
+  pdfEnv:"{n} cores facturables en {c} entorno(s)",
   pdfPgT:"Soporte PostgreSQL (OnGres)", pdfSgT:"Licencia StackGres Enterprise",
   pdfCols:["Tramo","Cores","Unidad","Subtotal"], pdfColsPro:["Cuota","Subtotal cuota"],
   pdfHours:"{h} horas de consultoría incluidas",
@@ -855,14 +889,18 @@ es: {
 }};
 
 /* =============================== ESTADO =============================== */
-const state = { cores:128, pg:false, pgSla:"24x7", pro:false, sg:true, ed:"enterprise", pkg:0, mkt:false, cur:"USD", lang:"en" };
+const state = { envs:[{ name:"Production", cores:128, ed:"enterprise" }], active:0, pg:false, pgSla:"24x7", pro:false, sg:true, pkg:0, mkt:false, cur:"USD", lang:"en" };
+/* the environment currently being edited — step 01 controls bind to it */
+const env = () => state.envs[state.active];
 /* read-only mode: entered via a shared "view only" link (?view=1) */
 let RO = false;
 let edSwitched = false;
 
 /* ============================== HELPERS ============================== */
 const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const t = k => (T[state.lang] && T[state.lang][k] !== undefined) ? T[state.lang][k] : T.en[k];
+const envLabel = i => state.envs[i].name || tpl(t("env.defaultN"), {n:i+1});
 const tpl = (s,o) => s.replace(/\{(\w+)\}/g,(m,k)=> o[k]!==undefined ? o[k] : m);
 
 function fmt(v){
@@ -891,8 +929,8 @@ function distribute(billed){
     return hi - b.from + 1;
   });
 }
-function compute(){
-  const billed = Math.max(state.cores || 0, CFG.minCores);
+function computeEnv(en){
+  const billed = Math.max(en.cores || 0, CFG.minCores);
   const dist = distribute(billed);
   const topIdx = CFG.brackets.reduce((a,b,i)=> dist[i] > 0 ? i : a, 0);
 
@@ -908,28 +946,41 @@ function compute(){
     });
     pgHours = state.pro ? Math.round(pgHours / 10) : 0;
   }
-  const pgTotal = pgSub + pgFee;
 
   // StackGres Enterprise (licensing)
   let sgSub = 0, sgHours = 0, sgAvailable = true;
   if(state.sg){
-    const rates = P.sg[state.ed];
+    const rates = P.sg[en.ed];
     if(rates[topIdx] === null){ sgAvailable = false; }
     else {
       dist.forEach((c,i) => {
         sgSub += c * (rates[i] || 0);
-        if(state.ed === "platinum") sgHours += c * CFG.factor[i];
+        if(en.ed === "platinum") sgHours += c * CFG.factor[i];
       });
-      sgHours = state.ed === "platinum" ? Math.round(sgHours / 10) : 0;
+      sgHours = en.ed === "platinum" ? Math.round(sgHours / 10) : 0;
     }
   }
+  return { billed, dist, topIdx, pgSub, pgFee, pgTotal: pgSub + pgFee, pgHours, sgSub, sgHours, sgAvailable };
+}
+
+/* Each environment is priced independently — its own brackets and its own
+   32-core minimum. The estimate aggregates the per-environment subtotals;
+   consulting and the Marketing Agreement stay contract-wide. */
+function compute(){
+  const envs = state.envs.map(computeEnv);
+  const sum = k => envs.reduce((a,e) => a + e[k], 0);
+  const billed = sum("billed");
+  const pgSub = sum("pgSub"), pgFee = sum("pgFee");
+  const pgHours = state.pro ? sum("pgHours") : 0;
+  const pgTotal = pgSub + pgFee;
+  const sgSub = sum("sgSub"), sgHours = sum("sgHours");
   const discount = (state.sg && state.mkt) ? sgSub * CFG.marketingRate : 0;
 
-  const consulting = P.consulting[state.pkg] || 0;
+  const consulting = PR().consulting[state.pkg] || 0;
 
   const total = (state.pg ? pgTotal : 0) + (state.sg ? sgSub - discount : 0) + consulting;
   const totalHours = (state.pg ? pgHours : 0) + (state.sg ? sgHours : 0);
-  return { billed, dist, topIdx, pgSub, pgFee, pgTotal, pgHours, sgSub, sgHours, sgAvailable, discount, consulting, total, totalHours };
+  return { envs, billed, pgSub, pgFee, pgTotal, pgHours, sgSub, sgHours, discount, consulting, total, totalHours };
 }
 
 /* =============================== RENDER =============================== */
@@ -951,7 +1002,18 @@ function applyStatic(){
 function renderPresets(){
   const presets = [32,64,128,256,512,1024,2048];
   $("#presets").innerHTML = presets.map(v =>
-    `<button type="button" class="preset ${state.cores===v?'on':''}" data-v="${v}">${v}</button>`).join("");
+    `<button type="button" class="preset ${env().cores===v?'on':''}" data-v="${v}">${v}</button>`).join("");
+}
+
+function renderEnvBar(){
+  const bar = $("#envBar");
+  const chips = state.envs.map((en,i) => {
+    const del = (!RO && state.envs.length > 1) ? `<span class="env-x" data-del="${i}" role="button" aria-label="Remove environment">&times;</span>` : "";
+    return `<button type="button" class="env-chip ${i===state.active?'on':''}" data-env="${i}">
+      <span>${esc(envLabel(i))}</span><span class="env-cores">${en.cores}</span>${del}</button>`;
+  });
+  if(!RO) chips.push(`<button type="button" class="env-add" id="envAdd">+ ${t("env.add")}</button>`);
+  bar.innerHTML = chips.join("");
 }
 
 function slaRows(st){
@@ -978,7 +1040,7 @@ function renderSgEds(r){
   const tags = { nonprod:t("edNpTag"), enterprise:t("edEntTag"), platinum:t("edPlatTag") };
   $("#sgEds").innerHTML = CFG.sgEditions.map(e => {
     const disabled = PR().sg[e.id][r.topIdx] === null;
-    const sel = state.ed === e.id && !disabled;
+    const sel = env().ed === e.id && !disabled;
     const st = slaTimes(e.sla);
     let feat = "";
     if(e.id === "nonprod") feat = `<div class="feat mut"><span>&bull;</span><span>${t("edNpFeat")}</span></div>`;
@@ -1035,16 +1097,16 @@ function renderBreakdowns(r){
     bdTable($("#pgBd"), rows, foots, state.pro);
     $("#pgBdBadge").textContent = pgSlaOf(state.pgSla).name + (state.pro ? " + Proactive" : "");
   }
-  // StackGres
+  // StackGres — breakdown of the active environment
   if(state.sg){
-    const rates = PR().sg[state.ed];
+    const rates = PR().sg[env().ed];
     const rows = [];
     CFG.brackets.forEach((b,i) => {
       if(r.dist[i] <= 0 || rates[i] === null) return;
       rows.push({ label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i]), cls:"vc" });
     });
     bdTable($("#sgBd"), rows, [{label:t("bdLic"), value:fmt(r.sgSub), cls:"vc"}], false);
-    $("#sgBdBadge").textContent = "StackGres " + sgEdOf(state.ed).name;
+    $("#sgBdBadge").textContent = "StackGres " + sgEdOf(env().ed).name + " · " + envLabel(state.active);
   }
 }
 
@@ -1066,7 +1128,7 @@ function renderMatrices(r){
 }
 
 function renderCompare(){
-  const sel = state.sg ? state.ed : "";
+  const sel = state.sg ? env().ed : "";
   const hl = i => (i===1 && sel==="nonprod") || (i===2 && sel==="enterprise") || (i===3 && sel==="platinum");
   const names = [t("cmpOs")+` <span class="free-tag">${t("cmpFree")}</span>`, "Non Prod", "Enterprise", "Platinum"];
   const rows = [
@@ -1107,32 +1169,39 @@ function tween(to){
 
 function render(){
   // Guard: Non Prod no existe por encima de 1024 cores
-  const billedGuard = Math.max(state.cores || 0, CFG.minCores);
-  if(state.ed === "nonprod" && billedGuard > 1024){ state.ed = "enterprise"; edSwitched = true; }
+  state.envs.forEach(en => {
+    const billedGuard = Math.max(en.cores || 0, CFG.minCores);
+    if(en.ed === "nonprod" && billedGuard > 1024){ en.ed = "enterprise"; edSwitched = true; }
+  });
   const r = compute();
+  const a = r.envs[state.active]; // the environment being edited
 
-  // Step 1
-  if(document.activeElement !== $("#coreNum")) $("#coreNum").value = state.cores;
-  $("#coreRange").value = Math.min(state.cores, 2048);
-  $("#billedChip").textContent = tpl(t("billed"), {n:r.billed});
-  $("#minNotice").classList.toggle("show", (state.cores || 0) < CFG.minCores);
+  // Step 1 — controls bind to the active environment
+  renderEnvBar();
+  if(document.activeElement !== $("#envName")) $("#envName").value = env().name;
+  if(document.activeElement !== $("#coreNum")) $("#coreNum").value = env().cores;
+  $("#coreRange").value = Math.min(env().cores, 2048);
+  $("#billedChip").textContent = tpl(t("billed"), {n:a.billed});
+  $("#minNotice").classList.toggle("show", (env().cores || 0) < CFG.minCores);
   renderPresets();
 
-  // Bloques de producto
+  // Bloques de producto (contextuales al entorno activo)
   if(state.sg){
-    renderSgEds(r);
-    $("#sgHours").classList.toggle("show", state.ed === "platinum" && r.sgHours > 0);
-    $("#sgHoursNum").textContent = r.sgHours + " h";
+    $("#sgEnvChip").textContent = tpl(t("env.configuring"), {n:envLabel(state.active)});
+    renderSgEds(a);
+    $("#sgHours").classList.toggle("show", env().ed === "platinum" && a.sgHours > 0);
+    $("#sgHoursNum").textContent = a.sgHours + " h";
   }
-  renderBreakdowns(r);
-  renderMatrices(r);
+  renderBreakdowns(a);
+  renderMatrices(a);
   renderPkgs();
   renderCompare();
 
   // Summary
   const chips = [`<span class="chip cy">${tpl(t("billed"),{n:r.billed})}</span>`];
+  if(state.envs.length > 1) chips.push(`<span class="chip cy">${tpl(t("env.count"),{n:state.envs.length})}</span>`);
   if(state.pg) chips.push(`<span class="chip bl">PG ${pgSlaOf(state.pgSla).name.replace("Support ","")}${state.pro?" +Pro":""}</span>`);
-  if(state.sg) chips.push(`<span class="chip cy">SG ${sgEdOf(state.ed).name}</span>`);
+  if(state.sg && state.envs.length === 1) chips.push(`<span class="chip cy">SG ${sgEdOf(env().ed).name}</span>`);
   if(r.totalHours > 0) chips.push(`<span class="chip wr">${tpl(t("hoursChip"),{h:r.totalHours})}</span>`);
   $("#telemetry").innerHTML = chips.join("");
 
@@ -1151,9 +1220,12 @@ function render(){
     }
     if(state.sg){
       L.push(`<div class="gline"><span class="gdot sg"></span>${t("grpSg")}</div>`);
-      L.push(`<div class="line"><span class="d">${tpl(t("lineSgLic"),{e:sgEdOf(state.ed).name,n:r.billed})}</span><span class="v">${fmt(r.sgSub)}</span></div>`);
+      state.envs.forEach((en,i) => {
+        const er = r.envs[i];
+        L.push(`<div class="line"><span class="d">${tpl(t("lineEnv"),{env:esc(envLabel(i)), e:sgEdOf(en.ed).name, n:er.billed})}</span><span class="v">${fmt(er.sgSub)}</span></div>`);
+      });
       if(state.mkt) L.push(`<div class="line disc"><span class="d">${t("lineMkt")}</span><span class="v">&minus; ${fmt(r.discount)}</span></div>`);
-      if(state.ed === "platinum") L.push(`<div class="line hours"><span class="d">${tpl(t("lineHours"),{h:r.sgHours})}</span><span class="v">&#10003;</span></div>`);
+      if(r.sgHours > 0) L.push(`<div class="line hours"><span class="d">${tpl(t("lineHours"),{h:r.sgHours})}</span><span class="v">&#10003;</span></div>`);
       L.push(`<div class="line stotal sgc"><span class="d">${t("stotal")}</span><span class="v">${fmt(r.sgSub - r.discount)}</span></div>`);
     }
     L.push(`<div class="gline"><span class="gdot ok"></span>${t("grpOk")}</div>`);
@@ -1180,9 +1252,8 @@ function syncUrl(){
     /* read-only shared view: keep the shared link in the bar untouched */
     if (RO) return;
     const p = new URLSearchParams(location.search);
-    p.delete("e");
-    p.set("cores", state.cores);
-    p.set("ed", state.ed);
+    p.delete("e"); p.delete("cores"); p.delete("ed");
+    p.set("envs", state.envs.map(en => [encodeURIComponent(en.name), en.cores, en.ed].join(":")).join(","));
     p.set("pkg", state.pkg); p.set("mkt", state.mkt?1:0);
     p.set("cur", state.cur); p.set("lang", state.lang);
     history.replaceState(null, "", location.pathname + "?" + p.toString());
@@ -1193,7 +1264,7 @@ function syncUrl(){
    The config travels as an opaque base64url token (?e=...) so plain URL
    params can't be hand-crafted to look like a shared estimate. */
 function shareUrl(mode){
-  const cfg = { cores:state.cores, ed:state.ed, pkg:state.pkg, mkt:state.mkt?1:0, cur:state.cur, lang:state.lang };
+  const cfg = { envs:state.envs.map(en => ({ n:en.name, c:en.cores, ed:en.ed })), pkg:state.pkg, mkt:state.mkt?1:0, cur:state.cur, lang:state.lang };
   if(mode === "view") cfg.view = 1;
   if(LINK.client) cfg.client = LINK.client;
   const token = btoa(unescape(encodeURIComponent(JSON.stringify(cfg))))
@@ -1227,7 +1298,7 @@ function downloadPDF(){
   doc.text(LINK.client ? tpl(t("prep"),{c:LINK.client}) : t("prepNeutral"), M, y);
   y += 6;
   doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(94,104,117);
-  doc.text(tpl(t("pdfEnv"),{n:r.billed}), M, y);
+  doc.text(tpl(t("pdfEnv"),{n:r.billed, c:state.envs.length}), M, y);
   y += 9;
 
   function sectionTitle(txt, rgb){
@@ -1268,11 +1339,14 @@ function downloadPDF(){
 
   if(state.pg){
     const rates = PR().pg[state.pgSla];
-    sectionTitle(t("pdfPgT") + " · " + pgSlaOf(state.pgSla).name + (state.pro?" + Proactive":""), BLUE);
-    const rows = [];
-    CFG.brackets.forEach((b,i)=>{ if(r.dist[i]>0) rows.push({label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i]), feeU:fmt(PR().pgFee[i]), feeS:fmt(r.dist[i]*PR().pgFee[i])}); });
-    miniTable(rows, state.pro, BLUE);
-    totLine(t("bdSup"), fmt(r.pgSub), BLUE);
+    state.envs.forEach((en,i) => {
+      const er = r.envs[i];
+      sectionTitle(t("pdfPgT") + " · " + envLabel(i) + " · " + pgSlaOf(state.pgSla).name + (state.pro?" + Proactive":""), BLUE);
+      const rows = [];
+      CFG.brackets.forEach((b,j)=>{ if(er.dist[j]>0) rows.push({label:b.label, cores:er.dist[j], unit:fmt(rates[j]), sub:fmt(er.dist[j]*rates[j]), feeU:fmt(PR().pgFee[j]), feeS:fmt(er.dist[j]*PR().pgFee[j])}); });
+      miniTable(rows, state.pro, BLUE);
+      totLine(t("bdSup"), fmt(er.pgSub), BLUE);
+    });
     if(state.pro){
       totLine(t("bdFee"), fmt(r.pgFee), ORANGE);
       doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(210,110,30);
@@ -1281,14 +1355,18 @@ function downloadPDF(){
     y += 4;
   }
   if(state.sg){
-    const rates = PR().sg[state.ed];
-    sectionTitle(t("pdfSgT") + " · " + sgEdOf(state.ed).name, CYAN);
-    const rows = [];
-    CFG.brackets.forEach((b,i)=>{ if(r.dist[i]>0 && rates[i]!==null) rows.push({label:b.label, cores:r.dist[i], unit:fmt(rates[i]), sub:fmt(r.dist[i]*rates[i])}); });
-    miniTable(rows, false, CYAN);
-    totLine(t("bdLic"), fmt(r.sgSub), CYAN);
+    state.envs.forEach((en,i) => {
+      const er = r.envs[i];
+      const rates = PR().sg[en.ed];
+      sectionTitle(t("pdfSgT") + " · " + envLabel(i) + " · " + sgEdOf(en.ed).name, CYAN);
+      const rows = [];
+      CFG.brackets.forEach((b,j)=>{ if(er.dist[j]>0 && rates[j]!==null) rows.push({label:b.label, cores:er.dist[j], unit:fmt(rates[j]), sub:fmt(er.dist[j]*rates[j])}); });
+      miniTable(rows, false, CYAN);
+      totLine(t("bdLic"), fmt(er.sgSub), CYAN);
+      y += 2;
+    });
     if(state.mkt) totLine(t("pdfMkt"), "- " + fmt(r.discount), GREEN);
-    if(state.ed === "platinum"){
+    if(r.sgHours > 0){
       doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.setTextColor(210,110,30);
       doc.text(tpl(t("pdfHours"),{h:r.sgHours}), M, y-7);
     }
@@ -1314,7 +1392,12 @@ function downloadPDF(){
 
   doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(60,74,88);
   if(state.pg){ const st = slaTimes(pgSlaOf(state.pgSla).sla); doc.text(tpl(t("pdfSlaPg"),{s:pgSlaOf(state.pgSla).name.replace("Support ",""),a:st.r,b:st.u,c:st.x}), M, y); y += 6; }
-  if(state.sg){ const e = sgEdOf(state.ed), st = slaTimes(e.sla); doc.text(tpl(t("pdfSlaSg"),{e:e.name,s:e.sla,a:st.r,b:st.u,c:st.x}), M, y); y += 6; }
+  if(state.sg){
+    [...new Set(state.envs.map(en => en.ed))].forEach(id => {
+      const e = sgEdOf(id), st = slaTimes(e.sla);
+      doc.text(tpl(t("pdfSlaSg"),{e:e.name,s:e.sla,a:st.r,b:st.u,c:st.x}), M, y); y += 6;
+    });
+  }
 
   y += 3;
   doc.setDrawColor(4,223,253); doc.setLineWidth(0.6); doc.line(M, y, W-M, y); y += 7;
@@ -1332,7 +1415,7 @@ function downloadPDF(){
 }
 
 /* =============================== EVENTOS =============================== */
-function setCores(v){ v = parseInt(v,10); if(isNaN(v)) v = 0; state.cores = Math.max(1, Math.min(32768, v)); render(); }
+function setCores(v){ v = parseInt(v,10); if(isNaN(v)) v = 0; env().cores = Math.max(1, Math.min(32768, v)); render(); }
 
 function showToast(msg){
   const el = $("#toast"); el.textContent = msg; el.classList.add("show");
@@ -1352,12 +1435,15 @@ function wire(){
 
     $("#sgEds").addEventListener("click", e => {
       const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
-      state.ed = el.dataset.ed; edSwitched = false; render();
+      env().ed = el.dataset.ed; edSwitched = false; render();
     });
     $("#sgEds").addEventListener("keydown", e => {
       const el = e.target.closest(".ed"); if(!el || el.classList.contains("disabled")) return;
-      radioKey(e, () => { state.ed = el.dataset.ed; edSwitched = false; render(); });
+      radioKey(e, () => { env().ed = el.dataset.ed; edSwitched = false; render(); });
     });
+
+    $("#envName").addEventListener("input", e => { env().name = e.target.value.slice(0,40); renderEnvBar(); });
+    $("#envName").addEventListener("blur", () => render());
 
     $("#pkgs").addEventListener("click", e => { const el = e.target.closest(".pkg"); if(el){ state.pkg = parseInt(el.dataset.pkg,10); render(); } });
     $("#pkgs").addEventListener("keydown", e => { const el = e.target.closest(".pkg"); if(el) radioKey(e, () => { state.pkg = parseInt(el.dataset.pkg,10); render(); }); });
@@ -1365,6 +1451,28 @@ function wire(){
     $("#mkt").addEventListener("change", e => { state.mkt = e.target.checked; render(); });
     $("#curSeg").addEventListener("click", e => { const b = e.target.closest("button"); if(b){ state.cur = b.dataset.cur; applyStatic(); render(); } });
   }
+
+  /* environment bar: selecting is allowed even in read-only mode,
+     adding/removing/renaming is not */
+  $("#envBar").addEventListener("click", e => {
+    const del = e.target.closest(".env-x");
+    if(del && !RO){
+      state.envs.splice(parseInt(del.dataset.del,10), 1);
+      if(state.active >= state.envs.length) state.active = state.envs.length - 1;
+      render();
+      return;
+    }
+    if(e.target.closest(".env-add")){
+      if(RO) return;
+      state.envs.push({ name:tpl(t("env.defaultN"),{n:state.envs.length+1}), cores:128, ed:"enterprise" });
+      state.active = state.envs.length - 1;
+      render();
+      $("#envName").focus(); $("#envName").select();
+      return;
+    }
+    const chip = e.target.closest(".env-chip");
+    if(chip){ state.active = parseInt(chip.dataset.env,10); render(); }
+  });
 
   /* ------------------------------ share ------------------------------ */
   const shareModal = $("#shareModal"), shareCopy = $("#shareCopy");
@@ -1400,10 +1508,13 @@ function wire(){
     const subject = encodeURIComponent(t("mSubject") + (LINK.client ? " · " + LINK.client : ""));
     let b = "";
     if(LINK.client) b += t("mFor") + ": " + LINK.client + nl;
-    b += t("mCores") + ": " + state.cores + nl + t("mBilled") + ": " + r.billed + nl;
+    b += t("mBilled") + ": " + r.billed + nl;
+    state.envs.forEach((en,i) => {
+      b += "- " + tpl(t("mEnv"), {env:envLabel(i), n:en.cores, b:r.envs[i].billed, e:sgEdOf(en.ed).name}) + nl;
+    });
     if(state.pg) b += t("mPg") + ": " + pgSlaOf(state.pgSla).name + " = " + fmt(r.pgSub) + nl;
     if(state.pg && state.pro) b += t("mPro") + ": " + fmt(r.pgFee) + " (+" + r.pgHours + " h)" + nl;
-    if(state.sg) b += t("mSg") + ": StackGres " + sgEdOf(state.ed).name + " = " + fmt(r.sgSub) + nl;
+    if(state.sg) b += t("grpSg") + ": " + fmt(r.sgSub) + nl;
     if(state.sg && state.mkt) b += t("mMkt") + ": -" + fmt(r.discount) + nl;
     b += t("mCons") + ": " + (state.pkg > 0 ? state.pkg + " h = " + fmt(r.consulting) : t("mNone")) + nl;
     if(r.totalHours > 0) b += t("mHours") + ": " + r.totalHours + " h" + nl;
@@ -1416,19 +1527,41 @@ function wire(){
 /* ================================ INIT ================================ */
 (function init(){
   const P = new URLSearchParams(location.search);
-  /* opaque share token: decodes to the same keys as the plain URL params */
+  const cleanEnv = (name, cores, ed) => ({
+    name: String(name || "").slice(0,40),
+    cores: Math.max(1, Math.min(32768, parseInt(cores,10) || 128)),
+    ed: ["nonprod","enterprise","platinum"].includes(ed) ? ed : "enterprise"
+  });
+  /* opaque share token: scalar keys overlay the plain URL params, the
+     environments array is applied directly */
+  let sharedEnvs = false;
   if(P.get("e")){
     try{
       const cfg = JSON.parse(decodeURIComponent(escape(atob(P.get("e").replace(/-/g,"+").replace(/_/g,"/")))));
-      Object.keys(cfg).forEach(k => P.set(k, String(cfg[k])));
+      Object.keys(cfg).forEach(k => { if(k !== "envs") P.set(k, String(cfg[k])); });
+      if(Array.isArray(cfg.envs) && cfg.envs.length){
+        state.envs = cfg.envs.slice(0,50).map(en => cleanEnv(en.n, en.c, en.ed));
+        sharedEnvs = true;
+      }
     }catch(err){ /* malformed token → fall back to plain params/defaults */ }
   }
   if(P.get("client")) LINK.client = P.get("client").slice(0,80);
   if(P.get("lang") === "es" || P.get("lang") === "en") LINK.lang = P.get("lang");
   if((P.get("cur")||"").toUpperCase() === "EUR") LINK.currency = "EUR";
   state.lang = LINK.lang; state.cur = LINK.currency;
-  if(P.get("cores")) state.cores = Math.max(1, Math.min(32768, parseInt(P.get("cores"),10) || 128));
-  if(["nonprod","enterprise","platinum"].includes(P.get("ed"))) state.ed = P.get("ed");
+  if(!sharedEnvs){
+    if(P.get("envs")){
+      const envs = P.get("envs").split(",").map(seg => {
+        try{ const [n,c,ed] = seg.split(":"); return cleanEnv(decodeURIComponent(n || ""), c, ed); }
+        catch(err){ return null; }
+      }).filter(Boolean);
+      if(envs.length) state.envs = envs.slice(0,50);
+    } else if(P.get("cores") || P.get("ed")){
+      /* legacy single-environment links */
+      state.envs = [cleanEnv(state.envs[0].name, P.get("cores"), P.get("ed"))];
+    }
+  }
+  state.active = 0;
   const pkgP = parseInt(P.get("pkg"),10);
   if(CFG.consultingHours.includes(pkgP)) state.pkg = pkgP;
   if(P.get("mkt") === "1") state.mkt = true;
@@ -1437,9 +1570,8 @@ function wire(){
   if(RO){
     document.getElementById("epc").classList.add("ro");
     $("#roBanner").hidden = false;
-    const p = new URLSearchParams(P); p.delete("view"); p.delete("e");
-    $("#roEditLink").href = location.pathname + "?" + p.toString();
-    ["coreNum","coreRange","mkt"].forEach(id => { const el = document.getElementById(id); if(el) el.disabled = true; });
+    $("#roEditLink").href = shareUrl("edit");
+    ["coreNum","coreRange","mkt","envName"].forEach(id => { const el = document.getElementById(id); if(el) el.disabled = true; });
   }
 
   if(!window.jspdf) $("#pdfBtn").style.display = "none";
