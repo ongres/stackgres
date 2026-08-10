@@ -115,26 +115,26 @@ EOF
   fi
   if [ "$E2E_BUILD_ONLY_MODULES" != true ]
   then
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
-    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" >/dev/null 2>&1 \
-      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" "$STREAM_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
+    $CONTAINER_ENGINE inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" >/dev/null 2>&1 \
+      || $CONTAINER_ENGINE pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)"
+    $CONTAINER_ENGINE tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
+    $CONTAINER_ENGINE tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
+    $CONTAINER_ENGINE tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
+    $CONTAINER_ENGINE tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name stream-jvm-image)" "$STREAM_IMAGE_NAME"
+    $CONTAINER_ENGINE tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
+    $CONTAINER_ENGINE tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name pglambda-javascript-image)" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
   fi
 }
 
@@ -419,7 +419,7 @@ push_image_to() {
   local TO_IMAGE="$REPOSITORY${IMAGE_PATH%/}${IMAGE#*/}"
   echo "Pushing $IMAGE to $TO_IMAGE..."
   docker_local_tag "$IMAGE" "$TO_IMAGE"
-  docker_push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$TO_IMAGE"
+  docker_push "$TO_IMAGE"
   echo "Pushed $IMAGE to $TO_IMAGE"
 }
 

@@ -232,6 +232,6 @@ run_as_root_on_host() {
 if [ "$K8S_FOR_DIND" = true ] || [ "$(id -u)" != 0 ] || cat /proc/1/cgroup | grep -q ':/docker/'
 then
   run_as_root_on_host() {
-    docker run --privileged --pid=host -i --rm alpine nsenter -t 1 -m -u -n -i -- "$@"
+    $CONTAINER_ENGINE run --privileged --pid=host -i --rm docker.io/library/alpine nsenter -t 1 -m -u -n -i -- "$@"
   }
 fi

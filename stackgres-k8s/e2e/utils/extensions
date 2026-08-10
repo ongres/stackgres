@@ -34,10 +34,10 @@ cache_extensions_index() {
   then
     if [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ]
     then
-      docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
+      $CONTAINER_ENGINE run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" docker.io/library/alpine \
         sh -c 'cat /extensions/local-extensions-index.json 2>/dev/null' | jq . > "$TARGET_PATH/extensions-index.json" \
         || true
-      docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
+      $CONTAINER_ENGINE run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" docker.io/library/alpine \
         sh -c 'cat /extensions/local-extensions-hashes.json 2>/dev/null' | jq . > "$TARGET_PATH/extensions-hashes.json" \
         || true
     fi
@@ -72,10 +72,10 @@ cache_extensions_index() {
     if [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ]
     then
       jq . "$TARGET_PATH/extensions-index.json" \
-        | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
+        | $CONTAINER_ENGINE run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" docker.io/library/alpine \
           sh -c 'cat > /extensions/local-extensions-index.json'
       jq . "$TARGET_PATH/extensions-hashes.json" \
-        | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
+        | $CONTAINER_ENGINE run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" docker.io/library/alpine \
           sh -c 'cat > /extensions/local-extensions-hashes.json'
     fi
     EXTENSIONS_INDEX_CACHED=true

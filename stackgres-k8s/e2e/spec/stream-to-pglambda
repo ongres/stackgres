@@ -19,9 +19,9 @@ e2e_test_install() {
     return
   fi
 
-  if ! docker manifest inspect "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME" > /dev/null 2>&1
+  if ! $CONTAINER_ENGINE manifest inspect "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME" > /dev/null 2>&1
   then
-    docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
+    docker_push "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
   fi
 
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"

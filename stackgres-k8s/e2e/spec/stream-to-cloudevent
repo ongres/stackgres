@@ -29,7 +29,7 @@ e2e_test_install() {
 
   STREAM_NAME="$(get_sgstreams_name "$SPEC_NAME-operation")"
 
-  docker build -f "$SPEC_PATH/$SPEC_NAME.files/Dockerfile" -t dev.local/cloudevents-nodejs "$SPEC_PATH/$SPEC_NAME.files"
+  $CONTAINER_ENGINE build -f "$SPEC_PATH/$SPEC_NAME.files/Dockerfile" -t dev.local/cloudevents-nodejs "$SPEC_PATH/$SPEC_NAME.files"
   load_image_k8s dev.local/cloudevents-nodejs
 
   install_knative
