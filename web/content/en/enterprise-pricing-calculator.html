@@ -116,7 +116,9 @@ layout: gated
 #epc .card.sgline::before{background:var(--grad)}
 #epc .card.okline::before{background:var(--grad-ok)}
 #epc .step{display:flex;align-items:baseline;gap:13px;margin-bottom:20px}
-#epc .step .n{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--accent);border:1px solid rgba(4,223,253,.3);border-radius:8px;padding:3px 9px;background:rgba(4,223,253,.07);flex:none}
+#epc .step .n, #epc .phead .n{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--accent);border:1px solid rgba(4,223,253,.3);border-radius:8px;padding:3px 9px;background:rgba(4,223,253,.07);flex:none}
+#epc .phead .n{margin-top:6px}
+#epc .chip.allenvs{color:var(--text-2);border-style:dashed;flex:none}
 #epc .step h2{font-family:var(--f-display);font-weight:700;font-size:18.5px;letter-spacing:-.01em}
 #epc .hint{color:var(--text-3);font-size:13px;margin-top:3px}
 
@@ -429,7 +431,7 @@ layout: gated
 <main class="grid">
   <section class="steps">
 
-    <!-- 01 · Environment -->
+    <!-- 01 · Environments -->
     <div class="card reveal">
       <div class="step"><span class="n">01</span>
         <div><h2 data-i="s1.h"></h2><div class="hint" data-i="s1.hint"></div></div>
@@ -438,6 +440,14 @@ layout: gated
       <div class="env-name-row">
         <label for="envName" data-i="env.nameL"></label>
         <input id="envName" type="text" maxlength="40" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- 02 · CPU cores (per environment) -->
+    <div class="card reveal">
+      <div class="step"><span class="n">02</span>
+        <div><h2 data-i="s2.h"></h2><div class="hint" data-i="s2.hint"></div></div>
+        <span class="chip cy" id="coresEnvChip" style="margin-left:auto"></span>
       </div>
       <div class="cores-row">
         <input class="num" id="coreNum" type="number" min="1" max="32768" value="128" aria-label="Cores" />
@@ -451,9 +461,10 @@ layout: gated
       <div class="notice" id="minNotice"></div>
     </div>
 
-    <!-- Block · StackGres Enterprise (cyan) -->
+    <!-- 03 · Commercial licensing · StackGres Enterprise (cyan) -->
     <div class="card sgline reveal" id="sgCard">
       <div class="phead">
+        <span class="n">03</span>
         <span class="pico sg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7.8 4.5v9L12 20l-7.8-4.5v-9L12 2z"/><circle cx="12" cy="11" r="3"/></svg></span>
         <div>
           <h2>StackGres Enterprise</h2>
@@ -479,24 +490,27 @@ layout: gated
       </details>
     </div>
 
-    <!-- Block · OnGres Consulting (green) -->
+    <!-- 04 · OnGres Consulting (green) — contract-wide -->
     <div class="card okline reveal">
       <div class="phead">
+        <span class="n">04</span>
         <span class="pico ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M16 4.5c1.7.4 3 1.9 3 3.9 0 1.2-.5 2.3-1.3 3"/><path d="M17.5 14.6c2 .5 3.3 1.9 3.7 4.4"/></svg></span>
         <div>
           <h2 data-i="ok.h"></h2>
           <div class="by ok" data-i="ok.by"></div>
         </div>
+        <span class="chip allenvs" data-i="allEnvs" style="margin-left:auto"></span>
       </div>
       <div class="hint" data-i="ok.hint" style="margin-bottom:18px"></div>
       <div class="pkgs" id="pkgs" role="radiogroup"></div>
       <p class="pkg-note" data-i="ok.note"></p>
     </div>
 
-    <!-- Commercial options -->
+    <!-- 05 · Commercial options — contract-wide -->
     <div class="card reveal">
-      <div class="step"><span class="n">02</span>
+      <div class="step"><span class="n">05</span>
         <div><h2 data-i="s4.h"></h2><div class="hint" data-i="s4.hint"></div></div>
+        <span class="chip allenvs" data-i="allEnvs" style="margin-left:auto"></span>
       </div>
       <div class="toggle-row">
         <div class="lbl"><span data-i="mkt.l"></span><small data-i="mkt.s"></small></div>
@@ -659,8 +673,11 @@ en: {
   "clouds.label":"Tested and supported in the cloud and on-premise",
   "conf.h":"Configure your estimate",
   "conf.sub":"Add your environments, size each one and pick its edition, and watch the estimate priced in real time.",
-  "s1.h":"Your environments",
-  "s1.hint":"Model each environment separately: name it, set its CPU cores and choose its edition below. Each environment is priced on its own volume brackets, with a 32-core minimum per environment.",
+  "s1.h":"Environments",
+  "s1.hint":"Add as many environments as you need (production, staging, dev...) and name each one. Select an environment to configure its size and edition in the next steps.",
+  "s2.h":"CPU cores",
+  "s2.hint":"CPU cores of the selected environment. Each environment is priced on its own volume brackets, with a 32-core minimum.",
+  allEnvs:"Applies to all environments",
   billed:"{n} billable cores",
   serverHint:"Fleets over 128 servers: estimate 8 cores per server.",
   "env.nameL":"Environment name",
@@ -670,8 +687,6 @@ en: {
   "env.count":"{n} environments",
   lineEnv:"{env} &middot; {e} &middot; {n} cores",
   minNotice:"Below the 32-core minimum: the estimate is calculated on 32 cores.",
-  "s2.h":"Service lines",
-  "s2.hint":"Enable the lines you want in this estimate. Each one is priced separately and clearly identified.",
   "prod.pgD":"OnGres support service for open source PostgreSQL.",
   "prod.sgD":"Commercial StackGres licensing with included support.",
   "pg.by":"OnGres support service",
@@ -781,8 +796,11 @@ es: {
   "clouds.label":"Probado y soportado en la nube y on-premise",
   "conf.h":"Configura tu estimación",
   "conf.sub":"Añade tus entornos, dimensiona cada uno y elige su edición, y ve la estimación cotizada en tiempo real.",
-  "s1.h":"Tus entornos",
-  "s1.hint":"Modela cada entorno por separado: ponle nombre, define sus cores de CPU y elige su edición más abajo. Cada entorno se cotiza con sus propios tramos de volumen, con un mínimo de 32 cores por entorno.",
+  "s1.h":"Entornos",
+  "s1.hint":"Añade tantos entornos como necesites (producción, staging, desarrollo...) y nombra cada uno. Selecciona un entorno para configurar su tamaño y edición en los siguientes pasos.",
+  "s2.h":"Cores de CPU",
+  "s2.hint":"Cores de CPU del entorno seleccionado. Cada entorno se cotiza con sus propios tramos de volumen, con un mínimo de 32 cores.",
+  allEnvs:"Se aplica a todos los entornos",
   billed:"{n} cores facturables",
   serverHint:"Flotas de más de 128 servidores: estima 8 cores por servidor.",
   "env.nameL":"Nombre del entorno",
@@ -792,8 +810,6 @@ es: {
   "env.count":"{n} entornos",
   lineEnv:"{env} &middot; {e} &middot; {n} cores",
   minNotice:"Por debajo del mínimo de 32 cores: la estimación se calcula sobre 32 cores.",
-  "s2.h":"Líneas de servicio",
-  "s2.hint":"Activa las líneas que quieras en esta estimación. Cada una se cotiza por separado y queda claramente identificada.",
   "prod.pgD":"Servicio de soporte de OnGres para PostgreSQL open source.",
   "prod.sgD":"Licencia comercial de StackGres con soporte incluido.",
   "pg.by":"Servicio de soporte OnGres",
@@ -1176,9 +1192,10 @@ function render(){
   const r = compute();
   const a = r.envs[state.active]; // the environment being edited
 
-  // Step 1 — controls bind to the active environment
+  // Steps 1-2 — controls bind to the active environment
   renderEnvBar();
   if(document.activeElement !== $("#envName")) $("#envName").value = env().name;
+  $("#coresEnvChip").textContent = tpl(t("env.configuring"), {n:envLabel(state.active)});
   if(document.activeElement !== $("#coreNum")) $("#coreNum").value = env().cores;
   $("#coreRange").value = Math.min(env().cores, 2048);
   $("#billedChip").textContent = tpl(t("billed"), {n:a.billed});
