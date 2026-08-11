@@ -175,7 +175,10 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   # podman builds and runs containers without a daemon. It is required to run the
   # CI jobs as pods, where no docker daemon is reachable and mounting the socket
   # of the host is not an option. See CONTAINER_ENGINE in stackgres-k8s/ci/build.
-  RUN microdnf install -y podman fuse-overlayfs slirp4netns shadow-utils crun && podman --version
+  # netavark and aardvark-dns are what give a container its own bridge network,
+  # needed by the e2e jobs that create a kind cluster. See containers-kind.conf.
+  RUN microdnf install -y podman fuse-overlayfs slirp4netns shadow-utils crun \
+    netavark aardvark-dns iptables && podman --version
   # The containers are run in the namespaces of the pod they run into:
   # * creating a network namespace requires /dev/net/tun, that an unprivileged
   #   pod does not have, and the namespace of the pod avoids a nested NAT and an
@@ -196,6 +199,24 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
     'events_logger="file"' \
     'runtime="crun"' \
     > /etc/containers/containers.conf
+  # kind needs the opposite of the defaults above: every node is a container with
+  # its own network, so that the nodes reach each other and the pod network does
+  # not collide with the one of the cluster running the job, and with its own
+  # cgroups, that the kubelet of the node has to be able to manage. podman reads
+  # the configuration pointed by CONTAINERS_CONF, so ship an alternative one for
+  # the jobs that create a kind cluster to select instead of patching this file
+  # at runtime. See stackgres-k8s/ci/runner for what the pod has to provide.
+  RUN printf '%s\n' \
+    '[containers]' \
+    'userns="host"' \
+    'ipcns="host"' \
+    'utsns="host"' \
+    '' \
+    '[engine]' \
+    'cgroup_manager="cgroupfs"' \
+    'events_logger="file"' \
+    'runtime="crun"' \
+    > /etc/containers/containers-kind.conf
   # The filesystem of a container is already an overlay and podman can not stack
   # overlay on overlay: without a volume for the container storage it would fall
   # back to the vfs driver, that is unusably slow and large. Pin the driver so

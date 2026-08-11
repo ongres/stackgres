@@ -1,0 +1,73 @@
+# A pod shaped like a GitLab runner job pod, used to decide whether the runner
+# can run the kind environment of the e2e tests. See the README of this folder.
+#
+#   kubectl apply -f stackgres-k8s/ci/runner/kind-probe.yaml
+#   kubectl wait --for=condition=ready pod/kind-probe --timeout=300s
+#   kubectl exec -i kind-probe -- sh -s < stackgres-k8s/ci/runner/kind-probe.sh
+#   kubectl delete -f stackgres-k8s/ci/runner/kind-probe.yaml
+#
+# Nothing here is privileged. Take away hostUsers and the pod is what a job pod
+# is today, which is useful to see the probe fail for the reasons the README
+# describes.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kind-probe
+spec:
+  restartPolicy: Never
+  # The pod gets its own user namespace: its root is an unprivileged id of the
+  # node, and the kubelet hands the cgroups of the pod to it. This is what lets
+  # podman create the network namespaces and the cgroups a kind node needs
+  # without any capability on the node. Requires the UserNamespacesSupport
+  # feature gate, a runtime with idmap mounts and a kernel 6.3 or later.
+  hostUsers: false
+  containers:
+    - name: ci
+      image: registry.gitlab.com/ongresinc/stackgres/ci:1.39
+      command:
+        - sleep
+        - infinity
+      env:
+        # The default configuration of the image runs every container in the
+        # namespaces of the pod and with the cgroups disabled, which a kind node
+        # can not work with. See Dockerfile-ci.
+        - name: CONTAINERS_CONF
+          value: /etc/containers/containers-kind.conf
+      securityContext:
+        privileged: false
+        # The root here is the root of the user namespace of the pod, an
+        # unprivileged id of the node. Privilege escalation is left at its
+        # default because podman relies on the file capabilities of its helpers,
+        # which is also why this pod does not satisfy the restricted pod
+        # security standard.
+        allowPrivilegeEscalation: true
+        runAsUser: 0
+      resources:
+        requests:
+          cpu: "2"
+          memory: 8Gi
+        limits:
+          cpu: "8"
+          memory: 16Gi
+          # Uncomment for path 2 of the README, where the pod shares the user
+          # namespace of the node and podman has to run rootless. The name of
+          # the resource is the one tun-device-plugin.yaml advertises.
+          # squat.ai/tun: "1"
+      volumeMounts:
+        # The filesystem of a container is already an overlay and podman can not
+        # stack overlay on overlay: without this volume it falls back to vfs.
+        - name: containers
+          mountPath: /var/lib/containers
+        - name: run
+          mountPath: /run/containers
+        # kind bind mounts the storage of the containerd of each node from here.
+        - name: kind
+          mountPath: /var/lib/kind
+  volumes:
+    - name: containers
+      emptyDir: {}
+    - name: run
+      emptyDir:
+        medium: Memory
+    - name: kind
+      emptyDir: {}

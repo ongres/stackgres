@@ -1,0 +1,65 @@
+# The parts of the configuration of a GitLab runner with the kubernetes executor
+# that let its job pods run the e2e tests with podman and kind. Merge them into
+# the existing [[runners]] entry, do not copy this file over it.
+#
+# The pod_spec entries need the FF_USE_ADVANCED_POD_SPEC_CONFIGURATION feature
+# flag. See the README of this folder for which path applies.
+
+[[runners]]
+  name = "stackgres-e2e-arm64"
+  executor = "kubernetes"
+  environment = [
+    "CONTAINER_ENGINE=podman",
+    # The default configuration of the CI image disables the cgroups and runs
+    # every container in the namespaces of the pod, which a kind node can not
+    # work with. See Dockerfile-ci.
+    "CONTAINERS_CONF=/etc/containers/containers-kind.conf",
+  ]
+
+  [runners.kubernetes]
+    image = "registry.gitlab.com/ongresinc/stackgres/ci:1.39"
+    # The e2e tests build images, create a cluster and run a whole StackGres on
+    # it. They need a job pod far larger than the build jobs.
+    cpu_request = "2"
+    cpu_limit = "8"
+    memory_request = "8Gi"
+    memory_limit = "16Gi"
+
+    # The filesystem of a container is already an overlay and podman can not
+    # stack overlay on overlay: without these volumes it falls back to the vfs
+    # driver, which is unusably slow and large.
+    [[runners.kubernetes.volumes.empty_dir]]
+      name = "containers"
+      mount_path = "/var/lib/containers"
+    [[runners.kubernetes.volumes.empty_dir]]
+      name = "run"
+      mount_path = "/run/containers"
+      medium = "Memory"
+    [[runners.kubernetes.volumes.empty_dir]]
+      name = "kind"
+      mount_path = "/var/lib/kind"
+
+  # Path 1: the pod gets its own user namespace, so its root is an unprivileged
+  # id of the node and the kubelet delegates the cgroups of the pod to it. No
+  # capability, no device plugin.
+  [[runners.kubernetes.pod_spec]]
+    name = "user namespace"
+    patch_type = "strategic"
+    patch = '''
+    hostUsers: false
+    '''
+
+  # Path 2: the pod shares the user namespace of the node, so podman has to run
+  # rootless and needs /dev/net/tun. Delete the pod_spec above and uncomment
+  # this, together with the securityContext that makes the job run as a non root
+  # user, which is what makes podman choose its rootless mode.
+  #
+  # [runners.kubernetes.pod_security_context]
+  #   run_as_non_root = true
+  #   run_as_user = 1001
+  #   fs_group = 0
+  #
+  # [runners.kubernetes.resource_requests]
+  #   "squat.ai/tun" = "1"
+  # [runners.kubernetes.resource_limits]
+  #   "squat.ai/tun" = "1"
