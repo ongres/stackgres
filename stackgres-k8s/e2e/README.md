@@ -51,6 +51,11 @@ Some environment variables allow to control how e2e test behave:
 * `IMAGE_TAG`: The tag of the operator image to use in the e2e test (default: main-jvm).
 * `EXTENSIONS_REPOSITORY_URL`: Allow to set a different URL for extensions repository.
 * `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster (default: kind).
+* `CONTAINER_ENGINE`: The container engine used to build, pull, push and inspect the images (default: docker). It is
+ used as a command prefix, so a value carrying arguments like `podman --remote` works everywhere except in the kind
+ environment, that executes the engine by name. See [Kind](#kind) for the requirements of `podman`.
+* `REGISTRY_AUTH_FILE`: The file holding the registries credentials, the one `podman` reads (default:
+ `$HOME/.docker/config.json`, the file `docker` writes).
 * `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).
 * `E2E_PARALLELISM`: The number of test to run in parallel with `run-all-tests.sh` (default: `$(( $(getconf _NPROCESSORS_ONLN) / 8 ))`).
 * `E2E_BUILD_IMAGES`: To avoid rebuilding the operator set this environment variable to false (default: true).
@@ -71,7 +76,8 @@ Some environment variables allow to control how e2e test behave:
 * `K8S_USE_INTERNAL_REPOSITORY`: Allow to bypass local docker repository and pull images directly to internal Kubernetes repository (only if `$E2E_ENV` support it).
 * `KIND_CONTAINERD_CACHE_PATH`: Allow to set a local path to use as containerd's repository for kind environment. Doing so will allow to re-use the repository among restart of kind even with different versions.
 * `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
- (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
+ (some systems like macos or windows will not work with this but it is useful to run e2e in docker). This is only
+ tested with docker.
 * `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install` (default: false).
 * `SKIP_SPEC_UNINSTALL`: Set this to true to skip call of function `e2e_test_uninstall` (default: false).
 
@@ -81,6 +87,26 @@ Some environment variables allow to control how e2e test behave:
 Those environment variable affect the e2e test only if kind environment is used.
 
 * `KIND_NAME`: The name of the kind cluster.
+
+#### Running kind with podman
+
+Set `CONTAINER_ENGINE=podman` and the kind environment will select the podman provider of kind. Since kind executes
+ the engine by name the value can not carry any argument, so `podman --remote` is rejected. On top of that:
+
+* `/dev/net/tun` must be present: kind creates its own bridge network and the network backend of podman needs that
+ device to set it up. This is what an unprivileged container lacks.
+* A rootless podman requires the cgroups v2.
+* Kubernetes 1.20 and below use kind v0.15.0, that predates the support for podman, and is therefore rejected.
+
+Two things to know once it runs:
+
+* `kind delete cluster` does not remove the network it created, run `podman network rm kind` to get rid of it.
+* Calico may not work on a rootless node since it requires kernel modules and sysctls that may not be available.
+ Set `K8S_DISABLE_CALICO=true` if the pods stay pending.
+
+Paths passed through `KIND_CONTAINERD_CACHE_PATH`, `KIND_LOG_HOST_PATH` and `KIND_EXTRA_MOUNTS` are written directly
+ by the user running the e2e test when the engine is podman, instead of by a container running as root, so they have
+ to be writable by that user.
 
 ## Write a test
 
@@ -121,7 +147,8 @@ The default kubernetes cluster is kind but there are some more available:
 * [aks](https://docs.microsoft.com/en-us/azure/aks/)
 * current (use currently configured k8s cluster)
 
-Docker is required in order to use the kind and k3d environments.
+Docker is required in order to use the k3d environment. The kind environment works with docker and with podman,
+ see [Running kind with podman](#running-kind-with-podman).
 
 ### Support for other k8s clusters
 

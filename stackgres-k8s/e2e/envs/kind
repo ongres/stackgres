@@ -1,9 +1,13 @@
 #!/bin/sh
 
-# This environment only works with docker and ignores CONTAINER_ENGINE. kind
-# creates its own bridge network, that requires /dev/net/tun, and its rootless
-# mode requires the cgroups to be delegated by systemd. Neither is available in
-# an unprivileged pod, so running it with podman needs its own analysis.
+# kind selects the engine to drive through KIND_EXPERIMENTAL_PROVIDER and
+# executes it by name, so a CONTAINER_ENGINE carrying arguments (like
+# `podman --remote`) can not be used here. See check_kind_podman_support for the
+# requirements podman has to satisfy to run kind.
+if container_engine_is_podman
+then
+  export KIND_EXPERIMENTAL_PROVIDER=podman
+fi
 
 KIND_NAME="${KIND_NAME:-kind}"
 KIND_NODES="${KIND_NODES:-1}"
@@ -22,6 +26,127 @@ KIND_0_26_0="${KIND_0_26_0:-kind-0.26.0}"
 KIND_0_29_0="${KIND_0_29_0:-kind-0.29.0}"
 KIND_0_31_0="${KIND_0_31_0:-kind-0.31.0}"
 KIND_0_32_0="${KIND_0_32_0:-kind-0.32.0}"
+
+check_kind_podman_support() {
+  container_engine_is_podman || return 0
+  if [ "$CONTAINER_ENGINE" != "${CONTAINER_ENGINE%% *}" ]
+  then
+    echo "kind executes the container engine by name, so CONTAINER_ENGINE can not have arguments (is '$CONTAINER_ENGINE')"
+    return 1
+  fi
+  if [ "$KIND" = "$KIND_0_15_0" ]
+  then
+    echo "To run kind with podman kind v0.20.0 is required, but Kubernetes $K8S_VERSION requires kind v0.15.0"
+    return 1
+  fi
+  if [ ! -e /dev/net/tun ]
+  then
+    echo "kind creates its own bridge network and the network backend of podman requires /dev/net/tun to set it up"
+    return 1
+  fi
+  # podman is rootless when it is not invoked by the root, and only then it
+  # needs the cgroups v2 to be able to delegate them to the kind nodes.
+  if [ "$(id -u)" != 0 ] && [ "$(stat -f -c %T /sys/fs/cgroup)" != cgroup2fs ]
+  then
+    echo "A rootless podman requires the cgroups v2 in order to run kind"
+    return 1
+  fi
+}
+
+# podman does not have .Server.Arch, the platform is only exposed by the info.
+kind_engine_platform() {
+  if container_engine_is_podman
+  then
+    $CONTAINER_ENGINE info --format '{{ .Version.OsArch }}'
+  else
+    docker version --format '{{ .Server.Os }}/{{ .Server.Arch }}'
+  fi
+}
+
+# The filesystem backing the storage of the engine is what determines the
+# snapshotter the containerd of the kind nodes has to be configured with. docker
+# reports it in the info, podman in the status of its graph driver.
+kind_backing_filesystem() {
+  if container_engine_is_podman
+  then
+    $CONTAINER_ENGINE info --format '{{ index .Store.GraphStatus "Backing Filesystem" }}' 2> /dev/null
+  else
+    docker system info 2> /dev/null | grep 'Backing Filesystem:' \
+      | cut -d : -f 2 | tr -d '[:space:]'
+  fi
+}
+
+# The following operations are performed on the filesystem of the host running
+# the engine, that is not the host running this script when the engine is a
+# remote or a docker in docker daemon. podman is daemonless and always runs on
+# this same host, so perform them directly. This also avoids the rootless trap
+# where the root of the container is mapped to the invoking user, that makes
+# `-u 0` write with an unexpected ownership.
+kind_host_mkdir() {
+  if container_engine_is_podman
+  then
+    mkdir -p "$1"
+  else
+    docker run --rm -u 0 -v "/:/source" docker.io/library/alpine \
+      mkdir -p "/source/$1"
+  fi
+}
+
+kind_host_write() {
+  if container_engine_is_podman
+  then
+    cat > "$1"
+  else
+    docker run --rm -i -u 0 -v "${1%/*}:/source" docker.io/library/alpine \
+      sh -c "cat > '/source/${1##*/}'"
+  fi
+}
+
+kind_host_reset_dir() {
+  if container_engine_is_podman
+  then
+    rm -rf "${1:?}"/*
+  else
+    docker run --rm -v "$1:/target" docker.io/library/alpine \
+      sh -c 'rm -rf /target/*'
+  fi
+}
+
+# The digest of the image a node has to be created from. It is what identifies
+# the image a node was created from across engines: docker keeps the whole
+# reference kind was invoked with, while podman normalizes it to the repository
+# and the digest, dropping the tag.
+kind_node_image_digest() {
+  local KIND_IMAGE
+  KIND_IMAGE="$(get_kind_image "$1")"
+  printf %s "${KIND_IMAGE#*@}"
+}
+
+# The id of an image of the storage of the engine, in the form the CRI of the
+# kind nodes reports it. docker prefixes it with the algorithm, podman does not.
+kind_local_image_id() {
+  local IMAGE_ID
+  IMAGE_ID="$( ($CONTAINER_ENGINE inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  case "$IMAGE_ID" in
+    (unknown|sha256:*) printf %s "$IMAGE_ID" ;;
+    (*) printf 'sha256:%s' "$IMAGE_ID" ;;
+  esac
+}
+
+# The IPv4 subnet of the network kind creates for its nodes, used to carve out
+# the address pool of metallb. docker and podman describe a network with an
+# unrelated schema, and the network kind creates with podman is dual stack with
+# the IPv6 subnet listed first, so the IPv4 one has to be selected explicitly.
+kind_network_ipv4_subnet() {
+  if container_engine_is_podman
+  then
+    $CONTAINER_ENGINE network inspect kind \
+      | jq -r 'first(.[].subnets[].subnet | select(contains(":") | not))'
+  else
+    docker network inspect -f json kind \
+      | jq -r 'first(.[].IPAM.Config[].Subnet | select(contains(":") | not))'
+  fi
+}
 
 check_kind_version() {
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
@@ -95,6 +220,8 @@ check_kind_version() {
       return 1
     fi
   fi
+
+  check_kind_podman_support
 }
 
 get_k8s_env_version() {
@@ -108,19 +235,20 @@ update_k8s_config() {
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
-    if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
+    if $CONTAINER_ENGINE network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
       local CONTAINER_NAME
       CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
-      CONTAINER_NAME="${CONTAINER_NAME:-$(docker ps --filter name="^$(cat /etc/hostname)" --format '{{.Names}}')}"
-      CONTAINER_NAME="${CONTAINER_NAME:-$(docker ps --filter id="$(cat /etc/hostname)" --format '{{.ID}}')}"
-      docker inspect "$CONTAINER_NAME" \
+      CONTAINER_NAME="${CONTAINER_NAME:-$($CONTAINER_ENGINE ps --filter name="^$(cat /etc/hostname)" --format '{{.Names}}')}"
+      CONTAINER_NAME="${CONTAINER_NAME:-$($CONTAINER_ENGINE ps --filter id="$(cat /etc/hostname)" --format '{{.ID}}')}"
+      # shellcheck disable=SC2016
+      $CONTAINER_ENGINE inspect "$CONTAINER_NAME" \
         -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
         | grep -q '^kind$' \
-        || docker network connect kind "$CONTAINER_NAME"
+        || $CONTAINER_ENGINE network connect kind "$CONTAINER_NAME"
     fi
     local KIND_CONTROL_PLANE_IP
-    KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
+    KIND_CONTROL_PLANE_IP="$($CONTAINER_ENGINE inspect "$KIND_NAME-control-plane" \
       -f '{{ .NetworkSettings.Networks.kind.IPAddress }}')"
     "$KIND" get kubeconfig --name "$KIND_NAME" --internal \
       | sed "s/$KIND_NAME-control-plane/$KIND_CONTROL_PLANE_IP/" \
@@ -182,10 +310,10 @@ reuse_k8s() {
   try_function update_k8s_config
 
   if ! "$KIND" get clusters | grep -q "^$KIND_NAME$" \
-      || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' \
+      || ! $CONTAINER_ENGINE inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' \
         | grep -q -F 'running' \
-      || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .Config.Image }}' \
-        | grep -q -F "kindest/node:v$(get_kind_image "${K8S_VERSION}")"
+      || ! $CONTAINER_ENGINE inspect "$KIND_NAME-control-plane" -f '{{ .Config.Image }}' \
+        | grep -q -F "$(kind_node_image_digest "${K8S_VERSION}")"
   then
     echo "Can not reuse kind environment $KIND_NAME"
     reset_k8s
@@ -217,13 +345,17 @@ reset_k8s() {
 
   echo "Setting up kind environment $KIND_NAME..."
 
+  # Asking the engine is expensive, in particular a rootless podman that has to
+  # walk its storage to answer, so resolve it once for the whole configuration.
+  local KIND_BACKING_FILESYSTEM
+  KIND_BACKING_FILESYSTEM="$(kind_backing_filesystem)"
+
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then
     echo "Setting up kind containerd cache in $KIND_CONTAINERD_CACHE_PATH..."
     if [ "$KIND_CONTAINERD_CACHE_RESET" = true ]
     then
-      docker run --rm -v "$KIND_CONTAINERD_CACHE_PATH:/containerd-cache" alpine \
-        sh -c 'rm -rf /containerd-cache/*'
+      kind_host_reset_dir "$KIND_CONTAINERD_CACHE_PATH"
     fi
   fi
 
@@ -235,8 +367,7 @@ reset_k8s() {
   delete_k8s
   if [ "$KIND_LOG_RESOURCES" = true ]
   then
-    cat << EOF | docker run --rm -i -u 0 -v "${KIND_LOG_RESOURCES_POLICY_HOST_PATH%/*}:/source" alpine \
-      sh -c "cat > '/source/${KIND_LOG_RESOURCES_POLICY_HOST_PATH##*/}'"
+    kind_host_write "$KIND_LOG_RESOURCES_POLICY_HOST_PATH" << EOF
 # Log all requests at the RequestResponse level.
 apiVersion: audit.k8s.io/v1
 kind: Policy
@@ -269,8 +400,8 @@ INNER_INNER_EOF
   fi
 )
 $(
-  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
-    docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+    || [ "$KIND_BACKING_FILESYSTEM" = zfs ] || [ "$KIND_BACKING_FILESYSTEM" = btrfs ]
   then
     cat << INNER_EOF
 containerdConfigPatches:
@@ -283,7 +414,7 @@ $(
  root = "/containerd-cache"
 INNER_INNER_EOF
   fi
-  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs" \
+  if [ "$KIND_BACKING_FILESYSTEM" = zfs ] \
     || ([ -d "$KIND_CONTAINERD_CACHE_PATH" ] \
       && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^zfs$')
   then
@@ -292,7 +423,7 @@ INNER_INNER_EOF
  snapshotter = "native"
 INNER_INNER_EOF
   fi
-  if docker system info 2> /dev/null | grep -q "Backing Filesystem: btrfs" \
+  if [ "$KIND_BACKING_FILESYSTEM" = btrfs ] \
     || ([ -d "$KIND_CONTAINERD_CACHE_PATH" ] \
       && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^btrfs$')
   then
@@ -371,8 +502,7 @@ INNER_EOF
   fi
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then
-    docker run --rm -u 0 -v "/:/source" alpine \
-      mkdir -p "/source/$KIND_CONTAINERD_CACHE_PATH"
+    kind_host_mkdir "$KIND_CONTAINERD_CACHE_PATH"
     cat << INNER_EOF
   - hostPath: $KIND_CONTAINERD_CACHE_PATH
     containerPath: /containerd-cache
@@ -380,8 +510,7 @@ INNER_EOF
   fi
   if [ "$KIND_LOG" = true ]
   then
-    docker run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" alpine \
-      mkdir -p "/source/${KIND_LOG_HOST_PATH##*/}"
+    kind_host_mkdir "$KIND_LOG_HOST_PATH"
     cat << INNER_EOF
   - hostPath: $KIND_LOG_HOST_PATH
     containerPath: /var/log
@@ -419,8 +548,8 @@ EOF
     echo "Setting up NFT tools for kind..."
     "$KIND" get nodes --name "$KIND_NAME" \
       | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
-      docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
-      docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
+      $CONTAINER_ENGINE exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
+      $CONTAINER_ENGINE exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
       "
   fi
 
@@ -435,7 +564,7 @@ EOF
   fi
   if [ "$K8S_IP_FAMILY" = ipv6 ]
   then
-    DOCKER_IPV6="$(docker inspect "$KIND_NAME-control-plane" --format='{{range .NetworkSettings.Networks}}{{.IPv6Gateway}}{{end}}')"
+    DOCKER_IPV6="$($CONTAINER_ENGINE inspect "$KIND_NAME-control-plane" --format='{{range .NetworkSettings.Networks}}{{.IPv6Gateway}}{{end}}')"
     kubectl get -oyaml -n=kube-system configmap/coredns \
       | sed "s/forward .*$/forward . [$DOCKER_IPV6]:5300 {/" \
       | kubectl replace -f -
@@ -602,7 +731,7 @@ has_image_k8s() {
   check_kind_version
 
   local KIND_IMAGE_ID
-  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
+  KIND_IMAGE_ID="$( ($CONTAINER_ENGINE exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
   if [ "$KIND_IMAGE_ID" != unknown ]
   then
     return
@@ -615,7 +744,14 @@ has_image_k8s() {
 # while `crictl inspecti` inside kind reports the host-platform config digest.
 # Walk the local index -> host-platform manifest -> `.config.digest` so callers
 # can compare apples to apples. Echoes the resolved digest or nothing.
+#
+# podman stores one image per platform, so `podman inspect .ID` already is the
+# config digest that `crictl inspecti` reports and there is nothing to resolve.
 host_platform_config_digest() {
+  if container_engine_is_podman
+  then
+    return
+  fi
   local IMAGE_NAME="$1"
   local INDEX_DIGEST="${2#sha256:}"
   [ -n "$INDEX_DIGEST" ] || return
@@ -638,9 +774,10 @@ host_platform_config_digest() {
       return
       ;;
   esac
-  local HOST_OS HOST_ARCH CHILD_DIGEST CONFIG_DIGEST
-  HOST_OS="$(docker version --format '{{ .Server.Os }}')"
-  HOST_ARCH="$(docker version --format '{{ .Server.Arch }}')"
+  local HOST_PLATFORM HOST_OS HOST_ARCH CHILD_DIGEST CONFIG_DIGEST
+  HOST_PLATFORM="$(kind_engine_platform)"
+  HOST_OS="${HOST_PLATFORM%%/*}"
+  HOST_ARCH="${HOST_PLATFORM##*/}"
   CHILD_DIGEST="$(tar -xOf "$ARCHIVE" "blobs/sha256/$INDEX_DIGEST" 2>/dev/null \
     | jq -r --arg os "$HOST_OS" --arg arch "$HOST_ARCH" \
         '(.manifests // [])[] | select(.platform.os == $os and .platform.architecture == $arch) | .digest' \
@@ -658,9 +795,9 @@ load_image_k8s() {
   check_kind_version
 
   local IMAGE_ID
-  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  IMAGE_ID="$(kind_local_image_id "$1")"
   local KIND_IMAGE_ID
-  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
+  KIND_IMAGE_ID="$( ($CONTAINER_ENGINE exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
   if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
   then
     echo "Image $1 already loaded in kind environemnt $KIND_NAME"
@@ -680,12 +817,16 @@ load_image_k8s() {
   # Workaround kubernetes-sigs/kind#3795: `kind load docker-image` imports with
   # `ctr images import --all-platforms`, which fails when Docker's containerd
   # image store is enabled because `docker save` emits a multi-platform OCI
-  # archive missing blobs for non-host platforms.
+  # archive missing blobs for non-host platforms. podman stores one image per
+  # platform and always saves a single platform archive, so it needs none of it.
   local PLATFORM
-  PLATFORM="$(docker version --format '{{ .Server.Os }}/{{ .Server.Arch }}')"
+  PLATFORM="$(kind_engine_platform)"
   local ARCHIVE
   ARCHIVE="$(mktemp)"
-  if docker save --help 2>&1 | grep -q -- '--platform'
+  if container_engine_is_podman
+  then
+    $CONTAINER_ENGINE save -o "$ARCHIVE" "$1"
+  elif docker save --help 2>&1 | grep -q -- '--platform'
   then
     docker save --platform "$PLATFORM" -o "$ARCHIVE" "$1"
   else
@@ -713,7 +854,7 @@ load_image_k8s() {
   local RC=0
   "$KIND" get nodes --name "$KIND_NAME" \
     | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
-      docker exec --privileged -i % ctr --namespace=k8s.io images import --digests --snapshotter=overlayfs - < '$ARCHIVE'
+      $CONTAINER_ENGINE exec --privileged -i % ctr --namespace=k8s.io images import --digests --snapshotter=overlayfs - < '$ARCHIVE'
       " || RC=$?
   rm -f "$ARCHIVE"
   [ "$RC" -eq 0 ] || return "$RC"
@@ -725,9 +866,9 @@ pull_image_k8s() {
   check_kind_version
 
   local IMAGE_ID
-  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  IMAGE_ID="$(kind_local_image_id "$1")"
   local KIND_IMAGE_ID
-  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
+  KIND_IMAGE_ID="$( ($CONTAINER_ENGINE exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
   if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
   then
     echo "Image $1 already loaded in kind environemnt $KIND_NAME"
@@ -746,13 +887,13 @@ pull_image_k8s() {
   fi
 
   local AUTH
-  AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+  AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "$REGISTRY_AUTH_FILE" \
     | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
   if [ -n "$AUTH" ]
   then
-    docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io i pull --user "$(printf %s "$AUTH" | base64 -d)" "$1" > /dev/null
+    $CONTAINER_ENGINE exec "${KIND_NAME}-control-plane" ctr -n k8s.io i pull --user "$(printf %s "$AUTH" | base64 -d)" "$1" > /dev/null
   else
-    docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io i pull "$1" > /dev/null
+    $CONTAINER_ENGINE exec "${KIND_NAME}-control-plane" ctr -n k8s.io i pull "$1" > /dev/null
   fi
 
   echo "Pulled image $1 in kind environemnt $KIND_NAME"
@@ -761,7 +902,7 @@ pull_image_k8s() {
 tag_image_k8s() {
   check_kind_version
 
-  docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io images tag --force "$1" "$2"
+  $CONTAINER_ENGINE exec "${KIND_NAME}-control-plane" ctr -n k8s.io images tag --force "$1" "$2"
 
   echo "Tagged image $1 as $2 in kind environemnt $KIND_NAME"
 }
@@ -770,7 +911,7 @@ get_latest_image_k8s() {
   check_kind_version
 
   local IMAGE="$1"
-  docker exec "$KIND_NAME-control-plane" crictl images -o json \
+  $CONTAINER_ENGINE exec "$KIND_NAME-control-plane" crictl images -o json \
     | jq -r '.images|map(select(.repoTags|any(.|startswith("'"${IMAGE%%:*}"':"))))|last|.repoTags|last'
 }
 
@@ -781,8 +922,8 @@ load_certificate_k8s() {
 
   "$KIND" get nodes --name "$KIND_NAME" \
     | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
-    docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
-    docker exec '%' sh -c update-ca-certificates
+    $CONTAINER_ENGINE cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
+    $CONTAINER_ENGINE exec '%' sh -c update-ca-certificates
     "
 
   echo "...done"

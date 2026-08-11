@@ -5,8 +5,9 @@ export NEWLINE_IFS="$(printf '\n')"
 # Container engine used to build, pull, push and inspect the images. It is used
 # as a command prefix, so values with arguments like `podman --remote` are
 # supported. It defaults to docker in order to not change the behaviour of the
-# existing runners. Note that the kind environment does not support podman yet,
-# see stackgres-k8s/e2e/envs/kind.
+# existing runners. Note that the kind environment executes the engine by name
+# and therefore does not accept a value with arguments, see
+# stackgres-k8s/e2e/envs/kind.
 export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
 # podman reads the registries credentials from the file pointed by
 # REGISTRY_AUTH_FILE. Point it to the file docker uses so that both engines and

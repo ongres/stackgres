@@ -16,8 +16,8 @@ install_metallb() {
                 --selector=app.kubernetes.io/name=metallb \
                 --timeout=120s
 
-  docker network inspect -f json kind \
-  | jq -r '.[].IPAM.Config[0] | {Subnet: (.Subnet | split("/") | .[0] | split(".") | .[0:2] + ["200", "128"] | join(".") + "/25")}' \
+  kind_network_ipv4_subnet \
+  | jq -R '{Subnet: (. | split("/") | .[0] | split(".") | .[0:2] + ["200", "128"] | join(".") + "/25")}' \
   | jq -s '{apiVersion: "metallb.io/v1beta1", kind: "IPAddressPool", metadata: {name: "ippool", namespace: "metallb-system"}, spec: {addresses: map(.Subnet), avoidBuggyIPs: true}}' \
   | kubectl apply -f -
 
