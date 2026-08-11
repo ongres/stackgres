@@ -53,6 +53,48 @@ check_kind_podman_support() {
   fi
 }
 
+# kind refuses to create a cluster with a rootless podman unless the cgroup
+# controllers cpu, memory and pids are available, and it asks podman for them, so
+# what decides is the cgroup this script runs in. The systemd user manager only
+# delegates memory and pids to the scope of an application by default, so a shell
+# started by a desktop session fails while one started by a login session, that
+# lives directly under the slice of the user, works.
+check_kind_podman_cgroup_delegation() {
+  container_engine_is_podman || return 0
+  local ENGINE_INFO
+  ENGINE_INFO="$($CONTAINER_ENGINE info \
+    --format '{{ .Host.Security.Rootless }} {{ .Host.CgroupControllers }}')"
+  [ "${ENGINE_INFO%% *}" = true ] || return 0
+  local CGROUP_CONTROLLERS
+  CGROUP_CONTROLLERS=" $(printf %s "${ENGINE_INFO#* }" | tr -d '[]') "
+  local CGROUP_CONTROLLER
+  for CGROUP_CONTROLLER in cpu memory pids
+  do
+    case "$CGROUP_CONTROLLERS" in
+      (*" $CGROUP_CONTROLLER "*) ;;
+      (*)
+        cat << EOF
+The cgroup controller $CGROUP_CONTROLLER is not delegated to $(cut -d : -f 3 /proc/self/cgroup),
+the cgroup this shell runs in, and kind requires cpu, memory and pids to create
+a cluster with a rootless podman.
+
+Either run the e2e test in a scope that asks for the delegation:
+
+  systemd-run --user --scope -p Delegate=yes -- <command>
+
+or delegate them to every session, which requires the root and to log in again:
+
+  sudo mkdir -p /etc/systemd/system/user@.service.d
+  printf '[Service]\nDelegate=cpu cpuset io memory pids\n' \\
+    | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
+  sudo systemctl daemon-reload
+EOF
+        return 1
+        ;;
+    esac
+  done
+}
+
 # podman does not have .Server.Arch, the platform is only exposed by the info.
 kind_engine_platform() {
   if container_engine_is_podman
@@ -89,6 +131,8 @@ kind_host_mkdir() {
   else
     docker run --rm -u 0 -v "/:/source" docker.io/library/alpine \
       mkdir -p "/source/$1"
+    docker run --rm -u 0 -v "/:/source" docker.io/library/alpine \
+      chmod a+rwx "/source/$1"
   fi
 }
 
@@ -331,6 +375,9 @@ reuse_k8s() {
 reset_k8s() {
   check_kind_version
   check_kind_image_exists
+  # Only creating a cluster needs the delegation, and asking podman for it is
+  # expensive, so this is not part of check_kind_podman_support.
+  check_kind_podman_cgroup_delegation
 
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then

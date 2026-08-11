@@ -95,7 +95,24 @@ Set `CONTAINER_ENGINE=podman` and the kind environment will select the podman pr
 
 * `/dev/net/tun` must be present: kind creates its own bridge network and the network backend of podman needs that
  device to set it up. This is what an unprivileged container lacks.
-* A rootless podman requires the cgroups v2.
+* A rootless podman requires the cgroups v2, and the controllers `cpu`, `memory` and `pids` have to be delegated to
+ the cgroup the e2e test runs in, which kind asks podman for. The systemd user manager only delegates `memory` and
+ `pids` to an application by default, so a shell started by a desktop session fails while one started by a login
+ session works. Either run the e2e test in a scope that asks for the delegation:
+
+```
+systemd-run --user --scope -p Delegate=yes -- sh stackgres-k8s/e2e/e2e ...
+```
+
+ or delegate the controllers to every session, which requires the root and to log in again:
+
+```
+sudo mkdir -p /etc/systemd/system/user@.service.d
+printf '[Service]\nDelegate=cpu cpuset io memory pids\n' \
+  | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
+sudo systemctl daemon-reload
+```
+
 * Kubernetes 1.20 and below use kind v0.15.0, that predates the support for podman, and is therefore rejected.
 
 Two things to know once it runs:

@@ -36,12 +36,14 @@ Failed to open() /dev/net/tun: No such file or directory
 ```
 
 **Cgroups.** A rootless podman delegates a subtree of the cgroups to each
-container. On a workstation systemd delegates that subtree to the user session;
-a pod has no user session, and `/sys/fs/cgroup` belongs to root. Doing the
-delegation from an init container does not work: with a private cgroup
-namespace every container of the pod sees its *own* cgroup as the root of
-`/sys/fs/cgroup`, so an init container would only ever chown a cgroup that is
-deleted when it exits.
+container, and kind refuses to create a cluster unless `cpu`, `memory` and
+`pids` are among the controllers podman reports. On a workstation systemd
+delegates them to the session, and asking for that delegation is already the
+first thing a developer running the e2e tests with podman has to do. A pod has
+no user session, and `/sys/fs/cgroup` belongs to root. Doing the delegation from
+an init container does not work either: with a private cgroup namespace every
+container of the pod sees its *own* cgroup as the root of `/sys/fs/cgroup`, so
+an init container would only ever chown a cgroup that is deleted when it exits.
 
 ## Path 1 — give the pod its own user namespace
 

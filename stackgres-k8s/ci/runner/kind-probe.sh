@@ -56,10 +56,11 @@ check "the cgroups are v2" cgroups_are_v2
 check "the cgroups of the pod are writable, so a node can be given one" \
   cgroups_are_delegated
 
-printf '\n== cgroup controllers available to the pod\n'
-cat /sys/fs/cgroup/cgroup.controllers 2>&1
-# kind asks for cpu, cpuset, io, memory and pids, but a node has been observed
-# to come up with only cpu, memory and pids.
+printf '\n== cgroup controllers podman reports\n'
+podman info --format '{{ .Host.CgroupControllers }}' 2>&1
+# kind refuses to create a cluster with a rootless podman unless this contains
+# cpu, memory and pids, and it is podman it asks. See check_kind_podman_cgroup_
+# delegation in stackgres-k8s/e2e/envs/kind.
 
 check "/dev/net/tun is present (only needed by path 2)" test -c /dev/net/tun
 
