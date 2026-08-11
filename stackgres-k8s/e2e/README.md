@@ -123,7 +123,13 @@ Two things to know once it runs:
 
 Paths passed through `KIND_CONTAINERD_CACHE_PATH`, `KIND_LOG_HOST_PATH` and `KIND_EXTRA_MOUNTS` are written directly
  by the user running the e2e test when the engine is podman, instead of by a container running as root, so they have
- to be writable by that user.
+ to **belong** to that user, not just be writable by it: a rootless podman maps the invoking user to the root of a
+ container and leaves every other owner unmapped, and the containerd of a kind node chmods its root directory as it
+ starts. A cache directory left over from a run with docker belongs to root and makes the node fail with
+ `chmod /containerd-cache: operation not permitted`; `sudo chown -R "$(id -u):$(id -g)" <path>` fixes it.
+
+The cache also ends up holding files belonging to the subordinate ids the containers of the nodes are mapped to,
+ which the user can not remove on its own. Use `podman unshare rm -rf <path>` to delete it by hand.
 
 ## Write a test
 

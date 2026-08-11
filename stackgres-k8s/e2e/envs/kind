@@ -128,6 +128,23 @@ kind_host_mkdir() {
   if container_engine_is_podman
   then
     mkdir -p "$1"
+    # A rootless podman maps the invoking user to the root of a container and
+    # leaves every other owner unmapped, so a path belonging to anyone else can
+    # not even be chmod-ed from a container. The containerd of a kind node does
+    # exactly that to its root directory as it starts, and the node then dies
+    # with `chmod /containerd-cache: operation not permitted`. Being writable is
+    # not enough, the path has to belong to the user.
+    if [ "$(id -u)" != 0 ] && [ "$(stat -c %u "$1")" != "$(id -u)" ]
+    then
+      cat << EOF
+$1 belongs to $(stat -c %U "$1"), but a rootless podman can only map $(id -un)
+into a container, so the kind nodes would not be able to use it. Give it to
+$(id -un), it is only a cache:
+
+  sudo chown -R $(id -u):$(id -g) '$1'
+EOF
+      return 1
+    fi
   else
     docker run --rm -u 0 -v "/:/source" docker.io/library/alpine \
       mkdir -p "/source/$1"
@@ -149,7 +166,14 @@ kind_host_write() {
 kind_host_reset_dir() {
   if container_engine_is_podman
   then
-    rm -rf "${1:?}"/*
+    if [ "$(id -u)" != 0 ]
+    then
+      # The cache holds files belonging to the subordinate ids the containers of
+      # the nodes were mapped to, that the user can not remove on its own.
+      $CONTAINER_ENGINE unshare rm -rf "${1:?}"/*
+    else
+      rm -rf "${1:?}"/*
+    fi
   else
     docker run --rm -v "$1:/target" docker.io/library/alpine \
       sh -c 'rm -rf /target/*'
