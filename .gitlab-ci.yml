@@ -1,7 +1,7 @@
 image: null
 
 variables:
-  SG_CI_IMAGE_NAME: "ci:1.39"
+  SG_CI_IMAGE_NAME: "ci:1.41"
   # Container engine used by the jobs. Set to podman for the runners that have
   # no docker daemon reachable, like the ones running the jobs as pods.
   CONTAINER_ENGINE: docker
