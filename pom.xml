@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Repo-root aggregator reactor. Builds the whole StackGres monorepo in one pass:
+  the Matriarch control plane (core, standalone, agents, cli) + the StackGres K8s
+  reactor (stackgres-k8s/src). Inter-module deps (operator -> stackgres-matriarch /
+  stackgres-proto) resolve within this reactor, so there is no cross-repo mvn-install
+  or proto copy. It is an aggregator only; every module keeps stackgres-parent.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.stackgres</groupId>
+  <artifactId>stackgres-aggregator</artifactId>
+  <version>1.20.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>proto</module>
+    <module>matriarch-model</module>
+    <module>matriarch</module>
+    <module>slon</module>
+    <module>slony</module>
+    <module>cli</module>
+    <module>matriarch-standalone</module>
+    <module>stackgres-k8s/src</module>
+  </modules>
+</project>

@@ -1,0 +1,4738 @@
+{
+  "reflection": [
+    {
+      "type": "android.app.Application"
+    },
+    {
+      "type": "com.google.common.util.concurrent.AbstractFuture",
+      "fields": [
+        {
+          "name": "listeners"
+        },
+        {
+          "name": "value"
+        },
+        {
+          "name": "waiters"
+        }
+      ]
+    },
+    {
+      "type": "com.google.common.util.concurrent.AbstractFuture$Waiter",
+      "fields": [
+        {
+          "name": "next"
+        },
+        {
+          "name": "thread"
+        }
+      ]
+    },
+    {
+      "type": "com.google.protobuf.Any"
+    },
+    {
+      "type": "com.google.protobuf.ExtensionRegistry",
+      "methods": [
+        {
+          "name": "getEmptyRegistry",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.google.rpc.Status",
+      "methods": [
+        {
+          "name": "getCode",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMessage",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.google.rpc.Status$Builder"
+    },
+    {
+      "type": "io.stackgres.cli.StackGresCommand"
+    },
+    {
+      "type": "io.stackgres.cli.commands.ClusterCommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.CreateClusterCommand",
+      "fields": [
+        {
+          "name": "configDir"
+        },
+        {
+          "name": "dataDir"
+        },
+        {
+          "name": "extensionList"
+        },
+        {
+          "name": "highAvailability"
+        },
+        {
+          "name": "instances"
+        },
+        {
+          "name": "interactive"
+        },
+        {
+          "name": "listenAddress"
+        },
+        {
+          "name": "logsDir"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "password"
+        },
+        {
+          "name": "port"
+        },
+        {
+          "name": "spec"
+        },
+        {
+          "name": "tags"
+        },
+        {
+          "name": "username"
+        },
+        {
+          "name": "version"
+        },
+        {
+          "name": "volumes"
+        },
+        {
+          "name": "walDir"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.DeleteClusterCommand",
+      "fields": [
+        {
+          "name": "deleteAll"
+        },
+        {
+          "name": "force"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "spec"
+        },
+        {
+          "name": "tags"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.StartClusterCommand",
+      "fields": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "spec"
+        },
+        {
+          "name": "startAll"
+        },
+        {
+          "name": "tags"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.StopClusterCommand",
+      "fields": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "spec"
+        },
+        {
+          "name": "stopAll"
+        },
+        {
+          "name": "tags"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.RestartClusterCommand",
+      "fields": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "spec"
+        },
+        {
+          "name": "restartAll"
+        },
+        {
+          "name": "tags"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ExecInClusterCommand",
+      "fields": [
+        {
+          "name": "args"
+        },
+        {
+          "name": "name"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ExtensionCommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.GetClusterCommand",
+      "fields": [
+        {
+          "name": "name"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.GetNodeCommand",
+      "fields": [
+        {
+          "name": "id"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.GetSlonCommand",
+      "fields": [
+        {
+          "name": "id"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ListClusterCommand",
+      "fields": [
+        {
+          "name": "quiet"
+        },
+        {
+          "name": "showTags"
+        },
+        {
+          "name": "tags"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ListExtensionsSubCommand",
+      "fields": [
+        {
+          "name": "includeVersions"
+        },
+        {
+          "name": "version"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ListNodeCommand",
+      "fields": [
+        {
+          "name": "quiet"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ListSlonCommand",
+      "fields": [
+        {
+          "name": "quiet"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ListVersionsCommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.ClusterLogsCommand",
+      "fields": [
+        {
+          "name": "follow"
+        },
+        {
+          "name": "name"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.StackGresBaseCommand",
+      "fields": [
+        {
+          "name": "debug"
+        },
+        {
+          "name": "help"
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.StackGresSubCommand"
+    },
+    {
+      "type": "io.stackgres.cli.commands.PsqlCommand",
+      "fields": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "instanceId"
+        },
+        {
+          "name": "dbname"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.TunnelCommand",
+      "fields": [
+        {
+          "name": "clusterName"
+        },
+        {
+          "name": "localPort"
+        },
+        {
+          "name": "bindAddress"
+        },
+        {
+          "name": "instanceId"
+        },
+        {
+          "name": "spec"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.NodeCommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.SlonCommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.VersionCommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.cli.commands.WhoAmICommand",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Cluster",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Cluster$Builder",
+      "methods": [
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterDeleted",
+      "methods": [
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterDeleted$Builder",
+      "methods": [
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterInformation",
+      "methods": [
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDbSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterInformation$Builder",
+      "methods": [
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDbSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setIvorySqlPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterInstance",
+      "methods": [
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReplicationStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReplicationStatusValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDbSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExternalAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterInstance$Builder",
+      "methods": [
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReplicationStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReplicationStatusValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDbSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExternalAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setIvorySqlPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterDiagnosticsResponse",
+      "methods": [
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDiagnostics",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDiagnostics",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterDiagnostics",
+      "methods": [
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.InstanceDiagnostics",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgControlData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgControlData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasReceivedAt",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReceivedAt",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageDigest",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterStatus"
+    },
+    {
+      "type": "io.stackgres.proto.cli.ReplicationStatus"
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterUpdate",
+      "methods": [
+        {
+          "name": "getClusterUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterUpdateValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDetailsList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceUpdateValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUpdateCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPassword",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterUpdate$Builder",
+      "methods": [
+        {
+          "name": "getClusterUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDetailsList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUpdateCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPassword",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterUpdate$ClusterInstanceUpdateType"
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterUpdate$ClusterUpdateType"
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateClusterRequest",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateClusterRequest$Builder",
+      "methods": [
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.TlsConfig",
+      "methods": [
+        {
+          "name": "getModeCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProvidedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasProvidedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.TlsConfig$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getModeCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProvidedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasProvidedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "setNoTls",
+          "parameterTypes": [
+            "io.stackgres.proto.cli.NoTls"
+          ]
+        },
+        {
+          "name": "setSelfSignedCerts",
+          "parameterTypes": [
+            "io.stackgres.proto.cli.SelfSignedCerts"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.NoTls",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.NoTls$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.SelfSignedCerts",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.SelfSignedCerts$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ProvidedCerts",
+      "methods": [
+        {
+          "name": "getCertificate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPrivateKey",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ProvidedCerts$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCertificate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPrivateKey",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateClusterResponse",
+      "methods": [
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasUpdate",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateClusterResponse$Builder",
+      "methods": [
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasUpdate",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateExtension",
+      "methods": [
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateExtension$Builder",
+      "methods": [
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "setName",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateInstance",
+      "methods": [
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.CreateInstance$Builder",
+      "methods": [
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSlonyId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setIvorySqlPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.DeleteClusterResponse",
+      "methods": [
+        {
+          "name": "getDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.DeleteClusterResponse$Builder",
+      "methods": [
+        {
+          "name": "getDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.StartClusterResponse",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.StartClusterResponse$Builder",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.StopClusterResponse",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.StopClusterResponse$Builder",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.RestartClusterResponse",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.RestartClusterResponse$Builder",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Disk",
+      "methods": [
+        {
+          "name": "getStorageClass",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStorageClass",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Extension",
+      "methods": [
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Extension$Builder",
+      "methods": [
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetAccountResponse",
+      "methods": [
+        {
+          "name": "getUser",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetAccountResponse$Builder",
+      "methods": [
+        {
+          "name": "getUser",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterLogsResponse",
+      "methods": [
+        {
+          "name": "getLogs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogs",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterLogsResponse$Builder",
+      "methods": [
+        {
+          "name": "getLogs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogs",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterResponse",
+      "methods": [
+        {
+          "name": "getCluster",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCluster",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterResponse$Builder",
+      "methods": [
+        {
+          "name": "getCluster",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCluster",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListClustersResponse",
+      "methods": [
+        {
+          "name": "getClusterInformationList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListClustersResponse$Builder",
+      "methods": [
+        {
+          "name": "getClusterInformationList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListExtensionsResponse",
+      "methods": [
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListExtensionsResponse$Builder",
+      "methods": [
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListVersionsResponse",
+      "methods": [
+        {
+          "name": "getVersionList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListVersionsResponse$Builder",
+      "methods": [
+        {
+          "name": "getVersionList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.MatriarchExecMessage",
+      "methods": [
+        {
+          "name": "getBytes",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExitCode",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasBytes",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExitCode",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.MatriarchExecMessage$Builder",
+      "methods": [
+        {
+          "name": "getBytes",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExitCode",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasBytes",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExitCode",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Slony",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHostname",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLastHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLastHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Slony$Builder",
+      "methods": [
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHostname",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLastHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLastHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.SlonyStatus"
+    },
+    {
+      "type": "io.stackgres.proto.cli.DeleteSlonyResponse",
+      "methods": [
+        {
+          "name": "getDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.DeleteSlonyResponse$Builder",
+      "methods": [
+        {
+          "name": "getDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.SlonyDeleted",
+      "methods": [
+        {
+          "name": "getHostname",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.SlonyDeleted$Builder",
+      "methods": [
+        {
+          "name": "getHostname",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.AddNodeTagsResponse",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCurrentTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.AddNodeTagsResponse$Builder",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCurrentTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.RemoveNodeTagsResponse",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCurrentTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.RemoveNodeTagsResponse$Builder",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCurrentTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListSlonysResponse",
+      "methods": [
+        {
+          "name": "getSlonyList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListSlonysResponse$Builder",
+      "methods": [
+        {
+          "name": "getSlonyList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListSlonsResponse",
+      "methods": [
+        {
+          "name": "getSlonList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListSlonsResponse$Builder",
+      "methods": [
+        {
+          "name": "getSlonList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Slon",
+      "methods": [
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Slon$Builder",
+      "methods": [
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireClientMessage",
+      "methods": [
+        {
+          "name": "getClose",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpen",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClose",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasOpen",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireClientMessage$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClose",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpen",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClose",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasOpen",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClose",
+          "parameterTypes": [
+            "io.stackgres.proto.cli.PgWireTunnelCloseRequest"
+          ]
+        },
+        {
+          "name": "setData",
+          "parameterTypes": [
+            "io.stackgres.proto.cli.PgWireTunnelData"
+          ]
+        },
+        {
+          "name": "setOpen",
+          "parameterTypes": [
+            "io.stackgres.proto.cli.PgWireTunnelOpen"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireServerMessage",
+      "methods": [
+        {
+          "name": "getAborted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpened",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAborted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasOpened",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireServerMessage$Builder",
+      "methods": [
+        {
+          "name": "getAborted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpened",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAborted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasOpened",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelOpen",
+      "methods": [
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTarget",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTargetValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelOpen$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClusterId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        },
+        {
+          "name": "setInstanceId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        },
+        {
+          "name": "setTarget",
+          "parameterTypes": [
+            "io.stackgres.proto.cli.PgWireTarget"
+          ]
+        },
+        {
+          "name": "getTarget",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTargetValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setTargetValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearTarget",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelOpened",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelOpened$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelData",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelData$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        },
+        {
+          "name": "setData",
+          "parameterTypes": [
+            "com.google.protobuf.ByteString"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelAborted",
+      "methods": [
+        {
+          "name": "getReason",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelAborted$Builder",
+      "methods": [
+        {
+          "name": "getReason",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelCloseRequest",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelCloseRequest$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelClosed",
+      "methods": [
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTunnelClosed$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.cli.TailClusterLogsResponse",
+      "methods": [
+        {
+          "name": "getLine",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLine",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.TailClusterLogsResponse$Builder",
+      "methods": [
+        {
+          "name": "getLine",
+          "parameterTypes": []
+        },
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLine",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.VolumeDisk",
+      "methods": [
+        {
+          "name": "getDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDisk",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.VolumeMount",
+      "methods": [
+        {
+          "name": "getHostPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMountPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.AESCipher$General",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ARCFOURCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ChaCha20Cipher$ChaCha20Poly1305",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESedeCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DHParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.GaloisCounterMode$AESGCM",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HKDFKeyDerivation$HKDFSHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "javax.crypto.KDFParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HmacCore$HmacSHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.TlsMasterSecretGenerator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.jndi.dns.DnsContextFactory"
+    },
+    {
+      "type": "com.sun.jndi.url.java.javaURLContextFactory"
+    },
+    {
+      "type": "common.Common$UUID",
+      "methods": [
+        {
+          "name": "getValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "common.Common$UUID$Builder",
+      "methods": [
+        {
+          "name": "getValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "groovy.lang.Closure"
+    },
+    {
+      "type": "io.grpc.census.InternalCensusStatsAccessor"
+    },
+    {
+      "type": "io.grpc.census.InternalCensusTracingAccessor"
+    },
+    {
+      "type": "io.grpc.internal.DnsNameResolverProvider"
+    },
+    {
+      "type": "io.grpc.internal.JndiResourceResolverFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.grpc.internal.PickFirstLoadBalancerProvider"
+    },
+    {
+      "type": "io.grpc.internal.SerializingExecutor"
+    },
+    {
+      "type": "io.grpc.netty.NettyChannelProvider"
+    },
+    {
+      "type": "io.grpc.netty.NettyClientHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$ClientTlsHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$GrpcNegotiationHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$WaitUntilActiveHandler"
+    },
+    {
+      "type": "io.grpc.netty.UdsNameResolverProvider"
+    },
+    {
+      "type": "io.grpc.netty.UdsNettyChannelProvider"
+    },
+    {
+      "type": "io.grpc.netty.WriteBufferingAndExceptionHandler"
+    },
+    {
+      "type": "io.grpc.okhttp.OkHttpChannelProvider"
+    },
+    {
+      "type": "io.grpc.override.ContextStorageOverride"
+    },
+    {
+      "type": "io.grpc.protobuf.services.internal.HealthCheckingRoundRobinLoadBalancerProvider"
+    },
+    {
+      "type": "io.grpc.util.OutlierDetectionLoadBalancerProvider"
+    },
+    {
+      "type": "io.grpc.util.SecretRoundRobinLoadBalancerProvider$Provider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.netty.buffer.AbstractByteBufAllocator"
+    },
+    {
+      "type": "io.netty.buffer.AbstractReferenceCountedByteBuf",
+      "fields": [
+        {
+          "name": "refCnt"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.AbstractChannelHandlerContext"
+    },
+    {
+      "type": "io.netty.channel.ChannelOutboundBuffer"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelConfig"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelPipeline"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelPipeline$HeadContext"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelPipeline$TailContext"
+    },
+    {
+      "type": "io.netty.channel.epoll.Epoll"
+    },
+    {
+      "type": "io.netty.channel.socket.nio.NioSocketChannel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.netty.handler.ssl.SslHandler"
+    },
+    {
+      "type": "io.netty.internal.tcnative.SSLContext"
+    },
+    {
+      "type": "io.netty.util.DefaultAttributeMap"
+    },
+    {
+      "type": "io.netty.util.Recycler$DefaultHandle"
+    },
+    {
+      "type": "io.netty.util.ReferenceCountUtil"
+    },
+    {
+      "type": "io.netty.util.ResourceLeakDetector$DefaultResourceLeak"
+    },
+    {
+      "type": "io.netty.util.concurrent.DefaultPromise"
+    },
+    {
+      "type": "io.netty.util.concurrent.SingleThreadEventExecutor"
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueColdProducerFields",
+      "fields": [
+        {
+          "name": "producerLimit"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueConsumerFields",
+      "fields": [
+        {
+          "name": "consumerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueProducerFields",
+      "fields": [
+        {
+          "name": "producerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueueConsumerIndexField",
+      "fields": [
+        {
+          "name": "consumerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueueProducerIndexField",
+      "fields": [
+        {
+          "name": "producerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueueProducerLimitField",
+      "fields": [
+        {
+          "name": "producerLimit"
+        }
+      ]
+    },
+    {
+      "type": "io.perfmark.impl.SecretPerfMarkImpl$PerfMarkImpl"
+    },
+    {
+      "type": "jakarta.enterprise.inject.spi.CDI"
+    },
+    {
+      "type": "java.beans.ConstructorProperties"
+    },
+    {
+      "type": "java.io.Console",
+      "methods": [
+        {
+          "name": "isTerminal",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.BaseVirtualThread"
+    },
+    {
+      "type": "java.lang.Boolean",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Object"
+    },
+    {
+      "type": "java.lang.ProcessBuilder$RedirectPipeImpl"
+    },
+    {
+      "type": "java.lang.ProcessHandle",
+      "methods": [
+        {
+          "name": "current",
+          "parameterTypes": []
+        },
+        {
+          "name": "pid",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.System",
+      "methods": [
+        {
+          "name": "console",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Thread",
+      "methods": [
+        {
+          "name": "isVirtual",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.nio.Bits"
+    },
+    {
+      "type": "java.nio.Buffer",
+      "fields": [
+        {
+          "name": "address"
+        }
+      ]
+    },
+    {
+      "type": "java.nio.ByteBuffer"
+    },
+    {
+      "type": "java.nio.DirectByteBuffer"
+    },
+    {
+      "type": "java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "type": "java.nio.file.Path"
+    },
+    {
+      "type": "java.nio.file.Paths"
+    },
+    {
+      "type": "java.security.AlgorithmParametersSpi"
+    },
+    {
+      "type": "java.security.KeyStoreSpi"
+    },
+    {
+      "type": "java.security.interfaces.ECPrivateKey"
+    },
+    {
+      "type": "java.security.interfaces.ECPublicKey"
+    },
+    {
+      "type": "java.security.interfaces.RSAPrivateKey"
+    },
+    {
+      "type": "java.security.interfaces.RSAPublicKey"
+    },
+    {
+      "type": "java.sql.Connection"
+    },
+    {
+      "type": "java.sql.Date"
+    },
+    {
+      "type": "java.sql.Driver"
+    },
+    {
+      "type": "java.sql.DriverManager"
+    },
+    {
+      "type": "java.sql.Time"
+    },
+    {
+      "type": "java.sql.Timestamp"
+    },
+    {
+      "type": "java.time.Duration"
+    },
+    {
+      "type": "java.time.Instant"
+    },
+    {
+      "type": "java.time.LocalDate"
+    },
+    {
+      "type": "java.time.LocalDateTime"
+    },
+    {
+      "type": "java.time.LocalTime"
+    },
+    {
+      "type": "java.time.MonthDay"
+    },
+    {
+      "type": "java.time.OffsetDateTime"
+    },
+    {
+      "type": "java.time.OffsetTime"
+    },
+    {
+      "type": "java.time.Period"
+    },
+    {
+      "type": "java.time.Year"
+    },
+    {
+      "type": "java.time.YearMonth"
+    },
+    {
+      "type": "java.time.ZoneId"
+    },
+    {
+      "type": "java.time.ZoneOffset"
+    },
+    {
+      "type": "java.time.ZonedDateTime"
+    },
+    {
+      "type": "java.util.AbstractMap"
+    },
+    {
+      "type": "java.util.HashMap"
+    },
+    {
+      "type": "java.util.concurrent.atomic.LongAdder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "add",
+          "parameterTypes": [
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.naming.InitialContext",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "lookup",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.naming.directory.InitialDirContext"
+    },
+    {
+      "type": "javax.net.ssl.SSLEngine",
+      "methods": [
+        {
+          "name": "getApplicationProtocol",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHandshakeApplicationProtocol",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHandshakeApplicationProtocolSelector",
+          "parameterTypes": []
+        },
+        {
+          "name": "setHandshakeApplicationProtocolSelector",
+          "parameterTypes": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.net.ssl.SSLParameters",
+      "methods": [
+        {
+          "name": "setApplicationProtocols",
+          "parameterTypes": [
+            "java.lang.String[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.net.ssl.X509ExtendedTrustManager"
+    },
+    {
+      "type": "javax.xml.datatype.XMLGregorianCalendar"
+    },
+    {
+      "type": "jdk.internal.misc.Unsafe",
+      "methods": [
+        {
+          "name": "getUnsafe",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "libcore.io.Memory"
+    },
+    {
+      "type": "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider"
+    },
+    {
+      "type": "org.eclipse.jetty.alpn.ALPN"
+    },
+    {
+      "type": "org.eclipse.jetty.npn.NextProtoNego"
+    },
+    {
+      "type": "org.eclipse.parsson.JsonProviderImpl"
+    },
+    {
+      "type": "org.eclipse.yasson.JsonBindingProvider"
+    },
+    {
+      "type": "org.jline.terminal.impl.exec.ExecTerminalProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.jline.terminal.impl.jansi.JansiTerminalProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.jline.terminal.impl.jna.JnaTerminalProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.robolectric.Robolectric"
+    },
+    {
+      "type": "picocli.CommandLine$AutoHelpMixin"
+    },
+    {
+      "type": "sun.misc.Signal",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        },
+        {
+          "name": "handle",
+          "parameterTypes": [
+            "sun.misc.Signal",
+            "sun.misc.SignalHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.misc.SignalHandler"
+    },
+    {
+      "type": "sun.misc.Unsafe",
+      "fields": [
+        {
+          "name": "theUnsafe"
+        }
+      ],
+      "methods": [
+        {
+          "name": "invokeCleaner",
+          "parameterTypes": [
+            "java.nio.ByteBuffer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.nio.ch.SelectorImpl",
+      "fields": [
+        {
+          "name": "publicSelectedKeys"
+        },
+        {
+          "name": "selectedKeys"
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA224withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA256withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$DualFormatJKS",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$JKS",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.NativePRNG",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.security.SecureRandomParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA224",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA256",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA512",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.X509Factory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.certpath.PKIXCertPathValidator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.PSSParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSAKeyFactory$Legacy",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSAPSSSignature",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA224withRSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA256withRSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.SSLContextImpl$TLSContext",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityInfoAccessExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.BasicConstraintsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CRLDistributionPointsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CertificatePoliciesExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.ExtendedKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.KeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.NetscapeCertTypeExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.PrivateKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.SubjectAlternativeNameExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.SubjectKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorInfo"
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorResources"
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorResources_en"
+    },
+    {
+      "type": "sun.text.resources.BreakIteratorResources_en_US"
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData"
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData_en"
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData_en_US"
+    },
+    {
+      "type": "sun.util.resources.cldr.CalendarData"
+    },
+    {
+      "type": {
+        "proxy": [
+          "sun.misc.SignalHandler"
+        ]
+      }
+    },
+    {
+      "type": "common.Common$Flavor"
+    },
+    {
+      "type": "io.stackgres.proto.cli.PgWireTarget"
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListVersionsRequest",
+      "methods": [
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListVersionsRequest$Builder",
+      "methods": [
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListExtensionsRequest",
+      "methods": [
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ListExtensionsRequest$Builder",
+      "methods": [
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.SortDirection"
+    },
+    {
+      "type": "io.stackgres.proto.cli.Checkpoint",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTimestamp",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTimestamp",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDatabase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBuffersWritten",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWriteSeconds",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSyncSeconds",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTotalSeconds",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.Checkpoint$Builder",
+      "methods": [
+        {
+          "name": "getTimestamp",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTimestamp",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDatabase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBuffersWritten",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWriteSeconds",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSyncSeconds",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTotalSeconds",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterCheckpoints",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCheckpointList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCheckpointCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTruncated",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.ClusterCheckpoints$Builder",
+      "methods": [
+        {
+          "name": "getCheckpointList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCheckpointCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTruncated",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterCheckpointsRequest",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDatabase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStart",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStart",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEnd",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEnd",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMaxResults",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDirection",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDirectionValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterCheckpointsRequest$Builder",
+      "methods": [
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDatabase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStart",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStart",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEnd",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEnd",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMaxResults",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDirection",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDirectionValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterCheckpointsResponse",
+      "methods": [
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCheckpoints",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCheckpoints",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.cli.GetClusterCheckpointsResponse$Builder",
+      "methods": [
+        {
+          "name": "getResponseCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCheckpoints",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCheckpoints",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "glob": "META-INF/io.netty.versions.properties"
+    },
+    {
+      "glob": "META-INF/services/io.grpc.LoadBalancerProvider"
+    },
+    {
+      "glob": "META-INF/services/io.grpc.ManagedChannelProvider"
+    },
+    {
+      "glob": "META-INF/services/io.grpc.NameResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/jakarta.json.bind.spi.JsonbProvider"
+    },
+    {
+      "glob": "META-INF/services/jakarta.json.spi.JsonProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.URLStreamHandlerProvider"
+    },
+    {
+      "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "glob": "META-INF/services/java.nio.charset.spi.CharsetProvider"
+    },
+    {
+      "glob": "META-INF/services/org.eclipse.yasson.spi.JsonbComponentInstanceCreator"
+    },
+    {
+      "glob": "META-INF/services/org/jline/terminal/provider/exec"
+    },
+    {
+      "glob": "META-INF/services/org/jline/terminal/provider/jansi"
+    },
+    {
+      "glob": "META-INF/services/org/jline/terminal/provider/jna"
+    },
+    {
+      "glob": "jndi.properties"
+    },
+    {
+      "glob": "org/jline/utils/capabilities.txt"
+    },
+    {
+      "glob": "yasson-messages.properties"
+    },
+    {
+      "glob": "yasson-messages_en.properties"
+    },
+    {
+      "glob": "yasson-messages_en_US.properties"
+    },
+    {
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt76b/nfkc.nrm"
+    },
+    {
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt76b/uprops.icu"
+    },
+    {
+      "module": "java.base",
+      "glob": "sun/net/idn/uidna.spp"
+    },
+    {
+      "module": "java.base",
+      "glob": "sun/text/resources/LineBreakIteratorData"
+    },
+    {
+      "bundle": "yasson-messages"
+    }
+  ]
+}

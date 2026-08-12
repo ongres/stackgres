@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package common;
+
+message UUID {
+  bytes value = 1;
+}
+
+enum Flavor {
+  FLAVOR_POSTGRES = 0;
+  FLAVOR_IVORY_SQL = 1;
+}

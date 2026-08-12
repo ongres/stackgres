@@ -50,9 +50,11 @@ FROM "$BASE_IMAGE"
     chmod 755 '/app' && \
     chmod 755 '/app/stackgres-operator.sh'
 
-  USER default:default
-
+  # Generate the AppCDS archive as root (before dropping to the runtime user), otherwise the
+  # unprivileged 'default' user cannot write /app/quarkus-run.jsa. The archive is world-readable.
   RUN if uname -m | grep -q x86_64; then JAVA_CDS_GENERATION=true /app/stackgres-operator.sh; fi
+
+  USER default:default
 
   EXPOSE 8080 8443
 

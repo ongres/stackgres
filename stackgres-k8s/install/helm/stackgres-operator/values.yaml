@@ -60,6 +60,14 @@ operator:
   # -- Operator hostNetwork flag
   # hostNetwork: false
 
+# Section to configure the StackGres Matriarch gRPC endpoint (api.v1, read-only, embedded in the operator)
+matriarch:
+  service:
+    # -- Matriarch gRPC Service type: ClusterIP | LoadBalancer | NodePort
+    type: ClusterIP
+    # -- Matriarch gRPC Service port
+    port: 9000
+
 # Section to configure REST API Pod
 restapi:
   # -- REST API Deployment name

@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+// stackgres.control.v1 — the Stado link (north-star §5.2). A single long-lived
+// bidirectional stream on which a local matriarch is the gRPC CLIENT (it dials
+// OUT) and the cloud (Stado) is the SERVER. The matriarch registers its
+// environment, pushes a full state snapshot on (re)connect, then streams
+// sequence-numbered events; the cloud aggregates these into its per-environment
+// cache (D1: cache only, never source of truth) and serves the SAME
+// stackgres.api.v1 to users as an aggregator (D6).
+//
+// Connection direction is uniform with today's slon->matriarch link, moved one
+// level up: the party inside the customer environment always dials out, so this
+// is NAT/firewall-friendly by construction (§4.4). The reverse direction
+// (CloudMessage) carries only cache-coherence control now; user-initiated
+// control requests (create/start/stop routed onto this stream) land in a later
+// round — the envelope is designed to grow into them without a break.
+package stackgres.control.v1;
+
+option java_multiple_files = true;
+option java_package = "io.stackgres.proto.control.v1";
+
+import "stackgres/api/v1/api.proto";
+import "stackgres/types/v1/types.proto";
+
+// ===========================================================================
+// Service — matriarch dials out; cloud is the server (§5.2)
+// ===========================================================================
+
+service Uplink {
+  // The matriarch opens this and holds it open for its lifetime. It sends a
+  // Registration first, then a StateSnapshot, then SeqEvents + Heartbeats. The
+  // cloud replies with a RegistrationAck and, if it detects a gap, ResyncRequest.
+  rpc Connect(stream MatriarchMessage) returns (stream CloudMessage);
+}
+
+// ===========================================================================
+// Matriarch -> Cloud (upstream)
+// ===========================================================================
+
+message MatriarchMessage {
+  oneof payload {
+    Registration  registration = 1;   // MUST be the first message on the stream
+    StateSnapshot snapshot     = 2;    // full authoritative set (on connect / on ResyncRequest)
+    SeqEvent      event        = 3;    // one incremental change, sequence-numbered
+    Heartbeat     heartbeat    = 4;    // liveness + last-emitted seq (gap detection while idle)
+  }
+}
+
+// Identifies the environment this matriarch owns and where to resume. The
+// carried api.v1 Environment (id, name, kind, advertised surfaces, tags) is the
+// resource the cloud re-serves via api.v1 ListEnvironments — no separate shape.
+message Registration {
+  stackgres.api.v1.Environment environment = 1;
+  string agent_version = 2;
+  // Highest seq the matriarch believes the cloud already has (0 = none / this is
+  // a cold start). The cloud answers in RegistrationAck whether a full snapshot
+  // is still required.
+  uint64 resume_from_seq = 3;
+}
+
+// The full cluster set for this environment, valid as of `seq`. Replaces the
+// cloud's cached entry wholesale (snapshot-on-(re)Registration, P7). Clusters
+// are already api.v1-shaped (mapped matriarch-side), so the cloud caches and
+// re-serves them verbatim, only overlaying SourceInfo.
+message StateSnapshot {
+  uint64 seq = 1;
+  repeated stackgres.api.v1.Cluster cluster = 2;
+}
+
+// One incremental change carrying a per-matriarch monotonic sequence number
+// (P7). A gap in seq triggers a ResyncRequest. `event` is the audit record
+// (api.v1 GetClusterEvents); `delta` mutates the cached cluster set.
+message SeqEvent {
+  uint64 seq = 1;
+  stackgres.types.v1.Event event = 2;
+  oneof delta {
+    stackgres.api.v1.Cluster upserted = 3;   // cluster added or changed -> cache put
+    stackgres.types.v1.Id     removed  = 4;   // cluster removed -> cache evict
+  }
+}
+
+// Keep-alive. Carries the last-emitted seq so the cloud can detect a missed
+// event even during a quiet period and ask for a resync.
+message Heartbeat {
+  uint64 last_seq = 1;
+}
+
+// ===========================================================================
+// Cloud -> Matriarch (downstream) — cache-coherence control only, for now
+// ===========================================================================
+
+message CloudMessage {
+  oneof payload {
+    RegistrationAck ack    = 1;
+    ResyncRequest   resync = 2;
+    // Reserved for the write plane: user control requests (create/start/stop)
+    // routed onto this environment's stream. Kept out of v1 (read-only).
+    // ControlRequest request = 3;
+  }
+}
+
+// Acknowledges a Registration and tells the matriarch how to proceed.
+message RegistrationAck {
+  // true = the cloud has no usable cache for this environment; send a full
+  // StateSnapshot now. false = resume from `acked_seq` with SeqEvents.
+  bool snapshot_required = 1;
+  // Highest seq the cloud currently holds for this environment (0 if none).
+  uint64 acked_seq = 2;
+}
+
+// The cloud detected a sequence gap (or stale cache) and needs a fresh
+// StateSnapshot to re-establish per-environment consistency.
+message ResyncRequest {
+  string reason = 1;
+}

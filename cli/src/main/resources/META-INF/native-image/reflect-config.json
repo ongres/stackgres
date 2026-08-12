@@ -1,0 +1,282 @@
+[
+  {
+    "name": "io.stackgres.cli.StackGresCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "help"
+      },
+      {
+        "name": "name"
+      }
+    ]
+  },
+  {
+    "name": "picocli.CommandLine$AutoHelpMixin",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "helpRequested"
+      },
+      {
+        "name": "versionRequested"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.StackGresCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "io.stackgres.cli.commands.ClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "io.stackgres.cli.commands.CreateClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "interactive"
+      },
+      {
+        "name": "name"
+      },
+      {
+        "name": "port"
+      },
+      {
+        "name": "spec"
+      },
+      {
+        "name": "version"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.DeleteClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "deleteAll"
+      },
+      {
+        "name": "force"
+      },
+      {
+        "name": "name"
+      },
+      {
+        "name": "spec"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.StartClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "name"
+      },
+      {
+        "name": "spec"
+      },
+      {
+        "name": "startAll"
+      },
+      {
+        "name": "tags"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.StopClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "name"
+      },
+      {
+        "name": "spec"
+      },
+      {
+        "name": "stopAll"
+      },
+      {
+        "name": "tags"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.RestartClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "name"
+      },
+      {
+        "name": "spec"
+      },
+      {
+        "name": "restartAll"
+      },
+      {
+        "name": "tags"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.ListClusterCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "quiet"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.cluster.MetricsCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "io.stackgres.cli.commands.cluster.CheckpointsMetricCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "name"
+      },
+      {
+        "name": "instanceName"
+      },
+      {
+        "name": "database"
+      },
+      {
+        "name": "since"
+      },
+      {
+        "name": "until"
+      },
+      {
+        "name": "limit"
+      },
+      {
+        "name": "format"
+      }
+    ]
+  },
+  {
+    "name": "io.stackgres.cli.commands.cluster.CheckpointsMetricCommand$Format",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.stackgres.cli.commands.StackGresBaseCommand",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "fields": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "help"
+      }
+    ]
+  },
+  {
+    "name": "java.lang.Integer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.mozilla.universalchardet.UniversalDetector",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.stackgres.cli.exec.status.Status",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.stackgres.cli.exec.status.ListMeta",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.stackgres.cli.exec.status.StatusCause",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  },
+  {
+    "name": "io.stackgres.cli.exec.status.StatusDetails",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true
+  }
+]

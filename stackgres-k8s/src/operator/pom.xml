@@ -68,6 +68,31 @@
       <artifactId>quarkus-scheduler</artifactId>
     </dependency>
 
+    <!-- Matriarch: framework-free reconcile core embedded read-only in the operator, served over
+         api.v1 gRPC. Proto stubs come from the shared stackgres-proto module (reactor deps — no
+         codegen or proto copy here). See doc/architecture-redesign-stackgres.md. -->
+    <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-matriarch</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-proto</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-grpc</artifactId>
+    </dependency>
+    <!-- Client transport for the outbound cloud-uplink channel (CloudUplinkClient dials out to
+         stackgres-cloud). Shaded so it coexists with the vert.x gRPC server. Runtime only. -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
     <dependency>
       <groupId>io.stackgres</groupId>
       <artifactId>stackgres-test-util</artifactId>

@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+// stackgres.api.v1.postgres — the Postgres-specific sub-messages quarantined out of
+// the generic stackgres.api.v1 types (north-star §5.1: "Postgres-isms live HERE, not
+// above"). Everything engine-specific that today leaks into shared
+// model.proto / slon.proto / slony.proto messages lands here: IvorySQL's extra
+// port, extensions, Postgres config, pooling, pg_controldata diagnostics, and
+// (later) checkpoint-style metric series. This is the Postgres-FAMILY spec,
+// shared by engine = POSTGRES and = IVORY (the engine carries that distinction;
+// there is no sub-flavor — see types.DatabaseEngine).
+//
+// This package has NO imports and references nothing generic — it is a leaf of
+// pure engine detail. The generic layer reaches in via
+// `oneof engine_spec { postgres.X postgres = 20; }`.
+package stackgres.api.v1.postgres;
+
+option java_multiple_files = true;
+option java_package = "io.stackgres.proto.api.v1.postgres";
+
+// Attached to api.v1 Cluster.engine_spec.postgres (engine = POSTGRES or IVORY).
+message PostgresClusterSpec {
+  repeated Extension extension = 1;   // §5.1: extensions are Postgres-specific
+  PostgresConfig config = 2;          // postgresql.conf-style settings
+  PoolingConfig pooling = 3; // PgBouncer — CAPABILITY_CONNECTION_POOLING
+}
+
+// Attached to api.v1 Instance.engine_spec.postgres.
+message PostgresInstanceSpec {
+  // IvorySQL's extra Oracle-compatible wire port — populated when
+  // engine = DATABASE_ENGINE_IVORY. Replaces model.proto
+  // ClusterInstance.ivorysqlPort / CreateInstance.ivorysqlPort (§5.1).
+  optional uint32 ivory_port = 1;
+}
+
+// Attached to api.v1 CreateClusterRequest.engine_spec.postgres.
+message PostgresClusterCreateSpec {
+  repeated CreateExtension extension = 1;
+  PostgresConfig config = 2;
+  PoolingConfig pooling = 3;
+  bool data_checksums = 4;            // enable data checksums at initdb time
+}
+
+// Attached to api.v1 InstanceDiagnostics.engine_spec.postgres — replaces
+// model.proto InstanceDiagnostics.pgControlData / slon.proto
+// Diagnostics.pgControlData (Postgres-isms), §5.1.
+message PostgresDiagnostics {
+  string pg_control_data = 1;         // raw pg_controldata output
+  uint64 db_size = 2;
+}
+
+// (PostgresFlavor removed: the Postgres-vs-IvorySQL distinction is now a
+// first-class engine in types.DatabaseEngine {POSTGRES, IVORY}, not a
+// sub-flavor.)
+
+message Extension {
+  string name = 1;
+  string version = 2;
+  string revision = 3;
+}
+
+message CreateExtension {
+  string name = 1;
+  optional string version = 2;
+  optional string revision = 3;
+}
+
+message PostgresConfig {
+  map<string, string> setting = 1;    // postgresql.conf key/values
+}
+
+message PoolingConfig {
+  map<string, string> setting = 1;    // pgbouncer key/values
+}

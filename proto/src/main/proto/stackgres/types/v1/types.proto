@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+// stackgres.types.v1 — shared, transport- and engine-agnostic primitives referenced
+// by every other stackgres.*.v1 package (api, control, agent, tunnel). Kept
+// deliberately small: only types whose shape is identical regardless of which
+// package or peer uses them live here.
+//
+// Anchors today's `common.proto` (UUID, Flavor) plus the enums and value types
+// that state-B `model.proto` scattered across messages, restated
+// database-independently per north-star §5.1. The north-star doc illustrates
+// several of these inside `stackgres.api.v1`; they live here instead because
+// control.v1 / agent.v1 (later rounds) reuse them.
+package stackgres.types.v1;
+
+option java_multiple_files = true;
+option java_package = "io.stackgres.proto.types.v1";
+
+import "google/protobuf/timestamp.proto";
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+// Opaque resource identifier. Replaces common.UUID (`bytes value`). A string,
+// so it can also carry engine-native ids — e.g. an RDS instance identifier for
+// the `external` executor — which are not UUIDs (north-star §3.3, D9).
+message Id {
+  string value = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Engine & capabilities — the database-independence mechanism (§5.1, D10)
+// ---------------------------------------------------------------------------
+
+// The discriminator that makes the API engine-independent. Directly replaces
+// common.Flavor {FLAVOR_POSTGRES, FLAVOR_IVORY}: Postgres and IvorySQL are
+// first-class sibling engines (both already supported today). IvorySQL is
+// Postgres-wire-compatible, so both engines share the Postgres-family
+// engine_spec (`stackgres.api.v1.postgres.*`) — the engine field, not a sub-flavor,
+// carries the distinction (§5.1: "IVORYSQL, if treated distinctly").
+enum DatabaseEngine {
+  DATABASE_ENGINE_UNSPECIFIED = 0;
+  DATABASE_ENGINE_POSTGRES = 1;
+  DATABASE_ENGINE_IVORY = 2;     // IvorySQL — Postgres-family, Oracle-compatible
+  // future: DATABASE_ENGINE_MYSQL, ...
+}
+
+// Per-cluster effective feature set (engine x executor). Surfaced on
+// api.v1 Cluster.capability so clients/UX adapt without hardcoding engines.
+// This is the *cluster* axis of the two-axis capability model (§5.1).
+enum Capability {
+  CAPABILITY_UNSPECIFIED = 0;
+  CAPABILITY_REPLICAS = 1;
+  CAPABILITY_CONNECTION_POOLING = 2;
+  CAPABILITY_EXTENSIONS = 3;
+  CAPABILITY_PITR = 4;
+  CAPABILITY_WIRE_TUNNEL = 5;
+  CAPABILITY_EXEC = 6;
+  CAPABILITY_METRICS = 7;
+}
+
+// Which api.v1 surfaces a given matriarch/executor implements — the
+// *environment* axis of the capability model and the unit of version
+// negotiation (§5.1 "Capability layering"). Advertised in the control.v1
+// Registration (round 2) and on api.v1 Environment. Edges gate per-RPC on this
+// and map unsupported calls to UNIMPLEMENTED + an "environment software too
+// old" detail.
+//
+// Note the log/metric split (§5.1, §4.6): the local matriarch advertises
+// LOG_TAIL (partition-proof, served from source) but NOT LOG_QUERY /
+// METRICS_QUERY (historical, cloud ClickHouse only).
+enum ApiSurface {
+  API_SURFACE_UNSPECIFIED = 0;
+  API_SURFACE_CLUSTER_LIFECYCLE = 1;
+  API_SURFACE_EVENTS = 2;
+  API_SURFACE_LOG_TAIL = 3;
+  API_SURFACE_LOG_QUERY = 4;
+  API_SURFACE_METRICS_QUERY = 5;
+  API_SURFACE_WIRE_TUNNEL = 6;
+  API_SURFACE_EXEC = 7;
+  API_SURFACE_CATALOG = 8;   // ListVersions / ListExtensions
+}
+
+// ---------------------------------------------------------------------------
+// Status & roles (generic) — anchored on model.proto enums, renamed/renumbered
+// (greenfield) to the proto convention (prefixed values, UNSPECIFIED = 0).
+// ---------------------------------------------------------------------------
+
+enum ClusterStatus {
+  CLUSTER_STATUS_UNSPECIFIED = 0;
+  CLUSTER_STATUS_CREATED = 1;
+  CLUSTER_STATUS_INITIALIZING = 2;   // was STATUS_INITDB — "initdb" is a Postgres-ism
+  CLUSTER_STATUS_STARTED = 3;
+  CLUSTER_STATUS_HEALTHY = 4;
+  CLUSTER_STATUS_FAILED = 5;
+  CLUSTER_STATUS_STOPPED = 6;
+  CLUSTER_STATUS_UNKNOWN = 7;
+  CLUSTER_STATUS_PENDING = 8;    // accepted, awaiting an executor (no agent connected yet)
+}
+
+enum ReplicationStatus {
+  REPLICATION_STATUS_UNSPECIFIED = 0;
+  REPLICATION_STATUS_STANDALONE = 1;
+  REPLICATION_STATUS_PRIMARY = 2;
+  REPLICATION_STATUS_REPLICA = 3;
+  REPLICATION_STATUS_UNKNOWN = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Secret references — never values (§3.7, P4)
+// ---------------------------------------------------------------------------
+
+// A pointer to secret material held in the environment's secret store (a K8s
+// Secret, or permission-restricted SQLite/etcd storage). api.v1 and the cloud
+// cache carry these, never plaintext; the value is fetched via a separate,
+// separately-authorized RPC (api.v1 GetClusterCredentials).
+message SecretRef {
+  string name = 1;     // logical secret name within the environment
+  string key = 2;      // key within that secret
+  string version = 3;  // optional: pin a specific version
+}
+
+// ---------------------------------------------------------------------------
+// Freshness & health — the cache staleness block (§4.2, P7/P8)
+// ---------------------------------------------------------------------------
+
+// Attached PER ENVIRONMENT inside aggregated responses, because one
+// ListClusters reply can mix live and partitioned environments. The local
+// matriarch always reports source = LIVE.
+message SourceInfo {
+  enum Source {
+    SOURCE_UNSPECIFIED = 0;
+    LIVE = 1;
+    CACHED = 2;
+  }
+  enum EnvironmentHealth {
+    ENVIRONMENT_HEALTH_UNSPECIFIED = 0;
+    CONNECTED = 1;
+    DEGRADED = 2;
+    DISCONNECTED = 3;
+  }
+  Source source = 1;
+  // Cloud-assigned at receipt (when the home Stado last heard from the env);
+  // no cross-site clock trust (§4.2).
+  google.protobuf.Timestamp as_of = 2;
+  EnvironmentHealth environment_health = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Pagination — timestamp cursors + max_results + truncated, never limit/offset
+// (§5.1 conventions; mirrors the logs subsystem's stackgres.logs.v1).
+// ---------------------------------------------------------------------------
+
+// Omit the message entirely (or any individual field) to mean "no preference":
+// the server returns everything, bounded by its own cap (PageInfo.truncated
+// signals it applied one). "Query all, don't ask" = send no PageRequest.
+message PageRequest {
+  optional google.protobuf.Timestamp start = 1;
+  optional google.protobuf.Timestamp end = 2;
+  optional uint32 max_results = 3;   // unset = no client limit (server default)
+  bool descending = 4;
+  // Opaque continuation from a prior PageInfo.next. For aggregated (cloud)
+  // implementations this encodes the composite position across environments.
+  optional Cursor cursor = 5;
+}
+
+// Composite cursor so aggregated implementations can merge-sort across
+// matriarchs with stable pagination (§5.1): (timestamp, environment_id, item_id).
+message Cursor {
+  google.protobuf.Timestamp timestamp = 1;
+  string environment_id = 2;
+  string item_id = 3;
+}
+
+message PageInfo {
+  bool truncated = 1;
+  optional Cursor next = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Events (generic) — anchored on model.proto Event, engine-agnostic.
+// ---------------------------------------------------------------------------
+
+message Event {
+  google.protobuf.Timestamp timestamp = 1;
+  string scope = 2;     // "environment" | "cluster" | "instance"
+  optional Id scope_id = 3;
+  string type = 4;      // executor/engine-defined event type string
+  map<string, string> data = 5;
+  // Identity of the actor that caused the event, for audit/attribution (§7.1);
+  // empty for system-originated events.
+  string actor = 6;
+}

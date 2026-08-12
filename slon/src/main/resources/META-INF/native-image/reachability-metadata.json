@@ -1,0 +1,1328 @@
+{
+  "reflection": [
+    {
+      "type": "io.stackgres.proto.slon.MatriarchMessage",
+      "methods": [
+        {
+          "name": "getInitDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInitDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStartDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStartDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStopDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStopDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetPostgresLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetPostgresLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetPatroniLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetPatroniLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetSlonLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetSlonLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetEtcdLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetEtcdLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAbortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAbortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpenPgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasOpenPgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClosePgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClosePgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExecCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExecCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExecMessage",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExecMessage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.MatriarchMessage$Builder",
+      "methods": [
+        {
+          "name": "getAbortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClosePgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExecCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExecMessage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetPostgresLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetPatroniLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetSlonLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetEtcdLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInitDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpenPgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStartDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStopDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAbortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClosePgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExecCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExecMessage",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetPostgresLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetPatroniLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetSlonLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetEtcdLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInitDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasOpenPgWireTunnelCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStartDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStopDbCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasShutdownCommand",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.InitDbCommand",
+      "methods": [
+        {
+          "name": "getChecksum",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.InitDbCommand$Builder",
+      "methods": [
+        {
+          "name": "getChecksum",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTls",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.TlsConfig",
+      "methods": [
+        {
+          "name": "getNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "getModeCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProvided",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasProvided",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.TlsConfig$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "getModeCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProvided",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasNoTls",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasProvided",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasSelfSignedCerts",
+          "parameterTypes": []
+        },
+        {
+          "name": "setSelfSignedCerts",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.SelfSignedCerts"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.SelfSignedCerts",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.SelfSignedCerts$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ProvidedCerts",
+      "methods": [
+        {
+          "name": "getCertificate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPrivateKey",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ProvidedCerts$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCertificate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPrivateKey",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.NoTls",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.NoTls$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.StartDbCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.StartDbCommand$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.slon.StopDbCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.StopDbCommand$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.slon.ShutdownCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ShutdownCommand$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetPostgresLogsCommand",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetPostgresLogsCommand$Builder",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetPatroniLogsCommand",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetPatroniLogsCommand$Builder",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetSlonLogsCommand",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetSlonLogsCommand$Builder",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetEtcdLogsCommand",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.GetEtcdLogsCommand$Builder",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.AbortCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.AbortCommand$Builder",
+      "methods": [
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.OpenPgWireTunnelCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTargetPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTargetPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.OpenPgWireTunnelCommand$Builder",
+      "methods": [
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTargetPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTargetPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setTargetPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearTargetPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ClosePgWireTunnelCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ClosePgWireTunnelCommand$Builder",
+      "methods": [
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.PgWireTunnelData",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.PgWireTunnelData$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setData",
+          "parameterTypes": [
+            "com.google.protobuf.ByteString"
+          ]
+        },
+        {
+          "name": "setTunnelId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.PgWireTunnelOpened",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.PgWireTunnelOpened$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setTunnelId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.PgWireTunnelClosed",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.PgWireTunnelClosed$Builder",
+      "methods": [
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasTunnelId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStatus",
+          "parameterTypes": [
+            "com.google.rpc.Status"
+          ]
+        },
+        {
+          "name": "setTunnelId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ExecCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCommandList",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ExecCommand$Builder",
+      "methods": [
+        {
+          "name": "getCommandList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ExecMessage",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBytes",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ExecMessage$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getBytes",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setBytes",
+          "parameterTypes": [
+            "com.google.protobuf.ByteString"
+          ]
+        },
+        {
+          "name": "setId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.SlonMessage",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExec",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExecExit",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelOpened",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExec",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExecExit",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelOpened",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDiagnostics",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDiagnostics",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasReplicationStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReplicationStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatusUpdate",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.SlonMessage$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExec",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExecExit",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPgWireTunnelOpened",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExec",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasExecExit",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelClosed",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelData",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasPgWireTunnelOpened",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDiagnostics",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDiagnostics",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasReplicationStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReplicationStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatusUpdate",
+          "parameterTypes": []
+        },
+        {
+          "name": "setExec",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.ExecMessage"
+          ]
+        },
+        {
+          "name": "setExecExit",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.ExecExit"
+          ]
+        },
+        {
+          "name": "setEvent",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.Event"
+          ]
+        },
+        {
+          "name": "setHeartbeat",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.Heartbeat"
+          ]
+        },
+        {
+          "name": "setLog",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.Log"
+          ]
+        },
+        {
+          "name": "setPgWireTunnelClosed",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.PgWireTunnelClosed"
+          ]
+        },
+        {
+          "name": "setPgWireTunnelData",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.PgWireTunnelData"
+          ]
+        },
+        {
+          "name": "setPgWireTunnelOpened",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.PgWireTunnelOpened"
+          ]
+        },
+        {
+          "name": "setDiagnostics",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.Diagnostics"
+          ]
+        },
+        {
+          "name": "setRegistration",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.Registration"
+          ]
+        },
+        {
+          "name": "setStatusUpdate",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.StatusUpdate"
+          ]
+        },
+        {
+          "name": "setReplicationStatusUpdate",
+          "parameterTypes": [
+            "io.stackgres.proto.slon.ReplicationStatusUpdate"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ExecExit",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slon.ExecExit$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCode",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setCode",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "setId",
+          "parameterTypes": [
+            "common.Common$UUID"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "common.Common$UUID",
+      "methods": [
+        {
+          "name": "getValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "common.Common$UUID$Builder",
+      "methods": [
+        {
+          "name": "getValue",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ]
+}
