@@ -53,7 +53,9 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_ENV`: This set the environment to script to use in order to setup the kubernetes cluster (default: kind).
 * `CONTAINER_ENGINE`: The container engine used to build, pull, push and inspect the images (default: docker). It is
  used as a command prefix, so a value carrying arguments like `podman --remote` works everywhere except in the kind
- environment, that executes the engine by name. See [Kind](#kind) for the requirements of `podman`.
+ environment, that executes the engine by name. Setting it to `podman` also requires `skopeo`, that is what inspects
+ the manifest of an image in a registry, since podman only accepts a manifest list. See [Kind](#kind) for the rest of
+ the requirements of `podman`.
 * `REGISTRY_AUTH_FILE`: The file holding the registries credentials, the one `podman` reads (default:
  `$HOME/.docker/config.json`, the file `docker` writes).
 * `E2E_TIMEOUT`: Some operation wait on pods to be running or terminated. This environment variable controls the timeout in seconds of those operations (default: 3 minutes).

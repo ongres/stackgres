@@ -107,6 +107,34 @@ Describe "container engine"
     End
   End
 
+  Describe "docker_manifest_inspect"
+    It "delegates to the engine with docker"
+      When call docker_manifest_inspect -v some-image
+      The contents of file "$ENGINE_CALL_LOG" should include "docker manifest inspect -v some-image"
+    End
+
+    It "describes a single image through skopeo with podman"
+      CONTAINER_ENGINE=podman
+      mock_skopeo
+      When call docker_manifest_inspect -v some-image
+      The output should include '"Ref": "some-image"'
+      The output should include '"digest": "sha256:aaaa"'
+      The output should include '"architecture": "amd64"'
+      The output should include '"size": 76'
+      The contents of file "$ENGINE_CALL_LOG" should not include "podman manifest"
+    End
+
+    It "describes a manifest list as the array docker gives with podman"
+      CONTAINER_ENGINE=podman
+      mock_skopeo
+      When call docker_manifest_inspect -v some-image-list
+      The output should include '"Ref": "some-image-list@sha256:bbbb"'
+      The output should include '"digest": "sha256:cccc"'
+      The output should include '"architecture": "arm64"'
+      The contents of file "$ENGINE_CALL_LOG" should not include "podman manifest"
+    End
+  End
+
   Describe "manifest shims"
     It "creates a manifest through the engine"
       CONTAINER_ENGINE=podman

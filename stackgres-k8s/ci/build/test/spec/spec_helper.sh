@@ -104,6 +104,29 @@ EOF
   export PATH
 }
 
+# Mock skopeo, that docker_manifest_inspect uses to ask the registry when the
+# engine is podman. The raw manifest it answers with is a manifest list when the
+# image is named like one.
+mock_skopeo() {
+  mkdir -p "$TEST_PROJECT_DIR/bin"
+  cat << 'EOF' > "$TEST_PROJECT_DIR/bin/skopeo"
+#!/bin/sh
+echo "skopeo $*" >> "$ENGINE_CALL_LOG"
+case " $* " in
+  *' --format '*) echo 'sha256:aaaa linux amd64' ;;
+  *list*) cat << 'INNER_EOF'
+{"mediaType":"application/vnd.oci.image.index.v1+json","manifests":[
+{"mediaType":"application/vnd.oci.image.manifest.v1+json","digest":"sha256:bbbb","size":11,"platform":{"architecture":"amd64","os":"linux"}},
+{"mediaType":"application/vnd.oci.image.manifest.v1+json","digest":"sha256:cccc","size":22,"platform":{"architecture":"arm64","os":"linux"}}]}
+INNER_EOF
+    ;;
+  *) printf '%s' '{"mediaType":"application/vnd.oci.image.manifest.v1+json","schemaVersion":2}' ;;
+esac
+EOF
+  chmod a+x "$TEST_PROJECT_DIR/bin/skopeo"
+  export ENGINE_CALL_LOG
+}
+
 # Mock docker commands - these record calls and return success
 DOCKER_CALL_LOG=""
 

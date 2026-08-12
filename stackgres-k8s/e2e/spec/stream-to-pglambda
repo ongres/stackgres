@@ -19,7 +19,7 @@ e2e_test_install() {
     return
   fi
 
-  if ! $CONTAINER_ENGINE manifest inspect "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME" > /dev/null 2>&1
+  if ! docker_manifest_inspect "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME" > /dev/null 2>&1
   then
     docker_push "$PGLAMBDA_JAVASCRIPT_IMAGE_NAME"
   fi

@@ -1149,9 +1149,48 @@ docker_rm() {
   $CONTAINER_ENGINE rm "$@"
 }
 
-# shellcheck disable=SC2086
+# podman only inspects the manifest of an image that is a manifest list, and
+# fails on any other with `Treating single images as manifest lists is not
+# implemented`, which is what most of the images of this build are. Ask the
+# registry through skopeo instead and give back the shape docker gives with -v:
+# an object per image, and an array of them when the image is a manifest list.
 docker_manifest_inspect() {
-  $CONTAINER_ENGINE manifest inspect "$@"
+  if ! container_engine_is_podman
+  then
+    # shellcheck disable=SC2086
+    $CONTAINER_ENGINE manifest inspect "$@"
+    return
+  fi
+  local IMAGE_NAME=
+  local ARG
+  for ARG
+  do
+    case "$ARG" in
+      (-*) ;;
+      (*) IMAGE_NAME="$ARG" ;;
+    esac
+  done
+  local MANIFEST
+  MANIFEST="$(skopeo inspect --raw "docker://$IMAGE_NAME")"
+  if printf %s "$MANIFEST" | jq -e 'has("manifests")' > /dev/null
+  then
+    printf %s "$MANIFEST" | jq --arg ref "$IMAGE_NAME" \
+      '[ .manifests[] | { Ref: ($ref + "@" + .digest),
+        Descriptor: { mediaType, digest, size, platform } } ]'
+  else
+    # The platform of a single image is in its configuration, that only the
+    # inspect without --raw retrieves.
+    local IMAGE_DIGEST_AND_PLATFORM
+    IMAGE_DIGEST_AND_PLATFORM="$(skopeo inspect \
+      --format '{{ .Digest }} {{ .Os }} {{ .Architecture }}' "docker://$IMAGE_NAME")"
+    printf %s "$MANIFEST" | jq --arg ref "$IMAGE_NAME" \
+      --argjson size "$(printf %s "$MANIFEST" | wc -c | tr -d ' ')" \
+      --arg digest "$(printf %s "$IMAGE_DIGEST_AND_PLATFORM" | cut -d ' ' -f 1)" \
+      --arg os "$(printf %s "$IMAGE_DIGEST_AND_PLATFORM" | cut -d ' ' -f 2)" \
+      --arg architecture "$(printf %s "$IMAGE_DIGEST_AND_PLATFORM" | cut -d ' ' -f 3)" \
+      '{ Ref: $ref, Descriptor: { mediaType: .mediaType, digest: $digest,
+        size: $size, platform: { architecture: $architecture, os: $os } } }'
+  fi
 }
 
 # shellcheck disable=SC2086

@@ -497,7 +497,7 @@ docker_run()              { $CONTAINER_ENGINE run "$@"; }
 docker_build()            { $CONTAINER_ENGINE build "$@"; }
 docker_tag()              { $CONTAINER_ENGINE tag "$@"; }
 docker_rm()               { $CONTAINER_ENGINE rm "$@"; }
-docker_manifest_inspect() { $CONTAINER_ENGINE manifest inspect "$@"; }
+docker_manifest_push()    { $CONTAINER_ENGINE manifest push "$@"; }
 ```
 
 `CONTAINER_ENGINE` defaults to `docker` and is expanded unquoted, so it is a
@@ -511,6 +511,7 @@ A few wrappers can not be a plain delegation, since the two engines differ:
 | `docker_buildx_inspect` | podman has no buildx. The `Platforms:` line its caller parses is emulated from `podman info`. |
 | `docker_engine_platform` | `docker version --format '{{ .Server.Arch }}'` has no podman equivalent, `podman info --format '{{.Version.OsArch}}'` is used instead. |
 | `container_engine_socket_volume` | Only docker needs (and is able to use) a socket to give a build container access to the engine. |
+| `docker_manifest_inspect` | podman only inspects an image that is a manifest list, and fails on any other with `Treating single images as manifest lists is not implemented`. With podman the registry is asked through `skopeo`, and the shape docker gives with `-v` is rebuilt from the answer. `skopeo` is therefore required to build with podman, and is part of the CI image. |
 
 The wrappers can also be overridden by sourcing `build-functions.sh` and
 redefining the functions, enabling dry-run modes and test mocking.

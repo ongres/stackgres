@@ -302,3 +302,12 @@ docker_tag() {
 docker_local_tag() {
   $CONTAINER_ENGINE tag "$1" "$2"
 }
+
+# The engines disagree on what inspecting the manifest of an image means: podman
+# only accepts a manifest list and prints the index as it is, docker accepts any
+# image and describes it. Reuse the shim of the build scripts, that gives the
+# shape docker gives with -v with both of them.
+docker_manifest_inspect() {
+  shell "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" \
+    docker_manifest_inspect "$@"
+}
