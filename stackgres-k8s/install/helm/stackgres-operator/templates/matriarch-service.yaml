@@ -1,0 +1,20 @@
+{{- if .Values.deploy.operator }}
+{{- $svc := (.Values.matriarch | default dict).service | default dict }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-matriarch
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  # StackGres Matriarch api.v1 gRPC (read-only), served by the operator on :9000.
+  type: {{ $svc.type | default "ClusterIP" }}
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: {{ $svc.port | default 9000 }}
+      targetPort: 9000
+{{- end }}

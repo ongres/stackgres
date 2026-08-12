@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.stackgres.proto.slon";
+option java_outer_classname = "Protocol";
+
+package slon;
+
+import "common.proto";
+import "google/rpc/status.proto";
+
+
+service SlonService {
+  rpc Transfer(stream SlonMessage) returns (stream MatriarchMessage);
+}
+
+message SlonMessage {
+  oneof kind {
+    Registration registration = 1;
+    Heartbeat heartbeat = 2;
+    StatusUpdate statusUpdate = 3;
+    PgWireTunnelOpened pgWireTunnelOpened = 5;
+    PgWireTunnelData pgWireTunnelData = 6;
+    PgWireTunnelClosed pgWireTunnelClosed = 7;
+    ExecMessage exec = 8;
+    ExecExit execExit = 9;
+    Diagnostics diagnostics = 10;
+    Event event = 11;
+    ReplicationStatusUpdate replicationStatusUpdate = 12;
+  }
+}
+
+message Registration {
+  common.UUID id = 1;
+  common.UUID clusterId = 2;
+  string clusterName = 3;
+  uint32 port = 4;
+  string instanceName = 5;
+  string os = 6;
+  string arch = 7;
+  string version = 8;
+  double cpu = 9;
+  uint64 memory = 10;
+  string username = 11;
+  string password = 12;
+  string listenAddress = 13;
+}
+
+message Heartbeat {}
+
+message StatusUpdate {
+  SlonStatus slonStatus = 1;
+  google.rpc.Status status = 2;
+}
+
+enum SlonStatus {
+  STATUS_CREATED = 0;
+  STATUS_INITDB = 1;
+  STATUS_STARTED = 2;
+  STATUS_HEALTHY = 4;
+  STATUS_FAILED = 5;
+  STATUS_STOPPED = 6;
+}
+
+message ReplicationStatusUpdate {
+  ReplicationStatus replicationStatus = 1;
+}
+
+enum ReplicationStatus {
+  REPLICATION_STATUS_UNKNOWN = 0;
+  REPLICATION_STATUS_STANDALONE = 1;
+  REPLICATION_STATUS_PRIMARY = 2;
+  REPLICATION_STATUS_REPLICA = 3;
+}
+
+message MatriarchMessage {
+  oneof kind {
+    InitDbCommand initDbCommand = 1;
+    StartDbCommand startDbCommand = 2;
+    StopDbCommand stopDbCommand = 3;
+    OpenPgWireTunnelCommand openPgWireTunnelCommand = 6;
+    ClosePgWireTunnelCommand closePgWireTunnelCommand = 7;
+    PgWireTunnelData pgWireTunnelData = 8;
+    ExecCommand execCommand = 9;
+    ExecMessage execMessage = 10;
+    ShutdownCommand shutdownCommand = 15;
+  }
+}
+
+message InitDbCommand {
+  bool checksum = 1;
+  TlsConfig tls = 2;
+}
+
+message TlsConfig {
+  oneof mode {
+    SelfSignedCerts selfSignedCerts = 1;
+    ProvidedCerts provided = 2;
+    NoTls noTls = 3;
+  }
+}
+
+message SelfSignedCerts {}
+
+message ProvidedCerts {
+  bytes certificate = 1;
+  bytes privateKey = 2;
+}
+
+message NoTls {}
+message StartDbCommand {}
+message StopDbCommand {}
+message ShutdownCommand {}
+
+message OpenPgWireTunnelCommand {
+  common.UUID tunnelId = 1;
+  optional uint32 targetPort = 2;
+}
+
+message ClosePgWireTunnelCommand {
+  common.UUID tunnelId = 1;
+}
+
+message PgWireTunnelData {
+  common.UUID tunnelId = 1;
+  bytes data = 2;
+}
+
+message PgWireTunnelOpened {
+  common.UUID tunnelId = 1;
+}
+
+message PgWireTunnelClosed {
+  common.UUID tunnelId = 1;
+  optional google.rpc.Status status = 2;
+}
+
+message ExecCommand {
+  common.UUID id = 1;
+  repeated string command = 2;
+}
+message ExecMessage {
+  common.UUID id = 1;
+  bytes bytes = 2;
+}
+message ExecExit {
+  common.UUID id = 1;
+  uint32 code = 2;
+}
+
+message Diagnostics {
+  string pgControlData = 1;
+  uint64 dbSize = 2;
+}
+
+message Event {
+  string type = 1;
+  map<string, string> data = 2;
+}

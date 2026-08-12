@@ -1,0 +1,2236 @@
+{
+  "reflection": [
+    {
+      "type": "android.app.Application"
+    },
+    {
+      "type": "com.google.protobuf.ExtensionRegistry",
+      "methods": [
+        {
+          "name": "getEmptyRegistry",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.jcraft.jzlib.JZlib"
+    },
+    {
+      "type": "io.stackgres.proto.slony.CreateClusterCommand",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdInitialClusterMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstance",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.CreateClusterCommand$Builder",
+      "methods": [
+        {
+          "name": "getEtcdInitialClusterMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.CreateInstance",
+      "methods": [
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.CreateInstance$Builder",
+      "methods": [
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setIvorySqlPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.DeleteInstanceCommand",
+      "methods": [
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.DeleteInstanceCommand$Builder",
+      "methods": [
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Disk",
+      "methods": [
+        {
+          "name": "getStorageClass",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStorageClass",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ExecInInstanceCommand",
+      "methods": [
+        {
+          "name": "getCommandList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ExecInInstanceCommand$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.slony.Extension",
+      "methods": [
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Extension$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "setName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setRevision",
+          "parameterTypes": []
+        },
+        {
+          "name": "setVersion",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.GetInstanceLogsCommand",
+      "methods": [
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.GetInstanceLogsCommand$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.slony.MatriarchMessage",
+      "methods": [
+        {
+          "name": "getCreateClusterCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDeleteInstanceCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReportUnusedPortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCreateClusterCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDeleteInstanceCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasReportUnusedPortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.MatriarchMessage$Builder",
+      "methods": [
+        {
+          "name": "getCreateClusterCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDeleteInstanceCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getReportUnusedPortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCreateClusterCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDeleteInstanceCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasReportUnusedPortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasGetSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasShutdownCommand",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ShutdownCommand",
+      "methods": [
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ShutdownCommand$Builder"
+    },
+    {
+      "type": "io.stackgres.proto.slony.GetSlonyLogsCommand",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.GetSlonyLogsCommand$Builder",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.AbortSlonyLogsCommand",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.AbortSlonyLogsCommand$Builder",
+      "methods": [
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ReportUnusedPortCommand",
+      "methods": [
+        {
+          "name": "getDesiredPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ReportUnusedPortCommand$Builder",
+      "methods": [
+        {
+          "name": "getDesiredPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.VolumeDisk",
+      "methods": [
+        {
+          "name": "getDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDisk",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.VolumeMount",
+      "methods": [
+        {
+          "name": "getHostPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMountPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.slony.exec.status.ListMeta",
+      "fields": [
+        {
+          "name": "_continue"
+        },
+        {
+          "name": "remainingItemCount"
+        },
+        {
+          "name": "resourceVersion"
+        },
+        {
+          "name": "selfLink"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.slony.exec.status.Status",
+      "fields": [
+        {
+          "name": "apiVersion"
+        },
+        {
+          "name": "code"
+        },
+        {
+          "name": "details"
+        },
+        {
+          "name": "kind"
+        },
+        {
+          "name": "message"
+        },
+        {
+          "name": "metadata"
+        },
+        {
+          "name": "reason"
+        },
+        {
+          "name": "status"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.slony.exec.status.StatusCause",
+      "fields": [
+        {
+          "name": "field"
+        },
+        {
+          "name": "message"
+        },
+        {
+          "name": "reason"
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.slony.exec.status.StatusDetails",
+      "fields": [
+        {
+          "name": "causes"
+        },
+        {
+          "name": "group"
+        },
+        {
+          "name": "kind"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "retryAfterSeconds"
+        },
+        {
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.AESCipher$General",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ARCFOURCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.ChaCha20Cipher$ChaCha20Poly1305",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DESedeCipher",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.DHParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.GaloisCounterMode$AESGCM",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HKDFKeyDerivation$HKDFSHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "javax.crypto.KDFParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.HmacCore$HmacSHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.crypto.provider.TlsMasterSecretGenerator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.jndi.dns.DnsContextFactory"
+    },
+    {
+      "type": "com.sun.jndi.url.java.javaURLContextFactory"
+    },
+    {
+      "type": "common.Common$UUID",
+      "methods": [
+        {
+          "name": "getValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "common.Common$UUID$Builder",
+      "methods": [
+        {
+          "name": "getValue",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.grpc.census.InternalCensusStatsAccessor"
+    },
+    {
+      "type": "io.grpc.census.InternalCensusTracingAccessor"
+    },
+    {
+      "type": "io.grpc.internal.DnsNameResolverProvider"
+    },
+    {
+      "type": "io.grpc.internal.JndiResourceResolverFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.grpc.internal.PickFirstLoadBalancerProvider"
+    },
+    {
+      "type": "io.grpc.internal.SerializingExecutor"
+    },
+    {
+      "type": "io.grpc.netty.NettyChannelProvider"
+    },
+    {
+      "type": "io.grpc.netty.NettyClientHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$ClientTlsHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$GrpcNegotiationHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$PlaintextHandler"
+    },
+    {
+      "type": "io.grpc.netty.ProtocolNegotiators$WaitUntilActiveHandler"
+    },
+    {
+      "type": "io.grpc.netty.UdsNameResolverProvider"
+    },
+    {
+      "type": "io.grpc.netty.UdsNettyChannelProvider"
+    },
+    {
+      "type": "io.grpc.netty.WriteBufferingAndExceptionHandler"
+    },
+    {
+      "type": "io.grpc.okhttp.OkHttpChannelProvider"
+    },
+    {
+      "type": "io.grpc.override.ContextStorageOverride"
+    },
+    {
+      "type": "io.grpc.util.OutlierDetectionLoadBalancerProvider"
+    },
+    {
+      "type": "io.grpc.util.SecretRoundRobinLoadBalancerProvider$Provider"
+    },
+    {
+      "type": "io.netty.buffer.AbstractByteBufAllocator"
+    },
+    {
+      "type": "io.netty.buffer.AbstractReferenceCountedByteBuf",
+      "fields": [
+        {
+          "name": "refCnt"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.AbstractChannelHandlerContext"
+    },
+    {
+      "type": "io.netty.channel.ChannelException",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.ChannelOutboundBuffer"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelConfig"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelPipeline"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelPipeline$HeadContext"
+    },
+    {
+      "type": "io.netty.channel.DefaultChannelPipeline$TailContext"
+    },
+    {
+      "type": "io.netty.channel.DefaultFileRegion",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "file"
+        },
+        {
+          "name": "transferred"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.epoll.Epoll",
+      "methods": [
+        {
+          "name": "isAvailable",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.epoll.EpollDomainSocketChannel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.epoll.EpollEventLoopGroup",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "java.util.concurrent.ThreadFactory"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.epoll.EpollServerSocketChannel"
+    },
+    {
+      "type": "io.netty.channel.epoll.EpollSocketChannel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.epoll.LinuxSocket",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.epoll.Native",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.epoll.NativeDatagramPacketArray$NativeDatagramPacket",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "count"
+        },
+        {
+          "name": "memoryAddress"
+        },
+        {
+          "name": "recipientAddr"
+        },
+        {
+          "name": "recipientAddrLen"
+        },
+        {
+          "name": "recipientPort"
+        },
+        {
+          "name": "recipientScopeId"
+        },
+        {
+          "name": "segmentSize"
+        },
+        {
+          "name": "senderAddr"
+        },
+        {
+          "name": "senderAddrLen"
+        },
+        {
+          "name": "senderPort"
+        },
+        {
+          "name": "senderScopeId"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.epoll.NativeStaticallyReferencedJniMethods",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.socket.nio.NioSocketChannel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.unix.Buffer",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.unix.DatagramSocketAddress",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "byte[]",
+            "int",
+            "int",
+            "int",
+            "io.netty.channel.unix.DatagramSocketAddress"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.unix.DomainDatagramSocketAddress",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "byte[]",
+            "int",
+            "io.netty.channel.unix.DomainDatagramSocketAddress"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.unix.ErrorsStaticallyReferencedJniMethods",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.unix.FileDescriptor",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.unix.LimitsStaticallyReferencedJniMethods",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.channel.unix.PeerCredentials",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int",
+            "int",
+            "int[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.netty.channel.unix.Socket",
+      "jniAccessible": true
+    },
+    {
+      "type": "io.netty.handler.codec.http.HttpClientCodec"
+    },
+    {
+      "type": "io.netty.handler.codec.http.HttpObjectAggregator"
+    },
+    {
+      "type": "io.netty.handler.codec.http.websocketx.WebSocket13FrameDecoder"
+    },
+    {
+      "type": "io.netty.handler.codec.http.websocketx.WebSocket13FrameEncoder"
+    },
+    {
+      "type": "io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker"
+    },
+    {
+      "type": "io.netty.handler.ssl.SslHandler"
+    },
+    {
+      "type": "io.netty.internal.tcnative.SSLContext"
+    },
+    {
+      "type": "io.netty.util.AbstractReferenceCounted",
+      "fields": [
+        {
+          "name": "refCnt"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.DefaultAttributeMap"
+    },
+    {
+      "type": "io.netty.util.Recycler$DefaultHandle"
+    },
+    {
+      "type": "io.netty.util.ReferenceCountUtil"
+    },
+    {
+      "type": "io.netty.util.ResourceLeakDetector$DefaultResourceLeak"
+    },
+    {
+      "type": "io.netty.util.concurrent.DefaultPromise"
+    },
+    {
+      "type": "io.netty.util.concurrent.SingleThreadEventExecutor"
+    },
+    {
+      "type": "io.netty.util.internal.NativeLibraryUtil",
+      "methods": [
+        {
+          "name": "loadLibrary",
+          "parameterTypes": [
+            "java.lang.String",
+            "boolean"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueColdProducerFields",
+      "fields": [
+        {
+          "name": "producerLimit"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueConsumerFields",
+      "fields": [
+        {
+          "name": "consumerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueProducerFields",
+      "fields": [
+        {
+          "name": "producerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueueConsumerIndexField",
+      "fields": [
+        {
+          "name": "consumerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueueProducerIndexField",
+      "fields": [
+        {
+          "name": "producerIndex"
+        }
+      ]
+    },
+    {
+      "type": "io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueueProducerLimitField",
+      "fields": [
+        {
+          "name": "producerLimit"
+        }
+      ]
+    },
+    {
+      "type": "io.perfmark.impl.SecretPerfMarkImpl$PerfMarkImpl"
+    },
+    {
+      "type": "io.undertow.websockets.DefaultWebSocketClientSslProvider"
+    },
+    {
+      "type": "io.undertow.websockets.FrameHandler"
+    },
+    {
+      "type": "io.undertow.websockets.OrderedExecutor"
+    },
+    {
+      "type": "io.undertow.websockets.UndertowContainerProvider"
+    },
+    {
+      "type": "io.undertow.websockets.WebSocketClientCompressionHandler"
+    },
+    {
+      "type": "io.undertow.websockets.WebsocketConnectionBuilder$2"
+    },
+    {
+      "type": "io.undertow.websockets.WebsocketConnectionBuilder$WebSocketClientHandler"
+    },
+    {
+      "type": "jakarta.enterprise.inject.spi.CDI"
+    },
+    {
+      "type": "jakarta.json.JsonArray"
+    },
+    {
+      "type": "java.beans.ConstructorProperties"
+    },
+    {
+      "type": "java.io.FileDescriptor",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "java.io.IOException",
+      "jniAccessible": true
+    },
+    {
+      "type": "java.lang.Boolean",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.OutOfMemoryError",
+      "jniAccessible": true
+    },
+    {
+      "type": "java.lang.ProcessHandle",
+      "methods": [
+        {
+          "name": "current",
+          "parameterTypes": []
+        },
+        {
+          "name": "pid",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.RuntimeException",
+      "jniAccessible": true
+    },
+    {
+      "type": "java.net.InetSocketAddress",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.net.PortUnreachableException",
+      "jniAccessible": true
+    },
+    {
+      "type": "java.nio.Bits"
+    },
+    {
+      "type": "java.nio.Buffer",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "address"
+        },
+        {
+          "name": "limit"
+        },
+        {
+          "name": "position"
+        }
+      ],
+      "methods": [
+        {
+          "name": "limit",
+          "parameterTypes": []
+        },
+        {
+          "name": "position",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.nio.ByteBuffer"
+    },
+    {
+      "type": "java.nio.DirectByteBuffer"
+    },
+    {
+      "type": "java.nio.channels.ClosedChannelException",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.nio.channels.FileChannel"
+    },
+    {
+      "type": "java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "type": "java.security.AlgorithmParametersSpi"
+    },
+    {
+      "type": "java.security.KeyStoreSpi"
+    },
+    {
+      "type": "java.security.interfaces.ECPrivateKey"
+    },
+    {
+      "type": "java.security.interfaces.ECPublicKey"
+    },
+    {
+      "type": "java.security.interfaces.RSAPrivateKey"
+    },
+    {
+      "type": "java.security.interfaces.RSAPublicKey"
+    },
+    {
+      "type": "java.sql.Date"
+    },
+    {
+      "type": "java.time.Instant"
+    },
+    {
+      "type": "java.util.List"
+    },
+    {
+      "type": "java.util.concurrent.atomic.LongAdder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "add",
+          "parameterTypes": [
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.naming.InitialContext",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "lookup",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.naming.directory.InitialDirContext"
+    },
+    {
+      "type": "javax.net.ssl.SSLEngine",
+      "methods": [
+        {
+          "name": "getApplicationProtocol",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHandshakeApplicationProtocol",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHandshakeApplicationProtocolSelector",
+          "parameterTypes": []
+        },
+        {
+          "name": "setHandshakeApplicationProtocolSelector",
+          "parameterTypes": [
+            "java.util.function.BiFunction"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.net.ssl.SSLParameters",
+      "methods": [
+        {
+          "name": "setApplicationProtocols",
+          "parameterTypes": [
+            "java.lang.String[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.net.ssl.X509ExtendedTrustManager"
+    },
+    {
+      "type": "javax.xml.datatype.XMLGregorianCalendar"
+    },
+    {
+      "type": "jdk.internal.misc.Unsafe",
+      "methods": [
+        {
+          "name": "getUnsafe",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "libcore.io.Memory"
+    },
+    {
+      "type": "org.bouncycastle.jsse.provider.BouncyCastleJsseProvider"
+    },
+    {
+      "type": "org.eclipse.jetty.alpn.ALPN"
+    },
+    {
+      "type": "org.eclipse.jetty.npn.NextProtoNego"
+    },
+    {
+      "type": "org.eclipse.parsson.JsonProviderImpl"
+    },
+    {
+      "type": "org.eclipse.yasson.JsonBindingProvider"
+    },
+    {
+      "type": "org.robolectric.Robolectric"
+    },
+    {
+      "type": "sun.management.VMManagementImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    },
+    {
+      "type": "sun.misc.Unsafe",
+      "fields": [
+        {
+          "name": "theUnsafe"
+        }
+      ],
+      "methods": [
+        {
+          "name": "invokeCleaner",
+          "parameterTypes": [
+            "java.nio.ByteBuffer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.nio.ch.FileChannelImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "sun.nio.ch.SelectorImpl",
+      "fields": [
+        {
+          "name": "publicSelectedKeys"
+        },
+        {
+          "name": "selectedKeys"
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA224withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA256withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$DualFormatJKS",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.JavaKeyStore$JKS",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.NativePRNG",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.security.SecureRandomParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA224",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA2$SHA256",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA384",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA5$SHA512",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.X509Factory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.certpath.PKIXCertPathValidator",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.PSSParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSAKeyFactory$Legacy",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSAPSSSignature",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA224withRSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.rsa.RSASignature$SHA256withRSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.SSLContextImpl$TLSContext",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityInfoAccessExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.AuthorityKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.BasicConstraintsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CRLDistributionPointsExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.CertificatePoliciesExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.ExtendedKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.KeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.NetscapeCertTypeExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.PrivateKeyUsageExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.SubjectAlternativeNameExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.x509.SubjectKeyIdentifierExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.Boolean",
+            "java.lang.Object"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData"
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData_en"
+    },
+    {
+      "type": "sun.text.resources.cldr.FormatData_en_US"
+    },
+    {
+      "type": "sun.util.resources.cldr.CalendarData"
+    },
+    {
+      "type": "io.stackgres.proto.slony.ClusterInstance$Builder",
+      "methods": [
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setIvorySqlPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "common.Common$Flavor"
+    },
+    {
+      "type": "io.stackgres.proto.slony.ClusterInstance",
+      "methods": [
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "glob": "META-INF/io.netty.versions.properties"
+    },
+    {
+      "glob": "META-INF/native/libnetty_transport_native_epoll_x86_64.so"
+    },
+    {
+      "glob": "META-INF/services/io.grpc.LoadBalancerProvider"
+    },
+    {
+      "glob": "META-INF/services/io.grpc.ManagedChannelProvider"
+    },
+    {
+      "glob": "META-INF/services/io.grpc.NameResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/io.undertow.websockets.WebsocketClientSslProvider"
+    },
+    {
+      "glob": "META-INF/services/jakarta.json.bind.spi.JsonbProvider"
+    },
+    {
+      "glob": "META-INF/services/jakarta.json.spi.JsonProvider"
+    },
+    {
+      "glob": "META-INF/services/jakarta.websocket.ContainerProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.URLStreamHandlerProvider"
+    },
+    {
+      "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "glob": "META-INF/services/java.time.zone.ZoneRulesProvider"
+    },
+    {
+      "glob": "META-INF/services/org.eclipse.yasson.spi.JsonbComponentInstanceCreator"
+    },
+    {
+      "glob": "jndi.properties"
+    },
+    {
+      "glob": "yasson-messages.properties"
+    },
+    {
+      "glob": "yasson-messages_en.properties"
+    },
+    {
+      "glob": "yasson-messages_en_US.properties"
+    },
+    {
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt76b/nfkc.nrm"
+    },
+    {
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt76b/uprops.icu"
+    },
+    {
+      "module": "java.base",
+      "glob": "sun/net/idn/uidna.spp"
+    },
+    {
+      "module": "java.logging",
+      "glob": "sun/util/logging/resources/logging_en.properties"
+    },
+    {
+      "module": "java.logging",
+      "glob": "sun/util/logging/resources/logging_en_US.properties"
+    },
+    {
+      "bundle": "sun.util.logging.resources.logging"
+    },
+    {
+      "bundle": "yasson-messages"
+    }
+  ]
+}

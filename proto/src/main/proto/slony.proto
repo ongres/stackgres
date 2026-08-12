@@ -1,0 +1,205 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.stackgres.proto.slony";
+option java_outer_classname = "Protocol";
+
+package slony;
+
+import "common.proto";
+import "google/rpc/status.proto";
+
+
+service SlonyService {
+  rpc Transfer(stream SlonyMessage) returns (stream MatriarchMessage);
+}
+
+message SlonyMessage {
+  oneof kind {
+    Registration registration = 1;
+    Heartbeat heartbeat = 2;
+    UnusedPort unusedPort = 3;
+    ClusterInstanceCreated clusterInstanceCreated = 4;
+    ClusterInstanceDeleted clusterInstanceDeleted = 5;
+    Log log = 6;
+    Event event = 7;
+  }
+}
+
+message Registration {
+  common.UUID id = 1;
+  string hostname = 2;
+  string externalAddress = 3;
+  string os = 4;
+  string arch = 5;
+  string version = 6;
+  double cpu = 7;
+  uint64 memory = 8;
+  repeated ClusterInstance instance = 9;
+  optional string cloud = 10;
+  optional string region = 11;
+  optional string availabilityZone = 12;
+  optional string computeInstanceName = 13;
+  map<string, string> tags = 14;
+}
+
+message ClusterInstance {
+  common.UUID id = 1;
+  string name = 2;
+  // Cluster information
+  common.UUID clusterId = 3;
+  string clusterName = 4;
+  string username = 5;
+  string password = 6;
+  repeated Extension extension = 7;
+  map<string, string> tags = 8;
+  bool standalone = 9;
+  // Instance information
+  uint32 port = 10;
+  string version = 11;
+  string listenAddress = 12;
+  // Slony-Linux
+  optional string configPath = 13;
+  optional string dataDir = 14;
+  optional string logDir = 15;
+  optional string walDir = 16;
+  repeated VolumeMount volumeMount = 17;
+  // Slony-Linux HA
+  optional string etcdServerUrl = 18;
+  optional string etcdClientUrl = 19;
+  optional string etcdName = 20;
+  // Slony-Kubernetes
+  optional Disk dataDisk = 21;
+  optional Disk logDisk = 22;
+  optional Disk walDisk = 23;
+  repeated VolumeDisk volumeDisk = 24;
+  optional string imageName = 25;
+  optional string imageDigest = 26;
+  common.Flavor flavor = 27;
+  optional uint32 ivorySqlPort = 28;
+}
+
+message Heartbeat {}
+
+message UnusedPort {
+  common.UUID id = 1;
+  uint32 port = 2;
+  optional google.rpc.Status status = 3;
+}
+
+message ClusterInstanceCreated {
+  common.UUID id = 1;
+  string imageName = 2;
+  string imageDigest = 3;
+  optional google.rpc.Status status = 4;
+}
+
+message ClusterInstanceDeleted {
+  common.UUID id = 1;
+  optional google.rpc.Status status = 2;
+}
+
+message MatriarchMessage {
+  oneof kind {
+    ReportUnusedPortCommand reportUnusedPortCommand = 1;
+    CreateClusterCommand createClusterCommand = 2;
+    DeleteInstanceCommand deleteInstanceCommand = 3;
+    GetSlonyLogsCommand getSlonyLogsCommand = 4;
+    AbortSlonyLogsCommand abortSlonyLogsCommand = 5;
+    ShutdownCommand shutdownCommand = 6;
+  }
+}
+
+message ShutdownCommand {}
+
+message GetSlonyLogsCommand {
+  common.UUID id = 1;
+  bool follow = 2;
+}
+
+message AbortSlonyLogsCommand {
+  common.UUID id = 1;
+}
+
+message Log {
+  common.UUID id = 1;
+  optional string contents = 2;
+  optional google.rpc.Status status = 3;
+}
+
+message ReportUnusedPortCommand {
+  common.UUID id = 1;
+  uint32 desiredPort = 2;
+}
+
+message CreateClusterCommand {
+  common.UUID id = 1;
+  string name = 2;
+  string version = 3;
+  string username = 4;
+  string password = 5;
+  repeated CreateInstance instance = 6;
+  repeated Extension extension = 7;
+  map<string, string> tags = 8;
+  // Slony-Linux
+  bool standalone = 9;
+  // Slony-Linux HA
+  map<string, string> etcdInitialCluster = 10;// (etcd1=192.168.1.111:2380)
+  common.Flavor flavor = 11;
+}
+
+message CreateInstance {
+  common.UUID id = 1;
+  string name = 2;
+  uint32 port = 3;
+  string listenAddress = 4;
+  // Slony-Linux
+  optional string configPath = 5;
+  optional string dataDir = 6;
+  optional string logDir = 7;
+  optional string walDir = 8;
+  repeated VolumeMount volumeMount = 9;
+  // Slony-Linux HA
+  optional string etcdServerUrl = 10; // (192.168.1.111:2380)
+  optional string etcdClientUrl = 11; // (192.168.1.111:2379)
+  optional string etcdName = 12; // (etcd1, etcd2, ...)
+
+  // Slony-Kubernetes
+  optional Disk dataDisk = 13;
+  optional Disk logDisk = 14;
+  optional Disk walDisk = 15;
+  repeated VolumeDisk volumeDisk = 16;
+  optional uint32 ivorySqlPort = 17;
+}
+
+message Extension {
+  string name = 1;
+  string version = 2;
+  string revision = 3;
+}
+
+message VolumeMount {
+  string hostPath = 1;
+  string mountPath = 2;
+}
+
+message VolumeDisk {
+  string mountPath = 1;
+  Disk disk = 2;
+}
+
+message Disk {
+  uint64 size = 1;
+  optional string storageClass = 2;
+}
+
+message DeleteInstanceCommand {
+  common.UUID id = 1;
+}
+
+message Event {
+  string type = 1;
+  map<string, string> data = 2;
+  optional common.UUID instanceId = 3;
+  optional common.UUID clusterId = 4;
+}

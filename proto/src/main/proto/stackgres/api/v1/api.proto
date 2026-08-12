@@ -1,0 +1,496 @@
+syntax = "proto3";
+
+// stackgres.api.v1 — the single canonical, database-independent user-facing API
+// (north-star §4.3, §5.1). ONE contract, TWO implementations: the local
+// matriarch serves it directly (its own clusters; local/simple auth), and the
+// cloud edges (Prygunchik/Skvorets) implement the SAME service as an
+// aggregator across all adopted environments behind full JWT/OIDC. The edge is
+// a first-class implementation (aggregation + routing + auth), not a proxy.
+//
+// Anchors state-B `model.proto` (domain types) + `cli.proto` ClusterService
+// (RPC surface), restated on engine-independent types. Postgres-isms are
+// quarantined in the `stackgres.api.v1.postgres` sub-package (postgres.proto);
+// shared primitives live in `stackgres.types.v1` (types.proto).
+package stackgres.api.v1;
+
+option java_multiple_files = true;
+option java_package = "io.stackgres.proto.api.v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/rpc/status.proto";
+import "stackgres/types/v1/types.proto";
+import "stackgres/api/v1/postgres/postgres.proto";
+
+// ===========================================================================
+// Service
+// ===========================================================================
+
+// Kept as a single service to make the "one canonical contract" concrete (both
+// the local matriarch and the cloud edges implement exactly this). Splitting
+// into cohesive sub-services (Environments / Clusters / Logs / Tunnels) is an
+// option to discuss — see proto-next/README.md.
+service StackGresApi {
+  // --- Environments (§5.1 "Environment scoping"): first-class resource. The
+  // local matriarch returns exactly one — itself. ---
+  rpc ListEnvironments(ListEnvironmentsRequest) returns (ListEnvironmentsResponse);
+  rpc GetEnvironment(GetEnvironmentRequest) returns (GetEnvironmentResponse);
+
+  // --- Clusters: CRUD + lifecycle. Creates/deletes are accepted-then-watch
+  // status streams, not transactions (§3.6, §9.1). ---
+  rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+  rpc GetCluster(GetClusterRequest) returns (GetClusterResponse);
+  rpc CreateCluster(CreateClusterRequest) returns (stream ClusterOperationProgress);
+  rpc DeleteCluster(DeleteClusterRequest) returns (stream ClusterOperationProgress);
+  rpc StartCluster(StartClusterRequest) returns (stream ClusterOperationProgress);
+  rpc StopCluster(StopClusterRequest) returns (stream ClusterOperationProgress);
+  rpc RestartCluster(RestartClusterRequest) returns (stream ClusterOperationProgress);
+  rpc GetClusterDiagnostics(GetClusterDiagnosticsRequest) returns (GetClusterDiagnosticsResponse);
+
+  // --- Credentials: secret values are NOT on Cluster; fetched here, separately
+  // authorized (§3.7, P4). ---
+  rpc GetClusterCredentials(GetClusterCredentialsRequest) returns (GetClusterCredentialsResponse);
+
+  // --- Catalog / metadata (API_SURFACE_CATALOG). ListExtensions is a Postgres
+  // surface; engines without extensions simply don't advertise it. ---
+  rpc ListVersions(ListVersionsRequest) returns (ListVersionsResponse);
+  rpc ListExtensions(ListExtensionsRequest) returns (ListExtensionsResponse);
+
+  // --- Events (API_SURFACE_EVENTS). WatchEvents is the unsolicited push that
+  // feeds Skvorets SSE; GetClusterEvents is the historical pull. ---
+  rpc GetClusterEvents(GetClusterEventsRequest) returns (GetClusterEventsResponse);
+  rpc WatchEvents(WatchEventsRequest) returns (stream types.v1.Event);
+
+  // --- Logs & metrics — split surfaces (§5.1, §4.6). TailLogs is partition-
+  // proof (served from source over the agent link); QueryLogs/QueryMetrics are
+  // historical/analytic and cloud-edge-only (ClickHouse). The local matriarch
+  // does not advertise API_SURFACE_LOG_QUERY / METRICS_QUERY. ---
+  rpc TailLogs(TailLogsRequest) returns (stream LogLine);
+  rpc QueryLogs(QueryLogsRequest) returns (QueryLogsResponse);
+  rpc QueryMetrics(QueryMetricsRequest) returns (QueryMetricsResponse);
+
+  // --- Data-plane openers: the control plane only AUTHORIZES and mints a
+  // ticket; the bytes flow on stackgres.tunnel.v1 to Truba (§6, P5/P6). No DB or
+  // exec bytes ever traverse api.v1 or control.v1. The ticket shape is
+  // finalized with tunnel.v1 in round 3. ---
+  rpc OpenWireTunnel(OpenWireTunnelRequest) returns (OpenWireTunnelResponse);
+  rpc OpenExec(OpenExecRequest) returns (OpenExecResponse);
+}
+
+// ===========================================================================
+// Environment
+// ===========================================================================
+
+message Environment {
+  types.v1.Id id = 1;
+  string name = 2;
+  Kind kind = 3;
+  // Which api.v1 surfaces this environment implements (version-negotiation
+  // unit, §5.1). Cloud edges gate per-RPC on this.
+  repeated types.v1.ApiSurface surface = 4;
+  map<string, string> tags = 5;
+  // Audit (§7.1): explicit fields, not implicit per-user map ownership.
+  string created_by = 6;
+  google.protobuf.Timestamp created_at = 7;
+
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_BARE_METAL = 1;      // slony-linux executor
+    KIND_K8S_STACKGRES = 2;   // k8s-stackgres executor
+    KIND_K8S_NATIVE = 3;      // k8s-native executor
+    KIND_EXTERNAL = 4;        // external executor (e.g. RDS)
+  }
+}
+
+message ListEnvironmentsRequest {
+  optional types.v1.PageRequest page = 1;
+}
+message ListEnvironmentsResponse {
+  repeated Environment environment = 1;
+  types.v1.PageInfo page = 2;
+  // Per-environment freshness/health (§4.2), keyed by environment id. The
+  // local matriarch returns a single LIVE entry.
+  map<string, types.v1.SourceInfo> source_info = 3;
+}
+message GetEnvironmentRequest {
+  string environment_id = 1;
+}
+message GetEnvironmentResponse {
+  Environment environment = 1;
+  types.v1.SourceInfo source_info = 2;
+}
+
+// ===========================================================================
+// Cluster — generic shape (Postgres-isms in postgres.PostgresClusterSpec)
+// ===========================================================================
+
+message Cluster {
+  types.v1.Id id = 1;
+  // Environment-scoped identity (§5.1): names are unique PER ENVIRONMENT;
+  // aggregated views render `environment/name`.
+  string environment_id = 2;
+  string name = 3;
+  types.v1.DatabaseEngine engine = 4;
+  string version = 5;                  // engine-defined version string
+  repeated Instance instance = 6;
+  types.v1.ClusterStatus status = 7;
+  map<string, string> tags = 8;
+  // Effective per-cluster feature subset (engine x executor), §5.1.
+  repeated types.v1.Capability capability = 9;
+  // Secret REFERENCES, never values (§3.7). Value via GetClusterCredentials.
+  optional ClusterCredentials credential = 10;
+  // Audit (§7.1).
+  string created_by = 11;
+  string last_modified_by = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+
+  // Engine-specific payload, namespaced — Postgres-isms live HERE (§5.1). The
+  // Postgres-family spec serves BOTH engine = POSTGRES and = IVORY (IvorySQL is
+  // Postgres-wire-compatible).
+  oneof engine_spec {
+    postgres.PostgresClusterSpec postgres = 20;
+  }
+}
+
+// References to a cluster's credentials. The `username` is not secret; the
+// password is a reference resolved out-of-band via GetClusterCredentials.
+message ClusterCredentials {
+  string username = 1;
+  types.v1.SecretRef password = 2;
+}
+
+message Instance {
+  types.v1.Id id = 1;
+  string name = 2;
+  string version = 3;
+  types.v1.ClusterStatus status = 4;
+  types.v1.ReplicationStatus replication_status = 5;
+  // Reachability (generic). Substrate-specific placement (data dirs, volumes,
+  // disks, node selectors) is an EXECUTOR concern and lives in agent.v1
+  // (round 2), NOT in this user-facing type — that leakage is exactly what
+  // §5.3 removes from today's model.proto ClusterInstance.
+  string listen_address = 6;
+  optional uint32 port = 7;
+  string external_address = 8;
+  // Observed resources.
+  double cpu = 9;
+  uint64 memory = 10;
+  uint64 storage_used = 11;            // was model.proto dbSize
+  // Engine-specific (e.g. Ivory's extra port).
+  oneof engine_spec {
+    postgres.PostgresInstanceSpec postgres = 20;
+  }
+}
+
+// ===========================================================================
+// Cluster operations
+// ===========================================================================
+
+// Common selector for lifecycle ops. Every mutation names its environment
+// (§5.1). Bulk forms (all / tags) are scoped to a single environment.
+message ClusterSelector {
+  string environment_id = 1;
+  oneof match {
+    types.v1.Id id = 2;
+    string name = 3;     // unique within environment
+    bool all = 4;
+    TagMatch tags = 5;
+  }
+}
+message TagMatch {
+  map<string, string> tags = 1;
+}
+
+message ListClustersRequest {
+  // Optional: restrict to one environment. Empty = all (aggregated/cloud).
+  string environment_id = 1;
+  map<string, string> tags = 2;
+  optional types.v1.PageRequest page = 3;
+}
+message ListClustersResponse {
+  repeated Cluster cluster = 1;
+  types.v1.PageInfo page = 2;
+  map<string, types.v1.SourceInfo> source_info = 3;   // per environment
+}
+
+message GetClusterRequest {
+  string environment_id = 1;
+  oneof target {
+    types.v1.Id id = 2;
+    string name = 3;
+  }
+}
+message GetClusterResponse {
+  Cluster cluster = 1;
+  types.v1.SourceInfo source_info = 2;
+}
+
+message CreateClusterRequest {
+  string environment_id = 1;
+  // Client-supplied idempotency key (§5.1, P7): a retried create with the same
+  // key cannot double-create. Persisted with the outcome in the StateStore.
+  string idempotency_key = 2;
+  string name = 3;
+  types.v1.DatabaseEngine engine = 4;
+  string version = 5;
+  // Generic topology: replica count replaces today's Slony-Linux `standalone`
+  // flag (0 replicas = standalone primary).
+  uint32 replicas = 6;
+  map<string, string> tags = 7;
+  optional TlsConfig tls = 8;
+  // Initial credential: provided by reference, or matriarch/slon-generated and
+  // stored by reference (§3.7 — generation preferred, no plaintext in-band).
+  optional CredentialSpec credential = 9;
+  // Superuser name; the secret itself is generated/referenced via `credential` (§3.7).
+  string username = 10;
+  // Requested Postgres port — absent lets the substrate assign one (auto); an explicit value is
+  // strict (provisioning fails if it is already in use). listen_address is the bind address.
+  optional uint32 port = 11;
+  string listen_address = 12;
+  // Inline superuser password (less secure, but honored if the user explicitly supplies one).
+  // Empty ⇒ the matriarch generates one. Either way the value is held by reference (§3.7), not here.
+  string password = 13;
+  // Engine-specific creation payload (extensions, Postgres config, Ivory, ...).
+  oneof engine_spec {
+    postgres.PostgresClusterCreateSpec postgres = 20;
+  }
+  // Executor placement hints (substrate). Untyped for now; the typed executor
+  // sub-messages (node selectors, volumes, dirs, HA topology) land with
+  // agent.v1 in round 2. Keeping this a map avoids re-leaking substrate into
+  // the generic create path prematurely.
+  map<string, string> placement = 30;
+}
+
+message CredentialSpec {
+  oneof source {
+    types.v1.SecretRef provided = 1;   // use an existing secret
+    bool generate = 2;                 // matriarch/slon generates, stores by ref
+  }
+}
+
+message TlsConfig {
+  oneof mode {
+    SelfSignedCerts self_signed = 1;
+    ProvidedCerts provided = 2;
+    NoTls none = 3;
+  }
+}
+message SelfSignedCerts {}
+message NoTls {}
+// Cert + key are secret material -> references, not inline bytes (was
+// `bytes certificate / privateKey` in model.proto TlsConfig), §3.7.
+message ProvidedCerts {
+  types.v1.SecretRef certificate = 1;
+  types.v1.SecretRef private_key = 2;
+}
+
+message DeleteClusterRequest {
+  ClusterSelector selector = 1;
+  string idempotency_key = 2;
+}
+message StartClusterRequest {
+  ClusterSelector selector = 1;
+  string idempotency_key = 2;
+}
+message StopClusterRequest {
+  ClusterSelector selector = 1;
+  string idempotency_key = 2;
+}
+message RestartClusterRequest {
+  ClusterSelector selector = 1;
+  string idempotency_key = 2;
+}
+
+// Every lifecycle mutation (create/delete/start/stop/restart) is accepted-then-
+// watch (§3.6): it streams ClusterOperationProgress until terminal. `status` is the
+// OPERATION's status; `cluster` is the current snapshot (carrying its own status
+// and per-instance detail — no parallel fields); `error` is set iff status is
+// FAILED. The stream is a STATUS WATCH, not a transaction (§9.1, P7) — a client
+// that loses it re-observes via GetCluster instead of retrying blind.
+message ClusterOperationProgress {
+  OperationStatus status = 1;
+  Cluster cluster = 2;
+  google.rpc.Status error = 3;
+}
+
+// The operation's own status, distinct from the cluster's lifecycle status.
+enum OperationStatus {
+  OPERATION_STATUS_UNSPECIFIED = 0;
+  OPERATION_STATUS_ACCEPTED = 1;   // desired state persisted (source of truth), §3.6
+  OPERATION_STATUS_RUNNING = 2;    // converging
+  OPERATION_STATUS_SUCCEEDED = 3;
+  OPERATION_STATUS_FAILED = 4;
+}
+
+message GetClusterDiagnosticsRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+}
+message GetClusterDiagnosticsResponse {
+  repeated InstanceDiagnostics instance = 1;
+  types.v1.SourceInfo source_info = 2;
+}
+message InstanceDiagnostics {
+  types.v1.Id instance_id = 1;
+  string name = 2;
+  optional google.protobuf.Timestamp received_at = 3;
+  string image_name = 4;
+  string image_digest = 5;
+  oneof engine_spec {
+    postgres.PostgresDiagnostics postgres = 20;
+  }
+}
+
+// ===========================================================================
+// Credentials (separately authorized) — §3.7
+// ===========================================================================
+
+message GetClusterCredentialsRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+}
+// This RPC is the ONLY place a credential value crosses api.v1, and it is
+// authorized independently of cluster reads (method-class authz, §7.2).
+message GetClusterCredentialsResponse {
+  string username = 1;
+  string password = 2;   // resolved secret value
+}
+
+// ===========================================================================
+// Catalog / metadata
+// ===========================================================================
+
+message ListVersionsRequest {
+  types.v1.DatabaseEngine engine = 1;   // replaces common.Flavor
+}
+message ListVersionsResponse {
+  repeated string version = 1;
+}
+
+// Extensions are a Postgres concept (§5.1 moves them to postgres.*); advertised
+// only by environments whose engine supports CAPABILITY_EXTENSIONS.
+message ListExtensionsRequest {
+  types.v1.DatabaseEngine engine = 1;
+  string version = 2;
+}
+message ListExtensionsResponse {
+  repeated postgres.Extension extension = 1;
+}
+
+// ===========================================================================
+// Events
+// ===========================================================================
+
+message GetClusterEventsRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+  optional types.v1.PageRequest page = 3;
+}
+message GetClusterEventsResponse {
+  repeated types.v1.Event event = 1;
+  types.v1.PageInfo page = 2;
+  map<string, types.v1.SourceInfo> source_info = 3;
+}
+
+// Long-lived unsolicited push (feeds Skvorets SSE fan-out). Scope optional:
+// empty cluster_id = all clusters the caller may see in the environment.
+message WatchEventsRequest {
+  string environment_id = 1;
+  optional types.v1.Id cluster_id = 2;
+}
+
+// ===========================================================================
+// Logs & metrics — split surfaces (§5.1, §4.6)
+// ===========================================================================
+
+// `component` is a generic STRING identifier, replacing today's
+// LogComponent {POSTGRES, PATRONI, SLON, ETCD} enum (§5.1). Engines/executors
+// define their own component names.
+message TailLogsRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+  optional types.v1.Id instance_id = 3;
+  repeated string component = 4;   // e.g. "postgres", "patroni"; empty = all
+}
+message LogLine {
+  google.protobuf.Timestamp timestamp = 1;
+  types.v1.Id instance_id = 2;
+  string component = 3;
+  string line = 4;
+}
+
+// Historical/analytic — cloud-edge-only (served from ClickHouse via
+// logs-service). The local matriarch does not advertise API_SURFACE_LOG_QUERY.
+message QueryLogsRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+  optional types.v1.Id instance_id = 3;
+  repeated string component = 4;
+  string filter = 5;               // backend-defined query/filter expression
+  optional types.v1.PageRequest page = 6;
+}
+message QueryLogsResponse {
+  repeated LogLine line = 1;
+  types.v1.PageInfo page = 2;
+  map<string, types.v1.SourceInfo> source_info = 3;
+}
+
+// Generic metrics/time-series query (§5.1). A Postgres "checkpoints" series
+// (today's GetClusterCheckpoints) becomes ONE engine-specific metric name here;
+// the transport is generic. Cloud-edge-only (API_SURFACE_METRICS_QUERY).
+message QueryMetricsRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+  optional types.v1.Id instance_id = 3;
+  string metric = 4;               // e.g. "postgres.checkpoints"
+  optional types.v1.PageRequest page = 5;   // timestamp window + cursor
+}
+message QueryMetricsResponse {
+  repeated MetricPoint point = 1;
+  types.v1.PageInfo page = 2;
+  map<string, types.v1.SourceInfo> source_info = 3;
+}
+message MetricPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  types.v1.Id instance_id = 2;
+  // Labeled sample(s) for the series at this timestamp (e.g. for checkpoints:
+  // {"timed": 3, "requested": 1, "write_time_ms": 1200}).
+  map<string, double> value = 3;
+}
+
+// ===========================================================================
+// Data-plane openers (control authorizes; bytes ride tunnel.v1) — §6, P5/P6
+// ===========================================================================
+
+// Generic WIRE tunnel — not "PgWire" (§5.1). Target is engine-agnostic.
+message OpenWireTunnelRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+  optional types.v1.Id instance_id = 3;
+}
+// The control plane authorizes and returns a short-lived, single-use ticket
+// plus the region-local data edge to connect to. The actual byte stream is
+// stackgres.tunnel.v1 against that edge -> Truba (round 3). Database authentication
+// still applies end-to-end (§6.3) — a tunnel grants reachability, not authz.
+message OpenWireTunnelResponse {
+  TunnelTicket ticket = 1;
+}
+message OpenExecRequest {
+  string environment_id = 1;
+  types.v1.Id cluster_id = 2;
+  optional types.v1.Id instance_id = 3;
+  repeated string command = 4;
+}
+message OpenExecResponse {
+  TunnelTicket ticket = 1;
+}
+
+// Forward declaration of the ticket the data plane consumes. Bound to
+// {provider, user, cluster/instance, target, Truba region}, single-use,
+// short-lived (§6.2). The authoritative definition lands in stackgres.tunnel.v1
+// (round 3); kept here minimal so the openers are complete.
+message TunnelTicket {
+  string value = 1;                  // opaque, signed
+  string data_edge_endpoint = 2;     // region-local edge to dial
+  google.protobuf.Timestamp expires_at = 3;
+}
