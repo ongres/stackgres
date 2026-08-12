@@ -511,6 +511,8 @@ A few wrappers can not be a plain delegation, since the two engines differ:
 | `docker_buildx_inspect` | podman has no buildx. The `Platforms:` line its caller parses is emulated from `podman info`. |
 | `docker_engine_platform` | `docker version --format '{{ .Server.Arch }}'` has no podman equivalent, `podman info --format '{{.Version.OsArch}}'` is used instead. |
 | `container_engine_socket_volume` | Only docker needs (and is able to use) a socket to give a build container access to the engine. |
+| `docker_login` | `docker login <registry>` succeeds without asking anything when it already has credentials for it, which is how the pipeline tests them. podman prompts and fails with `reading password: inappropriate ioctl for device`, so it is asked for the stored login with `--get-login` instead. A login with a user and a password is delegated unchanged. |
+| `docker_manifest_create` | podman keeps the manifest lists in the image store, so an image named like the list, as the placeholder the pipeline pushes to create the tag, makes the creation fail with `that name is already in use`. The name is freed first. docker keeps them in a store of its own and never sees the conflict. |
 | `docker_manifest_inspect` | podman only inspects an image that is a manifest list, and fails on any other with `Treating single images as manifest lists is not implemented`. With podman the registry is asked through `skopeo`, and the shape docker gives with `-v` is rebuilt from the answer. `skopeo` is therefore required to build with podman, and is part of the CI image. |
 
 The wrappers can also be overridden by sourcing `build-functions.sh` and

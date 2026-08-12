@@ -1077,6 +1077,16 @@ docker_build() {
 
 # shellcheck disable=SC2086
 docker_login() {
+  if container_engine_is_podman && [ "$#" = 1 ]
+  then
+    # `docker login <registry>` succeeds without asking anything when it already
+    # has credentials for it, which is how the pipeline tests them before
+    # falling back to a login with a user and a password. podman prompts instead
+    # and then fails with `reading password: inappropriate ioctl for device`,
+    # since a job has no terminal, so ask it for the stored login instead.
+    $CONTAINER_ENGINE login --get-login "$1" > /dev/null
+    return
+  fi
   $CONTAINER_ENGINE login "$@"
 }
 
@@ -1195,6 +1205,29 @@ docker_manifest_inspect() {
 
 # shellcheck disable=SC2086
 docker_manifest_create() {
+  # podman keeps the manifest lists in the image store, so an image named like
+  # the list to create, like the placeholder the pipeline pushes to create the
+  # tag before assembling the list, makes it fail with `that name is already in
+  # use`. docker keeps them in a store of its own and never sees the conflict.
+  # `podman manifest create --replace` would do, but it only exists since
+  # podman 5, so remove the name instead, which is what the callers mean by
+  # removing the manifest before creating it.
+  if container_engine_is_podman
+  then
+    local MANIFEST_NAME=
+    local ARG
+    for ARG
+    do
+      case "$ARG" in
+        (-*) ;;
+        (*) MANIFEST_NAME="$ARG"; break ;;
+      esac
+    done
+    if $CONTAINER_ENGINE image exists "$MANIFEST_NAME" 2> /dev/null
+    then
+      $CONTAINER_ENGINE rmi "$MANIFEST_NAME" > /dev/null
+    fi
+  fi
   $CONTAINER_ENGINE manifest create "$@"
 }
 

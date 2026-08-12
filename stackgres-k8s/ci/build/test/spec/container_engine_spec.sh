@@ -135,6 +135,47 @@ Describe "container engine"
     End
   End
 
+  Describe "docker_login"
+    It "tests the stored credentials with docker"
+      When call docker_login some-registry
+      The contents of file "$ENGINE_CALL_LOG" should include "docker login some-registry"
+    End
+
+    It "asks podman for the stored login instead of letting it prompt"
+      CONTAINER_ENGINE=podman
+      When call docker_login some-registry
+      The contents of file "$ENGINE_CALL_LOG" should include "podman login --get-login some-registry"
+    End
+
+    It "delegates a login with credentials to podman"
+      CONTAINER_ENGINE=podman
+      When call docker_login -u some-user -p some-password some-registry
+      The contents of file "$ENGINE_CALL_LOG" should include "podman login -u some-user -p some-password some-registry"
+      The contents of file "$ENGINE_CALL_LOG" should not include "--get-login"
+    End
+  End
+
+  Describe "docker_manifest_create"
+    It "frees the name of the list from a local image with podman"
+      CONTAINER_ENGINE=podman
+      When call docker_manifest_create some-image some-image-amd64
+      The contents of file "$ENGINE_CALL_LOG" should include "podman rmi some-image"
+      The contents of file "$ENGINE_CALL_LOG" should include "podman manifest create some-image some-image-amd64"
+    End
+
+    It "skips the options when looking for the name of the list"
+      CONTAINER_ENGINE=podman
+      When call docker_manifest_create --amend some-image some-image-amd64
+      The contents of file "$ENGINE_CALL_LOG" should include "podman rmi some-image"
+      The contents of file "$ENGINE_CALL_LOG" should not include "podman rmi --amend"
+    End
+
+    It "does not remove anything with docker"
+      When call docker_manifest_create some-image some-image-amd64
+      The contents of file "$ENGINE_CALL_LOG" should not include "rmi"
+    End
+  End
+
   Describe "manifest shims"
     It "creates a manifest through the engine"
       CONTAINER_ENGINE=podman
