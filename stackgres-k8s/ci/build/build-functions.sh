@@ -559,6 +559,7 @@ extract_from_image() {
   local CONTAINER_ID
   local WORKDIR
   local DEST="${PROJECT_PATH:-$(pwd)}"
+  local DEST_PARENT
   local FILE
   local SRC
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
@@ -581,18 +582,21 @@ extract_from_image() {
       /*) SRC="$FILE" ;;
       *)  SRC="${WORKDIR%/}/$FILE" ;;
     esac
-    mkdir -p "$DEST/$FILE"
-    if docker_cp "$CONTAINER_ID:$SRC/." "$DEST/$FILE" 2>/dev/null
-    then
-      # $FILE is a directory: its contents were merged into $DEST/$FILE
-      :
-    else
-      # $FILE is not a directory: drop the placeholder and copy it as a file
-      # (silently skipping paths that do not exist in the image)
-      rmdir "$DEST/$FILE" 2>/dev/null || true
-      mkdir -p "$DEST/${FILE%/*}"
-      docker_cp "$CONTAINER_ID:$SRC" "$DEST/$FILE" 2>/dev/null || true
-    fi
+    case "$FILE" in
+      */*) DEST_PARENT="$DEST/${FILE%/*}" ;;
+      *)   DEST_PARENT="$DEST" ;;
+    esac
+    # Copying the path into its parent keeps the name it has in the image and
+    # needs to know nothing about what it is: a file lands beside whatever is
+    # already there and the contents of a directory are merged into the one of
+    # the same name. Asking for `<path>/.` instead tells the engines apart
+    # rather than the kind of path, since docker fails with `not a directory`
+    # on a file, which is how this used to be told, while podman copies the
+    # file into the directory made to receive it and leaves a directory where
+    # the file was meant to be.
+    mkdir -p "$DEST_PARENT"
+    # silently skipping the paths that do not exist in the image
+    docker_cp "$CONTAINER_ID:$SRC" "$DEST_PARENT" 2>/dev/null || true
   done
   docker_rm -fv "$CONTAINER_ID" >/dev/null
 }
