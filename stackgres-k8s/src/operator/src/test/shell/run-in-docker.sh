@@ -93,14 +93,22 @@ run_in_container() {
   local IMAGE_NAME="$(echo "$TEST_IMAGE_NAMES" | tr ' ' '\n' | tail -n +$1 | head -n 1)"
   shift
   local SOCKET_PATH="$(container_engine_socket_path)"
+  # The id has to be given: the test images run as a user of their own, that the
+  # /etc/passwd of the host mounted below hides, and the engine fails to resolve
+  # it with `unable to find user stackgres: no matching entries in passwd file`.
   # A rootless podman maps the root of the container to the invoking user and
   # every other id to an unrelated subordinate one, so the root of the container
   # is the only id that can read and write the mounted project.
+  local RUN_AS_USER="$(id -u):$(id -g)"
+  if container_engine_is_podman
+  then
+    RUN_AS_USER=0:0
+  fi
   $CONTAINER_ENGINE run --rm \
     $([ -z "$SHELL_TEST_TIMEOUT" ] || printf '%s %s' --stop-timeout "$SHELL_TEST_TIMEOUT") \
     -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
     -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
-    $(container_engine_is_podman || printf '%s %s' -u "$(id -u):$(id -g)") \
+    -u "$RUN_AS_USER" \
     $(container_engine_is_podman || id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
     -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
     $([ -z "$SOCKET_PATH" ] || printf '%s %s' -v "$SOCKET_PATH:/var/run/docker.sock") \
