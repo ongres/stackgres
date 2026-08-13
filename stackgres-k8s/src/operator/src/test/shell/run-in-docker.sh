@@ -9,6 +9,38 @@ PROJECT_PATH="$TEST_SHELL_PATH/../../.."
 TARGET_PATH="$PROJECT_PATH/target/shell"
 SHELL_XTRACE=$(! echo $- | grep -q x || echo " -x")
 
+# Container engine used to run the tests, as a command prefix. It defaults to
+# docker, see CONTAINER_ENGINE in stackgres-k8s/ci/build.
+CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
+
+container_engine_is_podman() {
+  case "${CONTAINER_ENGINE%% *}" in
+    podman|*/podman) return 0 ;;
+  esac
+  return 1
+}
+
+container_engine_socket_path() {
+  local SOCKET_PATH
+  if ! container_engine_is_podman
+  then
+    if [ -S /var/run/docker.sock ]
+    then
+      printf %s /var/run/docker.sock
+    fi
+    return
+  fi
+  for SOCKET_PATH in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/podman/podman.sock" \
+    /run/podman/podman.sock
+  do
+    if [ -S "$SOCKET_PATH" ] && [ -w "$SOCKET_PATH" ]
+    then
+      printf %s "$SOCKET_PATH"
+      return
+    fi
+  done
+}
+
 test -f "$PROJECT_PATH/pom.xml"
 mkdir -p "$TARGET_PATH"
 
@@ -60,14 +92,18 @@ run_in_all_containers() {
 run_in_container() {
   local IMAGE_NAME="$(echo "$TEST_IMAGE_NAMES" | tr ' ' '\n' | tail -n +$1 | head -n 1)"
   shift
-  docker run --rm \
+  local SOCKET_PATH="$(container_engine_socket_path)"
+  # A rootless podman maps the root of the container to the invoking user and
+  # every other id to an unrelated subordinate one, so the root of the container
+  # is the only id that can read and write the mounted project.
+  $CONTAINER_ENGINE run --rm \
     $([ -z "$SHELL_TEST_TIMEOUT" ] || printf '%s %s' --stop-timeout "$SHELL_TEST_TIMEOUT") \
     -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
     -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
-    -u "$(id -u):$(id -g)" \
-    $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
+    $(container_engine_is_podman || printf '%s %s' -u "$(id -u):$(id -g)") \
+    $(container_engine_is_podman || id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
     -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
-    -v /var/run/docker.sock:/var/run/docker.sock \
+    $([ -z "$SOCKET_PATH" ] || printf '%s %s' -v "$SOCKET_PATH:/var/run/docker.sock") \
     -v "$(realpath "$(pwd)/$PROJECT_PATH"):/project" -w /project \
     -e IMAGE_NAME="$IMAGE_NAME" \
     --entrypoint /bin/sh \

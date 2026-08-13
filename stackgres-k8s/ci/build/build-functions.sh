@@ -228,11 +228,14 @@ $(
           | .[]" stackgres-k8s/ci/build/target/config.json)
 EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
+  container_engine_serve_socket
+  local EXIT_CODE=0
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
     --platform "$(docker_platform "${BUILD_PLATFORM:-$(get_platform)}")" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     $(container_engine_socket_volume) \
+    $(container_engine_testcontainers_env) \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
     --user "$BUILD_UID" \
@@ -246,7 +249,9 @@ EOF
     "$BUILD_IMAGE_NAME" \
     -ec $(echo "$-" | grep -v -q x || printf %s '-x') "
       $(cat "stackgres-k8s/ci/build/target/$MODULE-build-env")
-      $COMMANDS"
+      $COMMANDS" || EXIT_CODE="$?"
+  container_engine_stop_socket
+  return "$EXIT_CODE"
 }
 
 build_module_image() {
@@ -1252,13 +1257,110 @@ docker_buildx_inspect() {
   fi
 }
 
-container_engine_socket_volume() {
-  # A build container may need to access the container engine. Only docker
-  # requires (and is able to use) a socket in order to do so.
-  if ! container_engine_is_podman && [ -S /var/run/docker.sock ]
+# The socket of the engine of this host, that a build container has to be given
+# access to: the Java tests start containers through the Testcontainers of the
+# Dev Services of Quarkus. docker always has one, podman only has one while
+# something is serving its docker compatible API.
+container_engine_socket_path() {
+  local SOCKET_PATH
+  if ! container_engine_is_podman
   then
-    printf %s '--volume /var/run/docker.sock:/var/run/docker.sock'
+    if [ -S /var/run/docker.sock ]
+    then
+      printf %s /var/run/docker.sock
+    fi
+    return
   fi
+  # A host can have both, the socket of the rootless podman of each user and the
+  # one of the rootful podman, and only the one this user can write to belongs
+  # to the podman this script drives.
+  for SOCKET_PATH in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/podman/podman.sock" \
+    /run/podman/podman.sock
+  do
+    if [ -S "$SOCKET_PATH" ] && [ -w "$SOCKET_PATH" ]
+    then
+      printf %s "$SOCKET_PATH"
+      return
+    fi
+  done
+}
+
+# podman is daemonless, so its docker compatible API only exists while a service
+# is serving it. The user unit that does so is not enabled by default and a job
+# pod has no systemd at all, so serve one for as long as the build container
+# needs it instead of requiring it to be set up beforehand.
+CONTAINER_ENGINE_SOCKET_PATH=
+CONTAINER_ENGINE_SOCKET_SERVICE_PID=
+container_engine_serve_socket() {
+  CONTAINER_ENGINE_SOCKET_PATH="$(container_engine_socket_path)"
+  if [ -n "$CONTAINER_ENGINE_SOCKET_PATH" ] || ! container_engine_is_podman
+  then
+    return
+  fi
+  CONTAINER_ENGINE_SOCKET_PATH="${TMPDIR:-/tmp}/stackgres-build-engine-$$.sock"
+  $CONTAINER_ENGINE system service --time=0 "unix://$CONTAINER_ENGINE_SOCKET_PATH" &
+  CONTAINER_ENGINE_SOCKET_SERVICE_PID="$!"
+  local ATTEMPT=0
+  while [ ! -S "$CONTAINER_ENGINE_SOCKET_PATH" ] && [ "$ATTEMPT" -lt 100 ]
+  do
+    ATTEMPT="$((ATTEMPT + 1))"
+    sleep 0.1
+  done
+  if [ ! -S "$CONTAINER_ENGINE_SOCKET_PATH" ]
+  then
+    >&2 echo "Could not serve the API of the container engine with \`$CONTAINER_ENGINE system service\`," \
+      "that the Java tests need in order to start containers"
+    container_engine_stop_socket
+    return 1
+  fi
+}
+
+container_engine_stop_socket() {
+  if [ -n "$CONTAINER_ENGINE_SOCKET_SERVICE_PID" ]
+  then
+    kill "$CONTAINER_ENGINE_SOCKET_SERVICE_PID" 2> /dev/null || true
+    wait "$CONTAINER_ENGINE_SOCKET_SERVICE_PID" 2> /dev/null || true
+    rm -f "$CONTAINER_ENGINE_SOCKET_PATH"
+    CONTAINER_ENGINE_SOCKET_SERVICE_PID=
+    CONTAINER_ENGINE_SOCKET_PATH=
+  fi
+}
+
+container_engine_socket_volume() {
+  local SOCKET_PATH="${CONTAINER_ENGINE_SOCKET_PATH:-$(container_engine_socket_path)}"
+  if [ -n "$SOCKET_PATH" ]
+  then
+    # Always mounted where docker has it, so that anything looking for the engine
+    # from inside a build container keeps finding it where it expects to.
+    printf %s "--volume $SOCKET_PATH:/var/run/docker.sock"
+  fi
+}
+
+# Testcontainers starts its containers on the engine of this host and not inside
+# the build container, so they are siblings of it and it has to be told:
+#
+# * the path the socket has out here, to be able to mount it into its reaper;
+# * the host to reach the ports they publish, since those are published out here
+#   and not on the loopback of the build container, where Testcontainers looks
+#   by default. podman resolves host.containers.internal to this host in every
+#   container it runs, which is what makes them reachable;
+# * to not run the reaper at all, since it would need a privileged container
+#   with a rootless podman and the build container is thrown away at the end of
+#   the build anyway.
+container_engine_testcontainers_env() {
+  local SOCKET_PATH
+  if ! container_engine_is_podman
+  then
+    return
+  fi
+  SOCKET_PATH="${CONTAINER_ENGINE_SOCKET_PATH:-$(container_engine_socket_path)}"
+  printf '%s' '--env DOCKER_HOST=unix:///var/run/docker.sock'
+  if [ -n "$SOCKET_PATH" ]
+  then
+    printf ' --env TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=%s' "$SOCKET_PATH"
+  fi
+  printf ' %s' '--env TESTCONTAINERS_HOST_OVERRIDE=host.containers.internal'
+  printf ' %s' '--env TESTCONTAINERS_RYUK_DISABLED=true'
 }
 
 get_free_port() {

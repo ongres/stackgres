@@ -212,10 +212,42 @@ Describe "container engine"
   End
 
   Describe "container_engine_socket_volume"
-    It "does not mount any socket with podman"
+    It "mounts the socket of docker where docker has it"
+      CONTAINER_ENGINE_SOCKET_PATH=/var/run/docker.sock
+      When call container_engine_socket_volume
+      The output should equal "--volume /var/run/docker.sock:/var/run/docker.sock"
+    End
+
+    It "mounts the socket of podman where docker has it, so nothing has to know"
       CONTAINER_ENGINE=podman
+      CONTAINER_ENGINE_SOCKET_PATH=/run/user/1000/podman/podman.sock
+      When call container_engine_socket_volume
+      The output should equal "--volume /run/user/1000/podman/podman.sock:/var/run/docker.sock"
+    End
+
+    It "mounts nothing when there is no socket to mount"
+      CONTAINER_ENGINE=podman
+      XDG_RUNTIME_DIR="$TEST_PROJECT_DIR"
+      container_engine_socket_path() { printf ''; }
       When call container_engine_socket_volume
       The output should equal ""
+    End
+  End
+
+  Describe "container_engine_testcontainers_env"
+    It "does not set anything with docker"
+      When call container_engine_testcontainers_env
+      The output should equal ""
+    End
+
+    It "points Testcontainers at the socket and disables the reaper with podman"
+      CONTAINER_ENGINE=podman
+      CONTAINER_ENGINE_SOCKET_PATH=/run/user/1000/podman/podman.sock
+      When call container_engine_testcontainers_env
+      The output should include "--env DOCKER_HOST=unix:///var/run/docker.sock"
+      The output should include "--env TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/run/user/1000/podman/podman.sock"
+      The output should include "--env TESTCONTAINERS_HOST_OVERRIDE=host.containers.internal"
+      The output should include "--env TESTCONTAINERS_RYUK_DISABLED=true"
     End
   End
 
