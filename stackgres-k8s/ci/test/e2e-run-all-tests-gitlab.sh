@@ -24,6 +24,9 @@ export K8S_REUSE="${K8S_REUSE:-false}"
 export K8S_DELETE="$([ "$K8S_REUSE" = true ] && echo false || echo true)"
 E2E_FAILURE_RETRY="${E2E_FAILURE_RETRY:-4}"
 E2E_STORE_RESULTS_RETRY="${E2E_STORE_RESULTS_RETRY:-4}"
+# Container engine used to collect the logs of the nodes below, see
+# CONTAINER_ENGINE in stackgres-k8s/e2e/helpers.
+export CONTAINER_ENGINE="${CONTAINER_ENGINE:-docker}"
 
 SUFFIX="${SUFFIX:-$(echo "-$E2E_JOB-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')}"
 
@@ -34,6 +37,20 @@ export K8S_REUSE="${K8S_REUSE:-true}"
 export K8S_FROM_DIND=true
 export E2E_BUILD_IMAGES=false
 export E2E_WAIT_OPERATOR=false
+# Everything below that ends up mounted into a kind node is resolved by whatever
+# runs the containers. That is this container when the engine runs them itself,
+# which is why a runner with a local one points this at a path of its host, but
+# it is the other side when the engine reaches a service, as it does where the
+# runner gives the job pod a podman sidecar: a path only this container has would
+# be created there empty and the containerd cache would silently stop being one.
+# The runner shares /var/lib/kind-cache at the same path on both sides for it.
+# ServiceIsRemote is the same thing container_engine_is_remote reads in
+# stackgres-k8s/e2e/helpers, which this script does not source.
+if [ -z "$E2E_TEMP_PATH" ] \
+  && [ "$($CONTAINER_ENGINE info --format '{{ .Host.ServiceIsRemote }}' 2>/dev/null)" = true ]
+then
+  E2E_TEMP_PATH=/var/lib/kind-cache
+fi
 export E2E_TEMP_PATH="${E2E_TEMP_PATH:-/tmp}"
 export E2E_PULLED_IMAGES_PATH="${E2E_TEMP_PATH}/pulled-images$SUFFIX"
 export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
@@ -254,22 +271,30 @@ run_in_e2e_lock() {
 
 run_all_e2e() {
   set +e
-  docker run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" alpine \
+  # The logs of the nodes belong to the root of the engine, so they are made and
+  # collected from a container running as it. The engine has to be the one the
+  # rest of the job uses: with a literal docker these silently did nothing on a
+  # runner without a daemon, which is why the collected logs were empty. The
+  # paths are given to the engine, so they are the ones under E2E_TEMP_PATH,
+  # that it resolves the same way this container does.
+  $CONTAINER_ENGINE run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" docker.io/library/alpine \
     rm -rf "/source/${KIND_LOG_HOST_PATH##*/}"
-  docker run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" alpine \
+  $CONTAINER_ENGINE run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" docker.io/library/alpine \
     mkdir -p "/source/${KIND_LOG_HOST_PATH##*/}"
   "$E2E_SHELL" $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
   EXIT_CODE="$?"
   if [ "$KIND_LOG" = true ]
   then
     mkdir -p stackgres-k8s/e2e/target/kind-logs
-    docker run --rm -u 0 -v "$KIND_LOG_HOST_PATH:/source/kind-logs" \
-      -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
+    $CONTAINER_ENGINE run --rm -u 0 -v "$KIND_LOG_HOST_PATH:/source/kind-logs" \
+      -v "$(pwd)/stackgres-k8s/e2e/target:/target" docker.io/library/alpine \
       cp -r "/source/kind-logs/." /target/kind-logs/.
-    docker run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" alpine \
+    $CONTAINER_ENGINE run --rm -u 0 -v "${KIND_LOG_HOST_PATH%/*}:/source" docker.io/library/alpine \
       rm -rf "/source/${KIND_LOG_HOST_PATH##*/}"
-    docker run --rm -u 0 \
-      -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
+    # The copy above ran as the root of the engine, so give what it left to the
+    # user running the job, which is the one that has to archive it.
+    $CONTAINER_ENGINE run --rm -u 0 \
+      -v "$(pwd)/stackgres-k8s/e2e/target:/target" docker.io/library/alpine \
       chown -R "$(id -u):$(id -g)" '/target/kind-logs'
     if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
     then
