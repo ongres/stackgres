@@ -208,12 +208,23 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   # cgroups, that the kubelet of the node has to be able to manage. podman reads
   # the configuration pointed by CONTAINERS_CONF, so ship an alternative one for
   # the jobs that create a kind cluster to select instead of patching this file
-  # at runtime. See stackgres-k8s/ci/runner for what the pod has to provide.
+  # at runtime, which stackgres-k8s/e2e/envs/kind does. A podman 4 client sends
+  # its own defaults to the service it talks to, so this decides the namespaces
+  # of the nodes even where the engine is a sidecar of the job pod.
+  # What must not come back from the defaults above:
+  # * utsns="host", because a kind node is given a hostname and podman refuses
+  #   with `cannot set hostname when running in the host UTS namespace`;
+  # * cgroups="disabled" and cgroupns="host", because a node then gets no cgroup
+  #   of its own and its kubelet loops on `sed: couldn't flush stdout: Device or
+  #   resource busy` while trying to write cgroup.subtree_control.
+  # log_driver has to be k8s-file: kind reads the logs of a node with
+  # `podman logs -f`, that journald refuses to serve together with the file
+  # events backend selected below.
   RUN printf '%s\n' \
     '[containers]' \
     'userns="host"' \
     'ipcns="host"' \
-    'utsns="host"' \
+    'log_driver="k8s-file"' \
     '' \
     '[engine]' \
     'cgroup_manager="cgroupfs"' \
