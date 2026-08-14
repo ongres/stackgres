@@ -331,7 +331,14 @@ update_k8s_config() {
   mkdir -p "$HOME/.kube"
   if [ "$K8S_FROM_DIND" = true ]
   then
-    if $CONTAINER_ENGINE network ls --format '{{ .Name }}' | grep -q '^kind$'
+    # Put the container this runs in on the network of the nodes, so that it can
+    # reach them. There is nothing to do when the engine is a service: it shares
+    # the network namespace of the pod, so the bridge it makes for the nodes is
+    # already on this side, and this container is not one it created, so none of
+    # the lookups below can name it. They would all come back empty and leave
+    # `inspect ''` to fail with `name or ID cannot be empty`.
+    if ! container_engine_is_remote \
+      && $CONTAINER_ENGINE network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
       local CONTAINER_NAME
       CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
