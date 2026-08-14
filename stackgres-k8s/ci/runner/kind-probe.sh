@@ -16,6 +16,13 @@ export CONTAINERS_CONF="${CONTAINERS_CONF:-/etc/containers/containers-kind.conf}
 
 FAILED=false
 
+# When podman talks to a service the containers run on its side, so nothing this
+# pod has answers whether a kind node can be created: the devices, the cgroups
+# and the paths that decide are the ones of the service. Only the checks that go
+# through podman itself, and creating the cluster, mean anything then. This is
+# the same distinction container_engine_is_remote makes in stackgres-k8s/e2e.
+IS_REMOTE="$(podman info --format '{{ .Host.ServiceIsRemote }}' 2>/dev/null || printf false)"
+
 check() {
   printf '\n== %s\n' "$1"
   shift
@@ -50,19 +57,27 @@ cgroups_are_delegated() {
 printf '== identity\n'
 id
 printf 'uid_map:%s\n' "$(tr -s ' ' < /proc/self/uid_map | tr '\n' ';')"
+printf 'podman service is remote: %s\n' "$IS_REMOTE"
 
-check "the pod has its own user namespace (path 1)" has_own_user_namespace
-check "the cgroups are v2" cgroups_are_v2
-check "the cgroups of the pod are writable, so a node can be given one" \
-  cgroups_are_delegated
+if [ "$IS_REMOTE" = true ]
+then
+  printf '\n   The engine is a service, so what this pod has does not decide.\n'
+  printf '   Skipping the checks on the user namespace, the cgroups and\n'
+  printf '   /dev/net/tun of this container.\n'
+else
+  check "the pod has its own user namespace" has_own_user_namespace
+  check "the cgroups are v2" cgroups_are_v2
+  check "the cgroups of the pod are writable, so a node can be given one" \
+    cgroups_are_delegated
 
-printf '\n== cgroup controllers podman reports\n'
-podman info --format '{{ .Host.CgroupControllers }}' 2>&1
-# kind refuses to create a cluster with a rootless podman unless this contains
-# cpu, memory and pids, and it is podman it asks. See check_kind_podman_cgroup_
-# delegation in stackgres-k8s/e2e/envs/kind.
+  printf '\n== cgroup controllers podman reports\n'
+  podman info --format '{{ .Host.CgroupControllers }}' 2>&1
+  # kind refuses to create a cluster with a rootless podman unless this contains
+  # cpu, memory and pids, and it is podman it asks. See
+  # check_kind_podman_cgroup_delegation in stackgres-k8s/e2e/envs/kind.
 
-check "/dev/net/tun is present (only needed by path 2)" test -c /dev/net/tun
+  check "/dev/net/tun is present" test -c /dev/net/tun
+fi
 
 printf '\n== podman\n'
 podman info --format \

@@ -9,94 +9,79 @@ kind node is a container that runs its own kubelet and its own containerd, so it
 needs:
 
 * **its own network namespace**, so that the nodes reach each other on a bridge
- of their own and the pod network of the cluster under test does not collide
- with the one of the cluster running the job;
+  of their own and the pod network of the cluster under test does not collide
+  with the one of the cluster running the job;
 * **its own cgroups**, that the kubelet of the node manages.
 
-Both are exactly what the configuration of the build jobs takes away, and
-neither is granted to a pod by default. `/etc/containers/containers-kind.conf`
-of the CI image is the configuration that asks for them back; what follows is
-what the pod has to provide so that podman can deliver them.
+Neither is granted to a pod by default, and no unprivileged pod on a real
+cluster can be made to grant them (see "The dead ends" below). What runs the e2e
+tests on the rack instead is a **privileged podman sidecar**: the job container
+stays unprivileged and drives the engine of a second container in the same pod.
 
-> **Nothing here has been run against the rack.** The files are written from the
-> failure modes below and are meant to be corrected by what `kind-probe.sh`
-> reports. What *has* been verified, on a workstation, is that the kind
-> environment itself works with rootless podman once those requirements are met.
+## The shape
 
-## The two blockers
+Every e2e job pod carries a container running
+`podman system service --time=0` on a socket in a volume shared with the job
+container. The job container is given:
 
-**Networking.** In a pod, `/dev` has no `net/tun`. Both `pasta` and
-`slirp4netns`, the two backends a rootless podman uses to connect a container
-network to the outside, open that device, so a rootless podman can run a
-container in the network of the pod but can not give it one of its own:
+| | |
+|---|---|
+| `CONTAINER_ENGINE` | `podman` |
+| `CONTAINER_HOST` | the socket of the sidecar, so every `podman` is a remote client |
+| `BUILD_UID` | `1000:1000`, so containers started through the socket write as the job user |
+| build directory | mounted at the **same path** in the sidecar |
+| kind cache | a volume mounted at the **same path** in both, `/var/lib/kind-cache` |
 
-```
-Error: setting up Pasta: pasta failed with exit code 1:
-Failed to open() /dev/net/tun: No such file or directory
-```
+The sidecar is privileged and runs as a real root, with `hostUsers` left true.
+Both are load-bearing: netavark writes sysctls per bridge and `/proc/sys` is
+read-only below `privileged`, while the kubelet of a node has to `mkdir` in a
+cgroup owned by the real root of the machine. This is the trust boundary docker
+in docker already has — whoever reaches the socket can ask for a privileged
+container — but it is confined to the sidecar instead of the job.
 
-**Cgroups.** A rootless podman delegates a subtree of the cgroups to each
-container, and kind refuses to create a cluster unless `cpu`, `memory` and
-`pids` are among the controllers podman reports. On a workstation systemd
-delegates them to the session, and asking for that delegation is already the
-first thing a developer running the e2e tests with podman has to do. A pod has
-no user session, and `/sys/fs/cgroup` belongs to root. Doing the delegation from
-an init container does not work either: with a private cgroup namespace every
-container of the pod sees its *own* cgroup as the root of `/sys/fs/cgroup`, so
-an init container would only ever chown a cgroup that is deleted when it exits.
+## What the framework does with it
 
-## Path 1 — give the pod its own user namespace
+`podman info --format '{{ .Host.ServiceIsRemote }}'` is what tells this runner
+apart, and `container_engine_is_remote` in `stackgres-k8s/e2e/helpers` is the
+predicate built on it. Where it is true:
 
-`hostUsers: false` maps the root of the pod to an unprivileged id of the node.
-Two things follow, and they are precisely the two blockers:
+* **the requirement checks are skipped.** `/dev/net/tun` and the cgroups of the
+  job container describe the wrong machine: a rootful podman builds a bridge and
+  a veth pair itself and never opens a tap device, and the cgroups that matter
+  are the sidecar's. See `check_kind_podman_support` in `stackgres-k8s/e2e/envs/kind`.
+* **`E2E_TEMP_PATH` has to name a directory both sides see.** Paths given to the
+  engine are resolved on its side, so a path of the job container alone would be
+  created there empty and the containerd cache would silently stop being one.
+  This is the same knob a runner with a local engine already sets to a path of
+  its host; `stackgres-k8s/ci/test/e2e-run-all-tests-gitlab.sh` defaults it to
+  the shared volume when it finds the engine remote.
+* **`CONTAINERS_CONF` selects `containers-kind.conf`**, which `envs/kind` does
+  for any podman. A podman 4 client sends its own defaults to the service, so
+  the configuration of the *client* decides the namespaces the nodes get.
 
-* the runtime hands the cgroups of the pod to the mapped root, which is the
- delegation that was missing;
-* podman runs as root *inside that namespace*, so it creates network namespaces
- and veth pairs directly and never reaches for `/dev/net/tun`.
+## The dead ends
 
-The node keeps seeing an unprivileged process throughout: no capability is
-granted, no device plugin is deployed, and nothing on the node is shared.
+Both unprivileged paths this folder used to describe were measured on the rack
+and neither works:
 
-Requires the `UserNamespacesSupport` feature gate, a container runtime with
-idmap mount support and a kernel 6.3 or later. **Check this first** — if the
-rack satisfies it, path 2 is not worth building.
-
-Apply `kind-probe.yaml`, run `kind-probe.sh` in it, and if the cluster comes up
-merge the `pod_spec` of `config.toml.example` into the runner configuration.
-
-## Path 2 — advertise `/dev/net/tun` and run podman rootless
-
-Only if path 1 is not available. Deploy `tun-device-plugin.yaml`, request
-`squat.ai/tun` in the job pod and make the job run as a non root user, which is
-what makes podman choose its rootless mode. A `hostPath` on `/dev/net/tun` is
-not a substitute: the device filter of the cgroups v2 denies opening the
-character device to a container that did not receive it from the runtime.
-
-This solves the networking blocker and **leaves the cgroup one open**: a
-rootless podman that shares the user namespace of the node still has no
-delegated cgroup subtree. `kind-probe.sh` checks that case explicitly. If the
-cgroups of the pod turn out not to be writable, this path is a dead end and
-there is nothing left to try short of a privileged pod, which is not on the
-table.
-
-## Path 3 — leave the e2e tests where they are
-
-Keep the e2e jobs on the runners that have a docker daemon and let the rack
-serve the build and image jobs, which podman already covers. This is the honest
-outcome if path 1 is unavailable and path 2 stops at the cgroups, and it costs
-nothing: the kind environment supports podman either way, which is what makes it
-usable on a workstation without docker.
+* **A pod with its own user namespace** (`hostUsers: false`). The premise was
+  that the runtime hands the cgroups of the pod to the mapped root. It does not:
+  `/sys/fs/cgroup` stays owned by the real root and read-only, the pod gets no
+  `CAP_SYS_ADMIN`, and a node container fails with
+  `mkdir: can't create directory '/sys/fs/cgroup/kubelet.slice': Permission denied`.
+* **A device plugin advertising `/dev/net/tun`**, with podman rootless. It fixes
+  the networking and stops at exactly the same cgroup wall. A rootful service
+  does not need the device at all, which is why the plugin is gone.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `kind-probe.yaml` | A pod shaped like a job pod, path 1 by default |
+| `kind-probe.yaml` | A pod shaped like a job pod |
 | `kind-probe.sh` | Checks each requirement, then creates and deletes a cluster |
-| `tun-device-plugin.yaml` | Path 2 only, advertises `/dev/net/tun` as `squat.ai/tun` |
 | `config.toml.example` | The parts of the runner configuration that matter |
 
-Once a path is proven, point the `stackgres-e2e-runner` tag in
-`.gitlab-ci/e2e-test.yml` at the rack runner and set `CONTAINER_ENGINE=podman`
-for those jobs.
+`kind-probe.yaml` and `config.toml.example` still describe the unprivileged
+attempt and have not been rewritten for the sidecar; the configuration that is
+live on the rack is the reference. `kind-probe.sh` is aware of both: against a
+remote service it only runs the checks that mean something there.
