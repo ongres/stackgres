@@ -332,23 +332,30 @@ update_k8s_config() {
   if [ "$K8S_FROM_DIND" = true ]
   then
     # Put the container this runs in on the network of the nodes, so that it can
-    # reach them. There is nothing to do when the engine is a service: it shares
-    # the network namespace of the pod, so the bridge it makes for the nodes is
-    # already on this side, and this container is not one it created, so none of
-    # the lookups below can name it. They would all come back empty and leave
-    # `inspect ''` to fail with `name or ID cannot be empty`.
-    if ! container_engine_is_remote \
-      && $CONTAINER_ENGINE network ls --format '{{ .Name }}' | grep -q '^kind$'
+    # reach them. Only the engine that created that container can name it, and
+    # none of the lookups finds one otherwise: there is no `1:name=` line in the
+    # cgroups v2, and /etc/hostname is the name of a machine rather than of a
+    # container. Not finding one is not an error, it means there is nothing to
+    # connect: either this is not running in a container at all, or it is one
+    # the engine did not create, like a container of the pod a job runs in, and
+    # a podman serving the socket to it shares the network namespace of that pod
+    # and has already put the bridge of the nodes on this side. Only using the
+    # empty name is an error, `inspect ''` fails with `name or ID cannot be
+    # empty`.
+    if $CONTAINER_ENGINE network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
       local CONTAINER_NAME
       CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
       CONTAINER_NAME="${CONTAINER_NAME:-$($CONTAINER_ENGINE ps --filter name="^$(cat /etc/hostname)" --format '{{.Names}}')}"
       CONTAINER_NAME="${CONTAINER_NAME:-$($CONTAINER_ENGINE ps --filter id="$(cat /etc/hostname)" --format '{{.ID}}')}"
-      # shellcheck disable=SC2016
-      $CONTAINER_ENGINE inspect "$CONTAINER_NAME" \
-        -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
-        | grep -q '^kind$' \
-        || $CONTAINER_ENGINE network connect kind "$CONTAINER_NAME"
+      if [ -n "$CONTAINER_NAME" ]
+      then
+        # shellcheck disable=SC2016
+        $CONTAINER_ENGINE inspect "$CONTAINER_NAME" \
+          -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
+          | grep -q '^kind$' \
+          || $CONTAINER_ENGINE network connect kind "$CONTAINER_NAME"
+      fi
     fi
     local KIND_CONTROL_PLANE_IP
     KIND_CONTROL_PLANE_IP="$($CONTAINER_ENGINE inspect "$KIND_NAME-control-plane" \
