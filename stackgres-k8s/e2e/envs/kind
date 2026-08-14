@@ -7,6 +7,18 @@
 if container_engine_is_podman
 then
   export KIND_EXPERIMENTAL_PROVIDER=podman
+  # A kind node is a container that runs its own kubelet and its own containerd,
+  # so it needs the opposite of what the build jobs configure: its own UTS
+  # namespace, that kind names, and cgroups of its own for the kubelet to manage.
+  # The CI image ships that configuration as containers-kind.conf, see
+  # stackgres-k8s/ci/build/Dockerfile-ci. A podman 4 client sends its own
+  # defaults to the service, so this decides the namespaces of the nodes even
+  # when the engine is remote. Honour a value already set, which is what lets
+  # stackgres-k8s/ci/runner/kind-probe.sh and a developer pick another one.
+  if [ -z "$CONTAINERS_CONF" ] && [ -r /etc/containers/containers-kind.conf ]
+  then
+    export CONTAINERS_CONF=/etc/containers/containers-kind.conf
+  fi
 fi
 
 KIND_NAME="${KIND_NAME:-kind}"
@@ -39,6 +51,11 @@ check_kind_podman_support() {
     echo "To run kind with podman kind v0.20.0 is required, but Kubernetes $K8S_VERSION requires kind v0.15.0"
     return 1
   fi
+  # What follows describes the machine the containers run on, which is the one
+  # answering the socket when the engine is remote. There the service is a
+  # rootful podman, so netavark builds the bridge and the veth pairs itself and
+  # never opens a tap device, and the cgroups that matter are its own.
+  container_engine_is_remote && return 0
   if [ ! -e /dev/net/tun ]
   then
     echo "kind creates its own bridge network and the network backend of podman requires /dev/net/tun to set it up"
@@ -61,6 +78,9 @@ check_kind_podman_support() {
 # lives directly under the slice of the user, works.
 check_kind_podman_cgroup_delegation() {
   container_engine_is_podman || return 0
+  # The delegation is asked of the cgroup this shell runs in, that with a remote
+  # engine is not the one the nodes are created under.
+  container_engine_is_remote && return 0
   local ENGINE_INFO
   ENGINE_INFO="$($CONTAINER_ENGINE info \
     --format '{{ .Host.Security.Rootless }} {{ .Host.CgroupControllers }}')"
@@ -133,8 +153,10 @@ kind_host_mkdir() {
     # not even be chmod-ed from a container. The containerd of a kind node does
     # exactly that to its root directory as it starts, and the node then dies
     # with `chmod /containerd-cache: operation not permitted`. Being writable is
-    # not enough, the path has to belong to the user.
-    if [ "$(id -u)" != 0 ] && [ "$(stat -c %u "$1")" != "$(id -u)" ]
+    # not enough, the path has to belong to the user. A remote service is a
+    # rootful podman, which maps nothing and can chmod whatever it is given.
+    if ! container_engine_is_remote \
+      && [ "$(id -u)" != 0 ] && [ "$(stat -c %u "$1")" != "$(id -u)" ]
     then
       cat << EOF
 $1 belongs to $(stat -c %U "$1"), but a rootless podman can only map $(id -un)
@@ -164,7 +186,13 @@ kind_host_write() {
 }
 
 kind_host_reset_dir() {
-  if container_engine_is_podman
+  if container_engine_is_remote
+  then
+    # The nodes wrote into the cache as the root of a rootful service, so only
+    # that same root can remove what they left.
+    $CONTAINER_ENGINE run --rm -u 0 -v "$1:/target" docker.io/library/alpine \
+      sh -c 'rm -rf /target/*'
+  elif container_engine_is_podman
   then
     if [ "$(id -u)" != 0 ]
     then

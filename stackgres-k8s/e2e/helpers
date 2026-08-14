@@ -21,6 +21,25 @@ container_engine_is_podman() {
   return 1
 }
 
+# Whether the engine reaches a service instead of running the containers itself,
+# as it does on a runner that gives the job pod a podman sidecar. What this
+# container has then says nothing about what a container gets: the devices and
+# the cgroups that matter are the ones of the service, and the paths handed to
+# the engine are resolved on its side. Asking podman is expensive, so the answer
+# is resolved once.
+CONTAINER_ENGINE_IS_REMOTE=
+container_engine_is_remote() {
+  container_engine_is_podman || return 1
+  if [ -z "$CONTAINER_ENGINE_IS_REMOTE" ]
+  then
+    # shellcheck disable=SC2086
+    CONTAINER_ENGINE_IS_REMOTE="$($CONTAINER_ENGINE info \
+      --format '{{ .Host.ServiceIsRemote }}' 2> /dev/null || printf false)"
+    CONTAINER_ENGINE_IS_REMOTE="${CONTAINER_ENGINE_IS_REMOTE:-false}"
+  fi
+  [ "$CONTAINER_ENGINE_IS_REMOTE" = true ]
+}
+
 try_function() {
   local E_UNSET=true
   if echo "$-" | grep -q e

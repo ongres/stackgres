@@ -133,6 +133,21 @@ Paths passed through `KIND_CONTAINERD_CACHE_PATH`, `KIND_LOG_HOST_PATH` and `KIN
 The cache also ends up holding files belonging to the subordinate ids the containers of the nodes are mapped to,
  which the user can not remove on its own. Use `podman unshare rm -rf <path>` to delete it by hand.
 
+##### When podman talks to a service
+
+Everything above describes the machine podman runs the containers on. When it reaches a service instead, as it does
+ where the runner gives the job pod a podman sidecar, that machine is not the one running the e2e test and none of
+ those requirements are asked of it: the service is a rootful podman, so it builds the bridge itself and never opens
+ `/dev/net/tun`, and the cgroups that matter are its own. The kind environment detects it through
+ `podman info --format '{{ .Host.ServiceIsRemote }}'` and skips those checks.
+
+What does change is that every path handed to the engine is resolved on the side of the service, so a directory a
+ kind node mounts has to exist at the same path on both sides or podman creates an empty one there and the cache
+ silently stops being one. That is the same requirement a runner with a local engine already has, and the same knob
+ answers it: `KIND_CONTAINERD_CACHE_PATH` and `KIND_LOG_HOST_PATH` are derived from `E2E_TEMP_PATH`, which has to
+ name a directory both sides see. `KIND_EXTRA_MOUNTS` needs nothing, since the build directory is already shared
+ that way. See [stackgres-k8s/ci/runner](../ci/runner) for what the runner provides.
+
 ## Write a test
 
 A test is a sequence of commands that must pass some checks written in a spec script file inside the `spec` folder.
