@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public abstract class ClusterInstance {
 
-    protected static final String SLON_REV = "7572";
+    protected static final String SLON_REV = "7580";
     protected static final String VECTOR_AGENT_REV = "7568";
 
     private UUID id;

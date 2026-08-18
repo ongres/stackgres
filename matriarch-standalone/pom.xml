@@ -31,6 +31,14 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-grpc</artifactId>
     </dependency>
+    <!-- Client transport for the outbound cloud uplink channel (io.stackgres.matriarch.quarkus.cloud).
+         quarkus-grpc ships the server transport; the dial-out channel needs Netty. Compile scope
+         because CloudUplinkClient references NettyChannelBuilder/GrpcSslContexts directly to support
+         a self-signed (insecure-tls) cloud endpoint. -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
