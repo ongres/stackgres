@@ -21,7 +21,7 @@ import java.util.Map;
  * (decision (b)). The core never sees a generated class; the adapter maps here.
  * The slon/slony agent boundary lives separately in {@code slony.SlonyMapper}.
  */
-final class ProtoMapper {
+public final class ProtoMapper {
 
     private ProtoMapper() {
     }
@@ -61,7 +61,7 @@ final class ProtoMapper {
 
     // ---- outbound: domain -> proto ----
 
-    static io.stackgres.proto.api.v1.Cluster toProto(Cluster c) {
+    public static io.stackgres.proto.api.v1.Cluster toProto(Cluster c) {
         ClusterSpec spec = c.spec();
         ClusterStatus status = c.status();
         Map<String, InstanceStatus> obsById = new HashMap<>();
@@ -135,7 +135,7 @@ final class ProtoMapper {
     /**
      * Maps a domain {@link ClusterEvent} to the {@code types.v1.Event} the events API returns.
      */
-    static io.stackgres.proto.types.v1.Event toProtoEvent(ClusterEvent e) {
+    public static io.stackgres.proto.types.v1.Event toProtoEvent(ClusterEvent e) {
         Event.Builder b = io.stackgres.proto.types.v1.Event.newBuilder()
                 .setScope("cluster")
                 .setScopeId(id(e.clusterId().value()))
