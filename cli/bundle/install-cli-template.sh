@@ -9,12 +9,12 @@ set -o noglob
 #
 # Example:
 #   Installing the CLI pointed at a Matriarch:
-#     curl ... | OTT=xxx STACKGRES_MATRIARCH_URL=server-url:6443 sh -
+#     curl ... | OTT=xxx STACKGRES_ENDPOINT_URL=server-url:6443 sh -
 #
 # Environment variables:
 #   - STACKGRES_*
 #     Environment variables which begin with STACKGRES_ will be preserved in the
-#     .env file for the CLI to use (e.g. STACKGRES_TOKEN, STACKGRES_MATRIARCH_URL).
+#     .env file for the CLI to use (e.g. STACKGRES_TOKEN, STACKGRES_ENDPOINT_URL).
 #
 #   - INSTALL_STACKGRES_NAME
 #     The name of the StackGres installation, from which the default directories
@@ -33,8 +33,8 @@ set -o noglob
 
 DOWNLOADER=
 
-# --- default Matriarch URL, override with STACKGRES_MATRIARCH_URL env var ---
-export STACKGRES_MATRIARCH_URL="${STACKGRES_MATRIARCH_URL:-dev.cc.stackgres.best}"
+# --- default Matriarch URL, override with STACKGRES_ENDPOINT_URL env var ---
+export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev.cc.stackgres.best}"
 
 # --- accept OTT as user-facing alias for STACKGRES_TOKEN ---
 [ -n "$OTT" ] && export STACKGRES_TOKEN="$OTT"
@@ -308,13 +308,13 @@ maybe_exchange_install_token() {
     if [ -z "$STACKGRES_TOKEN" ] || [ ${#STACKGRES_TOKEN} -ne 16 ]; then
         return
     fi
-    if [ -z "$STACKGRES_MATRIARCH_URL" ]; then
-        fatal 'STACKGRES_MATRIARCH_URL is required to exchange the install token'
+    if [ -z "$STACKGRES_ENDPOINT_URL" ]; then
+        fatal 'STACKGRES_ENDPOINT_URL is required to exchange the install token'
     fi
     resp_file=$(mktemp)
     http_status=$(curl -s -o "$resp_file" -w '%{http_code}' \
-        -X POST "https://${STACKGRES_MATRIARCH_URL}/install/tokens/$STACKGRES_TOKEN/exchange") \
-        || { rm -f "$resp_file"; fatal "Failed to reach https://${STACKGRES_MATRIARCH_URL} - reload the UI and copy the install command again"; }
+        -X POST "https://${STACKGRES_ENDPOINT_URL}/install/tokens/$STACKGRES_TOKEN/exchange") \
+        || { rm -f "$resp_file"; fatal "Failed to reach https://${STACKGRES_ENDPOINT_URL} - reload the UI and copy the install command again"; }
     if [ "$http_status" != "200" ]; then
         rm -f "$resp_file"
         fatal 'Install token expired or already used - reload the UI and copy the install command again'

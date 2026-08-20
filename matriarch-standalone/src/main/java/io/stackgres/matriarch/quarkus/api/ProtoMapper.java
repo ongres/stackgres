@@ -68,9 +68,10 @@ public final class ProtoMapper {
         for (InstanceStatus is : status.instances()) {
             obsById.put(is.id().value(), is);
         }
+        // environment_id is stamped by the caller (StackGresApiResource / CloudUplinkClient) from the
+        // resolved EnvironmentIdentity — not hardcoded here, so there is no bogus "local".
         io.stackgres.proto.api.v1.Cluster.Builder b = io.stackgres.proto.api.v1.Cluster.newBuilder()
                 .setId(id(spec.id().value()))
-                .setEnvironmentId("local")
                 .setName(spec.name())
                 .setEngine(toProtoEngine(spec.engine()))
                 .setVersion(spec.version())

@@ -1,10 +1,16 @@
 package io.stackgres.cli.client;
 
 import com.google.protobuf.ByteString;
-import io.stackgres.cli.Config;
+import io.grpc.*;
+import io.grpc.stub.BlockingClientCall;
+import io.grpc.stub.StreamObserver;
+import io.stackgres.cli.CliContext;
 import io.stackgres.cli.Strings;
+import io.stackgres.cli.config.ResolvedContext;
 import io.stackgres.cli.commands.ProgressMessages;
 import io.stackgres.cli.postgres.ClusterDiagnostics;
+import io.stackgres.cli.postgres.ClusterRow;
+import io.stackgres.cli.postgres.EnvironmentInfo;
 import io.stackgres.cli.postgres.Slon;
 import io.stackgres.cli.postgres.Slony;
 import io.stackgres.postgres.ClusterInstance;
@@ -13,6 +19,7 @@ import io.stackgres.proto.api.v1.*;
 import io.stackgres.proto.api.v1.CreateClusterRequest;
 import io.stackgres.proto.api.v1.DeleteClusterRequest;
 import io.stackgres.proto.api.v1.ListClustersRequest;
+import io.stackgres.proto.api.v1.ListVersionsRequest;
 import io.stackgres.proto.api.v1.RestartClusterRequest;
 import io.stackgres.proto.api.v1.StackGresApiGrpc.StackGresApiBlockingStub;
 import io.stackgres.proto.api.v1.StartClusterRequest;
@@ -21,9 +28,6 @@ import io.stackgres.proto.cli.*;
 import io.stackgres.proto.cli.GetClusterDiagnosticsRequest;
 import io.stackgres.proto.cli.GetClusterDiagnosticsResponse;
 import io.stackgres.proto.types.v1.Id;
-import io.grpc.*;
-import io.grpc.stub.BlockingClientCall;
-import io.grpc.stub.StreamObserver;
 
 import java.time.Instant;
 import java.util.Iterator;
@@ -42,52 +46,85 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class MatriarchClient {
 
-    private final ClusterServiceGrpc.ClusterServiceBlockingV2Stub clusterClient;
-    private final ClusterServiceGrpc.ClusterServiceStub asyncClient;
-    private final AccountServiceGrpc.AccountServiceBlockingV2Stub accountClient;
-    private final ResourceServiceGrpc.ResourceServiceBlockingV2Stub resourceClient;
-    private final ResourceServiceGrpc.ResourceServiceStub asyncResourceClient;
+    private ManagedChannel channel;
+    private ClusterServiceGrpc.ClusterServiceBlockingV2Stub clusterStub;
+    private ClusterServiceGrpc.ClusterServiceStub clusterAsyncStub;
+    private AccountServiceGrpc.AccountServiceBlockingV2Stub accountStub;
+    private ResourceServiceGrpc.ResourceServiceBlockingV2Stub resourceStub;
+    private ResourceServiceGrpc.ResourceServiceStub resourceAsyncStub;
     // stackgres.api.v1 — cluster CRUD talks this; the rest still use the cli.proto stubs above.
-    private final StackGresApiBlockingStub stackGresClient;
+    private StackGresApiBlockingStub stackGresStub;
 
-    private final String matriarchUrl;
+    private String matriarchUrl;
     private boolean debug;
     private ProgressMessages debugMessages;
 
     public MatriarchClient() {
-        this.matriarchUrl = Config.getValue("STACKGRES_MATRIARCH_URL", "localhost:50051");
-        boolean matriarchTls = detectMatriarchTls(matriarchUrl);
-        ChannelCredentials channelCredentials = matriarchTls ? TlsChannelCredentials.create() : InsecureChannelCredentials.create();
-        ManagedChannel channel = Grpc.newChannelBuilder(matriarchUrl, channelCredentials).build();
-        String token = Config.getValue("STACKGRES_TOKEN", null);
-        JwtCredential credential = token != null ? new JwtCredential(token) : null;
-        clusterClient = ClusterServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
-        asyncClient = ClusterServiceGrpc.newStub(channel).withCallCredentials(credential);
-        accountClient = AccountServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
-        resourceClient = ResourceServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
-        asyncResourceClient = ResourceServiceGrpc.newStub(channel).withCallCredentials(credential);
-        stackGresClient = StackGresApiGrpc.newBlockingStub(channel).withCallCredentials(credential);
+        // Cheap on purpose: the channel and stubs open lazily on first use (ensureConnected), AFTER
+        // picocli has injected the global --context/--endpoint/--token/-E options, so the resolved
+        // target (flag > env > context file > default) is the one actually dialed.
     }
 
-    private boolean detectMatriarchTls(String matriarchUrl) {
-        String configTls = Config.getValue("STACKGRES_MATRIARCH_TLS", null);
-        if (configTls == null) {
-            // assume TLS unless localhost
-            return !matriarchUrl.startsWith("localhost:");
+    /** Resolve the target once ({@link CliContext#resolve()}) and open the gRPC channel + stubs. */
+    private synchronized void ensureConnected() {
+        if (channel != null) {
+            return;
         }
-        return Boolean.parseBoolean(configTls);
+        ResolvedContext ctx = CliContext.resolve();
+        this.matriarchUrl = ctx.endpoint();
+        ChannelCredentials channelCredentials = ctx.tls() ? TlsChannelCredentials.create() : InsecureChannelCredentials.create();
+        this.channel = Grpc.newChannelBuilder(ctx.endpoint(), channelCredentials).build();
+        JwtCredential credential = ctx.token() != null ? new JwtCredential(ctx.token()) : null;
+        clusterStub = ClusterServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
+        clusterAsyncStub = ClusterServiceGrpc.newStub(channel).withCallCredentials(credential);
+        accountStub = AccountServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
+        resourceStub = ResourceServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
+        resourceAsyncStub = ResourceServiceGrpc.newStub(channel).withCallCredentials(credential);
+        stackGresStub = StackGresApiGrpc.newBlockingStub(channel).withCallCredentials(credential);
+    }
+
+    private StackGresApiBlockingStub stackGresClient() {
+        ensureConnected();
+        return stackGresStub;
+    }
+
+    private ClusterServiceGrpc.ClusterServiceBlockingV2Stub clusterClient() {
+        ensureConnected();
+        return clusterStub;
+    }
+
+    private ClusterServiceGrpc.ClusterServiceStub asyncClient() {
+        ensureConnected();
+        return clusterAsyncStub;
+    }
+
+    private AccountServiceGrpc.AccountServiceBlockingV2Stub accountClient() {
+        ensureConnected();
+        return accountStub;
+    }
+
+    private ResourceServiceGrpc.ResourceServiceBlockingV2Stub resourceClient() {
+        ensureConnected();
+        return resourceStub;
+    }
+
+    private ResourceServiceGrpc.ResourceServiceStub asyncResourceClient() {
+        ensureConnected();
+        return resourceAsyncStub;
     }
 
     private RuntimeException statusError(StatusRuntimeException e) {
         String detail = e.getStatus().getDescription() != null ? e.getStatus().getDescription() : e.getMessage();
         if (e.getStatus().getCode() == io.grpc.Status.Code.UNAVAILABLE) {
-            return new RuntimeException("cannot reach the matriarch at " + matriarchUrl + " — is it running? Set STACKGRES_MATRIARCH_URL (default localhost:50051; the api.v1 matriarch serves 9000). [" + detail + "]");
+            return new RuntimeException("cannot reach the matriarch at " + matriarchUrl + " — is it running? Set STACKGRES_ENDPOINT_URL (default localhost:50051; the api.v1 matriarch serves 9000). [" + detail + "]");
         }
         return new RuntimeException(detail);
     }
 
     public void createCluster(PostgresCluster cluster, Map<String, String> nodeSelector, Consumer<ClusterCreationUpdate> statusConsumer) {
-        CreateClusterRequest request = Mappers.createClusterRequest(cluster);
+        // Create is scoped to the active environment (required — we won't guess where to place it).
+        CreateClusterRequest request = Mappers.createClusterRequest(cluster).toBuilder()
+                .setEnvironmentId(activeEnvironment()).build();
         logDebug("Creating cluster: " + request);
 
         boolean announced = false;
@@ -96,7 +133,7 @@ public class MatriarchClient {
         String lastId = "";
         String lastName = cluster.getName() == null ? "" : cluster.getName();
         try {
-            Iterator<ClusterOperationProgress> stream = stackGresClient.createCluster(request);
+            Iterator<ClusterOperationProgress> stream = stackGresClient().createCluster(request);
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
                 logDebug("Received progress: " + p);
@@ -144,11 +181,11 @@ public class MatriarchClient {
      */
     public String getClusterCredentials(String clusterId) {
         GetClusterCredentialsRequest request = GetClusterCredentialsRequest.newBuilder()
-                .setEnvironmentId("local")
+                .setEnvironmentId(activeEnvironment())
                 .setClusterId(Id.newBuilder().setValue(clusterId))
                 .build();
         try {
-            return stackGresClient.getClusterCredentials(request).getPassword();
+            return stackGresClient().getClusterCredentials(request).getPassword();
         } catch (StatusRuntimeException e) {
             throw statusError(e);
         }
@@ -160,25 +197,25 @@ public class MatriarchClient {
     }
 
     public void deleteAllClusters(Consumer<String> deletionConsumer) {
-        for (PostgresCluster cluster : listClusters(Map.of()))
+        for (PostgresCluster cluster : listActiveClusters(Map.of()))
             deleteById(cluster.getId().toString(), cluster.getName(), deletionConsumer);
     }
 
     public void deleteClusters(Map<String, String> tags, Consumer<String> deletionConsumer) {
-        for (PostgresCluster cluster : listClusters(tags))
+        for (PostgresCluster cluster : listActiveClusters(tags))
             deleteById(cluster.getId().toString(), cluster.getName(), deletionConsumer);
     }
 
     // api.v1 delete is by-id; the CLI resolves the name/tags → id(s) client-side above.
     private void deleteById(String id, String name, Consumer<String> deletionConsumer) {
         DeleteClusterRequest request = DeleteClusterRequest.newBuilder()
-                        .setSelector(io.stackgres.proto.api.v1.ClusterSelector.newBuilder()
-                                .setEnvironmentId("local")
-                                .setId(Id.newBuilder().setValue(id)))
-                        .setIdempotencyKey(id)
-                        .build();
+                .setSelector(io.stackgres.proto.api.v1.ClusterSelector.newBuilder()
+                        .setEnvironmentId(activeEnvironment())
+                        .setId(Id.newBuilder().setValue(id)))
+                .setIdempotencyKey(id)
+                .build();
         try {
-            Iterator<ClusterOperationProgress> stream = stackGresClient.deleteCluster(request);
+            Iterator<ClusterOperationProgress> stream = stackGresClient().deleteCluster(request);
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
                 logDebug("Received progress: " + p);
@@ -199,11 +236,11 @@ public class MatriarchClient {
     }
 
     public void startAllClusters() {
-        for (PostgresCluster c : listClusters(Map.of())) if (!c.isRunning()) lifecycle(LifecycleVerb.START, c.getId().toString());
+        for (PostgresCluster c : listActiveClusters(Map.of())) if (!c.isRunning()) lifecycle(LifecycleVerb.START, c.getId().toString());
     }
 
     public void startClusters(Map<String, String> tags) {
-        for (PostgresCluster c : listClusters(tags)) if (!c.isRunning()) lifecycle(LifecycleVerb.START, c.getId().toString());
+        for (PostgresCluster c : listActiveClusters(tags)) if (!c.isRunning()) lifecycle(LifecycleVerb.START, c.getId().toString());
     }
 
     public void stopCluster(String clusterName) {
@@ -211,11 +248,11 @@ public class MatriarchClient {
     }
 
     public void stopAllClusters() {
-        for (PostgresCluster c : listClusters(Map.of())) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, c.getId().toString());
+        for (PostgresCluster c : listActiveClusters(Map.of())) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, c.getId().toString());
     }
 
     public void stopClusters(Map<String, String> tags) {
-        for (PostgresCluster c : listClusters(tags)) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, c.getId().toString());
+        for (PostgresCluster c : listActiveClusters(tags)) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, c.getId().toString());
     }
 
     public void restartCluster(String clusterName) {
@@ -223,11 +260,11 @@ public class MatriarchClient {
     }
 
     public void restartAllClusters() {
-        for (PostgresCluster c : listClusters(Map.of())) lifecycle(LifecycleVerb.RESTART, c.getId().toString());
+        for (PostgresCluster c : listActiveClusters(Map.of())) lifecycle(LifecycleVerb.RESTART, c.getId().toString());
     }
 
     public void restartClusters(Map<String, String> tags) {
-        for (PostgresCluster c : listClusters(tags)) lifecycle(LifecycleVerb.RESTART, c.getId().toString());
+        for (PostgresCluster c : listActiveClusters(tags)) lifecycle(LifecycleVerb.RESTART, c.getId().toString());
     }
 
     private enum LifecycleVerb {START, STOP, RESTART}
@@ -235,15 +272,15 @@ public class MatriarchClient {
     // api.v1 lifecycle is by-id (name/tags resolved client-side); streams progress to a terminal frame.
     private void lifecycle(LifecycleVerb verb, String id) {
         var selector = io.stackgres.proto.api.v1.ClusterSelector.newBuilder()
-                .setEnvironmentId("local")
+                .setEnvironmentId(activeEnvironment())
                 .setId(Id.newBuilder().setValue(id))
                 .build();
         String key = UUID.randomUUID().toString();
         try {
             Iterator<ClusterOperationProgress> stream = switch (verb) {
-                case START -> stackGresClient.startCluster(StartClusterRequest.newBuilder().setSelector(selector).setIdempotencyKey(key).build());
-                case STOP -> stackGresClient.stopCluster(StopClusterRequest.newBuilder().setSelector(selector).setIdempotencyKey(key).build());
-                case RESTART -> stackGresClient.restartCluster(RestartClusterRequest.newBuilder().setSelector(selector).setIdempotencyKey(key).build());
+                case START -> stackGresClient().startCluster(StartClusterRequest.newBuilder().setSelector(selector).setIdempotencyKey(key).build());
+                case STOP -> stackGresClient().stopCluster(StopClusterRequest.newBuilder().setSelector(selector).setIdempotencyKey(key).build());
+                case RESTART -> stackGresClient().restartCluster(RestartClusterRequest.newBuilder().setSelector(selector).setIdempotencyKey(key).build());
             };
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
@@ -263,24 +300,112 @@ public class MatriarchClient {
             throw new RuntimeException(status.getMessage());
     }
 
-    public List<PostgresCluster> listClusters(Map<String, String> tags) {
-        ListClustersRequest request = ListClustersRequest.newBuilder().setEnvironmentId("local").putAllTags(tags).build();
+    // ---- environment resolution (kubectl-namespace model) ----
+
+    private String activeEnvironmentCache;
+
+    /** The environment configured for this invocation (flag &gt; env var &gt; context); "" = unset (all). */
+    public String configuredEnvironment() {
+        return CliContext.environment();
+    }
+
+    /**
+     * The active environment for a single-cluster or mutating op: the configured one if set, else the
+     * sole environment the endpoint exposes (a local matriarch, or a single-environment cloud). If the
+     * endpoint exposes several and none is chosen, fail with guidance — we will not guess which
+     * environment to create in, or which same-named cluster to act on.
+     */
+    public String activeEnvironment() {
+        if (activeEnvironmentCache != null) {
+            return activeEnvironmentCache;
+        }
+        String configured = configuredEnvironment();
+        if (configured != null && !configured.isBlank()) {
+            return activeEnvironmentCache = configured;
+        }
+        List<EnvironmentInfo> envs = listEnvironments();
+        if (envs.size() == 1) {
+            return activeEnvironmentCache = envs.get(0).id();
+        }
+        if (envs.isEmpty()) {
+            throw new RuntimeException("no environments are available on this endpoint");
+        }
+        String ids = envs.stream().map(EnvironmentInfo::id).collect(java.util.stream.Collectors.joining(", "));
+        throw new RuntimeException("no active environment selected — this endpoint exposes several ("
+                + ids + "). Choose one with 'stackgres environment use <id>' or pass -E <id>.");
+    }
+
+    /** Rows for {@code cluster list}: {@code environmentId} = "" means all environments (aggregated). */
+    public List<ClusterRow> listClusterRows(String environmentId, Map<String, String> tags) {
+        ListClustersRequest request = ListClustersRequest.newBuilder()
+                .setEnvironmentId(environmentId == null ? "" : environmentId).putAllTags(tags).build();
         try {
-            io.stackgres.proto.api.v1.ListClustersResponse response = stackGresClient.listClusters(request);
+            io.stackgres.proto.api.v1.ListClustersResponse response = stackGresClient().listClusters(request);
             logDebug("Received response: " + response);
-            return response.getClusterList().stream()
-                    .map(Mappers::mapCluster)
-                    .toList();
+            List<ClusterRow> rows = new java.util.ArrayList<>();
+            for (io.stackgres.proto.api.v1.Cluster c : response.getClusterList()) {
+                rows.add(new ClusterRow(c.getEnvironmentId(), Mappers.mapCluster(c)));
+            }
+            return rows;
         } catch (StatusRuntimeException e) {
             throw statusError(e);
         }
     }
 
+    /** Clusters within the ACTIVE environment — for name resolution and bulk mutations. */
+    private List<PostgresCluster> listActiveClusters(Map<String, String> tags) {
+        return listClusterRows(activeEnvironment(), tags).stream().map(ClusterRow::cluster).toList();
+    }
+
+    public List<EnvironmentInfo> listEnvironments() {
+        try {
+            io.stackgres.proto.api.v1.ListEnvironmentsResponse response = stackGresClient().listEnvironments(ListEnvironmentsRequest.newBuilder().build());
+            logDebug("Received response: " + response);
+            List<EnvironmentInfo> out = new java.util.ArrayList<>();
+            for (io.stackgres.proto.api.v1.Environment env : response.getEnvironmentList()) {
+                out.add(mapEnvironment(env, response.getSourceInfoMap().get(env.getId().getValue())));
+            }
+            return out;
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
+        }
+    }
+
+    public void deleteEnvironment(String environmentId) {
+        try {
+            stackGresClient().deleteEnvironment(io.stackgres.proto.api.v1.DeleteEnvironmentRequest.newBuilder()
+                    .setEnvironmentId(environmentId).build());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.UNIMPLEMENTED) {
+                throw new RuntimeException("this endpoint does not support deleting environments "
+                        + "(a local matriarch is its own single environment — connect to the cloud)");
+            }
+            throw statusError(e);
+        }
+    }
+
+    public EnvironmentInfo getEnvironment(String environmentId) {
+        try {
+            GetEnvironmentResponse response = stackGresClient().getEnvironment(GetEnvironmentRequest.newBuilder().setEnvironmentId(environmentId).build());
+            logDebug("Received response: " + response);
+            return mapEnvironment(response.getEnvironment(), response.getSourceInfo());
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
+        }
+    }
+
+    private static EnvironmentInfo mapEnvironment(io.stackgres.proto.api.v1.Environment env, io.stackgres.proto.types.v1.SourceInfo si) {
+        String kind = env.getKind().name().replace("KIND_", "");
+        String source = si != null ? si.getSource().name() : "";
+        String health = si != null ? si.getEnvironmentHealth().name() : "";
+        Instant asOf = (si != null && si.hasAsOf()) ? Instant.ofEpochSecond(si.getAsOf().getSeconds(), si.getAsOf().getNanos()) : null;
+        List<String> surfaces = env.getSurfaceList().stream().map(s -> s.name().replace("API_SURFACE_", "")).toList();
+        return new EnvironmentInfo(env.getId().getValue(), kind, source, health, asOf, surfaces);
+    }
+
     public List<String> listAvailableVersions(io.stackgres.postgres.Flavor flavor) {
         try {
-            var response = stackGresClient.listVersions(io.stackgres.proto.api.v1.ListVersionsRequest.newBuilder()
-                    .setEngine(Mappers.mapEngine(flavor))
-                    .build());
+            var response = stackGresClient().listVersions(ListVersionsRequest.newBuilder().setEngine(Mappers.mapEngine(flavor)).build());
             logDebug("Received response: " + response);
             return response.getVersionList();
         } catch (StatusRuntimeException e) {
@@ -290,7 +415,7 @@ public class MatriarchClient {
 
     public PostgresCluster getCluster(String name) {
         // api.v1 GetCluster is by-id in the matriarch; resolve by name client-side via list.
-        return listClusters(Map.of()).stream()
+        return listActiveClusters(Map.of()).stream()
                 .filter(c -> name.equals(c.getName()))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("The cluster with name " + name + " doesn't exist"));
@@ -305,7 +430,7 @@ public class MatriarchClient {
             System.err.println(Strings.commentAnsi("No instance name is given, exec-ing in random cluster instance"));
         CompletableFuture<Integer> exitCode = new CompletableFuture<>();
 
-        StreamObserver<CliExecMessage> cliExecObserver = asyncClient.execInCluster(new StreamObserver<>() {
+        StreamObserver<CliExecMessage> cliExecObserver = asyncClient().execInCluster(new StreamObserver<>() {
             @Override
             public void onNext(MatriarchExecMessage message) {
                 if (message.hasStatus()) {
@@ -377,7 +502,7 @@ public class MatriarchClient {
             builder.setInstanceId(mapUUID(instanceId));
 
         try {
-            GetClusterLogsResponse response = clusterClient.getClusterLogs(builder.build());
+            GetClusterLogsResponse response = clusterClient().getClusterLogs(builder.build());
             logDebug("Received response: " + response);
             if (response.hasLogs()) {
                 return response.getLogs();
@@ -429,7 +554,7 @@ public class MatriarchClient {
                 onCompleted.accept(null);
             }
         };
-        StreamObserver<TailClusterLogsRequest> requestObserver = asyncClient.tailClusterLogs(responseObserver);
+        StreamObserver<TailClusterLogsRequest> requestObserver = asyncClient().tailClusterLogs(responseObserver);
         requestObserver.onNext(builder.build());
         return requestObserver::onCompleted;
     }
@@ -449,7 +574,7 @@ public class MatriarchClient {
             builder.setDatabase(database);
 
         try {
-            GetClusterCheckpointsResponse response = clusterClient.getClusterCheckpoints(builder.build());
+            GetClusterCheckpointsResponse response = clusterClient().getClusterCheckpoints(builder.build());
             logDebug("Received response: " + response);
             if (response.hasCheckpoints())
                 return response.getCheckpoints();
@@ -485,7 +610,7 @@ public class MatriarchClient {
 
         CompletableFuture<Boolean> opened = new CompletableFuture<>();
 
-        StreamObserver<PgWireClientMessage> requestObserver = asyncClient.pgWireTunnel(new StreamObserver<>() {
+        StreamObserver<PgWireClientMessage> requestObserver = asyncClient().pgWireTunnel(new StreamObserver<>() {
             @Override
             public void onNext(PgWireServerMessage message) {
                 logDebug("Received tunnel message: " + message.getKindCase());
@@ -558,7 +683,7 @@ public class MatriarchClient {
 
     public String getAccount() {
         try {
-            GetAccountResponse response = accountClient.getAccount(GetAccountRequest.newBuilder().build());
+            GetAccountResponse response = accountClient().getAccount(GetAccountRequest.newBuilder().build());
             logDebug("Received response: " + response);
             return response.getUser();
         } catch (StatusException e) {
@@ -575,7 +700,7 @@ public class MatriarchClient {
 
     public List<Slony> listSlonys(Map<String, String> tags) {
         try {
-            ListSlonysResponse response = resourceClient.listSlonys(ListSlonysRequest.newBuilder().putAllTags(tags).build());
+            ListSlonysResponse response = resourceClient().listSlonys(ListSlonysRequest.newBuilder().putAllTags(tags).build());
             logDebug("Received response: " + response);
             return Mappers.mapSlonys(response.getSlonyList());
         } catch (StatusException e) {
@@ -586,7 +711,7 @@ public class MatriarchClient {
     public Map<String, String> addNodeTags(UUID slonyId, Map<String, String> tags) {
         AddNodeTagsRequest request = AddNodeTagsRequest.newBuilder().setId(mapUUID(slonyId)).putAllTags(tags).build();
         try {
-            AddNodeTagsResponse response = resourceClient.addNodeTags(request);
+            AddNodeTagsResponse response = resourceClient().addNodeTags(request);
             checkActionStatus(response.getStatus());
             return response.getCurrentTagsMap();
         } catch (StatusException e) {
@@ -597,7 +722,7 @@ public class MatriarchClient {
     public Map<String, String> removeNodeTags(UUID slonyId, List<String> keys) {
         RemoveNodeTagsRequest request = RemoveNodeTagsRequest.newBuilder().setId(mapUUID(slonyId)).addAllKey(keys).build();
         try {
-            RemoveNodeTagsResponse response = resourceClient.removeNodeTags(request);
+            RemoveNodeTagsResponse response = resourceClient().removeNodeTags(request);
             checkActionStatus(response.getStatus());
             return response.getCurrentTagsMap();
         } catch (StatusException e) {
@@ -607,7 +732,7 @@ public class MatriarchClient {
 
     public void deleteSlony(UUID slonyId, Consumer<String> deletionConsumer) {
         DeleteSlonyRequest request = DeleteSlonyRequest.newBuilder().setId(mapUUID(slonyId)).build();
-        BlockingClientCall<?, DeleteSlonyResponse> invocation = resourceClient.deleteSlony(request);
+        BlockingClientCall<?, DeleteSlonyResponse> invocation = resourceClient().deleteSlony(request);
         try {
             while (invocation.hasNext()) {
                 DeleteSlonyResponse response = invocation.read();
@@ -627,7 +752,7 @@ public class MatriarchClient {
 
     public List<Slon> listSlons() {
         try {
-            ListSlonsResponse response = resourceClient.listSlons(ListSlonsRequest.newBuilder().build());
+            ListSlonsResponse response = resourceClient().listSlons(ListSlonsRequest.newBuilder().build());
             logDebug("Received response: " + response);
             return Mappers.mapSlons(response.getSlonList());
         } catch (StatusException e) {
@@ -638,11 +763,11 @@ public class MatriarchClient {
     public List<Event> getClusterEvents(String name) {
         PostgresCluster cluster = getCluster(name);   // resolve name → id (api.v1 events are by-id)
         var request = io.stackgres.proto.api.v1.GetClusterEventsRequest.newBuilder()
-                .setEnvironmentId("local")
+                .setEnvironmentId(activeEnvironment())
                 .setClusterId(Id.newBuilder().setValue(cluster.getId().toString()))
                 .build();
         try {
-            var response = stackGresClient.getClusterEvents(request);
+            var response = stackGresClient().getClusterEvents(request);
             logDebug("Received response: " + response);
             return response.getEventList().stream().map(Mappers::mapEventV1).toList();
         } catch (StatusRuntimeException e) {
@@ -653,7 +778,7 @@ public class MatriarchClient {
     public List<Event> getNodeEvents(UUID slonyId) {
         GetNodeEventsRequest request = GetNodeEventsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
         try {
-            GetNodeEventsResponse response = resourceClient.getNodeEvents(request);
+            GetNodeEventsResponse response = resourceClient().getNodeEvents(request);
             logDebug("Received response: " + response);
             if (response.hasStatus())
                 throw new RuntimeException(response.getStatus().getMessage());
@@ -666,7 +791,7 @@ public class MatriarchClient {
     public String getNodeLogs(UUID slonyId) {
         GetNodeLogsRequest request = GetNodeLogsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
         try {
-            GetNodeLogsResponse response = resourceClient.getNodeLogs(request);
+            GetNodeLogsResponse response = resourceClient().getNodeLogs(request);
             logDebug("Received response: " + response);
             if (response.hasLogs())
                 return response.getLogs();
@@ -702,7 +827,7 @@ public class MatriarchClient {
                 onCompleted.accept(null);
             }
         };
-        StreamObserver<TailNodeLogsRequest> requestObserver = asyncResourceClient.tailNodeLogs(responseObserver);
+        StreamObserver<TailNodeLogsRequest> requestObserver = asyncResourceClient().tailNodeLogs(responseObserver);
         requestObserver.onNext(request);
         return requestObserver::onCompleted;
     }
@@ -710,7 +835,7 @@ public class MatriarchClient {
     public ClusterDiagnostics getClusterDiagnostics(String name) {
         GetClusterDiagnosticsRequest request = GetClusterDiagnosticsRequest.newBuilder().setName(name).build();
         try {
-            GetClusterDiagnosticsResponse response = clusterClient.getClusterDiagnostics(request);
+            GetClusterDiagnosticsResponse response = clusterClient().getClusterDiagnostics(request);
             logDebug("Received response: " + response);
             if (response.hasStatus())
                 throw new RuntimeException(response.getStatus().getMessage());
@@ -747,7 +872,7 @@ public class MatriarchClient {
 
     public List<io.stackgres.postgres.Extension> listAvailableExtensions(io.stackgres.postgres.Flavor flavor, String version) {
         try {
-            var response = stackGresClient.listExtensions(io.stackgres.proto.api.v1.ListExtensionsRequest.newBuilder()
+            var response = stackGresClient().listExtensions(io.stackgres.proto.api.v1.ListExtensionsRequest.newBuilder()
                     .setEngine(Mappers.mapEngine(flavor))
                     .setVersion(version)
                     .build());

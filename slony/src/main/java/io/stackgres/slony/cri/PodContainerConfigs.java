@@ -63,7 +63,7 @@ public final class PodContainerConfigs {
     public static Api.ContainerConfig postgresContainerConfig(PostgresCluster cluster, SlonyLinuxInstance instance, String logFileName) {
         Api.ContainerConfig.Builder builder = Api.ContainerConfig.newBuilder();
         List<String> commands = new ArrayList<>(List.of("slon", instance.getId().toString(), String.valueOf(instance.getPort())));
-        String matriarchUrl = Config.getValue("STACKGRES_MATRIARCH_URL", "localhost:50051");
+        String matriarchUrl = Config.getValue("STACKGRES_ENDPOINT_URL", "localhost:50051");
         String token = Config.getValue("STACKGRES_TOKEN", null);
 
         builder.setMetadata(Api.ContainerMetadata.newBuilder().setName("postgres").build())
@@ -74,7 +74,7 @@ public final class PodContainerConfigs {
                 .addEnvs(Api.KeyValue.newBuilder().setKey("POSTGRES_USER").setValue(cluster.getUsername()).build())
                 .addEnvs(Api.KeyValue.newBuilder().setKey("POSTGRES_PASSWORD").setValue(cluster.getPassword()).build())
                 .addEnvs(Api.KeyValue.newBuilder().setKey("POSTGRES_LISTEN_ADDRESS").setValue(instance.getListenAddress()).build())
-                .addEnvs(Api.KeyValue.newBuilder().setKey("STACKGRES_MATRIARCH_URL").setValue(matriarchUrl).build())
+                .addEnvs(Api.KeyValue.newBuilder().setKey("STACKGRES_ENDPOINT_URL").setValue(matriarchUrl).build())
                 // for psql
                 .addEnvs(Api.KeyValue.newBuilder().setKey("PGHOST").setValue("/tmp").build())
                 .setLinux(Api.LinuxContainerConfig.newBuilder()
@@ -183,7 +183,7 @@ public final class PodContainerConfigs {
     public static Api.ContainerConfig haPostgresContainerConfig(PostgresCluster cluster, SlonyLinuxHAInstance instance, String localIpAddress, int patroniRestApiPort, String logFileName) {
         String patroniName = instance.getEtcdName().replace("etcd", "patroni");
         List<String> commands = new ArrayList<>(List.of("slon", instance.getId().toString(), String.valueOf(instance.getPort())));
-        String matriarchUrl = Config.getValue("STACKGRES_MATRIARCH_URL", "localhost:50051");
+        String matriarchUrl = Config.getValue("STACKGRES_ENDPOINT_URL", "localhost:50051");
         String token = Config.getValue("STACKGRES_TOKEN", null);
 
         Api.ContainerConfig.Builder builder = Api.ContainerConfig.newBuilder()
@@ -207,7 +207,7 @@ public final class PodContainerConfigs {
                 .addEnvs(Api.KeyValue.newBuilder().setKey("PATRONI_RESTAPI_LISTEN").setValue("0.0.0.0:" + patroniRestApiPort).build())
                 .addEnvs(Api.KeyValue.newBuilder().setKey("PATRONI_ETCD3_HOSTS").setValue(instance.getEtcdClientUrl()).build())
 //                .addEnvs(Api.KeyValue.newBuilder().setKey("PATRONI_LOG_LEVEL").setValue("INFO").build())
-                .addEnvs(Api.KeyValue.newBuilder().setKey("STACKGRES_MATRIARCH_URL").setValue(matriarchUrl).build())
+                .addEnvs(Api.KeyValue.newBuilder().setKey("STACKGRES_ENDPOINT_URL").setValue(matriarchUrl).build())
 
 //                .addEnvs(Api.KeyValue.newBuilder().setKey("PATRONI_LOG_DIR").setValue("/var/log/").build())
 //                .addEnvs(Api.KeyValue.newBuilder().setKey("PATRONI_LOG_DIR").setValue("/tmp/").build())
