@@ -47,6 +47,9 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     @Inject
     ClusterEventStore clusterEvents;
 
+    @Inject
+    io.stackgres.matriarch.quarkus.identity.EnvironmentIdentity identity;
+
     @Override
     public void createCluster(CreateClusterRequest request, StreamObserver<ClusterOperationProgress> responseObserver) {
         ClusterCreate intent = ProtoMapper.toCreate(request);
@@ -113,14 +116,50 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         }
     }
 
+    // The bare-metal matriarch is a single environment — itself. Serving api.v1 ListEnvironments/
+    // GetEnvironment (returning that one LIVE entry) lets the CLI treat local and cloud uniformly:
+    // `stackgres environment list` works against a local matriarch too, and env auto-resolution sees
+    // exactly one. The id comes from EnvironmentIdentity (config or generated-and-persisted), so it is
+    // stable and unique across matriarchs — and it matches the id stamped on the clusters below.
+
+    /** Map a cluster and stamp this environment's id (the mapper leaves environment_id empty). */
+    private io.stackgres.proto.api.v1.Cluster stampEnv(io.stackgres.matriarch.model.Cluster cluster) {
+        return ProtoMapper.toProto(cluster).toBuilder().setEnvironmentId(identity.id()).build();
+    }
+
+    @Override
+    public void listEnvironments(ListEnvironmentsRequest request, StreamObserver<ListEnvironmentsResponse> responseObserver) {
+        Environment env = identity.environment();
+        responseObserver.onNext(ListEnvironmentsResponse.newBuilder()
+                .addEnvironment(env)
+                .putSourceInfo(env.getId().getValue(), ProtoMapper.liveSourceInfo())
+                .build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getEnvironment(GetEnvironmentRequest request, StreamObserver<GetEnvironmentResponse> responseObserver) {
+        Environment env = identity.environment();
+        String requested = request.getEnvironmentId();
+        if (requested != null && !requested.isBlank() && !requested.equals(env.getId().getValue())) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no such environment: " + requested).asRuntimeException());
+            return;
+        }
+        responseObserver.onNext(GetEnvironmentResponse.newBuilder()
+                .setEnvironment(env)
+                .setSourceInfo(ProtoMapper.liveSourceInfo())
+                .build());
+        responseObserver.onCompleted();
+    }
+
     @Override
     public void listClusters(ListClustersRequest request, StreamObserver<ListClustersResponse> responseObserver) {
         Map<String, String> filter = request.getTagsMap();   // empty → all; else only clusters carrying every key=value
         ListClustersResponse.Builder resp = ListClustersResponse.newBuilder();
         for (Cluster cluster : matriarch.listClusters())
             if (matchesTags(cluster.spec().tags(), filter))
-                resp.addCluster(ProtoMapper.toProto(cluster));
-        resp.putSourceInfo("local", ProtoMapper.liveSourceInfo());
+                resp.addCluster(stampEnv(cluster));
+        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());
         responseObserver.onCompleted();
     }
@@ -142,7 +181,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         try {
             Cluster cluster = matriarch.requireCluster(id);
             responseObserver.onNext(GetClusterResponse.newBuilder()
-                    .setCluster(ProtoMapper.toProto(cluster))
+                    .setCluster(stampEnv(cluster))
                     .setSourceInfo(ProtoMapper.liveSourceInfo())
                     .build());
             responseObserver.onCompleted();
@@ -209,7 +248,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         for (ClusterEvent event : clusterEvents.events(id)) {   // chronological snapshot; WatchEvents stays UNIMPLEMENTED
             resp.addEvent(ProtoMapper.toProtoEvent(event));
         }
-        resp.putSourceInfo("local", ProtoMapper.liveSourceInfo());
+        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());
         responseObserver.onCompleted();
     }

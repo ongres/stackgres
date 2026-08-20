@@ -32,11 +32,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * The matriarch-side end of the {@code control.v1} link for the standalone (bare-metal) matriarch:
  * dials OUT to stackgres-cloud, registers this environment, and streams its state up — the mirror of
- * how {@code slon}/{@code slony} dial up to this matriarch, one level higher. Opt-in via
- * {@code stackgres.cloud.enabled}; authenticates with the {@code STACKGRES_TOKEN} JWT (env credential,
- * P10). Unlike the operator (which derives the environment from the StackGres installation id), the
- * standalone takes its {@code environment_id}/name/kind from {@code stackgres.cloud.environment.*}
- * config (defaults to a single {@code local} bare-metal environment). Read-only for v1.
+ * how {@code slon}/{@code slony} dial up to this matriarch, one level higher. Opt-in by setting
+ * {@code STACKGRES_ENDPOINT_URL} (the cloud endpoint); authenticates with the {@code STACKGRES_TOKEN}
+ * JWT (env credential, P10) — the same two env vars the CLI uses. Unlike the operator (which derives the
+ * environment from the StackGres installation id), the standalone takes its {@code environment_id}/name/
+ * kind from {@code stackgres.cloud.environment.*} config (defaults to a single {@code local} bare-metal
+ * environment). Read-only for v1.
  *
  * <p>All sends run on a single "actor" thread so the (non-thread-safe) request {@link StreamObserver}
  * is touched from one place and the sequence numbering stays monotonic: domain {@link ClusterEvent}s
@@ -55,23 +56,22 @@ public class CloudUplinkClient {
     @Inject
     Matriarch matriarch;
 
+    // This matriarch's stable, unique environment identity (config or generated-and-persisted) — the
+    // SAME id the api.v1 server stamps on its clusters, so the cloud and a direct CLI see one identity.
+    @Inject
+    io.stackgres.matriarch.quarkus.identity.EnvironmentIdentity identity;
+
     @ConfigProperty(name = "stackgres.cloud.heartbeat-interval")
     Duration heartbeatInterval;
 
-    @ConfigProperty(name = "stackgres.cloud.environment.id")
-    String environmentIdConfig;
+    // The cloud endpoint this matriarch dials out to, and its JWT credential — the SAME env vars every
+    // component uses (unified): STACKGRES_ENDPOINT_URL / STACKGRES_TOKEN. Empty URL = uplink disabled.
+    // Read by their exact env-var names (the environment is an MP Config source).
+    @ConfigProperty(name = "STACKGRES_ENDPOINT_URL")
+    Optional<String> endpointUrl;
 
-    @ConfigProperty(name = "stackgres.cloud.environment.name")
-    String environmentName;
-
-    @ConfigProperty(name = "stackgres.cloud.environment.kind")
-    Environment.Kind environmentKind;
-
-    @ConfigProperty(name = "stackgres.cloud.url")
-    Optional<String> cloudUrl;
-
-    @ConfigProperty(name = "stackgres.cloud.token")
-    Optional<String> cloudToken;
+    @ConfigProperty(name = "STACKGRES_TOKEN")
+    Optional<String> token;
 
     // Transport selection. Default is TLS with the JVM's trust store. `plaintext` is for an h2c
     // endpoint (local dev / a plaintext ingress); `insecure-tls` keeps TLS but trusts any server
@@ -104,19 +104,19 @@ public class CloudUplinkClient {
      * Begin dialing out (idempotent no-op when disabled/misconfigured). Public for host/test wiring.
      */
     public void start() {
-        if (cloudUrl.isEmpty()) {
-            LOG.debug("stackgres.cloud.url is not set -> cloud uplink disabled");
+        if (endpointUrl.isEmpty()) {
+            LOG.debug("STACKGRES_ENDPOINT_URL is not set -> cloud uplink disabled");
             enabled = false;
             return;
         }
         enabled = true;
-        environmentId = environmentIdConfig == null || environmentIdConfig.isBlank() ? "local" : environmentIdConfig;
+        environmentId = identity.id();
         actor = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "cloud-uplink");
             t.setDaemon(true);
             return t;
         });
-        LOG.infof("cloud uplink starting: env=%s -> %s [token=%s]", environmentId, cloudUrl, cloudToken.isEmpty() ? "none" : "set");
+        LOG.infof("cloud uplink starting: env=%s -> %s [token=%s]", environmentId, endpointUrl, token.isEmpty() ? "none" : "set");
         actor.execute(this::connect);
         long everyMs = heartbeatInterval.toMillis();
         actor.scheduleAtFixedRate(this::sendHeartbeat, everyMs, everyMs, TimeUnit.MILLISECONDS);
@@ -136,7 +136,7 @@ public class CloudUplinkClient {
     private void connect() {
         try {
             if (channel == null || channel.isShutdown()) {
-                channel = buildChannel(cloudUrl.get());
+                channel = buildChannel(endpointUrl.get());
             }
             snapshotAnchored = false;
             up = UplinkGrpc.newStub(channel).connect(new DownstreamHandler());
@@ -148,7 +148,7 @@ public class CloudUplinkClient {
                     .build());
             // The stream is now open; whether the cloud accepts it surfaces asynchronously in the
             // DownstreamHandler (ACK) or, on failure, as a gRPC Status in onError.
-            LOG.infof("cloud uplink connecting: env=%s -> %s", environmentId, cloudUrl.get());
+            LOG.infof("cloud uplink connecting: env=%s -> %s", environmentId, endpointUrl.get());
         } catch (Exception e) {
             LOG.warnf("cloud uplink connect failed: %s — retrying in %dms", e.getMessage(), backoffMs);
             scheduleReconnect();
@@ -163,7 +163,7 @@ public class CloudUplinkClient {
     private ManagedChannel buildChannel(String target) throws javax.net.ssl.SSLException {
         if (plaintext.orElse(false)) {
             ManagedChannelBuilder<?> b = ManagedChannelBuilder.forTarget(target).usePlaintext();
-            cloudToken.ifPresent(s -> b.intercept(new BearerTokenInterceptor(s)));
+            token.ifPresent(s -> b.intercept(new BearerTokenInterceptor(s)));
             return b.build();
         }
         NettyChannelBuilder b = NettyChannelBuilder.forTarget(target);
@@ -172,7 +172,7 @@ public class CloudUplinkClient {
                     .trustManager(InsecureTrustManagerFactory.INSTANCE)
                     .build());
         }
-        cloudToken.ifPresent(s -> b.intercept(new BearerTokenInterceptor(s)));
+        token.ifPresent(s -> b.intercept(new BearerTokenInterceptor(s)));
         return b.build();
     }
 
@@ -276,11 +276,7 @@ public class CloudUplinkClient {
     }
 
     private Environment environmentProto() {
-        return Environment.newBuilder()
-                .setId(Id.newBuilder().setValue(environmentId))
-                .setName(environmentName == null || environmentName.isBlank() ? environmentId : environmentName)
-                .setKind(environmentKind)
-                .build();
+        return identity.environment();
     }
 
     private final class DownstreamHandler implements StreamObserver<CloudMessage> {

@@ -58,14 +58,14 @@ public class MatriarchClient {
     private boolean slonyStreamClosed;
 
     public MatriarchClient() {
-        this.matriarchUrl = Config.getValue("STACKGRES_MATRIARCH_URL", "localhost:50051");
+        this.matriarchUrl = Config.getValue("STACKGRES_ENDPOINT_URL", "localhost:50051");
         this.matriarchTls = detectMatriarchTls();
         this.cri = new Cri();
         this.id = UUID.fromString(Config.getValue("STACKGRES_SLONY_ID", UUID.randomUUID().toString()));
     }
 
     private boolean detectMatriarchTls() {
-        String configTls = Config.getValue("STACKGRES_MATRIARCH_TLS", null);
+        String configTls = Config.getValue("STACKGRES_ENDPOINT_TLS", null);
         if (configTls == null) {
             // assume TLS unless localhost
             return !matriarchUrl.startsWith("localhost:");
@@ -292,7 +292,10 @@ public class MatriarchClient {
             } else if (matriarchMessage.hasShutdownCommand()) {
                 handleShutdownCommand();
             } else
-                logger.log(System.Logger.Level.INFO, matriarchMessage.toString().replace('\n', ' '));
+                // getKindCase() is reflection-free; a full protobuf .toString() crashes the native image
+                // (TextFormat redaction reflects on FieldOptions.getCtype, which isn't registered) and
+                // would CANCEL the stream.
+                logger.log(System.Logger.Level.INFO, "Received unhandled matriarch message: {0}", matriarchMessage.getKindCase());
         }
 
         private void handleShutdownCommand() {
@@ -302,7 +305,7 @@ public class MatriarchClient {
         }
 
         private void handleReportUnusedPort(ReportUnusedPortCommand reportUnusedPortCommand) {
-            logger.log(System.Logger.Level.INFO, "Received reportUnusedPortCommand({0})", reportUnusedPortCommand.toString().replace('\n', ' '));
+            logger.log(System.Logger.Level.INFO, "Received reportUnusedPortCommand(desiredPort={0})", reportUnusedPortCommand.getDesiredPort());
             UUID actionId = mapUUID(reportUnusedPortCommand.getId());
             int desiredPort = reportUnusedPortCommand.getDesiredPort();
             try {
@@ -315,7 +318,7 @@ public class MatriarchClient {
         }
 
         private void handleCreateCluster(CreateClusterCommand createClusterCommand) {
-            logger.log(System.Logger.Level.INFO, "Received createClusterCommand({0})", createClusterCommand.toString().replace('\n', ' '));
+            logger.log(System.Logger.Level.INFO, "Received createClusterCommand(id={0})", createClusterCommand.getId().getValue().toStringUtf8());
             UUID clusterId = mapUUID(createClusterCommand.getId());
             try {
                 PostgresCluster cluster = mapCluster(clusterId, createClusterCommand);
@@ -365,7 +368,7 @@ public class MatriarchClient {
         }
 
         private void handleDeleteInstance(DeleteInstanceCommand deleteInstanceCommand) {
-            logger.log(System.Logger.Level.INFO, "Received deleteInstanceCommand({0})", deleteInstanceCommand.toString().replace('\n', ' '));
+            logger.log(System.Logger.Level.INFO, "Received deleteInstanceCommand(id={0})", deleteInstanceCommand.getId().getValue().toStringUtf8());
             UUID instanceId = UUID.fromString(deleteInstanceCommand.getId().getValue().toStringUtf8());
             try {
                 SlonyLinuxInstance instance = cri.deleteInstance(instanceId);

@@ -34,6 +34,13 @@ service StackGresApi {
   // local matriarch returns exactly one — itself. ---
   rpc ListEnvironments(ListEnvironmentsRequest) returns (ListEnvironmentsResponse);
   rpc GetEnvironment(GetEnvironmentRequest) returns (GetEnvironmentResponse);
+  // Prune a DISCONNECTED (CACHED) environment from the cloud's cache — its
+  // clusters and its entry are dropped from the aggregated view. Cache
+  // management only (never touches a real cluster), so it fits the read-only
+  // posture. Refused while the environment is still LIVE (stop the matriarch
+  // first). A local matriarch — its own single environment — leaves this
+  // UNIMPLEMENTED.
+  rpc DeleteEnvironment(DeleteEnvironmentRequest) returns (DeleteEnvironmentResponse);
 
   // --- Clusters: CRUD + lifecycle. Creates/deletes are accepted-then-watch
   // status streams, not transactions (§3.6, §9.1). ---
@@ -82,7 +89,8 @@ service StackGresApi {
 
 message Environment {
   types.v1.Id id = 1;
-  string name = 2;
+  reserved 2;              // was `name` — removed; environments are identified by id only
+  reserved "name";
   Kind kind = 3;
   // Which api.v1 surfaces this environment implements (version-negotiation
   // unit, §5.1). Cloud edges gate per-RPC on this.
@@ -117,6 +125,11 @@ message GetEnvironmentRequest {
 message GetEnvironmentResponse {
   Environment environment = 1;
   types.v1.SourceInfo source_info = 2;
+}
+message DeleteEnvironmentRequest {
+  string environment_id = 1;
+}
+message DeleteEnvironmentResponse {
 }
 
 // ===========================================================================

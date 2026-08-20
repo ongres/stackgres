@@ -72,9 +72,10 @@ public class CloudUplinkClient {
   @Inject
   Config config;
 
-  // stackgres.cloud.url and the STACKGRES_TOKEN JWT are resolved lazily in start() (only when the
-  // uplink is enabled) via Config.getOptionalValue. An empty-string @ConfigProperty default on a
-  // String fails eager injection and aborts operator startup, so we must NOT inject these directly.
+  // The cloud endpoint (STACKGRES_ENDPOINT_URL) and JWT credential (STACKGRES_TOKEN) — the same env
+  // vars the CLI and standalone matriarch use — resolved lazily in start() (only when the uplink is
+  // enabled) via Config.getOptionalValue. An empty-string @ConfigProperty default on a String fails
+  // eager injection and aborts operator startup, so we must NOT inject these directly.
   // Package-private so tests can set them.
   String url;
   String token;
@@ -103,13 +104,13 @@ public class CloudUplinkClient {
       return;
     }
     if (url == null) {
-      url = config.getOptionalValue("stackgres.cloud.url", String.class).orElse("");
+      url = config.getOptionalValue("STACKGRES_ENDPOINT_URL", String.class).orElse("");
     }
     if (token == null) {
       token = config.getOptionalValue("STACKGRES_TOKEN", String.class).orElse("");
     }
     if (url.isBlank()) {
-      LOG.warn("stackgres.cloud.enabled=true but stackgres.cloud.url is empty — uplink not started");
+      LOG.warn("stackgres.cloud.enabled=true but STACKGRES_ENDPOINT_URL is empty — uplink not started");
       return;
     }
     environmentId = resolveEnvironmentId();
@@ -262,7 +263,6 @@ public class CloudUplinkClient {
   private Environment environmentProto() {
     return Environment.newBuilder()
         .setId(Id.newBuilder().setValue(environmentId))
-        .setName(environmentId)
         .setKind(Environment.Kind.KIND_K8S_STACKGRES)
         .build();
   }

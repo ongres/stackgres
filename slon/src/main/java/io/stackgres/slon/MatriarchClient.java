@@ -57,14 +57,14 @@ public class MatriarchClient {
         this.port = port;
         this.currentStatus = initialStatus;
         this.statusToResend = initialStatus;
-        matriarchUrl = Config.getValue("STACKGRES_MATRIARCH_URL", "localhost:50051");
+        matriarchUrl = Config.getValue("STACKGRES_ENDPOINT_URL", "localhost:50051");
         matriarchTls = detectMatriarchTls();
         String patroniName = Config.getValue("PATRONI_NAME", null);
         postgresProcesses = (patroniName != null) ? new PatroniProcesses() : new PostgresProcesses();
     }
 
     private boolean detectMatriarchTls() {
-        String configTls = Config.getValue("STACKGRES_MATRIARCH_TLS", null);
+        String configTls = Config.getValue("STACKGRES_ENDPOINT_TLS", null);
         if (configTls == null) {
             // assume TLS unless localhost
             return !matriarchUrl.startsWith("localhost:");
@@ -256,7 +256,10 @@ public class MatriarchClient {
 
         @Override
         public void onNext(MatriarchMessage matriarchMessage) {
-            logger.log(System.Logger.Level.INFO, matriarchMessage.toString().replace('\n', ' '));
+            // Log the message KIND, not the full protobuf .toString(): in the native image TextFormat's
+            // debug-redaction check reflects on FieldOptions (getCtype), which isn't registered and throws
+            // — that would abort onNext and CANCEL the stream. getKindCase() is reflection-free and safe.
+            logger.log(System.Logger.Level.INFO, "Received matriarch message: {0}", matriarchMessage.getKindCase());
             try {
                 if (matriarchMessage.hasInitDbCommand())
                     handleInitDbCommand(matriarchMessage.getInitDbCommand());

@@ -5,13 +5,20 @@ import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.ClusterNotFoundException;
+import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterEventsRequest;
 import io.stackgres.proto.api.v1.GetClusterEventsResponse;
 import io.stackgres.proto.api.v1.GetClusterRequest;
 import io.stackgres.proto.api.v1.GetClusterResponse;
+import io.stackgres.proto.api.v1.GetEnvironmentRequest;
+import io.stackgres.proto.api.v1.GetEnvironmentResponse;
 import io.stackgres.proto.api.v1.ListClustersRequest;
 import io.stackgres.proto.api.v1.ListClustersResponse;
+import io.stackgres.proto.api.v1.ListEnvironmentsRequest;
+import io.stackgres.proto.api.v1.ListEnvironmentsResponse;
 import io.stackgres.proto.api.v1.StackGresApiGrpc;
+import io.stackgres.proto.types.v1.ApiSurface;
+import io.stackgres.proto.types.v1.Id;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.quarkus.grpc.GrpcService;
@@ -40,6 +47,48 @@ public class StackGresApiReadService extends StackGresApiGrpc.StackGresApiImplBa
   private String environmentId() {
     String id = installationInfoHolder.getInstallationId();
     return id == null || id.isBlank() ? "local" : id;
+  }
+
+  /**
+   * This StackGres install as one api.v1 Environment — itself. Serving ListEnvironments/GetEnvironment
+   * (a single LIVE k8s-stackgres entry) lets the CLI treat local and cloud uniformly and lets env
+   * auto-resolution see exactly one environment. Read-only, so only the events surface is advertised.
+   */
+  private Environment environment() {
+    String id = environmentId();
+    return Environment.newBuilder()
+        .setId(Id.newBuilder().setValue(id))
+        .setKind(Environment.Kind.KIND_K8S_STACKGRES)
+        .addSurface(ApiSurface.API_SURFACE_EVENTS)
+        .build();
+  }
+
+  @Override
+  public void listEnvironments(ListEnvironmentsRequest request,
+      StreamObserver<ListEnvironmentsResponse> responseObserver) {
+    Environment env = environment();
+    responseObserver.onNext(ListEnvironmentsResponse.newBuilder()
+        .addEnvironment(env)
+        .putSourceInfo(env.getId().getValue(), ClusterProtoMapper.liveSourceInfo())
+        .build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getEnvironment(GetEnvironmentRequest request,
+      StreamObserver<GetEnvironmentResponse> responseObserver) {
+    Environment env = environment();
+    String requested = request.getEnvironmentId();
+    if (requested != null && !requested.isBlank() && !requested.equals(env.getId().getValue())) {
+      responseObserver.onError(Status.NOT_FOUND
+          .withDescription("no such environment: " + requested).asRuntimeException());
+      return;
+    }
+    responseObserver.onNext(GetEnvironmentResponse.newBuilder()
+        .setEnvironment(env)
+        .setSourceInfo(ClusterProtoMapper.liveSourceInfo())
+        .build());
+    responseObserver.onCompleted();
   }
 
   @Override
