@@ -219,13 +219,14 @@ public class MatriarchClient {
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
                 logDebug("Received progress: " + p);
-                switch (p.getStatus()) {
-                    case OPERATION_STATUS_SUCCEEDED -> deletionConsumer.accept(name);
-                    case OPERATION_STATUS_FAILED -> throw new RuntimeException(p.getError().getMessage());
-                    default -> {
-                    }
+                if (p.getStatus() == OperationStatus.OPERATION_STATUS_FAILED) {
+                    throw new RuntimeException(p.getError().getMessage());
                 }
             }
+            // The server closed the stream without a failure. A SUCCEEDED frame is the normal case, but an
+            // idempotent replay of an already-accepted delete completes with only an ACCEPTED frame — treat
+            // any clean completion as done so the spinner always resolves (never left spinning on exit).
+            deletionConsumer.accept(name);
         } catch (StatusRuntimeException e) {
             throw statusError(e);
         }

@@ -3,6 +3,7 @@ package io.stackgres.matriarch.quarkus.cloud;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.shaded.io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -14,7 +15,10 @@ import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.quarkus.api.ProtoMapper;
+import io.stackgres.matriarch.quarkus.api.StackGresApiResource;
+import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.Environment;
+import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
 import io.stackgres.proto.control.v1.*;
 import io.stackgres.proto.types.v1.Id;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -55,6 +59,14 @@ public class CloudUplinkClient {
 
     @Inject
     Matriarch matriarch;
+
+    // The local api.v1 write handler (create/delete/start/stop/restart). The cloud routes user writes
+    // down as ControlRequests; we execute them via the SAME dispatch a directly-connected CLI uses and
+    // relay the streamed api.v1 progress back up as ControlResponses. It is a @GrpcService bean, so it
+    // must be injected with that qualifier (its beans carry @GrpcService, not @Default).
+    @Inject
+    @io.quarkus.grpc.GrpcService
+    StackGresApiResource api;
 
     // This matriarch's stable, unique environment identity (config or generated-and-persisted) — the
     // SAME id the api.v1 server stamps on its clusters, so the cloud and a direct CLI see one identity.
@@ -252,8 +264,101 @@ public class CloudUplinkClient {
                 LOG.infof("cloud requested resync: %s", m.getResync().getReason());
                 sendSnapshot();
             }
+            case CONTROL -> onControlRequest(m.getControl());
+            case HEARTBEAT_ACK -> {
+                // Keep-alive reply to our heartbeat — its only purpose is a frame on the
+                // cloud->local direction (proxy idle guard). Nothing to do.
+            }
             case PAYLOAD_NOT_SET -> {
             }
+        }
+    }
+
+    /**
+     * Execute a routed user write via the local api.v1 handler and relay its streamed progress back up.
+     * Runs on the actor thread; the (non-blocking) api dispatch returns immediately and the relay posts
+     * each frame back onto the actor.
+     */
+    private void onControlRequest(ControlRequest req) {
+        String requestId = req.getRequestId();
+        try {
+            switch (req.getOperationCase()) {
+                case CREATE -> api.createCluster(req.getCreate(), progressRelay(requestId));
+                case DELETE -> api.deleteCluster(req.getDelete(), progressRelay(requestId));
+                case START -> api.startCluster(req.getStart(), progressRelay(requestId));
+                case STOP -> api.stopCluster(req.getStop(), progressRelay(requestId));
+                case RESTART -> api.restartCluster(req.getRestart(), progressRelay(requestId));
+                case CREDENTIALS -> api.getClusterCredentials(req.getCredentials(), credentialsRelay(requestId));
+                case OPERATION_NOT_SET ->
+                        sendErrorUp(requestId, Status.INVALID_ARGUMENT.withDescription("empty control request").asRuntimeException());
+            }
+        } catch (RuntimeException e) {
+            sendErrorUp(requestId, e);
+        }
+    }
+
+    /** Adapts a streaming write response to ControlResponse{progress|completed|error}, sent up on the actor. */
+    private StreamObserver<ClusterOperationProgress> progressRelay(String requestId) {
+        return new StreamObserver<>() {
+            @Override
+            public void onNext(ClusterOperationProgress progress) {
+                actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                        ControlResponse.newBuilder().setRequestId(requestId).setProgress(progress)).build()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                sendErrorUp(requestId, t);
+            }
+
+            @Override
+            public void onCompleted() {
+                actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                        ControlResponse.newBuilder().setRequestId(requestId).setCompleted(Completion.getDefaultInstance())).build()));
+            }
+        };
+    }
+
+    /** Adapts the unary credentials response to ControlResponse{credentials}, sent up on the actor. */
+    private StreamObserver<GetClusterCredentialsResponse> credentialsRelay(String requestId) {
+        return new StreamObserver<>() {
+            @Override
+            public void onNext(GetClusterCredentialsResponse credentials) {
+                actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                        ControlResponse.newBuilder().setRequestId(requestId).setCredentials(credentials)).build()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                sendErrorUp(requestId, t);
+            }
+
+            @Override
+            public void onCompleted() {
+                // unary: the credentials frame above is terminal; nothing further to send.
+            }
+        };
+    }
+
+    private void sendErrorUp(String requestId, Throwable t) {
+        com.google.rpc.Status status = t instanceof StatusRuntimeException sre
+                ? com.google.rpc.Status.newBuilder().setCode(sre.getStatus().getCode().value())
+                        .setMessage(sre.getStatus().getDescription() == null ? "" : sre.getStatus().getDescription()).build()
+                : com.google.rpc.Status.newBuilder().setCode(Status.Code.INTERNAL.value())
+                        .setMessage(t.getMessage() == null ? t.toString() : t.getMessage()).build();
+        actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                ControlResponse.newBuilder().setRequestId(requestId).setError(status)).build()));
+    }
+
+    /** Send a message up the request stream (actor-thread only). */
+    private void sendUp(MatriarchMessage message) {
+        if (up == null) {
+            return;
+        }
+        try {
+            up.onNext(message);
+        } catch (RuntimeException e) {
+            LOG.debugf("control response send failed: %s", e.getMessage());
         }
     }
 

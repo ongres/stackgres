@@ -6,18 +6,35 @@ function _stackgres() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    "1: :(cluster node slon whoami)" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context from ~/.stackgres/config.yaml]:context:__stackgres_list_contexts" \
+    "1: :(cluster environment context node slon login logout status whoami)" \
     "*::arg:->args"
 
   case $line[1] in
     cluster)
       _stackgres_cluster
     ;;
+    environment|env)
+      _stackgres_environment
+    ;;
+    context|ctx)
+      _stackgres_context
+    ;;
     node)
       _stackgres_node
     ;;
     slon)
       _stackgres_slon
+    ;;
+    login)
+      _stackgres_login
+    ;;
+    logout)
+      _stackgres_logout
+    ;;
+    status)
+      _stackgres_status
     ;;
     whoami)
       _stackgres_whoami
@@ -86,6 +103,8 @@ function _stackgres_cluster_get() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     "1:cluster:__stackgres_list_all_clusters" \
     "*::arg:->args"
 
@@ -96,6 +115,9 @@ function _stackgres_cluster_list() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-A,--all-environments}"[List across all environments (the default when no environment is active)]" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     "--show-tags[Shows the cluster tags in the list]" \
     {-q,--quiet}"[Only display the cluster names]" \
     {-t,--tag}"[Only list clusters that are tagged accordingly]:arg:->args" \
@@ -108,6 +130,8 @@ function _stackgres_cluster_create() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-n,--name}"[The cluster name]:arg:->args" \
     {-F,--flavor}"[The database flavor]:flavor:(postgres ivorysql)" \
     {-v,--version}"[The PostgreSQL version]:version:__stackgres_list_versions" \
@@ -157,6 +181,8 @@ function _stackgres_cluster_delete() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only delete clusters that are tagged accordingly]:arg:->args" \
     {-f,--force}"[Force deletion (doesn't ask for confirmation)]" \
     {-a,--all}"[Delete all clusters]" \
@@ -180,6 +206,8 @@ function _stackgres_cluster_start() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only start clusters that are tagged accordingly]:arg:->args" \
     {-a,--all}"[Start all stopped clusters]" \
     "1:cluster:->cluster" \
@@ -202,6 +230,8 @@ function _stackgres_cluster_stop() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only stop clusters that are tagged accordingly]:arg:->args" \
     {-a,--all}"[Stop all clusters]" \
     "1:cluster:->cluster" \
@@ -224,6 +254,8 @@ function _stackgres_cluster_restart() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
+    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only restart clusters that are tagged accordingly]:arg:->args" \
     {-a,--all}"[Restart all clusters]" \
     "1:cluster:->cluster" \
@@ -661,6 +693,183 @@ function _stackgres_whoami() {
 
 }
 
+function _stackgres_environment() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1: :(list get use delete)" \
+    "*::arg:->args"
+
+  case $line[1] in
+    list)
+      _stackgres_environment_list
+    ;;
+    get)
+      _stackgres_environment_get
+    ;;
+    use)
+      _stackgres_environment_use
+    ;;
+    delete|rm)
+      _stackgres_environment_delete
+    ;;
+  esac
+
+}
+
+function _stackgres_environment_list() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    {-q,--quiet}"[Only display the environment IDs]" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_environment_get() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1:environment:__stackgres_list_environments" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_environment_use() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1:environment:__stackgres_list_environments" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_environment_delete() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    {-f,--force}"[Force deletion (doesn't ask for confirmation)]" \
+    "1:environment:__stackgres_list_environments" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_context() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1: :(list current use set remove)" \
+    "*::arg:->args"
+
+  case $line[1] in
+    list)
+      _stackgres_context_list
+    ;;
+    current)
+      _stackgres_context_current
+    ;;
+    use)
+      _stackgres_context_use
+    ;;
+    set)
+      _stackgres_context_set
+    ;;
+    remove|rm|delete)
+      _stackgres_context_remove
+    ;;
+  esac
+
+}
+
+function _stackgres_context_list() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_context_current() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_context_use() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1:context:__stackgres_list_contexts" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_context_set() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "--endpoint[The matriarch/cloud gRPC endpoint]:arg:->args" \
+    "--token[Bearer token for authentication]:arg:->args" \
+    "--tls[Force TLS on/off (default: auto)]:tls:(true false)" \
+    "--default-env[The environment this context targets by default]:environment:__stackgres_list_environments" \
+    "1:context:__stackgres_list_contexts" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_context_remove() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1:context:__stackgres_list_contexts" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_login() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "--endpoint[The cloud endpoint (host[:port])]:arg:->args" \
+    "--name[Name for the saved context (default: the endpoint host)]:arg:->args" \
+    "1:one-time-token:->args" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_logout() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1:context:__stackgres_list_contexts" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_status() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "*::arg:->args"
+
+}
+
 
 
 __stackgres_list_all_clusters() {
@@ -706,4 +915,18 @@ __stackgres_cluster_list_instances() {
   instances=($(stackgres cluster get --instances-only $cluster 2> /dev/null)) || return 1
   _describe -t instances "all instances" instances "$@"
   return 0
+}
+
+__stackgres_list_environments() {
+   declare -a environments
+   environments=($(stackgres environment list -q 2> /dev/null)) || return 1
+   _describe -t environments "environments" environments "$@"
+   return 0
+}
+
+__stackgres_list_contexts() {
+   declare -a contexts
+   contexts=($(stackgres context list 2> /dev/null | tail -n +2 | sed 's/^[* ]*//' | awk '{print $1}')) || return 1
+   _describe -t contexts "contexts" contexts "$@"
+   return 0
 }

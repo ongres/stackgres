@@ -150,10 +150,14 @@ public final class Matriarch {
         progress.onProgress(ClusterOperationProgress.accepted(snapshot(id)));
         events.accept(new ClusterEvent.ClusterDeleting(Instant.now(), id));
 
-        // A cluster still PENDING was never provisioned on any agent — there is nothing to tear
-        // down, so complete the delete here without needing an executor/agent connected.
+        // A cluster the matriarch has never seen running on an agent — no observed status at all, or
+        // still PENDING — was never provisioned: there is nothing to tear down, so complete the delete
+        // here rather than asking an executor/agent to remove it. Crucially this also covers a STALE
+        // cluster (a leftover desired whose instance no agent actually has): routing its delete to the
+        // agent would send a DeleteInstanceCommand for an instance the agent doesn't know, and no
+        // removal ack would ever come back — leaving the client's delete stream to hang forever.
         ClusterStatus observed = statusCache.get(id);
-        if (observed != null && observed.runStatus() == RunStatus.PENDING) {
+        if (observed == null || observed.runStatus() == RunStatus.PENDING) {
             notifyRemoved(id);
             return;
         }

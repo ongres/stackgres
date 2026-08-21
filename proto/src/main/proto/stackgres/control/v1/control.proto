@@ -21,6 +21,7 @@ option java_package = "io.stackgres.proto.control.v1";
 
 import "stackgres/api/v1/api.proto";
 import "stackgres/types/v1/types.proto";
+import "google/rpc/status.proto";
 
 // ===========================================================================
 // Service — matriarch dials out; cloud is the server (§5.2)
@@ -43,6 +44,7 @@ message MatriarchMessage {
     StateSnapshot snapshot     = 2;    // full authoritative set (on connect / on ResyncRequest)
     SeqEvent      event        = 3;    // one incremental change, sequence-numbered
     Heartbeat     heartbeat    = 4;    // liveness + last-emitted seq (gap detection while idle)
+    ControlResponse control_response = 5; // write plane: streamed result of a routed ControlRequest
   }
 }
 
@@ -93,9 +95,15 @@ message CloudMessage {
   oneof payload {
     RegistrationAck ack    = 1;
     ResyncRequest   resync = 2;
-    // Reserved for the write plane: user control requests (create/start/stop)
-    // routed onto this environment's stream. Kept out of v1 (read-only).
-    // ControlRequest request = 3;
+    // Write plane (round 2): a user control request (create/start/stop/...) routed
+    // onto this environment stream; results stream back as ControlResponse.
+    ControlRequest  control = 3;
+    // Keep-alive: the cloud replies with a HeartbeatAck to every upstream Heartbeat, so
+    // the cloud->local (response) half of the stream carries traffic at the same cadence
+    // as the matriarch's heartbeat. The matriarch's Heartbeat keeps the request half
+    // warm; without this the response half is idle between writes, which a proxy
+    // (e.g. Cloudflare) can treat as an idle-response timeout and reset the stream.
+    HeartbeatAck    heartbeat_ack = 4;
   }
 }
 
@@ -112,4 +120,47 @@ message RegistrationAck {
 // StateSnapshot to re-establish per-environment consistency.
 message ResyncRequest {
   string reason = 1;
+}
+
+// Acknowledges a Heartbeat — a no-op the matriarch ignores. Its only job is to put a
+// frame on the cloud->local direction on every heartbeat so that half of the
+// bidirectional stream never sits idle (proxy keep-alive). Echoes the seq the cloud
+// has applied, handy for observing cache lag.
+message HeartbeatAck {
+  uint64 acked_seq = 1;
+}
+
+// ===========================================================================
+// Write plane (round 2) — user control requests routed down to a matriarch,
+// its streamed api.v1 progress relayed back up. Correlated by request_id.
+// ===========================================================================
+
+// A user write (from the CLI api.v1 call) routed onto this environment stream
+// for the matriarch to execute locally.
+message ControlRequest {
+  string request_id = 1;   // correlate the ControlResponse frames below
+  oneof operation {
+    stackgres.api.v1.CreateClusterRequest  create  = 2;
+    stackgres.api.v1.DeleteClusterRequest  delete  = 3;
+    stackgres.api.v1.StartClusterRequest   start   = 4;
+    stackgres.api.v1.StopClusterRequest    stop    = 5;
+    stackgres.api.v1.RestartClusterRequest restart = 6;
+    stackgres.api.v1.GetClusterCredentialsRequest credentials = 7;
+  }
+}
+
+// One frame of the matriarch response to a ControlRequest: a streamed progress
+// update, a terminal error, or terminal success — the cloud relays these to the
+// waiting api.v1 caller verbatim.
+message ControlResponse {
+  string request_id = 1;
+  oneof kind {
+    stackgres.api.v1.ClusterOperationProgress progress  = 2;  // one streamed frame
+    google.rpc.Status                         error     = 3;  // terminal error -> onError
+    Completion                                completed = 4;   // terminal success -> onCompleted
+    stackgres.api.v1.GetClusterCredentialsResponse credentials = 5; // unary read result (live secret)
+  }
+}
+
+message Completion {
 }
