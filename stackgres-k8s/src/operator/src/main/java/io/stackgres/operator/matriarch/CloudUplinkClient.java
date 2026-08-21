@@ -17,6 +17,7 @@ import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.control.v1.CloudMessage;
+import io.stackgres.proto.control.v1.ControlResponse;
 import io.stackgres.proto.control.v1.Heartbeat;
 import io.stackgres.proto.control.v1.MatriarchMessage;
 import io.stackgres.proto.control.v1.Registration;
@@ -232,6 +233,20 @@ public class CloudUplinkClient {
       case RESYNC -> {
         LOG.infof("cloud requested resync: %s", m.getResync().getReason());
         sendSnapshot();
+      }
+      case CONTROL -> {
+        // The operator is read-only for now: it observes k8s but cannot execute user writes. Reject
+        // cleanly so the cloud fails the api.v1 call with UNIMPLEMENTED instead of hanging.
+        up.onNext(MatriarchMessage.newBuilder().setControlResponse(ControlResponse.newBuilder()
+            .setRequestId(m.getControl().getRequestId())
+            .setError(com.google.rpc.Status.newBuilder()
+                .setCode(io.grpc.Status.Code.UNIMPLEMENTED.value())
+                .setMessage("this environment (k8s-stackgres) does not support write operations yet")))
+            .build());
+      }
+      case HEARTBEAT_ACK -> {
+        // Keep-alive reply to our heartbeat — a frame on the cloud->local direction (proxy idle
+        // guard). Nothing to do.
       }
       case PAYLOAD_NOT_SET -> { }
     }
