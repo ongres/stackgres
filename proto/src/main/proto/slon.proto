@@ -19,6 +19,7 @@ message SlonMessage {
     Registration registration = 1;
     Heartbeat heartbeat = 2;
     StatusUpdate statusUpdate = 3;
+    Log log = 4;
     PgWireTunnelOpened pgWireTunnelOpened = 5;
     PgWireTunnelData pgWireTunnelData = 6;
     PgWireTunnelClosed pgWireTunnelClosed = 7;
@@ -83,9 +84,38 @@ message MatriarchMessage {
     PgWireTunnelData pgWireTunnelData = 8;
     ExecCommand execCommand = 9;
     ExecMessage execMessage = 10;
+    // Component log tail (per-instance, from source). Each command opens a tail of ONE
+    // component's log file on this slon; the agent streams matching lines back as Log
+    // messages keyed by the command id, and AbortLogsCommand stops a follow. Restores the
+    // pre-logs-service Slon log path (component logs come from the slon; node logs stay on
+    // slony's GetSlonyLogsCommand) — original field numbers 11-14 kept.
+    GetPostgresLogsCommand getPostgresLogsCommand = 11;
+    GetPatroniLogsCommand getPatroniLogsCommand = 12;
+    GetSlonLogsCommand getSlonLogsCommand = 13;
+    GetEtcdLogsCommand getEtcdLogsCommand = 14;
     ShutdownCommand shutdownCommand = 15;
+    AbortLogsCommand abortLogsCommand = 16;
   }
 }
+
+// ---- Component log tail (Slon-sourced; see MatriarchMessage) ----
+
+// A streamed chunk of a component's log (agent -> matriarch), keyed by the request id.
+// `contents` carries one or more log lines; a terminal frame carries `status` instead
+// (OK = end of a snapshot / clean stop, non-OK = failure).
+message Log {
+  common.UUID id = 1;
+  optional string contents = 2;
+  optional google.rpc.Status status = 3;
+}
+
+message GetPostgresLogsCommand { common.UUID id = 1; bool follow = 2; }
+message GetPatroniLogsCommand  { common.UUID id = 1; bool follow = 2; }
+message GetSlonLogsCommand     { common.UUID id = 1; bool follow = 2; }
+message GetEtcdLogsCommand     { common.UUID id = 1; bool follow = 2; }
+
+// Stop a follow started by one of the Get*LogsCommand above (by its id).
+message AbortLogsCommand { common.UUID id = 1; }
 
 message InitDbCommand {
   bool checksum = 1;

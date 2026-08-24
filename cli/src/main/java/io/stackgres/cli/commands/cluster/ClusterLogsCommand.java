@@ -26,7 +26,7 @@ public class ClusterLogsCommand extends StackGresSubCommand {
     @Parameters(index = "0", description = "The cluster name")
     String name;
 
-    @Option(names = {"-i", "--instance"}, description = "The PostgreSQL instance name for high available clusters (default: the only instance or a random one)")
+    @Option(names = {"-i", "--instance"}, description = "The PostgreSQL instance name for high available clusters (default: all instances)")
     String instanceName;
 
     @Option(names = {"-c", "--component"}, description = "Log component: postgres, patroni, slon, etcd (default: postgres, or patroni for HA)")

@@ -52,8 +52,9 @@ public class MatriarchClient {
     private AccountServiceGrpc.AccountServiceBlockingV2Stub accountStub;
     private ResourceServiceGrpc.ResourceServiceBlockingV2Stub resourceStub;
     private ResourceServiceGrpc.ResourceServiceStub resourceAsyncStub;
-    // stackgres.api.v1 — cluster CRUD talks this; the rest still use the cli.proto stubs above.
+    // stackgres.api.v1 — cluster CRUD + log tail talk this; the rest still use the cli.proto stubs above.
     private StackGresApiBlockingStub stackGresStub;
+    private io.stackgres.proto.api.v1.StackGresApiGrpc.StackGresApiStub stackGresAsyncStub;
 
     private String matriarchUrl;
     private boolean debug;
@@ -81,11 +82,17 @@ public class MatriarchClient {
         resourceStub = ResourceServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
         resourceAsyncStub = ResourceServiceGrpc.newStub(channel).withCallCredentials(credential);
         stackGresStub = StackGresApiGrpc.newBlockingStub(channel).withCallCredentials(credential);
+        stackGresAsyncStub = StackGresApiGrpc.newStub(channel).withCallCredentials(credential);
     }
 
     private StackGresApiBlockingStub stackGresClient() {
         ensureConnected();
         return stackGresStub;
+    }
+
+    private io.stackgres.proto.api.v1.StackGresApiGrpc.StackGresApiStub asyncStackGresClient() {
+        ensureConnected();
+        return stackGresAsyncStub;
     }
 
     private ClusterServiceGrpc.ClusterServiceBlockingV2Stub clusterClient() {
@@ -490,63 +497,42 @@ public class MatriarchClient {
         return new ExecSession(exitCode, cliExecObserver);
     }
 
+    // api.v1 TailLogs (component logs, served from the cluster's slon(s), fanned into one LogLine stream):
+    // follow=false streams a recent snapshot then completes; follow=true streams new lines until cancelled.
     public String getClusterLogs(String name, String instanceName, String component) {
-        PostgresCluster cluster = getCluster(name);
-        UUID instanceId = instanceId(cluster, instanceName);
-        if (!cluster.isStandalone() && instanceId == null) {
-            System.err.println(Strings.commentAnsi("No instance name is given, selecting random cluster instance"));
-        }
-        GetClusterLogsRequest.Builder builder = GetClusterLogsRequest.newBuilder()
-                .setClusterId(mapUUID(cluster.getId()))
-                .setComponent(mapLogComponent(component, cluster));
-        if (instanceId != null)
-            builder.setInstanceId(mapUUID(instanceId));
-
+        StringBuilder block = new StringBuilder();
         try {
-            GetClusterLogsResponse response = clusterClient().getClusterLogs(builder.build());
-            logDebug("Received response: " + response);
-            if (response.hasLogs()) {
-                return response.getLogs();
-            } else if (response.hasStatus()) {
-                throw new RuntimeException(response.getStatus().getMessage());
+            Iterator<LogLine> stream = stackGresClient().tailLogs(tailLogsRequest(name, instanceName, component, false));
+            while (stream.hasNext()) {
+                block.append(stream.next().getLine()).append('\n');
             }
-            throw new IllegalStateException("No response sent");
-        } catch (StatusException e) {
-            if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
-                throw new IllegalStateException("This Matriarch server does not support cluster logs. Please connect to StackGres Cloud.");
-            }
-            throw handleStatusException(e);
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
+        return block.toString();
     }
 
     public Runnable followClusterLogs(String name, String instanceName, String component, Consumer<String> consumer, Consumer<String> onCompleted) {
-        PostgresCluster cluster = getCluster(name);
-        UUID instanceId = instanceId(cluster, instanceName);
-        if (!cluster.isStandalone() && instanceId == null) {
-            System.err.println(Strings.commentAnsi("No instance name is given, selecting random cluster instance"));
-        }
-        TailClusterLogsRequest.Builder builder = TailClusterLogsRequest.newBuilder().setClusterId(mapUUID(cluster.getId()));
-        if (instanceId != null)
-            builder.setInstanceId(mapUUID(instanceId));
-        builder.setComponent(mapLogComponent(component, cluster));
-        StreamObserver<TailClusterLogsResponse> responseObserver = new StreamObserver<>() {
+        TailLogsRequest request = tailLogsRequest(name, instanceName, component, true);
+        // Cancel the server-stream by cancelling this context (the CLI's shutdown hook runs the returned Runnable).
+        io.grpc.Context.CancellableContext ctx = io.grpc.Context.current().withCancellation();
+        StreamObserver<LogLine> responseObserver = new StreamObserver<>() {
             @Override
-            public void onNext(TailClusterLogsResponse response) {
-                logDebug("Received response: " + response);
-                if (response.hasStatus()) {
-                    onCompleted.accept(response.getStatus().getMessage());
-                } else if (response.hasLine()) {
-                    consumer.accept(response.getLine());
-                }
+            public void onNext(LogLine line) {
+                consumer.accept(line.getLine());
             }
 
             @Override
             public void onError(Throwable t) {
                 logDebug("received error from server " + t);
-                if (t instanceof StatusRuntimeException e && e.getStatus().getCode() == Status.Code.UNIMPLEMENTED)
-                    onCompleted.accept("This Matriarch server does not support cluster logs. Please connect to StackGres Cloud.");
-                else
+                Status.Code code = t instanceof StatusRuntimeException e ? e.getStatus().getCode() : Status.Code.UNKNOWN;
+                if (code == Status.Code.CANCELLED) {
+                    onCompleted.accept(null);   // our own cancel (Ctrl-C) — a clean end
+                } else if (code == Status.Code.UNIMPLEMENTED) {
+                    onCompleted.accept("This environment does not support log tail.");
+                } else {
                     onCompleted.accept(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName());
+                }
             }
 
             @Override
@@ -555,9 +541,34 @@ public class MatriarchClient {
                 onCompleted.accept(null);
             }
         };
-        StreamObserver<TailClusterLogsRequest> requestObserver = asyncClient().tailClusterLogs(responseObserver);
-        requestObserver.onNext(builder.build());
-        return requestObserver::onCompleted;
+        ctx.run(() -> asyncStackGresClient().tailLogs(request, responseObserver));
+        return () -> ctx.cancel(null);
+    }
+
+    // Resolve name -> cluster (+ optional instance name -> id) and build the api.v1 TailLogs request.
+    private TailLogsRequest tailLogsRequest(String name, String instanceName, String component, boolean follow) {
+        PostgresCluster cluster = getCluster(name);
+        UUID instanceId = instanceId(cluster, instanceName);
+        TailLogsRequest.Builder builder = TailLogsRequest.newBuilder()
+                .setEnvironmentId(activeEnvironment())
+                .setClusterId(Id.newBuilder().setValue(cluster.getId().toString()))
+                .addComponent(componentName(component, cluster))
+                .setFollow(follow);
+        if (instanceId != null) {
+            builder.setInstanceId(Id.newBuilder().setValue(instanceId.toString()));
+        }
+        return builder.build();
+    }
+
+    private static String componentName(String component, PostgresCluster cluster) {
+        if (component == null || component.isBlank()) {
+            return cluster.isStandalone() ? "postgres" : "patroni";
+        }
+        return switch (component.toLowerCase()) {
+            case "postgres", "patroni", "slon", "etcd" -> component.toLowerCase();
+            default -> throw new IllegalArgumentException(
+                    "Unknown log component: " + component + ". Valid values: postgres, patroni, slon, etcd");
+        };
     }
 
     public ClusterCheckpoints getClusterCheckpoints(String name, String instanceName, String database, Instant start, Instant end, int maxResults) {
@@ -588,18 +599,6 @@ public class MatriarchClient {
             }
             throw handleStatusException(e);
         }
-    }
-
-    private static LogComponent mapLogComponent(String component, PostgresCluster cluster) {
-        if (component == null)
-            return cluster.isStandalone() ? LogComponent.LOG_COMPONENT_POSTGRES : LogComponent.LOG_COMPONENT_PATRONI;
-        return switch (component.toLowerCase()) {
-            case "postgres" -> LogComponent.LOG_COMPONENT_POSTGRES;
-            case "patroni" -> LogComponent.LOG_COMPONENT_PATRONI;
-            case "slon" -> LogComponent.LOG_COMPONENT_SLON;
-            case "etcd" -> LogComponent.LOG_COMPONENT_ETCD;
-            default -> throw new IllegalArgumentException("Unknown log component: " + component + ". Valid values: postgres, patroni, slon, etcd");
-        };
     }
 
     public PgWireTunnel openPgWireTunnel(PostgresCluster cluster, String instanceName, PgWireTarget target, boolean warnOnRandomInstance,

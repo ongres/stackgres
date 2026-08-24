@@ -32,6 +32,9 @@ public class SlonBridgeService extends SlonServiceGrpc.SlonServiceImplBase {
     @Inject
     ExecRelay execRelay;
 
+    @Inject
+    ClusterLogRelay clusterLogRelay;
+
     @Override
     public StreamObserver<SlonMessage> transfer(StreamObserver<MatriarchMessage> responseObserver) {
         return new StreamObserver<>() {
@@ -59,7 +62,8 @@ public class SlonBridgeService extends SlonServiceGrpc.SlonServiceImplBase {
                     case PGWIRETUNNELCLOSED -> tunnelRelay.onClosed(UuidCodec.fromProto(msg.getPgWireTunnelClosed().getTunnelId()));
                     case EXEC -> execRelay.onOutput(UuidCodec.fromProto(msg.getExec().getId()), msg.getExec().getBytes());
                     case EXECEXIT -> execRelay.onExit(UuidCodec.fromProto(msg.getExecExit().getId()), msg.getExecExit().getCode());
-                    default -> { /* replication/log/event: ignored in cut #1 */ }
+                    case LOG -> clusterLogRelay.onLog(msg.getLog());
+                    default -> { /* replication/event: ignored in cut #1 */ }
                 }
             }
 

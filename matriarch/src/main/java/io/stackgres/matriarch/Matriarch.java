@@ -136,11 +136,14 @@ public final class Matriarch {
             return;
         }
 
-        // Run the teardown EXACTLY ONCE: a retry under the same key, or a delete already
-        // in flight for this cluster, replays the in-progress state instead of re-running
-        // (the teardown may later involve stop + cleanup side-effects, §5.1).
+        // Run the teardown EXACTLY ONCE: a retry under the same key, or a delete ALREADY in flight for
+        // this cluster, replays the in-progress state instead of re-running (teardown may later involve
+        // stop + cleanup side-effects, §5.1). Note: only an in-flight DELETE replays — a create/start/
+        // restart still converging (e.g. a cluster stuck in STARTING) must NOT block deletion; the delete
+        // supersedes that watch and tears the cluster down, otherwise such a cluster could never be deleted.
         boolean claimed = idempotencyKey == null || idempotencyKey.isBlank() || store.recordIdempotency(idempotencyKey, id);
-        if (!claimed || watches.containsKey(id)) {
+        Watch inFlight = watches.get(id);
+        if (!claimed || (inFlight != null && inFlight.kind() == WatchKind.DELETE)) {
             progress.onProgress(ClusterOperationProgress.accepted(snapshot(id)));
             progress.onComplete();
             return;

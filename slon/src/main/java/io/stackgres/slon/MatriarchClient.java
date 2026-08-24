@@ -12,9 +12,18 @@ import io.stackgres.slon.processes.VectorProcesses;
 import common.Common;
 import io.grpc.*;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListenerAdapter;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +44,7 @@ public class MatriarchClient {
     private final String port;
     private final Map<UUID, PgWireTunnel> pgWireTunnels = new ConcurrentHashMap<>();
     private final Map<UUID, SubmissionPublisher<byte[]>> execPublishers = new ConcurrentHashMap<>();
+    private final Map<UUID, Tailer> logTailers = new ConcurrentHashMap<>();
     private final Lock slonStreamLock = new ReentrantLock();
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -294,6 +304,20 @@ public class MatriarchClient {
                     byte[] bytes = matriarchMessage.getExecMessage().getBytes().toByteArray();
                     handleExecMessage(execId, bytes);
                 }
+                if (matriarchMessage.hasGetPostgresLogsCommand())
+                    handleComponentLogs(mapUUID(matriarchMessage.getGetPostgresLogsCommand().getId()),
+                            matriarchMessage.getGetPostgresLogsCommand().getFollow(), LogComponent.POSTGRES);
+                if (matriarchMessage.hasGetPatroniLogsCommand())
+                    handleComponentLogs(mapUUID(matriarchMessage.getGetPatroniLogsCommand().getId()),
+                            matriarchMessage.getGetPatroniLogsCommand().getFollow(), LogComponent.PATRONI);
+                if (matriarchMessage.hasGetSlonLogsCommand())
+                    handleComponentLogs(mapUUID(matriarchMessage.getGetSlonLogsCommand().getId()),
+                            matriarchMessage.getGetSlonLogsCommand().getFollow(), LogComponent.SLON);
+                if (matriarchMessage.hasGetEtcdLogsCommand())
+                    handleComponentLogs(mapUUID(matriarchMessage.getGetEtcdLogsCommand().getId()),
+                            matriarchMessage.getGetEtcdLogsCommand().getFollow(), LogComponent.ETCD);
+                if (matriarchMessage.hasAbortLogsCommand())
+                    handleAbortLogsCommand(mapUUID(matriarchMessage.getAbortLogsCommand().getId()));
             } catch (Exception e) {
                 logger.log(System.Logger.Level.ERROR, "Error while handling command", e);
                 e.printStackTrace();
@@ -534,6 +558,143 @@ public class MatriarchClient {
             return;
         }
         publisher.submit(bytes);
+    }
+
+    // ---- Component log tail (Slon-sourced). Restores the pre-logs-service Slon log path: the
+    // matriarch asks this slon for one component's log by id; we stream matching lines back as
+    // Log{contents} and finish a snapshot (or stop a follow via AbortLogsCommand) with Log{status}. ----
+
+    private static final int SNAPSHOT_MAX_LINES = 1000;
+    private static final int FOLLOW_PRIME_LINES = 100;
+
+    private enum LogComponent {
+        POSTGRES, PATRONI, SLON, ETCD
+    }
+
+    private void handleComponentLogs(UUID logsId, boolean follow, LogComponent component) {
+        Path logPath;
+        try {
+            logPath = resolveLogFile(component);
+        } catch (IOException e) {
+            sendLogError(logsId, "Failed to locate " + component + " log: " + e.getMessage());
+            return;
+        }
+        if (logPath == null) {
+            sendLogError(logsId, component.name().toLowerCase() + " logs are not available for this instance");
+            return;
+        }
+        try {
+            if (follow) {
+                // tail -f: emit a recent snapshot first (context), then stream new lines from the end.
+                // NOTE: follows a single file — a csvlog rotation to a new filename is not followed yet.
+                StringBuilder recent = new StringBuilder();
+                for (String line : readLastLines(logPath, FOLLOW_PRIME_LINES)) {
+                    recent.append(line).append('\n');
+                }
+                if (!recent.isEmpty()) {
+                    sendLog(logsId, recent.toString());
+                }
+                Tailer tailer = Tailer.builder()
+                        .setTailerListener(new TailerListenerAdapter() {
+                            @Override
+                            public void handle(String line) {
+                                sendLog(logsId, line);   // raw line; the matriarch normalizes per component
+                            }
+                        })
+                        .setFile(logPath.toString())
+                        .setTailFromEnd(true)
+                        .setExecutorService(executorService)
+                        .get();
+                logTailers.put(logsId, tailer);
+            } else {
+                StringBuilder snapshot = new StringBuilder();
+                for (String line : readLastLines(logPath, SNAPSHOT_MAX_LINES)) {
+                    snapshot.append(line).append('\n');
+                }
+                sendLog(logsId, snapshot.toString());
+                sendLogAck(logsId);
+            }
+        } catch (IOException e) {
+            sendLogError(logsId, "Failed to read log file " + logPath + ": " + e.getMessage());
+        } catch (Exception e) {
+            logger.log(System.Logger.Level.ERROR, "Error while handling component logs", e);
+            sendLogError(logsId, e.getMessage());
+        }
+    }
+
+    private void handleAbortLogsCommand(UUID logsId) {
+        Tailer tailer = logTailers.remove(logsId);
+        if (tailer != null) {
+            tailer.close();
+            sendLogAck(logsId);
+        }
+    }
+
+    // Component -> file. Postgres is the structured csvlog (newest of the rotated set); the others are
+    // single files. Patroni/etcd exist only in Patroni-mode clusters (null -> "not available").
+    private Path resolveLogFile(LogComponent component) throws IOException {
+        return switch (component) {
+            case POSTGRES -> newestMatch(Paths.get("/tmp/postgres/log"), "postgresql-*.csv");
+            case PATRONI -> existing(Paths.get("/tmp/patroni.log"));
+            case SLON -> existing(Paths.get("/tmp/slon.log"));
+            case ETCD -> existing(Paths.get("/tmp/etcd-logs/etcd.log"));
+        };
+    }
+
+    private static Path existing(Path path) {
+        return Files.exists(path) ? path : null;
+    }
+
+    private static Path newestMatch(Path dir, String glob) throws IOException {
+        if (!Files.isDirectory(dir)) {
+            return null;
+        }
+        Path newest = null;
+        FileTime newestTime = null;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, glob)) {
+            for (Path candidate : stream) {
+                FileTime time = Files.getLastModifiedTime(candidate);
+                if (newestTime == null || time.compareTo(newestTime) > 0) {
+                    newestTime = time;
+                    newest = candidate;
+                }
+            }
+        }
+        return newest;
+    }
+
+    private static List<String> readLastLines(Path path, int max) throws IOException {
+        ArrayDeque<String> tail = new ArrayDeque<>(max);
+        try (var lines = Files.lines(path)) {
+            lines.forEach(line -> {
+                if (tail.size() == max) {
+                    tail.removeFirst();
+                }
+                tail.addLast(line);
+            });
+        }
+        return new ArrayList<>(tail);
+    }
+
+    private void sendLog(UUID logsId, String contents) {
+        sendMessage(SlonMessage.newBuilder()
+                .setLog(Log.newBuilder().setId(mapUUID(logsId)).setContents(contents).build())
+                .build());
+    }
+
+    private void sendLogAck(UUID logsId) {
+        sendMessage(SlonMessage.newBuilder()
+                .setLog(Log.newBuilder().setId(mapUUID(logsId))
+                        .setStatus(Status.newBuilder().setCode(Code.OK_VALUE).build()).build())
+                .build());
+    }
+
+    private void sendLogError(UUID logsId, String error) {
+        sendMessage(SlonMessage.newBuilder()
+                .setLog(Log.newBuilder().setId(mapUUID(logsId))
+                        .setStatus(Status.newBuilder().setCode(Code.INTERNAL_VALUE)
+                                .setMessage(error == null ? "" : error).build()).build())
+                .build());
     }
 
     private void sendMessage(SlonMessage message) {
