@@ -38,8 +38,36 @@ public class Slons {
         connections.remove(instanceId);
     }
 
-    boolean isConnected(UUID instanceId) {
+    public boolean isConnected(UUID instanceId) {
         return connections.containsKey(instanceId);
+    }
+
+    /**
+     * Ask an instance's slon to stream one component's log back (keyed by {@code logId}); {@code follow}
+     * streams new lines, otherwise a recent snapshot. The slon replies with {@code Log} chunks routed to
+     * {@link io.stackgres.matriarch.quarkus.grpc.ClusterLogRelay}. Returns false if the component is
+     * unknown or the slon stream is gone.
+     */
+    public boolean requestLogs(UUID instanceId, UUID logId, String component, boolean follow) {
+        common.Common.UUID id = UuidCodec.toProto(logId);
+        MatriarchMessage msg = switch (component) {
+            case "postgres" -> MatriarchMessage.newBuilder()
+                    .setGetPostgresLogsCommand(GetPostgresLogsCommand.newBuilder().setId(id).setFollow(follow)).build();
+            case "patroni" -> MatriarchMessage.newBuilder()
+                    .setGetPatroniLogsCommand(GetPatroniLogsCommand.newBuilder().setId(id).setFollow(follow)).build();
+            case "slon" -> MatriarchMessage.newBuilder()
+                    .setGetSlonLogsCommand(GetSlonLogsCommand.newBuilder().setId(id).setFollow(follow)).build();
+            case "etcd" -> MatriarchMessage.newBuilder()
+                    .setGetEtcdLogsCommand(GetEtcdLogsCommand.newBuilder().setId(id).setFollow(follow)).build();
+            default -> null;
+        };
+        return msg != null && send(instanceId, msg);
+    }
+
+    /** Tell an instance's slon to stop a log follow (by its {@code logId}). */
+    public boolean abortLogs(UUID instanceId, UUID logId) {
+        return send(instanceId, MatriarchMessage.newBuilder()
+                .setAbortLogsCommand(AbortLogsCommand.newBuilder().setId(UuidCodec.toProto(logId))).build());
     }
 
     /**

@@ -15,13 +15,20 @@ import io.stackgres.proto.api.v1.*;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.postgres.Extension.Builder;
 import io.grpc.Status;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.quarkus.grpc.GrpcService;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
+import io.stackgres.matriarch.model.spec.InstanceSpec;
+import io.stackgres.matriarch.quarkus.grpc.ClusterLogRelay;
+import io.stackgres.matriarch.quarkus.resources.Slons;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -50,6 +57,12 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     @Inject
     io.stackgres.matriarch.quarkus.identity.EnvironmentIdentity identity;
 
+    @Inject
+    Slons slons;
+
+    @Inject
+    ClusterLogRelay clusterLogRelay;
+
     @Override
     public void createCluster(CreateClusterRequest request, StreamObserver<ClusterOperationProgress> responseObserver) {
         ClusterCreate intent = ProtoMapper.toCreate(request);
@@ -64,6 +77,65 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
             // the version/extension catalog (DOCIR) is unreachable — not a transport failure
             responseObserver.onError(Status.FAILED_PRECONDITION.withDescription(e.getMessage()).asRuntimeException());
         }
+    }
+
+    // Component log tail (API_SURFACE_LOG_TAIL): stream one or more components' logs from the cluster's
+    // slon(s), fanned into a single LogLine stream by ClusterLogRelay. Partition-safe (served from source
+    // over the agent link); historical/analytic QueryLogs stays cloud-only and is not implemented here.
+    @Override
+    public void tailLogs(TailLogsRequest request, StreamObserver<LogLine> responseObserver) {
+        Cluster cluster = matriarch.getCluster(new ClusterId(request.getClusterId().getValue()));
+        if (cluster == null) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no such cluster").asRuntimeException());
+            return;
+        }
+        List<InstanceSpec> instances = cluster.spec().instances();
+        if (request.hasInstanceId()) {
+            String wanted = request.getInstanceId().getValue();
+            instances = instances.stream().filter(i -> i.id().value().equals(wanted)).toList();
+            if (instances.isEmpty()) {
+                responseObserver.onError(Status.NOT_FOUND.withDescription("no such instance in cluster").asRuntimeException());
+                return;
+            }
+        }
+        // Empty component list = all; the agent answers "not available" for components a given mode lacks
+        // (patroni/etcd on a standalone), which the relay silently drops.
+        List<String> components = request.getComponentList().isEmpty()
+                ? List.of("postgres", "patroni", "slon", "etcd")
+                : request.getComponentList();
+        boolean follow = request.getFollow();
+
+        ClusterLogRelay.Session session = clusterLogRelay.newSession(responseObserver, follow);
+        List<Map.Entry<UUID, UUID>> subs = new ArrayList<>();   // (instanceId, logId) — for abort on cancel
+        for (InstanceSpec instance : instances) {
+            UUID instanceId = UUID.fromString(instance.id().value());
+            if (!slons.isConnected(instanceId)) {
+                continue;   // this instance's slon isn't connected — nothing to tail from it
+            }
+            for (String component : components) {
+                UUID logId = UUID.randomUUID();
+                clusterLogRelay.register(logId, session, instance.id().value(), component);
+                if (slons.requestLogs(instanceId, logId, component, follow)) {
+                    subs.add(Map.entry(instanceId, logId));
+                } else {
+                    clusterLogRelay.fail(logId);
+                }
+            }
+        }
+        if (subs.isEmpty()) {
+            clusterLogRelay.error(session, "no connected instance for this cluster");
+            return;
+        }
+        // A follow ends when the client goes away: stop the slon tails and forget the session.
+        if (responseObserver instanceof ServerCallStreamObserver<LogLine> cancellable) {
+            cancellable.setOnCancelHandler(() -> {
+                for (Map.Entry<UUID, UUID> sub : subs) {
+                    slons.abortLogs(sub.getKey(), sub.getValue());
+                }
+                clusterLogRelay.drop(session);
+            });
+        }
+        clusterLogRelay.arm(session);   // setup done — a snapshot may now complete
     }
 
     @Override

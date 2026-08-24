@@ -72,6 +72,7 @@ public class EnvironmentIdentity {
                 .addSurface(ApiSurface.API_SURFACE_CLUSTER_LIFECYCLE)
                 .addSurface(ApiSurface.API_SURFACE_EVENTS)
                 .addSurface(ApiSurface.API_SURFACE_CATALOG)
+                .addSurface(ApiSurface.API_SURFACE_LOG_TAIL)
                 .build();
     }
 

@@ -424,6 +424,7 @@ message TailLogsRequest {
   types.v1.Id cluster_id = 2;
   optional types.v1.Id instance_id = 3;
   repeated string component = 4;   // e.g. "postgres", "patroni"; empty = all
+  bool follow = 5;                 // true = stream new lines (tail -f); false = one recent snapshot, then end
 }
 message LogLine {
   google.protobuf.Timestamp timestamp = 1;
