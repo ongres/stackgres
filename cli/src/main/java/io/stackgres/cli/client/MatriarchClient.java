@@ -132,7 +132,7 @@ public class MatriarchClient {
         // Create is scoped to the active environment (required — we won't guess where to place it).
         CreateClusterRequest request = Mappers.createClusterRequest(cluster).toBuilder()
                 .setEnvironmentId(activeEnvironment()).build();
-        logDebug("Creating cluster: " + request);
+        logDebug("Creating cluster: ", request);
 
         boolean announced = false;
         boolean succeeded = false;
@@ -143,7 +143,7 @@ public class MatriarchClient {
             Iterator<ClusterOperationProgress> stream = stackGresClient().createCluster(request);
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
-                logDebug("Received progress: " + p);
+                logDebug("Received progress: ", p);
                 String id = p.getCluster().getId().getValue();
                 lastId = id;
                 lastName = p.getCluster().getName();
@@ -225,7 +225,7 @@ public class MatriarchClient {
             Iterator<ClusterOperationProgress> stream = stackGresClient().deleteCluster(request);
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
-                logDebug("Received progress: " + p);
+                logDebug("Received progress: ", p);
                 if (p.getStatus() == OperationStatus.OPERATION_STATUS_FAILED) {
                     throw new RuntimeException(p.getError().getMessage());
                 }
@@ -292,7 +292,7 @@ public class MatriarchClient {
             };
             while (stream.hasNext()) {
                 ClusterOperationProgress p = stream.next();
-                logDebug("Received progress: " + p);
+                logDebug("Received progress: ", p);
                 if (p.getStatus() == OperationStatus.OPERATION_STATUS_FAILED) {
                     throw new RuntimeException(p.getError().getMessage());
                 }
@@ -303,7 +303,7 @@ public class MatriarchClient {
     }
 
     private void checkActionStatus(com.google.rpc.Status status) {
-        logDebug("Received response: " + status);
+        logDebug("Received response: ", status);
         if (status.getCode() != com.google.rpc.Code.OK.getNumber())
             throw new RuntimeException(status.getMessage());
     }
@@ -349,7 +349,7 @@ public class MatriarchClient {
                 .setEnvironmentId(environmentId == null ? "" : environmentId).putAllTags(tags).build();
         try {
             io.stackgres.proto.api.v1.ListClustersResponse response = stackGresClient().listClusters(request);
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             List<ClusterRow> rows = new java.util.ArrayList<>();
             for (io.stackgres.proto.api.v1.Cluster c : response.getClusterList()) {
                 rows.add(new ClusterRow(c.getEnvironmentId(), Mappers.mapCluster(c)));
@@ -368,7 +368,7 @@ public class MatriarchClient {
     public List<EnvironmentInfo> listEnvironments() {
         try {
             io.stackgres.proto.api.v1.ListEnvironmentsResponse response = stackGresClient().listEnvironments(ListEnvironmentsRequest.newBuilder().build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             List<EnvironmentInfo> out = new java.util.ArrayList<>();
             for (io.stackgres.proto.api.v1.Environment env : response.getEnvironmentList()) {
                 out.add(mapEnvironment(env, response.getSourceInfoMap().get(env.getId().getValue())));
@@ -395,7 +395,7 @@ public class MatriarchClient {
     public EnvironmentInfo getEnvironment(String environmentId) {
         try {
             GetEnvironmentResponse response = stackGresClient().getEnvironment(GetEnvironmentRequest.newBuilder().setEnvironmentId(environmentId).build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return mapEnvironment(response.getEnvironment(), response.getSourceInfo());
         } catch (StatusRuntimeException e) {
             throw statusError(e);
@@ -414,7 +414,7 @@ public class MatriarchClient {
     public List<String> listAvailableVersions(io.stackgres.postgres.Flavor flavor) {
         try {
             var response = stackGresClient().listVersions(ListVersionsRequest.newBuilder().setEngine(Mappers.mapEngine(flavor)).build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return response.getVersionList();
         } catch (StatusRuntimeException e) {
             throw statusError(e);
@@ -587,7 +587,7 @@ public class MatriarchClient {
 
         try {
             GetClusterCheckpointsResponse response = clusterClient().getClusterCheckpoints(builder.build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             if (response.hasCheckpoints())
                 return response.getCheckpoints();
             if (response.hasStatus())
@@ -684,7 +684,7 @@ public class MatriarchClient {
     public String getAccount() {
         try {
             GetAccountResponse response = accountClient().getAccount(GetAccountRequest.newBuilder().build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return response.getUser();
         } catch (StatusException e) {
             if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
@@ -701,7 +701,7 @@ public class MatriarchClient {
     public List<Slony> listSlonys(Map<String, String> tags) {
         try {
             ListSlonysResponse response = resourceClient().listSlonys(ListSlonysRequest.newBuilder().putAllTags(tags).build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return Mappers.mapSlonys(response.getSlonyList());
         } catch (StatusException e) {
             throw handleStatusException(e);
@@ -736,7 +736,7 @@ public class MatriarchClient {
         try {
             while (invocation.hasNext()) {
                 DeleteSlonyResponse response = invocation.read();
-                logDebug("Received response: " + response);
+                logDebug("Received response: ", response);
                 if (response.hasDeleted()) {
                     deletionConsumer.accept(response.getDeleted().getHostname());
                 } else if (response.hasStatus()) {
@@ -753,7 +753,7 @@ public class MatriarchClient {
     public List<Slon> listSlons() {
         try {
             ListSlonsResponse response = resourceClient().listSlons(ListSlonsRequest.newBuilder().build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return Mappers.mapSlons(response.getSlonList());
         } catch (StatusException e) {
             throw handleStatusException(e);
@@ -768,7 +768,7 @@ public class MatriarchClient {
                 .build();
         try {
             var response = stackGresClient().getClusterEvents(request);
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return response.getEventList().stream().map(Mappers::mapEventV1).toList();
         } catch (StatusRuntimeException e) {
             throw statusError(e);
@@ -779,7 +779,7 @@ public class MatriarchClient {
         GetNodeEventsRequest request = GetNodeEventsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
         try {
             GetNodeEventsResponse response = resourceClient().getNodeEvents(request);
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             if (response.hasStatus())
                 throw new RuntimeException(response.getStatus().getMessage());
             return response.getEvents().getEventList();
@@ -792,7 +792,7 @@ public class MatriarchClient {
         GetNodeLogsRequest request = GetNodeLogsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
         try {
             GetNodeLogsResponse response = resourceClient().getNodeLogs(request);
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             if (response.hasLogs())
                 return response.getLogs();
             else if (response.hasStatus())
@@ -808,7 +808,7 @@ public class MatriarchClient {
         StreamObserver<TailNodeLogsResponse> responseObserver = new StreamObserver<>() {
             @Override
             public void onNext(TailNodeLogsResponse response) {
-                logDebug("Received response: " + response);
+                logDebug("Received response: ", response);
                 if (response.hasStatus())
                     onCompleted.accept(response.getStatus().getMessage());
                 else if (response.hasLine())
@@ -836,7 +836,7 @@ public class MatriarchClient {
         GetClusterDiagnosticsRequest request = GetClusterDiagnosticsRequest.newBuilder().setName(name).build();
         try {
             GetClusterDiagnosticsResponse response = clusterClient().getClusterDiagnostics(request);
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             if (response.hasStatus())
                 throw new RuntimeException(response.getStatus().getMessage());
             return Mappers.mapClusterDiagnostics(response.getDiagnostics());
@@ -870,13 +870,21 @@ public class MatriarchClient {
             System.err.println(commentAnsi(string));
     }
 
+    // Log a protobuf message WITHOUT calling its toString(): TextFormat's debug-redaction path reflects
+    // DescriptorProtos$FieldOptions (getCtype/...), which crashes in the native image. We log the message
+    // type only — same approach the slon/slony agents use to stay native-safe.
+    private void logDebug(String prefix, com.google.protobuf.MessageLite message) {
+        if (!debug) return;
+        logDebug(prefix + (message == null ? "null" : message.getClass().getSimpleName()));
+    }
+
     public List<io.stackgres.postgres.Extension> listAvailableExtensions(io.stackgres.postgres.Flavor flavor, String version) {
         try {
             var response = stackGresClient().listExtensions(io.stackgres.proto.api.v1.ListExtensionsRequest.newBuilder()
                     .setEngine(Mappers.mapEngine(flavor))
                     .setVersion(version)
                     .build());
-            logDebug("Received response: " + response);
+            logDebug("Received response: ", response);
             return response.getExtensionList().stream()
                     .map(e -> new io.stackgres.postgres.Extension(e.getName(),
                             e.getVersion().isBlank() ? null : e.getVersion(),

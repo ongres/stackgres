@@ -135,4 +135,43 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>native</id>
+      <!-- Activate with -Pnative (or -Dnative). Produces the `cli` binary (see cli/bundle/build.sh). -->
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>0.10.6</version>
+            <configuration>
+              <imageName>cli</imageName>
+              <mainClass>io.stackgres.cli.StackGresCommand</mainClass>
+              <buildArgs>
+                <buildArg>--no-fallback</buildArg>
+                <buildArg>-Os</buildArg>
+                <!-- The `completion` command reads /completions/stackgres.zsh from the classpath. -->
+                <buildArg>-H:IncludeResources=completions/.*</buildArg>
+              </buildArgs>
+              <jvmArgs>
+                <jvmArg>--sun-misc-unsafe-memory-access=allow</jvmArg>
+              </jvmArgs>
+            </configuration>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
