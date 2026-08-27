@@ -78,6 +78,43 @@ public final class Mappers {
         }
     }
 
+    // api.v1 Node (from ListNodes) -> the CLI's Slony domain model. Same shape, new source.
+    public static List<Slony> mapNodes(List<io.stackgres.proto.api.v1.Node> nodes) {
+        return nodes.stream()
+                .map(n -> {
+                    Instant lastHeartbeat = n.hasLastHeartbeat()
+                            ? Instant.ofEpochSecond(n.getLastHeartbeat().getSeconds(), n.getLastHeartbeat().getNanos())
+                            : null;
+                    return new Slony(java.util.UUID.fromString(n.getId().getValue()), n.getHostname(), n.getOs(),
+                            n.getArch(), n.getVersion(), n.getCpu(), n.getMemory(),
+                            mapNodeCloudEnvironment(n), mapNodeStatus(n.getStatus()), lastHeartbeat, n.getTagsMap());
+                })
+                .toList();
+    }
+
+    private static CloudEnvironment mapNodeCloudEnvironment(io.stackgres.proto.api.v1.Node n) {
+        if (n.getCloud().isBlank())
+            return null;
+        try {
+            Cloud cloud = Cloud.valueOf(n.getCloud().toUpperCase());
+            String region = n.getRegion().isBlank() ? null : n.getRegion();
+            String availabilityZone = n.getAvailabilityZone().isBlank() ? null : n.getAvailabilityZone();
+            String computeInstanceName = n.getComputeInstanceName().isBlank() ? null : n.getComputeInstanceName();
+            return new CloudEnvironment(cloud, region, availabilityZone, computeInstanceName);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static SlonyStatus mapNodeStatus(io.stackgres.proto.api.v1.NodeStatus status) {
+        return switch (status) {
+            case NODE_STATUS_ACTIVE -> SlonyStatus.ACTIVE;
+            case NODE_STATUS_INACTIVE -> SlonyStatus.INACTIVE;
+            case NODE_STATUS_DISCONNECTED -> SlonyStatus.DISCONNECTED;
+            default -> SlonyStatus.UNKNOWN;
+        };
+    }
+
     public static List<Slon> mapSlons(List<io.stackgres.proto.cli.Slon> slons) {
         return slons.stream()
                 .map(s -> new Slon(mapUUID(s.getId()), s.getPort(), s.getName(), s.getOs(), s.getArch(), s.getVersion(), s.getCpu(), s.getMemory()))

@@ -7,7 +7,7 @@ import picocli.CommandLine.Command;
 
 import java.util.List;
 
-@Command(name = "list", description = "Lists the configured contexts", usageHelpWidth = 160)
+@Command(name = "list", description = "Lists the configured contexts")
 public class ListContextCommand extends StackGresSubCommand {
 
     @Override

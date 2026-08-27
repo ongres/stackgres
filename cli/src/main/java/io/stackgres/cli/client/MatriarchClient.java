@@ -120,7 +120,27 @@ public class MatriarchClient {
         return resourceAsyncStub;
     }
 
+    // The cloud (skvorets) serves only api.v1; commands still on the old cli.proto services (psql, tunnel,
+    // exec, node writes/logs/events, checkpoints, diagnostics, slon) come back UNIMPLEMENTED — or, behind
+    // Cloudflare, an HTTP 500 with no gRPC content-type. Recognise that so we say so cleanly, not a raw 500.
+    private static final String CLOUD_UNSUPPORTED =
+            "This command isn't available over the cloud connection yet — it needs a direct connection to a local "
+            + "matriarch (point STACKGRES_ENDPOINT_URL at the matriarch, or use a local context).";
+
+    static boolean isCloudUnsupported(Throwable t) {
+        io.grpc.Status s = io.grpc.Status.fromThrowable(t);
+        if (s.getCode() == io.grpc.Status.Code.UNIMPLEMENTED) {
+            return true;
+        }
+        String msg = t.getMessage() == null ? "" : t.getMessage();
+        return s.getCode() == io.grpc.Status.Code.UNKNOWN
+                && (msg.contains("invalid content-type") || msg.contains("HTTP status code 5"));
+    }
+
     private RuntimeException statusError(StatusRuntimeException e) {
+        if (isCloudUnsupported(e)) {
+            return new IllegalStateException(CLOUD_UNSUPPORTED);
+        }
         String detail = e.getStatus().getDescription() != null ? e.getStatus().getDescription() : e.getMessage();
         if (e.getStatus().getCode() == io.grpc.Status.Code.UNAVAILABLE) {
             return new RuntimeException("cannot reach the matriarch at " + matriarchUrl + " — is it running? Set STACKGRES_ENDPOINT_URL (default localhost:50051; the api.v1 matriarch serves 9000). [" + detail + "]");
@@ -403,12 +423,51 @@ public class MatriarchClient {
     }
 
     private static EnvironmentInfo mapEnvironment(io.stackgres.proto.api.v1.Environment env, io.stackgres.proto.types.v1.SourceInfo si) {
-        String kind = env.getKind().name().replace("KIND_", "");
-        String source = si != null ? si.getSource().name() : "";
-        String health = si != null ? si.getEnvironmentHealth().name() : "";
+        String kind = kindName(env.getKind());
+        String source = si == null ? "" : sourceName(si.getSource());
+        String health = si == null ? "" : healthName(si.getEnvironmentHealth());
         Instant asOf = (si != null && si.hasAsOf()) ? Instant.ofEpochSecond(si.getAsOf().getSeconds(), si.getAsOf().getNanos()) : null;
-        List<String> surfaces = env.getSurfaceList().stream().map(s -> s.name().replace("API_SURFACE_", "")).toList();
+        List<String> surfaces = env.getSurfaceList().stream().map(s -> titleCase(s.name().replace("API_SURFACE_", ""))).toList();
         return new EnvironmentInfo(env.getId().getValue(), kind, source, health, asOf, surfaces);
+    }
+
+    // Render the api.v1 enums as human-friendly names for display (Bare Metal, K8s, Live, Connected, ...).
+    private static String kindName(io.stackgres.proto.api.v1.Environment.Kind kind) {
+        return switch (kind) {
+            case KIND_BARE_METAL -> "Bare Metal";
+            case KIND_K8S_STACKGRES -> "K8s (StackGres)";
+            case KIND_K8S_NATIVE -> "K8s (Native)";
+            case KIND_EXTERNAL -> "External";
+            default -> "Unknown";
+        };
+    }
+
+    private static String sourceName(io.stackgres.proto.types.v1.SourceInfo.Source source) {
+        return switch (source) {
+            case LIVE -> "Live";
+            case CACHED -> "Cached";
+            default -> "Unknown";
+        };
+    }
+
+    private static String healthName(io.stackgres.proto.types.v1.SourceInfo.EnvironmentHealth health) {
+        return switch (health) {
+            case CONNECTED -> "Connected";
+            case DEGRADED -> "Degraded";
+            case DISCONNECTED -> "Disconnected";
+            default -> "Unknown";
+        };
+    }
+
+    // "CLUSTER_LIFECYCLE" -> "Cluster Lifecycle", "EVENTS" -> "Events".
+    private static String titleCase(String upperSnake) {
+        StringBuilder sb = new StringBuilder();
+        for (String part : upperSnake.split("_")) {
+            if (part.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1).toLowerCase());
+        }
+        return sb.toString();
     }
 
     public List<String> listAvailableVersions(io.stackgres.postgres.Flavor flavor) {
@@ -454,8 +513,7 @@ public class MatriarchClient {
 
             @Override
             public void onError(Throwable t) {
-                // TODO handle more specific errors
-                exitCode.completeExceptionally(t);
+                exitCode.completeExceptionally(isCloudUnsupported(t) ? new IllegalStateException(CLOUD_UNSUPPORTED) : t);
             }
 
             @Override
@@ -635,10 +693,11 @@ public class MatriarchClient {
             @Override
             public void onError(Throwable t) {
                 logDebug("Tunnel error: " + t.getMessage());
+                Throwable err = isCloudUnsupported(t) ? new IllegalStateException(CLOUD_UNSUPPORTED) : t;
                 if (!opened.isDone())
-                    opened.completeExceptionally(t);
+                    opened.completeExceptionally(err);
                 else
-                    onError.accept(t.getMessage());
+                    onError.accept(err.getMessage());
             }
 
             @Override
@@ -700,11 +759,12 @@ public class MatriarchClient {
 
     public List<Slony> listSlonys(Map<String, String> tags) {
         try {
-            ListSlonysResponse response = resourceClient().listSlonys(ListSlonysRequest.newBuilder().putAllTags(tags).build());
+            ListNodesResponse response = stackGresClient().listNodes(
+                    ListNodesRequest.newBuilder().setEnvironmentId(configuredEnvironment()).putAllTags(tags).build());
             logDebug("Received response: ", response);
-            return Mappers.mapSlonys(response.getSlonyList());
-        } catch (StatusException e) {
-            throw handleStatusException(e);
+            return Mappers.mapNodes(response.getNodeList());
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
     }
 
@@ -818,7 +878,8 @@ public class MatriarchClient {
             @Override
             public void onError(Throwable t) {
                 logDebug("received error from server " + t);
-                onCompleted.accept(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName());
+                onCompleted.accept(isCloudUnsupported(t) ? CLOUD_UNSUPPORTED
+                        : (t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
             }
 
             @Override
@@ -846,6 +907,9 @@ public class MatriarchClient {
     }
 
     private RuntimeException handleStatusException(StatusException e) {
+        if (isCloudUnsupported(e)) {
+            throw new IllegalStateException(CLOUD_UNSUPPORTED);
+        }
         if (e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
             String message = e.getCause() != null ? "Error: " + e.getCause().getMessage() : "";
             throw new IllegalStateException("Count not connect to the Matriarch server. " + message, e);

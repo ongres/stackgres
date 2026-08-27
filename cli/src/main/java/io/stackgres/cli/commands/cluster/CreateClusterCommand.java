@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
-@Command(name = "create", description = "Creates and starts a PostgreSQL cluster", usageHelpWidth = 160)
+@Command(name = "create", description = "Creates and starts a PostgreSQL cluster")
 public class CreateClusterCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();

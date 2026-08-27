@@ -24,6 +24,7 @@ import org.jboss.logging.Logger;
 import io.stackgres.matriarch.model.spec.InstanceSpec;
 import io.stackgres.matriarch.quarkus.grpc.ClusterLogRelay;
 import io.stackgres.matriarch.quarkus.resources.Slons;
+import io.stackgres.matriarch.quarkus.resources.Slonys;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,9 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
 
     @Inject
     Slons slons;
+
+    @Inject
+    Slonys slonys;
 
     @Inject
     ClusterLogRelay clusterLogRelay;
@@ -241,6 +245,33 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
      */
     private static boolean matchesTags(java.util.Map<String, String> clusterTags, java.util.Map<String, String> filter) {
         return filter.entrySet().stream().allMatch(e -> e.getValue().equals(clusterTags.get(e.getKey())));
+    }
+
+    // Nodes — this matriarch's single slony host (or none), served from the live Slonys registry.
+    @Override
+    public void listNodes(ListNodesRequest request, StreamObserver<ListNodesResponse> responseObserver) {
+        ListNodesResponse.Builder resp = ListNodesResponse.newBuilder();
+        Node node = slonys.currentNode(identity.id());
+        if (node != null && matchesTags(node.getTagsMap(), request.getTagsMap())) {
+            resp.addNode(node);
+        }
+        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
+        responseObserver.onNext(resp.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getNode(GetNodeRequest request, StreamObserver<GetNodeResponse> responseObserver) {
+        Node node = slonys.currentNode(identity.id());
+        if (node == null || !node.getId().getValue().equals(request.getId().getValue())) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no such node").asRuntimeException());
+            return;
+        }
+        responseObserver.onNext(GetNodeResponse.newBuilder()
+                .setNode(node)
+                .setSourceInfo(ProtoMapper.liveSourceInfo())
+                .build());
+        responseObserver.onCompleted();
     }
 
     @Override

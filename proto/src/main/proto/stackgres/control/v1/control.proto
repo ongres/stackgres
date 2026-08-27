@@ -67,6 +67,7 @@ message Registration {
 message StateSnapshot {
   uint64 seq = 1;
   repeated stackgres.api.v1.Cluster cluster = 2;
+  repeated stackgres.api.v1.Node node = 3;   // the environment's bare-metal slony hosts (0 or 1 today)
 }
 
 // One incremental change carrying a per-matriarch monotonic sequence number

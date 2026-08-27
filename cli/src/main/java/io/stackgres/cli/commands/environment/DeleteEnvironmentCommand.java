@@ -15,7 +15,7 @@ import picocli.CommandLine.Spec;
  * connected (stop the matriarch first). Meaningful against the cloud; a local matriarch is its own single
  * environment and rejects it.
  */
-@Command(name = "delete", aliases = {"rm"}, description = "Deletes a disconnected environment from the cloud (prunes its cached clusters)")
+@Command(name = "delete", description = "Deletes a disconnected environment from the cloud (prunes its cached clusters)")
 public class DeleteEnvironmentCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();
@@ -40,4 +40,5 @@ public class DeleteEnvironmentCommand extends StackGresSubCommand {
         client.deleteEnvironment(id);
         outln("Environment '" + id + "' deleted.");
     }
+
 }

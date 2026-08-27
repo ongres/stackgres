@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-@Command(name = "psql", description = "Opens a psql terminal to a running PostgreSQL cluster via tunnel", usageHelpWidth = 160)
+@Command(name = "psql", description = "Opens a psql terminal to a running PostgreSQL cluster via tunnel")
 public class PsqlCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();

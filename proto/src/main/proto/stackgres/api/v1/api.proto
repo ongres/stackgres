@@ -53,6 +53,11 @@ service StackGresApi {
   rpc RestartCluster(RestartClusterRequest) returns (stream ClusterOperationProgress);
   rpc GetClusterDiagnostics(GetClusterDiagnosticsRequest) returns (GetClusterDiagnosticsResponse);
 
+  // --- Nodes: the bare-metal slony hosts an environment runs on. Reads are served
+  // from cache like clusters (per-env SourceInfo); tag/delete route down later. ---
+  rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
+  rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
+
   // --- Credentials: secret values are NOT on Cluster; fetched here, separately
   // authorized (§3.7, P4). ---
   rpc GetClusterCredentials(GetClusterCredentialsRequest) returns (GetClusterCredentialsResponse);
@@ -352,6 +357,55 @@ message InstanceDiagnostics {
   oneof engine_spec {
     postgres.PostgresDiagnostics postgres = 20;
   }
+}
+
+// ===========================================================================
+// Nodes — the bare-metal slony hosts an environment runs on. A bare-metal
+// environment has one node (the host); k8s/external environments have none.
+// Served from cache like clusters, so a reply carries per-env SourceInfo.
+// ===========================================================================
+
+message Node {
+  types.v1.Id id = 1;
+  string environment_id = 2;    // stamped by the matriarch (like Cluster.environment_id)
+  string hostname = 3;
+  string os = 4;
+  string arch = 5;
+  string version = 6;
+  double cpu = 7;
+  uint64 memory = 8;
+  NodeStatus status = 9;
+  optional google.protobuf.Timestamp last_heartbeat = 10;
+  map<string, string> tags = 11;
+  // Cloud placement, when the host advertises it.
+  string cloud = 12;
+  string region = 13;
+  string availability_zone = 14;
+  string compute_instance_name = 15;
+}
+
+enum NodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;
+  NODE_STATUS_ACTIVE = 1;        // connected + heartbeating
+  NODE_STATUS_INACTIVE = 2;      // connected but gone silent
+  NODE_STATUS_DISCONNECTED = 3;  // stream dropped
+}
+
+message ListNodesRequest {
+  string environment_id = 1;    // empty = all (aggregated/cloud)
+  map<string, string> tags = 2;
+}
+message ListNodesResponse {
+  repeated Node node = 1;
+  map<string, types.v1.SourceInfo> source_info = 2;   // per environment
+}
+message GetNodeRequest {
+  string environment_id = 1;
+  types.v1.Id id = 2;
+}
+message GetNodeResponse {
+  Node node = 1;
+  types.v1.SourceInfo source_info = 2;
 }
 
 // ===========================================================================
