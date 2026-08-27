@@ -57,6 +57,40 @@ modules:
     artifacts:
       - .m2/repository/io/stackgres/stackgres-parent
       - .m2/repository/io/stackgres/stackgres-checks
+  # Matriarch control-plane modules — they live in the repo root, outside stackgres-k8s/src.
+  # The operator depends on stackgres-proto + stackgres-matriarch, so both must be installed
+  # into .m2 before operator-java. Defined here (upstream of operator-framework-java) so the
+  # config-file order matches their position in the stages DAG — the image-hash pass builds
+  # each module on top of its stage parent, so a module must precede its children in the file.
+  # Pure .m2 installs, no image (target_image null), like operator-framework-java.
+  proto-java:
+    <<: *parent-java
+    path: proto/.
+    target_image: null
+    filtered_sources:
+      - sh stackgres-k8s/ci/build/redact-version.sh proto
+    sources:
+      - proto/src/main
+    build_commands:
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
+    artifacts:
+      - proto/target
+      - .m2/repository/io/stackgres/stackgres-proto
+  matriarch-java:
+    <<: *parent-java
+    path: matriarch/.
+    target_image: null
+    filtered_sources:
+      - sh stackgres-k8s/ci/build/redact-version.sh matriarch
+    sources:
+      - matriarch/src/main
+    build_commands:
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
+    artifacts:
+      - matriarch/target
+      - .m2/repository/io/stackgres/stackgres-matriarch
   operator-framework-java: &operator-framework-java
     <<: *parent-java
     path: stackgres-k8s/src/operator-framework/.
@@ -71,30 +105,6 @@ modules:
     artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
-  # Matriarch control-plane modules — they live in the repo root, outside stackgres-k8s/src.
-  # The operator depends on stackgres-proto + stackgres-matriarch, so both must be installed
-  # into .m2 before operator-java. Pure .m2 installs, no image (like operator-framework-java);
-  # wired into the stages DAG upstream of operator-framework-java.
-  proto-java:
-    <<: *operator-framework-java
-    path: proto/.
-    filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh proto
-    sources:
-      - proto/src/main
-    artifacts:
-      - proto/target
-      - .m2/repository/io/stackgres/stackgres-proto
-  matriarch-java:
-    <<: *operator-framework-java
-    path: matriarch/.
-    filtered_sources:
-      - sh stackgres-k8s/ci/build/redact-version.sh matriarch
-    sources:
-      - matriarch/src/main
-    artifacts:
-      - matriarch/target
-      - .m2/repository/io/stackgres/stackgres-matriarch
   operator-framework-java-test: &operator-framework-java-test
     <<: *operator-framework-java
     type: java-test
