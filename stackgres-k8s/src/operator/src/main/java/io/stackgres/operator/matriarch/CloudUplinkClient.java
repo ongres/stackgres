@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
 import java.time.Duration;
@@ -249,6 +254,7 @@ public class CloudUplinkClient {
         // guard). Nothing to do.
       }
       case PAYLOAD_NOT_SET -> { }
+      default -> { }
     }
   }
 

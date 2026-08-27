@@ -1,17 +1,16 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.UUID;
 
-import io.stackgres.matriarch.model.Cluster;
-import io.stackgres.matriarch.model.spec.DatabaseEngine;
-import io.stackgres.matriarch.model.spec.InstanceRole;
-import io.stackgres.matriarch.model.status.InstanceStatus;
-import io.stackgres.matriarch.model.status.ReplicationStatus;
-import io.stackgres.matriarch.model.status.RunStatus;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
@@ -20,6 +19,12 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileSpec;
+import io.stackgres.matriarch.model.Cluster;
+import io.stackgres.matriarch.model.spec.DatabaseEngine;
+import io.stackgres.matriarch.model.spec.InstanceRole;
+import io.stackgres.matriarch.model.status.InstanceStatus;
+import io.stackgres.matriarch.model.status.ReplicationStatus;
+import io.stackgres.matriarch.model.status.RunStatus;
 import org.junit.jupiter.api.Test;
 
 class StackGresMapperTest {

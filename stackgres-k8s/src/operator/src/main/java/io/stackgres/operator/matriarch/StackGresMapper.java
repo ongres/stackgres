@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
 import java.math.BigDecimal;
@@ -8,6 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.InstanceId;
@@ -24,13 +36,6 @@ import io.stackgres.matriarch.model.status.ClusterStatus;
 import io.stackgres.matriarch.model.status.InstanceStatus;
 import io.stackgres.matriarch.model.status.ReplicationStatus;
 import io.stackgres.matriarch.model.status.RunStatus;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 
 /**
  * Maps a StackGres {@code SGCluster} (+ its {@code SGInstanceProfile}) to the matriarch domain
@@ -46,13 +51,13 @@ final class StackGresMapper {
     String uid = cr.getMetadata().getUid();
     String name = cr.getMetadata().getName();
     String namespace = cr.getMetadata().getNamespace();
-    ClusterId clusterId = new ClusterId(uid);
+    final ClusterId clusterId = new ClusterId(uid);
 
     StackGresClusterSpec spec = cr.getSpec();
     StackGresClusterStatus status = cr.getStatus();
 
     String flavor = spec != null && spec.getPostgres() != null ? spec.getPostgres().getFlavor() : null;
-    DatabaseEngine engine = "babelfish".equalsIgnoreCase(flavor) ? DatabaseEngine.IVORY : DatabaseEngine.POSTGRES;
+    final DatabaseEngine engine = "babelfish".equalsIgnoreCase(flavor) ? DatabaseEngine.IVORY : DatabaseEngine.POSTGRES;
 
     String version = status != null && status.getPostgresVersion() != null
         ? status.getPostgresVersion()

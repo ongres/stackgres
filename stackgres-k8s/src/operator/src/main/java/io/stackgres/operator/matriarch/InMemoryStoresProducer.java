@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
 import io.stackgres.matriarch.spi.StateStore;

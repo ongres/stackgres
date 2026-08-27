@@ -1,10 +1,15 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
+
+import java.util.Set;
 
 import io.stackgres.matriarch.model.spec.ClusterSpec;
 import io.stackgres.matriarch.spi.Executor;
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.util.Set;
 
 /**
  * v1 is read-only: the {@code StackGresObserver} feeds desired/observed state; nothing provisions.
