@@ -71,6 +71,30 @@ modules:
     artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
+  # Matriarch control-plane modules — they live in the repo root, outside stackgres-k8s/src.
+  # The operator depends on stackgres-proto + stackgres-matriarch, so both must be installed
+  # into .m2 before operator-java. Pure .m2 installs, no image (like operator-framework-java);
+  # wired into the stages DAG upstream of operator-framework-java.
+  proto-java:
+    <<: *operator-framework-java
+    path: proto/.
+    filtered_sources:
+      - sh stackgres-k8s/ci/build/redact-version.sh proto
+    sources:
+      - proto/src/main
+    artifacts:
+      - proto/target
+      - .m2/repository/io/stackgres/stackgres-proto
+  matriarch-java:
+    <<: *operator-framework-java
+    path: matriarch/.
+    filtered_sources:
+      - sh stackgres-k8s/ci/build/redact-version.sh matriarch
+    sources:
+      - matriarch/src/main
+    artifacts:
+      - matriarch/target
+      - .m2/repository/io/stackgres/stackgres-matriarch
   operator-framework-java-test: &operator-framework-java-test
     <<: *operator-framework-java
     type: java-test
@@ -622,7 +646,9 @@ modules:
       3: stackgres-k8s/src/stream/src/main/docker/pglambda/javascript/package-lock.json.out
 stages:
   - parent-java: null
-  - operator-framework-java: parent-java
+  - proto-java: parent-java
+  - matriarch-java: proto-java
+  - operator-framework-java: matriarch-java
   - test-util-java: operator-framework-java
   - common-java: test-util-java
   - operator-java: common-java
