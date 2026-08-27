@@ -8,7 +8,7 @@ function _stackgres() {
     {-h,--help}"[Display help]" \
     {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
     "--context[Use a named context from ~/.stackgres/config.yaml]:context:__stackgres_list_contexts" \
-    "1: :(cluster environment context node slon login logout status whoami)" \
+    "1: :(cluster environment context slon login logout status)" \
     "*::arg:->args"
 
   case $line[1] in
@@ -21,9 +21,6 @@ function _stackgres() {
     context|ctx)
       _stackgres_context
     ;;
-    node)
-      _stackgres_node
-    ;;
     slon)
       _stackgres_slon
     ;;
@@ -35,9 +32,6 @@ function _stackgres() {
     ;;
     status)
       _stackgres_status
-    ;;
-    whoami)
-      _stackgres_whoami
     ;;
   esac
 
@@ -684,21 +678,12 @@ function _stackgres_slon_list() {
 
 }
 
-function _stackgres_whoami() {
-  local line
-
-  _arguments -C \
-    {-h,--help}"[Display help]" \
-    "*::arg:->args"
-
-}
-
 function _stackgres_environment() {
   local line
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    "1: :(list get use delete)" \
+    "1: :(list get use delete node)" \
     "*::arg:->args"
 
   case $line[1] in
@@ -713,6 +698,9 @@ function _stackgres_environment() {
     ;;
     delete|rm)
       _stackgres_environment_delete
+    ;;
+    node)
+      _stackgres_node
     ;;
   esac
 
@@ -764,7 +752,7 @@ function _stackgres_context() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    "1: :(list current use set remove)" \
+    "1: :(list current use set delete)" \
     "*::arg:->args"
 
   case $line[1] in
@@ -780,8 +768,8 @@ function _stackgres_context() {
     set)
       _stackgres_context_set
     ;;
-    remove|rm|delete)
-      _stackgres_context_remove
+    delete)
+      _stackgres_context_delete
     ;;
   esac
 
@@ -829,7 +817,7 @@ function _stackgres_context_set() {
 
 }
 
-function _stackgres_context_remove() {
+function _stackgres_context_delete() {
   local line
 
   _arguments -C \

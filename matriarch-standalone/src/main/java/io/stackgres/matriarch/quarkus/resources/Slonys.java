@@ -1,11 +1,17 @@
 package io.stackgres.matriarch.quarkus.resources;
 
+import com.google.protobuf.Timestamp;
 import io.stackgres.matriarch.model.spec.Extension;
+import io.stackgres.proto.api.v1.Node;
+import io.stackgres.proto.api.v1.NodeStatus;
 import io.stackgres.proto.slony.*;
+import io.stackgres.proto.types.v1.Id;
 import io.grpc.stub.StreamObserver;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
+import jakarta.inject.Inject;
 
 import java.lang.System.Logger.Level;
 import java.util.List;
@@ -73,6 +79,9 @@ public class Slonys {
     private volatile boolean agentActive;
     private ScheduledExecutorService liveness;
 
+    @Inject
+    Event<NodeInventoryChanged> nodeChanges;
+
     @PostConstruct
     void startLiveness() {
         liveness = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -113,6 +122,7 @@ public class Slonys {
         this.lastHeartbeatMillis = System.currentTimeMillis();
         this.agentActive = true;
         LOG.log(Level.INFO, "slony agent registered (external address {0})", reg.getExternalAddress());
+        nodeChanges.fire(new NodeInventoryChanged());   // let the cloud uplink re-snapshot this node
     }
 
     /**
@@ -128,6 +138,7 @@ public class Slonys {
             registration = null;
             nodeTags.clear();
             LOG.log(Level.INFO, "slony agent disconnected");
+            nodeChanges.fire(new NodeInventoryChanged());
         }
     }
 
@@ -188,6 +199,47 @@ public class Slonys {
      */
     public Map<String, String> nodeTags() {
         return nodeTags;
+    }
+
+    /**
+     * This matriarch's node as an api.v1 {@link Node} (from the Registration + live state), or null when
+     * no agent is connected. Shared by the api.v1 read handlers (StackGresApiResource) and the cloud
+     * uplink snapshot so a directly-connected CLI and the cloud see the same node.
+     */
+    public Node currentNode(String environmentId) {
+        Registration reg = registration;
+        if (reg == null) {
+            return null;
+        }
+        Node.Builder b = Node.newBuilder()
+                .setId(Id.newBuilder().setValue(reg.getId().getValue().toStringUtf8()))
+                .setEnvironmentId(environmentId)
+                .setHostname(reg.getHostname())
+                .setOs(reg.getOs())
+                .setArch(reg.getArch())
+                .setVersion(reg.getVersion())
+                .setCpu(reg.getCpu())
+                .setMemory(reg.getMemory())
+                .setStatus(agentActive ? NodeStatus.NODE_STATUS_ACTIVE : NodeStatus.NODE_STATUS_INACTIVE)
+                .putAllTags(nodeTags);
+        if (lastHeartbeatMillis > 0) {
+            b.setLastHeartbeat(Timestamp.newBuilder()
+                    .setSeconds(lastHeartbeatMillis / 1000)
+                    .setNanos((int) ((lastHeartbeatMillis % 1000) * 1_000_000)));
+        }
+        if (reg.hasCloud()) {
+            b.setCloud(reg.getCloud());
+        }
+        if (reg.hasRegion()) {
+            b.setRegion(reg.getRegion());
+        }
+        if (reg.hasAvailabilityZone()) {
+            b.setAvailabilityZone(reg.getAvailabilityZone());
+        }
+        if (reg.hasComputeInstanceName()) {
+            b.setComputeInstanceName(reg.getComputeInstanceName());
+        }
+        return b.build();
     }
 
     /**

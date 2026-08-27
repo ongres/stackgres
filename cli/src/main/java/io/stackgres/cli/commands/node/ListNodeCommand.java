@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Command(name = "list", description = "Lists the PostgreSQL nodes", usageHelpWidth = 160)
+@Command(name = "list", description = "Lists the PostgreSQL nodes")
 public class ListNodeCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();

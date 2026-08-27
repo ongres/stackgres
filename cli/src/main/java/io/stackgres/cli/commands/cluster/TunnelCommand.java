@@ -21,7 +21,7 @@ import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Command(name = "tunnel", description = "Opens a tunnel to a PostgreSQL instance", usageHelpWidth = 160)
+@Command(name = "tunnel", description = "Opens a tunnel to a PostgreSQL instance")
 public class TunnelCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();

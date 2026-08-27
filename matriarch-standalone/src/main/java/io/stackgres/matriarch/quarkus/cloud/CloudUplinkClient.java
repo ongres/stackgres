@@ -16,6 +16,8 @@ import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.quarkus.api.ProtoMapper;
 import io.stackgres.matriarch.quarkus.api.StackGresApiResource;
+import io.stackgres.matriarch.quarkus.resources.NodeInventoryChanged;
+import io.stackgres.matriarch.quarkus.resources.Slonys;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
@@ -59,6 +61,9 @@ public class CloudUplinkClient {
 
     @Inject
     Matriarch matriarch;
+
+    @Inject
+    Slonys slonys;
 
     // The local api.v1 write handler (create/delete/start/stop/restart). The cloud routes user writes
     // down as ControlRequests; we execute them via the SAME dispatch a directly-connected CLI uses and
@@ -196,9 +201,13 @@ public class CloudUplinkClient {
         for (Cluster c : matriarch.listClusters()) {
             snap.addCluster(toProto(c));
         }
+        var node = slonys.currentNode(environmentId);   // this env's slony host (0 or 1)
+        if (node != null) {
+            snap.addNode(node);
+        }
         up.onNext(MatriarchMessage.newBuilder().setSnapshot(snap).build());
         snapshotAnchored = true;
-        LOG.debugf("cloud uplink snapshot sent: seq=%d clusters=%d", seq, snap.getClusterCount());
+        LOG.debugf("cloud uplink snapshot sent: seq=%d clusters=%d nodes=%d", seq, snap.getClusterCount(), snap.getNodeCount());
     }
 
     void onClusterEvent(@Observes ClusterEvent event) {
@@ -207,6 +216,20 @@ public class CloudUplinkClient {
             return;
         }
         a.execute(() -> forward(event));
+    }
+
+    // The slony node set changed (agent attach/detach) — re-snapshot so the cloud's node view is fresh.
+    void onNodeChanged(@Observes NodeInventoryChanged event) {
+        ScheduledExecutorService a = actor;
+        if (!enabled || a == null) {
+            return;
+        }
+        a.execute(() -> {
+            if (up != null && snapshotAnchored) {
+                seq++;
+                sendSnapshot();
+            }
+        });
     }
 
     private void forward(ClusterEvent event) {

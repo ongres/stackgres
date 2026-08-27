@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Command(name = "list", description = "Lists the PostgreSQL clusters", usageHelpWidth = 160)
+@Command(name = "list", description = "Lists the PostgreSQL clusters")
 public class ListClusterCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();
