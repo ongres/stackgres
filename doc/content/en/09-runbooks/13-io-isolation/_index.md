@@ -33,30 +33,43 @@ No `hostPath` mounts, no privileged init containers in the cluster pods,
  no custom cgroup writes from inside the workload.
 
 > StackGres 1.19+ provides a complementary mechanism that configures
-> per-pod I/O caps directly in the SGCluster spec, with no node-level
+> per-pod I/O caps directly in the SGCluster spec
+> (`spec.pods.persistentVolume.ioLimits`), with no node-level
 > preparation. It is simpler to enable, but requires host-cgroup access
 > from the cluster pods, which SCC policies in many OpenShift environments
 > forbid. This runbook covers the alternative path: more upfront node
 > preparation, but using only standard, supported configuration surfaces.
 > Both approaches coexist; choose whichever fits the constraints of your
-> environment.
+> environment. See the
+> [I/O isolation overview]({{% relref "/04-administration-guide/21-io-isolation" %}})
+> for a side-by-side comparison, and the
+> [storage configuration]({{% relref "/04-administration-guide/04-configuration/05-storage-configuration" %}})
+> page for the `ioLimits` reference.
 
 The runbook covers configuring CRI-O and containerd directly (applicable
  to any Kubernetes distribution), then documents the OpenShift-specific
  path that delivers the same configuration through the Machine Config
  Operator.
 
-> **WARNING**: the initial setup **requires node restarts**. Enabling the
-> BlockIO configuration changes the container runtime's startup
-> parameters, which requires restarting `crio` or `containerd` on each
-> database node. To avoid in-flight pod disruption the node must be
-> drained first. On OpenShift the same applies for **existing** nodes
-> already in the cluster (the Machine Config Operator orchestrates the
-> drain + reboot one node at a time); **new** nodes provisioned with
-> the role label set from the start get the configuration baked in via
-> Ignition at first boot and require no restart. Plan the rollout
-> accordingly: pool of n nodes needs at least n+1 capacity during the
-> initial enablement, unless you are willing to absorb the downtime.
+> **WARNING**: the initial setup **requires restarting the container
+> runtime** on each database node, because enabling the BlockIO
+> configuration changes the runtime's startup parameters. What that
+> costs depends on the path:
+>
+> - **CRI-O/containerd direct**: a `systemctl restart crio` (or
+>   `containerd`) does **not** stop running containers: workloads keep
+>   running while the daemon restarts. Draining the node first remains
+>   the conservative recommendation, but is precautionary rather than
+>   strictly required.
+> - **OpenShift (MCO)**: for **existing** nodes the Machine Config
+>   Operator delivers the change as a drain + **node reboot**, one node
+>   at a time; **new** nodes provisioned with the role label set from
+>   the start get the configuration baked in via Ignition at first boot
+>   and require no restart.
+>
+> Plan the rollout accordingly: on MCO a pool of n nodes needs at least
+> n+1 capacity during the initial enablement, unless you are willing to
+> absorb the downtime.
 
 ## What you get
 
@@ -374,7 +387,7 @@ Write a `blockio.yaml` file that defines the named classes you want to
  kernel propagates the originating cgroup tag through the
  device-mapper layer, so blk-throttle on the physical disk caps I/O
  submitted by the workload via its LV. This was verified end-to-end:
- with a class globbing `/dev/sd[a-z]*` and a 5000 IOPS cap, fio
+ with a class globbing `/dev/sd[b-z]` and a 5000 IOPS cap, fio
  inside a Postgres pod whose data PV is an LVM-LocalPV LV measured
  5006 IOPS read / 5007 IOPS write (within 0.1% of the cap). The
  physical-disk approach is stable across PVC churn, restarts, and
@@ -387,34 +400,49 @@ Example ladder (adjust device paths and values for your environment):
 Classes:
 
   local-lvm-nvme-io-1k:
-    - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
+    - Devices: ["/dev/sd[b-z]", "/dev/nvme[0-9]n[0-9]"]
       ThrottleReadIOPS: 1k
       ThrottleWriteIOPS: 1k
       ThrottleReadBps: 50M
       ThrottleWriteBps: 50M
 
   local-lvm-nvme-io-5k:
-    - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
+    - Devices: ["/dev/sd[b-z]", "/dev/nvme[0-9]n[0-9]"]
       ThrottleReadIOPS: 5k
       ThrottleWriteIOPS: 5k
       ThrottleReadBps: 200M
       ThrottleWriteBps: 200M
 
   local-lvm-nvme-io-20k:
-    - Devices: ["/dev/sd[a-z]*", "/dev/nvme[0-9]n[0-9]*"]
+    - Devices: ["/dev/sd[b-z]", "/dev/nvme[0-9]n[0-9]"]
       ThrottleReadIOPS: 20k
       ThrottleWriteIOPS: 20k
       ThrottleReadBps: 800M
       ThrottleWriteBps: 800M
 ```
 
-The globs above match SATA/SCSI and NVMe physical devices respectively.
- Adjust to whatever names the database nodes' kernels actually assign
- to the physical disks hosting the LVM VG. The glob is expanded by the
- runtime at startup against the real devices present on each node;
- entries that don't match anything are silently dropped --but for
- physical disks this isn't a problem because their device names are
+The globs above match whole SATA/SCSI disks and whole NVMe namespaces
+ respectively. Adjust to whatever names the database nodes' kernels
+ actually assign to the physical disks hosting the LVM VG. The glob is
+ expanded by the runtime at startup against the real devices present on
+ each node; entries that don't match anything are silently dropped --but
+ for physical disks this isn't a problem because their device names are
  stable from boot.
+
+> **Write the globs so they can only match whole disks, never
+> partitions.** A trailing `*` (e.g. `/dev/sd[a-z]*` or
+> `/dev/nvme[0-9]n[0-9]*`) also matches *partition* nodes (`/dev/sda1`,
+> `/dev/nvme0n1p1`, …). The runtime stores their `major:minor` in the
+> class as-is, and the kernel **rejects partition devices in `io.max`
+> with `ENODEV`**, at which point the runtime fails the container
+> create, and **every pod carrying a BlockIO annotation on that node is
+> stuck in `CreateContainerError` with
+> `write 'rbps': No such device`**. This bites on any node whose
+> matched disks are partitioned, which the OS disk always is. The
+> single-character forms above (`[b-z]`, `n[0-9]` with no trailing `*`)
+> can only match whole disks. `[b-z]` rather than `[a-z]` also keeps the
+> OS disk (`sda`) out of the class: throttling it would cap the pods'
+> overlayfs and log I/O along with the database volumes.
 
 Save this file locally; the next step places it on the database nodes via
  the path appropriate to your runtime/platform.
@@ -458,11 +486,24 @@ mkdir -p /etc/crio/crio.conf.d
 cat > /etc/crio/crio.conf.d/99-local-lvm-nvme-blockio.conf << 'EOF'
 [crio.runtime]
 blockio_config_file = "/etc/crio/blockio.yaml"
+blockio_reload = true
 EOF
 ```
 
-**Step 3.** Restart CRI-O so the configuration takes effect. Drain the
- node first to avoid in-flight pod disruption:
+> **Why `blockio_reload = true`.** With it, CRI-O re-reads
+> `blockio.yaml` and re-expands its device globs against the devices
+> present at that moment. That's a plain `systemctl reload crio` (SIGHUP),
+> with zero disruption to running containers. Day-2 class-ladder edits
+> then need no drain and no restart: edit the file, `systemctl reload
+> crio`, done. Note the semantics: containers **created after** the
+> reload get the new values; **existing** containers keep the values
+> they were created with until they are recreated (e.g. via an SGDbOps
+> `restart`). This is the observed behavior on CRI-O 1.31.
+
+**Step 3.** Restart CRI-O so the configuration takes effect (this
+ initial restart is still needed. The drop-in itself is only read at
+ startup). Draining the node first is the conservative choice, though a
+ CRI-O daemon restart does not stop running containers:
 
 ```bash
 # on the control plane:
@@ -880,12 +921,22 @@ The `clusterPods` key under `spec.metadata.annotations` is a StackGres
  pod, which is how the BlockIO class selection reaches the container
  runtime.
 
-Adjust the `storageClass`, `sgInstanceProfile`, and Postgres version to
- values that exist in your environment:
+Adjust the `storageClass` and Postgres version to values that exist in
+ your environment (the `size-xs` SGInstanceProfile is created inline
+ below; substitute an existing profile if you prefer):
 
 ```yaml
 kubectl create ns io-isolation
 cat << 'EOF' | kubectl apply -f -
+apiVersion: stackgres.io/v1
+kind: SGInstanceProfile
+metadata:
+  name: size-xs
+  namespace: io-isolation
+spec:
+  cpu: "500m"
+  memory: "1Gi"
+---
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -931,6 +982,21 @@ EOF
 
 Note: the custom container declared as `fio` appears in the pod as `custom-fio`
  --StackGres prepends `custom-` to custom container names.
+
+> **Changing the class on a *running* cluster requires an explicit
+> restart. And the pod annotation is not evidence the throttle is
+> active.** StackGres StatefulSets use `updateStrategy: OnDelete`:
+> patching `spec.metadata.annotations.clusterPods` on an existing
+> SGCluster updates the pod template *and patches the annotation onto
+> the live pod*, but does **not** recreate the pod; the cluster is
+> flagged `PendingRestart=True (PodRequiresRestart)` and left running.
+> Since the container runtime resolves BlockIO classes only at container
+> creation, the live pod then *shows* the new annotation while still
+> running with the previous (or no) throttle. Apply the change with an
+> [SGDbOps `restart`]({{% relref "/06-crd-reference/08-sgdbops" %}}) or a
+> controlled pod delete, then re-verify `io.max`
+> ([section 6.1](#61-verify-the-cgroup-iomax)): the cgroup file, not
+> the annotation, is the source of truth.
 
 Wait for the cluster pod to be running:
 
@@ -1130,12 +1196,12 @@ Once the runbook is applied, day-2 operations fall into two distinct
 
 | Change | Node reboot? | Impact |
 |---|---|---|
-| Edit `blockio.yaml` (add/remove/modify class definitions) | **Yes** | MCO (or your config-management tool) rolls drain + reboot one node at a time. Pods reschedule; the MCP needs n+1 capacity to avoid downtime. |
+| Edit `blockio.yaml` (add/remove/modify class definitions) | **Depends on the path** | **CRI-O direct with `blockio_reload = true`** ([step 4.1](#41-cri-o-direct-configuration)): no restart at all. `systemctl reload crio` re-reads the ladder with zero container disruption; containers created afterwards get the new values, existing ones keep theirs until recreated. **OpenShift/MCO**: drain + reboot one node at a time; the MCP needs n+1 capacity to avoid downtime. |
 | Add/remove `blockio_config_file` in the runtime config | **Yes** | Same as above --runtime config change. |
-| Change which class an SGCluster's pods use (annotation only) | **No** | The operator recreates the pods at the new annotation; no node touch. |
+| Change which class an SGCluster's pods use (annotation only) | **No** | No node touch, but the pods must be restarted **explicitly** (SGDbOps `restart` or a controlled pod delete): StackGres flags the cluster `PendingRestart` and does not restart it automatically, and until the restart the live pod shows the new annotation with the old throttle still in force (see the warning in [step 6](#6-validate-end-to-end-with-an-sgcluster)). |
 | Add/remove the `local-lvm-nvme/iops` request/limit on a cluster | **No** | Pod-level change; no node touch. |
 | Patch `status.capacity["local-lvm-nvme/iops"]` on a node | **No** | Online operation on the node object. |
-| Scale a cluster up (new pod, new PVC) | **No reboot** --but the new PVC's `/dev/dm-N` must fall within the seeded slots from initial node provisioning (see [Limitations](#one-shot-device-glob-expansion)). Otherwise the new pod isn't throttled. |
+| Scale a cluster up (new pod, new PVC) | **No** | With the recommended physical-disk classes ([step 3](#3-author-the-blockio-class-ladder)) new PVCs are covered automatically. The throttle lives on the physical disk, not on the per-PVC dm device. Only the [static-provisioning dm variant](#static-provisioning-as-an-alternative) needs its pre-created LV slots. |
 | Provision a brand-new database node | The BlockIO config is baked in via Ignition at first boot --no rolling restart, no drain. This is the recommended provisioning path. |
 
 The practical implication: **most day-2 changes (tier reassignments,
@@ -1233,6 +1299,14 @@ The container runtime (CRI-O or containerd) resolves each class's
  `(major:minor → throttle)` entries. Devices that don't exist at
  startup are not in the class; devices that appear later are **not**
  retroactively added.
+
+> **Mitigation on CRI-O:** with `blockio_reload = true`
+> ([step 4.1](#41-cri-o-direct-configuration)), `systemctl reload crio`
+> re-reads `blockio.yaml` and re-expands the globs against the devices
+> present at that moment, with no disruption to running containers,
+> so a reload after new devices appear refreshes the classes without a
+> restart. Containers created before the reload keep their original
+> entries until recreated.
 
 That property is benign for **physical block devices** (`/dev/sda`,
  `/dev/nvme0n1`, ...) because their device names are stable from boot
@@ -1349,12 +1423,30 @@ ZFS does not correctly attribute buffered writes to the originating
  physical disks, not the dm devices).
 
 **Pod stuck in `Init:CreateContainerError` with
- `write 'rbps': No such device`.** A `Devices:` glob matched some
- device at runtime startup that has since been removed. The kernel
- rejects the stale entry, container creation fails. This happens
- mainly when the glob covers dm devices (LV created at boot, removed
- later); using a physical-disk glob avoids it. See
- [Why target physical disks and not dm devices](#why-target-physical-disks-and-not-dm-devices).
+ `write 'rbps': No such device`.** A `Devices:` entry in the class
+ references a `major:minor` the kernel cannot throttle, and container
+ creation fails for **every** annotated pod on the node. Two causes:
+
+1. **The glob matched a partition node.** A trailing `*` (e.g.
+   `/dev/sd[a-z]*`) also matches `/dev/sda1`-style partitions, and
+   `io.max` rejects partitions with `ENODEV`. Since the OS disk is
+   always partitioned, this reproduces on essentially every node. Use
+   whole-disk globs with no trailing `*` (see the callout in
+   [step 3](#3-author-the-blockio-class-ladder)), then restart the
+   runtime.
+2. **A matched device has since been removed** (stale entry). This
+   happens mainly when the glob covers dm devices (LV present at
+   runtime startup, removed later); the physical-disk globs avoid it.
+   See
+   [Why target physical disks and not dm devices](#why-target-physical-disks-and-not-dm-devices).
+
+**Annotation has no effect after changing the class on a running
+ cluster.** The pods were not restarted: StackGres leaves the cluster
+ `PendingRestart` on annotation changes and the runtime only resolves
+ classes at container creation, even though the live pod already shows
+ the new annotation. Restart via SGDbOps `restart` (see the warning in
+ [step 6](#6-validate-end-to-end-with-an-sgcluster)) and re-verify
+ `io.max`.
 
 If that's not it, the container runtime may not have loaded the BlockIO
  config file. Causes to check, in order:
@@ -1418,12 +1510,14 @@ Drain each node beforehand to avoid disruption to running pods.
 
 ### Rollback for OpenShift (step 4.3)
 
-Delete the `ContainerRuntimeConfig` and `MachineConfig`. MCO rolls the
- deletion out the same way it rolled out the creation (drain + reboot,
- one node at a time):
+Delete the two `MachineConfig`s created in
+ [step 4.3.2](#432-deliver-the-blockio-config-via-machineconfig) and
+ [step 4.3.3](#433-enable-blockio-in-cri-o). MCO rolls the deletion out
+ the same way it rolled out the creation (drain + reboot, one node at a
+ time):
 
 ```bash
-oc delete containerruntimeconfig local-lvm-nvme-blockio
+oc delete machineconfig 51-local-lvm-nvme-blockio-crio-config
 oc delete machineconfig 50-local-lvm-nvme-blockio-config
 ```
 
