@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -108,7 +113,9 @@ class CloudUplinkClientTest {
 
           @Override public void onError(Throwable t) { }
 
-          @Override public void onCompleted() { down.onCompleted(); }
+          @Override public void onCompleted() {
+            down.onCompleted();
+          }
         };
       }
     };

@@ -1,10 +1,19 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
+import io.grpc.Status;
+import io.grpc.stub.StreamObserver;
+import io.quarkus.grpc.GrpcService;
 import io.stackgres.matriarch.Matriarch;
 import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.ClusterNotFoundException;
+import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterEventsRequest;
 import io.stackgres.proto.api.v1.GetClusterEventsResponse;
@@ -19,10 +28,6 @@ import io.stackgres.proto.api.v1.ListEnvironmentsResponse;
 import io.stackgres.proto.api.v1.StackGresApiGrpc;
 import io.stackgres.proto.types.v1.ApiSurface;
 import io.stackgres.proto.types.v1.Id;
-import io.grpc.Status;
-import io.grpc.stub.StreamObserver;
-import io.quarkus.grpc.GrpcService;
-import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import jakarta.inject.Inject;
 
 /**

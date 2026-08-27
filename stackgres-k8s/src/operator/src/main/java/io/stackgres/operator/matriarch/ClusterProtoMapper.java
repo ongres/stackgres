@@ -1,4 +1,12 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
@@ -11,9 +19,6 @@ import io.stackgres.matriarch.model.status.ClusterStatus;
 import io.stackgres.matriarch.model.status.InstanceStatus;
 import io.stackgres.matriarch.model.status.ReplicationStatus;
 import io.stackgres.matriarch.model.status.RunStatus;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Domain {@code ->} {@code stackgres.api.v1} mapping — shared by the local read service
@@ -78,6 +83,18 @@ final class ClusterProtoMapper {
       b.setPostgres(pgb);
     }
     return b.build();
+  }
+
+  private static io.stackgres.proto.types.v1.ClusterStatus toProto(RunStatus phase) {
+    return switch (phase) {
+      case PENDING -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_PENDING;
+      case INITIALIZING -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_INITIALIZING;
+      case STARTING -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_STARTED;
+      case HEALTHY -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_HEALTHY;
+      case FAILED -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_FAILED;
+      case STOPPED -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_STOPPED;
+      case UNKNOWN -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_UNKNOWN;
+    };
   }
 
   static io.stackgres.proto.types.v1.SourceInfo liveSourceInfo() {
@@ -148,18 +165,6 @@ final class ClusterProtoMapper {
       case PRIMARY -> io.stackgres.proto.types.v1.ReplicationStatus.REPLICATION_STATUS_PRIMARY;
       case REPLICA -> io.stackgres.proto.types.v1.ReplicationStatus.REPLICATION_STATUS_REPLICA;
       default -> io.stackgres.proto.types.v1.ReplicationStatus.REPLICATION_STATUS_UNSPECIFIED;
-    };
-  }
-
-  private static io.stackgres.proto.types.v1.ClusterStatus toProto(RunStatus phase) {
-    return switch (phase) {
-      case PENDING -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_PENDING;
-      case INITIALIZING -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_INITIALIZING;
-      case STARTING -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_STARTED;
-      case HEALTHY -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_HEALTHY;
-      case FAILED -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_FAILED;
-      case STOPPED -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_STOPPED;
-      case UNKNOWN -> io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_UNKNOWN;
     };
   }
 }

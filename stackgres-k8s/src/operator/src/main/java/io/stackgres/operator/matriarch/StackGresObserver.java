@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
 package io.stackgres.operator.matriarch;
 
 import java.util.ArrayList;
@@ -8,8 +13,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
-import io.stackgres.matriarch.Matriarch;
-import io.stackgres.matriarch.model.Cluster;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -24,6 +27,8 @@ import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileList;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ProfileScanner;
+import io.stackgres.matriarch.Matriarch;
+import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.operator.common.ResourceWatcherFactory;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
 import jakarta.enterprise.context.ApplicationScoped;
