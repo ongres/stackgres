@@ -14,3 +14,10 @@ do
     | sed 's#<module>\([^<]\+\)</module>#<module>\1/pom.xml.build</module>#g' \
     > "$POM_FILE.build"
 done
+
+# repo-root Matriarch modules the operator depends on (outside stackgres-k8s/src)
+for POM_FOLDER in proto matriarch
+do
+  echo "Updating $POM_FOLDER/pom.xml.build"
+  sh redact-version.sh "$POM_FOLDER" > "../../../$POM_FOLDER/pom.xml.build"
+done
