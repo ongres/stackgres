@@ -2,7 +2,7 @@
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: deploy
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_TAG_SUFFIX: "-release"
     IMAGE_PUSH_TAG_SUFFIX: ""

@@ -66,7 +66,7 @@
 .release jvm image amd64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-jvm-amd64'
@@ -83,7 +83,7 @@
 .release native image amd64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-amd64'
@@ -156,7 +156,7 @@ release cluster-controller native image amd64:
 release admin-ui image amd64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-amd64'
@@ -176,7 +176,7 @@ release admin-ui image amd64:
 .release jvm image arm64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-release-jvm-arm64'
@@ -192,7 +192,7 @@ release admin-ui image amd64:
 .release native image arm64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-release-arm64'
@@ -264,7 +264,7 @@ release cluster-controller native image arm64:
 release admin-ui image arm64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-release-arm64'
@@ -283,7 +283,7 @@ release admin-ui image arm64:
 .release jvm image multi archs:
   extends: .release image multi archs
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_SUFFIX: '-release-jvm'
   rules:
@@ -299,7 +299,7 @@ release admin-ui image arm64:
 .release native image multi archs:
   extends: .release image multi archs
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_SUFFIX: '-release'
   rules:
@@ -355,7 +355,7 @@ release cluster-controller native image multi archs:
 release admin-ui image multi archs:
   extends: .release image multi archs
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_SUFFIX: '-release'
     IMAGE_BASE_NAME: stackgres/admin-ui
@@ -372,7 +372,7 @@ release admin-ui image multi archs:
 .release operator bundle image amd64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-amd64'
@@ -390,7 +390,7 @@ release admin-ui image multi archs:
 .release operator bundle image arm64:
   extends: .release image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-arm64
   variables:
     IMAGE_SUFFIX: '-release-arm64'
@@ -433,7 +433,7 @@ release operator openshift bundle image arm64:
 .release operator bundle image multi archs:
   extends: .release image multi archs
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_SUFFIX: '-release'
     IMAGE_BASE_NAME: stackgres/operator-bundle

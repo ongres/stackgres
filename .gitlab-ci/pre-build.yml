@@ -34,7 +34,7 @@
 .pre build image multi archs:
   image: $SG_CONTAINER_ENGINE_IMAGE
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   stage: pre build multi archs
   timeout: 1 hour
   script:
@@ -89,7 +89,7 @@
 build ci image amd64:
   extends: .pre build image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   variables:
     IMAGE_NAME: $SG_CI_IMAGE_NAME
@@ -99,7 +99,7 @@ build ci image amd64:
 build ci image arm64:
   extends: .pre build image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-arm64
   variables:
     IMAGE_NAME: $SG_CI_IMAGE_NAME
@@ -116,7 +116,7 @@ build ci image arm64:
 build builder image amd64:
   extends: .pre build image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   variables:
     IMAGE_NAME: $BUILDER_IMAGE_NAME
@@ -126,7 +126,7 @@ build builder image amd64:
 build builder image arm64:
   extends: .pre build image
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-arm64
   variables:
     IMAGE_NAME: $BUILDER_IMAGE_NAME
@@ -143,13 +143,13 @@ build builder image arm64:
 build ci image multi archs:
   extends: .pre build image multi archs
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_NAME: $SG_CI_IMAGE_NAME
 
 build builder image multi archs:
   extends: .pre build image multi archs
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
   variables:
     IMAGE_NAME: $BUILDER_IMAGE_NAME

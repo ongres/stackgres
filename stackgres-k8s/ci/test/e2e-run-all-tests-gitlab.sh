@@ -43,15 +43,10 @@ export E2E_WAIT_OPERATOR=false
 # it is the other side when the engine reaches a service, as it does where the
 # runner gives the job pod a podman sidecar: a path only this container has would
 # be created there empty and the containerd cache would silently stop being one.
-# The runner shares /var/lib/kind-cache at the same path on both sides for it.
+# The runner shares /cache at the same path on both sides for it.
 # ServiceIsRemote is the same thing container_engine_is_remote reads in
 # stackgres-k8s/e2e/helpers, which this script does not source.
-if [ -z "$E2E_TEMP_PATH" ] \
-  && [ "$($CONTAINER_ENGINE info --format '{{ .Host.ServiceIsRemote }}' 2>/dev/null)" = true ]
-then
-  E2E_TEMP_PATH=/var/lib/kind-cache
-fi
-export E2E_TEMP_PATH="${E2E_TEMP_PATH:-/tmp}"
+export E2E_TEMP_PATH="${E2E_TEMP_PATH:-/cache}"
 export E2E_PULLED_IMAGES_PATH="${E2E_TEMP_PATH}/pulled-images$SUFFIX"
 export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
 export E2E_OPERATOR_REGISTRY_PATH=/$SG_CI_PROJECT_PATH/

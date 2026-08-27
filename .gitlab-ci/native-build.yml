@@ -26,7 +26,7 @@
 .build native executable amd64:
   extends: .build native executable
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - stackgres-native-build-runner
     - linux-amd64
   rules:
@@ -69,7 +69,7 @@ build cluster-controller native executable amd64:
 .build native executable arm64:
   extends: .build native executable
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - stackgres-native-build-runner
     - linux-arm64
   rules:

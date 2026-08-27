@@ -46,7 +46,7 @@
 .e2e tests jvm amd64:
   extends: .e2e tests
   tags:
-    - stackgres-e2e-runner
+    - stackgres-e2e-runner-v3
     - linux-amd64
   variables:
     E2E_JOB: "jvm-image"
@@ -64,7 +64,7 @@
 .e2e tests native amd64:
   extends: .e2e tests
   tags:
-    - stackgres-e2e-runner
+    - stackgres-e2e-runner-v3
     - linux-amd64
   variables:
     E2E_JOB: "native-image"
@@ -85,7 +85,7 @@
 .e2e tests jvm arm64:
   extends: .e2e tests
   tags:
-    - stackgres-e2e-runner
+    - stackgres-e2e-runner-v3
     - linux-arm64
   variables:
     E2E_JOB: "jvm-image"
@@ -111,7 +111,7 @@
 .e2e tests native arm64:
   extends: .e2e tests
   tags:
-    - stackgres-e2e-runner
+    - stackgres-e2e-runner-v3
     - linux-arm64
   variables:
     E2E_JOB: "native-image"

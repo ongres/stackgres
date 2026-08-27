@@ -2,7 +2,7 @@ build framework tests:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   script:
     - |
@@ -27,7 +27,7 @@ shell unit tests:
   variables:
     SHELL_TEST_TIMEOUT: 1200
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   script:
     - sh stackgres-k8s/src/operator/src/test/shell/run-in-docker.sh
@@ -48,7 +48,7 @@ doc yaml validations:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   script:
     - |
@@ -62,7 +62,7 @@ swagger validations:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
   tags:
-    - stackgres-runner-v2
+    - stackgres-runner-v3
     - linux-amd64
   script:
     - |
