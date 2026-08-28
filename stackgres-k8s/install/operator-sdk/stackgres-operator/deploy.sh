@@ -332,7 +332,7 @@ then
             REPLACES="$(channel_head "$CHANNEL" "$TEMPLATE_FILE")"
           else
             CHANNEL_UPPERCASE="$(printf %s "$CHANNEL" | tr 'a-z' 'A-Z')"
-            REPLACES="$(eval "printf %s \"\$PREVIOUS_${CHANNEL_UPPERCASE}_VERSION\"")"
+            REPLACES="stackgres.v$(eval "printf %s \"\$PREVIOUS_${CHANNEL_UPPERCASE}_VERSION\"")"
           fi
         fi
         # Set replaces only when the target is present in this template; otherwise

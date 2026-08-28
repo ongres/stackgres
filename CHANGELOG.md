@@ -1,3 +1,127 @@
+# :rocket: Release 1.19.0 (2026-07-22)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.19.0 is out! :confetti_ball: :champagne: :superhero: :exploding_head: :shield:
+
+> *IMPORTANT*: This release change the supported Kubernetes version range to 1.25 onwards (previously 1.18 onwards). On Kubernetes 1.25 to 1.27 make sure the ProbeTerminationGracePeriod feature gate is not disabled (it is enabled by default); it is GA from 1.28.
+
+> *IMPORTANT*: SGShardedCluster fields have been renamed (in particular `shards` is now `workers`, among other field name changes). You will have to update your SGShardedCluster YAML manifests accordingly when upgrading. See the [upgrade documentation](https://stackgres.io/doc/latest/administration/upgrade/deprecated-fields/) where those changes are explained in details.
+
+This release brings a big revamp of SGShardedCluster: the CRD version is bumped to `stackgres.io/v1beta1`, shards are now called workers (to align more cleanly with Citus terminolog) and Citus query routers support has been added. Query routers are non-data nodes that act like coordinators for query purposes: apart from the existing coordinator (with our without HA) you can add as many query routers as needed and avoid the coordinator being a bottleneck on very high performance environments. Mutation and validation of resources are now also performed in the reconciliation cycle, allowing to disable webhooks, and operator locking now relies on the Kubernetes Leases API.
+
+Patroni can now be configured to use Pods FQDN instead of Pod IP with extra network and scheduling configuration, and new storage options allow to set `volumeAttributesClassName` and I/O throttling (`io.max`) for the data persistent volume.
+
+Reconciliation is now faster and more observable thanks to new ConfigMap, Secret and endpoints watchers, configurable caching with metrics and an optional deployed SSA snapshot.
+
+Day-2 operations are also improved: restart of an SGCluster no longer requires a direct connection to Patroni instances, a replica can be restored from a backup with `patronictl reinit` and a custom restore method can be set when replicating from an external instance.
+
+The SGCluster status now advertises the latest available Postgres and extensions versions.
+
+The default Patroni ttl changed from `30` to `45` seconds. This also affects existing clusters that have not set an explicit ttl value, and applies to them immediately after the operator upgrade (it is Patroni dynamic configuration). It may add up to approximately 15 seconds to TTL-driven failover after a hard primary loss. If you have copied the previous default ttl 30 explicitly into your SGCluster spec, remove it or raise it to at least 45: with the new probe timings it no longer guarantees fencing before leader-lock expiry.
+
+The liveness probe defaults are tighter (periodSeconds 5, timeoutSeconds 2, failureThreshold 3, probe-level terminationGracePeriodSeconds 3). A false-positive liveness failure (highly unlikely, and by itself a red flag, it means Patroni failed three consecutive liveness probes, a nominal worst-case detection latency of about 17 seconds after the fault) now allows only 3 seconds for clean termination and may therefore cause Postgres crash recovery (which is safe). Clusters running under tight CPU limits with sustained saturation should consider relaxing the liveness probe timings and raising ttl accordingly (see https://stackgres.io/doc/latest/administration/patroni/fencing/).
+
+The adjusted liveness probe defaults and the Patroni ttl change harden StackGres resiliency against Patroni process being frozen (and hence being unable to demote Postgres if required due to a network partition). 
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Kubernetes 1.36
+* Support OpenShift 4.22
+* Patroni 4.1.4
+* Postgres-exporter 0.20.1
+* OTEL Contrib Collector 0.156.0
+* Bump SGShardedCluster version to `stackgres.io/v1beta1` (#3156)
+* Rename shards to workers in SGShardedCluster (#3155)
+* Use lease instead of dead man switch CAS locks (#2927)
+* Add Citus query routers to SGShardedCluster (#3157)
+* Configure Patroni to use Pods FQDN and add extra network and scheduling config (#3105)
+* Add volumeAttributesClassName property to persistentVolume section (#3103)
+* Add support to set io.max for data PV (#3138)
+* Added schedulerName, runtimeClassName, preemptionPolicy and priorityClassName to operator, restapi and collector deployments (#3145)
+* Restart SGCluster without requiring direct connection to Patroni instances (#3002)
+* Allow to set custom restore method when replicating from an external instance (#3032)
+* Allow to restore replica from backup with patronictl reinit (#3167)
+* Advertise latest Postgres and extension versions on SGCluster status (#3151)
+* Validate immutability of cluster names on update (#3158)
+* Set x-kubernetes-preserve-unknown-fields for deprecated CRD versions (#3160)
+* Optional deployed SSA snapshot that replaces the deployed cache snapshot (#3159)
+* Set default cache expiration based on RECONCILIATION_PERIOD (#3164)
+* Added metrics for caches (#3163)
+* Add watchers for ConfigMap and Secret to reconcile SGScript faster (#3165)
+* Watch endpoints changes to trigger local controller reconciliation on promote/demote events (#3166)
+* Configurable extensions metadata refresh in SGConfig (#3162)
+* Updated extensions repository user agent with installation ID (#3104)
+* Updated SGStream configuration and status (#3161)
+* Updated Debezium for SGStream
+* Updated components, base images and Java dependencies
+* DbOps Major and Minor Version Upgrade for SGShardedDbOps, with hardening and a manual rollback path (#2865, #2864)
+* Use latest citus and citus_columnar extensions by default in SGShardedCluster (#3175)
+* Run postgres_exporter as a low-privilege `monitor` role and route its `dblink` calls through `SECURITY DEFINER` connect functions (#3177)
+* Support for mutating and validating resources in the reconciliation cycle, allowing to disable webhooks (#2716)
+* Make the retry backoff of SGBackup, SGDbOps and SGShardedDbOps operations configurable through .spec.retryDelay, .spec.retryLimit and .spec.retryMaxDelay (#3180)
+* Paginate Kubernetes resource LIST calls (limit/continue)
+* Bump minimum supported Kubernetes version to 1.25
+* Probe Patroni's /liveness endpoint directly from the liveness probe of the patroni container, removing the cluster controller proxying, and add a startup probe to cover Patroni's startup window
+* Expose the patroni container startup probe through SGCluster.spec.pods.startupProbe (and the equivalent SGShardedCluster pods sections), defaulting to the values StackGres already used
+* Retune the patroni container liveness probe defaults and the default Patroni ttl so that fencing completes before leader-lock expiry
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Custom labels and/or annotations are not applied to existing Pods and PVCs (#3172)
+* Port name patroniport is present in more than one container (#3134)
+* SIGUP terminates Patroni before it sets up signal handlers (#3168)
+* SGShardedCluster's SGCluster is not able to bootstrap due to missing citus extension (#3169)
+* Add missing timeoutSeconds to Patroni liveness probe
+* setup-filesystem init container resources are never updated (#3087)
+* Default SSL Enabled cannot be turned off from AdminUI/RestApi (#3094)
+* XSS in the documentation site extensions table (#2044)
+* PITR `targetInclusive` is silently ignored (#3173)
+* Superuser/replication `ALTER ROLE` statements are not SQL-escaped (#3174)
+* Relocate binaries/extensions when a data volume is reused on a different CPU architecture, and report reconciliation exceptions as Warning events (partial fix for #3178)
+* cluster-controller: restart the replica when the operator changes the initialization backup (inverted failover branches); persist pod node-name changes to the SGCluster status; propagate Patroni flag tag values to pod labels (were always `false`, breaking the replicas Service selector); avoid invalid label values from `AnyType.toString`; build the reconciliation-duration metric key correctly; longest-prefix mount-path matching; wire in the `skipUpdate` conciliator hook; seed Patroni container limits from user limits not requests; correct custom replication method config generation; stop sharing the `postgresExporter` object across sub-clusters; never attempt to shrink a PVC during resize; avoid re-copying a consumed tar stream on chmod failure; order extension versions where one is a prefix of another
+* common: actually sleep between `patronictl` wait-loop iterations; parse the pending Patroni operation annotation as JSON; compute member lag from 64-bit LSNs in MB; avoid NPEs listing members without a role and resolving the Patroni version without status; fix retry property mapping and the retry-limit off-by-one; fix the empty-line regex typo; fix `WebClientFactory` retry parsing; send proxy credentials as Basic auth instead of Bearer; match two-space-indented Patroni config lines; escape the sed replacement in `PatroniReconciliator`
+* restapi: keep the other subjects when removing a user from a shared Role/ClusterRole binding; strip surrounding quotes from pooling config DTO values; validate the correct annotation maps in MetadataValidators
+* stream: fix the kafka offset always evaluating to 0 (`1 << 32 == 1`); accept any 2xx (including 202/204) CloudEvent delivery response; package byte-buddy so the SGStream migration Hibernate SessionFactory loads
+* operator/dbops scripts: pass the configured options to `pg_repack`; fix double-counted sharded backup sizes (missing trailing newline); write valid-JSON status patches; replace 100% CPU busy-wait loops with sleeps; fix `to_char` month-as-minutes timestamps; parenthesize the WAL segment computation; honor the configured lease lock renewal interval; report the psql output when `pg_backup_stop` fails; export environment variables without `eval` in `exec-with-env`; remove stale extension files when relocating binaries; correct the malformed `start-pgbouncer.sh` shebang; format the pgbench sampling rate locale-independently; escape embedded quotes in pgbouncer auth file entries
+* Kubernetes hardening: add hardened container security contexts (drop ALL, no privilege escalation, RuntimeDefault seccomp) to the cluster StatefulSet containers, web console, collector, extensions cache StatefulSet and helm helper Jobs (the operator Deployment was already hardened), plus resources for the extensions cache and the cluster restart Job
+* Maintain SGDbOps's and SGShardedDbOps's ServiceAccount, Role and RoleBinding after failure/completion to avoid issues.
+* SGBackup, SGDbOps, SGShardedBackup and SGShardedDbOps where not reconciled on owner Pod events
+* Remove obsolete keys cert.key, cert.crt, cert.jwtRsaKey, cert.jwtRsaPub, cert.webKey, cert.webCrt or grafana.urls from helm chart default values preventing installation on K8s 1.25+ (this was also backpatched to 1.18.8 deployed release)
+* Default configurations generated for SGShardedCluster are continuously logged as being removed due to change in apiVersion
+* Operator logs Deleting or Patching for resources that are not actually deleted or patched by fire-and-forget reconciliation handlers
+* Set reconciliation log level to debug to avoid noise
+
+## Web Console
+
+* Preserve unknown/unmanaged fields on update across CRDs (#3170)
+* Do not auto-create SGDistributedLogs for Minimal/Custom cluster templates (#3171)
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.19.0/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.0)
+
 # :rocket: Release 1.19.0-rc5 (2026-07-22)
 
 ## :notepad_spiral: NOTES
