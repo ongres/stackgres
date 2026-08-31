@@ -1124,6 +1124,47 @@ load_image_from() {
   load_image_k8s "$IMAGE"
 }
 
+# Filters the PostgreSQL versions read from stdin, printing only those greater
+# than or equal to a minimum version and not listed as excluded. Each entry may
+# also be a patroni image tag, in which case the PostgreSQL version is extracted
+# from it. An empty minimum version means no lower bound and an empty exclusion
+# list means nothing is excluded.
+#
+#   ... | filter_postgres_versions <minimum version> <excluded versions>
+filter_postgres_versions() {
+  notrace_function traceable_filter_postgres_versions "$1" "$2"
+}
+
+traceable_filter_postgres_versions() {
+  local MINIMUM_VERSION="$1"
+  local EXCLUDED_VERSIONS="$2"
+  local MINIMUM_VERSION_AS_NUMBER=""
+  if [ -n "$MINIMUM_VERSION" ]
+  then
+    MINIMUM_VERSION_AS_NUMBER="$(get_version_as_number "$MINIMUM_VERSION")"
+  fi
+  local ENTRY VERSION EXCLUDED_VERSION
+  while read -r ENTRY || [ -n "$ENTRY" ]
+  do
+    [ -n "$ENTRY" ] || continue
+    VERSION="${ENTRY##*-pg}"
+    VERSION="${VERSION%%-build-*}"
+    if [ -n "$MINIMUM_VERSION_AS_NUMBER" ] \
+      && [ "$(get_version_as_number "$VERSION")" -lt "$MINIMUM_VERSION_AS_NUMBER" ]
+    then
+      continue
+    fi
+    for EXCLUDED_VERSION in $EXCLUDED_VERSIONS
+    do
+      if [ "$VERSION" = "$EXCLUDED_VERSION" ]
+      then
+        continue 2
+      fi
+    done
+    printf '%s\n' "$ENTRY"
+  done
+}
+
 get_component_images() {
   notrace_function traceable_get_component_images "$1"
 }

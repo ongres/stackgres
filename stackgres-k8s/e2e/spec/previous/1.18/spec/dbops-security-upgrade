@@ -63,7 +63,16 @@ e2e_test_install() {
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE##*-pg}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
-  PREVIOUS_SHARDED_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg16\.' | head -n 1)"
+  # citus_columnar 14.x calls systable_inplace_update_begin(), a PostgreSQL
+  # function that was only back-patched to 16.5 and 17.1. Extensions are
+  # published per PostgreSQL major version, so the binary built against the
+  # latest 16.x is also installed on older 16.x minors, where the postmaster
+  # then fails to load citus_columnar.so with "undefined symbol" and the sharded
+  # cluster never bootstraps (see #3213). StackGres ships neither 16.5 nor 17.1,
+  # hence the 16.6 minimum and the 17.0 exclusion.
+  PREVIOUS_SHARDED_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" \
+    | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg16\.' \
+    | filter_postgres_versions 16.6 17.0 | head -n 1)"
   PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE##*-pg}"
   PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
