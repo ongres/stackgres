@@ -79,21 +79,14 @@ affinity:
             values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   fi
-  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  # The minio chart runs as a fixed uid, which no default SCC admits, so on
+  # OpenShift the service account gets anyuid and the chart's own security
+  # context is left out. is_openshift and openshift_oc live in utils/olm and
+  # cover every OpenShift environment, openshift-aws included, which the list
+  # this used to test did not.
+  if is_openshift
   then
-    if [ "$E2E_ENV" = "minishift" ]
-    then
-      eval "$(minishift oc-env)"
-    fi
-    if [ "$E2E_ENV" = "crc" ]
-    then
-      eval "$(crc oc-env)"
-    fi
-    if [ "$E2E_ENV" = "microshift" ]
-    then
-      alias oc="docker exec -ti '$K8S_NAME' oc"
-    fi
-    oc adm policy add-scc-to-user anyuid -n "$MINIO_NAMESPACE" -z "$MINIO_NAME"
+    openshift_oc adm policy add-scc-to-user anyuid -n "$MINIO_NAMESPACE" -z "$MINIO_NAME"
     cat << EOF >> "$LOG_PATH/minio.yaml"
 securityContext:
   enabled: false
