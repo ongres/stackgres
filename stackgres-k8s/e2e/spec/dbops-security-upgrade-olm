@@ -88,7 +88,7 @@ e2e_install_previous_operator() {
   else
     PREVIOUS_BUNDLE_IMAGE_NAME="$(wait_until eval \
       'kubectl exec -n openshift-marketplace "$(kubectl get pod -n openshift-marketplace -l olm.catalogSource=redhat-marketplace -o name | grep "^pod/")" \
-      -- cat /configs/stackgres/catalog.json \
+      -- cat /configs/stackgres/catalog.json /extracted-catalog/catalog/stackgres/catalog.json 2>/dev/null \
       | jq -sr ".[]|select(.name == \"stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION\").image" | grep .')"
   fi
 
