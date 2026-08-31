@@ -857,7 +857,6 @@ check_cluster_before_security_upgrade() {
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
     PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
     cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH" \
-      | sed '\#^auth_user = #a client_tls_cert_file = /etc/ssl/tls.crt\nclient_tls_key_file = /etc/ssl/tls.key\nclient_tls_sslmode = prefer' \
       | sed '/server_check_query = ;/d' \
       | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
