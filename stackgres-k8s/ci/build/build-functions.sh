@@ -1135,8 +1135,12 @@ docker_push() {
       esac
       set -- "$@" "$ARG"
     done
+    # --remove-signatures: pushing compresses the layer again, which changes its digest and so the
+    # manifest, and podman refuses to do that to an image carrying signatures rather than drop them
+    # silently. An image re-tagged from a signed base cannot be pushed at all otherwise. It is a
+    # no-op for anything built here, which carries no signatures.
     # shellcheck disable=SC2086
-    $CONTAINER_ENGINE push "$@"
+    $CONTAINER_ENGINE push --remove-signatures "$@"
   else
     docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$@"
   fi
