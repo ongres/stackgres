@@ -67,7 +67,7 @@ EOF
 }
 
 e2e_install_previous_operator() {
-  if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
+  if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "openshift-aws" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
   then
     e2e_properly_tag_not_found_import_images &
     trap_kill "$!"
@@ -79,7 +79,7 @@ e2e_install_previous_operator() {
       --version "$E2E_OLM_VERSION"
   fi
 
-  if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
+  if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "openshift-aws" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
   then
     PREVIOUS_BUNDLE_IMAGE_NAME="$(wait_until eval \
       'kubectl exec -n olm "$(kubectl get pod -n olm -l olm.catalogSource=operatorhubio-catalog -o name | grep "^pod/")" \
