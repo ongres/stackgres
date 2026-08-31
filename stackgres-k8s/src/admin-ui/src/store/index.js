@@ -4,6 +4,14 @@ import axios from 'axios'
 
 Vue.use(Vuex);
 
+function loadAnnouncementDismissals () {
+  try {
+    return JSON.parse(localStorage.getItem('sgAnnouncementDismissals')) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
 export default new Vuex.Store({
   state: {
     theme: 'light',
@@ -12,6 +20,18 @@ export default new Vuex.Store({
     showLogs: false,
     notFound: false,
     isLoading: false,
+    /* Topbar announcements. Fixed per-version content ships right here;
+       runtime sources publish via commit('publishAnnouncements', [...]).
+       Fields: id (unique; dismissals are remembered per id), severity
+       ('info' | 'warning' | 'error'), message (markdown — including any
+       links), dismissible (defaults to true), validUntil (ISO date; hidden
+       after it), reappearAfter (seconds after dismissal to show again). */
+    announcements: [
+      { id: 'tmp-sub', severity: 'error', message: 'Your **support subscription** has ***expired***. [Renew](https://stackgres.io/support/)', dismissible: false },
+      { id: 'tmp-ver', severity: 'info', message: 'StackGres `1.20` is *now available* — run `helm upgrade stackgres-operator` to update.', reappearAfter: 60 },
+      { id: 'tmp-warn', severity: 'warning', message: 'Subscription expires in **7 days**.' }
+    ],
+    announcementDismissals: loadAnnouncementDismissals(),
     currentPath: {
       namespace: '',
       name: '',
@@ -79,6 +99,22 @@ export default new Vuex.Store({
 
     loading (state, isLoading) {
       state.isLoading = isLoading;
+    },
+
+    publishAnnouncements (state, announcements) {
+      announcements.forEach(function (announcement) {
+        const index = state.announcements.findIndex(a => a.id === announcement.id);
+        if (index >= 0) {
+          Vue.set(state.announcements, index, announcement);
+        } else {
+          state.announcements.push(announcement);
+        }
+      });
+    },
+
+    dismissAnnouncement (state, id) {
+      Vue.set(state.announcementDismissals, id, Date.now());
+      localStorage.setItem('sgAnnouncementDismissals', JSON.stringify(state.announcementDismissals));
     },
     
     setPermissions (state, permissions) {

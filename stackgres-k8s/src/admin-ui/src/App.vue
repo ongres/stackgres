@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+		<AnnouncementsBar></AnnouncementsBar>
 		<NavBar></NavBar>
 		<SideBar v-if="$route.params.hasOwnProperty('namespace')"></SideBar>
     <div
@@ -24,6 +25,7 @@
 </template>
 
 <script>
+  import AnnouncementsBar from '@/components/navbar/AnnouncementsBar.vue'
   import NavBar from '@/components/navbar/NavBar.vue'
   import SideBar from '@/components/SideBar.vue'
   import HeaderSection from '@/components/navbar/HeaderSection.vue'
@@ -31,8 +33,9 @@
 
   export default {
     components: {
+      AnnouncementsBar,
       NavBar,
-      SideBar, 
+      SideBar,
       HeaderSection
     },
 
