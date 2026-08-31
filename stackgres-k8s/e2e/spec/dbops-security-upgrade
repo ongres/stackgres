@@ -51,7 +51,7 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE="$(printf %s "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
   then
-    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
+    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg17\.')"
   else
     PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
   fi
