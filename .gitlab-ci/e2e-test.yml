@@ -8,6 +8,10 @@
     IS_NATIVE: "false"
     IS_WEB: "false"
     GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_CONCURRENT_ID/$CI_PROJECT_PATH
+    # What one e2e job reserves on a kubernetes executor: a kind cluster plus the operator is not
+    # a job that shares a node well, so it is scheduled at its real size rather than overcommitted.
+    KUBERNETES_CPU_REQUEST: "4"
+    KUBERNETES_MEMORY_REQUEST: "24Gi"
   timeout: 1 hour
   script:
     - |
