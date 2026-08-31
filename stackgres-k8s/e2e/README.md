@@ -72,6 +72,19 @@ Some environment variables allow to control how e2e test behave:
 * `KIND_CONTAINERD_CACHE_PATH`: Allow to set a local path to use as containerd's repository for kind environment. Doing so will allow to re-use the repository among restart of kind even with different versions.
 * `K8S_FROM_DIND`: Set to true to use docker internal IPs for kubernetes configuration to access the kind cluster
  (some systems like macos or windows will not work with this but it is useful to run e2e in docker).
+* `E2E_USE_OPENSHIFT_CATALOG`: Install the operator from an OpenShift OperatorHub catalog instead of
+ from a catalog built out of the operator bundle of this build. Set it to `certified`, `marketplace`
+ or `community` to use the `certified-operators`, `redhat-marketplace` or `community-operators`
+ CatalogSource of `openshift-marketplace` respectively. Only released versions are published there,
+ so the version to install has to name one: it is taken from `E2E_OPENSHIFT_CATALOG_VERSION`, or from
+ the image tag without its `-jvm` suffix, so `--image-tag 1.19.0` installs `1.19.0`. Requires an
+ OpenShift cluster, and affects the specs that install through OLM (`operator-olm`,
+ `dbops-security-upgrade-olm` and `runbooks/io-isolation-olm`). When unset those specs keep building
+ their own catalog, which is what tests the local build.
+* `E2E_OPENSHIFT_CATALOG_VERSION`: The released version to install when `E2E_USE_OPENSHIFT_CATALOG`
+ is set (default: the image tag without its `-jvm` suffix).
+* `E2E_OPENSHIFT_CATALOG_CHANNEL`: The channel to subscribe through when `E2E_USE_OPENSHIFT_CATALOG`
+ is set (default: resolved from the catalog as the channel carrying the requested version).
 * `SKIP_SPEC_INSTALL`: Set this to true to skip call of function `e2e_test_install` (default: false).
 * `SKIP_SPEC_UNINSTALL`: Set this to true to skip call of function `e2e_test_uninstall` (default: false).
 
