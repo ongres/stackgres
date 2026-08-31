@@ -1,11 +1,69 @@
 #!/bin/sh
 
+#
+# On OpenShift the cluster already ships a monitoring stack, so nothing is
+# installed here: the user workload half of it, prometheus-user-workload in
+# namespace openshift-user-workload-monitoring, is used instead. Installing
+# kube-prometheus-stack alongside it would mean a second prometheus operator
+# fighting over the same CRDs, and would need anyuid granted to seven service
+# accounts to get its pods admitted at all.
+#
+# What user workload monitoring needs from us is only that it is enabled (the
+# enableUserWorkload flag of the cluster-monitoring-config ConfigMap) and that
+# the namespaces holding the ServiceMonitors and PodMonitors are not excluded
+# from it, see prometheus_label_namespace.
+#
+
+# The namespace holding the prometheus that scrapes the workloads under test.
 prometheus_namespace() {
-  echo "$CLUSTER_NAMESPACE-monitor"
+  if is_openshift
+  then
+    echo openshift-user-workload-monitoring
+  else
+    echo "$CLUSTER_NAMESPACE-monitor"
+  fi
 }
 
+# The service to query for metrics. On OpenShift the prometheus-user-workload
+# Service only exposes the authenticated ports (9091 needs a bearer token, 9092
+# is the tenancy aware one), so the plain endpoint of the very same
+# prometheus-user-workload instance is used instead, which is what the headless
+# prometheus-operated Service fronts.
 prometheus_service() {
-  echo "prometheus-kube-prometheus-prometheus"
+  if is_openshift
+  then
+    echo prometheus-operated
+  else
+    echo prometheus-kube-prometheus-prometheus
+  fi
+}
+
+prometheus_port() {
+  echo 9090
+}
+
+# Labels a namespace so that the prometheus in use picks up the monitors in it.
+#
+# The kube-prometheus-stack installed below is told to look only at namespaces
+# labelled monitoring=true. OpenShift's user workload prometheus needs no such
+# label, its Prometheus has null monitor selectors with
+# ignoreNamespaceSelectors, so it takes the monitors of any namespace; what it
+# does exclude is the namespaces claimed by the platform stack with
+# openshift.io/cluster-monitoring=true. So on OpenShift the label to apply is the
+# explicit user monitoring opt in, and the one to keep away is the platform one.
+prometheus_label_namespace() {
+  local NAMESPACE="$1"
+
+  if is_openshift
+  then
+    kubectl label namespace "$NAMESPACE" --overwrite \
+      openshift.io/user-monitoring=true
+    # Being claimed by the platform stack would take the namespace out of user
+    # workload monitoring entirely.
+    kubectl label namespace "$NAMESPACE" openshift.io/cluster-monitoring- 2>/dev/null || true
+  else
+    kubectl label namespace "$NAMESPACE" --overwrite monitoring=true
+  fi
 }
 
 install_prometheus_operator() {
@@ -16,28 +74,10 @@ install_prometheus_operator_for_version() {
   local KUBE_PROMETHEUS_STACK_VERSION="$1"
   shift
 
-  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  if is_openshift
   then
-    if [ "$E2E_ENV" = "minishift" ]
-    then
-      eval "$(minishift oc-env)"
-    fi
-    if [ "$E2E_ENV" = "crc" ]
-    then
-      eval "$(crc oc-env)"
-    fi
-    if [ "$E2E_ENV" = "microshift" ]
-    then
-      alias oc="docker exec -ti '$K8S_NAME' oc"
-    fi
-    kubectl create ns "$(prometheus_namespace)"
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-admission
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-operator
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-prometheus
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-kube-prometheus-admission
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-kube-prometheus-operator
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-kube-prometheus-prometheus
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
+    enable_openshift_user_workload_monitoring
+    return
   fi
 
   helm install prometheus "$E2E_PATH/helm/kube-prometheus-stack-$KUBE_PROMETHEUS_STACK_VERSION.tgz" \
@@ -61,7 +101,47 @@ install_prometheus_operator_for_version() {
   wait_pods_running "$(prometheus_namespace)" 3
 }
 
+# Turns on monitoring for user defined projects, which is what the OpenShift
+# pre-requisites page of the documentation asks of a StackGres install, and waits
+# for the stack to come up. The ConfigMap may not exist on a fresh cluster and
+# may already carry other settings, so it is merged rather than replaced.
+enable_openshift_user_workload_monitoring() {
+  echo "Using the OpenShift user workload monitoring stack in $(prometheus_namespace)"
+
+  if kubectl get configmap -n openshift-monitoring cluster-monitoring-config > /dev/null 2>&1
+  then
+    if kubectl get configmap -n openshift-monitoring cluster-monitoring-config \
+      --template '{{ index .data "config.yaml" }}' 2>/dev/null \
+      | grep -q '^[[:space:]]*enableUserWorkload:[[:space:]]*true'
+    then
+      echo "Monitoring of user defined projects is already enabled"
+    else
+      kubectl patch configmap -n openshift-monitoring cluster-monitoring-config --type merge \
+        -p "$(printf '{"data":{"config.yaml":"%s"}}' 'enableUserWorkload: true\n')"
+    fi
+  else
+    kubectl create configmap -n openshift-monitoring cluster-monitoring-config \
+      --from-literal=config.yaml='enableUserWorkload: true'
+  fi
+
+  if ! wait_until -t "$((E2E_TIMEOUT * 2))" eval 'kubectl get statefulset -n "$(prometheus_namespace)" prometheus-user-workload -o name > /dev/null 2>&1'
+  then
+    kubectl get configmap -n openshift-monitoring cluster-monitoring-config -o yaml || true
+    fail "The OpenShift user workload monitoring stack did not come up"
+    return 1
+  fi
+  wait_until kubectl rollout status --timeout=1s \
+    -n "$(prometheus_namespace)" statefulset/prometheus-user-workload
+  success "The OpenShift user workload monitoring stack is running in $(prometheus_namespace)"
+}
+
 uninstall_prometheus_operator() {
+  # Nothing was installed on OpenShift, and openshift-user-workload-monitoring
+  # belongs to the cluster, not to this test.
+  if is_openshift
+  then
+    return
+  fi
   helm_cleanup_chart prometheus "$(prometheus_namespace)"
   k8s_async_cleanup_namespace "$(prometheus_namespace)"
 }
