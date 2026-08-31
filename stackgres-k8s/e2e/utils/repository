@@ -285,7 +285,13 @@ docker_push() {
   then
     # podman push has no --platform option since a local podman image is always
     # single arch
-    $CONTAINER_ENGINE push -q "$IMAGE_NAME"
+    #
+    # --remove-signatures: pushing compresses the layer again, which changes its digest and so the
+    # manifest, and podman refuses to do that to an image carrying signatures rather than drop them
+    # silently. An image re-tagged from a signed base cannot be pushed at all otherwise, which is
+    # what the test result markers are. A signature would mean nothing on them anyway: the copy in
+    # the destination registry is a flag, not the signed artifact.
+    $CONTAINER_ENGINE push -q --remove-signatures "$IMAGE_NAME"
   else
     docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" -q "$IMAGE_NAME"
   fi
