@@ -1,0 +1,296 @@
+#!/bin/sh
+
+#
+# Installs a concrete released version of the StackGres operator from the
+# OpenShift OperatorHub, through the Operator Lifecycle Manager, the way a
+# customer installing from the console gets it.
+#
+# Nothing is built and nothing is pushed: the bundle, the catalog and every
+# operator image come from the Red Hat certified catalog the cluster already
+# subscribes to, pulled with the pull secret the installer configured. This is
+# therefore a check of a *published* operator, not of the local build, which is
+# the point when what is being verified is how a certified install behaves.
+#
+# The version installed is the one named by the image tag the e2e framework was
+# given, prefixed with stackgres.v to form the name of the
+# ClusterServiceVersion, so:
+#
+#     ./e2e --image-tag 1.19.0 ... -- runbooks/io-isolation
+#
+# subscribes to the stackgres-certified package and installs the CSV named
+# stackgres.v1.19.0. Note that the certified bundle renames the *package* to
+# stackgres-certified but leaves the CSV named after the plain stackgres prefix,
+# see RENAME_CSV in install/operator-sdk/stackgres-operator/deploy.sh, which is
+# why the two are separate here. IMAGE_TAG carries an optional -jvm suffix that
+# is an e2e image flavour and never part of a published CSV name, so it is
+# stripped and --image-tag 1.19.0 resolves the same with or without
+# --native-image-tag. Since only released versions reach OperatorHub, the
+# default tag (main-jvm) does not resolve to anything and the installation stops
+# with the list of versions the catalog does offer.
+#
+# A spec that sources this file has to:
+#
+#  *  add olm_extra_hash to its e2e_test_extra_hash;
+#  *  call olm_cleanup, olm_install_operator and olm_check_operator_installed
+#     from its e2e_test_install, in that order;
+#  *  call olm_cleanup and olm_restore_helm_operator from its
+#     e2e_test_uninstall, so that the specs that run afterwards find the
+#     operator the framework expects.
+#
+# After olm_install_operator the following are set:
+#
+#  *  OPERATOR_NAMESPACE: the namespace the operator was installed into, freshly
+#     generated, not the one the helm installed operator used.
+#  *  SGCONFIG_NAMESPACE: the namespace holding the SGConfig, which the operator
+#     creates in its own namespace.
+#  *  OLM_SGCONFIG_NAME: the name of the SGConfig object.
+#  *  OLM_CSV: the name of the installed ClusterServiceVersion.
+#  *  OLM_CHANNEL: the channel it was subscribed through.
+#
+# Environment variables:
+#
+#  *  OLM_PACKAGE: the OperatorHub package to subscribe to (default:
+#     stackgres-certified).
+#  *  OLM_CSV_PREFIX: the prefix of the ClusterServiceVersion name, which the
+#     certified bundle does not rename along with the package (default:
+#     stackgres, giving stackgres.v<version>).
+#  *  OLM_CATALOG_SOURCE, OLM_CATALOG_SOURCE_NAMESPACE: the CatalogSource that
+#     offers it (default: certified-operators in openshift-marketplace).
+#  *  OLM_CHANNEL: the channel to subscribe through. When unset it is resolved
+#     from the catalog, as the channel that carries the requested version.
+#
+
+OLM_PACKAGE="${OLM_PACKAGE:-stackgres-certified}"
+OLM_CSV_PREFIX="${OLM_CSV_PREFIX:-stackgres}"
+OLM_CATALOG_SOURCE="${OLM_CATALOG_SOURCE:-certified-operators}"
+OLM_CATALOG_SOURCE_NAMESPACE="${OLM_CATALOG_SOURCE_NAMESPACE:-openshift-marketplace}"
+OLM_CHANNEL="${OLM_CHANNEL:-}"
+OLM_CSV=
+
+# The released version to install, from the tag given with --image-tag. The -jvm
+# suffix is an e2e image flavour, not part of the published version.
+olm_version() {
+  printf '%s' "${IMAGE_TAG%-jvm}"
+}
+
+# The ClusterServiceVersion to install. Named after OLM_CSV_PREFIX and not after
+# OLM_PACKAGE: the certified bundle renames the package but not the CSV.
+olm_csv_name() {
+  printf '%s.v%s' "$OLM_CSV_PREFIX" "$(olm_version)"
+}
+
+olm_extra_hash() {
+  printf 'OLM_PACKAGE=%s\n' "$OLM_PACKAGE"
+  printf 'OLM_CSV_PREFIX=%s\n' "$OLM_CSV_PREFIX"
+  printf 'OLM_CATALOG_SOURCE=%s\n' "$OLM_CATALOG_SOURCE"
+  printf 'OLM_VERSION=%s\n' "$(olm_version)"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/olm")"
+}
+
+olm_package_manifest() {
+  kubectl get packagemanifest -n "$OLM_CATALOG_SOURCE_NAMESPACE" "$OLM_PACKAGE" -o json
+}
+
+# Every version the catalog offers, one per line, so that a wrong --image-tag
+# gets an answer instead of a timeout.
+olm_available_versions() {
+  olm_package_manifest 2>/dev/null | jq -r '
+    [ .status.channels[] | (.entries[]?.name), .currentCSV ]
+    | unique | .[] | select(. != null)'
+}
+
+# The channel to subscribe through: the one that carries the requested version.
+# entries is not published by every version of the package server, so fall back
+# to the channel whose head is that version.
+olm_resolve_channel() {
+  local CSV="$1"
+  olm_package_manifest | jq -r --arg csv "$CSV" '
+    ( [ .status.channels[] | select(any(.entries[]?; .name == $csv)) | .name ]
+      + [ .status.channels[] | select(.currentCSV == $csv) | .name ] )
+    | first // empty'
+}
+
+# Checks the cluster offers the package and that the requested version is one of
+# the versions it offers.
+olm_check_package() {
+  local CSV="$1"
+
+  if [ -z "$(olm_version)" ]
+  then
+    >&2 echo "IMAGE_TAG is empty, so there is no version to install."
+    return 1
+  fi
+
+  if ! kubectl get catalogsource -n "$OLM_CATALOG_SOURCE_NAMESPACE" "$OLM_CATALOG_SOURCE" \
+    > /dev/null 2>&1
+  then
+    >&2 echo "CatalogSource $OLM_CATALOG_SOURCE is not present in namespace" \
+      "$OLM_CATALOG_SOURCE_NAMESPACE. The cluster's OperatorHub does not offer the" \
+      "certified operators, enable it in the OperatorHub cluster resource."
+    return 1
+  fi
+
+  if ! wait_until eval 'olm_package_manifest > /dev/null 2>&1'
+  then
+    >&2 echo "Package $OLM_PACKAGE is not offered by the OperatorHub of this cluster." \
+      "The catalog may still be starting up, or the package may have another name."
+    return 1
+  fi
+
+  OLM_CHANNEL="${OLM_CHANNEL:-$(olm_resolve_channel "$CSV")}"
+  if [ -z "$OLM_CHANNEL" ]
+  then
+    >&2 echo "Version $(olm_version) of $OLM_PACKAGE is not offered by the" \
+      "$OLM_CATALOG_SOURCE catalog. Pass --image-tag with one of the versions it offers:"
+    olm_available_versions | sed 's/^/  /' >&2
+    return 1
+  fi
+
+  echo "Installing $CSV from the $OLM_CHANNEL channel of the $OLM_CATALOG_SOURCE catalog"
+}
+
+# Removes the operator the e2e framework installed with the helm chart, so that
+# OLM installs into a clean cluster.
+olm_cleanup() {
+  ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
+  k8s_unnamespaced_cleanup
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup || true
+}
+
+# Puts the operator back the way the framework expects it, for the specs that
+# run after this one.
+olm_restore_helm_operator() {
+  if [ "$E2E_SKIP_OPERATOR_INSTALL" = true ]
+  then
+    return
+  fi
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+# Creates the OperatorGroup and the Subscription, approves the install plan of
+# the requested version and waits for the operator to be up. The subscription
+# uses manual approval so that OLM installs the version asked for and does not
+# then walk the channel up to its head.
+olm_install_operator() {
+  local INSTALL_PLAN
+
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+  then
+    >&2 echo "E2E_ALLOWED_NAMESPACES is not supported when installing from OperatorHub," \
+      "the operator watches all namespaces and keeps its SGConfig in its own namespace."
+    return 1
+  fi
+
+  OLM_CSV="$(olm_csv_name)"
+  olm_check_package "$OLM_CSV"
+
+  OPERATOR_NAMESPACE="$(generate_operator_namespace)"
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
+  kubectl create -f - << EOF
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec: {}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  channel: $OLM_CHANNEL
+  name: $OLM_PACKAGE
+  source: $OLM_CATALOG_SOURCE
+  sourceNamespace: $OLM_CATALOG_SOURCE_NAMESPACE
+  installPlanApproval: Manual
+  startingCSV: $OLM_CSV
+EOF
+
+  if ! INSTALL_PLAN="$(wait_until eval 'olm_install_plan_of "$OLM_CSV" | grep .')"
+  then
+    kubectl get subscription -n "$OPERATOR_NAMESPACE" stackgres -o yaml || true
+    fail "OLM did not create an install plan for $OLM_CSV"
+    return 1
+  fi
+  kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge \
+    -p '{"spec":{"approved":true}}'
+
+  if ! wait_until -t "$((E2E_TIMEOUT * 3))" olm_csv_succeeded "$OLM_CSV"
+  then
+    kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$OLM_CSV" -o yaml || true
+    fail "The ClusterServiceVersion $OLM_CSV did not reach the Succeeded phase"
+    return 1
+  fi
+  success "The ClusterServiceVersion $OLM_CSV reached the Succeeded phase"
+
+  wait_until -t "$((E2E_TIMEOUT * 3))" eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" \
+    deployment -l olm.owner="$OLM_CSV"
+
+  if ! wait_until eval 'kubectl get sgconfig -A -o name | wc -l | grep -qxF 1'
+  then
+    fail "The StackGres SGConfig was not found."
+  else
+    success "The StackGres SGConfig was found."
+  fi
+
+  OLM_SGCONFIG_NAME="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" -o name \
+    | grep "^sgconfig.stackgres.io/")"
+  OLM_SGCONFIG_NAME="${OLM_SGCONFIG_NAME#*/}"
+
+  wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
+}
+
+olm_install_plan_of() {
+  kubectl get installplan -n "$OPERATOR_NAMESPACE" -o json \
+    | jq -r --arg csv "$1" \
+      '.items[] | select(.status != null and (.spec.clusterServiceVersionNames | index($csv))) | .metadata.name'
+}
+
+olm_csv_succeeded() {
+  kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$1" \
+    -o jsonpath='{.status.phase}' 2>/dev/null | grep -qxF Succeeded
+}
+
+olm_check_operator_installed() {
+  local INSTALLED_VERSION
+
+  INSTALLED_VERSION="$(kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$OLM_CSV" \
+    -o jsonpath='{.spec.version}')"
+  if [ "$INSTALLED_VERSION" = "$(olm_version)" ]
+  then
+    success "The installed operator is version $INSTALLED_VERSION, as requested"
+  else
+    fail "The installed operator is version $INSTALLED_VERSION but $(olm_version) was requested"
+  fi
+
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$OLM_SGCONFIG_NAME$"
+  then
+    fail "The StackGres operator service was not available."
+  else
+    success "The StackGres operator service was available."
+  fi
+
+  if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-restapi$"
+  then
+    fail "The StackGres restapi service was not available."
+  else
+    success "The StackGres restapi service was available."
+  fi
+
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
+  then
+    fail "The StackGres jobs still running."
+  else
+    success "The StackGres jobs all cleaned up."
+  fi
+}
