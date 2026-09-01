@@ -262,8 +262,7 @@ EOF
 
   RELEASE_NAME="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
   RELEASE_NAME="${RELEASE_NAME#*/}"
-  kubectl patch -n "$SGCONFIG_NAMESPACE" sgconfig "$RELEASE_NAME" --type merge \
-    -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
+  grafana_patch_sgconfig "$SGCONFIG_NAMESPACE" "$RELEASE_NAME"
 }
 
 check_operator_installed() {

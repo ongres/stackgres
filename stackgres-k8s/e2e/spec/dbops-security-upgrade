@@ -326,16 +326,14 @@ e2e_load_images() {
 }
 
 e2e_install_previous_operator() {
-  install_operator_previous_version \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  # shellcheck disable=SC2086
+  install_operator_previous_version $(grafana_helm_opts)
   PREVIOUS_RELEASE_NAME="stackgres-operator"
 }
 
 e2e_upgrade_operator() {
-  upgrade_operator --reset-values \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  # shellcheck disable=SC2086
+  upgrade_operator --reset-values $(grafana_helm_opts)
 }
 
 e2e_is_backup_phase() {

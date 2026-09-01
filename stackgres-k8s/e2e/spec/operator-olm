@@ -64,8 +64,7 @@ check_operator_install() {
   olm_install_operator
 
   # Grafana is a concern of this spec, not of the OLM installation.
-  kubectl patch -n "$SGCONFIG_NAMESPACE" sgconfig "$OLM_SGCONFIG_NAME" --type merge \
-    -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
+  grafana_patch_sgconfig "$SGCONFIG_NAMESPACE" "$OLM_SGCONFIG_NAME"
 
   olm_check_operator_installed
 
