@@ -20,6 +20,14 @@ e2e_skip_dbops_secutiry_upgrade() {
   [ "$(uname -m)" = "aarch64" ] || ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
 }
 
+# With E2E_USE_OPENSHIFT_CATALOG the operator is installed from a published
+# OperatorHub catalog, so the images it runs are the ones that catalog pins and
+# not the ones this build produced. A certified catalog pins them by digest
+# rather than by tag, so there is not even a tag to compare.
+e2e_check_operator_images() {
+  ! olm_use_openshift_catalog
+}
+
 e2e_load_images() {
   olm_build_bundle_image
 }
@@ -151,17 +159,23 @@ EOF
 
   kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge --patch-file "$LOG_PATH/subscription-patch.yaml"
 
-  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
-    --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
-    | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
+  if e2e_check_operator_images
+  then
+    wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+      --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
+      | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
+  fi
 
   wait_until -t "$((E2E_TIMEOUT * 3))" eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
 
   wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="$OLM_CSV"
 
-  wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
-    --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
-    | grep -qF "'"/${EXPECTED_RESTAPI_IMAGE##*/}"'"'
+  if e2e_check_operator_images
+  then
+    wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
+      --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
+      | grep -qF "'"/${EXPECTED_RESTAPI_IMAGE##*/}"'"'
+  fi
 
   wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
 
