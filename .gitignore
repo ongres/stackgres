@@ -173,5 +173,9 @@ chartverifier
 pom.xml.build
 dependency-reduced-pom.xml
 
+# Built bundle artifacts
+cli/bundle/sha256sum*.txt
+cli/bundle/stackgres-*.sh
+
 # shellspec reports
 stackgres-k8s/ci/build/test/report/

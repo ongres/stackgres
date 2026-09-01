@@ -48,7 +48,12 @@ public class ListClusterCommand extends StackGresSubCommand {
             return;
         }
         if (rows.isEmpty()) {
-            outln("There are no PostgreSQL clusters running");
+            if (environment == null || environment.isBlank()) {
+                outln("There are no PostgreSQL clusters");
+            } else {
+                outln("There are no PostgreSQL clusters on environment " + environment);
+                client.warnIfEnvironmentStale(environment);
+            }
             return;
         }
 

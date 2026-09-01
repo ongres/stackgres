@@ -1,7 +1,7 @@
 # Shared bundling library, sourced by bundle.sh / bundle-cloud.sh / bundle-cli.sh.
 # Drivers must:
 #   - cd to the bundle directory (cd ${0%/*}) before sourcing this file
-#   - set VARIANT (one of: full, cloud, cli) before calling the bundling steps
+#   - set VARIANT (one of: anywhere, cloud, cli) before calling the bundling steps
 
 # --- versions ---
 #STACKGRES_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -23,28 +23,28 @@ fatal()
 # --- per-variant name mapping ---
 variant_tarball_prefix() {
     case "$VARIANT" in
-        full)  echo "stackgres" ;;
-        cloud) echo "stackgres-cloud" ;;
-        cli)   echo "stackgres-cli" ;;
-        *)     fatal "unknown VARIANT '$VARIANT'" ;;
+        anywhere) echo "stackgres-anywhere" ;;
+        cloud)    echo "stackgres-cloud" ;;
+        cli)      echo "stackgres-cli" ;;
+        *)        fatal "unknown VARIANT '$VARIANT'" ;;
     esac
 }
 
 variant_install_template() {
     case "$VARIANT" in
-        full)  echo "install-template.sh" ;;
-        cloud) echo "install-cloud-template.sh" ;;
-        cli)   echo "install-cli-template.sh" ;;
-        *)     fatal "unknown VARIANT '$VARIANT'" ;;
+        anywhere) echo "install-anywhere-template.sh" ;;
+        cloud)    echo "install-cloud-template.sh" ;;
+        cli)      echo "install-cli-template.sh" ;;
+        *)        fatal "unknown VARIANT '$VARIANT'" ;;
     esac
 }
 
 variant_install_output() {
     case "$VARIANT" in
-        full)  echo "stackgres.sh" ;;
-        cloud) echo "stackgres-cloud.sh" ;;
-        cli)   echo "stackgres-cli.sh" ;;
-        *)     fatal "unknown VARIANT '$VARIANT'" ;;
+        anywhere) echo "stackgres-anywhere.sh" ;;
+        cloud)    echo "stackgres-cloud.sh" ;;
+        cli)      echo "stackgres-cli.sh" ;;
+        *)        fatal "unknown VARIANT '$VARIANT'" ;;
     esac
 }
 
@@ -76,19 +76,19 @@ setup_tmp() {
 
 # --- bundle the Matriarch binary ---
 bundle_matriarch() {
-    if [ -f ../../matriarch/target/matriarch ]; then
-        cp ../../matriarch/target/matriarch ${TMP_DIR}/bin/matriarch
+    if [ -f ../../matriarch-standalone/target/matriarch ]; then
+        cp ../../matriarch-standalone/target/matriarch ${TMP_DIR}/bin/matriarch
     else
-        fatal "expected file matriarch/target/matriarch don't exist"
+        fatal "expected file matriarch-standalone/target/matriarch don't exist"
     fi
 }
 
 # --- bundle the Slony binary ---
 bundle_slony() {
-    if [ -f ../../slony/slony-linux/target/slony-linux ]; then
-        cp ../../slony/slony-linux/target/slony-linux ${TMP_DIR}/bin/slony
+    if [ -f ../../slony/target/slony ]; then
+        cp ../../slony/target/slony ${TMP_DIR}/bin/slony
     else
-        fatal "expected file slony/slony-linux/target/slony-linux don't exist"
+        fatal "expected file slony/target/slony don't exist"
     fi
 }
 
@@ -132,7 +132,7 @@ remove_not_required_files() {
 # --- verify that the expected files have been bundled for this variant ---
 verify_files() {
     case "$VARIANT" in
-        full)
+        anywhere)
             verify ${TMP_DIR}/bin/matriarch
             verify ${TMP_DIR}/bin/slony
             verify ${TMP_DIR}/bin/stackgres
@@ -167,11 +167,7 @@ package_tar() {
 # --- hash the final tar gz ---
 hash_artifacts() {
     local tarball=$(variant_tarball_prefix)-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz
-    local hash_file
-    case "$VARIANT" in
-        full) hash_file=sha256sum-${STACKGRES_VERSION}.txt ;;
-        *)    hash_file=sha256sum-${VARIANT}-${STACKGRES_VERSION}.txt ;;
-    esac
+    local hash_file=sha256sum-${VARIANT}-${STACKGRES_VERSION}.txt
     sha256sum ${tarball} > ${hash_file}
     info "added hashes into cli/bundle/${hash_file}"
 }

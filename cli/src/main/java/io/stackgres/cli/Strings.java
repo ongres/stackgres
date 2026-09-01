@@ -15,8 +15,10 @@ public final class Strings {
         return AUTO.string("@|red,bold " + string + "|@");
     }
 
+    // Warnings share one warm amber (256-color 214) across the CLI — distinct from errors (red,bold)
+    // and comments (grey). picocli markup so AUTO strips it cleanly when output is not a terminal.
     public static String warnAnsi(String string) {
-        return AUTO.string("@|yellow " + string + "|@");
+        return AUTO.string("@|fg(214) " + string + "|@");
     }
 
     public static String commentAnsi(String string) {
