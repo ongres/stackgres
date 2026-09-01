@@ -325,6 +325,13 @@ e2e_load_images() {
   fi
 }
 
+# Whether the operator Pods are expected to run the images of this build, which
+# is what the image checks of check_operator_upgrade compare against. Overridden
+# by the specs that can install an operator built elsewhere.
+e2e_check_operator_images() {
+  true
+}
+
 e2e_install_previous_operator() {
   # shellcheck disable=SC2086
   install_operator_previous_version $(grafana_helm_opts)
@@ -447,6 +454,28 @@ check_before_operator_upgrade() {
 }
 
 check_operator_upgrade() {
+  if e2e_check_operator_images
+  then
+    check_operator_images_are_previous
+  else
+    echo "Not checking the images of the operator Pods: they are not the ones this build" \
+      "produced"
+  fi
+
+  e2e_upgrade_operator
+
+  kubectl rollout status -n "$OPERATOR_NAMESPACE" "$(kubectl get deployment -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name)"
+  DEPLOYMENT_RESTAPI="$(wait_until eval 'kubectl get deployment -n "$OPERATOR_NAMESPACE" stackgres-restapi -o name | grep .')"
+  timeout "$E2E_TIMEOUT" kubectl rollout status -n "$OPERATOR_NAMESPACE" "$DEPLOYMENT_RESTAPI"
+
+  if e2e_check_operator_images
+  then
+    check_operator_images_are_new
+  fi
+}
+
+# The images the operator Pods ran before the upgrade.
+check_operator_images_are_previous() {
   local POD_OPERATOR_IMAGE
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app="$PREVIOUS_RELEASE_NAME" \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
@@ -512,10 +541,12 @@ check_operator_upgrade() {
     echo "Used previous restapi image is $POD_RESTAPI_IMAGE"
     return 1
   fi
+}
 
-  e2e_upgrade_operator
-
-  kubectl rollout status -n "$OPERATOR_NAMESPACE" "$(kubectl get deployment -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name)"
+# The images the operator Pods run after the upgrade.
+check_operator_images_are_new() {
+  local POD_OPERATOR_IMAGE
+  local POD_RESTAPI_IMAGE
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator --sort-by '{.metadata.creationTimestamp}' \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:' | tail -n 1 | grep .)"
@@ -534,8 +565,6 @@ check_operator_upgrade() {
     echo "Used new operator image is $POD_OPERATOR_IMAGE"
     return 1
   fi
-  DEPLOYMENT_RESTAPI="$(wait_until eval 'kubectl get deployment -n "$OPERATOR_NAMESPACE" stackgres-restapi -o name | grep .')"
-  timeout "$E2E_TIMEOUT" kubectl rollout status -n "$OPERATOR_NAMESPACE" "$DEPLOYMENT_RESTAPI"
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true --sort-by '{.metadata.creationTimestamp}' \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/restapi:' | tail -n 1 | grep .)"
