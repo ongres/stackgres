@@ -55,26 +55,33 @@ Describe "container engine"
     It "appends the host platform with docker"
       When call docker_push some-image
       The contents of file "$ENGINE_CALL_LOG" should include "docker push --platform=linux/"
+      The contents of file "$ENGINE_CALL_LOG" should not include "--remove-signatures"
+    End
+
+    It "drops the signatures with podman"
+      CONTAINER_ENGINE=podman
+      When call docker_push some-image
+      The contents of file "$ENGINE_CALL_LOG" should include "podman push --remove-signatures some-image"
     End
 
     It "drops --platform <value> with podman"
       CONTAINER_ENGINE=podman
       When call docker_push --platform linux/arm64 some-image
-      The contents of file "$ENGINE_CALL_LOG" should include "podman push some-image"
+      The contents of file "$ENGINE_CALL_LOG" should include "podman push --remove-signatures some-image"
       The contents of file "$ENGINE_CALL_LOG" should not include "--platform"
     End
 
     It "drops --platform=<value> with podman"
       CONTAINER_ENGINE=podman
       When call docker_push --platform=linux/arm64 some-image
-      The contents of file "$ENGINE_CALL_LOG" should include "podman push some-image"
+      The contents of file "$ENGINE_CALL_LOG" should include "podman push --remove-signatures some-image"
       The contents of file "$ENGINE_CALL_LOG" should not include "--platform"
     End
 
     It "keeps the other options and their order with podman"
       CONTAINER_ENGINE=podman
       When call docker_push --tls-verify=false --platform linux/arm64 some-image
-      The contents of file "$ENGINE_CALL_LOG" should include "podman push --tls-verify=false some-image"
+      The contents of file "$ENGINE_CALL_LOG" should include "podman push --remove-signatures --tls-verify=false some-image"
     End
   End
 
