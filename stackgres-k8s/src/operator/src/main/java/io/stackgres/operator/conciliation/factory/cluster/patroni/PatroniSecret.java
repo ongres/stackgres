@@ -98,6 +98,8 @@ public class PatroniSecret
 
     setAuthenticatorCredentials(context, previousSecretData, data);
 
+    setMonitorCredentials(context, previousSecretData, data);
+
     if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
       setBabelfishCredentials(context, previousSecretData, data);
     }
@@ -253,6 +255,58 @@ public class PatroniSecret
         authenticatorUsername,
         authenticatorPassword,
         authenticatorPasswordEnv);
+  }
+
+  private void setMonitorCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData,
+      Map<String, String> data) {
+    var monitorCredentials = getMonitorCredentials(context, previousSecretData);
+    data.put(MONITOR_USERNAME_KEY, monitorCredentials.v1);
+    data.put(MONITOR_USERNAME_ENV, monitorCredentials.v1);
+    data.put(MONITOR_PASSWORD_KEY, monitorCredentials.v2);
+    data.put(MONITOR_PASSWORD_ENV, monitorCredentials.v2);
+    data.put(
+        ROLES_UPDATE_SQL_KEY,
+        Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
+        + "DO $$\n"
+        + "BEGIN\n"
+        + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = "
+        + DSL.inline(monitorCredentials.v1) + ") THEN\n"
+        + "    CREATE USER " + DSL.quotedName(monitorCredentials.v1)
+        + " WITH NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION LOGIN PASSWORD "
+        + DSL.inline(monitorCredentials.v2) + ";\n"
+        + "  ELSE\n"
+        + "    ALTER ROLE " + DSL.quotedName(monitorCredentials.v1)
+        + " WITH NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION LOGIN PASSWORD "
+        + DSL.inline(monitorCredentials.v2) + ";\n"
+        + "  END IF;\n"
+        + "END$$;\n"
+        + "GRANT pg_monitor TO " + DSL.quotedName(monitorCredentials.v1) + ";");
+  }
+
+  public static Tuple2<String, String> getMonitorCredentials(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+
+    return getMonitorCredentials(context, previousSecretData);
+  }
+
+  private static Tuple2<String, String> getMonitorCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData) {
+    final String monitorUsername = context.getMonitorUsername()
+        .orElse(previousSecretData
+            .getOrDefault(MONITOR_USERNAME_KEY, previousSecretData
+                .getOrDefault(MONITOR_USERNAME_ENV, MONITOR_USERNAME)));
+    final String monitorPassword = context.getMonitorPassword()
+        .orElse(previousSecretData
+            .getOrDefault(MONITOR_PASSWORD_KEY, previousSecretData
+                .getOrDefault(MONITOR_PASSWORD_ENV, context.getGeneratedMonitorPassword())));
+    return Tuple.tuple(monitorUsername, monitorPassword);
   }
 
   private void setBabelfishCredentials(

@@ -14,6 +14,10 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_US
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.BABELFISH_CREATE_USER_SQL_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.BABELFISH_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.MONITOR_PASSWORD_ENV;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.MONITOR_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.MONITOR_USERNAME_ENV;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.MONITOR_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_ADMIN_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_ENV;
@@ -97,6 +101,7 @@ class PatroniSecretTest {
     lenient().when(context.getGeneratedSuperuserPassword()).thenReturn(generateRandom());
     lenient().when(context.getGeneratedReplicationPassword()).thenReturn(generateRandom());
     lenient().when(context.getGeneratedAuthenticatorPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedMonitorPassword()).thenReturn(generateRandom());
     lenient().when(context.getGeneratedPgBouncerAdminPassword()).thenReturn(generateRandom());
     lenient().when(context.getGeneratedPgBouncerStatsPassword()).thenReturn(generateRandom());
     lenient().when(context.getGeneratedPatroniRestApiPassword()).thenReturn(generateRandom());
@@ -123,6 +128,10 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
+    assertTrue(data.containsKey(MONITOR_USERNAME_ENV));
+    assertTrue(data.containsKey(MONITOR_USERNAME_KEY));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_ENV));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_STATS_PASSWORD_KEY));
     assertFalse(data.containsKey(BABELFISH_PASSWORD_KEY));
@@ -179,6 +188,10 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
+    assertTrue(data.containsKey(MONITOR_USERNAME_ENV));
+    assertTrue(data.containsKey(MONITOR_USERNAME_KEY));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_ENV));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_STATS_PASSWORD_KEY));
     assertFalse(data.containsKey(BABELFISH_PASSWORD_KEY));
@@ -256,6 +269,10 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
+    assertTrue(data.containsKey(MONITOR_USERNAME_ENV));
+    assertTrue(data.containsKey(MONITOR_USERNAME_KEY));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_ENV));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_STATS_PASSWORD_KEY));
     assertFalse(data.containsKey(BABELFISH_PASSWORD_KEY));
@@ -312,6 +329,10 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
+    assertTrue(data.containsKey(MONITOR_USERNAME_ENV));
+    assertTrue(data.containsKey(MONITOR_USERNAME_KEY));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_ENV));
+    assertTrue(data.containsKey(MONITOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_STATS_PASSWORD_KEY));
     assertTrue(data.containsKey(BABELFISH_PASSWORD_KEY));

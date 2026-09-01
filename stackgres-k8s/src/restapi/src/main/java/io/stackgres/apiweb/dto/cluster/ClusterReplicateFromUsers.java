@@ -21,6 +21,8 @@ public class ClusterReplicateFromUsers {
 
   private ClusterReplicateFromUserSecretKeyRef authenticator;
 
+  private ClusterReplicateFromUserSecretKeyRef monitor;
+
   public ClusterReplicateFromUserSecretKeyRef getSuperuser() {
     return superuser;
   }
@@ -43,6 +45,14 @@ public class ClusterReplicateFromUsers {
 
   public void setAuthenticator(ClusterReplicateFromUserSecretKeyRef authenticator) {
     this.authenticator = authenticator;
+  }
+
+  public ClusterReplicateFromUserSecretKeyRef getMonitor() {
+    return monitor;
+  }
+
+  public void setMonitor(ClusterReplicateFromUserSecretKeyRef monitor) {
+    this.monitor = monitor;
   }
 
   public String toString() {

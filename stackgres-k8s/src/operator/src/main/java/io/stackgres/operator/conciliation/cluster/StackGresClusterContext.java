@@ -124,6 +124,15 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
     return generatePassword();
   }
 
+  Optional<String> getMonitorUsername();
+
+  Optional<String> getMonitorPassword();
+
+  @Value.Derived
+  default String getGeneratedMonitorPassword() {
+    return generatePassword();
+  }
+
   Optional<String> getPatroniRestApiPassword();
 
   @Value.Derived

@@ -47,6 +47,8 @@ public class ClusterCredentialsContextAppender
         .replicationPassword(credentials.replicationPassword)
         .authenticatorUsername(credentials.authenticatorUsername)
         .authenticatorPassword(credentials.authenticatorPassword)
+        .monitorUsername(credentials.monitorUsername)
+        .monitorPassword(credentials.monitorPassword)
         .patroniRestApiPassword(credentials.patroniRestApiPassword);
   }
 
@@ -57,6 +59,8 @@ public class ClusterCredentialsContextAppender
       Optional<String> replicationPassword,
       Optional<String> authenticatorUsername,
       Optional<String> authenticatorPassword,
+      Optional<String> monitorUsername,
+      Optional<String> monitorPassword,
       Optional<String> patroniRestApiPassword) {
   }
 
@@ -127,6 +131,11 @@ public class ClusterCredentialsContextAppender
         "Authenticator password key " + StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV
         + " was not found in secret " + secretName);
 
+    final var monitorUsername = getSecretKey(replicateFromClusterSecret,
+        StackGresPasswordKeys.MONITOR_USERNAME_ENV);
+    final var monitorPassword = getSecretKey(replicateFromClusterSecret,
+        StackGresPasswordKeys.MONITOR_PASSWORD_ENV);
+
     replicateFromUsers = new Credentials(
         superuserUsername,
         superuserPassword,
@@ -134,6 +143,8 @@ public class ClusterCredentialsContextAppender
         replicationPassword,
         authenticatorUsername,
         authenticatorPassword,
+        monitorUsername,
+        monitorPassword,
         Optional.empty());
     return replicateFromUsers;
   }
@@ -192,6 +203,21 @@ public class ClusterCredentialsContextAppender
         secretKeySelector -> "Authenticator password secret " + secretKeySelector.getName()
         + " was not found");
 
+    final var monitorUsername = getSecretAndKeyOrThrow(cluster.getMetadata().getNamespace(), users,
+        StackGresClusterReplicateFromUsers::getMonitor,
+        StackGresClusterReplicateFromUserSecretKeyRef::getUsername,
+        secretKeySelector -> "Monitor username key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Monitor username secret " + secretKeySelector.getName()
+        + " was not found");
+    final var monitorPassword = getSecretAndKeyOrThrow(cluster.getMetadata().getNamespace(), users,
+        StackGresClusterReplicateFromUsers::getMonitor,
+        StackGresClusterReplicateFromUserSecretKeyRef::getPassword,
+        secretKeySelector -> "Monitor password key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Monitor password secret " + secretKeySelector.getName()
+        + " was not found");
+
     replicateFromUsers = new Credentials(
         superuserUsername,
         superuserPassword,
@@ -199,6 +225,8 @@ public class ClusterCredentialsContextAppender
         replicationPassword,
         authenticatorUsername,
         authenticatorPassword,
+        monitorUsername,
+        monitorPassword,
       Optional.empty());
     return replicateFromUsers;
   }
@@ -262,6 +290,22 @@ public class ClusterCredentialsContextAppender
         + " was not found in secret " + secretKeySelector.getName(),
         secretKeySelector -> "Authenticator password secret " + secretKeySelector.getName()
         + " was not found");
+
+    final var monitorUsername = getSecretAndKeyOrThrow(cluster.getMetadata().getNamespace(), users,
+        StackGresClusterUsersCredentials::getMonitor,
+        StackGresClusterUserSecretKeyRef::getUsername,
+        secretKeySelector -> "Monitor username key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Monitor username secret " + secretKeySelector.getName()
+        + " was not found");
+    final var monitorPassword = getSecretAndKeyOrThrow(cluster.getMetadata().getNamespace(), users,
+        StackGresClusterUsersCredentials::getMonitor,
+        StackGresClusterUserSecretKeyRef::getPassword,
+        secretKeySelector -> "Monitor password key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Monitor password secret " + secretKeySelector.getName()
+        + " was not found");
+
     final var patroniRestApiPassword = getSecretAndKeyOrThrow(cluster.getMetadata().getNamespace(), patroni,
         StackGresClusterPatroniCredentials::getRestApiPassword,
         secretKeySelector -> "Patroni REST API password key " + secretKeySelector.getKey()
@@ -276,6 +320,8 @@ public class ClusterCredentialsContextAppender
         replicationPassword,
         authenticatorUsername,
         authenticatorPassword,
+        monitorUsername,
+        monitorPassword,
         patroniRestApiPassword);
   }
 

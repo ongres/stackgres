@@ -29,6 +29,7 @@ e2e_test_install() {
   VERSION_AS_NUMBER_1_16_0="$(get_version_as_number 1.16.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_17_0="$(get_version_as_number 1.17.0-SNAPSHOT)"
   VERSION_AS_NUMBER_1_17_2="$(get_version_as_number 1.17.2-SNAPSHOT)"
+  VERSION_AS_NUMBER_1_18_0RC1="$(get_version_as_number 1.18.0-rc1)"
 
   CLUSTER_CRD="sgclusters.stackgres.io"
 
@@ -51,7 +52,7 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE="$(printf %s "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_AS_NUMBER_1_15_0" ]
   then
-    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
+    PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg17\.')"
   else
     PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.')"
   fi
@@ -63,7 +64,7 @@ e2e_test_install() {
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE##*-pg}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_OLDEST_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
-  PREVIOUS_SHARDED_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg16\.' | head -n 1)"
+  PREVIOUS_SHARDED_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg16\.' | head -n 6 | tail -n 1)"
   PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE##*-pg}"
   PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_SHARDED_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
@@ -829,6 +830,12 @@ check_cluster_before_security_upgrade() {
           | .postgresql.pg_hba = (.postgresql.pg_hba|[.[0:5][], "host all all ::/0 md5", .[5:][], "host replication replicator ::/0 md5"])
           ')"
     fi
+    if [ "$PREVIOUS_VERSION_AS_NUMBER" -le "$VERSION_AS_NUMBER_1_18_0RC1" ]
+    then
+      PREVIOUS_PATRONI_CONFIG="$(printf '%s' "$PREVIOUS_PATRONI_CONFIG" | jq -Sc '.
+        | del(.postgresql.parameters.invalid_param)
+        ')"
+    fi
 
     if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
     then
@@ -850,7 +857,6 @@ check_cluster_before_security_upgrade() {
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
     PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
     cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH" \
-      | sed '\#^auth_user = #a client_tls_cert_file = /etc/ssl/tls.crt\nclient_tls_key_file = /etc/ssl/tls.key\nclient_tls_sslmode = prefer' \
       | sed '/server_check_query = ;/d' \
       | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
@@ -1115,7 +1121,9 @@ check_backups_path_mutation() {
   fi
 
   if kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }' \
-    | grep -q "$PREVIOUS_BACKUP_PATH"
+    | grep -q "$PREVIOUS_BACKUP_PATH" \
+    || kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .status.backupPaths[0] }' \
+      | grep -q "$PREVIOUS_BACKUP_PATH"
   then
     success "Backup path was added to cluster backup configuration after operator upgrade"
   else

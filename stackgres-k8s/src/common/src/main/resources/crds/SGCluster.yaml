@@ -1652,6 +1652,35 @@ spec:
                                   key:
                                     type: string
                                     description: The key of the secret to select from. Must be a valid secret key.
+                          monitor:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the credentials of the monitor user used by the Prometheus Postgres exporter to collect metrics.
+                            properties:
+                              username:
+                                type: object
+                                description: |
+                                  A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the username of the user.
+                                required: ["name", "key"]
+                                properties:
+                                  name:
+                                    type: string
+                                    description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                  key:
+                                    type: string
+                                    description: The key of the secret to select from. Must be a valid secret key.
+                              password:
+                                type: object
+                                description: |
+                                  A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the password of the user.
+                                required: ["name", "key"]
+                                properties:
+                                  name:
+                                    type: string
+                                    description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                  key:
+                                    type: string
+                                    description: The key of the secret to select from. Must be a valid secret key.
                   binding:
                     type: object
                     description: |
@@ -2142,6 +2171,36 @@ spec:
                         type: object
                         description: |
                           A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the credentials of the authenticator user used by pgbouncer to authenticate other users.
+                        required: ["username", "password"]
+                        properties:
+                          username:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the username of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                          password:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the password of the user.
+                            required: ["name", "key"]
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              key:
+                                type: string
+                                description: The key of the secret to select from. Must be a valid secret key.
+                      monitor:
+                        type: object
+                        description: |
+                          A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the credentials of the monitor user used by the Prometheus Postgres exporter to collect metrics.
                         required: ["username", "password"]
                         properties:
                           username:
