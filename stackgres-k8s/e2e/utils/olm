@@ -812,6 +812,13 @@ E2E_OPENSHIFT_CATALOG_CHANNEL subscribes through another channel."
     fi
     success "The ClusterServiceVersion $INSTALL_PLAN_CSV reached the Succeeded phase"
   done
+
+  # The contract of this util says OLM_CSV names the installed
+  # ClusterServiceVersion, and after the walk this is it. The specs that approve a
+  # plan without going through olm_install_operator or olm_upgrade_operator select
+  # the operator resources by the olm.owner label, which carries this name, so
+  # leaving the previous version in it makes those selectors match nothing.
+  OLM_CSV="$CSV"
 }
 
 # Creates the OperatorGroup and the Subscription and installs the operator. $1,
