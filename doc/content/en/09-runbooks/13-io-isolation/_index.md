@@ -383,12 +383,12 @@ Write a `blockio.yaml` file that defines the named classes you want to
  to. It is tempting to glob `/dev/dm-*` in the class so each LV is
  throttled at its own dm. **Don't.** That path is fragile (see
  [Limitations](#limitations-and-caveats) for why). Instead, glob the
- underlying physical block devices (`/dev/sd*`, `/dev/nvme*n*`). The
- kernel propagates the originating cgroup tag through the
- device-mapper layer, so blk-throttle on the physical disk caps I/O
- submitted by the workload via its LV. This was verified end-to-end:
- with a class globbing `/dev/sd[b-z]` and a 5000 IOPS cap, fio
- inside a Postgres pod whose data PV is an LVM-LocalPV LV measured
+ underlying physical block devices (`/dev/sd[b-z]`,
+ `/dev/nvme[1-9]n[0-9]`). The kernel propagates the originating cgroup
+ tag through the device-mapper layer, so blk-throttle on the physical
+ disk caps I/O submitted by the workload via its LV. This was verified
+ end-to-end: with a class globbing `/dev/sd[b-z]` and a 5000 IOPS cap,
+ fio inside a Postgres pod whose data PV is an LVM-LocalPV LV measured
  5006 IOPS read / 5007 IOPS write (within 0.1% of the cap). The
  physical-disk approach is stable across PVC churn, restarts, and
  node lifecycle events; the per-dm approach is not.
@@ -400,21 +400,21 @@ Example ladder (adjust device paths and values for your environment):
 Classes:
 
   local-lvm-nvme-io-1k:
-    - Devices: ["/dev/sd[b-z]", "/dev/nvme[0-9]n[0-9]"]
+    - Devices: ["/dev/sd[b-z]", "/dev/nvme[1-9]n[0-9]"]
       ThrottleReadIOPS: 1k
       ThrottleWriteIOPS: 1k
       ThrottleReadBps: 50M
       ThrottleWriteBps: 50M
 
   local-lvm-nvme-io-5k:
-    - Devices: ["/dev/sd[b-z]", "/dev/nvme[0-9]n[0-9]"]
+    - Devices: ["/dev/sd[b-z]", "/dev/nvme[1-9]n[0-9]"]
       ThrottleReadIOPS: 5k
       ThrottleWriteIOPS: 5k
       ThrottleReadBps: 200M
       ThrottleWriteBps: 200M
 
   local-lvm-nvme-io-20k:
-    - Devices: ["/dev/sd[b-z]", "/dev/nvme[0-9]n[0-9]"]
+    - Devices: ["/dev/sd[b-z]", "/dev/nvme[1-9]n[0-9]"]
       ThrottleReadIOPS: 20k
       ThrottleWriteIOPS: 20k
       ThrottleReadBps: 800M
@@ -442,7 +442,13 @@ The globs above match whole SATA/SCSI disks and whole NVMe namespaces
 > single-character forms above (`[b-z]`, `n[0-9]` with no trailing `*`)
 > can only match whole disks. `[b-z]` rather than `[a-z]` also keeps the
 > OS disk (`sda`) out of the class: throttling it would cap the pods'
-> overlayfs and log I/O along with the database volumes.
+> overlayfs and log I/O along with the database volumes. `nvme[1-9]n[0-9]`
+> rather than `nvme[0-9]n[0-9]` does the same for NVMe: the OS disk is
+> `nvme0n1` on most cloud instance types (all AWS Nitro ones, for
+> example), so starting the range at `1` leaves it uncapped. Confirm the
+> numbering on your own hardware with `lsblk -dno NAME,SIZE,TYPE` before
+> settling on the glob -- if the OS disk is not `nvme0n1` there, adjust
+> the range accordingly.
 
 Save this file locally; the next step places it on the database nodes via
  the path appropriate to your runtime/platform.
@@ -739,7 +745,7 @@ CRI-O has to be told to load `/etc/crio/blockio.yaml`. Ship a CRI-O
  [step 4.3.2](#432-deliver-the-blockio-config-via-machineconfig):
 
 ```bash
-CRIO_CONF_B64=$(printf '[crio.runtime]\nblockio_config_file = "/etc/crio/blockio.yaml"\n' | base64 -w0)
+CRIO_CONF_B64=$(printf '[crio.runtime]\nblockio_config_file = "/etc/crio/blockio.yaml"\nblockio_reload = true\n' | base64 -w0)
 
 cat << EOF | oc apply -f -
 apiVersion: machineconfiguration.openshift.io/v1
@@ -761,6 +767,29 @@ spec:
 EOF
 ```
 
+> **`blockio_reload = true` matters here too.** It is the same option
+> described in [step 4.1](#41-cri-o-direct-configuration), and it is not
+> only a day-2 convenience on this path: CRI-O expands the class's
+> `Devices:` globs **once**, when it loads `blockio.yaml`, so a disk that
+> is not present at that moment holds no throttle parameters. That is the
+> normal case for anything but a disk soldered to the node: a
+> cloud-attached data volume only becomes a block device on the node once
+> a pod claiming it is scheduled there, which is necessarily later than
+> the runtime's startup. Without this option the class silently loads with
+> empty parameters for that device and the annotation does nothing.
+> With it, a plain `systemctl reload crio` (SIGHUP, no container
+> disruption, no drain, no reboot) re-expands the globs against the
+> devices present now:
+>
+> ```bash
+> oc debug node/nvme-db-01 -- chroot /host systemctl reload crio
+> ```
+>
+> Run it once after the first data volume is attached, and again whenever
+> a node gains a disk the class should cover. It is also how a
+> `blockio.yaml` edit is picked up without waiting for the MCO rollout,
+> though MCO still has to deliver the edited file first.
+
 MCO restarts CRI-O whenever its config files change, so applying this
  triggers a rolling drain + reboot of the MCP --one node at a time. Watch
  the rollout:
@@ -781,6 +810,7 @@ Expected output:
 
 ```
 blockio_config_file = "/etc/crio/blockio.yaml"
+blockio_reload = true
 ```
 
 If the blockio drop-in was loaded recently, the CRI-O journal will also
@@ -885,9 +915,29 @@ Create a test SGCluster that exercises the full path: the BlockIO class
 >   [Why target physical disks and not dm devices](#why-target-physical-disks-and-not-dm-devices)
 >   for the underlying explanation.
 > - **Local storage.** I/O stays on the node, so a kernel-block-layer cap
->   is meaningful. With network-attached storage (Ceph RBD, EBS, GCE PD,
->   etc.) the bottleneck is the network and a per-device cgroup throttle
->   would be at the wrong layer.
+>   is meaningful.
+> - **Cloud block volumes that the node sees as a real block device.**
+>   What decides whether the cap works is not whether the storage is
+>   local, but whether the I/O passes through a block device on the node
+>   that `blk-throttle` can act on. On instance types that expose their
+>   volumes over NVMe -- AWS Nitro instances, where an EBS volume shows up
+>   as `/dev/nvme1n1` and up -- it does, and a class globbing those
+>   namespaces caps the volume exactly as it caps a local disk. Two things
+>   change compared to a local disk, both consequences of the volume being
+>   attached on demand:
+>     1. The device does not exist when CRI-O loads `blockio.yaml`, so the
+>        class needs `blockio_reload = true` and a `systemctl reload crio`
+>        after the volume is attached (see
+>        [step 4.3.3](#433-enable-blockio-in-cri-o)). Without it the class
+>        holds no parameters for that device.
+>     1. Each PVC is its own device rather than an LV over a shared disk,
+>        so the glob has to cover the namespaces the volumes land on, and a
+>        node that gains a namespace outside the already-expanded set needs
+>        another reload.
+> - **Storage the node reaches over the network only** (Ceph RBD, NFS and
+>   other network filesystems, iSCSI-backed volumes) is the case where a
+>   per-device cgroup throttle is at the wrong layer: the bottleneck is
+>   the network, not a block device the kernel is throttling.
 >
 > Equivalent alternatives that provide the same shape of local LVM-backed
 > PV:
@@ -1201,7 +1251,7 @@ Once the runbook is applied, day-2 operations fall into two distinct
 | Change which class an SGCluster's pods use (annotation only) | **No** | No node touch, but the pods must be restarted **explicitly** (SGDbOps `restart` or a controlled pod delete): StackGres flags the cluster `PendingRestart` and does not restart it automatically, and until the restart the live pod shows the new annotation with the old throttle still in force (see the warning in [step 6](#6-validate-end-to-end-with-an-sgcluster)). |
 | Add/remove the `local-lvm-nvme/iops` request/limit on a cluster | **No** | Pod-level change; no node touch. |
 | Patch `status.capacity["local-lvm-nvme/iops"]` on a node | **No** | Online operation on the node object. |
-| Scale a cluster up (new pod, new PVC) | **No** | With the recommended physical-disk classes ([step 3](#3-author-the-blockio-class-ladder)) new PVCs are covered automatically. The throttle lives on the physical disk, not on the per-PVC dm device. Only the [static-provisioning dm variant](#static-provisioning-as-an-alternative) needs its pre-created LV slots. |
+| Scale a cluster up (new pod, new PVC) | **No** | With the recommended physical-disk classes ([step 3](#3-author-the-blockio-class-ladder)) new PVCs are covered automatically. The throttle lives on the physical disk, not on the per-PVC dm device. Only the [static-provisioning dm variant](#static-provisioning-as-an-alternative) needs its pre-created LV slots. Where each PVC is its own attached device instead of an LV over a shared disk (cloud block volumes), a `systemctl reload crio` is needed once the new volume is attached, unless its device was already in the expanded set. |
 | Provision a brand-new database node | The BlockIO config is baked in via Ignition at first boot --no rolling restart, no drain. This is the recommended provisioning path. |
 
 The practical implication: **most day-2 changes (tier reassignments,
