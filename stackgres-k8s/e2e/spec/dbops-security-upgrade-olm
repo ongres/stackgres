@@ -43,8 +43,7 @@ e2e_install_previous_operator() {
   PREVIOUS_RELEASE_NAME="${PREVIOUS_RELEASE_NAME#*/}"
   if [ "$STACKGRES_PREVIOUS_VERSION" != 1.11.0 ] && [ "$STACKGRES_PREVIOUS_VERSION" != 1.12.0 ]
   then
-    kubectl patch -n "$OPERATOR_NAMESPACE" sgconfig "$PREVIOUS_RELEASE_NAME" --type merge \
-      -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
+    grafana_patch_sgconfig "$OPERATOR_NAMESPACE" "$PREVIOUS_RELEASE_NAME"
   fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$PREVIOUS_RELEASE_NAME$"
@@ -170,8 +169,7 @@ EOF
   then
     RELEASE_NAME="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
     RELEASE_NAME="${RELEASE_NAME#*/}"
-    kubectl patch -n "$OPERATOR_NAMESPACE" sgconfig "$RELEASE_NAME" --type merge \
-      -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
+    grafana_patch_sgconfig "$OPERATOR_NAMESPACE" "$RELEASE_NAME"
   fi
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"

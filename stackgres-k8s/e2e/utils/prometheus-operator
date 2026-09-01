@@ -66,6 +66,50 @@ prometheus_label_namespace() {
   fi
 }
 
+# The Grafana the admin UI embeds, empty where there is none to embed. OpenShift
+# dropped Grafana from its monitoring stack in 4.11 and nothing is installed in
+# its place here, see the comment at the top of this file, so there is no Grafana
+# to point an SGConfig at.
+#
+# Leaving it unset is not the same as setting a host that does not resolve: the
+# adminui container templates the host into an nginx proxy_pass upstream, and
+# nginx resolves its upstreams at startup, so an unknown host is a hard
+# "[emerg] host not found in upstream" that crash loops the container instead of
+# simply not embedding anything.
+grafana_web_host() {
+  if is_openshift
+  then
+    return 0
+  fi
+  echo "prometheus-grafana.$(prometheus_namespace)"
+}
+
+# The helm options that turn the embedding on, none where there is no Grafana.
+# Expand it unquoted, the way the other option variables of the framework are.
+grafana_helm_opts() {
+  local WEB_HOST
+  WEB_HOST="$(grafana_web_host)"
+  [ -n "$WEB_HOST" ] || return 0
+  printf '%s' "--set grafana.autoEmbed=true --set-string grafana.webHost=$WEB_HOST"
+}
+
+# Turns the embedding on in the SGConfig $2 of namespace $1, and does nothing
+# where there is no Grafana.
+grafana_patch_sgconfig() {
+  local NAMESPACE="$1"
+  local NAME="$2"
+  local WEB_HOST
+  WEB_HOST="$(grafana_web_host)"
+  if [ -z "$WEB_HOST" ]
+  then
+    echo "Not embedding Grafana in the admin UI of SGConfig $NAME:" \
+      "this platform has no Grafana to embed"
+    return 0
+  fi
+  kubectl patch -n "$NAMESPACE" sgconfig "$NAME" --type merge \
+    -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"$WEB_HOST"'"}}}'
+}
+
 install_prometheus_operator() {
   install_prometheus_operator_for_version 41.6.1 "$@"
 }
