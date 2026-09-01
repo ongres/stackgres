@@ -171,6 +171,7 @@ chartverifier
 
 # Build
 pom.xml.build
+dependency-reduced-pom.xml
 
 # shellspec reports
 stackgres-k8s/ci/build/test/report/
