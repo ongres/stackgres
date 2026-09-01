@@ -108,7 +108,17 @@ EOF
   fi
 }
 
+# With --local the image is taken as present here and absent from the remote
+# repository, so it is not pulled: --pull always would ask the registry for a tag
+# that is not there and fail. Without it nothing changes and the image is pulled
+# as before.
 copy_from_image() {
+  local SOURCE_IMAGE_IS_LOCAL=false
+  if [ "$1" = --local ]
+  then
+    SOURCE_IMAGE_IS_LOCAL=true
+    shift
+  fi
   [ "$#" -ge 1 ] || false
   local SOURCE_IMAGE_NAME="$1"
   local SOURCE_IMAGE_PLATFORM
@@ -127,7 +137,8 @@ copy_from_image() {
   # previous `--user $(id -u):$(id -g)` behaviour.
   # shellcheck disable=SC2046
   CONTAINER_ID="$(docker_create --platform "$SOURCE_IMAGE_PLATFORM" \
-    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || [ "$SOURCE_IMAGE_IS_LOCAL" = true ] \
+      || printf %s '--pull always') \
     "$SOURCE_IMAGE_NAME")"
   mkdir -p "$DEST"
   docker_cp "$CONTAINER_ID:/project/." "$DEST"
@@ -468,7 +479,7 @@ build_image() {
       if is_source_for_any_module "$MODULE"
       then
         echo "Already exists locally. Just extracting ..."
-        copy_from_image "$IMAGE_NAME"
+        copy_from_image --local "$IMAGE_NAME"
       else
         echo "Already exists locally."
       fi
@@ -514,7 +525,14 @@ extract() {
   extract_from_image "$IMAGE_NAME" "$@"
 }
 
+# --local as in copy_from_image.
 extract_from_image() {
+  local IMAGE_IS_LOCAL=false
+  if [ "$1" = --local ]
+  then
+    IMAGE_IS_LOCAL=true
+    shift
+  fi
   [ "$#" -ge 2 ] || false
   local IMAGE_NAME="$1"
   shift
@@ -532,7 +550,8 @@ extract_from_image() {
   # `docker cp` (without --archive) writes the files owned by the invoking user,
   # matching the previous `--user $(id -u):$(id -g)` behaviour.
   CONTAINER_ID="$(docker_create --platform "$IMAGE_PLATFORM" \
-    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || [ "$IMAGE_IS_LOCAL" = true ] \
+      || printf %s '--pull always') \
     "$IMAGE_NAME")"
   # Relative artifact paths were resolved against the image WORKDIR by the old
   # in-container `cp`; `docker cp` resolves them against `/`, so prefix WORKDIR.
@@ -863,13 +882,35 @@ get_image_platform() {
   local IMAGE_NAME="$1"
   local IMAGE_MEDIA_TYPE
   local IMAGE_PLATFORM
+  # An image built by this run and never pushed has no RepoDigests, so
+  # retrieve_image_manifest can not complete for it and ends up asking the
+  # registry for a tag that is not there, which fails the build even though the
+  # image is right here. The platform needs no registry at all: it is in the
+  # local docker inspect output, so ask docker first and only fall back to a
+  # manifest when the image is not present locally.
+  if IMAGE_PLATFORM="$(docker_inspect "$IMAGE_NAME" 2>/dev/null \
+    | jq -r '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
+    2>/dev/null)" \
+    && [ -n "$IMAGE_PLATFORM" ] && [ "$IMAGE_PLATFORM" != null/null ]
+  then
+    printf %s "$IMAGE_PLATFORM"
+    return
+  fi
   retrieve_image_manifest "$IMAGE_NAME" > /dev/null
   if IMAGE_PLATFORM="$(jq -r \
     '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
     "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
-    2>/dev/null)"
+    2>/dev/null)" \
+    && [ -n "$IMAGE_PLATFORM" ]
   then
     printf %s "$IMAGE_PLATFORM"
+    return
+  fi
+  # Neither the local image nor a manifest of the registry answered, so there is
+  # no platform to report. Returning empty is what this has always done; reading
+  # the missing file only adds jq errors on stderr.
+  if ! [ -s "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" ]
+  then
     return
   fi
   IMAGE_MEDIA_TYPE="$(jq -r '. | type' \
