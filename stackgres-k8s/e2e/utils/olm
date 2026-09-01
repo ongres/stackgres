@@ -728,10 +728,23 @@ $(
 EOF
 }
 
-olm_install_plan_of() {
+# The install plan waiting for approval, if there is one. Which
+# ClusterServiceVersion it installs is not part of the question: that is OLM's
+# decision, not the caller's, see olm_approve_install_plan.
+olm_pending_install_plan() {
   kubectl get installplan -n "$OPERATOR_NAMESPACE" -o json \
-    | jq -r --arg csv "$1" \
-      '.items[] | select(.status != null and (.spec.clusterServiceVersionNames | index($csv))) | .metadata.name'
+    | jq -r '.items[]
+      | select(.spec.approved != true and .status.phase == "RequiresApproval")
+      | .metadata.name' \
+    | head -n 1
+}
+
+# The ClusterServiceVersion an install plan installs. The operator declares no
+# required APIs, so a plan of its subscription never carries the
+# ClusterServiceVersion of a dependency alongside it.
+olm_install_plan_csv() {
+  kubectl get installplan -n "$OPERATOR_NAMESPACE" "$1" \
+    -o jsonpath='{.spec.clusterServiceVersionNames[0]}'
 }
 
 olm_csv_succeeded() {
@@ -739,28 +752,66 @@ olm_csv_succeeded() {
     -o jsonpath='{.status.phase}' 2>/dev/null | grep -qxF Succeeded
 }
 
-# Approves the install plan that installs $1 and waits for its
-# ClusterServiceVersion to succeed.
+# Approves install plans until $1 is the installed ClusterServiceVersion.
+#
+# Usually that is one plan, but it is not the caller's decision: OLM walks the
+# replaces chain of the subscribed channel one ClusterServiceVersion per install
+# plan, so a version several hops away takes an approval per hop. The candidate
+# channel carries the release candidates of every version, which turns a 1.18.8
+# to 1.19.0 upgrade through it into six hops (1.19.0-rc1 up to rc5, then 1.19.0)
+# rather than one. Waiting for a plan that names $1 therefore waits forever on
+# any channel whose next hop is an intermediate version, and reports that OLM
+# created no plan when it did create one.
 olm_approve_install_plan() {
   local CSV="$1"
   local INSTALL_PLAN
+  local INSTALL_PLAN_CSV
+  local HOPS=0
+  # Bounds a chain that never arrives, so that it fails while the reason is
+  # still on screen instead of approving plans for hours.
+  local MAX_HOPS=20
 
-  if ! INSTALL_PLAN="$(wait_until eval 'olm_install_plan_of "'"$CSV"'" | grep .')"
-  then
-    kubectl get subscription -n "$OPERATOR_NAMESPACE" stackgres -o yaml || true
-    fail "OLM did not create an install plan for $CSV"
-    return 1
-  fi
-  kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge \
-    -p '{"spec":{"approved":true}}'
+  while ! olm_csv_succeeded "$CSV"
+  do
+    HOPS="$((HOPS + 1))"
+    if [ "$HOPS" -gt "$MAX_HOPS" ]
+    then
+      kubectl get subscription -n "$OPERATOR_NAMESPACE" stackgres -o yaml || true
+      fail "The subscription did not arrive at $CSV after $MAX_HOPS approved install plans"
+      return 1
+    fi
 
-  if ! wait_until -t "$((E2E_TIMEOUT * 4))" olm_csv_succeeded "$CSV"
-  then
-    kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$CSV" -o yaml || true
-    fail "The ClusterServiceVersion $CSV did not reach the Succeeded phase"
-    return 1
-  fi
-  success "The ClusterServiceVersion $CSV reached the Succeeded phase"
+    if ! INSTALL_PLAN="$(wait_until eval 'olm_pending_install_plan | grep .')"
+    then
+      kubectl get subscription -n "$OPERATOR_NAMESPACE" stackgres -o yaml || true
+      kubectl get installplan -n "$OPERATOR_NAMESPACE" || true
+      fail "OLM created no install plan on the way to $CSV. The subscription above names the \
+channel it is subscribed to, and its currentCSV is the ClusterServiceVersion that channel \
+resolves next: when $CSV is not on that channel's upgrade path, no plan for it ever appears. \
+E2E_OPENSHIFT_CATALOG_CHANNEL subscribes through another channel."
+      return 1
+    fi
+
+    INSTALL_PLAN_CSV="$(olm_install_plan_csv "$INSTALL_PLAN")"
+    if [ "$INSTALL_PLAN_CSV" = "$CSV" ]
+    then
+      echo "Approving install plan $INSTALL_PLAN, which installs $CSV"
+    else
+      echo "Approving install plan $INSTALL_PLAN, which installs $INSTALL_PLAN_CSV," \
+        "a hop of the channel on the way to $CSV"
+    fi
+    kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge \
+      -p '{"spec":{"approved":true}}'
+
+    if ! wait_until -t "$((E2E_TIMEOUT * 4))" olm_csv_succeeded "$INSTALL_PLAN_CSV"
+    then
+      kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$INSTALL_PLAN_CSV" -o yaml \
+        || true
+      fail "The ClusterServiceVersion $INSTALL_PLAN_CSV did not reach the Succeeded phase"
+      return 1
+    fi
+    success "The ClusterServiceVersion $INSTALL_PLAN_CSV reached the Succeeded phase"
+  done
 }
 
 # Creates the OperatorGroup and the Subscription and installs the operator. $1,
