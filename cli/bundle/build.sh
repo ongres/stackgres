@@ -26,58 +26,40 @@ detect_arch() {
     fi
 }
 
-# --- download from url into a path, $1: path, $2: url, e.g. download "/path/to/save" "<url>" ---
-download() {
-    [ $# -eq 2 ] || fatal 'download needs exactly 2 arguments'
-
-    info "downloading $2"
-    curl -o $1 -sfL $2
-
-    [ $? -eq 0 ] || fatal 'Download failed'
-}
-
 # --- verify that the file exists ---
 verify() {
     [ $# -eq 1 ] || fatal 'verify needs exactly 1 argument'
     [ -f $1 ] || fatal "expected file $1 doesn't exist"
 }
 
-build_matriarch() {
-    pushd matriarch/
-        info "building Matriarch: mvn clean package -Pnative"
-        mvn clean package -Pnative
-        verify target/matriarch
-        upx target/matriarch
-        ls -ahl target/
-        info "finished build"
-    popd
-}
+# Build all three native binaries in a single reactor pass. -am also-builds the shared
+# modules (proto, matriarch, matriarch-model). The `native` profile resolves per module:
+#   - matriarch-standalone: Quarkus native -> target/matriarch-runner (renamed below)
+#   - slony / cli:          native-maven-plugin -> target/slony, target/cli
+build_native() {
+    info "building native binaries: matriarch-standalone, slony, cli (mvn -Pnative)"
+    mvn clean package -Pnative -pl matriarch-standalone,slony,cli -am
 
-build_slony() {
-    pushd slony/slony-linux/
-        info "building Slony: mvn clean package -Pnative"
-        mvn clean package -Pnative
-        verify target/slony-linux
-        upx target/slony-linux
-        ls -ahl target/
-        info "finished build"
-    popd
-}
+    # Quarkus emits the native executable as <output-name>-runner (matriarch-runner).
+    # Normalize to `matriarch` so bundle-common.sh finds it.
+    if [ ! -f matriarch-standalone/target/matriarch ]; then
+        runner=$(ls matriarch-standalone/target/*-runner 2>/dev/null | head -1)
+        [ -n "$runner" ] || fatal "no matriarch native runner produced in matriarch-standalone/target/"
+        mv "$runner" matriarch-standalone/target/matriarch
+    fi
 
-build_cli() {
-    pushd cli/
-        info "building stackgres-cli: mvn clean package -Pnative"
-        mvn clean package -Pnative
-        verify target/cli
-        upx target/cli
-        ls -ahl target/
-        info "finished build"
-    popd
+    verify matriarch-standalone/target/matriarch
+    verify slony/target/slony
+    verify cli/target/cli
+
+    info "compressing binaries with upx"
+    upx matriarch-standalone/target/matriarch slony/target/slony cli/target/cli
+
+    ls -ahl matriarch-standalone/target/matriarch slony/target/slony cli/target/cli
+    info "finished build"
 }
 
 {
     detect_arch
-    build_matriarch
-    build_slony
-    build_cli
+    build_native
 }

@@ -34,7 +34,7 @@ set -o noglob
 DOWNLOADER=
 
 # --- default Matriarch URL, override with STACKGRES_ENDPOINT_URL env var ---
-export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev.cc.stackgres.best}"
+export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev-cc.stackgres.best}"
 
 # --- accept OTT as user-facing alias for STACKGRES_TOKEN ---
 [ -n "$OTT" ] && export STACKGRES_TOKEN="$OTT"
@@ -331,7 +331,19 @@ maybe_exchange_install_token() {
 print_getting_started() {
     info "StackGres CLI ${STACKGRES_VERSION} installed successfully"
     info ''
-    info 'Get started: stackgres --help'
+    info 'Get started:'
+    info '  stackgres status      # current endpoint, user and environments'
+    info '  stackgres --help      # list all commands'
+    info ''
+    info 'Enable zsh autocompletion by adding this line to your ~/.zshrc and restarting your shell:'
+    info '  source <(stackgres completion zsh)'
+    info '  # needs compinit initialized (oh-my-zsh does this, or: autoload -Uz compinit && compinit)'
+    info ''
+    info 'To uninstall:'
+    info "  ${SUDO} rm -f ${BIN_DIR}/${NAME}          # the stackgres command"
+    info "  ${SUDO} rm -rf ${STACKGRES_DIR}           # the CLI binary and its .env"
+    info '  rm -rf ~/.stackgres                       # your contexts/config (optional)'
+    info ''
 }
 
 # --- re-evaluate args to include env command ---

@@ -61,7 +61,7 @@ set -o noglob
 DOWNLOADER=
 
 # --- default Matriarch URL, override with STACKGRES_ENDPOINT_URL env var ---
-export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev.cc.stackgres.best}"
+export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev-cc.stackgres.best}"
 
 # --- accept OTT as user-facing alias for STACKGRES_TOKEN ---
 [ -n "$OTT" ] && export STACKGRES_TOKEN="$OTT"
@@ -198,8 +198,21 @@ setup_env() {
     export STACKGRES_CRI_SOCKET_PATH="${STACKGRES_RUN_DIR}/containerd/containerd.sock"
     export STACKGRES_PATH="${STACKGRES_DIR}"
     export STACKGRES_SLONY_ID=$(generate_uuid)
+    # Stable cloud environment id: keep the SAME environment across matriarch restarts/reinstalls.
+    # Without it the matriarch generates a fresh ephemeral id each boot, so the cloud sees a NEW
+    # environment every time and the CLI's `environment use <id>` goes stale (Disconnected). Reuse the
+    # id already persisted in .env if a previous install left one, else generate a short stable id.
+    if [ -z "${STACKGRES_CLOUD_ENVIRONMENT_ID}" ] && [ -f "${FILE_STACKGRES_ENV}" ]; then
+        STACKGRES_CLOUD_ENVIRONMENT_ID=$( . "${FILE_STACKGRES_ENV}" 2>/dev/null || true; printf '%s' "${STACKGRES_CLOUD_ENVIRONMENT_ID}" )
+    fi
+    export STACKGRES_CLOUD_ENVIRONMENT_ID="${STACKGRES_CLOUD_ENVIRONMENT_ID:-$(generate_uuid | tr -d '-' | cut -c1-8)}"
     [ -n "${STACKGRES_MATRIARCH_PORT}" ] && export STACKGRES_MATRIARCH_PORT="${STACKGRES_MATRIARCH_PORT}"
     [ -n "${STACKGRES_MATRIARCH_LISTEN}" ] && export STACKGRES_MATRIARCH_LISTEN="${STACKGRES_MATRIARCH_LISTEN}"
+    # Local matriarch gRPC endpoint. The matriarch listens here (api.v1 for the CLI + slony.proto);
+    # the local slony — and the per-cluster slon injected into each PG container (host network) — dials
+    # it. Kept distinct from the cloud STACKGRES_ENDPOINT_URL, which is the matriarch's uplink target.
+    MATRIARCH_PORT="${STACKGRES_MATRIARCH_PORT:-9000}"
+    MATRIARCH_LISTEN="${STACKGRES_MATRIARCH_LISTEN:-0.0.0.0}"
     [ -n "${STACKGRES_ENDPOINT_URL}" ] && export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL}"
     if [ -z "${STACKGRES_SLONY_CLUSTERS_PATH}" ]; then
         export STACKGRES_SLONY_CLUSTERS_PATH="${STACKGRES_DIR}/clusters"
@@ -346,11 +359,11 @@ download_hash() {
     #else
     #    HASH_URL=${GITHUB_URL}/download/${STACKGRES_VERSION}/sha256sum-${ARCH}.txt
     #fi
-    HASH_URL="https://pga.ongres.dev/stackgres/sha256sum-${STACKGRES_VERSION}.txt"
+    HASH_URL="https://pga.ongres.dev/stackgres/sha256sum-anywhere-${STACKGRES_VERSION}.txt"
     info "Fetching checksum ${HASH_URL}"
     download ${TMP_HASH} ${HASH_URL}
-    HASH_EXPECTED=$(grep " stackgres-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz$" ${TMP_HASH}) \
-        || fatal "No checksum entry for stackgres-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz in ${HASH_URL}.
+    HASH_EXPECTED=$(grep " stackgres-anywhere-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz$" ${TMP_HASH}) \
+        || fatal "No checksum entry for stackgres-anywhere-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz in ${HASH_URL}.
 StackGres ${STACKGRES_VERSION} may not be built for architecture '${ARCH}'."
     HASH_EXPECTED=${HASH_EXPECTED%%[[:blank:]]*}
 }
@@ -363,7 +376,7 @@ download_stackgres() {
     #else
     #    STACKGRES_URL=...
     #fi
-    STACKGRES_URL="https://pga.ongres.dev/stackgres/stackgres-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz"
+    STACKGRES_URL="https://pga.ongres.dev/stackgres/stackgres-anywhere-${STACKGRES_VERSION}-linux-${ARCH}.tar.gz"
     info "Downloading StackGres package ${STACKGRES_URL}"
     download_progress ${TMP_GZ} ${STACKGRES_URL}
 }
@@ -566,7 +579,10 @@ create_env_file() {
     $SUDO touch ${FILE_STACKGRES_ENV}
     $SUDO chmod 0644 ${FILE_STACKGRES_ENV}
     echo "PATH=${STACKGRES_DIR}/containerd/bin:$PATH" | $SUDO tee ${FILE_STACKGRES_ENV} >/dev/null
-    sh -c export | while read x v; do echo $v; done | grep -E '^STACKGRES_' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
+    # STACKGRES_ENDPOINT_URL/TLS are per-service (matriarch -> cloud, slony -> local matriarch) and are
+    # set via Environment= in each unit below. They are deliberately NOT written to this shared file:
+    # systemd's EnvironmentFile= overrides Environment=, so a value here would clobber the per-unit one.
+    sh -c export | while read x v; do echo $v; done | grep -E '^STACKGRES_' | grep -vE '^STACKGRES_ENDPOINT_(URL|TLS)=' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
     sh -c export | while read x v; do echo $v; done | grep -Ei '^(NO|HTTP|HTTPS)_PROXY' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
 }
 
@@ -586,6 +602,13 @@ WantedBy=multi-user.target
 [Service]
 Type=simple
 EnvironmentFile=-${FILE_STACKGRES_ENV}
+# Cloud uplink target — set here, not in the shared .env, so the slony unit can use a DIFFERENT
+# value (the local matriarch). systemd EnvironmentFile= overrides Environment=, so a shared value
+# could not be overridden per-service.
+Environment=STACKGRES_ENDPOINT_URL=${STACKGRES_ENDPOINT_URL}
+# gRPC server the CLI (api.v1) and the local slony (slony.proto) connect to.
+Environment=QUARKUS_GRPC_SERVER_HOST=${MATRIARCH_LISTEN}
+Environment=QUARKUS_GRPC_SERVER_PORT=${MATRIARCH_PORT}
 KillMode=process
 Delegate=yes
 Restart=always
@@ -605,6 +628,11 @@ WantedBy=${SERVICE_MATRIARCH}
 [Service]
 Type=simple
 EnvironmentFile=-${FILE_STACKGRES_ENV}
+# Dial the LOCAL matriarch, not the cloud. STACKGRES_ENDPOINT_URL is set per-service (never in the
+# shared .env, which EnvironmentFile= would use to override this), pointing the agent — and the slon
+# injected into each PG container (host network) — at the local plaintext gRPC server.
+Environment=STACKGRES_ENDPOINT_URL=localhost:${MATRIARCH_PORT}
+Environment=STACKGRES_ENDPOINT_TLS=false
 KillMode=process
 Delegate=yes
 Restart=always

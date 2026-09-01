@@ -44,6 +44,8 @@ public class StatusCommand extends StackGresSubCommand {
         }
         outln("Environments:\n");
         EnvironmentTable.print(environments, this::outln);
+        // Flag the active environment if it's stale (disconnected / gone) and point at a connected one.
+        client.warnIfEnvironmentStale(ctx.environment(), environments);
     }
 
     private static String user(ResolvedContext ctx) {

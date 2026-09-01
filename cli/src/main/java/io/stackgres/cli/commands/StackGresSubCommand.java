@@ -1,5 +1,6 @@
 package io.stackgres.cli.commands;
 
+import io.stackgres.cli.Strings;
 import picocli.CommandLine;
 
 public abstract class StackGresSubCommand extends StackGresBaseCommand implements Runnable {
@@ -10,6 +11,11 @@ public abstract class StackGresSubCommand extends StackGresBaseCommand implement
 
     protected void outln(String message) {
         System.out.println(message);
+    }
+
+    /** A warning (warm amber) on stderr, so it stays out of piped stdout. */
+    protected void warn(String message) {
+        System.err.println(Strings.warnAnsi(message));
     }
 
     protected void outf(String format, Object... args) {

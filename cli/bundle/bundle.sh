@@ -4,7 +4,7 @@ cd ${0%/*}
 
 source ./bundle-common.sh
 
-VARIANT=full
+VARIANT=anywhere
 
 {
     detect_arch

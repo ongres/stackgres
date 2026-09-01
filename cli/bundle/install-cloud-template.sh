@@ -61,7 +61,7 @@ set -o noglob
 DOWNLOADER=
 
 # --- default Matriarch URL, override with STACKGRES_ENDPOINT_URL env var ---
-export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev.cc.stackgres.best}"
+export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev-cc.stackgres.best}"
 
 # --- accept OTT as user-facing alias for STACKGRES_TOKEN ---
 [ -n "$OTT" ] && export STACKGRES_TOKEN="$OTT"

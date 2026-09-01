@@ -349,6 +349,7 @@ public class MatriarchClient {
         }
         String configured = configuredEnvironment();
         if (configured != null && !configured.isBlank()) {
+            warnIfEnvironmentStale(configured);   // D: warn (don't fail) when the pinned env is stale
             return activeEnvironmentCache = configured;
         }
         List<EnvironmentInfo> envs = listEnvironments();
@@ -361,6 +362,50 @@ public class MatriarchClient {
         String ids = envs.stream().map(EnvironmentInfo::id).collect(java.util.stream.Collectors.joining(", "));
         throw new RuntimeException("no active environment selected — this endpoint exposes several ("
                 + ids + "). Choose one with 'stackgres environment use <id>' or pass -E <id>.");
+    }
+
+    /**
+     * Warn (warm amber, on stderr) when {@code environmentId} is disconnected or gone, suggesting the
+     * connected environment(s) to switch to. Best-effort: never fails the command it guards.
+     */
+    public void warnIfEnvironmentStale(String environmentId) {
+        if (environmentId == null || environmentId.isBlank()) {
+            return;
+        }
+        try {
+            warnIfEnvironmentStale(environmentId, listEnvironments());
+        } catch (RuntimeException ignore) {
+            // best-effort — a staleness hint must never block the command
+        }
+    }
+
+    /** As {@link #warnIfEnvironmentStale(String)}, reusing an already-fetched environment list. */
+    public void warnIfEnvironmentStale(String environmentId, List<EnvironmentInfo> environments) {
+        if (environmentId == null || environmentId.isBlank()) {
+            return;
+        }
+        EnvironmentInfo current = environments.stream()
+                .filter(e -> environmentId.equals(e.id())).findFirst().orElse(null);
+        String problem;
+        if (current == null) {
+            problem = "Environment '" + environmentId + "' no longer exists.";
+        } else if ("Disconnected".equalsIgnoreCase(current.health())) {
+            problem = "Environment '" + environmentId + "' is disconnected.";
+        } else {
+            return; // connected — nothing to warn about
+        }
+        List<String> connected = environments.stream()
+                .filter(e -> "Connected".equalsIgnoreCase(e.health()))
+                .map(EnvironmentInfo::id).toList();
+        String hint;
+        if (connected.size() == 1) {
+            hint = " Did you mean '" + connected.get(0) + "'?  Switch with: stackgres environment use " + connected.get(0);
+        } else if (!connected.isEmpty()) {
+            hint = " Connected: " + String.join(", ", connected) + ".  Switch with: stackgres environment use <id>";
+        } else {
+            hint = "";
+        }
+        System.err.println(Strings.warnAnsi(problem + hint));
     }
 
     /** Rows for {@code cluster list}: {@code environmentId} = "" means all environments (aggregated). */
