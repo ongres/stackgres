@@ -553,6 +553,45 @@ Conventions:
   the EN file to `content/es/`, translate, set `url:` (translated slug) and
   keep `translationkey`; add menu entries if needed.
 
+### 27. OnGres company content → services, careers, products, about-us
+
+Fifth site merged: the ongres.com company content (source: the `ongres` repo,
+`master`; read-only archive). URL paths preserved from the live site:
+
+- **`/professional-services/` + 7 services, `/products/` (postgresqlco.nf),
+  `/were-hiring/` + jobs, `/about-us/`, `/thank-you/`** — EN content copied
+  verbatim; ES equivalents at their live slugs
+  (`/es/servicios-profesionales/…`, `/es/estamos-contratando/…`,
+  `/es/productos/`, `/es/gracias/`).
+- **About split (product decision)**: `/about` remains the StackGres *project*
+  page (untouched); `/about-us` is the *organization* page (own
+  `translationkey: about-us`). Spanish: `/es/sobre-stackgres/` (product),
+  `/es/nosotros/` (organization) with `/es/sobre-nosotros/` aliased to it.
+- **Sections are content-driven where possible**: the services/products
+  landing grids moved from the ongres theme's layouts into the `_index.html`
+  content per language (`T`-lookups resolved literally); thin type-scoped
+  layouts (`layouts/{services,products}/list.html`) render `.Content` in the
+  main chrome with bootstrap-grid. Careers kept real layouts
+  (`layouts/careers/{list,single}.html`): dynamic job cards, benefits grid,
+  and the Zoho application form (returnURL resolves the per-language
+  thank-you page; privacy link via GetPage; LEADCF1 carries the language) —
+  all strings i18n-keyed (`careers_*`, `form_*`).
+- **`ref`/`relref` overrides extended**: absolute paths (leading `/`) bypass
+  section-scoping, and top-level pages (no `/` in `File.Path`) resolve from
+  the content root — previously both produced broken paths. Ported content's
+  section-relative `ref "privacy-policy"` calls were normalized to
+  `ref "/privacy-policy"` (resolves to the translated URL per language).
+- **Assets**: ongres theme `img/` (minus `blog/`, minus `favicon/` — StackGres
+  favicons win) → `web/static/img/` (no filename collisions);
+  `install_postgres_aws_cloudshell.bash` → `web/static/`.
+- NOT ported: `products/stackgres.html` (redundant — the whole site is the
+  product; the products grid's StackGres card links home), the ongres theme
+  itself, ES footer-menu quirks. Careers drafts (`devops-engineer`,
+  `full-java-alchemist`) copied as-is pending a keep/drop decision.
+- Verified: zero broken internal links and zero missing images across the new
+  sections (automated sweep), EN/ES pairs hreflang-linked, forms carry
+  per-language return URLs.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)

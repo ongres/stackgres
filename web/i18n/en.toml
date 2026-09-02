@@ -158,3 +158,111 @@ other = "Español"
 
 [lang_switch_title]
 other = "Ver en español"
+
+[read_more]
+other = "Read More"
+
+[careers_title]
+other = "Join our team"
+
+[careers_subtitle]
+other = "Do you want to join us? We're hiring!"
+
+[careers_intro]
+other = "We are a company in continuous growth and we will offer new offers regularly, do not miss them!"
+
+[careers_empty]
+other = "There are no vacancies available at this moment. Subscribe to our newsletter to be up to date!"
+
+[careers_subscribe]
+other = "Subscribe"
+
+[careers_no_position]
+other = "Don’t see any position for you?"
+
+[careers_send_resume_to]
+other = "Send us your resume to"
+
+[careers_include_linkedin]
+other = "Don’t forget to include your LinkedIn and your contact data!"
+
+[careers_send_resume]
+other = "Send us your resume"
+
+[careers_benefits]
+other = "Benefits"
+
+[careers_benefits_sub]
+other = "We offer the best working conditions"
+
+[careers_b_conferences]
+other = "Conferences"
+
+[careers_b_conferences_txt]
+other = "You can travel with the company to international conferences and attend our conference (pgibz.io) with a team working week in Ibiza."
+
+[careers_b_workplace]
+other = "Best Workplace"
+
+[careers_b_workplace_txt]
+other = "We have modern offices with all the amenities, such as lift tables for each employee. And barbecue."
+
+[careers_b_remote]
+other = "Remote work"
+
+[careers_b_efficiency]
+other = "Efficiency"
+
+[careers_b_flexibility]
+other = "Flexibility"
+
+[careers_b_agile]
+other = "Agile"
+
+[careers_b_community]
+other = "Community"
+
+[careers_apply_title]
+other = "Apply for this position"
+
+[careers_apply_sub]
+other = "Take the opportunity and join us!"
+
+[careers_apply_txt]
+other = "If you want to learn and grow, both professionally and personally, as part of our team, fill in the form or contact us at"
+
+[careers_file_hint]
+other = "You can also share your resume with us. File(s) size limit is 20MB."
+
+[careers_select_file]
+other = "Select a File"
+
+[careers_more]
+other = "More career options"
+
+[form_first_name]
+other = "First Name"
+
+[form_last_name]
+other = "Last Name"
+
+[form_email]
+other = "Email"
+
+[form_phone]
+other = "Phone"
+
+[form_about_you]
+other = "Tell us about you"
+
+[form_accept]
+other = "I accept the"
+
+[form_privacy_policy]
+other = "OnGres Privacy Policy"
+
+[form_accept_tail]
+other = "and agree to receive news and promotions every now and then."
+
+[form_submit]
+other = "Submit"

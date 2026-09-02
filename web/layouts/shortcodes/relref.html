@@ -7,6 +7,13 @@
 {{- $parts := split $raw "#" -}}
 {{- $path := index $parts 0 -}}
 {{- $anchor := cond (gt (len $parts) 1) (printf "#%s" (index $parts 1)) "" -}}
+{{- $sectionPath := "" -}}
+{{- if hasPrefix $path "/" -}}
+{{- $sectionPath = replace $path "_index.md" "" -}}
+{{- else if in .Page.File.Path "/" -}}
 {{- $root := index (split .Page.File.Path "/") 0 -}}
-{{- $sectionPath := printf "/%s/%s" $root (strings.TrimPrefix "/" (replace $path "_index.md" "")) -}}
+{{- $sectionPath = printf "/%s/%s" $root (strings.TrimPrefix "/" (replace $path "_index.md" "")) -}}
+{{- else -}}
+{{- $sectionPath = printf "/%s" (strings.TrimPrefix "/" (replace $path "_index.md" "")) -}}
+{{- end -}}
 {{- with .Site.GetPage $sectionPath -}}{{- printf "%s%s" .RelPermalink $anchor -}}{{- else -}}{{- printf "%s%s" $sectionPath $anchor -}}{{- end -}}

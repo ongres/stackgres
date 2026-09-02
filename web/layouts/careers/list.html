@@ -1,0 +1,142 @@
+{{ define "head-seo" }}
+{{ if not (or site.Params.previewgate site.Params.noindex .Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}
+<link href="{{ "css/bootstrap-grid.min.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+<link href="{{ "css/company.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+{{ end }}
+
+{{ define "main" }}
+<div class="container careers">
+        <section class="services">
+            <div class="heading" >
+		        <h1 class="textGradient">{{ i18n "careers_title" }}</h1>
+		        <h2>{{ i18n "careers_subtitle" }}</h2>
+		        <p>{{ i18n "careers_intro" }}</p>
+		    </div>
+
+		    <div class="row content">
+	            {{ $.Scratch.Set "counter" 0 }}
+	            {{ range .Pages }}
+	            	{{ if not .Page.Draft }}
+			            {{ $.Scratch.Set "counter" (add ($.Scratch.Get "counter") 1) }}
+			            <div class="col-12 col-md-6 col-lg-4 post">
+							<div class="blurBg">
+								<div class="icon carrersImg">
+									<img src="{{ .Params.thumbnail | relURL }}" alt="{{ .Title }}"/>
+								</div>
+								
+								<h4>{{ .Title }}</h4>
+								{{ if isset .Params "subtitle" }}<p>{{ .Params.subtitle }}</p>{{ end }}
+								{{ if isset .Params "location" }}<p >{{ .Params.location }}</p>{{ end }}
+
+								<a href="{{ .Permalink }}" title="{{ .Title }}" class="button">{{ i18n "read_more" }}</a>
+							</div>
+			            </div>
+			        {{ end }}
+	        	{{ end }} 
+	        	{{ if eq ($.Scratch.Get "counter") 0 }} 
+	        	<div class="col col-6 careers-empty">
+					<div class="blurBg">
+						<div class="icon icon-v">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
+								<linearGradient id="blueGradient" gradientUnits="userSpaceOnUse" x1="7.0312" y1="7.0312" x2="67.9688" y2="67.9688"><stop offset="0" style="stop-color:#0092FF"/><stop offset="1" style="stop-color:#04DFFD"/></linearGradient>
+								<path fill="url(#blueGradient)" d="M37.5 21c-2.1 0-3.8-1.7-3.8-3.8V3.7c0-2.1 1.7-3.8 3.8-3.8s3.8 1.7 3.8 3.8v13.5c0 2.1-1.7 3.8-3.8 3.8zm3.8 50.3V57.7c0-2.1-1.7-3.8-3.8-3.8s-3.8 1.7-3.8 3.8v13.5c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.7zM25.8 25.8c1.5-1.5 1.5-3.8 0-5.3l-9.6-9.6c-1.5-1.5-3.8-1.5-5.3 0s-1.5 3.8 0 5.3l9.6 9.6c.7.7 1.7 1.1 2.7 1.1s1.9-.3 2.6-1.1zM64 64c1.5-1.5 1.5-3.8 0-5.3l-9.5-9.5c-1.5-1.5-3.8-1.5-5.3 0s-1.5 3.8 0 5.3l9.5 9.5c.7.7 1.7 1.1 2.7 1.1s1.9-.4 2.6-1.1zM21 37.5c0-2.1-1.7-3.8-3.8-3.8H3.7c-2.1 0-3.8 1.7-3.8 3.8s1.7 3.8 3.8 3.8h13.5c2.1 0 3.8-1.7 3.8-3.8zm54 0c0-2.1-1.7-3.8-3.8-3.8H57.7c-2.1 0-3.8 1.7-3.8 3.8s1.7 3.8 3.8 3.8h13.5c2.1 0 3.8-1.7 3.8-3.8zM16.3 64l9.6-9.5c1.5-1.5 1.5-3.8 0-5.3s-3.8-1.5-5.3 0L11 58.7c-1.5 1.5-1.5 3.8 0 5.3.7.7 1.7 1.1 2.7 1.1.9 0 1.9-.4 2.6-1.1zm38.2-38.2 9.5-9.6c1.5-1.5 1.5-3.8 0-5.3s-3.8-1.5-5.3 0l-9.5 9.6c-1.5 1.5-1.5 3.8 0 5.3.7.7 1.7 1.1 2.7 1.1.9 0 1.8-.3 2.6-1.1z"/>
+							</svg>
+						</div>
+						<h4>{{ i18n "careers_empty" }}</h4>
+						<a href="#subscription" class="button" title="{{ i18n "careers_subscribe" }}">{{ i18n "careers_subscribe" }}</a>
+					</div>
+	            </div>
+            </div>
+            {{ end }}		    
+		</section>
+
+		<section>
+			<div class="heading">
+				<h1>{{ i18n "careers_no_position" }}</h1>
+				<p>{{ i18n "careers_send_resume_to" }} <a href="mailto:werehiring@ongres.com" title="werehiring@ongres.com">werehiring@ongres.com</a>.<br/>{{ i18n "careers_include_linkedin" }}</p>
+
+				<a class="button" href="mailto:werehiring@ongres.com" title="{{ i18n "careers_send_resume" }}">{{ i18n "careers_send_resume" }}</a>
+			</div>
+		</section>
+
+        <section class="benefits services">
+			<div class="heading">
+				<h1>{{ i18n "careers_benefits" }}</h1>
+				<h2>{{ i18n "careers_benefits_sub" }}</h2>
+			</div>
+
+			<div class="row content">
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-v">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75">
+								<linearGradient id="blueGradient" gradientUnits="userSpaceOnUse" x1="7.0312" y1="7.0312" x2="67.9688" y2="67.9688"><stop offset="0" style="stop-color:#0092FF"/><stop offset="1" style="stop-color:#04DFFD"/></linearGradient>
+								<path fill="url(#blueGradient)" d="M39 55.1V59c0 2.1-1.7 3.8-3.8 3.8s-3.8-1.7-3.8-3.8v-3.9c0-2.3-1.9-4.1-4.1-4.1H11.6c-2.3 0-4.1 1.9-4.1 4.1V59c0 2.1-1.7 3.8-3.8 3.8S0 61.1 0 59.1v-3.9c0-6.4 5.2-11.6 11.6-11.6h15.8c6.4-.1 11.6 5.1 11.6 11.5zM7.9 31.5c0-6.4 5.2-11.6 11.6-11.6 6.4 0 11.6 5.2 11.6 11.6s-5.2 11.6-11.6 11.6c-6.4 0-11.6-5.2-11.6-11.6zm7.5 0c0 2.3 1.9 4.1 4.1 4.1s4.1-1.9 4.1-4.1-1.9-4.1-4.1-4.1-4.1 1.8-4.1 4.1zm50.8-21.4H21.8c-2.1 0-3.8 1.7-3.8 3.8s1.7 3.8 3.8 3.8h44.4c.7 0 1.2.6 1.2 1.2v30.6c0 .7-.6 1.2-1.2 1.2h-1.9c0-2.1-1.7-3.8-3.8-3.8h-9c-2.1 0-3.8 1.7-3.8 3.8H46c-2.1 0-3.8 1.7-3.8 3.8s1.7 3.8 3.8 3.8h20.1c4.8 0 8.8-3.9 8.8-8.8V18.8c.1-4.8-3.8-8.7-8.7-8.7z"/>
+							</svg>
+						</div>
+						<h4>{{ i18n "careers_b_conferences" }}</h4>
+						<p>{{ i18n "careers_b_conferences_txt" }}</p>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-v">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75"><path fill="url(#blueGradient)" d="M58.2 0h-2.3c-4.8 0-8.8 3.9-8.8 8.8V22c0 3.9 2.6 7.3 6.2 8.4v8.4c0 .5-.3.9-.7 1.1-1.1-3.5-4.4-6-8.3-6h-21c-4.8 0-8.8 3.9-8.8 8.8V45c0 4.8 3.9 8.8 8.8 8.8H30v7.6H16.8C12 61.4 8 65.3 8 70.2v1.4c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.8v-1.4c0-.7.6-1.2 1.2-1.2h33.9c.7 0 1.2.6 1.2 1.2v1.4c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.8v-1.4c0-4.8-3.9-8.8-8.8-8.8H37.5v-7.6h6.7c3.9 0 7.2-2.6 8.4-6.2 4.5-.3 8.2-4.1 8.2-8.7v-8.4c3.6-1.1 6.2-4.4 6.2-8.4V8.7C66.9 3.9 63 0 58.2 0zM45.5 44.8c0 .7-.6 1.2-1.2 1.2h-21c-.7 0-1.2-.6-1.2-1.2v-2.3c0-.7.6-1.2 1.2-1.2h21c.7 0 1.2.6 1.2 1.2v2.3zm9.1-36.1c0-.7.6-1.2 1.2-1.2h2.3c.7 0 1.2.6 1.2 1.2V22c0 .7-.6 1.2-1.2 1.2h-2.3c-.7 0-1.2-.6-1.2-1.2V8.7z"/></svg>
+						</div>
+						<h4>{{ i18n "careers_b_workplace" }}</h4>
+						<p>{{ i18n "careers_b_workplace_txt" }}</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="row content clearfix">
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-v">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75"><path fill="url(#blueGradient)" d="M71.2 65.2H3.8c-2.1 0-3.8-1.7-3.8-3.8s1.7-3.8 3.8-3.8h67.5c2.1 0 3.8 1.7 3.8 3.8s-1.8 3.8-3.9 3.8zm-1.9-21.9V13.6c0-4.8-3.9-8.8-8.8-8.8h-46c-4.8 0-8.8 3.9-8.8 8.8v29.6c0 4.8 3.9 8.8 8.8 8.8h46.1c4.8 0 8.7-3.9 8.7-8.7zm-8.8-30.9c.7 0 1.2.6 1.2 1.2v29.6c0 .7-.6 1.2-1.2 1.2h-46c-.7 0-1.2-.6-1.2-1.2V13.6c0-.7.6-1.2 1.2-1.2h46z"/></svg>
+						</div>
+						<h4>{{ i18n "careers_b_remote" }}</h4>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-h">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75"><path fill="url(#blueGradient)" d="M36 29.1v42.2c0 2.1-1.7 3.8-3.8 3.8s-3.8-1.7-3.8-3.8V29.1c0-2.1 1.7-3.8 3.8-3.8S36 27 36 29.1zM6.9 50.6c-2.1 0-3.8 1.7-3.8 3.8v16.9c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.8V54.4c0-2.1-1.7-3.8-3.8-3.8zm63.8-39L60.2 1.1c-.2-.2-.4-.3-.6-.5-.1-.1-.2-.1-.3-.1-.1-.1-.2-.1-.4-.2-.1 0-.2-.1-.4-.1-.1 0-.2-.1-.3-.1-.1-.1-.4-.1-.6-.1-.2 0-.5 0-.7.1-.1 0-.2.1-.3.1-.1 0-.2.1-.4.1-.1.1-.3.1-.4.2-.1.1-.2.1-.3.1-.2.1-.4.3-.6.5L44.4 11.6c-1.5 1.5-1.5 3.8 0 5.3s3.8 1.5 5.3 0l4.1-4.1v58.4c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.8V12.8l4.1 4.1c.7.7 1.7 1.1 2.7 1.1s1.9-.4 2.7-1.1c1.3-1.5 1.3-3.8-.2-5.3z"/></svg>
+						</div>
+						<h4>{{ i18n "careers_b_efficiency" }}</h4>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-h">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75"><path fill="url(#blueGradient)" d="M61.1 6.8h-6.4v-3C54.8 1.7 53.1 0 51 0s-3.8 1.7-3.8 3.8v3H27.8v-3C27.8 1.7 26.1 0 24 0s-3.8 1.7-3.8 3.8v3h-6.4C8 6.8 3.3 11.5 3.3 17.3v47.2C3.4 70.3 8.1 75 13.9 75h47.2c5.8 0 10.5-4.7 10.5-10.5V17.2c0-5.7-4.7-10.4-10.5-10.4zm-47.2 7.4h6.4v3c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.8v-3h19.5v3c0 2.1 1.7 3.8 3.8 3.8s3.8-1.7 3.8-3.8v-3h6.4c1.7 0 3 1.3 3 3V27H10.9v-9.8c0-1.6 1.3-3 3-3zm47.2 53.3H13.9c-1.7 0-3-1.3-3-3v-30h53.2v30c0 1.7-1.3 3-3 3z"/></svg>
+						</div>
+						<h4>{{ i18n "careers_b_flexibility" }}</h4>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-h">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75"><path fill="url(#blueGradient)" d="M23.8 3.7c0-2.1 1.7-3.7 3.7-3.7h19.9c2.1 0 3.7 1.7 3.7 3.7s-1.7 3.7-3.7 3.7H27.6c-2.1.1-3.8-1.6-3.8-3.7zm13.7 24.5c-2.1 0-3.7 1.7-3.7 3.7v12c0 2.1 1.7 3.7 3.7 3.7s3.7-1.7 3.7-3.7v-12c0-2.1-1.6-3.7-3.7-3.7zm31 15.8c0 17.1-13.9 31-31 31s-31-13.9-31-31 13.9-31 31-31c7.2 0 13.8 2.5 19.1 6.6l5.5-5.5c1.5-1.5 3.8-1.5 5.3 0s1.5 3.8 0 5.3l-5.5 5.5c4.1 5.2 6.6 11.8 6.6 19.1zM61 44c0-13-10.6-23.6-23.5-23.6S14 31 14 44s10.6 23.6 23.5 23.6S61 57 61 44z"/></svg>
+						</div>
+						<h4>{{ i18n "careers_b_agile" }}</h4>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-6 col-md-4">
+					<div class="blurBg">
+						<div class="icon icon-v">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 75"><path fill="url(#blueGradient)" d="M47.4 60.1c-2.1 0-3.8-1.7-3.8-3.8v-4c0-2.3-1.9-4.2-4.2-4.2H23.6c-1.3 0-2.5.6-3.3 1.6-1.3 1.6-3.6 1.9-5.3.6-1.6-1.3-1.9-3.6-.6-5.3 2.2-2.8 5.6-4.5 9.2-4.5h15.9c6.4 0 11.7 5.2 11.7 11.7v4c0 2.2-1.7 3.9-3.8 3.9zm-4.2-31.5c0-6.4-5.2-11.7-11.7-11.7s-11.7 5.2-11.7 11.7S25 40.3 31.5 40.3 43.2 35 43.2 28.6zm-7.5 0c0 2.3-1.9 4.2-4.2 4.2-2.3 0-4.2-1.9-4.2-4.2s1.9-4.2 4.2-4.2c2.4 0 4.2 1.9 4.2 4.2zM60 50.5c1.6-1.3 1.9-3.6.7-5.3-1.6-2-3.8-3.5-6.3-4.2-2-.5-4.1.7-4.6 2.7s.7 4.1 2.7 4.6c.9.2 1.7.7 2.3 1.5.7 1 1.8 1.5 3 1.5.7 0 1.5-.3 2.2-.8zM46.4 39.9c4.1-1.1 7.3-4.3 8.4-8.4 1.6-6.2-2.2-12.6-8.4-14.2-2-.5-4.1.7-4.6 2.7s.7 4.1 2.7 4.6c2.2.6 3.6 2.9 3 5.1-.4 1.5-1.5 2.6-3 3-2 .5-3.2 2.6-2.7 4.6.4 1.7 2 2.8 3.6 2.8.3-.1.7-.1 1-.2zM75 37.5C75 16.8 58.2 0 37.5 0S0 16.8 0 37.5 16.8 75 37.5 75 75 58.2 75 37.5zm-7.5 0c0 16.5-13.5 30-30 30s-30-13.5-30-30 13.5-30 30-30 30 13.5 30 30z"/></svg>
+						</div>
+						<h4>{{ i18n "careers_b_community" }}</h4>
+					</div>
+				</div>
+		    </div>
+		</section>
+        
+</div>
+{{ end }}

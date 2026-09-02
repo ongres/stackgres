@@ -1,0 +1,11 @@
+{{ define "head-seo" }}
+{{ if not (or site.Params.previewgate site.Params.noindex .Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}
+<link href="{{ "css/bootstrap-grid.min.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+<link href="{{ "css/company.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+{{ end }}
+
+{{ define "main" }}
+<div class="container">
+{{ .Content }}
+</div>
+{{ end }}

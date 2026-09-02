@@ -1,0 +1,273 @@
+/* Structural styles for the company sections (services, careers, products,
+   about-us) extracted from the retired ongres theme's style.css — the rules
+   whose selectors target the ported markup's class vocabulary. Loaded only by
+   the services/products/careers layouts. Visual pass pending. */
+.heading p, .team ul{
+    width: 75%;
+    margin: 0 auto;
+    margin-bottom: 50px;
+    font-size: 1rem;
+}
+.products .blurBg p, .buttonInBlur, .offices .map, .careers-empty h4{
+    margin-bottom: 50px;
+}
+.services .blurBg p, .services .blurBg ul, .team .blurBg p{
+    width: 100%;
+    margin: 25px 0 0;
+}
+.button, .submit input, .selectFile{
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: .8rem;
+    color: white;
+    background: var(--baseGradient);
+    padding: 13px 20px;
+    border-radius: 10px;
+    margin-top: 75px;
+    cursor: pointer;
+}
+.button:hover, .submit input:hover, .selectFile:hover{
+    background: var(--invertedGradient);
+    transition: all .5s ease-out;
+}
+.button + .button{
+    margin-left: 10px !important;
+}
+a.link{
+    text-decoration: underline;
+    color: var(--darkBlue);
+}
+a.link:hover{
+    color: var(--lightBlue);
+}
+.blurBg{
+    background: var(--bgColor);
+    border-radius: 15px;
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 10px 90px 0 rgb(6 5 40 / 10%);
+    height: 100%;
+    box-sizing: border-box;
+}
+.main-menu > li > a:before, section:before, .blurBg h4:before, .blurBg li:not(:first-of-type):before, .team li:not(:first-of-type):before, .grants .row:not(:first-of-type):before, .positionInfo:before, .positionInfo li:before, .post li::before{
+    content: "";
+    width: 20px;
+    height: 3px;
+    background: var(--baseGradient);
+    border-radius: 15px;
+    position: absolute;
+    bottom: 20px;
+    margin-left: calc(50% - 10px);
+    display: none;
+}
+.row.content{
+    margin-top: 75px;
+    justify-content: center;
+}
+.heading p{
+    font-size: 1.2rem;
+}
+.officeImg img{
+    width: 100%;
+    border-radius: 15px;
+}
+.blurBg .button{
+    margin: 0 0 20px 0;
+    display: inline-block;
+}
+.blurBg h4:before, .positionInfo:before{
+    display: inline-block;
+    width: 100%;
+    left: 0;
+    margin-left: 0;
+    top: -50px;
+}
+.positionInfo, .postContent, .postInfo{
+    width: 80%;
+    margin: 0 auto 15px;
+}
+#position h1, #blog .postContent h1, .postInfo h1{
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+}
+#position h2, #blog .postContent h2{
+    margin-top: 50px;
+    margin-bottom: 25px;
+}
+#position li, #blog .postContent li{
+    margin-top: 0;
+    margin-bottom: 15px;
+    width: calc(100% - 30px);
+}
+#position li:before, #blog .postContent li:before{
+    margin-left: 0;
+    top: 9px;
+    left: -25px;
+}
+.relatedPosts h4:before, .team h4:before{
+    display: none;
+}
+.blurBg li, .team li{
+    position: relative;
+    margin-top: 30px;
+}
+.blurBg li:not(:first-of-type):before, .team li:not(:first-of-type)::before, .grants .row:not(:first-of-type):before, .positionInfo li:before{
+    display: inline-block;
+    width: 10px;
+    margin-left: calc(50% - 5px);
+    left: 0;
+    top: -15px;
+}
+.team h3{
+    margin-top: 50px;
+}
+.icon{
+    margin-bottom: 90px;
+    display: inline-block;
+}
+.icon-h svg, .carrersImg img{
+    height: 75px;
+    width: auto;
+}
+.icon-v svg{
+    width: 75px;
+    height: auto;
+}
+.selectFile{
+    margin-top: 10px;
+    display: inline-block;
+}
+.apply .newCustomchkbox-md{
+    margin-top: 60px;
+}
+.fileLimit{
+    display: block;
+}
+.blurBg h4 + .button{
+    margin-top: 40px;
+}
+.post .button{
+    margin-top: 30px;
+}
+.postContent h2{
+    margin: 40px 0 10px;
+}
+.postContent p{
+    margin-bottom: 20px;
+}
+.postContent li p{
+    display: contents;
+}
+.postContent a, .author .links a{
+    color: var(--baseColor);
+    font-weight: bold;
+    word-wrap: break-word;
+}
+.postContent a:hover, .author .links a:hover{
+    color: var(--baseLightColor);
+}
+.postContent h3{
+    font-size: 1.3rem;
+    margin-top: 30px;
+}
+.postContent .highlight, .postContent > pre{
+    margin-bottom: 40px;
+    max-width: 100%;
+    overflow: auto;
+    font-size: 85%;
+}
+.postContent table{
+    border-collapse: collapse;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+    display: block;
+    margin: 30px auto 45px;
+}
+.postContent th{
+    padding: 0.5rem;
+    border: 1px solid #dcdcdc;
+    background: #f0f0f1;
+    color: var(--baseColor);
+}
+.postContent td{
+    border: 1px solid #dcdcdc;
+    padding: 0.5rem;
+}
+.highlight pre, .postContent > pre{
+    background: #fbfbfb !important;
+    padding: 15px 20px;
+    border-radius: 5px;
+    overflow: auto;
+    border: 1px solid #dcdcdc;
+}
+.postContent ul{
+    margin: 20px 0 30px;
+    padding-left: 20px;
+}
+.postContent li{
+    margin: 0 0 10px !important;
+}
+.postContent li:before{
+    width: 10px;
+    display: inline-block !important;
+    position: initial !important;
+    margin: 0 5px 0 0!important;
+    transform: translateY(-4px);
+}
+.postContent img{
+    border-radius: 0;
+}
+.author .links{
+    margin-top: 10px;
+}
+.author .links a{
+    font-size: 90%;
+    display: inline-block;
+    margin-right: 5px;
+}
+@media all and (max-width: 1280px){.postInfo h1{
+        font-size: 2rem;
+    }.postContent h2{
+        font-size: 1.6rem;
+    }.positionInfo, .postContent, .postInfo{
+        width: 90%;
+    }}
+@media all and (max-width: 990px){.heading p{
+        font-size: 1.1rem;
+    }.team h4{
+        font-size: 1.2rem;
+    }.team .blurBg{
+        padding: 20px;
+    }.team .blurBg .img{
+        width: calc(100% + 40px);
+        margin: -20px 0 20px -20px;
+    }.positionInfo, .postContent, .postInfo{
+        width: 95%;
+    }}
+@media all and (max-width: 640px){.blurBg{
+        padding: 30px;
+    }p, .heading p{
+        font-size: 1rem;
+    }.icon svg, .carrersImg img{
+        height: 40px;
+    }.icon + h4{
+        font-size: 1.3rem;
+    }.blurBg h4:before, .positionInfo:before{
+        top: -25px;
+    }.icon{
+        margin-bottom: 35px;
+    }.heading p, .team ul{
+        width: 85%;
+    }.products .blurBg p, .buttonInBlur, .offices .map, .careers-empty h4{
+        margin-bottom: 20px;
+    }.postInfo h1{
+        font-size: 1.5rem;
+    }.postContent h2{
+        font-size: 1.3rem;
+    }.blurBg h4 + .button{
+        margin-top: 25px;
+    }.button + .button{
+        margin-left: 0 !important;
+        margin-top: 0;
+    }}

@@ -254,8 +254,8 @@ ignoreFiles = ['_index\.template\.md$']
             url     = "es/instalacion"
             weight  = 3
         [[languages.es.menu.product]]
-            name    = "Nosotros"
-            url     = "es/nosotros"
+            name    = "Sobre StackGres"
+            url     = "es/sobre-stackgres"
             weight  = 4
 
         # Resources ES

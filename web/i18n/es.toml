@@ -156,3 +156,111 @@ other = "English"
 
 [lang_switch_title]
 other = "View in English"
+
+[read_more]
+other = "Leer Más"
+
+[careers_title]
+other = "Únete a nuestro equipo"
+
+[careers_subtitle]
+other = "¿Quieres trabajar con nosotros? ¡Estamos contratando!"
+
+[careers_intro]
+other = "Somos una empresa en constante crecimiento y publicaremos nuevas ofertas regularmente, ¡no te las pierdas!"
+
+[careers_empty]
+other = "En este momento no hay vacantes disponibles. ¡Suscríbete a nuestro newsletter para estar al día!"
+
+[careers_subscribe]
+other = "Suscríbete"
+
+[careers_no_position]
+other = "¿No ves ningún puesto para ti?"
+
+[careers_send_resume_to]
+other = "Envíanos tu CV a"
+
+[careers_include_linkedin]
+other = "¡No olvides incluir tu LinkedIn y tus datos de contacto!"
+
+[careers_send_resume]
+other = "Mándanos tu CV"
+
+[careers_benefits]
+other = "Beneficios"
+
+[careers_benefits_sub]
+other = "Ofrecemos las mejores condiciones laborales"
+
+[careers_b_conferences]
+other = "Conferencias"
+
+[careers_b_conferences_txt]
+other = "Podrás viajar con la empresa a conferencias internacionales y asistir a nuestra conferencia (pgibz.io) con semana de team working en Ibiza."
+
+[careers_b_workplace]
+other = "El mejor espacio de trabajo"
+
+[careers_b_workplace_txt]
+other = "Disponemos de una oficina moderna con todas las comodidades, como mesas elevables para cada empleado. Y barbacoa."
+
+[careers_b_remote]
+other = "Trabajo en remoto"
+
+[careers_b_efficiency]
+other = "Eficiencia"
+
+[careers_b_flexibility]
+other = "Flexibilidad"
+
+[careers_b_agile]
+other = "Agile"
+
+[careers_b_community]
+other = "Comunidad"
+
+[careers_apply_title]
+other = "Aplica para esta posición"
+
+[careers_apply_sub]
+other = "Aprovecha la oportunidad y ¡únete a nosotros!"
+
+[careers_apply_txt]
+other = "Si quieres aprender y crecer, profesional y personalmente, como parte de nuestro equipo, llena el formulario o contáctanos a"
+
+[careers_file_hint]
+other = "También puedes mandarnos tu CV. El límite del archivo es 20MB."
+
+[careers_select_file]
+other = "Selecciona un archivo"
+
+[careers_more]
+other = "Más ofertas"
+
+[form_first_name]
+other = "Nombre"
+
+[form_last_name]
+other = "Apellidos"
+
+[form_email]
+other = "Correo electrónico"
+
+[form_phone]
+other = "Teléfono"
+
+[form_about_you]
+other = "Cuéntanos sobre ti"
+
+[form_accept]
+other = "Acepto la"
+
+[form_privacy_policy]
+other = "Política de Privacidad de OnGres"
+
+[form_accept_tail]
+other = "y consiento recibir noticias y promociones de cuando en cuando."
+
+[form_submit]
+other = "Enviar"

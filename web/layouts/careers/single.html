@@ -1,0 +1,103 @@
+{{ define "head-seo" }}
+{{ if not (or site.Params.previewgate site.Params.noindex .Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}
+<link href="{{ "css/bootstrap-grid.min.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+<link href="{{ "css/company.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
+<script src='https://www.google.com/recaptcha/api.js' async defer></script>
+{{ end }}
+
+{{ define "main" }}
+<div class="container careers">
+        {{ .Content }}
+
+        <section class="apply">
+            <div class="heading">
+                <h1>{{ i18n "careers_apply_title" }}</h1>
+                <h2>{{ i18n "careers_apply_sub" }}</h2>
+                <p>{{ i18n "careers_apply_txt" }} <a href="mailto:werehiring@ongres.com?subject={{ .Title }}" class="link" title="werehiring@ongres.com">werehiring@ongres.com</a>.</p>
+            </div>
+
+            <div class="form">
+                <div id='crmWebToEntityForm'>
+                    <meta http-equiv='content-type' content='text/html;charset=UTF-8'>
+                    <form action='https://crm.zoho.eu/crm/WebToLeadForm' name=WebToLeads206582000000174005 method='POST' enctype='multipart/form-data' onSubmit='javascript:document.charset="UTF-8"; return checkMandatory206582000000174005()' accept-charset='UTF-8' class="form apply">
+                        <input type='text' style='display:none;' name='xnQsjsdp' value='a8d89f507817013112d869150786a70662439f36a339a1308e92330f4e11ac77'></input>
+                        <input type='hidden' name='zc_gad' id='zc_gad' value=''></input>
+                        <input type='text' style='display:none;' name='xmIwtLD' value='c46992387a6ff502048f157e4b7391673b5bbd07fe8f413b84d61f70df2c15da'></input>
+                        <input type='text' style='display:none;' name='actionType' value='TGVhZHM='></input>
+                        <input type='text' style='display:none;' name='returnURL' value='{{ $thanks := site.GetPage "/thank-you" }}{{ if not $thanks }}{{ $thanks = site.GetPage "/gracias" }}{{ end }}{{ with $thanks }}{{ .Permalink }}{{ end }}'> </input>
+                        <input type='text' style='display:none;' name='LEADCF1' value='{{ if eq .Language.Lang "es" }}Spanish{{ else }}English{{ end }}'></input>
+
+                        <select style="display: none;" name="Lead Source">
+                            <option value="-None-">-None-</option>
+                            <option value="Newsletter">Newsletter</option>
+                            <option value="Contact Form">Contact Form</option>
+                            <option selected="" value="Careers">Careers</option>
+                            <option value="StackGres">StackGres</option>
+                        </select>
+
+                        <input type='text' maxlength='40' name='First Name' placeholder='{{ i18n "form_first_name" }}*' required/>
+                        <input type='text' maxlength='80' name='Last Name' placeholder='{{ i18n "form_last_name" }}*' required/>
+                        <input type='text' maxlength='100' name='Email' placeholder='{{ i18n "form_email" }}*' required/>
+                        <input type='text' maxlength='30' name='Phone' placeholder='{{ i18n "form_phone" }}'/>
+                        <input type='text' maxlength='255' name='Website' placeholder='LinkedIn' />
+                        <textarea name='Description' maxlength='32000' placeholder='{{ i18n "form_about_you" }}'></textarea>
+
+                        <div class="file">
+                            <br>
+                            <p>{{ i18n "careers_file_hint" }}</p>
+                            <span class="selectFile">{{ i18n "careers_select_file" }}</span>
+                            <input type='file' name='theFile' id='theFile' multiple style="display: none;" />
+                        </div>
+
+                        <label class='newCustomchkbox-md dIB w100per'>
+                            <input autocomplete='off' id='privacyTool' type='checkbox' name='privacyTool'><span class='chkbxIcon'></span> {{ i18n "form_accept" }} <a class="link" href="{{ with site.GetPage "/privacy-policy" }}{{ .Permalink }}{{ end }}" title="{{ i18n "form_privacy_policy" }}">{{ i18n "form_privacy_policy" }}</a> {{ i18n "form_accept_tail" }}
+                        </label>
+
+                        
+                        <div class='g-recaptcha' data-sitekey='6LcbYassAAAAAGaG4S-o0VPb4xVdSbcKPBxKjNrm' data-theme='light' data-callback='rccallback' captcha-verified='false' id='recap'></div>
+
+                        <div class="submit">
+                            <input id='formsubmit' disabled type='submit' value='{{ i18n "form_submit" }}' style=""></input>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="services" id="extrapos">
+            <div class="heading">
+                <h1>{{ i18n "careers_more" }}</h1>
+            </div>
+
+            <div class="row content">
+                {{ $title := .Title }}
+                {{ $pages := where .Site.RegularPages "CurrentSection.Title" .CurrentSection.Title | first 3 }}
+                {{ $.Scratch.Set "counter" 0 }}
+                {{ range $pages }}
+                    {{ if not (eq $title .Title) }}
+                        {{ if not .Page.Draft }}
+                            {{ $.Scratch.Set "counter" (add ($.Scratch.Get "counter") 1) }}
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <a href="{{ .Permalink }}" title="{{ .Title }}">
+                                    <div class="blurBg">
+                                        <div class="icon carrersImg">
+                                            <img src="{{ .Params.thumbnail }}" alt="{{ .Title }}"/>
+                                        </div>
+
+                                        <h4>{{ .Title }}</h4>
+                                        {{ if isset .Params "subtitle" }}<p>{{ .Params.subtitle }}</p>{{ end }}
+                                        {{ if isset .Params "location" }}<p>{{ .Params.location }}</p>{{ end }}
+                                        
+                                        <a href="{{ .Permalink }}" title="{{ .Title }}" class="button">{{ i18n "read_more" }}</a>
+                                    </div>
+                                </a>
+                            </div>
+                        {{ end }}
+                    {{ end }}
+                {{ end }}
+            </div>
+        </section>
+
+        
+</div>
+{{ end }}
