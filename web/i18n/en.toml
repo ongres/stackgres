@@ -1,0 +1,160 @@
+# Chrome strings for the web (non-docs) layouts. Values here MUST stay
+# byte-identical to the strings previously hardcoded in the templates —
+# the EN site output must not change when strings move into i18n keys.
+
+[header_star_github]
+other = "Star on GitHub"
+
+[header_join_slack]
+other = "Join our Slack"
+
+[footer_made_easy]
+other = "Enterprise Postgres made easy"
+
+[footer_built_by]
+other = "StackGres is built by OnGres: Postgres experts and Kubernetes Certified Service Providers."
+
+[footer_col_product]
+other = "Product"
+
+[footer_col_resources]
+other = "Resources"
+
+[footer_col_more]
+other = "More"
+
+[footer_newsletter_title]
+other = "Subscribe to our Newsletter"
+
+[footer_newsletter_sub]
+other = "Be informed of all the news & announcements"
+
+[footer_form_name]
+other = "Name"
+
+[footer_form_email]
+other = "Email Address"
+
+[footer_form_submit]
+other = "Submit"
+
+[footer_privacy]
+other = "Privacy Policy"
+
+[footer_cookies]
+other = "Cookies Policy"
+
+[home_hero_title]
+other = "Postgres.<br>\nStack.<br>\nComplete."
+
+[home_hero_p1]
+other = "The full-stack Postgres Platform."
+
+[home_hero_p2]
+other = "Your own Postgres-as-a-Service on any cloud or on-prem."
+
+[home_hero_p3]
+other = "Fully Open Source."
+
+[home_learn_more]
+other = "Learn More"
+
+[home_install]
+other = "Install"
+
+[home_intro_p1]
+other = "<strong>StackGres</strong> is a Kubernetes Operator for Postgres."
+
+[home_intro_p2]
+other = "Create production-ready Postgres clusters in seconds."
+
+[home_intro_p3]
+other = "No advanced Postgres expertise required. Use the Web Console or the high level CRDs for CLI and GitOps."
+
+[home_pg_item1]
+other = "Community Postgres major versions"
+
+[home_pg_item2]
+other = "More than 150 Postgres extensions!"
+
+[home_pg_item3]
+other = "Postgres superuser"
+
+[home_stack_item1]
+other = "High Availability with Patroni"
+
+[home_stack_item2]
+other = "Connection pooling"
+
+[home_stack_item3]
+other = "Automated backups"
+
+[home_stack_item4]
+other = "Integrated monitoring"
+
+[home_stack_item5]
+other = "Managed Postgres, Patroni logs"
+
+[home_complete_item1]
+other = "Fully-featured Web Console with SSO"
+
+[home_complete_item2]
+other = "Babelfish PostgreSQL (SQL Server compatibility)"
+
+[home_complete_item3]
+other = "Timescale (Apache and TSL) extension"
+
+[home_complete_item4]
+other = "Scale-out Postgres with Citus integrated support"
+
+[home_complete_item5]
+other = "Self-host Supabase on StackGres"
+
+[home_explore_features]
+other = "Explore all features"
+
+[home_help_title]
+other = "Get help with StackGres"
+
+[home_help_p1]
+other = "Becoming an advocate, user, tester or contributor of StackGres."
+
+[home_help_p2]
+other = "Join our Open StackGres Community."
+
+[home_join_slack]
+other = "Join Our Slack"
+
+[home_join_discord]
+other = "Join Our Discord"
+
+[home_commercial_title]
+other = "StackGres Commercial"
+
+[home_commercial_sub]
+other = "Support Services"
+
+[home_explore_subs]
+other = "Explore Subscriptions"
+
+[home_tested_title]
+other = "Tested and supported in the cloud and on-premise"
+
+[home_sponsor_title]
+other = "OnGres is a proud sponsor of"
+
+[home_silver_sponsor]
+other = "Silver Sponsor"
+
+[home_supporters]
+other = "Supporters"
+
+[home_cdti]
+other = "StackGres is supported and granted by CDTI."
+
+
+[lang_switch_label]
+other = "Español"
+
+[lang_switch_title]
+other = "Ver en español"

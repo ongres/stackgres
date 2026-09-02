@@ -4,15 +4,15 @@
 	<div class="container">
 		<div class="row topBorderGradient" id="fLinks">
 			<div class="col-md-5 col-sm-12">
-				<a href="{{ .Site.BaseURL }}" class="logo noUnderline" title="Home">
+				<a href="{{ .Site.Home.Permalink }}" class="logo noUnderline" title="Home">
 					<svg id="Capa_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><style>.st0{fill:#42a8c8}.st1{fill:#426d88}.st2{fill:#428bb4}.st3{fill:#16657c}.st4{fill:#39b54a}.st5{fill:#009245}.st6{fill:#f2c63f}.st7{fill:#f2b136}.st8{fill:#f2a130}.st9{fill:#ff7124}.st10{fill:#d93d1b}</style><switch><g><path class="st0" d="M5.2 273.7l110.7 126.8h268.2l110.7-126.8-110.7-126.8H115.9z"/><path class="st1" d="M115.9 400.5h268.4v56.4H115.9z"/><path class="st2" d="M115.9 456.8L5.2 330v-56.3l110.7 126.8z"/><path class="st3" d="M384.1 456.8L494.8 330v-56.3L384.1 400.5z"/><path class="st4" d="M465.7 253.4c0-47-96.6-85.2-215.7-85.2S34.4 206.3 34.4 253.4s96.5 85.2 215.6 85.2 215.7-38.2 215.7-85.2z"/><path class="st5" d="M465.7 253.4c0 47-96.6 85.2-215.7 85.2S34.4 300.4 34.4 253.4v46.9c14.9 41.3 106.5 85.2 215.6 85.2s200.8-43.9 215.7-85.2v-46.9z"/><path class="st6" d="M16.3 178.6L250 314.1l233.8-135.5L250 43.2z"/><path class="st7" d="M16.3 178.6v52.8L250 366.9v-52.8z"/><path class="st8" d="M483.8 178.6L250 314.1v52.8l233.8-135.5z"/><path class="st9" d="M68 212.4l364.1-53-92.4-106z"/><path class="st10" d="M68 212.4l364.1-53v47.8L68 260.1z"/></g></switch></svg>
 					<span class="white">Stack<strong>Gres</strong></span><br/>
-					<span class="madeEasy">Enterprise Postgres made easy</span>
+					<span class="madeEasy">{{ i18n "footer_made_easy" }}</span>
 				</a>
 
 				<div class="ongresInfo">
 					<p>
-						StackGres is built by OnGres: Postgres experts and Kubernetes Certified Service Providers.
+						{{ i18n "footer_built_by" }}
 					</p>
 					<img class="ongres" src="{{ "img/logo-OG21-name.png" | relURL }}">
 					<img src="{{ "img/logo-kcsp.png" | relURL }}">
@@ -21,7 +21,7 @@
 			<div class="col-md-7 col-sm-12">
 				<div class="row">
 					<div class="col-md-4 col-xs-12">
-						<h4 class="h6">Product</h4>				
+						<h4 class="h6">{{ i18n "footer_col_product" }}</h4>				
 						<ul class="raw">
 							{{ with .Site.Menus.product }}
 								{{ range . }}
@@ -33,7 +33,7 @@
 						</ul>
 					</div>	
 					<div class="col-md-4 col-xs-12">
-						<h4 class="h6">Resources</h4>				
+						<h4 class="h6">{{ i18n "footer_col_resources" }}</h4>				
 						<ul class="raw">
 							{{ with .Site.Menus.resources }}
 								{{ range . }}
@@ -45,7 +45,7 @@
 						</ul>
 					</div>	
 					<div class="col-md-4 col-xs-12">
-						<h4 class="h6">More</h4>				
+						<h4 class="h6">{{ i18n "footer_col_more" }}</h4>				
 						<ul class="raw">
 							{{ with .Site.Menus.more }}
 								{{ range . }}
@@ -63,8 +63,8 @@
 		<div class="separator"></div>
 		<div class="row subscribe center topBorderGradient" id="subscribe">
 			<div class="col-md-5 col-sm-12">
-				<h5>Subscribe to our Newsletter</h5>
-				<p>Be informed of all the news & announcements</p>
+				<h5>{{ i18n "footer_newsletter_title" }}</h5>
+				<p>{{ i18n "footer_newsletter_sub" | safeHTML }}</p>
 			</div>
 	
 			<div class="col-md-7 col-sm-12">
@@ -78,10 +78,10 @@
 						<input type='text' style='display:none;' name='returnURL' value='https://stackgres.io/?thanks=1' > </input>
 			
 						<div class="col-xs-12 col-md-5">
-							<input type='text' maxlength='80' name="Last Name" placeholder="Name"/>
+							<input type='text' maxlength='80' name="Last Name" placeholder="{{ i18n "footer_form_name" }}"/>
 						</div>
 						<div class="col-xs-12 col-md-5">
-							<input type='text' maxlength='100' name='Email' placeholder="Email Address"/>
+							<input type='text' maxlength='100' name='Email' placeholder="{{ i18n "footer_form_email" }}"/>
 						</div>
 						<select style='display: none;' name='Lead Source'>
 							<option value='-None-'>-None-</option>
@@ -91,7 +91,7 @@
 							<option selected value='StackGres'>StackGres</option>
 						</select>
 						<div  class="col-xs-12 col-md-2">
-							<input id='formsubmit' type='submit' value='Submit' class="btn"></input>
+							<input id='formsubmit' type='submit' value='{{ i18n "footer_form_submit" }}' class="btn"></input>
 						</div>
 					</form>
 				</div>
@@ -104,8 +104,9 @@
 			</div>
 		
 			<div class="col-sm-12 col-md-6 textRight">
-				<a href="{{ "privacy-policy" | relLangURL }}">Privacy Policy</a>
-				<a href="{{ "cookies" | relLangURL }}">Cookies Policy</a>
+				<a href="{{ with site.GetPage "/privacy-policy" }}{{ .RelPermalink }}{{ end }}">{{ i18n "footer_privacy" }}</a>
+				<a href="{{ with site.GetPage "/cookies" }}{{ .RelPermalink }}{{ end }}">{{ i18n "footer_cookies" }}</a>
+				{{ partial "lang-switcher.html" (dict "page" .) }}
 			</div>
 		</div>
 	</div>

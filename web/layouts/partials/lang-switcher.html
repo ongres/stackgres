@@ -1,0 +1,27 @@
+{{- /* Language switcher (footer). Context: dict "page" <page>.
+     Always rendered — links to the page's translation, falling back to the
+     nearest translated ancestor, then to the other language's home. */ -}}
+{{- $p := .page -}}
+{{- $target := "" -}}
+{{- if $p.IsTranslated -}}
+	{{- $target = index $p.Translations 0 -}}
+{{- else -}}
+	{{- $ancestor := $p.Parent -}}
+	{{- range seq 1 8 -}}
+		{{- if and $ancestor (eq $target "") -}}
+			{{- if $ancestor.IsTranslated -}}
+				{{- $target = index $ancestor.Translations 0 -}}
+			{{- else -}}
+				{{- $ancestor = $ancestor.Parent -}}
+			{{- end -}}
+		{{- end -}}
+	{{- end -}}
+	{{- if eq $target "" -}}
+		{{- range $p.Site.Home.AllTranslations -}}
+			{{- if ne .Language.Lang $p.Language.Lang -}}{{- $target = . -}}{{- end -}}
+		{{- end -}}
+	{{- end -}}
+{{- end -}}
+{{- with $target }}
+<a class="langSwitch footer" href="{{ .Permalink }}" title="{{ i18n "lang_switch_title" }}" hreflang="{{ .Language.Lang }}" lang="{{ .Language.Lang }}">{{ i18n "lang_switch_label" }}</a>
+{{- end }}

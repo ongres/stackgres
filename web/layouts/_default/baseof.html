@@ -12,9 +12,13 @@
 	{{ end }}{{ block "head-seo" . }}{{ if not (or site.Params.previewgate site.Params.noindex .Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}{{ end }}
 
 	{{ if .IsTranslated }}
+	    <link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}" title="{{ .Language.LanguageName }}">
 	    {{ range .Translations }}
 	    <link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}" title="{{ .Language.LanguageName }}">
 	    {{ end }}
+	    {{ range .AllTranslations }}{{ if eq .Language.Lang "en" }}
+	    <link rel="alternate" hreflang="x-default" href="{{ .Permalink }}">
+	    {{ end }}{{ end }}
 	{{ end }}
 
 	<!-- open graph -->

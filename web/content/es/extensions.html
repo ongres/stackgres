@@ -1,0 +1,48 @@
+---
+title: "Extensiones"
+date: 2023-05-22T01:00:00+02:00
+draft: false
+translationkey: extensions
+url: /es/extensiones/
+description: "Las extensiones son la característica más querida de Postgres. Con más de 100 extensiones soportadas, StackGres es la plataforma Postgres con más extensiones disponibles."
+---
+
+<section class="longText sectionPad">
+    <div class="container">
+        <div class="row">
+            <h1 class="textGradient col-sm-12">Extensiones</h1>
+            <p>
+                <em>Las extensiones son la característica más querida de Postgres.</em> ¡Amplía la funcionalidad de tu
+                base de datos de todas las formas imaginables! Y benefíciate de un ecosistema de cientos de extensiones
+                open source.<br /><br />
+                StackGres soporta la carga dinámica de extensiones en los pods de tu clúster de Postgres. StackGres
+                soporta más de 100 extensiones, y la lista crece cada día. Sin <em>listas blancas</em>, sin un conjunto
+                reducido de extensiones disponibles. StackGres es la plataforma Postgres con más extensiones
+                disponibles. Búscalas y explóralas a continuación:
+            </p>
+        </div>
+    </div>
+</section>
+
+<section id="extensions" class="longText">
+    <div class="container">
+        <div class="row">
+            {{< extensions-list data="https://extensions.stackgres.io/postgres/repository/v2/index.json">}}
+        </div>
+    </div>
+</section>
+
+
+<section class="longText">
+    <div class="container">
+        <div class="row">
+            <p>
+                ¿Echas en falta alguna extensión? Por favor <a
+                    href="https://gitlab.com/ongresinc/stackgres/-/issues/new" target="_blank">crea una issue y
+                    háznoslo saber</a>. Si eres el creador o mantenedor de una extensión y te gustaría verla añadida,
+                contáctanos en el canal <strong><code>#extensions</code></strong> de nuestro <a
+                    href="https://slack.stackgres.io/" target="_blank">Slack de la Comunidad</a>.
+            </p>
+        </div>
+    </div>
+</section>

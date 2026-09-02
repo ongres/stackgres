@@ -1,0 +1,232 @@
+---
+title: "Características"
+date: 2020-01-01T01:00:00+02:00
+draft: false
+translationkey: features
+url: /es/caracteristicas/
+description: "Un stack de componentes de PostgreSQL cuidadosamente seleccionados y ajustados. Descubre todas las increíbles características que StackGres ofrece."
+---
+
+<section id="features">
+    <div class="gradientOverlay blueGradient"></div>
+    <div class="container">
+        <div class="row">
+            <h1 class="col-sm-12 textGradient">Características</h1>
+            <ul class="raw timeline col-sm-12">
+                <li class="row align-items-center" id="full-control">
+                    <span class="index">01</span>
+                    <div class="img col-sm-12 col-md-6 singleSlider">
+                        <a href="{{< sitebaseurl >}}/img/features/01-stackgres-postgres-user.png">
+                            <img src="{{< sitebaseurl >}}/img/features/01-stackgres-postgres-user.png" title="You are in full control. You are the Postgres user" class="border">
+                        </a>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Tienes el control total. Tú eres el usuario <code>postgres</code> <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2>
+                        <p>¿Quieres una base de datos <strong>Postgres</strong> sin restricciones? La tienes. Sin pseudousuarios limitados:<strong> obtienes el usuario <code>postgres</code></strong> (el usuario de máximos privilegios, el usuario “root”). Es tuyo. Sin letra pequeña.</p>
+                        <p>StackGres es una solución Postgres completa, que integra varios componentes con configuraciones ajustadas por expertos.</p>
+                        <p>Para usuarios avanzados de Postgres, permite personalizar aún más los componentes y las configuraciones. Las configuraciones se validan por completo; no son un simple ConfigMap que puede romper tu clúster si lo configuras mal. Mira por ejemplo cómo ajustar las configuraciones de <a href="https://stackgres.io/doc/latest/reference/crd/sgpgconfig/" target="_blank">Postgres</a> o <a href="https://stackgres.io/doc/latest/reference/crd/sgpoolconfig/" target="_blank">Connection Pool</a>. En cuanto a Kubernetes, puedes personalizar <a href="https://stackgres.io/doc/latest/administration/customize/exposed/services/" target="_blank">los servicios expuestos</a>, las <a href="https://stackgres.io/doc/latest/administration/labels/customize/" target="_blank">etiquetas</a> del pod y las <a href="https://stackgres.io/doc/latest/administration/support/tolerations/" target="_blank">tolerancias de nodos</a>, entre muchas otras cosas.</p>
+                        <p>Tienes el control total.</p>
+                        <a class="btn" href="{{< relurl "doc/latest/administration/custom/postgres/config/" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="automated-failover">
+                    <span class="index">02</span>
+                    <div class="img col-sm-12 col-md-6">
+                        <div class="border ascii">
+                            <script id="asciicast-CJyBMrvbx9ogGC8J5ChNYfE8C" src="https://asciinema.org/a/CJyBMrvbx9ogGC8J5ChNYfE8C.js" async data-rows="30"></script>
+                        </div>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Failover automático y alta disponibilidad con Patroni <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2>
+                        <p><strong>StackGres integra el software de alta disponibilidad para Postgres más reconocido y probado en producción: <a href="https://github.com/zalando/patroni" target="_blank">Patroni</a>.</strong></p>
+                        <p>Está totalmente integrado, no hay nada más que hacer. Si falla cualquier pod, cualquier nodo, cualquier cosa, en cuestión de segundos el clúster se recuperará automáticamente, sin intervención humana.</p>
+                        <p>StackGres expone para las aplicaciones una conexión de lectura-escritura (que siempre apunta al primario) y otra de solo lectura (un balanceador que distribuye la carga entre las réplicas), que se actualizarán automáticamente tras cualquier evento disruptivo.</p>
+                        <a class="btn" href="{{< relurl "doc/latest/administration/patroni/management/" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="automated-backups">
+                    <span class="index">03</span>
+                    <div class="img col-sm-12 col-md-6 singleSlider">
+                        <a href="{{< sitebaseurl >}}/img/features/03-stackgres-backup.png">
+                            <img src="{{< sitebaseurl >}}/img/features/03-stackgres-backup.png" title="Copias de seguridad automatizadas, gestión del ciclo de vida" class="border">
+                        </a>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Copias de seguridad automatizadas, gestión del ciclo de vida <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2>
+                        <p>Las copias de seguridad son una parte crítica de una base de datos, y son clave en cualquier estrategia de recuperación ante desastres. <strong>StackGres incluye copias de seguridad basadas en archivado continuo, que permiten recuperación sin pérdida de datos y PITR</strong> (restaurar una base de datos a un instante arbitrario del pasado).</p>
+                        <p>StackGres también proporciona gestión automatizada del ciclo de vida de las copias. Y las copias se almacenan siempre en el medio más duradero disponible hoy: object storage en la nube como <a href="https://aws.amazon.com/s3/" target="_blank">Amazon’s S3</a>, <a href="https://cloud.google.com/products/storage" target="_blank">Google Cloud Storage</a> o <a href="https://azure.microsoft.com/en-us/services/storage/blobs/" target="_blank">Azure Blob</a>. Si trabajas on-prem, puedes usar <a href="https://min.io/" target="_blank">Minio</a> u otro software compatible con S3 para almacenar tus copias.</p>
+                        <p>Solo tienes que proporcionar los datos de acceso y credenciales de tu bucket y configurar la ventana de retención; todo lo demás es totalmente transparente y automatizado. También puedes crear copias manuales con un simple fichero YAML en cualquier momento.</p>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/sgbackupconfig/" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="web-console">
+                    <span class="index">04</span>
+                    <div class="img col-sm-12 col-md-6">
+                        <div class="thumbSlider">
+                            <a href="{{< sitebaseurl >}}/img/features/ui/01-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/01-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/02-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/02-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/03-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/03-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/04-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/04-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/05-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/05-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/06-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/06-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/07-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/07-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/08-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/08-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/ui/00-stackgres-ui.png">
+                                <img src="{{< sitebaseurl >}}/img/features/ui/00-stackgres-ui.png" title="Consola web de administración completa" class="border">
+                            </a>
+
+                        </div>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Consola web de administración completa <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2>
+                        <p>Con todo incluido. StackGres trae una consola web completa que te permite consultar cualquier información y realizar cualquier operación que podrías hacer con kubectl y los CRDs proporcionados.</p>
+                        <p>Solo necesitas decidir cómo exponerla (p. ej. como LoadBalancer) y obtener las credenciales de administrador por defecto. <a href="https://stackgres.io/doc/latest/install/post/install/" target="_blank">Saber más</a>. Además, la consola web se apoya en el RBAC de Kubernetes para la autenticación de usuarios, de modo que puedes dar acceso y permisos a cualquier usuario existente de Kubernetes de forma trivial. </p>
+                        <p><strong>Ah, ¡y soporta modo claro y oscuro!</strong></p>
+                        <a class="btn" href="{{< relurl "doc/latest/install/post/install/#connect-to-the-ui" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="prometheus-integration">
+                    <span class="index">05</span>
+                    <div class="img col-sm-12 col-md-6 singleSlider">
+                        <a href="{{< sitebaseurl >}}/img/features/ui/00-stackgres-ui.png">
+                            <img src="{{< sitebaseurl >}}/img/features/ui/00-stackgres-ui.png" title="Integración automática con Prometheus. Paneles de Grafana personalizados incluidos" class="border">
+                        </a>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Integración automática con Prometheus. Paneles de Grafana personalizados incluidos <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!" onclick="copyLink('#prometheus-integration')"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2>
+                        <p>Si tienes Prometheus Operator instalado en tu Kubernetes, estás a un clic o a un flag booleano en un fichero YAML de tener integración totalmente automática con Prometheus (mira <a href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank">prometheusAutobind</a>). Consulta los <a href="https://stackgres.io/doc/latest/install/helm/install/#stackgres-operator-installation" target="_blank">valores de Helm que puedes especificar</a> al instalar StackGres para autodetectar también Grafana, ¡y listo!</p>
+                        <p>Tendrás todas las métricas de los clústeres en Prometheus. También tendrás los paneles de Grafana personalizados y predefinidos de StackGres, curados por DBAs expertos de Postgres, todo integrado en la consola web.</p>
+			<!--
+                        <a class="btn" href="#">(AHT) Saber más</a>
+			-->
+                    </div>
+                </li>
+                <li class="row align-items-center" id="distributed-logs">
+                    <span class="index">06</span>
+                    <div class="img col-sm-12 col-md-6 singleSlider">
+                        <a href="{{< sitebaseurl >}}/img/features/ui/05-stackgres-ui.png">
+                            <img src="{{< sitebaseurl >}}/img/features/ui/05-stackgres-ui.png" title="Logs distribuidos para Postgres y Patroni" class="border">
+                        </a>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Logs distribuidos para Postgres y Patroni <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2></h2>
+                        <p>¿Cansado de hacer kubectl exec en cada uno de los N pods de tu clúster, para luego hacer grep+awk sobre los logs de Postgres en busca de la información que necesitas? Con StackGres hay una forma mejor.</p>
+                        <p><strong>¡Consulta los logs con SQL, desde una ubicación centralizada! StackGres soporta logs centralizados y distribuidos</strong>. Con un simple CRD en YAML, o desde la consola web, puedes crear un <a href="https://stackgres.io/doc/latest/administration/cluster/distributedlogs/" target="_blank">clúster de logs distribuidos</a> en segundos. Después, <a href="https://stackgres.io/doc/latest/reference/crd/sgcluster/#distributed-logs" target="_blank">referéncialo desde el clúster o clústeres que crees</a>.</p>
+                        <p>Los logs de Postgres y de Patroni se capturan mediante un sidecar de <a href="https://fluentbit.io/" target="_blank">FluentBit</a>, que los reenvía al servidor de logs distribuidos. Este contiene a su vez un colector <a href="https://www.fluentd.org/" target="_blank">Fluentd</a> que <strong> ¡reenvía los logs a una base de datos Postgres dedicada! Para soportar la ingesta de grandes volúmenes de logs, esta base de datos dedicada se potencia con la gran <a href="https://www.timescale.com/" target="_blank">extensión TimescaleDB</a></strong> (versión open source), en la que StackGres también se apoya para aplicar políticas de retención de logs.</p>
+                        <p><strong>Consulta tus logs con SQL para liberar todo el potencial de DBA. O visualízalos en la consola web</strong>, que incluye capacidades de búsqueda y filtrado. Todos los logs se enriquecen con metadatos muy completos. Resolución de problemas de Postgres: te tenemos cubierto.</p>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/sgdistributedlogs/" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="management-crds">
+                    <span class="index">07</span>
+                    <div class="img col-sm-12 col-md-6">
+                        <div class="thumbSlider">
+                            <a href="{{< sitebaseurl >}}/img/features/07-A-stackgres-CRD.png">
+                                <img src="{{< sitebaseurl >}}/img/features/07-A-stackgres-CRD.png" title="CRDs de gestión de alto nivel. Listo para GitOps" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/07-B-stackgres-CRD.png">
+                                <img src="{{< sitebaseurl >}}/img/features/07-B-stackgres-CRD.png" title="CRDs de gestión de alto nivel. Listo para GitOps" class="border">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>CRDs de gestión de alto nivel. Listo para GitOps <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2></h2>
+                        <p>No necesitas instalar ningún cliente ni herramienta adicional para gestionar StackGres. <strong>StackGres está completamente dirigido por CRDs</strong> (consulta la <a href="https://stackgres.io/doc/latest/reference/crd/" target="_blank">referencia de CRDs</a>). Tus peticiones se codifican en la sección spec de los CRDs, y cualquier información de resultado se proporciona en la sección status de los CRDs.</p>
+                        <p>Además, los CRDs están diseñados para ser de muy alto nivel y abstraer (ocultar) todas las complejidades de Postgres. <strong>Con StackGres, si conoces kubectl y los CRDs, también te has convertido en un experto en Postgres.</strong></p>
+                        <p>Que los CRDs sean la interfaz de StackGres, sin requerir ninguna herramienta externa, te permite tener todos tus clústeres de Postgres codificados como IaC (infraestructura como código), y potencialmente versionados en Git. Esto habilita además <a href="https://www.gitops.tech/" target="_blank">GitOps</a>, donde tus clústeres pueden gestionarse automáticamente cuando haces commit de cambios en los CRDs del repositorio Git.</p>
+                        <p>Y si prefieres una interfaz visual a los ficheros YAML y la línea de comandos, cada acción que puedes consultar o realizar con los CRDs también puede realizarse desde la consola web. Del mismo modo, cualquier acción realizada desde la consola web se reflejará automáticamente en los CRDs. Tú eliges.</p>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="connection-pooling">
+                    <span class="index">08</span>
+                    <div class="img col-sm-12 col-md-6 singleSlider">
+                        <a href="{{< sitebaseurl >}}/img/features/09-stackgres-grafana-connection-pooling.png">
+                            <img src="{{< sitebaseurl >}}/img/features/09-stackgres-grafana-connection-pooling.png" title="Connection pooling integrado del lado del servidor" class="border">
+                        </a>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Connection pooling integrado del lado del servidor  <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2></h2>
+                        <p>Debido al modelo de procesos de Postgres, es muy recomendable tener connection pooling en la mayoría de los escenarios de producción. Pero no es un tema sencillo.</p>
+                        <p><strong>StackGres viene por defecto con connection pooling integrado del lado del servidor. Se despliega como un sidecar del contenedor de Postgres.</strong> El pooling del lado del servidor permite controlar el fan-in de conexiones, es decir, las conexiones entrantes a Postgres, y asegurar que Postgres no se vea desbordado por un tráfico que podría causar una degradación significativa del rendimiento.</p>
+                        <p>Puedes ajustar la configuración de bajo nivel o incluso deshabilitar por completo el connection pooling (mira el <a href="https://stackgres.io/doc/latest/reference/crd/sgpoolconfig/" target="_blank">CRD PoolConfig</a>), y por supuesto gestionarlo desde la consola web.</p>
+                        <p>StackGres también exporta métricas relevantes del connection pooling a Prometheus, y se muestran paneles especializados en el Grafana integrado en la consola web.</p>
+                        <a class="btn" href="{{< relurl "doc/latest/reference/crd/sgpoolconfig/" >}}">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="envoy-proxy">
+                    <span class="index">09</span>
+                    <div class="img col-sm-12 col-md-6">
+                        <div class="thumbSlider">
+                            <a href="{{< sitebaseurl >}}/img/features/10-A-stackgres-grafana-envoy-proxy.png">
+                                <img src="{{< sitebaseurl >}}/img/features/10-A-stackgres-grafana-envoy-proxy.png" title="Observabilidad mejorada mediante el filtro Postgres de Envoy Proxy" class="border">
+                            </a>
+                            <a href="{{< sitebaseurl >}}/img/features/10-B-stackgres-grafana-envoy-proxy.png">
+                                <img src="{{< sitebaseurl >}}/img/features/10-B-stackgres-grafana-envoy-proxy.png" title="Observabilidad mejorada mediante el filtro Postgres de Envoy Proxy" class="border">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Observabilidad mejorada mediante el filtro Postgres de Envoy Proxy <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2></h2>
+                        <p>El equipo de OnGres desarrolló, en colaboración con la comunidad de Envoy, el primer filtro Postgres para Envoy. <a href="https://www.cncf.io/blog/2020/08/13/envoy-1-15-introduces-a-new-postgres-extension-with-monitoring-support/" target="_blank">Saber más</a></p>
+                        <p><strong>Este filtro Postgres de Envoy proporciona observabilidad mejorada decodificando el protocolo de red de Postgres y enviando métricas a Prometheus.</strong> No solo se añaden métricas que no están disponibles a nivel de Postgres, sino que además tienen impacto cero en Postgres: se recogen a nivel del proxy, y este proceso es totalmente transparente para Postgres.</p>
+                        <p><strong>StackGres utiliza un sidecar de Envoy para hacer proxy de todo el tráfico de Postgres de forma transparente.</strong> Así que no hay nada que hacer: mientras tengas Prometheus en tu Kubernetes, Envoy enviará métricas adicionales. Y la consola web de StackGres ya incluye paneles de Grafana integrados para visualizar estas métricas.</p>
+                        <a class="btn" href="https://www.cncf.io/blog/2020/08/13/envoy-1-15-introduces-a-new-postgres-extension-with-monitoring-support/">Saber más</a>
+                    </div>
+                </li>
+                <li class="row align-items-center" id="expertly-tuned">
+                    <span class="index">10</span>
+                    <div class="img col-sm-12 col-md-6 singleSlider">
+                        <a href="{{< sitebaseurl >}}/img/features/10-stackgres-conf-snippet.png">
+                            <img src="{{< sitebaseurl >}}/img/features/10-stackgres-conf-snippet.png" title="Ajustado por expertos por defecto" class="border">
+                        </a>
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Ajustado por expertos por defecto <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2></h2>
+                        <p>En OnGres estamos obsesionados con ajustar Postgres adecuadamente. Tanto que hemos creado <a href="https://postgresqlco.nf" target="_blank">postgresqlCO.NF</a>, un sitio web que ayuda a cientos de miles de usuarios de Postgres a ajustar mejor su base de datos.</p>
+                        <p>Los clústeres de StackGres se crean con una configuración inicial de Postgres cuidadosamente ajustada, curada por nuestro equipo de DBAs expertos en Postgres. Si no eres un usuario avanzado de Postgres, esta configuración por defecto te cubrirá de sobra. Si prefieres ajustarla tú mismo, puedes crear uno o más <a href="https://stackgres.io/doc/latest/reference/crd/sgpgconfig/" target="_blank">CRD PostgresConfig</a> y referenciarlos desde tu clúster o clústeres.</p>
+                        <p><strong>Con StackGres, no necesitas ser un experto en Postgres para operar clústeres listos para producción.</strong></p>
+			<!--
+                        <a class="btn" href="#">(AHT) Saber más</a>
+			-->
+                    </div>
+                </li>
+                <li class="row align-items-center" id="redhat-based">
+                    <span class="index">11</span>
+                    <div class="img col-sm-12 col-md-6 textCenter">
+                        <img src="{{< sitebaseurl >}}/img/features/stackgres-redhat-ubi-8.png" title="Imágenes de contenedor ligeras y seguras basadas en UBI 8 de Red Hat" class="ubi8">
+                    </div>
+                    <div class="text col-sm-12 col-md-6">
+                        <h2>Imágenes de contenedor ligeras y seguras basadas en UBI 8 de Red Hat <a href="#" class="copyLink"  data-tooltip="Copied to Clipboard!" title="Copy direct link!"><svg xmlns="http://www.w3.org/2000/svg" width="31.836" height="31.763" viewBox="0 0 31.836 31.763"><g transform="translate(0 -0.588)"><path d="M153.5,8.57a8.731,8.731,0,0,0,1.364,13.176.361.361,0,0,0,.452-.043,14.489,14.489,0,0,0,2.34-2.829.34.34,0,0,0-.133-.476,4.369,4.369,0,0,1-1.675-1.724h0a4.2,4.2,0,0,1-.357-2.871h0c.268-1.3,1.661-2.505,2.726-3.622l-.007,0,3.988-4.07a4.09,4.09,0,0,1,5.809-.03,4.141,4.141,0,0,1,.06,5.838L165.652,14.4a.424.424,0,0,0-.1.434,11.43,11.43,0,0,1,.32,5.6.049.049,0,0,0,.083.044l5.141-5.247A8.619,8.619,0,0,0,158.789,3.172l-5.267,5.376-.021.022Z" transform="translate(-141.709 0)" fill="var(--baseColor)"/><path d="M21.4,182.083h0l.01,0a8.816,8.816,0,0,0,.764-6.264l0,0h0a8.653,8.653,0,0,0-3.488-4.975.477.477,0,0,0-.529.025,8.366,8.366,0,0,0-2.313,2.792.387.387,0,0,0,.154.505,4.326,4.326,0,0,1,1.657,1.69h0a3.96,3.96,0,0,1,.419,2.6h0c-.185,1.423-1.623,2.729-2.765,3.906h0c-.87.889-3.081,3.144-3.966,4.048a4.128,4.128,0,0,1-5.9-5.779l2.423-2.491a.423.423,0,0,0,.1-.427,12.046,12.046,0,0,1-.346-5.589.049.049,0,0,0-.084-.044L2.47,177.245A8.752,8.752,0,0,0,2.533,189.5a8.644,8.644,0,0,0,12.188-.124C15.874,188.083,20.807,183.515,21.4,182.083Z" transform="translate(0 -159.598)" fill="var(--baseColor)"/></g></svg></a></h2></h2></h2></h2>
+                        <p>Todas las imágenes de contenedor de StackGres están construidas sobre la <a href="https://developers.redhat.com/products/rhel/ubi/" target="_blank">Red Hat Universal Base Image (UBI)</a> versión 8, derivada de <a href="https://www.redhat.com/en/enterprise-linux-8" target="_blank">RHEL 8</a>. Las UBI8 son imágenes de contenedor optimizadas, de tamaño mínimo. Con la fiabilidad, estabilidad y hoja de ruta de soporte a largo plazo de RHEL. UBI8 es de uso gratuito, y Red Hat la soporta plenamente si tienes un contrato de soporte de RHEL.</p>
+			<!--
+                        <a class="btn" href="#">(AHT) Saber más</a>
+			-->
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="row sectionPad">
+            <div class="col-sm-12 textCenter">
+                <h3 class="h2">¡Instala StackGres ahora!</h3>
+                <a href="{{< relurl "es/instalacion" >}}" class="btn">Instalar StackGres</a>
+            </div>
+        </div>
+    </div>
+</section>

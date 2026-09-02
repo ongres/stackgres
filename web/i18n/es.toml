@@ -1,0 +1,158 @@
+# Spanish chrome strings. Keys mirror i18n/en.toml.
+
+[header_star_github]
+other = "Danos una estrella en GitHub"
+
+[header_join_slack]
+other = "Únete a nuestro Slack"
+
+[footer_made_easy]
+other = "Postgres empresarial, fácil"
+
+[footer_built_by]
+other = "StackGres está desarrollado por OnGres: expertos en Postgres y proveedores de servicios certificados de Kubernetes."
+
+[footer_col_product]
+other = "Producto"
+
+[footer_col_resources]
+other = "Recursos"
+
+[footer_col_more]
+other = "Más"
+
+[footer_newsletter_title]
+other = "Suscríbete a nuestro boletín"
+
+[footer_newsletter_sub]
+other = "Mantente al día de todas las novedades y anuncios"
+
+[footer_form_name]
+other = "Nombre"
+
+[footer_form_email]
+other = "Correo electrónico"
+
+[footer_form_submit]
+other = "Enviar"
+
+[footer_privacy]
+other = "Política de Privacidad"
+
+[footer_cookies]
+other = "Política de Cookies"
+
+[home_hero_title]
+other = "Postgres.<br>\nStack.<br>\nCompleto."
+
+[home_hero_p1]
+other = "La plataforma Postgres full-stack."
+
+[home_hero_p2]
+other = "Tu propio Postgres-as-a-Service en cualquier nube u on-prem."
+
+[home_hero_p3]
+other = "Totalmente Open Source."
+
+[home_learn_more]
+other = "Saber más"
+
+[home_install]
+other = "Instalar"
+
+[home_intro_p1]
+other = "<strong>StackGres</strong> es un Operador de Kubernetes para Postgres."
+
+[home_intro_p2]
+other = "Crea clústeres de Postgres listos para producción en segundos."
+
+[home_intro_p3]
+other = "No se requiere experiencia avanzada en Postgres. Usa la consola web o los CRDs de alto nivel para CLI y GitOps."
+
+[home_pg_item1]
+other = "Versiones mayores de Postgres de la comunidad"
+
+[home_pg_item2]
+other = "¡Más de 150 extensiones de Postgres!"
+
+[home_pg_item3]
+other = "Superusuario de Postgres"
+
+[home_stack_item1]
+other = "Alta disponibilidad con Patroni"
+
+[home_stack_item2]
+other = "Connection pooling"
+
+[home_stack_item3]
+other = "Copias de seguridad automatizadas"
+
+[home_stack_item4]
+other = "Monitorización integrada"
+
+[home_stack_item5]
+other = "Logs gestionados de Postgres y Patroni"
+
+[home_complete_item1]
+other = "Consola web completa con SSO"
+
+[home_complete_item2]
+other = "Babelfish PostgreSQL (compatibilidad con SQL Server)"
+
+[home_complete_item3]
+other = "Extensión Timescale (Apache y TSL)"
+
+[home_complete_item4]
+other = "Postgres escalable con soporte integrado de Citus"
+
+[home_complete_item5]
+other = "Aloja tu propio Supabase sobre StackGres"
+
+[home_explore_features]
+other = "Explora todas las características"
+
+[home_help_title]
+other = "Obtén ayuda con StackGres"
+
+[home_help_p1]
+other = "Conviértete en promotor, usuario, tester o contribuidor de StackGres."
+
+[home_help_p2]
+other = "Únete a nuestra comunidad abierta de StackGres."
+
+[home_join_slack]
+other = "Únete a nuestro Slack"
+
+[home_join_discord]
+other = "Únete a nuestro Discord"
+
+[home_commercial_title]
+other = "StackGres Comercial"
+
+[home_commercial_sub]
+other = "Servicios de soporte"
+
+[home_explore_subs]
+other = "Explora las suscripciones"
+
+[home_tested_title]
+other = "Probado y soportado en la nube y on-premise"
+
+[home_sponsor_title]
+other = "OnGres patrocina con orgullo"
+
+[home_silver_sponsor]
+other = "Patrocinador Silver"
+
+[home_supporters]
+other = "Colaboradores"
+
+[home_cdti]
+other = "StackGres cuenta con el apoyo y la financiación del CDTI."
+
+
+[lang_switch_label]
+other = "English"
+
+[lang_switch_title]
+other = "View in English"

@@ -168,6 +168,131 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Contact"
             url     = "contact"
             weight  = 5
-        
+
+	[languages.es]
+        languageCode = "es-es"
+        languageName = "Español"
+        contentDir = "content/es/"
+        title = ""
+        weight = 2
+
+        [languages.es.permalinks]
+            tags = "/blog/tags/:slug"
+            planet = "/blog/planet/:slug"
+            author = "/blog/author/:slug"
+
+        # Main Menu ES — untranslated sections (Components, Documentation,
+        # Containers, Blog) deliberately point at the EN pages
+        [[languages.es.menu.main]]
+            name    = "StackGres"
+            weight  = 1
+            identifier = "stackgres"
+
+            [[languages.es.menu.main]]
+                name    = "Características"
+                url     = "es/caracteristicas"
+                weight  = 1
+                parent = "stackgres"
+            [[languages.es.menu.main]]
+                name    = "Extensiones"
+                url     = "es/extensiones"
+                weight  = 2
+                parent = "stackgres"
+        [[languages.es.menu.main]]
+            name    = "Instalación"
+            url     = "es/instalacion"
+            weight  = 2
+        [[languages.es.menu.main]]
+            name    = "Suscripción de Soporte"
+            url     = "es/soporte"
+            weight  = 3
+        [[languages.es.menu.main]]
+            name    = "Componentes"
+            url     = "catalog"
+            weight  = 4
+        [[languages.es.menu.main]]
+            name    = "Documentación"
+            url     = "doc/latest"
+            weight  = 5
+        [[languages.es.menu.main]]
+            name    = "Contenedores"
+            url     = "containers"
+            weight  = 6
+        [[languages.es.menu.main]]
+            name    = "Comunidad"
+            url     = "es/comunidad"
+            weight  = 7
+        [[languages.es.menu.main]]
+            name    = "Blog"
+            url     = "blog"
+            weight  = 8
+
+        # Docs sidebar shortcuts ES (docs are EN-only)
+        [[languages.es.menu.shortcuts]]
+            name = "<i class='fas fa-question-circle'></i> &nbsp;FAQ"
+            identifier = "faq"
+            url = "doc/latest/faq"
+            weight = 10
+
+        [[languages.es.menu.shortcuts]]
+            name = "<i class='fab fa-fw fa-gitlab'></i> GitLab repo"
+            identifier = "ds"
+            url = "https://gitlab.com/ongresinc/stackgres"
+            weight = 11
+
+        # Product ES
+        [[languages.es.menu.product]]
+            name    = "Características"
+            url     = "es/caracteristicas"
+            weight  = 1
+        [[languages.es.menu.product]]
+            name    = "Extensiones"
+            url     = "es/extensiones"
+            weight  = 2
+        [[languages.es.menu.product]]
+            name    = "Instalación"
+            url     = "es/instalacion"
+            weight  = 3
+        [[languages.es.menu.product]]
+            name    = "Nosotros"
+            url     = "es/nosotros"
+            weight  = 4
+
+        # Resources ES
+        [[languages.es.menu.resources]]
+            name    = "Documentación"
+            url     = "doc/latest"
+            weight  = 1
+        [[languages.es.menu.resources]]
+            name    = "Comunidad"
+            url     = "es/comunidad"
+            weight  = 2
+        [[languages.es.menu.resources]]
+            name    = "Blog"
+            url     = "blog"
+            weight  = 3
+
+        # More ES
+        [[languages.es.menu.more]]
+            name    = "Danos una estrella en GitHub"
+            url     = "https://github.com/ongres/stackgres/"
+            weight  = 1
+        [[languages.es.menu.more]]
+            name    = "Repositorio GitLab"
+            url     = "https://gitlab.com/ongresinc/stackgres/"
+            weight  = 2
+        [[languages.es.menu.more]]
+            name    = "Únete a nuestro Slack"
+            url     = "https://slack.stackgres.io/"
+            weight  = 3
+        [[languages.es.menu.more]]
+            name    = "Síguenos en Twitter"
+            url     = "https://twitter.com/ongresinc"
+            weight  = 4
+        [[languages.es.menu.more]]
+            name    = "Contacto"
+            url     = "es/contacto"
+            weight  = 5
+
 [markup.goldmark.renderer]
   unsafe= true

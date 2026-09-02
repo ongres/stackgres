@@ -524,6 +524,35 @@ theme's default single template (which is just `.Content` in the site chrome)
 - All Spanish comments translated to English (i18n UI strings EN/ES kept — a
   feature). The `/pricing` alias (→ support) is untouched.
 
+### 26. Multilingual EN/ES support
+
+The site is bilingual: `[languages.es]` in `config.toml` (`content/es/`,
+weight 2, same blog-taxonomy permalinks) with a full Spanish menu mirror.
+Conventions:
+
+- **Translated slugs**: ES pages keep the EN filename in `content/es/` but set
+  their URL via `url:` front matter (`/es/caracteristicas/`, `/es/soporte/`,
+  `/es/nosotros/`, …). Pairs are linked by the `translationkey` front matter
+  both sides already carry.
+- **Chrome strings** live in project-level `i18n/{en,es}.toml` (themes
+  untouched). The EN values are byte-identical to the previously hardcoded
+  strings; the home page copy lives in `layouts/index.html`, so it is fully
+  i18n-keyed (`home_*`).
+- **Language switcher** (`partials/lang-switcher.html`): footer-only (product
+  decision after trying a header globe dropdown). Rendered always — on
+  untranslated pages it walks `.Parent` to the nearest translated ancestor and
+  falls back to the other language's home. Wired into `web/footer.html` and a
+  project override of sg-doc's `menu-footer.html` (docs sidebar).
+- **hreflang**: baseof emits self + translations + `x-default` (EN) on
+  translated pages only.
+- **EN-only sections** (docs, catalog, containers, blog, calculator): no ES
+  content; the ES menus link those entries to the EN pages. Multilingual mode
+  makes Hugo emit an `/en/` meta-refresh stub to `/` — a bonus alias.
+- Translated now: home chrome + features, extensions, install, support,
+  community, about, contact, privacy-policy, cookies. To add an ES page: copy
+  the EN file to `content/es/`, translate, set `url:` (translated slug) and
+  keep `translationkey`; add menu entries if needed.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
