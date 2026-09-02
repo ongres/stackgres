@@ -970,7 +970,9 @@
                                                             const backupName = $route.query.restoreFromBackup;
                                                             const backupIndex = pitrBackups.findIndex( bk => bk.name == backupName);
                                                             chartContext.toggleDataPointSelection(0, backupIndex);
-                                                            name = 'restore-from-' + restoreBackup + '-' + (new Date().getTime());
+                                                            // default name must fit SGCluster's metadata.name constraints (maxLength 44)
+                                                            const nameSuffix = '-' + new Date().getTime().toString(36);
+                                                            name = ('restore-from-' + restoreBackup).substring(0, 44 - nameSuffix.length).replace(/-+$/, '') + nameSuffix;
                                                         }
                                                     },
                                                     dataPointSelection: function(event, chartContext, config) {
