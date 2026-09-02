@@ -186,6 +186,44 @@ post_build_in_container() {
   run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "${COMMAND_BUILD_UID:-$BUILD_UID}" "$COMMANDS"
 }
 
+# The --volume options that keep the cache paths of a module across builds. The
+# cache of a module is a list in config.yml, so there is one option per entry,
+# and each entry gets its own directory under BUILD_CACHE_PATH: the modules that
+# declare the same path share the directory, which is the point for the .m2/ of
+# the java modules, while the ones that declare different paths do not end up
+# sharing a single directory under different names.
+module_cache_volume_opts() {
+  local CACHE_PATH
+  local SEPARATOR=""
+  for CACHE_PATH in "$@"
+  do
+    CACHE_PATH="${CACHE_PATH%/}"
+    [ -n "$CACHE_PATH" ] || continue
+    printf '%s--volume %s/%s:/project/%s:rw' \
+      "$SEPARATOR" "${BUILD_CACHE_PATH:-$(pwd)}" "$CACHE_PATH" "$CACHE_PATH"
+    SEPARATOR=" "
+  done
+}
+
+# Creates those directories before docker does. A bind mount of a path that does
+# not exist yet is created by the daemon and owned by root, which the build user
+# the container runs as can then not write into.
+prepare_module_cache() {
+  local CACHE_PATH
+  local CACHE_DIR
+  for CACHE_PATH in "$@"
+  do
+    CACHE_PATH="${CACHE_PATH%/}"
+    [ -n "$CACHE_PATH" ] || continue
+    CACHE_DIR="${BUILD_CACHE_PATH:-$(pwd)}/$CACHE_PATH"
+    if ! mkdir -p "$CACHE_DIR" 2>/dev/null
+    then
+      >&2 echo "WARNING: could not create the cache directory $CACHE_DIR. Docker will create" \
+        "it when it mounts it, owned by root, which the build user may not be able to write."
+    fi
+  done
+}
+
 run_commands_in_container() {
   [ "$#" -ge 4 ] || false
   local MODULE="$1"
@@ -193,13 +231,17 @@ run_commands_in_container() {
   local BUILD_UID="$3"
   local COMMANDS="$4"
   local MODULE_PATH
-  local MODULE_CACHE_PATH
+  local MODULE_CACHE_PATHS
   if [ "$COMMANDS" = true ]
   then
     return
   fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_CACHE_PATH="$(jq -r ".modules[\"$MODULE\"].cache | if . != null then . else \"\" end" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_CACHE_PATHS="$(jq -r ".modules[\"$MODULE\"].cache
+        | if . == null then empty elif type == \"array\" then .[] else . end" \
+    stackgres-k8s/ci/build/target/config.json)"
+  # shellcheck disable=SC2086
+  prepare_module_cache $MODULE_CACHE_PATHS
   eval "cat << EOF
 $(
     jq -r ".modules[\"$MODULE\"].build_env | if . != null then . else {} end
@@ -210,12 +252,13 @@ $(
 EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
+  # shellcheck disable=SC2086
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
     --platform "$(docker_platform "${BUILD_PLATFORM:-$(get_platform)}")" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
-    $([ -z "$MODULE_CACHE_PATH" ] || printf %s "--volume ${BUILD_CACHE_PATH:-$(pwd)}:/project/${MODULE_CACHE_PATH}:rw") \
+    $(module_cache_volume_opts $MODULE_CACHE_PATHS) \
     --workdir /project \
     --user "$BUILD_UID" \
     --env HOME=/tmp \
