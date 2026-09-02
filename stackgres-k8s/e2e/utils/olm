@@ -326,9 +326,21 @@ olm_load_operator_images() {
     echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
     olm_load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH"
   fi
+  # The bundle image under its public name only exists once it has been pulled,
+  # which is what --pull does through pull_image_from: the bundle of a build is
+  # built and pushed under the name of the registry of that build, and
+  # olm_build_bundle_image pulls that one. Nothing of the run reads the version
+  # tagged public name, the catalog points at the bundle that was just pushed, so
+  # say what is not being tagged instead of failing on an image that is not there.
   IMAGES="$(olm_get_operator_images "$STACKGRES_VERSION")"
   for IMAGE in $IMAGES
   do
+    if ! docker_inspect "$IMAGE" > /dev/null 2>&1
+    then
+      echo "Not tagging $IMAGE as the version of this build: the image is not here." \
+        "It is pulled under that name only when --pull is used."
+      continue
+    fi
     docker_tag "$IMAGE" "${IMAGE%:*}:$(printf %s "$STACKGRES_VERSION$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX" | tr A-Z a-z)"
   done
   OPERATOR_IMAGES="$(get_operator_images "$STACKGRES_VERSION")"
