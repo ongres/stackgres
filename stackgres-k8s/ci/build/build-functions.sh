@@ -193,11 +193,13 @@ run_commands_in_container() {
   local BUILD_UID="$3"
   local COMMANDS="$4"
   local MODULE_PATH
+  local MODULE_CACHE_PATH
   if [ "$COMMANDS" = true ]
   then
     return
   fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_CACHE_PATH="$(jq -r ".modules[\"$MODULE\"].cache | if . != null then . else \"\" end" stackgres-k8s/ci/build/target/config.json)"
   eval "cat << EOF
 $(
     jq -r ".modules[\"$MODULE\"].build_env | if . != null then . else {} end
@@ -213,6 +215,7 @@ EOF
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
+    $([ -z "$MODULE_CACHE_PATH" ] || printf %s "--volume ${BUILD_CACHE_PATH:-$(pwd)}:/project/${MODULE_CACHE_PATH}:rw") \
     --workdir /project \
     --user "$BUILD_UID" \
     --env HOME=/tmp \
