@@ -186,14 +186,38 @@ post_build_in_container() {
   run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "${COMMAND_BUILD_UID:-$BUILD_UID}" "$COMMANDS"
 }
 
+# The artifact paths of the whole build that fall under $1, a cache path.
+#
+# Those paths have to stay in the project directory even though the cache is
+# mounted over them, and it is the artifacts of every module that matter here and
+# not only the ones of the module being built: the java modules install
+# .m2/repository/io/stackgres/stackgres-<module> under the .m2/ they cache, and
+# the modules that consume them (the native ones, the tests) receive them in the
+# project directory from the image of their source module.
+module_cache_artifact_paths() {
+  local CACHE_PATH="${1%/}"
+  jq -r --arg prefix "$CACHE_PATH/" '
+      [ .modules[].artifacts[]? ] | unique | .[]
+      | sub("/+$"; "")
+      | select(startswith($prefix))' \
+    stackgres-k8s/ci/build/target/config.json 2>/dev/null || true
+}
+
 # The --volume options that keep the cache paths of a module across builds. The
 # cache of a module is a list in config.yml, so there is one option per entry,
 # and each entry gets its own directory under BUILD_CACHE_PATH: the modules that
 # declare the same path share the directory, which is the point for the .m2/ of
 # the java modules, while the ones that declare different paths do not end up
 # sharing a single directory under different names.
+#
+# Every artifact path under a cache path then gets an option of its own, mounting
+# it back from the project directory. Docker orders mounts by the depth of their
+# target, so the deeper one wins whatever the order here: the cache keeps the
+# downloads, while what the modules produce stays in the project directory, which
+# is the context their images are built from.
 module_cache_volume_opts() {
   local CACHE_PATH
+  local ARTIFACT_PATH
   local SEPARATOR=""
   for CACHE_PATH in "$@"
   do
@@ -202,26 +226,50 @@ module_cache_volume_opts() {
     printf '%s--volume %s/%s:/project/%s:rw' \
       "$SEPARATOR" "${BUILD_CACHE_PATH:-$(pwd)}" "$CACHE_PATH" "$CACHE_PATH"
     SEPARATOR=" "
+    for ARTIFACT_PATH in $(module_cache_artifact_paths "$CACHE_PATH")
+    do
+      printf '%s--volume %s/%s:/project/%s:rw' \
+        "$SEPARATOR" "${PROJECT_PATH:-$(pwd)}" "$ARTIFACT_PATH" "$ARTIFACT_PATH"
+    done
   done
 }
 
-# Creates those directories before docker does. A bind mount of a path that does
-# not exist yet is created by the daemon and owned by root, which the build user
-# the container runs as can then not write into.
+# Creates the directories of those mounts before docker does. A bind mount of a
+# path that does not exist yet is created by the daemon and owned by root, which
+# the build user the container runs as can then not write into.
 prepare_module_cache() {
   local CACHE_PATH
-  local CACHE_DIR
+  local ARTIFACT_PATH
   for CACHE_PATH in "$@"
   do
     CACHE_PATH="${CACHE_PATH%/}"
     [ -n "$CACHE_PATH" ] || continue
-    CACHE_DIR="${BUILD_CACHE_PATH:-$(pwd)}/$CACHE_PATH"
-    if ! mkdir -p "$CACHE_DIR" 2>/dev/null
-    then
-      >&2 echo "WARNING: could not create the cache directory $CACHE_DIR. Docker will create" \
-        "it when it mounts it, owned by root, which the build user may not be able to write."
-    fi
+    prepare_mount_directory "${BUILD_CACHE_PATH:-$(pwd)}/$CACHE_PATH"
+    for ARTIFACT_PATH in $(module_cache_artifact_paths "$CACHE_PATH")
+    do
+      prepare_mount_directory "${PROJECT_PATH:-$(pwd)}/$ARTIFACT_PATH"
+      # The mount point of that one inside the cache. An artifact path starts
+      # with the cache path, so this is where the cache mount makes it land.
+      # Without it the daemon creates the directories leading to the mount point
+      # itself, owned by root, inside a cache the build user then can not write.
+      prepare_mount_directory "${BUILD_CACHE_PATH:-$(pwd)}/$ARTIFACT_PATH"
+    done
   done
+}
+
+prepare_mount_directory() {
+  local DIRECTORY="$1"
+  # An artifact can be a single file, and a bind mount of a file works as long as
+  # the file is there, so leave that one alone.
+  if [ -f "$DIRECTORY" ]
+  then
+    return 0
+  fi
+  if ! mkdir -p "$DIRECTORY" 2>/dev/null
+  then
+    >&2 echo "WARNING: could not create the directory $DIRECTORY. Docker will create it when" \
+      "it mounts it, owned by root, which the build user may not be able to write."
+  fi
 }
 
 run_commands_in_container() {
