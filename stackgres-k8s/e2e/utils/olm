@@ -189,6 +189,41 @@ olm_version() {
   fi
 }
 
+# The namespace the SGConfig ends up in: the one of the operator, unless the
+# operator is restricted to a set of namespaces that does not include it.
+olm_sgconfig_namespace() {
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    printf %s "$CLUSTER_NAMESPACE"
+  else
+    printf %s "$OPERATOR_NAMESPACE"
+  fi
+}
+
+# Resolves the names olm_install_operator resolved, for the tests that did not
+# install the operator themselves: run_test runs every test in a subshell of its
+# own, so OLM_CSV, SGCONFIG_NAMESPACE and OLM_SGCONFIG_NAME are empty again in
+# every test that follows the one that installed. All three can be resolved
+# again, the version from the same place the installation took it and the SGConfig
+# from the cluster, so no test has to depend on what another one left behind.
+olm_resolve_operator_names() {
+  if [ -z "$SGCONFIG_NAMESPACE" ]
+  then
+    SGCONFIG_NAMESPACE="$(olm_sgconfig_namespace)"
+  fi
+  if [ -z "$OLM_CSV" ]
+  then
+    OLM_CSV="$(olm_csv_name "$(olm_version)")"
+  fi
+  if [ -z "$OLM_SGCONFIG_NAME" ]
+  then
+    OLM_SGCONFIG_NAME="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" -o name 2>/dev/null \
+      | grep '^sgconfig.stackgres.io/' | head -n 1)"
+    OLM_SGCONFIG_NAME="${OLM_SGCONFIG_NAME#*/}"
+  fi
+}
+
 olm_extra_hash() {
   printf 'E2E_OLM_VERSION=%s\n' "$E2E_OLM_VERSION"
   printf 'E2E_USE_OPENSHIFT_CATALOG=%s\n' "$E2E_USE_OPENSHIFT_CATALOG"
@@ -842,12 +877,7 @@ olm_install_operator() {
 
   OLM_CSV="$(olm_csv_name "$VERSION")"
 
-  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
-  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
-    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
-  then
-    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
-  fi
+  SGCONFIG_NAMESPACE="$(olm_sgconfig_namespace)"
 
   if olm_use_openshift_catalog
   then
@@ -909,11 +939,13 @@ olm_upgrade_operator() {
 }
 
 olm_uninstall_operator() {
+  olm_resolve_operator_names
   kubectl delete subscription -n "$OPERATOR_NAMESPACE" stackgres
   kubectl delete clusterserviceversion -n "$OPERATOR_NAMESPACE" "$OLM_CSV"
 }
 
 olm_check_operator_installed() {
+  olm_resolve_operator_names
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$OLM_SGCONFIG_NAME$"
   then
     fail "The StackGres operator service was not available."
