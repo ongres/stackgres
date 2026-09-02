@@ -9,6 +9,7 @@ variables:
   # overridden along with CONTAINER_ENGINE.
   SG_CONTAINER_ENGINE_IMAGE: "docker:29.2.1"
   BUILDER_IMAGE_NAME: "builder:1.10"
+  BUILD_CACHE_PATH: "/cache"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
