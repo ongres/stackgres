@@ -10,7 +10,7 @@ other = "Únete a nuestro Slack"
 other = "Postgres empresarial, fácil"
 
 [footer_built_by]
-other = "StackGres está desarrollado por OnGres: expertos en Postgres y proveedores de servicios certificados de Kubernetes."
+other = "StackGres está desarrollado por StackGres: expertos en Postgres y proveedores de servicios certificados de Kubernetes."
 
 [footer_col_product]
 other = "Producto"
@@ -139,7 +139,7 @@ other = "Explora las suscripciones"
 other = "Probado y soportado en la nube y on-premise"
 
 [home_sponsor_title]
-other = "OnGres patrocina con orgullo"
+other = "StackGres patrocina con orgullo"
 
 [home_silver_sponsor]
 other = "Patrocinador Silver"
@@ -257,10 +257,16 @@ other = "Cuéntanos sobre ti"
 other = "Acepto la"
 
 [form_privacy_policy]
-other = "Política de Privacidad de OnGres"
+other = "Política de Privacidad de StackGres"
 
 [form_accept_tail]
 other = "y consiento recibir noticias y promociones de cuando en cuando."
 
 [form_submit]
 other = "Enviar"
+
+[footer_col_services]
+other = "Servicios"
+
+[footer_col_company]
+other = "Empresa"

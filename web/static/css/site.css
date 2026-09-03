@@ -1,0 +1,12 @@
+/* Project-level overrides of theme chrome (themes stay untouched). */
+
+/* the theme pads only the first submenu item (tuned for its original 2-item
+   dropdown); with the larger IA every item spaces equally */
+#mainMenu .submenu li,
+#mainMenu .submenu li:first-child {
+	padding-bottom: 10px;
+}
+
+#mainMenu .submenu li:last-child {
+	padding-bottom: 0;
+}

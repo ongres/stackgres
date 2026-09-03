@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{ .Site.Params.projectName }}{{ if .Title }} | {{ .Title }}{{ else if .IsHome }} | {{ T "homeTitle" }} {{ end }}</title>
 	<meta name="description" content="{{ if .Description }}{{ .Description }}{{ else }}{{ T "siteDescription" }}{{ end }}">
-	<meta name="author" content="https://ongres.com">
+	<meta name="author" content="https://stackgres.io">
 	{{ if or site.Params.previewgate site.Params.noindex .Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ end }}
 	{{ if and site.Params.previewgate (ne .Type "containers") }}<script src="{{ "js/preview-gate.js" | relURL }}"></script>
 	{{ end }}{{ block "head-seo" . }}{{ if not (or site.Params.previewgate site.Params.noindex .Params.noindex) }}<meta name="robots" content="index, follow">{{ end }}{{ end }}
@@ -55,6 +55,7 @@
 
     <!-- custom css -->
     <link href="{{ "css/style.css" | relURL }}" rel="stylesheet" />
+    <link href="{{ "css/site.css" | relURL }}" rel="stylesheet" />
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-151126282-1"></script>

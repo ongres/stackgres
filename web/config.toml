@@ -25,11 +25,6 @@ ignoreFiles = ['_index\.template\.md$']
 [params]
     # draft site: keep search engines out — remove before production launch
     noindex = true
-    [params.hubspot]
-        portalId = "149027957"
-        formId = "2d7f94a7-acd0-4cbc-8c3e-c39fd1ae14bd"
-        region = "eu1"
-
     placeholder = "img/placeholder.png"
     # sg-doc (docs) theme params — carried over from the docs site's own config
     showVisitedLinks = false
@@ -38,9 +33,17 @@ ignoreFiles = ['_index\.template\.md$']
     themeVariant = "stackgres"
     DisableShortcutsTitle = true
     isDevVersion = false
-    companyname = "OnGres"
+    companyname = "StackGres"
     twitter = "@OnGresINC"
     projectName = "StackGres"
+
+    # NOTE: subtables must stay LAST in [params] — any plain key written after
+    # a [params.x] table header silently becomes params.x.key (TOML), which
+    # broke projectName/themeVariant/placeholder for weeks
+    [params.hubspot]
+        portalId = "149027957"
+        formId = "2d7f94a7-acd0-4cbc-8c3e-c39fd1ae14bd"
+        region = "eu1"
 
 [languages]
 
@@ -72,34 +75,149 @@ ignoreFiles = ['_index\.template\.md$']
                 url     = "extensions"
                 weight  = 2
                 parent = "stackgres"
-        [[languages.en.menu.main]]
-            name    = "Install"
-            url     = "install"
-            weight  = 2
-        [[languages.en.menu.main]]
-            name    = "Support Subscription"
-            url     = "support"
-            weight  = 3
-        [[languages.en.menu.main]]
-            name    = "Components"
-            url     = "catalog"
-            weight  = 4
+            [[languages.en.menu.main]]
+                name    = "Install"
+                url     = "install"
+                weight  = 3
+                parent = "stackgres"
+            [[languages.en.menu.main]]
+                name    = "Components"
+                url     = "catalog"
+                weight  = 4
+                parent = "stackgres"
+            [[languages.en.menu.main]]
+                name    = "Containers"
+                url     = "containers"
+                weight  = 5
+                parent = "stackgres"
         [[languages.en.menu.main]]
             name    = "Documentation"
             url     = "doc/latest"
-            weight  = 5
+            weight  = 2
         [[languages.en.menu.main]]
-            name    = "Containers"
-            url     = "containers"
-            weight  = 6
+            name    = "Services"
+            weight  = 3
+            identifier = "services"
+
+            [[languages.en.menu.main]]
+                name    = "Support Subscription"
+                url     = "support"
+                weight  = 1
+                parent = "services"
+            [[languages.en.menu.main]]
+                name    = "Consulting"
+                url     = "professional-services/consulting"
+                weight  = 2
+                parent = "services"
+            [[languages.en.menu.main]]
+                name    = "Training"
+                url     = "professional-services/training"
+                weight  = 3
+                parent = "services"
+            [[languages.en.menu.main]]
+                name    = "Migrations"
+                url     = "professional-services/migrations"
+                weight  = 4
+                parent = "services"
+            [[languages.en.menu.main]]
+                name    = "Health Check"
+                url     = "professional-services/health-check"
+                weight  = 5
+                parent = "services"
+            [[languages.en.menu.main]]
+                name    = "Data DevOps"
+                url     = "professional-services/data_devops"
+                weight  = 6
+                parent = "services"
+            [[languages.en.menu.main]]
+                name    = "Kubernetes"
+                url     = "professional-services/kubernetes"
+                weight  = 7
+                parent = "services"
+        [[languages.en.menu.main]]
+            name    = "Company"
+            weight  = 4
+            identifier = "company"
+
+            [[languages.en.menu.main]]
+                name    = "About Us"
+                url     = "about-us"
+                weight  = 1
+                parent = "company"
+            [[languages.en.menu.main]]
+                name    = "Careers"
+                url     = "were-hiring"
+                weight  = 2
+                parent = "company"
+            [[languages.en.menu.main]]
+                name    = "Contact"
+                url     = "contact"
+                weight  = 3
+                parent = "company"
         [[languages.en.menu.main]]
             name    = "Community"
             url     = "community"
-            weight  = 7
+            weight  = 5
         [[languages.en.menu.main]]
             name    = "Blog"
             url     = "blog"
+            weight  = 6
+
+        # Footer Services EN
+        [[languages.en.menu.services]]
+            name    = "Professional Services"
+            url     = "professional-services"
+            weight  = 1
+        [[languages.en.menu.services]]
+            name    = "Support Subscription"
+            url     = "support"
+            weight  = 2
+        [[languages.en.menu.services]]
+            name    = "Consulting"
+            url     = "professional-services/consulting"
+            weight  = 3
+        [[languages.en.menu.services]]
+            name    = "Training"
+            url     = "professional-services/training"
+            weight  = 4
+        [[languages.en.menu.services]]
+            name    = "Migrations"
+            url     = "professional-services/migrations"
+            weight  = 5
+        [[languages.en.menu.services]]
+            name    = "Health Check"
+            url     = "professional-services/health-check"
+            weight  = 6
+        [[languages.en.menu.services]]
+            name    = "Data DevOps"
+            url     = "professional-services/data_devops"
+            weight  = 7
+        [[languages.en.menu.services]]
+            name    = "Kubernetes"
+            url     = "professional-services/kubernetes"
             weight  = 8
+
+        # Footer Company EN
+        [[languages.en.menu.company]]
+            name    = "About Us"
+            url     = "about-us"
+            weight  = 1
+        [[languages.en.menu.company]]
+            name    = "Careers"
+            url     = "were-hiring"
+            weight  = 2
+        [[languages.en.menu.company]]
+            name    = "Contact"
+            url     = "contact"
+            weight  = 3
+        [[languages.en.menu.company]]
+            name    = "Privacy Policy"
+            url     = "privacy-policy"
+            weight  = 4
+        [[languages.en.menu.company]]
+            name    = "Cookies Policy"
+            url     = "cookies"
+            weight  = 5
 
         # Docs sidebar shortcuts EN
         [[languages.en.menu.shortcuts]]
@@ -145,6 +263,10 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Blog"
             url     = "blog"
             weight  = 3
+        [[languages.en.menu.resources]]
+            name    = "PostgresqlCO.NF"
+            url     = "products/postgresqlco.nf"
+            weight  = 4
 
         
         # More EN
@@ -198,34 +320,149 @@ ignoreFiles = ['_index\.template\.md$']
                 url     = "es/extensiones"
                 weight  = 2
                 parent = "stackgres"
-        [[languages.es.menu.main]]
-            name    = "Instalación"
-            url     = "es/instalacion"
-            weight  = 2
-        [[languages.es.menu.main]]
-            name    = "Suscripción de Soporte"
-            url     = "es/soporte"
-            weight  = 3
-        [[languages.es.menu.main]]
-            name    = "Componentes"
-            url     = "catalog"
-            weight  = 4
+            [[languages.es.menu.main]]
+                name    = "Instalación"
+                url     = "es/instalacion"
+                weight  = 3
+                parent = "stackgres"
+            [[languages.es.menu.main]]
+                name    = "Componentes"
+                url     = "catalog"
+                weight  = 4
+                parent = "stackgres"
+            [[languages.es.menu.main]]
+                name    = "Contenedores"
+                url     = "containers"
+                weight  = 5
+                parent = "stackgres"
         [[languages.es.menu.main]]
             name    = "Documentación"
             url     = "doc/latest"
-            weight  = 5
+            weight  = 2
         [[languages.es.menu.main]]
-            name    = "Contenedores"
-            url     = "containers"
-            weight  = 6
+            name    = "Servicios"
+            weight  = 3
+            identifier = "services"
+
+            [[languages.es.menu.main]]
+                name    = "Suscripción de Soporte"
+                url     = "es/soporte"
+                weight  = 1
+                parent = "services"
+            [[languages.es.menu.main]]
+                name    = "Consultoría"
+                url     = "es/servicios-profesionales/consultoria"
+                weight  = 2
+                parent = "services"
+            [[languages.es.menu.main]]
+                name    = "Formación"
+                url     = "es/servicios-profesionales/formacion"
+                weight  = 3
+                parent = "services"
+            [[languages.es.menu.main]]
+                name    = "Migraciones"
+                url     = "es/servicios-profesionales/migraciones"
+                weight  = 4
+                parent = "services"
+            [[languages.es.menu.main]]
+                name    = "Health Check"
+                url     = "es/servicios-profesionales/health-check"
+                weight  = 5
+                parent = "services"
+            [[languages.es.menu.main]]
+                name    = "Data DevOps"
+                url     = "es/servicios-profesionales/data_devops"
+                weight  = 6
+                parent = "services"
+            [[languages.es.menu.main]]
+                name    = "Kubernetes"
+                url     = "es/servicios-profesionales/kubernetes"
+                weight  = 7
+                parent = "services"
+        [[languages.es.menu.main]]
+            name    = "Empresa"
+            weight  = 4
+            identifier = "company"
+
+            [[languages.es.menu.main]]
+                name    = "Nosotros"
+                url     = "es/nosotros"
+                weight  = 1
+                parent = "company"
+            [[languages.es.menu.main]]
+                name    = "Estamos contratando"
+                url     = "es/estamos-contratando"
+                weight  = 2
+                parent = "company"
+            [[languages.es.menu.main]]
+                name    = "Contacto"
+                url     = "es/contacto"
+                weight  = 3
+                parent = "company"
         [[languages.es.menu.main]]
             name    = "Comunidad"
             url     = "es/comunidad"
-            weight  = 7
+            weight  = 5
         [[languages.es.menu.main]]
             name    = "Blog"
             url     = "blog"
+            weight  = 6
+
+        # Footer Services ES
+        [[languages.es.menu.services]]
+            name    = "Servicios Profesionales"
+            url     = "es/servicios-profesionales"
+            weight  = 1
+        [[languages.es.menu.services]]
+            name    = "Suscripción de Soporte"
+            url     = "es/soporte"
+            weight  = 2
+        [[languages.es.menu.services]]
+            name    = "Consultoría"
+            url     = "es/servicios-profesionales/consultoria"
+            weight  = 3
+        [[languages.es.menu.services]]
+            name    = "Formación"
+            url     = "es/servicios-profesionales/formacion"
+            weight  = 4
+        [[languages.es.menu.services]]
+            name    = "Migraciones"
+            url     = "es/servicios-profesionales/migraciones"
+            weight  = 5
+        [[languages.es.menu.services]]
+            name    = "Health Check"
+            url     = "es/servicios-profesionales/health-check"
+            weight  = 6
+        [[languages.es.menu.services]]
+            name    = "Data DevOps"
+            url     = "es/servicios-profesionales/data_devops"
+            weight  = 7
+        [[languages.es.menu.services]]
+            name    = "Kubernetes"
+            url     = "es/servicios-profesionales/kubernetes"
             weight  = 8
+
+        # Footer Company ES
+        [[languages.es.menu.company]]
+            name    = "Nosotros"
+            url     = "es/nosotros"
+            weight  = 1
+        [[languages.es.menu.company]]
+            name    = "Estamos contratando"
+            url     = "es/estamos-contratando"
+            weight  = 2
+        [[languages.es.menu.company]]
+            name    = "Contacto"
+            url     = "es/contacto"
+            weight  = 3
+        [[languages.es.menu.company]]
+            name    = "Política de Privacidad"
+            url     = "es/politica-de-privacidad"
+            weight  = 4
+        [[languages.es.menu.company]]
+            name    = "Política de Cookies"
+            url     = "es/cookies"
+            weight  = 5
 
         # Docs sidebar shortcuts ES (docs are EN-only)
         [[languages.es.menu.shortcuts]]
@@ -271,6 +508,10 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Blog"
             url     = "blog"
             weight  = 3
+        [[languages.es.menu.resources]]
+            name    = "PostgresqlCO.NF"
+            url     = "es/productos/postgresqlco.nf"
+            weight  = 4
 
         # More ES
         [[languages.es.menu.more]]

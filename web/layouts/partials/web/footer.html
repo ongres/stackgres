@@ -20,8 +20,8 @@
 			</div>
 			<div class="col-md-7 col-sm-12">
 				<div class="row">
-					<div class="col-md-4 col-xs-12">
-						<h4 class="h6">{{ i18n "footer_col_product" }}</h4>				
+					<div class="col-md-3 col-xs-12">
+						<h4 class="h6">{{ i18n "footer_col_product" }}</h4>
 						<ul class="raw">
 							{{ with .Site.Menus.product }}
 								{{ range . }}
@@ -31,11 +31,11 @@
 								{{ end }}
 							{{ end }}
 						</ul>
-					</div>	
-					<div class="col-md-4 col-xs-12">
-						<h4 class="h6">{{ i18n "footer_col_resources" }}</h4>				
+					</div>
+					<div class="col-md-3 col-xs-12">
+						<h4 class="h6">{{ i18n "footer_col_services" }}</h4>
 						<ul class="raw">
-							{{ with .Site.Menus.resources }}
+							{{ with .Site.Menus.services }}
 								{{ range . }}
 									{{ $url := urls.Parse .URL }}
 									{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
@@ -43,11 +43,11 @@
 								{{ end }}
 							{{ end }}
 						</ul>
-					</div>	
-					<div class="col-md-4 col-xs-12">
-						<h4 class="h6">{{ i18n "footer_col_more" }}</h4>				
+					</div>
+					<div class="col-md-3 col-xs-12">
+						<h4 class="h6">{{ i18n "footer_col_company" }}</h4>
 						<ul class="raw">
-							{{ with .Site.Menus.more }}
+							{{ with .Site.Menus.company }}
 								{{ range . }}
 									{{ $url := urls.Parse .URL }}
 									{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
@@ -55,7 +55,22 @@
 								{{ end }}
 							{{ end }}
 						</ul>
-					</div>		
+					</div>
+					<div class="col-md-3 col-xs-12">
+						<h4 class="h6">{{ i18n "footer_col_resources" }}</h4>
+						<ul class="raw">
+							{{ range .Site.Menus.resources }}
+								{{ $url := urls.Parse .URL }}
+								{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
+								<li><a href="{{ .URL | relURL }}" {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }} class="noUnderline">{{ .Name }}</a></li>
+							{{ end }}
+							{{ range .Site.Menus.more }}
+								{{ $url := urls.Parse .URL }}
+								{{ $baseurl := urls.Parse $.Site.Params.Baseurl }}
+								<li><a href="{{ .URL | relURL }}" {{ if ne $url.Host $baseurl.Host }}target="_blank" {{ end }} class="noUnderline">{{ .Name }}</a></li>
+							{{ end }}
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -100,12 +115,10 @@
 		<div class="separator"></div>
 		<div class="row marginTop" id="colophon">
 			<div class="col-sm-12 col-md-6">
-				OnGres, Inc. © {{ dateFormat "2006" now }}
+				StackGres, Inc. © {{ dateFormat "2006" now }}
 			</div>
 		
 			<div class="col-sm-12 col-md-6 textRight">
-				<a href="{{ with site.GetPage "/privacy-policy" }}{{ .RelPermalink }}{{ end }}">{{ i18n "footer_privacy" }}</a>
-				<a href="{{ with site.GetPage "/cookies" }}{{ .RelPermalink }}{{ end }}">{{ i18n "footer_cookies" }}</a>
 				{{ partial "lang-switcher.html" (dict "page" .) }}
 			</div>
 		</div>
