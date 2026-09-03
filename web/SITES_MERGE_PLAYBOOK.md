@@ -592,6 +592,42 @@ Fifth site merged: the ongres.com company content (source: the `ongres` repo,
   sections (automated sweep), EN/ES pairs hreflang-linked, forms carry
   per-language return URLs.
 
+Layout-breakage follow-up (found comparing against live ongres.com renders):
+
+- **Theme grid bug discovered**: the stackgres theme's `style.css` embeds a
+  bootstrap grid whose `col-sm`/`col-lg` media tiers never apply (base
+  `.col-12` wins; verified with a computed-style probe — `flex: 0 0 100%` at
+  1400px). Never surfaced because product pages only use `col-sm-12 col-md-*`.
+  Fixed for the ported markup only: `company.css` enforces the used tiers
+  (`col-sm-6/12`, `col-md-4/6`, `col-lg-3/4/8`) scoped under `#company-wrap`.
+  A proper theme-level fix is a follow-up.
+- **`company.css` rebuilt scoped** (`#company-wrap`, step-15 prefixer method):
+  the extraction had missed ongres's body-level `text-align: center`, section
+  rhythm, and gutters (ongres used Bootstrap-5 `--bs-gutter-x`, undefined
+  here). Card panels role-mapped to `--activeBg`. Layouts wrap content in
+  `<div id="company-wrap" class="container">`.
+- **`{{</* sitebaseurl */>}}/img/...` refs in ported content → `relurl`**:
+  with baseURL `/` they rendered protocol-relative (`//img/...`) and under a
+  subpath they double-slash; `relurl` resolves correctly everywhere.
+
+
+### 28. Company-first navigation and footer IA
+
+Nav and footer restructured for the company+product site (agreed IA):
+
+- **Main nav (both languages)**: StackGres ▾ (Features, Extensions, Install,
+  Components, Containers) · Documentation · Services ▾ (Support Subscription +
+  the 7 professional services) · Company ▾ (About Us, Careers, Contact) ·
+  Community · Blog. The product's former top-level entries collapsed into the
+  StackGres dropdown; ES mirrors with translated labels/URLs (EN-only sections
+  keep EN targets).
+- **Footer**: four menu-driven columns — Product / Services / Company /
+  Resources — via two new menus (`services`, `company`) per language; the
+  `more` menu (social links) renders appended to the Resources column;
+  Resources gained PostgresqlCO.NF. Legal links moved from the colophon into
+  the Company column (colophon keeps copyright + language switcher).
+- The pricing calculator stays out of the nav (noindex + gated by design).
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
