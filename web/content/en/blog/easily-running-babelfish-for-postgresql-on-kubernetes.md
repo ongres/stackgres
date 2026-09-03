@@ -20,7 +20,7 @@ If, for any reason, you don’t have a Kubernetes cluster handy; and/or you are 
 
 ## Babelfish for PostgreSQL
 
-Around one year ago, Amazon surprised us all by announcing **Babelfish for PostgreSQL**, a project that would bring a SQL Server compatibility layer on top of Postgres. Babelfish would become both an AWS managed service (on Aurora); as well as an open source project! I then [blogged about it](https://www.ongres.com/blog/aws_announces_open_source_postgres_with_sql_server_compatibility/), knowing that this was a disruption point for Postgres. Babelfish enables Postgres to reach out to many other use cases, users and Communities: the SQL Server ecosystem.
+Around one year ago, Amazon surprised us all by announcing **Babelfish for PostgreSQL**, a project that would bring a SQL Server compatibility layer on top of Postgres. Babelfish would become both an AWS managed service (on Aurora); as well as an open source project! I then [blogged about it](https://stackgres.io/blog/aws_announces_open_source_postgres_with_sql_server_compatibility/), knowing that this was a disruption point for Postgres. Babelfish enables Postgres to reach out to many other use cases, users and Communities: the SQL Server ecosystem.
 
 Adding yet another capability to Postgres reflects on the thoughts shared by Stephen O’Grady on a recent post, [A Return to the General Purpose Database](https://redmonk.com/sogrady/2021/10/26/general-purpose-database/). Postgres is not only a feature-full relational database; but with its extensions, it’s also a time-series database; a sharded database; a graph database; and now, also a SQL Server-compatible database. Postgres is, and will be, the unifying database for almost every imaginable database workload.
 
@@ -143,7 +143,7 @@ ms:babelfish@localhost=> select @@version;
  Babelfish for PostgreSQL with SQL Server Compatibility - 12.0.2000.8+
  Nov  3 2021 09:55:42                                                +
  Copyright (c) Amazon Web Services                                   +
- PostgreSQL 13.4 for Babelfish OnGres Inc. on x86_64-pc-linux-gnu
+ PostgreSQL 13.4 for Babelfish StackGres Inc. on x86_64-pc-linux-gnu
 (1 row)
 
 ms:babelfish@localhost=> create schema sch1;
@@ -167,7 +167,7 @@ Above are shown commands using the T-SQL syntax, and a connection over the TDS p
 
 ```sh
 $ kubectl -n notmssql exec -it bbf-0 -c postgres-util -- psql babelfish
-psql (13.4 OnGres Inc.)
+psql (13.4 StackGres Inc.)
 Type "help" for help.
 
 babelfish=# \d master_sch1.test

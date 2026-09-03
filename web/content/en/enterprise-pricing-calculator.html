@@ -10,15 +10,15 @@ layout: gated
 <style>
 
 /* =====================================================================
-   OnGres + StackGres pricing configurator, embedded in the website chrome.
+   StackGres + StackGres pricing configurator, embedded in the website chrome.
    Styling: site palette and fonts via CSS variables mapped by role below.
    Price source: official Excel "StackGres_Enterprise-Pricing_Calculator
    TEMPLATE" (graduated bracket model) + Catalog v1.0.0 (consulting,
    Non Prod, Marketing Agreement).
    Three clearly separated service lines:
-   - OnGres PostgreSQL Support -> blue accent (--pg)
+   - StackGres PostgreSQL Support -> blue accent (--pg)
    - StackGres Enterprise      -> cyan accent (--accent)
-   - OnGres Consulting         -> green accent (--ok)
+   - StackGres Consulting         -> green accent (--ok)
    Secure access (JWT, unique link) lives in the Next.js layer.
    ===================================================================== */
 #epc{
@@ -31,7 +31,7 @@ layout: gated
   --text-3:#5E6875;
   --accent:var(--lBlue);      /* StackGres */
   --accent-2:var(--blue);
-  --pg:var(--blue);           /* OnGres PostgreSQL Support */
+  --pg:var(--blue);           /* StackGres PostgreSQL Support */
   --pg-2:#33A8FF;
   --ok:var(--green);          /* Consulting / success */
   --warn:var(--lOrange);
@@ -490,7 +490,7 @@ layout: gated
       </details>
     </div>
 
-    <!-- 04 · OnGres Consulting (green) — contract-wide -->
+    <!-- 04 · StackGres Consulting (green) — contract-wide -->
     <div class="card okline reveal">
       <div class="phead">
         <span class="n">04</span>
@@ -600,13 +600,13 @@ const LINK = {
   client: "",
   currency: "USD",              // "USD" | "EUR" (each currency has its own official price list)
   lang: "en",
-  proposalEmail: "cesarcp@ongres.com"
+  proposalEmail: "cesarcp@stackgres.io"
 };
 
 /* =======================================================================
    OFFICIAL CATALOG (independent price list per currency)
    USD: Excel "TEMPLATE_Dolares" · EUR: Excel "TEMPLATE_Euros-2" (own list
-   set by OnGres, not a market-rate conversion).
+   set by StackGres, not a market-rate conversion).
    Non Prod EUR (169/129/89) and EUR consulting (3,450/8,250/15,600/28,600)
    confirmed on 2026-07-08.
    Graduated bracket model (the Excel's SUMPRODUCT). Technical note: the
@@ -664,9 +664,9 @@ en: {
   "hero.h1a":"StackGres",
   "hero.h1b":"Priced in real time.",
   "hero.tag":"Enterprise Postgres on Kubernetes.",
-  "hero.sub":"StackGres Enterprise subscriptions priced transparently, plus OnGres consulting packages. Per core-year, with graduated volume brackets and a 32-core minimum.",
+  "hero.sub":"StackGres Enterprise subscriptions priced transparently, plus StackGres consulting packages. Per core-year, with graduated volume brackets and a 32-core minimum.",
   "hero.cta":"Build your estimate", "hero.cta2":"Compare editions and SLAs",
-  "dual.pgK":"OnGres support service",
+  "dual.pgK":"StackGres support service",
   "dual.pgD":"Expert support for open source PostgreSQL and its ecosystem, with 10x5 to 24x7 Premium SLAs and an optional Proactive package.",
   "dual.sgK":"Commercial licensing",
   "dual.sgD":"StackGres Enterprise licensing with included support: Non Prod, Enterprise and Platinum editions.",
@@ -687,9 +687,9 @@ en: {
   "env.count":"{n} environments",
   lineEnv:"{env} &middot; {e} &middot; {n} cores",
   minNotice:"Below the 32-core minimum: the estimate is calculated on 32 cores.",
-  "prod.pgD":"OnGres support service for open source PostgreSQL.",
+  "prod.pgD":"StackGres support service for open source PostgreSQL.",
   "prod.sgD":"Commercial StackGres licensing with included support.",
-  "pg.by":"OnGres support service",
+  "pg.by":"StackGres support service",
   "pg.hint":"Choose your SLA. Pricing is per core-year, graduated by volume bracket.",
   "pro.l":"Proactive Support package",
   "pro.s":"Adds a per-core fee by bracket and includes expert consulting hours for proactive optimization.",
@@ -700,7 +700,7 @@ en: {
   "sg.hoursT":"Consulting hours included with Platinum",
   "sg.hoursD":"Premium expert hours for architecture, optimization and migrations.",
   "ok.h":"Consulting packages",
-  "ok.by":"OnGres professional services",
+  "ok.by":"StackGres professional services",
   "ok.hint":"Optional expert hours: optimization, troubleshooting and design. Independent from the support subscriptions.",
   "ok.note":"One-time purchase. Hours are valid for 12 months from contracting.",
   "s4.h":"Commercial options",
@@ -724,7 +724,7 @@ en: {
   pkgNone:"None",
   "sum.k":"Your estimate", "sum.total":"Total per year",
   sumNote:"Annual subscriptions plus one-time consulting. Official price list in USD and EUR.",
-  grpPg:"PostgreSQL Support", grpSg:"StackGres Enterprise", grpOk:"OnGres Consulting",
+  grpPg:"PostgreSQL Support", grpSg:"StackGres Enterprise", grpOk:"StackGres Consulting",
   linePgSup:"Support {s} &middot; {n} cores", linePgPro:"Proactive package",
   lineSgLic:"{e} licensing &middot; {n} cores",
   lineMkt:"Marketing Agreement, 15% on licensing",
@@ -744,7 +744,7 @@ en: {
   "share.copy":"Copy link",
   "ro.note":"You are viewing a shared estimate in read-only mode.",
   "ro.edit":"Create an editable copy",
-  fine1:"Indicative estimate. The binding offer is the formal proposal issued by OnGres.",
+  fine1:"Indicative estimate. The binding offer is the formal proposal issued by StackGres.",
   "value.h":"Why teams run StackGres",
   "value.sub":"A fully-featured platform for running production Postgres on any Kubernetes.",
   valueChips:["Automatic HA with Patroni","Backups and PITR","Full web console","Prometheus and Grafana","130+ Postgres extensions","Any Kubernetes, no lock-in"],
@@ -762,7 +762,7 @@ en: {
   yes:"Yes", no:"No",
   slaCols:["SLA level","Response","Update","Resolution","Issue-based","Dedicated telephone"],
   slaNames:["10x5","24x7 Enterprise","24x7 Premium"],
-  legalMain:"StackGres is a product of OnGres, Inc. (Delaware, USA). Prices are per core-year in the selected currency, per the official OnGres price list (USD or EUR). This calculator produces an indicative estimate; the binding offer is the formal proposal issued by OnGres.",
+  legalMain:"StackGres is a product of StackGres, Inc. (Delaware, USA). Prices are per core-year in the selected currency, per the official StackGres price list (USD or EUR). This calculator produces an indicative estimate; the binding offer is the formal proposal issued by StackGres.",
   legalConf:"Confidential: prepared for the named recipient only.",
   mSubject:"StackGres formal proposal request", mFor:"Client",
   mCores:"Cores under support", mBilled:"Billable cores", mEnv:"{env}: {n} cores ({b} billed), {e}", mPg:"PostgreSQL Support", mPro:"Proactive package",
@@ -770,10 +770,10 @@ en: {
   mTotal:"Estimated total per year", mNone:"none", mOff:"not included",
   pdfTitle:"PRICING ESTIMATE", pdfPrep:"Prepared for", pdfDate:"Date",
   pdfEnv:"{n} billable cores across {c} environment(s)",
-  pdfPgT:"PostgreSQL Support (OnGres)", pdfSgT:"StackGres Enterprise licensing",
+  pdfPgT:"PostgreSQL Support (StackGres)", pdfSgT:"StackGres Enterprise licensing",
   pdfCols:["Bracket","Cores","Unit","Subtotal"], pdfColsPro:["Fee","Fee subtotal"],
   pdfHours:"{h} consulting hours included",
-  pdfCons:"OnGres consulting, {h} h (one-time, valid 12 months)",
+  pdfCons:"StackGres consulting, {h} h (one-time, valid 12 months)",
   pdfMkt:"Marketing Agreement, 15% on StackGres licensing",
   pdfTotal:"Total per year",
   pdfSlaPg:"PostgreSQL Support SLA {s}: response {a}, update {b}, resolution {c}.",
@@ -787,9 +787,9 @@ es: {
   "hero.h1a":"StackGres",
   "hero.h1b":"Con precio en tiempo real.",
   "hero.tag":"Postgres enterprise sobre Kubernetes.",
-  "hero.sub":"Suscripciones StackGres Enterprise con precio transparente, más paquetes de consultoría de OnGres. Por core-año, con tramos escalonados por volumen y mínimo de 32 cores.",
+  "hero.sub":"Suscripciones StackGres Enterprise con precio transparente, más paquetes de consultoría de StackGres. Por core-año, con tramos escalonados por volumen y mínimo de 32 cores.",
   "hero.cta":"Configura tu estimación", "hero.cta2":"Comparar ediciones y SLAs",
-  "dual.pgK":"Servicio de soporte OnGres",
+  "dual.pgK":"Servicio de soporte StackGres",
   "dual.pgD":"Soporte experto para PostgreSQL open source y su ecosistema, con SLAs de 10x5 a 24x7 Premium y paquete Proactive opcional.",
   "dual.sgK":"Licencia comercial",
   "dual.sgD":"Licencias StackGres Enterprise con soporte incluido: ediciones Non Prod, Enterprise y Platinum.",
@@ -810,9 +810,9 @@ es: {
   "env.count":"{n} entornos",
   lineEnv:"{env} &middot; {e} &middot; {n} cores",
   minNotice:"Por debajo del mínimo de 32 cores: la estimación se calcula sobre 32 cores.",
-  "prod.pgD":"Servicio de soporte de OnGres para PostgreSQL open source.",
+  "prod.pgD":"Servicio de soporte de StackGres para PostgreSQL open source.",
   "prod.sgD":"Licencia comercial de StackGres con soporte incluido.",
-  "pg.by":"Servicio de soporte OnGres",
+  "pg.by":"Servicio de soporte StackGres",
   "pg.hint":"Elige tu SLA. El precio es por core-año, escalonado por tramo de volumen.",
   "pro.l":"Paquete Proactive Support",
   "pro.s":"Añade una cuota por core según tramo e incluye horas de consultoría experta para optimización proactiva.",
@@ -823,7 +823,7 @@ es: {
   "sg.hoursT":"Horas de consultoría incluidas con Platinum",
   "sg.hoursD":"Horas expertas premium para arquitectura, optimización y migraciones.",
   "ok.h":"Paquetes de consultoría",
-  "ok.by":"Servicios profesionales OnGres",
+  "ok.by":"Servicios profesionales StackGres",
   "ok.hint":"Horas de expertos opcionales: optimización, troubleshooting y diseño. Independientes de las suscripciones de soporte.",
   "ok.note":"Pago único. Las horas tienen una validez de 12 meses desde la contratación.",
   "s4.h":"Opciones comerciales",
@@ -847,7 +847,7 @@ es: {
   pkgNone:"Ninguno",
   "sum.k":"Tu estimación", "sum.total":"Total anual",
   sumNote:"Suscripciones anuales más consultoría de pago único. Lista de precios oficial en USD y EUR.",
-  grpPg:"Soporte PostgreSQL", grpSg:"StackGres Enterprise", grpOk:"Consultoría OnGres",
+  grpPg:"Soporte PostgreSQL", grpSg:"StackGres Enterprise", grpOk:"Consultoría StackGres",
   linePgSup:"Soporte {s} &middot; {n} cores", linePgPro:"Paquete Proactive",
   lineSgLic:"Licencia {e} &middot; {n} cores",
   lineMkt:"Acuerdo de Marketing, 15% sobre licencia",
@@ -867,7 +867,7 @@ es: {
   "share.copy":"Copiar enlace",
   "ro.note":"Estás viendo una estimación compartida en modo de solo lectura.",
   "ro.edit":"Crear una copia editable",
-  fine1:"Estimación indicativa. La oferta vinculante es la propuesta formal emitida por OnGres.",
+  fine1:"Estimación indicativa. La oferta vinculante es la propuesta formal emitida por StackGres.",
   "value.h":"Por qué los equipos eligen StackGres",
   "value.sub":"Una plataforma completa para ejecutar Postgres en producción sobre cualquier Kubernetes.",
   valueChips:["HA automática con Patroni","Backups y PITR","Consola web completa","Prometheus y Grafana","Más de 130 extensiones","Cualquier Kubernetes, sin lock-in"],
@@ -885,7 +885,7 @@ es: {
   yes:"Sí", no:"No",
   slaCols:["Nivel de SLA","Respuesta","Actualización","Resolución","Basado en incidencias","Teléfono dedicado"],
   slaNames:["10x5","24x7 Enterprise","24x7 Premium"],
-  legalMain:"StackGres es un producto de OnGres, Inc. (Delaware, EE. UU.). Los precios son por core-año en la moneda seleccionada, según la lista de precios oficial de OnGres (USD o EUR). Esta calculadora ofrece una estimación indicativa; la oferta vinculante es la propuesta formal emitida por OnGres.",
+  legalMain:"StackGres es un producto de StackGres, Inc. (Delaware, EE. UU.). Los precios son por core-año en la moneda seleccionada, según la lista de precios oficial de StackGres (USD o EUR). Esta calculadora ofrece una estimación indicativa; la oferta vinculante es la propuesta formal emitida por StackGres.",
   legalConf:"Confidencial: preparado únicamente para el destinatario indicado.",
   mSubject:"Solicitud de propuesta formal StackGres", mFor:"Cliente",
   mCores:"Cores bajo soporte", mBilled:"Cores facturables", mEnv:"{env}: {n} cores ({b} facturables), {e}", mPg:"Soporte PostgreSQL", mPro:"Paquete Proactive",
@@ -893,10 +893,10 @@ es: {
   mTotal:"Total anual estimado", mNone:"ninguna", mOff:"no incluido",
   pdfTitle:"ESTIMACIÓN DE PRECIOS", pdfPrep:"Preparado para", pdfDate:"Fecha",
   pdfEnv:"{n} cores facturables en {c} entorno(s)",
-  pdfPgT:"Soporte PostgreSQL (OnGres)", pdfSgT:"Licencia StackGres Enterprise",
+  pdfPgT:"Soporte PostgreSQL (StackGres)", pdfSgT:"Licencia StackGres Enterprise",
   pdfCols:["Tramo","Cores","Unidad","Subtotal"], pdfColsPro:["Cuota","Subtotal cuota"],
   pdfHours:"{h} horas de consultoría incluidas",
-  pdfCons:"Consultoría OnGres, {h} h (pago único, validez 12 meses)",
+  pdfCons:"Consultoría StackGres, {h} h (pago único, validez 12 meses)",
   pdfMkt:"Acuerdo de Marketing, 15% sobre licencia StackGres",
   pdfTotal:"Total anual",
   pdfSlaPg:"SLA Soporte PostgreSQL {s}: respuesta {a}, actualización {b}, resolución {c}.",
@@ -952,7 +952,7 @@ function computeEnv(en){
 
   const P = CFG.price[state.cur];
 
-  // PostgreSQL Support (OnGres)
+  // PostgreSQL Support (StackGres)
   let pgSub = 0, pgFee = 0, pgHours = 0;
   if(state.pg){
     const rates = P.pg[state.pgSla];
@@ -1424,7 +1424,7 @@ function downloadPDF(){
 
   doc.setFillColor(8,9,12); doc.rect(0, H-12, W, 12, "F");
   doc.setTextColor(120,132,145); doc.setFontSize(7.5);
-  doc.text("OnGres, Inc. · ongres.com · stackgres.io", M, H-4.5);
+  doc.text("StackGres, Inc. · stackgres.io · stackgres.io", M, H-4.5);
   doc.text("Confidential", W-M, H-4.5, {align:"right"});
 
   const slug = (LINK.client || "internal").replace(/[^a-z0-9]+/gi,"-");

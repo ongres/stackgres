@@ -29,10 +29,10 @@ This guide is also available as a [video](https://www.youtube.com/watch?v=neB0JH
 <hr/>
 <br/>
 
-OnGres (StackGres)
+StackGres (StackGres)
 ------------------
 
-[StackGres](https://stackgres.io/) is the full-stack Postgres Platform. Fully open-source software to run your own Postgres-as-a-Service on any cloud or on-prem. StackGres is a project from [OnGres](https://ongres.com/), the Postgres laser-focused startup ("OnGres" means "ON postGRES").
+[StackGres](https://stackgres.io/) is the full-stack Postgres Platform. Fully open-source software to run your own Postgres-as-a-Service on any cloud or on-prem. StackGres is a project from [StackGres](https://stackgres.io/), the Postgres laser-focused startup ("StackGres" means "ON postGRES").
 
 StackGres is a Kubernetes Operator for Postgres. It allows you to create production-ready Postgres clusters in seconds. No advanced Postgres expertise is required. You can use the built-in Web Console or the high-level Kubernetes CRDs for CLI and GitOps.
 

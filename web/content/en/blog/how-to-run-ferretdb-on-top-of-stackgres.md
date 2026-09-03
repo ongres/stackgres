@@ -28,8 +28,8 @@ So if you're exploring a scalable and open-source MongoDB alternative on your Ku
 <hr/>
 <br/>
 
-## OnGres (StackGres)
-[StackGres](https://stackgres.io) is the full-stack Postgres Platform. A fully open source software to run your own Postgres-as-a-Service on any cloud or on-prem. StackGres is a project from [OnGres](https://ongres.com), the Postgres laser-focused startup (“OnGres” means “ON postGRES”).
+## StackGres (StackGres)
+[StackGres](https://stackgres.io) is the full-stack Postgres Platform. A fully open source software to run your own Postgres-as-a-Service on any cloud or on-prem. StackGres is a project from [StackGres](https://stackgres.io), the Postgres laser-focused startup (“StackGres” means “ON postGRES”).
 
 StackGres is a Kubernetes Operator for Postgres. It allows you to create production-ready Postgres clusters in seconds. No advanced Postgres expertise required. You can use the built-in Web Console or the high level Kubernetes CRDs for CLI and GitOps.
 
@@ -349,7 +349,7 @@ If you are curious, you can see how data was materialized on the Postgres databa
 
 ```
 kubectl -n ferretdb exec -it postgres-0 -c postgres-util -- psql ferretdb
-psql (15.1 (OnGres 15.1-build-6.18))
+psql (15.1 (StackGres 15.1-build-6.18))
 Type "help" for help.
 
 ferretdb=# set search_path to ferretdb;

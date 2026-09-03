@@ -22,7 +22,7 @@ today**. Many more to come in the future.
 
 ### Why Kubernetes?
 
-At [OnGres](https://ongres.com) we have been providing Postgres Professional Services for years. We love IaC
+At [StackGres](https://stackgres.io) we have been providing Postgres Professional Services for years. We love IaC
 (Infrastructure as Code). One of our realizations was that it was next to impossible to create a "single IaC package"
 that would contain Postgres and its Stack of components, that would work on any environment. There are just so many
 different compute, storage and networking components, with different APIs.
