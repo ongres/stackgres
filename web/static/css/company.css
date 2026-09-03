@@ -1,182 +1,173 @@
 /* Structural styles for the company sections (services, careers, products,
-   about-us) extracted from the retired ongres theme's style.css — the rules
-   whose selectors target the ported markup's class vocabulary. Loaded only by
-   the services/products/careers layouts. Visual pass pending. */
-.heading p, .team ul{
+   about-us): the layout-critical subset of the retired ongres theme, scoped
+   under #company-wrap so StackGres styling always wins outside it. Palette
+   mapped by role to StackGres tokens. Visual pass pending. */
+
+/* layout frame the extraction missed: ongres centered everything at body
+   level, spaced sections, and used Bootstrap-5 gutter vars (undefined here) */
+#company-wrap {
+	text-align: center;
+}
+
+#company-wrap section {
+	position: relative;
+	margin: 100px 0;
+	overflow: visible;
+}
+
+#company-wrap .row > *:not(.box) {
+	padding: 15px 15px 30px;
+}
+
+#company-wrap .row.columnGap {
+	row-gap: 30px;
+}
+
+#company-wrap .heading h1 {
+	margin-bottom: 25px;
+}
+
+#company-wrap .heading h2 {
+	margin-bottom: 40px;
+}
+
+#company-wrap ul {
+	list-style: none;
+	padding-left: 0;
+}
+
+
+#company-wrap .heading p, #company-wrap .team ul{
     width: 75%;
     margin: 0 auto;
     margin-bottom: 50px;
     font-size: 1rem;
 }
-.products .blurBg p, .buttonInBlur, .offices .map, .careers-empty h4{
+#company-wrap .products .box p, #company-wrap .buttonInBlur, #company-wrap .offices .map, #company-wrap .careers-empty h4{
     margin-bottom: 50px;
 }
-.services .blurBg p, .services .blurBg ul, .team .blurBg p{
+#company-wrap .services .box p, #company-wrap .services .box ul, #company-wrap .team .box p{
     width: 100%;
     margin: 25px 0 0;
 }
-.button, .submit input, .selectFile{
-    text-transform: uppercase;
-    font-weight: 700;
-    font-size: .8rem;
-    color: white;
-    background: var(--baseGradient);
-    padding: 13px 20px;
-    border-radius: 10px;
-    margin-top: 75px;
-    cursor: pointer;
+#company-wrap .btn + .btn{
+    margin-left: 10px;
 }
-.button:hover, .submit input:hover, .selectFile:hover{
-    background: var(--invertedGradient);
-    transition: all .5s ease-out;
-}
-.button + .button{
-    margin-left: 10px !important;
-}
-a.link{
+#company-wrap a.link{
     text-decoration: underline;
     color: var(--darkBlue);
 }
-a.link:hover{
+#company-wrap a.link:hover{
     color: var(--lightBlue);
 }
-.blurBg{
-    background: var(--bgColor);
-    border-radius: 15px;
-    padding: 40px;
-    position: relative;
-    box-shadow: 0 10px 90px 0 rgb(6 5 40 / 10%);
-    height: 100%;
+/* Cards use the theme's own .box/.hasIcon/.whiteGradient classes. The only
+   extensions: the theme scopes its hover glow to #pricing/#consulting, and
+   the ongres icons are blue-on-transparent while the theme circle wants dark
+   glyphs (as on the support page). */
+#company-wrap .box:hover{
+    background-image: var(--baseGradient);
+    border-color: transparent;
+    box-shadow: 0 0 50px var(--baseColor);
+    transition: all .5s ease-out;
+}
+#company-wrap .box.hasIcon > svg{
+    padding: 27px;
     box-sizing: border-box;
 }
-.main-menu > li > a:before, section:before, .blurBg h4:before, .blurBg li:not(:first-of-type):before, .team li:not(:first-of-type):before, .grants .row:not(:first-of-type):before, .positionInfo:before, .positionInfo li:before, .post li::before{
-    content: "";
-    width: 20px;
-    height: 3px;
-    background: var(--baseGradient);
-    border-radius: 15px;
-    position: absolute;
-    bottom: 20px;
-    margin-left: calc(50% - 10px);
-    display: none;
+#company-wrap .box.hasIcon > svg path{
+    fill: var(--darkBlue);
 }
-.row.content{
+#company-wrap .row.content{
     margin-top: 75px;
     justify-content: center;
 }
-.heading p{
+#company-wrap .heading p{
     font-size: 1.2rem;
 }
-.officeImg img{
+#company-wrap .officeImg img{
     width: 100%;
     border-radius: 15px;
 }
-.blurBg .button{
+#company-wrap .box .btn{
     margin: 0 0 20px 0;
     display: inline-block;
 }
-.blurBg h4:before, .positionInfo:before{
-    display: inline-block;
-    width: 100%;
-    left: 0;
-    margin-left: 0;
-    top: -50px;
-}
-.positionInfo, .postContent, .postInfo{
+#company-wrap .positionInfo, #company-wrap .postContent, #company-wrap .postInfo{
     width: 80%;
     margin: 0 auto 15px;
 }
-#position h1, #blog .postContent h1, .postInfo h1{
+#company-wrap #position h1, #company-wrap #blog .postContent h1, #company-wrap .postInfo h1{
     font-size: 2.5rem;
     margin-bottom: 50px;
 }
-#position h2, #blog .postContent h2{
+#company-wrap #position h2, #company-wrap #blog .postContent h2{
     margin-top: 50px;
     margin-bottom: 25px;
 }
-#position li, #blog .postContent li{
+#company-wrap #position li, #company-wrap #blog .postContent li{
     margin-top: 0;
     margin-bottom: 15px;
     width: calc(100% - 30px);
 }
-#position li:before, #blog .postContent li:before{
+#company-wrap #position li:before, #company-wrap #blog .postContent li:before{
     margin-left: 0;
     top: 9px;
     left: -25px;
 }
-.relatedPosts h4:before, .team h4:before{
-    display: none;
-}
-.blurBg li, .team li{
-    position: relative;
+#company-wrap .box li, #company-wrap .team li{
     margin-top: 30px;
 }
-.blurBg li:not(:first-of-type):before, .team li:not(:first-of-type)::before, .grants .row:not(:first-of-type):before, .positionInfo li:before{
-    display: inline-block;
-    width: 10px;
-    margin-left: calc(50% - 5px);
-    left: 0;
-    top: -15px;
-}
-.team h3{
+#company-wrap .team h3{
     margin-top: 50px;
 }
-.icon{
-    margin-bottom: 90px;
-    display: inline-block;
-}
-.icon-h svg, .carrersImg img{
+#company-wrap .carrersImg img{
     height: 75px;
     width: auto;
 }
-.icon-v svg{
-    width: 75px;
-    height: auto;
-}
-.selectFile{
+#company-wrap .selectFile{
     margin-top: 10px;
     display: inline-block;
 }
-.apply .newCustomchkbox-md{
+#company-wrap .apply .newCustomchkbox-md{
     margin-top: 60px;
 }
-.fileLimit{
+#company-wrap .fileLimit{
     display: block;
 }
-.blurBg h4 + .button{
+#company-wrap .box h4 + .btn{
     margin-top: 40px;
 }
-.post .button{
+#company-wrap .post .btn{
     margin-top: 30px;
 }
-.postContent h2{
+#company-wrap .postContent h2{
     margin: 40px 0 10px;
 }
-.postContent p{
+#company-wrap .postContent p{
     margin-bottom: 20px;
 }
-.postContent li p{
+#company-wrap .postContent li p{
     display: contents;
 }
-.postContent a, .author .links a{
+#company-wrap .postContent a, #company-wrap .author .links a{
     color: var(--baseColor);
     font-weight: bold;
     word-wrap: break-word;
 }
-.postContent a:hover, .author .links a:hover{
+#company-wrap .postContent a:hover, #company-wrap .author .links a:hover{
     color: var(--baseLightColor);
 }
-.postContent h3{
+#company-wrap .postContent h3{
     font-size: 1.3rem;
     margin-top: 30px;
 }
-.postContent .highlight, .postContent > pre{
+#company-wrap .postContent .highlight, #company-wrap .postContent > pre{
     margin-bottom: 40px;
     max-width: 100%;
     overflow: auto;
     font-size: 85%;
 }
-.postContent table{
+#company-wrap .postContent table{
     border-collapse: collapse;
     max-width: 100%;
     overflow-x: auto;
@@ -184,90 +175,118 @@ a.link:hover{
     display: block;
     margin: 30px auto 45px;
 }
-.postContent th{
+#company-wrap .postContent th{
     padding: 0.5rem;
     border: 1px solid #dcdcdc;
     background: #f0f0f1;
     color: var(--baseColor);
 }
-.postContent td{
+#company-wrap .postContent td{
     border: 1px solid #dcdcdc;
     padding: 0.5rem;
 }
-.highlight pre, .postContent > pre{
+#company-wrap .highlight pre, #company-wrap .postContent > pre{
     background: #fbfbfb !important;
     padding: 15px 20px;
     border-radius: 5px;
     overflow: auto;
     border: 1px solid #dcdcdc;
 }
-.postContent ul{
+#company-wrap .postContent ul{
     margin: 20px 0 30px;
     padding-left: 20px;
 }
-.postContent li{
+#company-wrap .postContent li{
     margin: 0 0 10px !important;
 }
-.postContent li:before{
+#company-wrap .postContent li:before{
     width: 10px;
     display: inline-block !important;
     position: initial !important;
     margin: 0 5px 0 0!important;
     transform: translateY(-4px);
 }
-.postContent img{
+#company-wrap .postContent img{
     border-radius: 0;
 }
-.author .links{
+#company-wrap .author .links{
     margin-top: 10px;
 }
-.author .links a{
+#company-wrap .author .links a{
     font-size: 90%;
     display: inline-block;
     margin-right: 5px;
 }
-@media all and (max-width: 1280px){.postInfo h1{
+@media all and (max-width: 1280px){#company-wrap .postInfo h1{
         font-size: 2rem;
-    }.postContent h2{
+    }#company-wrap .postContent h2{
         font-size: 1.6rem;
-    }.positionInfo, .postContent, .postInfo{
+    }#company-wrap .positionInfo, #company-wrap .postContent, #company-wrap .postInfo{
         width: 90%;
     }}
-@media all and (max-width: 990px){.heading p{
+@media all and (max-width: 990px){#company-wrap .heading p{
         font-size: 1.1rem;
-    }.team h4{
+    }#company-wrap .team h4{
         font-size: 1.2rem;
-    }.team .blurBg{
+    }#company-wrap .team .box{
         padding: 20px;
-    }.team .blurBg .img{
+    }#company-wrap .team .box .img{
         width: calc(100% + 40px);
         margin: -20px 0 20px -20px;
-    }.positionInfo, .postContent, .postInfo{
+    }#company-wrap .positionInfo, #company-wrap .postContent, #company-wrap .postInfo{
         width: 95%;
     }}
-@media all and (max-width: 640px){.blurBg{
-        padding: 30px;
-    }p, .heading p{
+@media all and (max-width: 640px){#company-wrap #company-wrap p, #company-wrap .heading p{
         font-size: 1rem;
-    }.icon svg, .carrersImg img{
+    }#company-wrap .carrersImg img{
         height: 40px;
-    }.icon + h4{
+    }#company-wrap .box.hasIcon h4{
         font-size: 1.3rem;
-    }.blurBg h4:before, .positionInfo:before{
-        top: -25px;
-    }.icon{
-        margin-bottom: 35px;
-    }.heading p, .team ul{
+    }#company-wrap .heading p, #company-wrap .team ul{
         width: 85%;
-    }.products .blurBg p, .buttonInBlur, .offices .map, .careers-empty h4{
+    }#company-wrap .products .box p, #company-wrap .buttonInBlur, #company-wrap .offices .map, #company-wrap .careers-empty h4{
         margin-bottom: 20px;
-    }.postInfo h1{
+    }#company-wrap .postInfo h1{
         font-size: 1.5rem;
-    }.postContent h2{
+    }#company-wrap .postContent h2{
         font-size: 1.3rem;
-    }.blurBg h4 + .button{
+    }#company-wrap .box h4 + .btn{
         margin-top: 25px;
-    }.button + .button{
+    }#company-wrap .button + .button{
         margin-left: 0 !important;
         margin-top: 0;
     }}
+
+
+/* The stackgres theme's embedded grid is malformed above the md tier (its
+   base .col-12 overrides the sm/lg media rules; pre-existing theme bug that
+   never surfaced because the product pages only use col-sm/col-md). Enforce
+   the tiers the ported markup uses, scoped so nothing outside is affected. */
+@media (min-width: 576px) {
+	#company-wrap .col-sm-6 { flex: 0 0 50%; max-width: 50%; }
+	#company-wrap .col-sm-12 { flex: 0 0 100%; max-width: 100%; }
+	#company-wrap .row.columnGap > .col-sm-6 { flex: 0 0 calc(50% - 15px); }
+}
+@media (min-width: 768px) {
+	#company-wrap .col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+	#company-wrap .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+	#company-wrap .row.columnGap > .col-md-4 { flex: 0 0 calc(33.33333% - 20px); }
+	#company-wrap .row.columnGap > .col-md-6 { flex: 0 0 calc(50% - 15px); }
+}
+@media (min-width: 992px) {
+	#company-wrap .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+	#company-wrap .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+	#company-wrap .col-lg-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+	#company-wrap .row.columnGap > .col-lg-3 { flex: 0 0 calc(25% - 22.5px); }
+	#company-wrap .row.columnGap > .col-lg-4 { flex: 0 0 calc(33.33333% - 20px); }
+}
+
+#team .box img, #equipo .box img {
+    max-width: calc(100% + 120px);
+    margin: -60px;
+    width: calc(100% + 120px);
+    display: inline-block;
+    margin-bottom: 20px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}

@@ -6,14 +6,14 @@
 {{ end }}
 
 {{ define "main" }}
-<div class="container careers">
+<div id="company-wrap" class="container">
         {{ .Content }}
 
         <section class="apply">
             <div class="heading">
                 <h1>{{ i18n "careers_apply_title" }}</h1>
                 <h2>{{ i18n "careers_apply_sub" }}</h2>
-                <p>{{ i18n "careers_apply_txt" }} <a href="mailto:werehiring@ongres.com?subject={{ .Title }}" class="link" title="werehiring@ongres.com">werehiring@ongres.com</a>.</p>
+                <p>{{ i18n "careers_apply_txt" }} <a href="mailto:werehiring@stackgres.io?subject={{ .Title }}" class="link" title="werehiring@stackgres.io">werehiring@stackgres.io</a>.</p>
             </div>
 
             <div class="form">
@@ -45,7 +45,7 @@
                         <div class="file">
                             <br>
                             <p>{{ i18n "careers_file_hint" }}</p>
-                            <span class="selectFile">{{ i18n "careers_select_file" }}</span>
+                            <span class="btn selectFile">{{ i18n "careers_select_file" }}</span>
                             <input type='file' name='theFile' id='theFile' multiple style="display: none;" />
                         </div>
 
@@ -57,7 +57,7 @@
                         <div class='g-recaptcha' data-sitekey='6LcbYassAAAAAGaG4S-o0VPb4xVdSbcKPBxKjNrm' data-theme='light' data-callback='rccallback' captcha-verified='false' id='recap'></div>
 
                         <div class="submit">
-                            <input id='formsubmit' disabled type='submit' value='{{ i18n "form_submit" }}' style=""></input>
+                            <input id='formsubmit' disabled type='submit' class='btn' value='{{ i18n "form_submit" }}' style=""></input>
                         </div>
                     </form>
                 </div>
@@ -69,7 +69,7 @@
                 <h1>{{ i18n "careers_more" }}</h1>
             </div>
 
-            <div class="row content">
+            <div class="row content columnGap">
                 {{ $title := .Title }}
                 {{ $pages := where .Site.RegularPages "CurrentSection.Title" .CurrentSection.Title | first 3 }}
                 {{ $.Scratch.Set "counter" 0 }}
@@ -79,7 +79,7 @@
                             {{ $.Scratch.Set "counter" (add ($.Scratch.Get "counter") 1) }}
                             <div class="col-12 col-md-6 col-lg-4">
                                 <a href="{{ .Permalink }}" title="{{ .Title }}">
-                                    <div class="blurBg">
+                                    <div class="box textCenter"><div class="whiteGradient border"></div>
                                         <div class="icon carrersImg">
                                             <img src="{{ .Params.thumbnail }}" alt="{{ .Title }}"/>
                                         </div>
@@ -88,7 +88,7 @@
                                         {{ if isset .Params "subtitle" }}<p>{{ .Params.subtitle }}</p>{{ end }}
                                         {{ if isset .Params "location" }}<p>{{ .Params.location }}</p>{{ end }}
                                         
-                                        <a href="{{ .Permalink }}" title="{{ .Title }}" class="button">{{ i18n "read_more" }}</a>
+                                        <a href="{{ .Permalink }}" title="{{ .Title }}" class="btn">{{ i18n "read_more" }}</a>
                                     </div>
                                 </a>
                             </div>
