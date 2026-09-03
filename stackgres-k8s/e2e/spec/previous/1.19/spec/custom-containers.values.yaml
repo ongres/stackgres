@@ -1,0 +1,172 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backupconfig:
+    create: false
+cluster:
+  postgres:
+    version: "13.12"
+  postgresServices:
+    primary:
+      customPorts:
+      - name: pgadmin
+        port: 9000
+        targetPort: pgadmin
+      - name: pgrest
+        port: 3000
+        targetPort: pgrest
+    replicas:
+      customPorts:
+      - name: pgadmin
+        port: 9000
+        targetPort: pgadmin
+      - name: pgrest
+        port: 3000
+        targetPort: pgrest
+  pods:
+    persistentVolume:
+      size: 128Mi
+    managementPolicy: Parallel
+    customVolumes:
+    - name: pgadmin
+      emptyDir: {}
+    - name: pgadmin-config
+      configMap:
+        name: pgadmin
+    customContainers:
+    - name: pgadmin
+      image: dpage/pgadmin4:6.14
+      imagePullPolicy: IfNotPresent
+      # The dpage/pgadmin4 image ships its python3 binary with the file
+      # capability cap_net_bind_service set in its effective set. The operator
+      # now hardens every container that declares no security context with
+      # allowPrivilegeEscalation: false (which enables the kernel no_new_privs
+      # flag) and capabilities drop ALL. Under no_new_privs the kernel refuses
+      # to execve() a binary carrying an effective file capability and, with the
+      # capability dropped from the bounding set, it could not be applied anyway,
+      # so python3/gunicorn fail with "Operation not permitted". Declare an
+      # explicit security context (which the operator leaves untouched) that
+      # keeps no_new_privs disabled and retains only NET_BIND_SERVICE so the
+      # image entrypoint can start.
+      securityContext:
+        allowPrivilegeEscalation: true
+        capabilities:
+          drop:
+          - ALL
+          add:
+          - NET_BIND_SERVICE
+        seccompProfile:
+          type: RuntimeDefault
+      env:
+      - name: PGADMIN_DEFAULT_EMAIL
+        value: admin@stackgres.io
+      - name: PGADMIN_DEFAULT_PASSWORD
+        value: st4ckgr3s
+      - name: PGADMIN_LISTEN_PORT
+        value: "9000"
+      - name: PGADMIN_DISABLE_POSTFIX
+        value: "true"
+      ports:
+      - containerPort: 9000
+        name: pgadmin
+        protocol: TCP
+      volumeMounts:
+      - name: custom-pgadmin-config
+        mountPath: /pgadmin4/config_distro.py
+        subPath: config_distro.py
+      - name: custom-pgadmin
+        mountPath: /var/log/pgadmin
+        subPath: var/log/pgadmin
+      - name: custom-pgadmin
+        mountPath: /var/lib/pgadmin
+        subPath: var/lib/pgadmin
+      # The Pod runs as the unprivileged postgres user (uid 999), which is not
+      # present in the pgadmin image /etc/passwd. pgAdmin calls
+      # getpass.getuser() on start up and crashes with "uid not found: 999"
+      # unless the uid can be resolved. Mount the StackGres user files (which
+      # contain the uid 999 entry), mirroring the postgrest and pg-controldata
+      # containers below.
+      - name: user
+        mountPath: /etc/passwd
+        subPath: etc/passwd
+        readOnly: true
+      - name: user
+        mountPath: /etc/group
+        subPath: etc/group
+        readOnly: true
+      - name: user
+        mountPath: /etc/shadow
+        subPath: etc/shadow
+        readOnly: true
+      - name: user
+        mountPath: /etc/gshadow
+        subPath: etc/gshadow
+        readOnly: true
+    - name: postgrest
+      image: postgrest/postgrest:v10.0.0
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: PGRST_DB_URI
+        value: postgresql:///postgres?host=/var/run/postgresql
+      - name: PGRST_DB_ANON_ROLE
+        value: postgres
+      - name: PGRST_DB_SCHEMAS
+        value: pg_catalog
+      ports:
+      - containerPort: 3000
+        name: pgrest
+        protocol: TCP
+      volumeMounts:
+      - name: socket
+        mountPath: /var/run/postgresql
+      - name: user
+        mountPath: /etc/passwd
+        subPath: etc/passwd
+        readOnly: true
+      - name: user
+        mountPath: /etc/group
+        subPath: etc/group
+        readOnly: true
+      - name: user
+        mountPath: /etc/shadow
+        subPath: etc/shadow
+        readOnly: true
+      - name: user
+        mountPath: /etc/gshadow
+        subPath: etc/gshadow
+        readOnly: true
+    customInitContainers:
+    - name: pg-controldata
+      image: postgres:18
+      command:
+      - sh
+      - -ecx
+      - |
+        pg_controldata /stackgres/data || true
+      volumeMounts:
+      - name: custom-containers-data
+        mountPath: /stackgres
+      - name: user
+        mountPath: /etc/passwd
+        subPath: etc/passwd
+        readOnly: true
+      - name: user
+        mountPath: /etc/group
+        subPath: etc/group
+        readOnly: true
+      - name: user
+        mountPath: /etc/shadow
+        subPath: etc/shadow
+        readOnly: true
+      - name: user
+        mountPath: /etc/gshadow
+        subPath: etc/gshadow
+        readOnly: true
+    customVolumeMounts:
+      patroni:
+      - name: custom-pgadmin-config
+        mountPath: /pgadmin4/config_distro.py
+        subPath: config_distro.py
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true

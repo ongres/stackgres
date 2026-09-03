@@ -1,0 +1,31 @@
+#!/bin/sh
+
+wait_dbops_is_completed() {
+  local DBOPS_NAME="$1"
+  if wait_until kubectl wait --timeout 0s sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --for=condition=Completed > /dev/null
+  then
+    success "The dbops has completed"
+  else
+    fail "The dbops has failed or did not completed"
+  fi
+}
+
+wait_sharded_dbops_is_completed() {
+  local SHARDED_DBOPS_NAME="$1"
+  if wait_until -t "$((E2E_TIMEOUT * 4))" kubectl wait --timeout 0s sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+    --for=condition=Completed > /dev/null
+  then
+    success "The sharded dbops has completed"
+  else
+    fail "The sharded dbops has failed or did not completed"
+  fi
+}
+
+trigger_sharded_cluster_require_restart() {
+  local DATE="$(date +%s)"
+  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
+    -p "spec: { coordinator: { pods: { customEnv: { patroni: [{ name: REQUIRE_RESTART, value: '$DATE' }] } } } }"
+  kubectl wait sts --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord" \
+    --for jsonpath='{.spec.template.spec.containers[?(@.name == "patroni")].env[?(@.name == "REQUIRE_RESTART")].value}'="$DATE"
+}

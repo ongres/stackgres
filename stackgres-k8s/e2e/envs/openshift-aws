@@ -1,0 +1,1083 @@
+#!/bin/sh
+
+#
+# Self-managed OpenShift Container Platform on AWS, installed with
+# openshift-install (IPI). Unlike the crc environment this is a real
+# installer-provisioned cluster, so it exercises the install path, the cloud CSI
+# storage and the Routes that customers actually run on, and it can be pinned to
+# any version of the range declared by the operator bundle in
+# stackgres-k8s/install/operator-sdk/stackgres-operator/openshift-operator-bundle/metadata/annotations.yaml
+#
+# Clusters created here are meant to be ephemeral: create, test, destroy. Only
+# self-managed OpenShift consumes a Red Hat subscription entitlement; ROSA and
+# ARO are billed by the cloud provider and cannot use one.
+#
+# Prerequisites:
+#
+#  1. AWS credentials with the permissions the installer requires (EC2, ELB,
+#     Route53, IAM, S3, VPC). Check the identity in use with:
+#
+#         aws sts get-caller-identity
+#
+#  2. A *public* Route53 hosted zone for the base domain, delegated from its
+#     parent domain. The installer writes the cluster DNS records into it, so it
+#     has to resolve from outside AWS or the install never completes. This
+#     environment never creates or deletes the zone, it only checks that one
+#     exists. List the public zones of the current account with:
+#
+#         aws route53 list-hosted-zones \
+#           --query 'HostedZones[?Config.PrivateZone==`false`].Name' --output text
+#
+#     Then export the base domain, for example:
+#
+#         export K8S_OPENSHIFT_AWS_BASE_DOMAIN=e2e.example.com
+#
+#  3. A pull secret from https://console.redhat.com/openshift/install, downloaded
+#     while logged in with the *company* Red Hat account that holds the Partner
+#     Subscription, not a personal Red Hat Developer Subscription for
+#     Individuals (which is granted to an individual in a personal capacity and
+#     does not cover company work). Save it to:
+#
+#         mkdir -p ~/.openshift && chmod 700 ~/.openshift
+#         cp pull-secret.txt ~/.openshift/pull-secret
+#
+#  4. curl, jq, tar and ssh-keygen. openshift-install and oc are downloaded
+#     automatically, per version, under $K8S_OPENSHIFT_AWS_HOME/bin.
+#
+# Choosing the AWS account:
+#
+# The installer requires the public hosted zone to be in *the same account as
+# the cluster*, and it authenticates to Route53 and to EC2 with one set of
+# credentials. There is a hostedZoneRole install-config field for hosted zones
+# owned by another account, but it only covers the *private* zone of a shared
+# VPC install, so it does not make a public zone usable across accounts.
+#
+# Both openshift-install and the aws CLI calls this environment makes follow the
+# standard AWS credential chain, so one variable selects the account for
+# everything, DNS validation and volume cleanup included:
+#
+#     export AWS_PROFILE=<profile>       # a profile in ~/.aws/credentials
+#
+# Alternatively export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY directly, or
+# point AWS_SHARED_CREDENTIALS_FILE at another credentials file. Confirm which
+# account is selected before creating anything:
+#
+#     aws sts get-caller-identity
+#
+# Whatever you choose has to be set for *destroy as well as create*. Running
+# delete_k8s against a different account leaves the cluster running and billing.
+#
+# Setting up the base domain:
+#
+# Everything below is driven by the environment, the only thing to set by hand is
+# the base domain itself:
+#
+#     export AWS_PROFILE=<cluster-profile>
+#     export K8S_OPENSHIFT_AWS_BASE_DOMAIN=e2e.example.com
+#     ./e2e openshift_aws_setup_base_domain
+#
+# That finds the parent zone the base domain belongs to, creates the public
+# hosted zone for the base domain if it does not exist yet, reads the four
+# nameservers AWS assigned to it, upserts the matching NS records into the
+# *parent* zone, waits for the change to reach INSYNC and then waits until the
+# subdomain actually resolves. It is idempotent, so running it again after a
+# partial or failed attempt repairs the result rather than duplicating anything.
+#
+# To have reset_k8s do it as part of creating a cluster:
+#
+#     export K8S_OPENSHIFT_AWS_MANAGE_BASE_DOMAIN=true
+#
+# It is off by default because it writes to the DNS of the account that owns the
+# parent domain.
+#
+# When the parent domain is a zone of *another* account, name the profile that
+# owns it. The hosted zone for the base domain is still created in the cluster
+# account, only the delegation record is written in the parent account:
+#
+#     export K8S_OPENSHIFT_AWS_PARENT_PROFILE=<parent-profile>
+#
+# To undo it, once the clusters that use it are destroyed:
+#
+#     ./e2e openshift_aws_delete_base_domain
+#
+# which removes the delegation from the parent zone and deletes the hosted zone.
+#
+# Why the delegation has to be in the parent zone:
+#
+# Every hosted zone already contains an apex NS record listing its own
+# nameservers. Writing the base domain's NS records into the base domain's own
+# zone therefore only rewrites that self-referential record, and changes nothing
+# about resolution, because no resolver reaches that zone until the parent points
+# at it. The delegation belongs in the parent zone. An undelegated subdomain
+# looks like this, NXDOMAIN with the parent zone in the authority section:
+#
+#     dig NS e2e.example.com
+#     ;; ->>HEADER<<- status: NXDOMAIN
+#     ;; AUTHORITY SECTION:
+#     example.com.  900  IN  SOA  ns-1.awsdns-01.org. ...
+#
+# For a manual check, note that dig exits 0 even on NXDOMAIN, so look at the
+# answer and not at the exit status. Piping through grep turns "no records" into
+# a failure, which is what openshift_aws_setup_base_domain waits on:
+#
+#     dig +short NS e2e.example.com | grep . || echo 'not delegated yet'
+#
+# Usage:
+#
+#     export E2E_ENV=openshift-aws
+#     export K8S_OPENSHIFT_AWS_BASE_DOMAIN=e2e.example.com
+#     ./e2e reset_k8s      # create  (~25 min for the default single node)
+#     ./e2e delete_k8s     # destroy (always run this, it costs money)
+#
+# The default topology is single-node OpenShift: one control-plane node and no
+# compute nodes, which makes the control plane schedulable. It is the cheapest
+# real install path. For a cluster that can exercise pod anti-affinity and
+# node-level failover, ask for compute nodes instead:
+#
+#     export K8S_OPENSHIFT_AWS_MASTERS=3 K8S_OPENSHIFT_AWS_NODES=3
+#
+# Note that openshift-install needs the asset directory it created in order to
+# destroy the cluster again, so state is kept in $K8S_OPENSHIFT_AWS_HOME and not
+# under the build target directory.
+#
+
+K8S_OPENSHIFT_AWS_NAME="${K8S_OPENSHIFT_AWS_NAME:-stackgres-e2e}"
+K8S_OPENSHIFT_AWS_REGION="${K8S_OPENSHIFT_AWS_REGION:-us-west-2}"
+K8S_OPENSHIFT_AWS_BASE_DOMAIN="${K8S_OPENSHIFT_AWS_BASE_DOMAIN:-}"
+# AWS profile that owns the parent domain, when the parent zone lives in another
+# account than the clusters. Empty means the same credentials are used for both.
+K8S_OPENSHIFT_AWS_PARENT_PROFILE="${K8S_OPENSHIFT_AWS_PARENT_PROFILE:-}"
+# When true reset_k8s creates the hosted zone and its delegation itself instead
+# of only checking for them. Off by default, since it writes to the DNS of the
+# account that owns the parent domain.
+K8S_OPENSHIFT_AWS_MANAGE_BASE_DOMAIN="${K8S_OPENSHIFT_AWS_MANAGE_BASE_DOMAIN:-false}"
+K8S_OPENSHIFT_AWS_MASTERS="${K8S_OPENSHIFT_AWS_MASTERS:-1}"
+K8S_OPENSHIFT_AWS_MASTER_TYPE="${K8S_OPENSHIFT_AWS_MASTER_TYPE:-m6i.2xlarge}"
+K8S_OPENSHIFT_AWS_NODES="${K8S_OPENSHIFT_AWS_NODES:-0}"
+K8S_OPENSHIFT_AWS_NODE_TYPE="${K8S_OPENSHIFT_AWS_NODE_TYPE:-m6i.xlarge}"
+K8S_OPENSHIFT_AWS_DISK_SIZE="${K8S_OPENSHIFT_AWS_DISK_SIZE:-120}"
+K8S_OPENSHIFT_AWS_DISK_TYPE="${K8S_OPENSHIFT_AWS_DISK_TYPE:-gp3}"
+# The installer only accepts spot instances for the compute machine pool, so
+# this has no effect on the default single-node topology. It is false by default
+# because a spot control plane is not a thing, unlike in the eks environment
+# where every node is a compute node and K8S_EKS_USE_SPOT defaults to true.
+K8S_OPENSHIFT_AWS_USE_SPOT="${K8S_OPENSHIFT_AWS_USE_SPOT:-false}"
+K8S_OPENSHIFT_AWS_VERSION="${K8S_OPENSHIFT_AWS_VERSION:-}"
+K8S_OPENSHIFT_AWS_PULL_SECRET="${K8S_OPENSHIFT_AWS_PULL_SECRET:-$HOME/.openshift/pull-secret}"
+K8S_OPENSHIFT_AWS_SSH_KEY="${K8S_OPENSHIFT_AWS_SSH_KEY:-}"
+K8S_OPENSHIFT_AWS_HOME="${K8S_OPENSHIFT_AWS_HOME:-$HOME/.openshift-aws}"
+K8S_OPENSHIFT_AWS_STATE_PATH="${K8S_OPENSHIFT_AWS_STATE_PATH:-$K8S_OPENSHIFT_AWS_HOME/clusters/$K8S_OPENSHIFT_AWS_NAME}"
+K8S_OPENSHIFT_AWS_ARCH="${K8S_OPENSHIFT_AWS_ARCH:-x86_64}"
+K8S_OPENSHIFT_AWS_MIRROR="${K8S_OPENSHIFT_AWS_MIRROR:-https://mirror.openshift.com/pub/openshift-v4}"
+K8S_OPENSHIFT_AWS_NETWORK_TYPE="${K8S_OPENSHIFT_AWS_NETWORK_TYPE:-OVNKubernetes}"
+K8S_OPENSHIFT_AWS_OPTS="$K8S_OPENSHIFT_AWS_OPTS"
+# Keep in sync with com.redhat.openshift.versions in the operator bundle
+# metadata. Installing outside this range produces a cluster the operator is not
+# certified on, which is exactly what this environment exists to check.
+K8S_OPENSHIFT_AWS_MIN_VERSION="${K8S_OPENSHIFT_AWS_MIN_VERSION:-4.12}"
+K8S_OPENSHIFT_AWS_MAX_VERSION="${K8S_OPENSHIFT_AWS_MAX_VERSION:-4.22}"
+OPENSHIFT_AWS_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
+
+K8S_OPENSHIFT_AWS_RESOLVED_VERSION=
+K8S_OPENSHIFT_AWS_BIN_PATH=
+
+export K8S_OPENSHIFT_AWS_NAME K8S_VERSION K8S_OPENSHIFT_AWS_REGION \
+  K8S_OPENSHIFT_AWS_BASE_DOMAIN K8S_OPENSHIFT_AWS_MASTER_TYPE \
+  K8S_OPENSHIFT_AWS_NODE_TYPE K8S_OPENSHIFT_AWS_STATE_PATH K8S_OPENSHIFT_AWS_OPTS
+
+get_k8s_env_version() {
+  openshift_aws_setup_binaries
+  echo "openshift-install version $("$K8S_OPENSHIFT_AWS_BIN_PATH/openshift-install" version \
+    | head -n 1 | cut -d ' ' -f 2)"
+  echo
+}
+
+get_k8s_versions() {
+  # OpenShift 4.N ships Kubernetes 1.(N+13)
+  local MINOR
+  MINOR="${K8S_OPENSHIFT_AWS_MAX_VERSION#*.}"
+  while [ "$MINOR" -ge "${K8S_OPENSHIFT_AWS_MIN_VERSION#*.}" ]
+  do
+    echo "1.$((MINOR + 13))"
+    MINOR="$((MINOR - 1))"
+  done
+}
+
+# The version of OpenShift to install, as major.minor. Either taken verbatim
+# from K8S_OPENSHIFT_AWS_VERSION or derived from the Kubernetes version the e2e
+# framework asks for, so that K8S_VERSION keeps driving every environment.
+openshift_aws_ocp_minor_version() {
+  local K8S_MINOR
+  if [ -n "$K8S_OPENSHIFT_AWS_VERSION" ]
+  then
+    printf %s "$K8S_OPENSHIFT_AWS_VERSION" | cut -d . -f 1-2
+    return
+  fi
+  K8S_MINOR="$(printf %s "$K8S_VERSION" | cut -d . -f 2)"
+  if ! printf %s "$K8S_MINOR" | grep -q '^[0-9][0-9]*$'
+  then
+    >&2 echo "Can not derive an OpenShift version from K8S_VERSION '$K8S_VERSION'."
+    >&2 echo "Set K8S_OPENSHIFT_AWS_VERSION to an OpenShift version like 4.19 instead."
+    return 1
+  fi
+  printf '4.%s' "$((K8S_MINOR - 13))"
+}
+
+openshift_aws_version_as_number() {
+  printf %s "$1" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @
+}
+
+openshift_aws_check_version() {
+  local MINOR
+  MINOR="$(openshift_aws_ocp_minor_version)"
+
+  if [ "$(openshift_aws_version_as_number "$MINOR")" \
+      -lt "$(openshift_aws_version_as_number "$K8S_OPENSHIFT_AWS_MIN_VERSION")" ] \
+    || [ "$(openshift_aws_version_as_number "$MINOR")" \
+      -gt "$(openshift_aws_version_as_number "$K8S_OPENSHIFT_AWS_MAX_VERSION")" ]
+  then
+    >&2 echo "OpenShift $MINOR is outside the range supported by the operator bundle" \
+      "($K8S_OPENSHIFT_AWS_MIN_VERSION to $K8S_OPENSHIFT_AWS_MAX_VERSION)."
+    >&2 echo "Set K8S_OPENSHIFT_AWS_VERSION or K8S_VERSION to a supported version," \
+      "or update the range if the bundle declares a new one."
+    return 1
+  fi
+
+  printf %s "$MINOR"
+}
+
+# Latest patch release published on the stable channel of a minor version.
+openshift_aws_latest_release() {
+  local MINOR="$1"
+  local RELEASE
+  local VERSION
+  # Buffer the whole document instead of piping into grep -m 1, which closes the
+  # pipe early and makes curl report a write failure on stderr.
+  RELEASE="$(curl -sSfL --retry 3 \
+    "$K8S_OPENSHIFT_AWS_MIRROR/$K8S_OPENSHIFT_AWS_ARCH/clients/ocp/stable-$MINOR/release.txt")"
+  VERSION="$(printf '%s\n' "$RELEASE" | grep '^Name:' | head -n 1 \
+    | tr -s '[:space:]' ' ' | cut -d ' ' -f 2)"
+  if [ -z "$VERSION" ]
+  then
+    >&2 echo "Can not resolve the latest release of OpenShift $MINOR from" \
+      "$K8S_OPENSHIFT_AWS_MIRROR"
+    return 1
+  fi
+  printf %s "$VERSION"
+}
+
+# Download openshift-install and oc for the version being used, if not already
+# cached. A cluster has to be destroyed with the same version that created it,
+# which caching per version gives for free, and the version that created a given
+# cluster is recorded in its state directory.
+openshift_aws_setup_binaries() {
+  local VERSION="$1"
+  local MINOR URL
+
+  if [ -n "$K8S_OPENSHIFT_AWS_BIN_PATH" ] && [ -z "$VERSION" ]
+  then
+    return
+  fi
+
+  if [ -z "$VERSION" ]
+  then
+    MINOR="$(openshift_aws_check_version)"
+    VERSION="$(openshift_aws_latest_release "$MINOR")"
+  fi
+
+  K8S_OPENSHIFT_AWS_RESOLVED_VERSION="$VERSION"
+  K8S_OPENSHIFT_AWS_BIN_PATH="$K8S_OPENSHIFT_AWS_HOME/bin/$VERSION"
+
+  if [ -x "$K8S_OPENSHIFT_AWS_BIN_PATH/openshift-install" ] \
+    && [ -x "$K8S_OPENSHIFT_AWS_BIN_PATH/oc" ]
+  then
+    return
+  fi
+
+  echo "Downloading openshift-install and oc $VERSION..."
+  mkdir -p "$K8S_OPENSHIFT_AWS_BIN_PATH"
+  URL="$K8S_OPENSHIFT_AWS_MIRROR/$K8S_OPENSHIFT_AWS_ARCH/clients/ocp/$VERSION"
+  curl -sSfL --retry 3 "$URL/openshift-install-linux.tar.gz" \
+    | tar x -z -C "$K8S_OPENSHIFT_AWS_BIN_PATH" -f - openshift-install
+  # Only oc, so that the kubectl the e2e framework already resolved is not
+  # shadowed by another one.
+  curl -sSfL --retry 3 "$URL/openshift-client-linux.tar.gz" \
+    | tar x -z -C "$K8S_OPENSHIFT_AWS_BIN_PATH" -f - oc
+  chmod a+x "$K8S_OPENSHIFT_AWS_BIN_PATH/openshift-install" \
+    "$K8S_OPENSHIFT_AWS_BIN_PATH/oc"
+}
+
+openshift_aws_install() {
+  openshift_aws_setup_binaries
+  "$K8S_OPENSHIFT_AWS_BIN_PATH/openshift-install" "$@"
+}
+
+openshift_aws_oc() {
+  openshift_aws_setup_binaries
+  "$K8S_OPENSHIFT_AWS_BIN_PATH/oc" "$@"
+}
+
+# The aws CLI, optionally against the account that owns the parent domain.
+openshift_aws_aws() {
+  local PROFILE="$1"
+  shift
+  if [ -n "$PROFILE" ]
+  then
+    aws --profile "$PROFILE" "$@"
+  else
+    aws "$@"
+  fi
+}
+
+openshift_aws_public_zones() {
+  openshift_aws_aws "$1" route53 list-hosted-zones --output json \
+    | jq -r '.HostedZones[] | select(.Config.PrivateZone | not) | .Name | sub("\\.$"; "")'
+}
+
+openshift_aws_zone_id() {
+  local NAME="$1"
+  local PROFILE="$2"
+  openshift_aws_aws "$PROFILE" route53 list-hosted-zones --output json \
+    | jq -r --arg n "$NAME." '.HostedZones[]
+        | select(.Config.PrivateZone | not)
+        | select(.Name == $n) | .Id' \
+    | head -n 1 | sed 's#^/hostedzone/##'
+}
+
+# Longest public zone of an account that a domain belongs to. With mode
+# strict-parent the domain itself does not count, which is what finding the zone
+# that must hold a delegation needs.
+openshift_aws_matching_zone() {
+  local DOMAIN="$1"
+  local MODE="$2"
+  local PROFILE="$3"
+  local ZONE
+  openshift_aws_public_zones "$PROFILE" \
+    | while IFS= read -r ZONE
+      do
+        [ -n "$ZONE" ] || continue
+        if [ "$MODE" != strict-parent ] && [ "$ZONE" = "$DOMAIN" ]
+        then
+          printf '%s\n' "$ZONE"
+        elif [ "${DOMAIN%".$ZONE"}" != "$DOMAIN" ]
+        then
+          printf '%s\n' "$ZONE"
+        fi
+      done \
+    | awk '{ print length, $0 }' | sort -rn | head -n 1 | cut -d ' ' -f 2-
+}
+
+# The installer resolves the base domain against a public hosted zone, walking
+# up to the parent domain, so a zone the base domain is a subdomain of counts.
+openshift_aws_base_domain_zone() {
+  openshift_aws_matching_zone "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" any ""
+}
+
+openshift_aws_change_is_insync() {
+  [ "$(openshift_aws_aws "$2" route53 get-change --id "$1" \
+    --query 'ChangeInfo.Status' --output text 2>/dev/null)" = INSYNC ]
+}
+
+# dig exits 0 on NXDOMAIN, so the answer and not the exit status decides.
+openshift_aws_domain_has_ns() {
+  dig +short NS "$1" 2>/dev/null | grep -q .
+}
+
+# Create the public hosted zone for the base domain in the cluster account and
+# delegate it from its parent zone, so that it becomes authoritative. Idempotent:
+# an existing zone is reused and the delegation records are upserted, so running
+# it again after a partial attempt repairs the result.
+#
+# The delegation has to go into the *parent* zone. Writing NS records for the
+# base domain into the base domain's own zone only rewrites that zone's apex NS
+# record, which nothing consults until the parent points at it, and leaves the
+# subdomain resolving as NXDOMAIN.
+openshift_aws_setup_base_domain() {
+  local PARENT
+  local PARENT_ID
+  local ZONE_ID
+  local NS
+  local BATCH
+  local CHANGE_ID
+  local PROFILE="$K8S_OPENSHIFT_AWS_PARENT_PROFILE"
+
+  if [ -z "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" ]
+  then
+    >&2 echo "K8S_OPENSHIFT_AWS_BASE_DOMAIN is required. Set it to the subdomain to"
+    >&2 echo "create, for example e2e.example.com, and run this again."
+    return 1
+  fi
+
+  PARENT="$(openshift_aws_matching_zone "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" \
+    strict-parent "$PROFILE")"
+  if [ -z "$PARENT" ]
+  then
+    >&2 echo "No public Route53 hosted zone is a parent of" \
+      "$K8S_OPENSHIFT_AWS_BASE_DOMAIN."
+    >&2 echo "The parent domain has to be a zone of the account in use, or of the"
+    >&2 echo "account named by K8S_OPENSHIFT_AWS_PARENT_PROFILE. Public zones found:"
+    openshift_aws_public_zones "$PROFILE" | sed 's/^/  /' >&2
+    return 1
+  fi
+  PARENT_ID="$(openshift_aws_zone_id "$PARENT" "$PROFILE")"
+  echo "Delegating $K8S_OPENSHIFT_AWS_BASE_DOMAIN from parent zone $PARENT" \
+    "($PARENT_ID)"
+
+  ZONE_ID="$(openshift_aws_zone_id "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" "")"
+  if [ -n "$ZONE_ID" ]
+  then
+    echo "Reusing existing hosted zone for $K8S_OPENSHIFT_AWS_BASE_DOMAIN ($ZONE_ID)"
+  else
+    echo "Creating hosted zone for $K8S_OPENSHIFT_AWS_BASE_DOMAIN..."
+    ZONE_ID="$(openshift_aws_aws "" route53 create-hosted-zone \
+      --name "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" \
+      --caller-reference "stackgres-e2e-$(date +%s)" \
+      --hosted-zone-config "Comment=StackGres e2e clusters,PrivateZone=false" \
+      --query 'HostedZone.Id' --output text | sed 's#^/hostedzone/##')"
+    echo "...created $ZONE_ID"
+  fi
+
+  NS="$(openshift_aws_aws "" route53 get-hosted-zone --id "$ZONE_ID" \
+    --query 'DelegationSet.NameServers' --output text | tr '\t' '\n' | grep -v '^$')"
+  if [ -z "$NS" ]
+  then
+    >&2 echo "Hosted zone $ZONE_ID has no delegation set nameservers"
+    return 1
+  fi
+
+  # Build the change batch with jq rather than by pasting JSON, so the
+  # nameservers are always the ones this zone was actually given.
+  BATCH="$(printf '%s\n' "$NS" \
+    | jq -R -s --arg name "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" '{
+        Changes: [ {
+          Action: "UPSERT",
+          ResourceRecordSet: {
+            Name: $name,
+            Type: "NS",
+            TTL: 300,
+            ResourceRecords: (split("\n") | map(select(length > 0)) | map({ Value: . }))
+          } } ] }')"
+
+  CHANGE_ID="$(openshift_aws_aws "$PROFILE" route53 change-resource-record-sets \
+    --hosted-zone-id "$PARENT_ID" --change-batch "$BATCH" \
+    --query 'ChangeInfo.Id' --output text | sed 's#^/change/##')"
+  echo "Submitted delegation change $CHANGE_ID to zone $PARENT_ID"
+
+  wait_until -t 300 openshift_aws_change_is_insync "$CHANGE_ID" "$PROFILE"
+  echo "Delegation is in sync"
+
+  if ! command -v dig > /dev/null 2>&1
+  then
+    >&2 echo "Warning: dig is not installed, can not confirm that" \
+      "$K8S_OPENSHIFT_AWS_BASE_DOMAIN resolves from outside AWS."
+    return 0
+  fi
+
+  echo "Waiting for $K8S_OPENSHIFT_AWS_BASE_DOMAIN to resolve..."
+  wait_until -t 600 openshift_aws_domain_has_ns "$K8S_OPENSHIFT_AWS_BASE_DOMAIN"
+  dig +short NS "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" | sed 's/^/  /'
+  echo "...done, $K8S_OPENSHIFT_AWS_BASE_DOMAIN is authoritative"
+}
+
+# Undo openshift_aws_setup_base_domain: drop the delegation from the parent zone
+# and delete the hosted zone of the base domain. Route53 only deletes a zone that
+# holds nothing but its own apex NS and SOA records, so destroy the clusters
+# first.
+openshift_aws_delete_base_domain() {
+  local PARENT
+  local PARENT_ID
+  local ZONE_ID
+  local RECORD
+  local BATCH
+  local PROFILE="$K8S_OPENSHIFT_AWS_PARENT_PROFILE"
+
+  if [ -z "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" ]
+  then
+    >&2 echo "K8S_OPENSHIFT_AWS_BASE_DOMAIN is required"
+    return 1
+  fi
+
+  PARENT="$(openshift_aws_matching_zone "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" \
+    strict-parent "$PROFILE")"
+  if [ -n "$PARENT" ]
+  then
+    PARENT_ID="$(openshift_aws_zone_id "$PARENT" "$PROFILE")"
+    # DELETE has to name the record set exactly as it is stored, so read it back
+    # instead of reconstructing it.
+    RECORD="$(openshift_aws_aws "$PROFILE" route53 list-resource-record-sets \
+      --hosted-zone-id "$PARENT_ID" \
+      --query "ResourceRecordSets[?Name=='$K8S_OPENSHIFT_AWS_BASE_DOMAIN.' && Type=='NS'] | [0]" \
+      --output json)"
+    if [ -n "$RECORD" ] && [ "$RECORD" != null ]
+    then
+      echo "Removing delegation of $K8S_OPENSHIFT_AWS_BASE_DOMAIN from $PARENT_ID"
+      BATCH="$(jq -n --argjson r "$RECORD" \
+        '{ Changes: [ { Action: "DELETE", ResourceRecordSet: $r } ] }')"
+      openshift_aws_aws "$PROFILE" route53 change-resource-record-sets \
+        --hosted-zone-id "$PARENT_ID" --change-batch "$BATCH" > /dev/null
+    else
+      echo "No delegation of $K8S_OPENSHIFT_AWS_BASE_DOMAIN found in $PARENT_ID"
+    fi
+  fi
+
+  ZONE_ID="$(openshift_aws_zone_id "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" "")"
+  if [ -n "$ZONE_ID" ]
+  then
+    echo "Deleting hosted zone $ZONE_ID"
+    openshift_aws_aws "" route53 delete-hosted-zone --id "$ZONE_ID" > /dev/null \
+      || >&2 echo "Could not delete $ZONE_ID, it still holds records." \
+        "Destroy the clusters that use it first."
+  else
+    echo "No hosted zone for $K8S_OPENSHIFT_AWS_BASE_DOMAIN"
+  fi
+}
+
+openshift_aws_check_base_domain() {
+  local ZONE
+
+  if [ -z "$K8S_OPENSHIFT_AWS_BASE_DOMAIN" ]
+  then
+    >&2 echo "K8S_OPENSHIFT_AWS_BASE_DOMAIN is required by the openshift-aws environment."
+    >&2 echo "It must be a public Route53 hosted zone of the AWS account in use, or a"
+    >&2 echo "subdomain of one, since the installer writes the cluster DNS records there."
+    >&2 echo "Public hosted zones found in this account:"
+    openshift_aws_public_zones "" | sed 's/^/  /' >&2
+    >&2 echo "(none listed above means there are none)"
+    return 1
+  fi
+
+  ZONE="$(openshift_aws_base_domain_zone)"
+  if [ -z "$ZONE" ]
+  then
+    >&2 echo "No public Route53 hosted zone of this AWS account matches base domain" \
+      "$K8S_OPENSHIFT_AWS_BASE_DOMAIN."
+    >&2 echo "Create it and delegate it from its parent domain with:"
+    >&2 echo
+    >&2 echo "    ./e2e openshift_aws_setup_base_domain"
+    >&2 echo
+    >&2 echo "or set K8S_OPENSHIFT_AWS_MANAGE_BASE_DOMAIN=true to let reset_k8s do it."
+    >&2 echo "Public hosted zones found in this account:"
+    openshift_aws_public_zones "" | sed 's/^/  /' >&2
+    return 1
+  fi
+
+  echo "Using public Route53 hosted zone $ZONE for base domain" \
+    "$K8S_OPENSHIFT_AWS_BASE_DOMAIN"
+
+  # A hosted zone that exists is not necessarily authoritative. Without the
+  # delegation records in its parent the zone is invisible, and the install only
+  # discovers that around half an hour later, when it waits for the bootstrap
+  # node it can not look up. Fail here instead.
+  if ! command -v dig > /dev/null 2>&1
+  then
+    >&2 echo "Warning: dig is not installed, can not confirm that" \
+      "$K8S_OPENSHIFT_AWS_BASE_DOMAIN resolves."
+    return 0
+  fi
+
+  if ! openshift_aws_domain_has_ns "$K8S_OPENSHIFT_AWS_BASE_DOMAIN"
+  then
+    >&2 echo "Hosted zone $ZONE exists but $K8S_OPENSHIFT_AWS_BASE_DOMAIN does not"
+    >&2 echo "resolve, so it is not authoritative yet. Its parent zone is missing the"
+    >&2 echo "NS records that delegate it. Add them with:"
+    >&2 echo
+    >&2 echo "    ./e2e openshift_aws_setup_base_domain"
+    >&2 echo
+    >&2 echo "The install would otherwise fail around half an hour in, waiting for a"
+    >&2 echo "bootstrap node it can not look up."
+    return 1
+  fi
+}
+
+openshift_aws_check_pull_secret() {
+  if ! [ -s "$K8S_OPENSHIFT_AWS_PULL_SECRET" ]
+  then
+    >&2 echo "Pull secret not found at $K8S_OPENSHIFT_AWS_PULL_SECRET."
+    >&2 echo "Download it from https://console.redhat.com/openshift/install using the"
+    >&2 echo "company Red Hat account that holds the Partner Subscription, then save it"
+    >&2 echo "there or point K8S_OPENSHIFT_AWS_PULL_SECRET at it."
+    return 1
+  fi
+  if ! jq -e '.auths' "$K8S_OPENSHIFT_AWS_PULL_SECRET" > /dev/null 2>&1
+  then
+    >&2 echo "The pull secret at $K8S_OPENSHIFT_AWS_PULL_SECRET is not a JSON document" \
+      "with an auths field."
+    return 1
+  fi
+}
+
+openshift_aws_ssh_public_key() {
+  local KEY
+
+  if [ -n "$K8S_OPENSHIFT_AWS_SSH_KEY" ]
+  then
+    printf %s "$K8S_OPENSHIFT_AWS_SSH_KEY"
+    return
+  fi
+
+  for KEY in "$HOME/.ssh/id_ed25519.pub" "$HOME/.ssh/id_rsa.pub"
+  do
+    if [ -s "$KEY" ]
+    then
+      printf %s "$KEY"
+      return
+    fi
+  done
+
+  KEY="$K8S_OPENSHIFT_AWS_HOME/ssh/id_ed25519"
+  if ! [ -s "$KEY.pub" ]
+  then
+    mkdir -p "${KEY%/*}"
+    ssh-keygen -q -t ed25519 -N '' -C "$K8S_OPENSHIFT_AWS_NAME" -f "$KEY"
+  fi
+  printf %s "$KEY.pub"
+}
+
+openshift_aws_machine_pool_platform() {
+  local TYPE="$1"
+  local SPOT="$2"
+  cat << EOF
+    aws:
+      type: $TYPE
+      rootVolume:
+        size: $K8S_OPENSHIFT_AWS_DISK_SIZE
+        type: $K8S_OPENSHIFT_AWS_DISK_TYPE
+EOF
+  if [ "$SPOT" = true ]
+  then
+    cat << EOF
+      spotMarketOptions: {}
+EOF
+  fi
+}
+
+openshift_aws_create_install_config() {
+  local SSH_KEY
+  SSH_KEY="$(openshift_aws_ssh_public_key)"
+
+  mkdir -p "$K8S_OPENSHIFT_AWS_STATE_PATH"
+
+  {
+    cat << EOF
+apiVersion: v1
+metadata:
+  name: $K8S_OPENSHIFT_AWS_NAME
+baseDomain: $K8S_OPENSHIFT_AWS_BASE_DOMAIN
+controlPlane:
+  name: master
+  replicas: $K8S_OPENSHIFT_AWS_MASTERS
+  hyperthreading: Enabled
+  platform:
+EOF
+    openshift_aws_machine_pool_platform "$K8S_OPENSHIFT_AWS_MASTER_TYPE" false
+    cat << EOF
+compute:
+- name: worker
+  replicas: $K8S_OPENSHIFT_AWS_NODES
+  hyperthreading: Enabled
+  platform:
+EOF
+    if [ "$K8S_OPENSHIFT_AWS_NODES" -gt 0 ]
+    then
+      openshift_aws_machine_pool_platform "$K8S_OPENSHIFT_AWS_NODE_TYPE" \
+        "$K8S_OPENSHIFT_AWS_USE_SPOT"
+    else
+      # An empty platform is what the installer expects for a machine pool with
+      # no replicas, see the three-node and single-node install documentation.
+      cat << EOF
+    aws: {}
+EOF
+    fi
+    cat << EOF
+networking:
+  networkType: $K8S_OPENSHIFT_AWS_NETWORK_TYPE
+platform:
+  aws:
+    region: $K8S_OPENSHIFT_AWS_REGION
+pullSecret: '$(tr -d '\n' < "$K8S_OPENSHIFT_AWS_PULL_SECRET")'
+sshKey: |
+  $(cat "$SSH_KEY")
+EOF
+  } > "$K8S_OPENSHIFT_AWS_STATE_PATH/install-config.yaml"
+
+  # create manifests consumes install-config.yaml, keep a copy of what was asked
+  # for so that a cluster can be inspected or recreated later.
+  cp "$K8S_OPENSHIFT_AWS_STATE_PATH/install-config.yaml" \
+    "$K8S_OPENSHIFT_AWS_STATE_PATH/install-config.yaml.orig"
+}
+
+# With no compute nodes the control plane has to run the workloads. The
+# installer normally sets this itself, but the three-node and single-node
+# install documentation tells you to verify it in the generated manifests
+# rather than to assume it.
+openshift_aws_make_masters_schedulable() {
+  local SCHEDULER="$K8S_OPENSHIFT_AWS_STATE_PATH/manifests/cluster-scheduler-02-config.yml"
+
+  [ "$K8S_OPENSHIFT_AWS_NODES" -eq 0 ] || return 0
+  [ -f "$SCHEDULER" ] || return 0
+
+  if grep -q '^[[:space:]]*mastersSchedulable:' "$SCHEDULER"
+  then
+    sed -i 's/^\([[:space:]]*\)mastersSchedulable:.*/\1mastersSchedulable: true/' "$SCHEDULER"
+  else
+    sed -i 's/^spec:.*/spec:\n  mastersSchedulable: true/' "$SCHEDULER"
+  fi
+
+  grep '^[[:space:]]*mastersSchedulable:' "$SCHEDULER"
+}
+
+openshift_aws_update_k8s_config() {
+  local CONTEXT
+  local CLUSTER_KUBECONFIG="$K8S_OPENSHIFT_AWS_STATE_PATH/auth/kubeconfig"
+
+  if [ "$K8S_FROM_DIND" = true ]
+  then
+    echo "Can not use openshift-aws environment from docker"
+    exit 1
+  fi
+
+  mkdir -p "$HOME/.kube"
+  CONTEXT="$(kubectl --kubeconfig "$CLUSTER_KUBECONFIG" config current-context)"
+  cp "$CLUSTER_KUBECONFIG" "$HOME/.kube/config-openshift-aws"
+
+  (
+  export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+  if [ -s "$KUBECONFIG" ]
+  then
+    KUBECONFIG="$HOME/.kube/config-openshift-aws":"$KUBECONFIG" \
+      kubectl config view --raw > "$HOME/.kube/config-merged"
+    mv "$HOME/.kube/config-merged" "$KUBECONFIG"
+    rm -f "$HOME/.kube/config-openshift-aws"
+  else
+    mv "$HOME/.kube/config-openshift-aws" "$KUBECONFIG"
+  fi
+  chmod 700 "$KUBECONFIG"
+  kubectl config use-context "$CONTEXT"
+  )
+}
+
+config_k8s() {
+  openshift_aws_update_k8s_config
+
+  # Same grant the crc environment makes, so that the e2e tests can run pods
+  # that mount host paths from the default service account.
+  openshift_aws_oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
+
+  if [ "$K8S_OPENSHIFT_AWS_NODES" -eq 0 ]
+  then
+    kubectl taint nodes --all node-role.kubernetes.io/master- 2>/dev/null || true
+    kubectl taint nodes --all node-role.kubernetes.io/control-plane- 2>/dev/null || true
+  fi
+
+  # StackGres needs monitoring of user defined projects on OpenShift 4.6 and
+  # later, see the OpenShift prerequisites page of the documentation. On a fresh
+  # cluster this ConfigMap does not exist yet, and these clusters are ephemeral,
+  # so replacing it outright is safe here.
+  kubectl apply -f - << EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+EOF
+
+  # The AWS EBS CSI driver operator is installed by the installer and marks its
+  # storage class as default, so none of the driver setup the eks environment
+  # has to do applies here. Only assert the outcome.
+  if [ -z "$(get_default_storage_class_name)" ]
+  then
+    kubectl get storageclass -o name | head -n 1 \
+      | xargs -r -I % kubectl annotate % --overwrite \
+        storageclass.kubernetes.io/is-default-class=true
+  fi
+
+  wait_until eval 'kubectl get node -o name | grep -q .'
+}
+
+reuse_k8s() {
+  if ! [ -f "$K8S_OPENSHIFT_AWS_STATE_PATH/metadata.json" ] \
+    || ! [ -s "$K8S_OPENSHIFT_AWS_STATE_PATH/auth/kubeconfig" ]
+  then
+    echo "Can not reuse openshift-aws environment $K8S_OPENSHIFT_AWS_NAME," \
+      "no cluster state in $K8S_OPENSHIFT_AWS_STATE_PATH"
+    reset_k8s
+    return
+  fi
+
+  if ! timeout -s KILL 60s kubectl \
+    --kubeconfig "$K8S_OPENSHIFT_AWS_STATE_PATH/auth/kubeconfig" \
+    get node > /dev/null 2>&1
+  then
+    echo "Can not reuse openshift-aws environment $K8S_OPENSHIFT_AWS_NAME," \
+      "the cluster does not answer"
+    reset_k8s
+    return
+  fi
+
+  echo "Reusing openshift-aws environment $K8S_OPENSHIFT_AWS_NAME"
+
+  config_k8s
+}
+
+reset_k8s() {
+  local MINOR
+
+  if [ "$K8S_SKIP_RESET" = "true" ]
+  then
+    exit 1
+  fi
+
+  openshift_aws_check_pull_secret
+  if [ "$K8S_OPENSHIFT_AWS_MANAGE_BASE_DOMAIN" = true ]
+  then
+    openshift_aws_setup_base_domain
+  fi
+  openshift_aws_check_base_domain
+  MINOR="$(openshift_aws_check_version)"
+  openshift_aws_setup_binaries
+
+  echo "Setting up openshift-aws environment $K8S_OPENSHIFT_AWS_NAME" \
+    "(OpenShift $K8S_OPENSHIFT_AWS_RESOLVED_VERSION," \
+    "$K8S_OPENSHIFT_AWS_MASTERS control plane and $K8S_OPENSHIFT_AWS_NODES compute" \
+    "nodes in $K8S_OPENSHIFT_AWS_REGION)..."
+
+  delete_k8s
+
+  mkdir -p "$K8S_OPENSHIFT_AWS_STATE_PATH"
+  printf '%s' "$K8S_OPENSHIFT_AWS_RESOLVED_VERSION" \
+    > "$K8S_OPENSHIFT_AWS_STATE_PATH/ocp-version"
+
+  openshift_aws_create_install_config
+  openshift_aws_install create manifests --dir "$K8S_OPENSHIFT_AWS_STATE_PATH"
+  openshift_aws_make_masters_schedulable
+  # shellcheck disable=SC2086
+  openshift_aws_install create cluster --dir "$K8S_OPENSHIFT_AWS_STATE_PATH" \
+    --log-level=info $K8S_OPENSHIFT_AWS_OPTS
+
+  config_k8s
+
+  echo "...done"
+}
+
+delete_k8s() {
+  local INFRA_ID
+  local VERSION
+
+  echo "Checking if openshift-aws environment $K8S_OPENSHIFT_AWS_NAME exists"
+
+  if ! [ -f "$K8S_OPENSHIFT_AWS_STATE_PATH/metadata.json" ]
+  then
+    echo "OpenShift environment $K8S_OPENSHIFT_AWS_NAME not detected"
+    if [ -d "$K8S_OPENSHIFT_AWS_STATE_PATH" ]
+    then
+      # A directory without metadata.json is a failed or partial create, there
+      # is nothing for the installer to destroy but it refuses to reuse it.
+      openshift_aws_remove_state
+    fi
+    return
+  fi
+
+  INFRA_ID="$(jq -r '.infraID // empty' "$K8S_OPENSHIFT_AWS_STATE_PATH/metadata.json")"
+  VERSION="$(cat "$K8S_OPENSHIFT_AWS_STATE_PATH/ocp-version" 2>/dev/null || true)"
+
+  echo "OpenShift environment $K8S_OPENSHIFT_AWS_NAME detected, deleting..."
+
+  # Destroy with the version that created the cluster, not with whatever version
+  # the current K8S_VERSION happens to map to.
+  openshift_aws_setup_binaries "$VERSION"
+  "$K8S_OPENSHIFT_AWS_BIN_PATH/openshift-install" destroy cluster \
+    --dir "$K8S_OPENSHIFT_AWS_STATE_PATH" --log-level=info || true
+
+  if [ -n "$INFRA_ID" ]
+  then
+    echo "Cleaning volumes related to the $INFRA_ID cluster"
+    aws ec2 describe-volumes --region "$K8S_OPENSHIFT_AWS_REGION" \
+      --filters "Name=tag-key,Values=kubernetes.io/cluster/$INFRA_ID" \
+      | jq -r '.Volumes[].VolumeId' \
+      | xargs -r -I % sh -c "aws ec2 detach-volume --force --region $K8S_OPENSHIFT_AWS_REGION --volume-id % || true"
+
+    aws ec2 describe-volumes --region "$K8S_OPENSHIFT_AWS_REGION" \
+      --filters "Name=tag-key,Values=kubernetes.io/cluster/$INFRA_ID" \
+      | jq -r '.Volumes[].VolumeId' \
+      | xargs -r -I % sh -c "aws ec2 delete-volume --region $K8S_OPENSHIFT_AWS_REGION --volume-id % || true"
+  fi
+
+  openshift_aws_remove_state
+
+  echo "...done"
+}
+
+openshift_aws_remove_state() {
+  # Guard against removing anything but a cluster state directory under the
+  # environment home.
+  case "$K8S_OPENSHIFT_AWS_STATE_PATH" in
+    "$K8S_OPENSHIFT_AWS_HOME"/clusters/?*)
+      echo "Removing cluster state in $K8S_OPENSHIFT_AWS_STATE_PATH"
+      rm -Rf "$K8S_OPENSHIFT_AWS_STATE_PATH"
+      ;;
+    *)
+      >&2 echo "Not removing $K8S_OPENSHIFT_AWS_STATE_PATH, it is outside" \
+        "$K8S_OPENSHIFT_AWS_HOME/clusters. Remove it by hand once the cluster is gone."
+      ;;
+  esac
+}
+
+load_image_k8s() {
+  echo "Cannot load images directly to k8s in a openshift-aws environment"
+  exit 1
+}
+
+excluded_namespaces() {
+  echo "default"
+  echo "kube-.*"
+  echo "openshift"
+  echo "openshift-.*"
+}
+
+excluded_validatingwebhookconfigurations() {
+  echo "machine-api"
+  echo "cluster-baremetal-validating-webhook-configuration"
+  echo "performance-addon-operator"
+  echo ".*\.openshift\.io"
+}
+
+excluded_mutatingwebhookconfigurations() {
+  echo "machine-api"
+  echo "pod-identity-webhook"
+  echo "catalogd-mutating-webhook-configuration"
+  echo ".*\.openshift\.io"
+}
+
+excluded_customresourcedefinitions() {
+  echo ".*\.openshift\.io"
+  echo ".*\.operatorframework\.io"
+  echo ".*\.metal3\.io"
+  echo ".*\.operators\.coreos\.com"
+  echo ".*\.cni\.cncf\.io"
+  echo ".*\.monitoring\.coreos\.com"
+  echo ".*\.k8s\.io"
+  echo ".*\.x-k8s\.io"
+  echo ".*\.k8s\.ovn\.org"
+  echo ".*\.amazonaws\.com"
+  echo ".*\.k8s\.aws"
+}
+
+excluded_clusterroles() {
+  echo "admin"
+  echo "aggregate-olm-.*"
+  echo "alert-routing-edit"
+  echo "alertmanager-main" 
+  echo "aws-.*"
+  echo "basic-user"
+  echo "catalogd-.*"
+  echo "cloud-.*"
+  echo "cluster-.*"
+  echo "console"
+  echo "console-.*"
+  echo "control-plane-machine-set-operator"
+  echo "csi-snapshot-controller-operator-clusterrole"
+  echo "dns-monitoring"
+  echo "ebs-.*"
+  echo "edit"
+  echo "global-operators-admin"
+  echo "global-operators-edit"
+  echo "global-operators-view"
+  echo "helm-chartrepos-viewer"
+  echo "insights-.*"
+  echo "kube-.*"
+  echo "machine-.*"
+  echo "marketplace-operator"
+  echo "metrics-daemon-role"
+  echo "monitoring-.*"
+  echo "multus"
+  echo "multus-.*"
+  echo "net-attach-def-project"
+  echo "network-diagnostics"
+  echo "network-node-identity"
+  echo "node-exporter"
+  echo "olm-.*"
+  echo "olm\.og\..*"
+  echo "openshift-.*"
+  echo "openstack-.*"
+  echo "operator-controller-.*"
+  echo "operator-lifecycle-manager-metrics-reader"
+  echo "operatorhub-config-reader"
+  echo "packagemanifests-v1-admin"
+  echo "packagemanifests-v1-edit"
+  echo "packagemanifests-v1-view"
+  echo "pod-identity-webhook"
+  echo "pod-metrics-reader"
+  echo "project-helm-chartrepository-editor"
+  echo "prometheus-.*"
+  echo "registry-admin"
+  echo "registry-editor"
+  echo "registry-monitoring"
+  echo "registry-viewer"
+  echo "router-monitoring"
+  echo "self-.*"
+  echo "storage-admin"
+  echo "sudoer"
+  echo "system:.*"
+  echo "telemeter-.*"
+  echo "thanos-.*"
+  echo "view"
+  echo "whereabouts-cni"
+}
+
+excluded_clusterrolebindings() {
+  echo "alertmanager-.*"
+  echo "aws-.*"
+  echo "basic-users"
+  echo "catalogd-.*"
+  echo "cloud-.*"
+  echo "cluster-.*"
+  echo "console"
+  echo "console-.*"
+  echo "control-plane-machine-set-operator"
+  echo "csi-snapshot-controller-.*"
+  echo "custom-account-openshift-machine-config-operator"
+  echo "default-.*"
+  echo "dns-monitoring"
+  echo "ebs-.*"
+  echo "helm-chartrepos-view"
+  echo "insights-.*"
+  echo "kube-.*"
+  echo "kubeadmin"
+  echo "machine-.*"
+  echo "marketplace-operator"
+  echo "metrics-.*"
+  echo "multus"
+  echo "multus-.*"
+  echo "network-.*"
+  echo "node-exporter"
+  echo "olm-operator-binding-openshift-operator-lifecycle-manager"
+  echo "openshift-.*"
+  echo "openstack-.*"
+  echo "operator-controller-.*"
+  echo "operator-lifecycle-.*"
+  echo "packageserver-service-system:auth-delegator"
+  echo "pod-identity-webhook"
+  echo "prometheus-.*"
+  echo "registry-monitoring"
+  echo "registry-registry-role"
+  echo "router-monitoring"
+  echo "self-.*"
+  echo "storage-version-migration-migrator"
+  echo "system:.*"
+  echo "system-.*"
+  echo "telemeter-.*"
+  echo "thanos-.*"
+}
+
+create_expandable_storage_class_k8s() {
+  local DEFAULT_STORAGE_CLASSNAME
+  DEFAULT_STORAGE_CLASSNAME="$(get_default_storage_class_name)"
+  generate_expandable_storage_class_from \
+    "$DEFAULT_STORAGE_CLASSNAME" \
+    "$OPENSHIFT_AWS_EXPANDABLE_STORAGE_CLASSNAME" \
+    | kubectl apply -f - > /dev/null
+  printf '%s' "$OPENSHIFT_AWS_EXPANDABLE_STORAGE_CLASSNAME"
+}

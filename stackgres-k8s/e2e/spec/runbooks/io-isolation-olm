@@ -1,0 +1,57 @@
+#!/bin/sh
+
+#
+# Checks the two I/O isolation mechanisms against an operator installed through
+# the Operator Lifecycle Manager instead of with the helm chart.
+#
+# Which operator that is depends on E2E_USE_OPENSHIFT_CATALOG (see
+# utils/olm):
+#
+#  *  unset: a catalog is built from the operator bundle of this build and the
+#     operator is installed from it. This still tests the local build, only
+#     through the OLM installation path.
+#  *  certified, marketplace or community: the operator is installed from that
+#     OpenShift OperatorHub catalog, which tests a published release. The version
+#     comes from the image tag, so --image-tag 1.19.0 installs 1.19.0, and only
+#     released versions are there.
+#
+# The OLM installation path is the supported one on OpenShift, and it is what
+# decides the SecurityContextConstraints and the ClusterRoles the operator ends
+# up with, which is exactly what the privileged half of option 1 depends on.
+#
+# All the checks live in spec/abstract/io-isolation, which also documents the
+# environment variables and says what runs on which platform.
+#
+# Usage:
+#
+#     ./e2e --env crc -- runbooks/io-isolation-olm
+#     E2E_USE_OPENSHIFT_CATALOG=certified \
+#       ./e2e --env openshift-aws --image-tag 1.19.0 -- runbooks/io-isolation-olm
+#
+
+. "$SPEC_PATH/abstract/io-isolation"
+
+e2e_test_extra_hash() {
+  io_isolation_extra_hash
+  olm_extra_hash
+}
+
+# Drop the helm installed operator of the framework and install one through OLM
+# in its place. No feature gate is turned on here on purpose: the first test
+# needs the operator to start with io-limits off.
+io_isolation_install_operator() {
+  olm_cleanup
+  olm_setup_catalog
+  olm_install_operator
+  olm_check_operator_installed
+
+  IO_ISOLATION_SGCONFIG_NAMESPACE="$SGCONFIG_NAMESPACE"
+  IO_ISOLATION_SGCONFIG_NAME="$OLM_SGCONFIG_NAME"
+  IO_ISOLATION_OPERATOR_DESCRIPTION="$OLM_CSV"
+}
+
+# Put the operator back the way the specs that run afterwards expect it.
+io_isolation_uninstall_operator() {
+  olm_cleanup
+  olm_restore_helm_operator
+}

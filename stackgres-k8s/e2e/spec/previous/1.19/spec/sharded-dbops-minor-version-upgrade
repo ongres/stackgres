@@ -1,0 +1,117 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/sharded-dbops"
+
+export E2E_CITUS_MINOR_SOURCE_POSTGRES_VERSION="${E2E_CITUS_MINOR_SOURCE_POSTGRES_VERSION:-17.9}"
+export E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION="${E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION:-17.10}"
+
+e2e_test_extra_hash() {
+  printf '%s\n' \
+    E2E_CITUS_MINOR_SOURCE_POSTGRES_VERSION="$E2E_CITUS_MINOR_SOURCE_POSTGRES_VERSION" \
+    E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION="$E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/sharded-dbops")"
+}
+
+e2e_test_install() {
+  E2E_POSTGRES_VERSION="$E2E_CITUS_MINOR_SOURCE_POSTGRES_VERSION"
+  CLUSTER_NAME="$(get_sgshardedcluster_name "$SPEC_NAME")"
+
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1" "0"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that minor version upgrade sharded dbops is working" check_sharded_dbops_minor_version_upgrade_is_working
+}
+
+check_sharded_dbops_minor_version_upgrade_is_working() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name minor-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  generate_sharded_mock_data
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: minorVersionUpgrade
+  minorVersionUpgrade:
+    postgresVersion: "$E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION"
+    method: InPlace
+EOF
+
+  if wait_until eval '[ "$(kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "{{ .spec.postgres.version }}")" = "$E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION" ]'
+  then
+    success "SGShardedCluster postgres version was updated to the target version"
+  else
+    fail "SGShardedCluster postgres version was not updated to the target version"
+  fi
+
+  local DBOPS_NAME
+  local SUFFIX
+  for SUFFIX in coord worker0 worker1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
+
+  if kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+    --template '{{ .status.minorVersionUpgrade.restartedSgClusters }}' \
+    | grep -qF "$CLUSTER_NAME-worker1"
+  then
+    success "All SGClusters appear in the restartedSgClusters status"
+  else
+    fail "Not all SGClusters appear in the restartedSgClusters status"
+  fi
+
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  check_sharded_members_postgres_version "$E2E_CITUS_MINOR_TARGET_POSTGRES_VERSION"
+
+  check_sharded_mock_data
+}
+
+generate_sharded_mock_data() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -d citus -v ON_ERROR_STOP=1 \
+    -c "CREATE TABLE e2e_version_upgrade_check(num integer)" \
+    -c "INSERT INTO e2e_version_upgrade_check(num) VALUES (0),(1),(1),(2),(3),(5),(8),(13),(21)"
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -d citus -v ON_ERROR_STOP=1 \
+    -c "SELECT create_distributed_table('e2e_version_upgrade_check', 'num')"
+}
+
+check_sharded_mock_data() {
+  if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus -c "SELECT SUM(num) FROM e2e_version_upgrade_check")" = 54 ]'
+  then
+    success "Mock data survived the upgrade"
+  else
+    fail "Mock data did not survive the upgrade"
+  fi
+}
+
+check_sharded_members_postgres_version() {
+  local VERSION="$1"
+  local SUFFIX
+  for SUFFIX in coord worker0 worker1
+  do
+    if kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$SUFFIX-0" \
+      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
+      | grep -qF -- "-pg${VERSION}-"
+    then
+      success "Member $CLUSTER_NAME-$SUFFIX is running postgres $VERSION"
+    else
+      fail "Member $CLUSTER_NAME-$SUFFIX is not running postgres $VERSION"
+    fi
+  done
+}
