@@ -101,7 +101,7 @@ body {
     --baseColor: var(--blue);
     --baseLightColor: var(--lBlue);
     --textGradient: linear-gradient(123deg, var(--blue) 0%, var(--lBlue) 100%) 0% 0% no-repeat padding-box;
-    --baseGradient: radial-gradient(at 2% 9%, var(--magenta) 0%, var(--darkBlue) 100%) 0% 0% no-repeat padding-box;
+    --baseGradient: radial-gradient(at 2% 9%, var(--lBlue) 0%, var(--darkBlue) 100%) 0% 0% no-repeat padding-box;
     --invertedGradient: linear-gradient(to bottom left, var(--baseColor), var(--baseLightColor));
     --verticalGradient: linear-gradient(to bottom, var(--baseColor), var(--baseLightColor));
     --horizontalGradient: linear-gradient(90deg, var(--blue) 0%, var(--lBlue) 100%) 0% 0% no-repeat padding-box;
