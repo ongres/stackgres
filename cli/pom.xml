@@ -16,6 +16,12 @@
   <!-- The Matriarch CLI. gRPC stubs from stackgres-proto (no local codegen). -->
   <properties>
     <grpc.version>1.75.0</grpc.version>
+    <!-- Version stamp for `stackgres version`, filtered into stackgres-version.properties. Both are
+         overridable at build time; the bundle passes the release version and the git commit via
+         -Dstackgres.cli.version and -Dstackgres.cli.commit (see cli/bundle/build.sh). -->
+    <stackgres.cli.version>${project.version}</stackgres.cli.version>
+    <stackgres.cli.commit>unknown</stackgres.cli.commit>
+    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
   </properties>
 
   <dependencyManagement>
@@ -96,6 +102,24 @@
   </dependencies>
 
   <build>
+    <!-- Filter ONLY the version stamp (leave binary/JSON resources like reachability-metadata.json and
+         the completions untouched, so their $ / @ are not mangled). -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>stackgres-version.properties</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>stackgres-version.properties</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -154,6 +178,8 @@
                 <buildArg>-Os</buildArg>
                 <!-- The `completion` command reads /completions/stackgres.zsh from the classpath. -->
                 <buildArg>-H:IncludeResources=completions/.*</buildArg>
+                <!-- `version` reads /stackgres-version.properties from the classpath. -->
+                <buildArg>-H:IncludeResources=stackgres-version.properties</buildArg>
               </buildArgs>
               <jvmArgs>
                 <jvmArg>--sun-misc-unsafe-memory-access=allow</jvmArg>

@@ -86,6 +86,22 @@ service StackGresApi {
   // finalized with tunnel.v1 in round 3. ---
   rpc OpenWireTunnel(OpenWireTunnelRequest) returns (OpenWireTunnelResponse);
   rpc OpenExec(OpenExecRequest) returns (OpenExecResponse);
+
+  // --- Server identity (powers `stackgres version`): the build version and kind
+  // ("matriarch" | "cloud") of the endpoint the client is connected to directly. ---
+  rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse);
+}
+
+// ===========================================================================
+// Server info
+// ===========================================================================
+
+message GetServerInfoRequest {}
+
+message GetServerInfoResponse {
+  string version = 1;     // server build version (e.g. "0.1")
+  string component = 2;   // "matriarch" | "cloud"
+  string commit = 3;      // optional short git commit
 }
 
 // ===========================================================================

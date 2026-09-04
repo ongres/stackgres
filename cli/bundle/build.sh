@@ -38,7 +38,14 @@ verify() {
 #   - slony / cli:          native-maven-plugin -> target/slony, target/cli
 build_native() {
     info "building native binaries: matriarch-standalone, slony, cli (mvn -Pnative)"
-    mvn clean package -Pnative -pl matriarch-standalone,slony,cli -am
+    # Stamp the release version + git commit so `stackgres version` (CLI) and GetServerInfo (matriarch)
+    # report what was shipped, not the raw Maven -SNAPSHOT. Defaults to 0.1 (the bundle's version).
+    local ver="${STACKGRES_VERSION:-0.1}"
+    local commit="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+    mvn clean package -Pnative -pl matriarch-standalone,slony,cli -am \
+        -Dstackgres.cli.version="${ver}" \
+        -Dstackgres.cli.commit="${commit}" \
+        -Dquarkus.application.version="${ver}"
 
     # Quarkus emits the native executable as <output-name>-runner (matriarch-runner).
     # Normalize to `matriarch` so bundle-common.sh finds it.

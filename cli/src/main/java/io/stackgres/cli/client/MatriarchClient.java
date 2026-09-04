@@ -458,6 +458,17 @@ public class MatriarchClient {
         return row;
     }
 
+    /** The connected endpoint's build identity (api.v1 GetServerInfo) — for {@code stackgres version}. */
+    public ServerInfo getServerInfo() {
+        try {
+            io.stackgres.proto.api.v1.GetServerInfoResponse r = stackGresClient()
+                    .getServerInfo(io.stackgres.proto.api.v1.GetServerInfoRequest.getDefaultInstance());
+            return new ServerInfo(r.getVersion(), r.getComponent(), r.getCommit());
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
+        }
+    }
+
     /**
      * Warn (warm amber, on stderr) when {@code environmentId} is disconnected or gone, suggesting the
      * connected environment(s) to switch to. Best-effort: never fails the command it guards.
