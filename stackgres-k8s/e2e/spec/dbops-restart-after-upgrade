@@ -339,6 +339,14 @@ check_cluster_restart_start() {
 
   check_mock_data_samehost "$CLUSTER_NAME"
 
+  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for condition=PendingRestart=true --timeout 0'
+  then
+    success "Cluster $CLUSTER_NAME is pending restart after operator upgrade"
+  else
+    fail "Cluster $CLUSTER_NAME is not pending restart after operator upgrade"
+  fi
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
