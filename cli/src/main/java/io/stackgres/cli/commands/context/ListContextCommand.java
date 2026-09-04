@@ -25,7 +25,7 @@ public class ListContextCommand extends StackGresSubCommand {
         // A context authenticates with a bearer JWT or nothing (e.g. a local matriarch); flag a JWT past
         // its exp. The AUTH column auto-sizes since "JWT (expired)" is much wider than "none".
         List<String> auths = new ArrayList<>(contexts.size());
-        int authLen = "AUTH".length();
+        int authLen = "Auth".length();
         for (Context c : contexts) {
             String auth = c.token() == null || c.token().isBlank()
                     ? "none" : (Jwt.isExpired(c.token()) ? "JWT (expired)" : "JWT");
@@ -34,7 +34,7 @@ public class ListContextCommand extends StackGresSubCommand {
         }
         String fmt = "%-3s%-18s%-30s%-7s%-" + (authLen + 2) + "s%-16s\n";
 
-        outf(fmt, "", "NAME", "ENDPOINT", "TLS", "AUTH", "ENVIRONMENT");
+        outf(fmt, "", "Name", "Endpoint", "TLS", "Auth", "Environment");
         for (int i = 0; i < contexts.size(); i++) {
             Context c = contexts.get(i);
             String marker = c.name().equals(current) ? "*" : "";
