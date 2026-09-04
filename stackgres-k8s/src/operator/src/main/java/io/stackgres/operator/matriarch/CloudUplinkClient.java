@@ -87,6 +87,7 @@ public class CloudUplinkClient {
   String token;
 
   // --- actor-thread state (only touched on `actor`) ---
+  private volatile boolean stopping = false;
   private ScheduledExecutorService actor;
   private ManagedChannel channel;
   private StreamObserver<MatriarchMessage> up;
@@ -133,11 +134,33 @@ public class CloudUplinkClient {
   }
 
   public void stop() {
+    // Flag first so gRPC callbacks (onError/onNext) fired by the teardown below skip re-dispatching to
+    // the actor, then drop the channel BEFORE the actor — otherwise the channel's shutdown fires
+    // onError, which tries to hand a reconnect to an already-dead actor (RejectedExecutionException).
+    stopping = true;
+    if (channel != null) {
+      channel.shutdownNow();
+    }
     if (actor != null) {
       actor.shutdownNow();
     }
-    if (channel != null) {
-      channel.shutdownNow();
+  }
+
+  /**
+   * Hand a task to the single actor thread from a gRPC callback (or CDI) thread, silently skipping it
+   * while shutting down: a stream error/close during {@link #stop()} can fire onError/onNext after the
+   * actor is gone, and an unguarded {@code execute} would throw RejectedExecutionException from inside
+   * gRPC's onClose. The try/catch covers the shutdown racing the check.
+   */
+  private void runOnActor(Runnable task) {
+    ScheduledExecutorService a = actor;
+    if (stopping || a == null || a.isShutdown()) {
+      return;
+    }
+    try {
+      a.execute(task);
+    } catch (java.util.concurrent.RejectedExecutionException ignore) {
+      // actor shut down between the check and submit — nothing to do on the way down
     }
   }
 
@@ -184,11 +207,10 @@ public class CloudUplinkClient {
   }
 
   void onClusterEvent(@Observes ClusterEvent event) {
-    ScheduledExecutorService a = actor;
-    if (!enabled || a == null) {
+    if (!enabled) {
       return;
     }
-    a.execute(() -> forward(event));
+    runOnActor(() -> forward(event));
   }
 
   private void forward(ClusterEvent event) {
@@ -266,8 +288,13 @@ public class CloudUplinkClient {
     up = null;
     long delay = backoffMs;
     backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF_MS);
-    if (actor != null && !actor.isShutdown()) {
+    if (stopping || actor == null || actor.isShutdown()) {
+      return;
+    }
+    try {
       actor.schedule(this::connect, delay, TimeUnit.MILLISECONDS);
+    } catch (java.util.concurrent.RejectedExecutionException ignore) {
+      // shutting down — no reconnect needed
     }
   }
 
@@ -295,19 +322,19 @@ public class CloudUplinkClient {
   private final class DownstreamHandler implements StreamObserver<CloudMessage> {
     @Override
     public void onNext(CloudMessage m) {
-      actor.execute(() -> handleDown(m));
+      runOnActor(() -> handleDown(m));
     }
 
     @Override
     public void onError(Throwable t) {
       LOG.debugf("cloud uplink stream error: %s", t.getMessage());
-      actor.execute(CloudUplinkClient.this::scheduleReconnect);
+      runOnActor(CloudUplinkClient.this::scheduleReconnect);
     }
 
     @Override
     public void onCompleted() {
       LOG.debug("cloud uplink stream completed by server");
-      actor.execute(CloudUplinkClient.this::scheduleReconnect);
+      runOnActor(CloudUplinkClient.this::scheduleReconnect);
     }
   }
 }

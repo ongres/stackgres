@@ -48,6 +48,21 @@ public class StackGresApiReadService extends StackGresApiGrpc.StackGresApiImplBa
   @Inject
   OperatorInstallationInfoHolder installationInfoHolder;
 
+  // This operator's build version (from the Maven project version, baked in by Quarkus at build time).
+  @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quarkus.application.version",
+      defaultValue = "dev")
+  String serverVersion;
+
+  @Override
+  public void getServerInfo(io.stackgres.proto.api.v1.GetServerInfoRequest request,
+      StreamObserver<io.stackgres.proto.api.v1.GetServerInfoResponse> responseObserver) {
+    responseObserver.onNext(io.stackgres.proto.api.v1.GetServerInfoResponse.newBuilder()
+        .setVersion(serverVersion)
+        .setComponent("operator")
+        .build());
+    responseObserver.onCompleted();
+  }
+
   /** The environment identity for this StackGres install (falls back to "local"). */
   private String environmentId() {
     String id = installationInfoHolder.getInstallationId();

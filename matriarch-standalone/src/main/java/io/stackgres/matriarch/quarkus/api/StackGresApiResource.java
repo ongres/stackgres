@@ -58,6 +58,10 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     @Inject
     io.stackgres.matriarch.quarkus.identity.EnvironmentIdentity identity;
 
+    // This matriarch's build version (from the Maven project version, baked in by Quarkus at build time).
+    @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quarkus.application.version", defaultValue = "dev")
+    String serverVersion;
+
     @Inject
     Slons slons;
 
@@ -307,6 +311,16 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         } catch (ClusterNotFoundException e) {
             responseObserver.onError(Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
         }
+    }
+
+    @Override
+    public void getServerInfo(io.stackgres.proto.api.v1.GetServerInfoRequest request,
+                              StreamObserver<io.stackgres.proto.api.v1.GetServerInfoResponse> responseObserver) {
+        responseObserver.onNext(io.stackgres.proto.api.v1.GetServerInfoResponse.newBuilder()
+                .setVersion(serverVersion)
+                .setComponent("matriarch")
+                .build());
+        responseObserver.onCompleted();
     }
 
     @Override

@@ -7220,6 +7220,86 @@
       ]
     },
     {
+      "type": "io.stackgres.proto.api.v1.GetServerInfoRequest",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.api.v1.GetServerInfoRequest$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.api.v1.GetServerInfoResponse",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getComponent",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCommit",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.api.v1.GetServerInfoResponse$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "setVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getComponent",
+          "parameterTypes": []
+        },
+        {
+          "name": "setComponent",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCommit",
+          "parameterTypes": []
+        },
+        {
+          "name": "setCommit",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "io.stackgres.proto.api.v1.GetClusterCredentialsResponse$Builder",
       "methods": [
         {

@@ -700,20 +700,30 @@ run_as_user() {
     fi
 }
 
-# --- point the CLI's ~/.stackgres context at the LOCAL matriarch (no token; plaintext, localhost) ---
-# The matriarch's own uplink to the cloud is configured via its service env (STACKGRES_ENDPOINT_URL /
-# STACKGRES_TOKEN); the CLI just talks to it locally, mirroring the cli-only install.
+# --- point the CLI's ~/.stackgres context at the right target, mirroring the cli-only install ---
+# When a cloud token is present (an OTT was supplied and exchanged into STACKGRES_TOKEN above, as the
+# install link does), the user authenticated with the cloud, so the CLI targets the cloud — which also
+# routes writes down to this matriarch. With no token (a pure local install), the CLI talks to the local
+# matriarch directly. Sets CLI_TARGET (used by print_getting_started).
 configure_context() {
-    info "Configuring ~/.stackgres to target the local matriarch (localhost:${MATRIARCH_PORT})"
-    run_as_user ${BIN_DIR}/${NAME} context set default --endpoint "localhost:${MATRIARCH_PORT}" --tls false \
-        || warn "could not write the context — set it with: ${NAME} context set default --endpoint localhost:${MATRIARCH_PORT} --tls false"
+    if [ -n "${STACKGRES_TOKEN}" ]; then
+        CLI_TARGET="the cloud (${STACKGRES_ENDPOINT_URL})"
+        info "Configuring ~/.stackgres to target ${CLI_TARGET}"
+        run_as_user ${BIN_DIR}/${NAME} context set default --endpoint "${STACKGRES_ENDPOINT_URL}" --token "${STACKGRES_TOKEN}" --tls true \
+            || warn "could not write the context — set it with: ${NAME} context set default --endpoint ${STACKGRES_ENDPOINT_URL} --token <jwt>"
+    else
+        CLI_TARGET="the local matriarch (localhost:${MATRIARCH_PORT})"
+        info "Configuring ~/.stackgres to target ${CLI_TARGET}"
+        run_as_user ${BIN_DIR}/${NAME} context set default --endpoint "localhost:${MATRIARCH_PORT}" --tls false \
+            || warn "could not write the context — set it with: ${NAME} context set default --endpoint localhost:${MATRIARCH_PORT} --tls false"
+    fi
 }
 
 # --- print getting started messages ---
 print_getting_started() {
     info "StackGres ${STACKGRES_VERSION} installed successfully"
     info ''
-    info 'The CLI targets the local matriarch (localhost:'"${MATRIARCH_PORT}"'); check it with: stackgres status'
+    info "The CLI targets ${CLI_TARGET}; check it with: stackgres status"
     info 'Create your first Postgres cluster: stackgres cluster create --name postgres'
     #info 'See information about your StackGres installation: stackgres info'
     info 'Uninstall StackGres with stackgres-uninstall.sh'

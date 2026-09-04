@@ -9,8 +9,8 @@ import io.stackgres.cli.commands.slon.SlonCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "stackgres", mixinStandardHelpOptions = true, subcommands = {ClusterCommand.class, EnvironmentCommand.class, ContextCommand.class, SlonCommand.class,
-        LoginCommand.class, LogoutCommand.class, StatusCommand.class, CompletionCommand.class/*, InfoCommand.class*/}, description = "Manages StackGres (stackgres.io)")
+@Command(name = "stackgres", subcommands = {ClusterCommand.class, EnvironmentCommand.class, ContextCommand.class, SlonCommand.class,
+        LoginCommand.class, LogoutCommand.class, StatusCommand.class, VersionCommand.class, CompletionCommand.class/*, InfoCommand.class*/}, description = "Manages StackGres (stackgres.io)")
 public class StackGresCommand extends StackGresBaseCommand {
 
     public static void main(String... args) {
