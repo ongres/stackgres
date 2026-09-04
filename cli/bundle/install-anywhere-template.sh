@@ -431,19 +431,12 @@ create_scripts() {
     create_uninstall
 }
 
-# --- create stackgres cli script ---
+# --- install the stackgres CLI: symlink the bundled binary into PATH (no wrapper) ---
+# The CLI is self-contained and reads its target from ~/.stackgres/config.yaml (set by
+# configure_context to the local matriarch) — it no longer sources the services' .env.
 create_stackgres_cli() {
-    info "Creating CLI ${BIN_DIR}/${NAME}"
-    $SUDO tee ${BIN_DIR}/${NAME} >/dev/null << EOF
-#!/bin/bash
-set -euo pipefail
-set -o allexport
-source ${FILE_STACKGRES_ENV}
-set +o allexport
-
-exec ${STACKGRES_DIR}/bin/stackgres \$@
-EOF
-    $SUDO chmod 755 ${BIN_DIR}/${NAME}
+    info "Installing CLI ${BIN_DIR}/${NAME}"
+    $SUDO ln -sf ${STACKGRES_DIR}/bin/stackgres ${BIN_DIR}/${NAME}
 }
 
 # --- create killall script ---
@@ -698,10 +691,29 @@ service_enable_and_start() {
     return 0
 }
 
+# --- run a command as the INVOKING user, so ~/.stackgres lands in their home even under `sudo sh` ---
+run_as_user() {
+    if [ "$(id -u)" -eq 0 ] && [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER}" != "root" ]; then
+        sudo -u "${SUDO_USER}" -H "$@"
+    else
+        "$@"
+    fi
+}
+
+# --- point the CLI's ~/.stackgres context at the LOCAL matriarch (no token; plaintext, localhost) ---
+# The matriarch's own uplink to the cloud is configured via its service env (STACKGRES_ENDPOINT_URL /
+# STACKGRES_TOKEN); the CLI just talks to it locally, mirroring the cli-only install.
+configure_context() {
+    info "Configuring ~/.stackgres to target the local matriarch (localhost:${MATRIARCH_PORT})"
+    run_as_user ${BIN_DIR}/${NAME} context set default --endpoint "localhost:${MATRIARCH_PORT}" --tls false \
+        || warn "could not write the context — set it with: ${NAME} context set default --endpoint localhost:${MATRIARCH_PORT} --tls false"
+}
+
 # --- print getting started messages ---
 print_getting_started() {
     info "StackGres ${STACKGRES_VERSION} installed successfully"
     info ''
+    info 'The CLI targets the local matriarch (localhost:'"${MATRIARCH_PORT}"'); check it with: stackgres status'
     info 'Create your first Postgres cluster: stackgres cluster create --name postgres'
     #info 'See information about your StackGres installation: stackgres info'
     info 'Uninstall StackGres with stackgres-uninstall.sh'
@@ -745,5 +757,6 @@ maybe_exchange_install_token() {
     create_config_files
     create_service_files
     service_enable_and_start
+    configure_context
     print_getting_started
 }
