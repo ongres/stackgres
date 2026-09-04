@@ -51,8 +51,9 @@ EOF
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set cluster.postgres.ssl.enabled=true \
-    --set-string cluster.replication.mode=sync \
-    --set cluster.replication.syncInstances=1
+    $([ "$E2E_MAJOR_VERSION_UPGRADE_SKIP_SYNC" != true ] && printf %s '
+      --set-string cluster.replication.mode=sync
+      --set cluster.replication.syncInstances=1' || true)
 
   local BACKUP_NAME_PRE BACKUP_NAME_POST
   BACKUP_NAME_PRE="$(get_sgbackup_name "$CLUSTER_NAME-pre")"
