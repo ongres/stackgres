@@ -149,11 +149,6 @@ ignoreFiles = ['_index\.template\.md$']
                 url     = "were-hiring"
                 weight  = 2
                 parent = "company"
-            [[languages.en.menu.main]]
-                name    = "Contact"
-                url     = "contact"
-                weight  = 3
-                parent = "company"
         [[languages.en.menu.main]]
             name    = "Community"
             url     = "community"
@@ -162,6 +157,10 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Blog"
             url     = "blog"
             weight  = 6
+        [[languages.en.menu.main]]
+            name    = "Contact"
+            url     = "contact"
+            weight  = 7
 
         # Footer Services EN
         [[languages.en.menu.services]]
@@ -389,11 +388,6 @@ ignoreFiles = ['_index\.template\.md$']
                 url     = "es/estamos-contratando"
                 weight  = 2
                 parent = "company"
-            [[languages.es.menu.main]]
-                name    = "Contacto"
-                url     = "es/contacto"
-                weight  = 3
-                parent = "company"
         [[languages.es.menu.main]]
             name    = "Comunidad"
             url     = "es/comunidad"
@@ -402,6 +396,10 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Blog"
             url     = "blog"
             weight  = 6
+        [[languages.es.menu.main]]
+            name    = "Contacto"
+            url     = "es/contacto"
+            weight  = 7
 
         # Footer Services ES
         [[languages.es.menu.services]]
