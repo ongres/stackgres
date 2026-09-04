@@ -22,6 +22,14 @@ public abstract class StackGresSubCommand extends StackGresBaseCommand implement
         System.out.printf(format, args);
     }
 
+    /** Width of the "Label:" column in every detail view, so labels line up identically across commands. */
+    protected static final int LABEL_WIDTH = 14;
+
+    /** Render one aligned "Label:   value" line — the single label style shared by all detail views. */
+    protected void field(String label, Object value) {
+        outf("%-" + LABEL_WIDTH + "s%s\n", label + ":", value == null ? "" : value);
+    }
+
     protected void errln(String message, CommandLine.Model.CommandSpec spec) {
         System.err.println(spec.commandLine().getColorScheme().errorText(message));
     }

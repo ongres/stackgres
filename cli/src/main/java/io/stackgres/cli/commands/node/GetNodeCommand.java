@@ -1,6 +1,7 @@
 package io.stackgres.cli.commands.node;
 
 import io.stackgres.cli.Strings;
+import io.stackgres.cli.Times;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.StackGresSubCommand;
 import io.stackgres.cli.postgres.Slony;
@@ -28,6 +29,15 @@ public class GetNodeCommand extends StackGresSubCommand {
         if (slony == null)
             throw new IllegalArgumentException("No node found with ID: " + id);
 
+        // Which environment the node lives in — only when several exist (single-env stays uncluttered).
+        boolean multiEnv;
+        try {
+            multiEnv = client.listEnvironments().size() > 1;
+        } catch (RuntimeException ignore) {
+            multiEnv = false;
+        }
+        String envLine = multiEnv ? "\nEnvironment:  " + slony.environmentId() : "";
+
         String cloud = "";
         if (slony.cloudEnvironment() != null) {
             String region = slony.cloudEnvironment().region() != null ? slony.cloudEnvironment().region() : "N/A";
@@ -54,7 +64,7 @@ public class GetNodeCommand extends StackGresSubCommand {
         String output = """
                 PostgreSQL node:
 
-                ID:           $id$
+                ID:           $id$$env$
                 Hostname:     $hostname$
                 OS:           $os$
                 Arch:         $arch$
@@ -62,8 +72,9 @@ public class GetNodeCommand extends StackGresSubCommand {
                 CPUs:         $cpu$
                 Memory:       $memory$
                 Status:       $status$
-                Last Active:  $lastSeen$$tags$$cloud$"""
+                Last seen:    $lastSeen$$tags$$cloud$"""
                 .replace("$id$", slony.id().toString())
+                .replace("$env$", envLine)
                 .replace("$hostname$", slony.hostname())
                 .replace("$os$", slony.os())
                 .replace("$arch$", slony.arch())
@@ -71,7 +82,7 @@ public class GetNodeCommand extends StackGresSubCommand {
                 .replace("$cpu$", String.valueOf(slony.cpu()))
                 .replace("$memory$", Strings.formatMemory(slony.memory()))
                 .replace("$status$", String.valueOf(slony.status()))
-                .replace("$lastSeen$", Strings.formatTimeAgo(slony.lastHeartbeat(), 15))
+                .replace("$lastSeen$", slony.lastHeartbeat() == null ? "Never" : Times.stampAndAgo(slony.lastHeartbeat()))
                 .replace("$tags$", tags)
                 .replace("$cloud$", cloud);
         outln(output);

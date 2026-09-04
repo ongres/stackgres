@@ -1,6 +1,5 @@
 package io.stackgres.cli;
 
-import java.time.Duration;
 import java.time.Instant;
 
 import static picocli.CommandLine.Help.Ansi.AUTO;
@@ -25,14 +24,9 @@ public final class Strings {
         return AUTO.string("\033[38:5:246m" + string + "\033[39m");
     }
 
+    // Relative age lives in Times.ago now; kept here for the "Never" default on absent heartbeats.
     public static String formatTimeAgo(Instant instant, int nowThresholdSeconds) {
-        if (instant == null) return "Never";
-        long seconds = Duration.between(instant, Instant.now()).getSeconds();
-        if (seconds < nowThresholdSeconds) return "Just now";
-        if (seconds < 60) return seconds + "s ago";
-        if (seconds < 3600) return (seconds / 60) + "m ago";
-        if (seconds < 86400) return (seconds / 3600) + "h ago";
-        return (seconds / 86400) + "d ago";
+        return instant == null ? "Never" : Times.ago(instant, nowThresholdSeconds);
     }
 
     public static String formatMemory(long memory) {

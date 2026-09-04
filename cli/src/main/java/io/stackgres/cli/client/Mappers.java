@@ -50,7 +50,7 @@ public final class Mappers {
                 .map(s -> {
                     Instant lastHeartbeat = Instant.ofEpochSecond(s.getLastHeartbeat().getSeconds(), s.getLastHeartbeat().getNanos());
                     return new Slony(mapUUID(s.getId()), s.getHostname(), s.getOs(), s.getArch(), s.getVersion(), s.getCpu(), s.getMemory(),
-                            mapCloudEnvironment(s), mapSlonyStatus(s.getStatus()), lastHeartbeat, s.getTagsMap());
+                            mapCloudEnvironment(s), mapSlonyStatus(s.getStatus()), lastHeartbeat, s.getTagsMap(), "");
                 })
                 .toList();
     }
@@ -87,7 +87,7 @@ public final class Mappers {
                             : null;
                     return new Slony(java.util.UUID.fromString(n.getId().getValue()), n.getHostname(), n.getOs(),
                             n.getArch(), n.getVersion(), n.getCpu(), n.getMemory(),
-                            mapNodeCloudEnvironment(n), mapNodeStatus(n.getStatus()), lastHeartbeat, n.getTagsMap());
+                            mapNodeCloudEnvironment(n), mapNodeStatus(n.getStatus()), lastHeartbeat, n.getTagsMap(), n.getEnvironmentId());
                 })
                 .toList();
     }

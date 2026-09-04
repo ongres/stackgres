@@ -130,7 +130,13 @@ public class MatriarchClient {
     static boolean isCloudUnsupported(Throwable t) {
         io.grpc.Status s = io.grpc.Status.fromThrowable(t);
         if (s.getCode() == io.grpc.Status.Code.UNIMPLEMENTED) {
-            return true;
+            // A genuinely-absent method (the old cli.proto services, or an api.v1 method the cloud
+            // doesn't route yet) carries no description or gRPC's framework text ("Method not found: …",
+            // "Method …/… is unimplemented"). A write that DID reach a connected environment which then
+            // rejected it (e.g. a read-only k8s environment) comes back UNIMPLEMENTED with a real, human
+            // reason — that is NOT "unsupported over the cloud"; surface the reason instead of hiding it.
+            String d = s.getDescription();
+            return d == null || d.isBlank() || d.startsWith("Method ");
         }
         String msg = t.getMessage() == null ? "" : t.getMessage();
         return s.getCode() == io.grpc.Status.Code.UNKNOWN
@@ -207,8 +213,15 @@ public class MatriarchClient {
      * Resolve a cluster's superuser password out-of-band (§3.7 separate call).
      */
     public String getClusterCredentials(String clusterId) {
+        // Route to the environment the id was resolved in (via resolveCluster); fall back to the active
+        // environment for ids we minted ourselves this run (e.g. a freshly created cluster).
+        String environment = clusterEnvById.getOrDefault(clusterId, null);
+        return getClusterCredentials(environment != null ? environment : activeEnvironment(), clusterId);
+    }
+
+    public String getClusterCredentials(String environmentId, String clusterId) {
         GetClusterCredentialsRequest request = GetClusterCredentialsRequest.newBuilder()
-                .setEnvironmentId(activeEnvironment())
+                .setEnvironmentId(environmentId)
                 .setClusterId(Id.newBuilder().setValue(clusterId))
                 .build();
         try {
@@ -219,25 +232,27 @@ public class MatriarchClient {
     }
 
     public void deleteCluster(String clusterName, Consumer<String> deletionConsumer) {
-        PostgresCluster cluster = getCluster(clusterName);
-        deleteById(cluster.getId().toString(), clusterName, deletionConsumer);
+        ClusterRow row = resolveCluster(clusterName);
+        deleteById(row.environmentId(), row.cluster().getId().toString(), clusterName, deletionConsumer);
     }
 
     public void deleteAllClusters(Consumer<String> deletionConsumer) {
+        String environment = activeEnvironment();
         for (PostgresCluster cluster : listActiveClusters(Map.of()))
-            deleteById(cluster.getId().toString(), cluster.getName(), deletionConsumer);
+            deleteById(environment, cluster.getId().toString(), cluster.getName(), deletionConsumer);
     }
 
     public void deleteClusters(Map<String, String> tags, Consumer<String> deletionConsumer) {
+        String environment = activeEnvironment();
         for (PostgresCluster cluster : listActiveClusters(tags))
-            deleteById(cluster.getId().toString(), cluster.getName(), deletionConsumer);
+            deleteById(environment, cluster.getId().toString(), cluster.getName(), deletionConsumer);
     }
 
     // api.v1 delete is by-id; the CLI resolves the name/tags → id(s) client-side above.
-    private void deleteById(String id, String name, Consumer<String> deletionConsumer) {
+    private void deleteById(String environment, String id, String name, Consumer<String> deletionConsumer) {
         DeleteClusterRequest request = DeleteClusterRequest.newBuilder()
                 .setSelector(io.stackgres.proto.api.v1.ClusterSelector.newBuilder()
-                        .setEnvironmentId(activeEnvironment())
+                        .setEnvironmentId(environment)
                         .setId(Id.newBuilder().setValue(id)))
                 .setIdempotencyKey(id)
                 .build();
@@ -260,47 +275,56 @@ public class MatriarchClient {
     }
 
     public void startCluster(String clusterName) {
-        lifecycle(LifecycleVerb.START, getCluster(clusterName).getId().toString());
+        ClusterRow row = resolveCluster(clusterName);
+        lifecycle(LifecycleVerb.START, row.environmentId(), row.cluster().getId().toString());
     }
 
     public void startAllClusters() {
-        for (PostgresCluster c : listActiveClusters(Map.of())) if (!c.isRunning()) lifecycle(LifecycleVerb.START, c.getId().toString());
+        String environment = activeEnvironment();
+        for (PostgresCluster c : listActiveClusters(Map.of())) if (!c.isRunning()) lifecycle(LifecycleVerb.START, environment, c.getId().toString());
     }
 
     public void startClusters(Map<String, String> tags) {
-        for (PostgresCluster c : listActiveClusters(tags)) if (!c.isRunning()) lifecycle(LifecycleVerb.START, c.getId().toString());
+        String environment = activeEnvironment();
+        for (PostgresCluster c : listActiveClusters(tags)) if (!c.isRunning()) lifecycle(LifecycleVerb.START, environment, c.getId().toString());
     }
 
     public void stopCluster(String clusterName) {
-        lifecycle(LifecycleVerb.STOP, getCluster(clusterName).getId().toString());
+        ClusterRow row = resolveCluster(clusterName);
+        lifecycle(LifecycleVerb.STOP, row.environmentId(), row.cluster().getId().toString());
     }
 
     public void stopAllClusters() {
-        for (PostgresCluster c : listActiveClusters(Map.of())) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, c.getId().toString());
+        String environment = activeEnvironment();
+        for (PostgresCluster c : listActiveClusters(Map.of())) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, environment, c.getId().toString());
     }
 
     public void stopClusters(Map<String, String> tags) {
-        for (PostgresCluster c : listActiveClusters(tags)) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, c.getId().toString());
+        String environment = activeEnvironment();
+        for (PostgresCluster c : listActiveClusters(tags)) if (c.isRunning()) lifecycle(LifecycleVerb.STOP, environment, c.getId().toString());
     }
 
     public void restartCluster(String clusterName) {
-        lifecycle(LifecycleVerb.RESTART, getCluster(clusterName).getId().toString());
+        ClusterRow row = resolveCluster(clusterName);
+        lifecycle(LifecycleVerb.RESTART, row.environmentId(), row.cluster().getId().toString());
     }
 
     public void restartAllClusters() {
-        for (PostgresCluster c : listActiveClusters(Map.of())) lifecycle(LifecycleVerb.RESTART, c.getId().toString());
+        String environment = activeEnvironment();
+        for (PostgresCluster c : listActiveClusters(Map.of())) lifecycle(LifecycleVerb.RESTART, environment, c.getId().toString());
     }
 
     public void restartClusters(Map<String, String> tags) {
-        for (PostgresCluster c : listActiveClusters(tags)) lifecycle(LifecycleVerb.RESTART, c.getId().toString());
+        String environment = activeEnvironment();
+        for (PostgresCluster c : listActiveClusters(tags)) lifecycle(LifecycleVerb.RESTART, environment, c.getId().toString());
     }
 
     private enum LifecycleVerb {START, STOP, RESTART}
 
     // api.v1 lifecycle is by-id (name/tags resolved client-side); streams progress to a terminal frame.
-    private void lifecycle(LifecycleVerb verb, String id) {
+    private void lifecycle(LifecycleVerb verb, String environment, String id) {
         var selector = io.stackgres.proto.api.v1.ClusterSelector.newBuilder()
-                .setEnvironmentId(activeEnvironment())
+                .setEnvironmentId(environment)
                 .setId(Id.newBuilder().setValue(id))
                 .build();
         String key = UUID.randomUUID().toString();
@@ -331,6 +355,11 @@ public class MatriarchClient {
     // ---- environment resolution (kubectl-namespace model) ----
 
     private String activeEnvironmentCache;
+    // Memoize name -> resolved row (and cluster-id -> its environment) so a command that resolves a name
+    // more than once (e.g. a write command prints the info line pre-spinner, then the client re-resolves
+    // to route) pays one round-trip and prints the "Using ... in environment" line at most once.
+    private final Map<String, ClusterRow> resolvedByName = new java.util.HashMap<>();
+    private final Map<String, String> clusterEnvById = new java.util.HashMap<>();
 
     /** The environment configured for this invocation (flag &gt; env var &gt; context); "" = unset (all). */
     public String configuredEnvironment() {
@@ -347,9 +376,12 @@ public class MatriarchClient {
         if (activeEnvironmentCache != null) {
             return activeEnvironmentCache;
         }
+        // Note: staleness is NOT warned here — this resolver runs inside spinner-driven writes, where a
+        // direct stderr warning would collide with the ProgressMessages rendering (and the write already
+        // surfaces the precise route error, e.g. "environment 'X' is not connected", via the spinner).
+        // The staleness hint lives on the no-spinner read paths (cluster list/get, status) instead.
         String configured = configuredEnvironment();
         if (configured != null && !configured.isBlank()) {
-            warnIfEnvironmentStale(configured);   // D: warn (don't fail) when the pinned env is stale
             return activeEnvironmentCache = configured;
         }
         List<EnvironmentInfo> envs = listEnvironments();
@@ -362,6 +394,68 @@ public class MatriarchClient {
         String ids = envs.stream().map(EnvironmentInfo::id).collect(java.util.stream.Collectors.joining(", "));
         throw new RuntimeException("no active environment selected — this endpoint exposes several ("
                 + ids + "). Choose one with 'stackgres environment use <id>' or pass -E <id>.");
+    }
+
+    /**
+     * Resolve a cluster NAME to the concrete {@code environment/cluster} it lives in, so single-cluster
+     * commands work symmetrically with {@code cluster list} (which aggregates across environments). If an
+     * environment is configured (-E/use) or the endpoint exposes just one, we scope to it. Otherwise we
+     * search every environment: a unique match is used (and, since the caller didn't pick, we note which
+     * environment on stderr); a name that collides across environments is refused with the candidates so
+     * the user disambiguates with -E. The returned {@link ClusterRow} carries the environment id, and
+     * callers MUST route their request to it (never a second {@link #activeEnvironment()} lookup) so the
+     * id resolved and the environment acted on can't drift apart.
+     */
+    public ClusterRow resolveCluster(String name) {
+        return resolveCluster(name, "Using");
+    }
+
+    /** As {@link #resolveCluster(String)} but with the verb used in the auto-resolution note (e.g. "Targeting"). */
+    public ClusterRow resolveCluster(String name, String verb) {
+        ClusterRow cached = resolvedByName.get(name);
+        if (cached != null) {
+            return cached;
+        }
+        String configured = configuredEnvironment();
+        if (configured != null && !configured.isBlank()) {
+            return remember(name, findInEnvironment(configured, name).orElseThrow(() ->
+                    new RuntimeException("The cluster with name " + name
+                            + " doesn't exist in environment " + configured)));
+        }
+        List<EnvironmentInfo> envs = listEnvironments();
+        if (envs.isEmpty()) {
+            throw new RuntimeException("no environments are available on this endpoint");
+        }
+        if (envs.size() == 1) {
+            return remember(name, findInEnvironment(envs.get(0).id(), name).orElseThrow(() ->
+                    new RuntimeException("The cluster with name " + name + " doesn't exist")));
+        }
+        // Several environments, none chosen: search them all and let a unique name resolve itself.
+        List<ClusterRow> matches = listClusterRows("", Map.of()).stream()
+                .filter(r -> name.equals(r.cluster().getName())).toList();
+        if (matches.isEmpty()) {
+            throw new RuntimeException("The cluster with name " + name + " doesn't exist in any environment");
+        }
+        if (matches.size() > 1) {
+            String ids = matches.stream().map(ClusterRow::environmentId).collect(java.util.stream.Collectors.joining(", "));
+            throw new RuntimeException("Cluster '" + name + "' exists in multiple environments ("
+                    + ids + "). Pick one with -E <id> or 'stackgres environment use <id>'.");
+        }
+        ClusterRow row = matches.get(0);
+        System.err.println(Strings.commentAnsi("ⓘ " + verb + " cluster '" + name
+                + "' in environment '" + row.environmentId() + "'."));
+        return remember(name, row);
+    }
+
+    private java.util.Optional<ClusterRow> findInEnvironment(String environmentId, String name) {
+        return listClusterRows(environmentId, Map.of()).stream()
+                .filter(r -> name.equals(r.cluster().getName())).findFirst();
+    }
+
+    private ClusterRow remember(String name, ClusterRow row) {
+        resolvedByName.put(name, row);
+        clusterEnvById.put(row.cluster().getId().toString(), row.environmentId());
+        return row;
     }
 
     /**
@@ -388,9 +482,9 @@ public class MatriarchClient {
                 .filter(e -> environmentId.equals(e.id())).findFirst().orElse(null);
         String problem;
         if (current == null) {
-            problem = "Environment '" + environmentId + "' no longer exists.";
+            problem = "⚠ Environment '" + environmentId + "' no longer exists. Output might be outdated.";
         } else if ("Disconnected".equalsIgnoreCase(current.health())) {
-            problem = "Environment '" + environmentId + "' is disconnected.";
+            problem = "⚠ Environment '" + environmentId + "' is disconnected. Output might be outdated.";
         } else {
             return; // connected — nothing to warn about
         }
@@ -399,9 +493,9 @@ public class MatriarchClient {
                 .map(EnvironmentInfo::id).toList();
         String hint;
         if (connected.size() == 1) {
-            hint = " Did you mean '" + connected.get(0) + "'?  Switch with: stackgres environment use " + connected.get(0);
+            hint = " Did you mean '" + connected.get(0) + "'? Switch with: stackgres environment use " + connected.get(0);
         } else if (!connected.isEmpty()) {
-            hint = " Connected: " + String.join(", ", connected) + ".  Switch with: stackgres environment use <id>";
+            hint = " Connected: " + String.join(", ", connected) + ". Switch with: stackgres environment use <id>";
         } else {
             hint = "";
         }
@@ -526,11 +620,8 @@ public class MatriarchClient {
     }
 
     public PostgresCluster getCluster(String name) {
-        // api.v1 GetCluster is by-id in the matriarch; resolve by name client-side via list.
-        return listActiveClusters(Map.of()).stream()
-                .filter(c -> name.equals(c.getName()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("The cluster with name " + name + " doesn't exist"));
+        // api.v1 GetCluster is by-id in the matriarch; resolve by name client-side, across environments.
+        return resolveCluster(name).cluster();
     }
 
     public ExecSession execInCluster(String name, String instanceName, List<String> commands, Flow.Publisher<ByteString> cliExecSupplier, Consumer<ByteString> matriarchConsumer) {
@@ -650,10 +741,11 @@ public class MatriarchClient {
 
     // Resolve name -> cluster (+ optional instance name -> id) and build the api.v1 TailLogs request.
     private TailLogsRequest tailLogsRequest(String name, String instanceName, String component, boolean follow) {
-        PostgresCluster cluster = getCluster(name);
+        ClusterRow row = resolveCluster(name);
+        PostgresCluster cluster = row.cluster();
         UUID instanceId = instanceId(cluster, instanceName);
         TailLogsRequest.Builder builder = TailLogsRequest.newBuilder()
-                .setEnvironmentId(activeEnvironment())
+                .setEnvironmentId(row.environmentId())
                 .setClusterId(Id.newBuilder().setValue(cluster.getId().toString()))
                 .addComponent(componentName(component, cluster))
                 .setFollow(follow);
@@ -866,10 +958,10 @@ public class MatriarchClient {
     }
 
     public List<Event> getClusterEvents(String name) {
-        PostgresCluster cluster = getCluster(name);   // resolve name → id (api.v1 events are by-id)
+        ClusterRow row = resolveCluster(name);   // resolve name → environment/id (api.v1 events are by-id)
         var request = io.stackgres.proto.api.v1.GetClusterEventsRequest.newBuilder()
-                .setEnvironmentId(activeEnvironment())
-                .setClusterId(Id.newBuilder().setValue(cluster.getId().toString()))
+                .setEnvironmentId(row.environmentId())
+                .setClusterId(Id.newBuilder().setValue(row.cluster().getId().toString()))
                 .build();
         try {
             var response = stackGresClient().getClusterEvents(request);

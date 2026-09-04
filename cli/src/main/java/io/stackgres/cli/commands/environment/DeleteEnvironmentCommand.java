@@ -3,6 +3,8 @@ package io.stackgres.cli.commands.environment;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.InteractivePrompt;
 import io.stackgres.cli.commands.StackGresSubCommand;
+import io.stackgres.cli.config.CliConfig;
+import io.stackgres.cli.config.Context;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -39,6 +41,26 @@ public class DeleteEnvironmentCommand extends StackGresSubCommand {
         }
         client.deleteEnvironment(id);
         outln("Environment '" + id + "' deleted.");
+        clearFromContexts();
+    }
+
+    /**
+     * Drop the just-deleted environment from any saved context that pinned it (via {@code environment
+     * use}), so subsequent commands fall back to "all environments" instead of a now-deleted one.
+     */
+    private void clearFromContexts() {
+        CliConfig config = CliConfig.load();
+        boolean cleared = false;
+        for (Context c : config.contexts()) {
+            if (id.equals(c.environment())) {
+                config.upsert(new Context(c.name(), c.endpoint(), c.tls(), c.token(), null));
+                cleared = true;
+            }
+        }
+        if (cleared) {
+            config.save();
+            outln("Cleared it from your saved context(s); commands now target all environments.");
+        }
     }
 
 }

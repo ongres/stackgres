@@ -2,6 +2,7 @@ package io.stackgres.cli.commands.cluster;
 
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.JsonFormat;
+import io.stackgres.cli.Times;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.StackGresSubCommand;
 import io.stackgres.proto.cli.Checkpoint;
@@ -12,8 +13,6 @@ import picocli.CommandLine.Parameters;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -24,7 +23,6 @@ public class CheckpointsMetricCommand extends StackGresSubCommand {
 
     enum Format {summary, table, json, sparkline}
 
-    private static final DateTimeFormatter TS_DISPLAY = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
     private static final char[] SPARK_BLOCKS = {'▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'};
     private static final int SPARK_WIDTH = 40;
 
@@ -79,7 +77,7 @@ public class CheckpointsMetricCommand extends StackGresSubCommand {
     private void renderSummary(Checkpoint[] cs, Instant start, Instant end, boolean truncated) {
         Duration window = Duration.between(start, end);
         outln(String.format("checkpoints — %s — %s", name, instanceName == null ? "all instances" : "instance " + instanceName));
-        outln(String.format("window: %s → %s (%s)", TS_DISPLAY.format(start), TS_DISPLAY.format(end), humanDuration(window)));
+        outln(String.format("window: %s → %s (%s)", Times.stamp(start), Times.stamp(end), humanDuration(window)));
         outln("");
 
         if (cs.length == 0) {
@@ -133,12 +131,12 @@ public class CheckpointsMetricCommand extends StackGresSubCommand {
         outln(String.format("  %s ago%s%s now", humanDuration(window), " ".repeat(Math.max(1, SPARK_WIDTH - humanDuration(window).length() - 8)), ""));
         outln("");
         outln("  most recent");
-        outf("    %-19s  %-12s  %8s  %8s  %8s  %8s%n", "TIMESTAMP", "DATABASE", "BUFFERS", "WRITE", "SYNC", "TOTAL");
+        outf("    %-23s  %-12s  %8s  %8s  %8s  %8s%n", "TIMESTAMP", "DATABASE", "BUFFERS", "WRITE", "SYNC", "TOTAL");
         int recent = Math.min(10, cs.length);
         for (int i = cs.length - 1; i >= cs.length - recent; i--) {
             Checkpoint c = cs[i];
-            outf("    %-19s  %-12s  %8d  %8s  %8s  %8s%n",
-                    TS_DISPLAY.format(tsOf(c)),
+            outf("    %-23s  %-12s  %8d  %8s  %8s  %8s%n",
+                    Times.stamp(tsOf(c)),
                     truncate(c.getDatabase(), 12),
                     c.getBuffersWritten(),
                     humanSec(c.getWriteSeconds()),
@@ -148,10 +146,10 @@ public class CheckpointsMetricCommand extends StackGresSubCommand {
     }
 
     private void renderTable(Checkpoint[] cs) {
-        outf("%-20s  %-12s  %8s  %8s  %8s  %8s%n", "TIMESTAMP", "DATABASE", "BUFFERS", "WRITE", "SYNC", "TOTAL");
+        outf("%-23s  %-12s  %8s  %8s  %8s  %8s%n", "TIMESTAMP", "DATABASE", "BUFFERS", "WRITE", "SYNC", "TOTAL");
         for (Checkpoint c : cs) {
-            outf("%-20s  %-12s  %8d  %8s  %8s  %8s%n",
-                    TS_DISPLAY.format(tsOf(c)),
+            outf("%-23s  %-12s  %8d  %8s  %8s  %8s%n",
+                    Times.stamp(tsOf(c)),
                     truncate(c.getDatabase(), 12),
                     c.getBuffersWritten(),
                     humanSec(c.getWriteSeconds()),

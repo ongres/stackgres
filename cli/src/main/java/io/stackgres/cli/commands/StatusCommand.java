@@ -11,9 +11,10 @@ import java.util.List;
 
 /**
  * The state of affairs at a glance: where the CLI points (endpoint), who you are (read from the bearer
- * JWT, no server call), which named context is active, and the environments the matriarch/cloud exposes.
- * The active environment — the one writes target — is marked with {@code *}; reachability is implied by
- * the environment list and only reported when it fails. Verbose diagnostics belong in {@code info}.
+ * JWT, no server call), which named context is active, and — only when one is pinned — which
+ * environment commands target (the header {@code Environment} line; omitted when unset, i.e. all),
+ * followed by the environments the matriarch/cloud exposes. Reachability is implied by the environment
+ * list and only reported when it fails. Verbose diagnostics belong in {@code info}.
  */
 @Command(name = "status", description = "Shows the current endpoint, user, and reachable environments")
 public class StatusCommand extends StackGresSubCommand {
@@ -25,9 +26,13 @@ public class StatusCommand extends StackGresSubCommand {
         if (debug) client.setDebug();
         ResolvedContext ctx = CliContext.resolve();
 
-        outf("%-11s%s\n", "Endpoint", ctx.endpoint() + (ctx.tls() ? "" : " (plaintext)"));
-        outf("%-11s%s\n", "User", user(ctx));
-        outf("%-11s%s\n", "Context", ctx.contextName() == null ? "(none)" : ctx.contextName());
+        field("Endpoint", ctx.endpoint() + (ctx.tls() ? "" : " (plaintext)"));
+        field("User", user(ctx));
+        field("Context", ctx.contextName() == null ? "(none)" : ctx.contextName());
+        // Only shown when a specific environment is pinned; omitted (implicitly "all") when unset.
+        if (ctx.environment() != null && !ctx.environment().isBlank()) {
+            field("Environment", ctx.environment());
+        }
         outln("");
 
         List<EnvironmentInfo> environments;

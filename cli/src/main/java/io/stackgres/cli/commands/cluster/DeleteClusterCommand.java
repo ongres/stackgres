@@ -50,6 +50,10 @@ public class DeleteClusterCommand extends StackGresSubCommand {
         if ((deleteAll && tagsPresent && namePresent) || !(deleteAll ^ tagsPresent ^ namePresent))
             throw new CommandLine.MutuallyExclusiveArgsException(spec.commandLine(), "Specify exactly one of <name>, --all, or --tag");
 
+        // Resolve (and note the target environment) up front — before the confirmation and the spinner —
+        // so you see which environment you're about to delete from, and any ambiguity fails cleanly.
+        if (namePresent) client.resolveCluster(name, "Targeting");
+
         if (!force) {
             if (namePresent)
                 outln("This will delete all data of the " + name + " cluster (including the PGDATA directory and PostgreSQL config)");
