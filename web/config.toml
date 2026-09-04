@@ -286,11 +286,6 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Follow us on Twitter"
             url     = "https://twitter.com/ongresinc"
             weight  = 4
-        [[languages.en.menu.more]]
-            name    = "Contact"
-            url     = "contact"
-            weight  = 5
-
 	[languages.es]
         languageCode = "es-es"
         languageName = "Español"
@@ -530,10 +525,5 @@ ignoreFiles = ['_index\.template\.md$']
             name    = "Síguenos en Twitter"
             url     = "https://twitter.com/ongresinc"
             weight  = 4
-        [[languages.es.menu.more]]
-            name    = "Contacto"
-            url     = "es/contacto"
-            weight  = 5
-
 [markup.goldmark.renderer]
   unsafe= true
