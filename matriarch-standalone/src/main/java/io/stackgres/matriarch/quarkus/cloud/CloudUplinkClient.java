@@ -4,10 +4,10 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.grpc.netty.shaded.io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.matriarch.Matriarch;
@@ -101,6 +101,7 @@ public class CloudUplinkClient {
     Optional<Boolean> insecureTls;
 
     private boolean enabled = false;
+    private volatile boolean stopping = false;
     private ScheduledExecutorService actor;
     private ManagedChannel channel;
     private StreamObserver<MatriarchMessage> up;
@@ -134,17 +135,40 @@ public class CloudUplinkClient {
             return t;
         });
         LOG.infof("cloud uplink starting: env=%s -> %s [token=%s]", environmentId, endpointUrl, token.isEmpty() ? "none" : "set");
-        actor.execute(this::connect);
+        runOnActor(this::connect);
         long everyMs = heartbeatInterval.toMillis();
         actor.scheduleAtFixedRate(this::sendHeartbeat, everyMs, everyMs, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
+        // Flag first so gRPC callbacks (onError/onNext) fired by the teardown below skip re-dispatching
+        // to the actor, then drop the channel BEFORE the actor — otherwise the channel's shutdown fires
+        // onError, which tries to hand a reconnect to an already-dead actor (RejectedExecutionException).
+        stopping = true;
+        if (channel != null) {
+            channel.shutdownNow();
+        }
         if (actor != null) {
             actor.shutdownNow();
         }
-        if (channel != null) {
-            channel.shutdownNow();
+    }
+
+    /**
+     * Hand a task to the single actor thread from a gRPC callback thread, silently skipping it while
+     * shutting down: a stream error/close during {@link #stop()} (or a dropped idle stream) can fire
+     * onError/onNext after the actor is gone, and an unguarded {@code execute} would throw
+     * RejectedExecutionException from inside gRPC's onClose. The try/catch covers the shutdown racing
+     * the check.
+     */
+    private void runOnActor(Runnable task) {
+        ScheduledExecutorService a = actor;
+        if (stopping || a == null || a.isShutdown()) {
+            return;
+        }
+        try {
+            a.execute(task);
+        } catch (java.util.concurrent.RejectedExecutionException ignore) {
+            // actor shut down between the check and submit — nothing to do on the way down
         }
     }
 
@@ -325,7 +349,7 @@ public class CloudUplinkClient {
         return new StreamObserver<>() {
             @Override
             public void onNext(ClusterOperationProgress progress) {
-                actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
                         ControlResponse.newBuilder().setRequestId(requestId).setProgress(progress)).build()));
             }
 
@@ -336,7 +360,7 @@ public class CloudUplinkClient {
 
             @Override
             public void onCompleted() {
-                actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
                         ControlResponse.newBuilder().setRequestId(requestId).setCompleted(Completion.getDefaultInstance())).build()));
             }
         };
@@ -347,7 +371,7 @@ public class CloudUplinkClient {
         return new StreamObserver<>() {
             @Override
             public void onNext(GetClusterCredentialsResponse credentials) {
-                actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
                         ControlResponse.newBuilder().setRequestId(requestId).setCredentials(credentials)).build()));
             }
 
@@ -369,7 +393,7 @@ public class CloudUplinkClient {
                         .setMessage(sre.getStatus().getDescription() == null ? "" : sre.getStatus().getDescription()).build()
                 : com.google.rpc.Status.newBuilder().setCode(Status.Code.INTERNAL.value())
                         .setMessage(t.getMessage() == null ? t.toString() : t.getMessage()).build();
-        actor.execute(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+        runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
                 ControlResponse.newBuilder().setRequestId(requestId).setError(status)).build()));
     }
 
@@ -389,8 +413,13 @@ public class CloudUplinkClient {
         up = null;
         long delay = backoffMs;
         backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF_MS);
-        if (actor != null && !actor.isShutdown()) {
+        if (stopping || actor == null || actor.isShutdown()) {
+            return;
+        }
+        try {
             actor.schedule(this::connect, delay, TimeUnit.MILLISECONDS);
+        } catch (java.util.concurrent.RejectedExecutionException ignore) {
+            // shutting down — no reconnect needed
         }
     }
 
@@ -410,20 +439,20 @@ public class CloudUplinkClient {
     private final class DownstreamHandler implements StreamObserver<CloudMessage> {
         @Override
         public void onNext(CloudMessage m) {
-            actor.execute(() -> handleDown(m));
+            runOnActor(() -> handleDown(m));
         }
 
         @Override
         public void onError(Throwable t) {
             Status s = Status.fromThrowable(t);
             LOG.warnf("cloud uplink stream error: %s: %s", s.getCode(), s.getDescription());
-            actor.execute(CloudUplinkClient.this::scheduleReconnect);
+            runOnActor(CloudUplinkClient.this::scheduleReconnect);
         }
 
         @Override
         public void onCompleted() {
             LOG.debug("cloud uplink stream completed by server");
-            actor.execute(CloudUplinkClient.this::scheduleReconnect);
+            runOnActor(CloudUplinkClient.this::scheduleReconnect);
         }
     }
 

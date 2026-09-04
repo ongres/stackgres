@@ -65,6 +65,10 @@ public class SlonyLinuxExecutor implements Executor {
     private final Map<UUID, Long> dbSizeByInstance = new ConcurrentHashMap<>();       // instanceId -> last pushed dbSize
     private final Map<UUID, UUID> instanceToCluster = new ConcurrentHashMap<>();      // instanceId -> clusterId (survives HEALTHY)
     private final Map<UUID, Integer> portByInstance = new ConcurrentHashMap<>();      // instanceId -> bound port (survives HEALTHY)
+    // A live status a slon pushed on (re)connect BEFORE the host agent's adoptInstance seeded the
+    // instance→cluster mapping — the two agents register on separate streams and race after a matriarch
+    // restart. Buffered here so adoptInstance can replay it; otherwise an adopted cluster is stuck UNKNOWN.
+    private final Map<UUID, SlonStatus> statusBeforeAdopt = new ConcurrentHashMap<>();
     /**
      * In-flight lifecycle (start/stop/restart) operations, keyed by instance.
      */
@@ -245,6 +249,16 @@ public class SlonyLinuxExecutor implements Executor {
     public void adoptInstance(UUID instanceId, UUID clusterId, int port) {
         instanceToCluster.put(instanceId, clusterId);
         portByInstance.put(instanceId, port);
+        // The slon may have already reported its live status before this mapping existed (the per-instance
+        // slon and the host slony register on separate streams and race after a matriarch restart). Replay
+        // it now so the adopted cluster's UNKNOWN self-corrects instead of sticking.
+        SlonStatus early = statusBeforeAdopt.remove(instanceId);
+        if (early != null) {
+            RunStatus run = mapSlonStatus(early);
+            if (run != RunStatus.UNKNOWN) {
+                reportInstance(instanceId, clusterId, run);
+            }
+        }
     }
 
     public void onSlonStatus(UUID instanceId, io.stackgres.proto.slon.StatusUpdate update) {
@@ -262,6 +276,10 @@ public class SlonyLinuxExecutor implements Executor {
                 if (run != RunStatus.UNKNOWN) {
                     reportInstance(instanceId, clusterId, run);
                 }
+            } else {
+                // Mapping not seeded yet — the slon beat the host agent's adoptInstance after a matriarch
+                // restart. Remember the status; adoptInstance replays it once the mapping exists.
+                statusBeforeAdopt.put(instanceId, update.getSlonStatus());
             }
             return;
         }
@@ -340,6 +358,7 @@ public class SlonyLinuxExecutor implements Executor {
         instanceToCluster.remove(instanceId);
         dbSizeByInstance.remove(instanceId);
         portByInstance.remove(instanceId);
+        statusBeforeAdopt.remove(instanceId);
         slons.remove(instanceId);
         lifecycleOps.remove(instanceId);
         UUID clusterId = removing.remove(instanceId);

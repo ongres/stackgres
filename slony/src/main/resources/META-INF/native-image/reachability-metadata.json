@@ -23,11 +23,31 @@
           "parameterTypes": []
         },
         {
+          "name": "getEtcdInitialClusterCount",
+          "parameterTypes": []
+        },
+        {
           "name": "getEtcdInitialClusterMap",
           "parameterTypes": []
         },
         {
+          "name": "getExtension",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionCount",
+          "parameterTypes": []
+        },
+        {
           "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
           "parameterTypes": []
         },
         {
@@ -41,6 +61,10 @@
           ]
         },
         {
+          "name": "getInstanceCount",
+          "parameterTypes": []
+        },
+        {
           "name": "getInstanceList",
           "parameterTypes": []
         },
@@ -54,6 +78,10 @@
         },
         {
           "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsCount",
           "parameterTypes": []
         },
         {
@@ -73,11 +101,7 @@
           "parameterTypes": []
         },
         {
-          "name": "getFlavor",
-          "parameterTypes": []
-        },
-        {
-          "name": "getFlavorValue",
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -86,11 +110,43 @@
       "type": "io.stackgres.proto.slony.CreateClusterCommand$Builder",
       "methods": [
         {
+          "name": "addAllExtension",
+          "parameterTypes": []
+        },
+        {
+          "name": "addAllInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "addExtension",
+          "parameterTypes": []
+        },
+        {
+          "name": "addInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        },
+        {
           "name": "getEtcdInitialClusterMap",
           "parameterTypes": []
         },
         {
           "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFlavorValue",
           "parameterTypes": []
         },
         {
@@ -130,11 +186,11 @@
           "parameterTypes": []
         },
         {
-          "name": "getFlavor",
+          "name": "putAllEtcdInitialCluster",
           "parameterTypes": []
         },
         {
-          "name": "getFlavorValue",
+          "name": "putAllTags",
           "parameterTypes": []
         },
         {
@@ -150,7 +206,27 @@
           ]
         },
         {
-          "name": "clearFlavor",
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "setUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "setVersion",
           "parameterTypes": []
         }
       ]
@@ -167,6 +243,14 @@
           "parameterTypes": []
         },
         {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
           "name": "getEtcdClientUrl",
           "parameterTypes": []
         },
@@ -183,11 +267,19 @@
           "parameterTypes": []
         },
         {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
           "name": "getListenAddress",
           "parameterTypes": []
         },
         {
           "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
           "parameterTypes": []
         },
         {
@@ -199,7 +291,23 @@
           "parameterTypes": []
         },
         {
+          "name": "getVolumeDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskCount",
+          "parameterTypes": []
+        },
+        {
           "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountCount",
           "parameterTypes": []
         },
         {
@@ -211,23 +319,15 @@
           "parameterTypes": []
         },
         {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
           "name": "hasConfigPath",
           "parameterTypes": []
         },
         {
           "name": "hasDataDir",
-          "parameterTypes": []
-        },
-        {
-          "name": "getDataDisk",
-          "parameterTypes": []
-        },
-        {
-          "name": "getLogDisk",
-          "parameterTypes": []
-        },
-        {
-          "name": "getWalDisk",
           "parameterTypes": []
         },
         {
@@ -251,6 +351,10 @@
           "parameterTypes": []
         },
         {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
           "name": "hasLogDir",
           "parameterTypes": []
         },
@@ -267,11 +371,7 @@
           "parameterTypes": []
         },
         {
-          "name": "hasIvorySqlPort",
-          "parameterTypes": []
-        },
-        {
-          "name": "getIvorySqlPort",
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -279,6 +379,30 @@
     {
       "type": "io.stackgres.proto.slony.CreateInstance$Builder",
       "methods": [
+        {
+          "name": "addAllVolumeDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "addAllVolumeMount",
+          "parameterTypes": []
+        },
+        {
+          "name": "addVolumeDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "addVolumeMount",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        },
         {
           "name": "getConfigPath",
           "parameterTypes": []
@@ -308,6 +432,10 @@
           "parameterTypes": []
         },
         {
+          "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
           "name": "getListenAddress",
           "parameterTypes": []
         },
@@ -372,6 +500,10 @@
           "parameterTypes": []
         },
         {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
           "name": "hasLogDir",
           "parameterTypes": []
         },
@@ -388,11 +520,31 @@
           "parameterTypes": []
         },
         {
-          "name": "hasIvorySqlPort",
+          "name": "setConfigPath",
           "parameterTypes": []
         },
         {
-          "name": "getIvorySqlPort",
+          "name": "setDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "setDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
           "parameterTypes": []
         },
         {
@@ -402,7 +554,31 @@
           ]
         },
         {
-          "name": "clearIvorySqlPort",
+          "name": "setListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "setLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "setLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "setWalDisk",
           "parameterTypes": []
         }
       ]
@@ -411,11 +587,19 @@
       "type": "io.stackgres.proto.slony.DeleteInstanceCommand",
       "methods": [
         {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
           "name": "getId",
           "parameterTypes": []
         },
         {
           "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -424,11 +608,19 @@
       "type": "io.stackgres.proto.slony.DeleteInstanceCommand$Builder",
       "methods": [
         {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
           "name": "getId",
           "parameterTypes": []
         },
         {
           "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
           "parameterTypes": []
         }
       ]
@@ -437,11 +629,23 @@
       "type": "io.stackgres.proto.slony.Disk",
       "methods": [
         {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSize",
+          "parameterTypes": []
+        },
+        {
           "name": "getStorageClass",
           "parameterTypes": []
         },
         {
           "name": "hasStorageClass",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -477,6 +681,10 @@
     {
       "type": "io.stackgres.proto.slony.Extension",
       "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
         {
           "name": "getName",
           "parameterTypes": []
@@ -560,7 +768,15 @@
       "type": "io.stackgres.proto.slony.MatriarchMessage",
       "methods": [
         {
+          "name": "getAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
           "name": "getCreateClusterCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
           "parameterTypes": []
         },
         {
@@ -568,7 +784,23 @@
           "parameterTypes": []
         },
         {
+          "name": "getGetSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
           "name": "getReportUnusedPortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAbortSlonyLogsCommand",
           "parameterTypes": []
         },
         {
@@ -580,27 +812,11 @@
           "parameterTypes": []
         },
         {
-          "name": "hasReportUnusedPortCommand",
-          "parameterTypes": []
-        },
-        {
-          "name": "getGetSlonyLogsCommand",
-          "parameterTypes": []
-        },
-        {
           "name": "hasGetSlonyLogsCommand",
           "parameterTypes": []
         },
         {
-          "name": "getAbortSlonyLogsCommand",
-          "parameterTypes": []
-        },
-        {
-          "name": "hasAbortSlonyLogsCommand",
-          "parameterTypes": []
-        },
-        {
-          "name": "getShutdownCommand",
+          "name": "hasReportUnusedPortCommand",
           "parameterTypes": []
         },
         {
@@ -608,7 +824,7 @@
           "parameterTypes": []
         },
         {
-          "name": "getKindCase",
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -617,11 +833,23 @@
       "type": "io.stackgres.proto.slony.MatriarchMessage$Builder",
       "methods": [
         {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
           "name": "getCreateClusterCommand",
           "parameterTypes": []
         },
         {
           "name": "getDeleteInstanceCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "getGetSlonyLogsCommand",
           "parameterTypes": []
         },
         {
@@ -633,6 +861,14 @@
           "parameterTypes": []
         },
         {
+          "name": "getShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
           "name": "hasCreateClusterCommand",
           "parameterTypes": []
         },
@@ -641,31 +877,39 @@
           "parameterTypes": []
         },
         {
-          "name": "hasReportUnusedPortCommand",
-          "parameterTypes": []
-        },
-        {
-          "name": "getGetSlonyLogsCommand",
-          "parameterTypes": []
-        },
-        {
           "name": "hasGetSlonyLogsCommand",
           "parameterTypes": []
         },
         {
-          "name": "getAbortSlonyLogsCommand",
-          "parameterTypes": []
-        },
-        {
-          "name": "hasAbortSlonyLogsCommand",
-          "parameterTypes": []
-        },
-        {
-          "name": "getShutdownCommand",
+          "name": "hasReportUnusedPortCommand",
           "parameterTypes": []
         },
         {
           "name": "hasShutdownCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "setAbortSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "setCreateClusterCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "setDeleteInstanceCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "setGetSlonyLogsCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "setReportUnusedPortCommand",
+          "parameterTypes": []
+        },
+        {
+          "name": "setShutdownCommand",
           "parameterTypes": []
         }
       ]
@@ -674,19 +918,33 @@
       "type": "io.stackgres.proto.slony.ShutdownCommand",
       "methods": [
         {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
           "name": "newBuilder",
           "parameterTypes": []
         }
       ]
     },
     {
-      "type": "io.stackgres.proto.slony.ShutdownCommand$Builder"
+      "type": "io.stackgres.proto.slony.ShutdownCommand$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "io.stackgres.proto.slony.GetSlonyLogsCommand",
       "methods": [
         {
-          "name": "hasId",
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
           "parameterTypes": []
         },
         {
@@ -694,7 +952,11 @@
           "parameterTypes": []
         },
         {
-          "name": "getFollow",
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -703,7 +965,11 @@
       "type": "io.stackgres.proto.slony.GetSlonyLogsCommand$Builder",
       "methods": [
         {
-          "name": "hasId",
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFollow",
           "parameterTypes": []
         },
         {
@@ -711,7 +977,15 @@
           "parameterTypes": []
         },
         {
-          "name": "getFollow",
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFollow",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
           "parameterTypes": []
         }
       ]
@@ -720,11 +994,19 @@
       "type": "io.stackgres.proto.slony.AbortSlonyLogsCommand",
       "methods": [
         {
-          "name": "hasId",
+          "name": "getDefaultInstance",
           "parameterTypes": []
         },
         {
           "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -733,11 +1015,19 @@
       "type": "io.stackgres.proto.slony.AbortSlonyLogsCommand$Builder",
       "methods": [
         {
-          "name": "hasId",
+          "name": "build",
           "parameterTypes": []
         },
         {
           "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
           "parameterTypes": []
         }
       ]
@@ -746,6 +1036,10 @@
       "type": "io.stackgres.proto.slony.ReportUnusedPortCommand",
       "methods": [
         {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
           "name": "getDesiredPort",
           "parameterTypes": []
         },
@@ -755,6 +1049,10 @@
         },
         {
           "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -763,6 +1061,10 @@
       "type": "io.stackgres.proto.slony.ReportUnusedPortCommand$Builder",
       "methods": [
         {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
           "name": "getDesiredPort",
           "parameterTypes": []
         },
@@ -773,6 +1075,14 @@
         {
           "name": "hasId",
           "parameterTypes": []
+        },
+        {
+          "name": "setDesiredPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
         }
       ]
     },
@@ -780,11 +1090,23 @@
       "type": "io.stackgres.proto.slony.VolumeDisk",
       "methods": [
         {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
           "name": "getDisk",
           "parameterTypes": []
         },
         {
+          "name": "getMountPath",
+          "parameterTypes": []
+        },
+        {
           "name": "hasDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -792,6 +1114,10 @@
     {
       "type": "io.stackgres.proto.slony.VolumeMount",
       "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
         {
           "name": "getHostPath",
           "parameterTypes": []
@@ -1003,11 +1329,19 @@
       "type": "common.Common$UUID",
       "methods": [
         {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
           "name": "getValue",
           "parameterTypes": []
         },
         {
           "name": "hasValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
           "parameterTypes": []
         }
       ]
@@ -1016,7 +1350,15 @@
       "type": "common.Common$UUID$Builder",
       "methods": [
         {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
           "name": "getValue",
+          "parameterTypes": []
+        },
+        {
+          "name": "setValue",
           "parameterTypes": []
         }
       ]
@@ -2083,16 +2425,76 @@
       "type": "io.stackgres.proto.slony.ClusterInstance$Builder",
       "methods": [
         {
-          "name": "setFlavor",
-          "parameterTypes": [
-            "common.Common$Flavor"
-          ]
+          "name": "addAllExtension",
+          "parameterTypes": []
         },
         {
-          "name": "setIvorySqlPort",
-          "parameterTypes": [
-            "int"
-          ]
+          "name": "addAllVolumeDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "addAllVolumeMount",
+          "parameterTypes": []
+        },
+        {
+          "name": "addExtension",
+          "parameterTypes": []
+        },
+        {
+          "name": "addVolumeDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "addVolumeMount",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "clearFlavor",
+          "parameterTypes": []
+        },
+        {
+          "name": "clearIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
         },
         {
           "name": "getFlavor",
@@ -2103,17 +2505,15 @@
           "parameterTypes": []
         },
         {
-          "name": "setFlavorValue",
-          "parameterTypes": [
-            "int"
-          ]
-        },
-        {
-          "name": "clearFlavor",
+          "name": "getId",
           "parameterTypes": []
         },
         {
-          "name": "hasIvorySqlPort",
+          "name": "getImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageName",
           "parameterTypes": []
         },
         {
@@ -2121,7 +2521,229 @@
           "parameterTypes": []
         },
         {
-          "name": "clearIvorySqlPort",
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "putAllTags",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClusterName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "setDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "setDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "setFlavor",
+          "parameterTypes": [
+            "common.Common$Flavor"
+          ]
+        },
+        {
+          "name": "setFlavorValue",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "setImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setIvorySqlPort",
+          "parameterTypes": [
+            "int"
+          ]
+        },
+        {
+          "name": "setListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "setLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "setLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "setPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "setUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "setVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "setWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "setWalDisk",
           "parameterTypes": []
         }
       ]
@@ -2133,6 +2755,54 @@
       "type": "io.stackgres.proto.slony.ClusterInstance",
       "methods": [
         {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtension",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExtensionList",
+          "parameterTypes": []
+        },
+        {
           "name": "getFlavor",
           "parameterTypes": []
         },
@@ -2141,11 +2811,1074 @@
           "parameterTypes": []
         },
         {
-          "name": "hasIvorySqlPort",
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageName",
           "parameterTypes": []
         },
         {
           "name": "getIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getListenAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPassword",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStandalone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsername",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeDiskList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVolumeMountList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "getWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasConfigPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDataDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdClientUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEtcdServerUrl",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasIvorySqlPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLogDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDir",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasWalDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ClusterInstanceCreated",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ClusterInstanceCreated$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "getImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setImageDigest",
+          "parameterTypes": []
+        },
+        {
+          "name": "setImageName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ClusterInstanceDeleted",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.ClusterInstanceDeleted$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Disk$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStorageClass",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStorageClass",
+          "parameterTypes": []
+        },
+        {
+          "name": "setSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStorageClass",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Event",
+      "methods": [
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getType",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Event$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDataMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getType",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "putAllData",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClusterId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setInstanceId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setType",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Heartbeat",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Heartbeat$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Log",
+      "methods": [
+        {
+          "name": "getContents",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasContents",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Log$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getContents",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasContents",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "setContents",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Registration",
+      "methods": [
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "getComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExternalAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHostname",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.Registration$Builder",
+      "methods": [
+        {
+          "name": "addAllInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "addInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "getComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "getExternalAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHostname",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInstanceList",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTagsMap",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "putAllTags",
+          "parameterTypes": []
+        },
+        {
+          "name": "setArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "setAvailabilityZone",
+          "parameterTypes": []
+        },
+        {
+          "name": "setCloud",
+          "parameterTypes": []
+        },
+        {
+          "name": "setComputeInstanceName",
+          "parameterTypes": []
+        },
+        {
+          "name": "setCpu",
+          "parameterTypes": []
+        },
+        {
+          "name": "setExternalAddress",
+          "parameterTypes": []
+        },
+        {
+          "name": "setHostname",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setMemory",
+          "parameterTypes": []
+        },
+        {
+          "name": "setOs",
+          "parameterTypes": []
+        },
+        {
+          "name": "setRegion",
+          "parameterTypes": []
+        },
+        {
+          "name": "setVersion",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.SlonyMessage",
+      "methods": [
+        {
+          "name": "getClusterInstanceCreated",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterInstanceDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUnusedPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterInstanceCreated",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterInstanceDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasUnusedPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.SlonyMessage$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterInstanceCreated",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClusterInstanceDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "getKindCase",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUnusedPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterInstanceCreated",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasClusterInstanceDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasUnusedPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClusterInstanceCreated",
+          "parameterTypes": []
+        },
+        {
+          "name": "setClusterInstanceDeleted",
+          "parameterTypes": []
+        },
+        {
+          "name": "setEvent",
+          "parameterTypes": []
+        },
+        {
+          "name": "setHeartbeat",
+          "parameterTypes": []
+        },
+        {
+          "name": "setLog",
+          "parameterTypes": []
+        },
+        {
+          "name": "setRegistration",
+          "parameterTypes": []
+        },
+        {
+          "name": "setUnusedPort",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.UnusedPort",
+      "methods": [
+        {
+          "name": "getDefaultInstance",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "newBuilder",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.UnusedPort$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getId",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasId",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasStatus",
+          "parameterTypes": []
+        },
+        {
+          "name": "setId",
+          "parameterTypes": []
+        },
+        {
+          "name": "setPort",
+          "parameterTypes": []
+        },
+        {
+          "name": "setStatus",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.VolumeDisk$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMountPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "hasDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setDisk",
+          "parameterTypes": []
+        },
+        {
+          "name": "setMountPath",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.stackgres.proto.slony.VolumeMount$Builder",
+      "methods": [
+        {
+          "name": "build",
+          "parameterTypes": []
+        },
+        {
+          "name": "getHostPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMountPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "setHostPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "setMountPath",
           "parameterTypes": []
         }
       ]
