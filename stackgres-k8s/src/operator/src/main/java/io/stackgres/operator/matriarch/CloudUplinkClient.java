@@ -241,12 +241,16 @@ public class CloudUplinkClient {
       }
       case CONTROL -> {
         // The operator is read-only for now: it observes k8s but cannot execute user writes. Reject
-        // cleanly so the cloud fails the api.v1 call with UNIMPLEMENTED instead of hanging.
+        // cleanly so the cloud fails the api.v1 call instead of hanging. FAILED_PRECONDITION (not
+        // UNIMPLEMENTED): the write IS supported over the cloud — this particular environment just
+        // can't satisfy it — so the CLI surfaces this reason rather than "not available over the cloud".
         up.onNext(MatriarchMessage.newBuilder().setControlResponse(ControlResponse.newBuilder()
             .setRequestId(m.getControl().getRequestId())
             .setError(com.google.rpc.Status.newBuilder()
-                .setCode(io.grpc.Status.Code.UNIMPLEMENTED.value())
-                .setMessage("this environment (k8s-stackgres) does not support write operations yet")))
+                .setCode(io.grpc.Status.Code.FAILED_PRECONDITION.value())
+                .setMessage("this Kubernetes environment is read-only from the cloud — manage its "
+                    + "clusters with the StackGres operator (SGCluster resources); cloud-driven writes "
+                    + "aren't supported yet")))
             .build());
       }
       case HEARTBEAT_ACK -> {
