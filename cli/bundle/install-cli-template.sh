@@ -3,41 +3,40 @@ set -e
 set -o noglob
 
 # Usage:
-#   curl ... | ENV_VAR=... sh -
+#   curl ... | OTT=<one-time-token> sh -
 #       or
-#   ENV_VAR=... ./stackgres-cli.sh
+#   OTT=<one-time-token> ./stackgres-cli.sh
 #
-# Example:
-#   Installing the CLI pointed at a Matriarch:
-#     curl ... | OTT=xxx STACKGRES_ENDPOINT_URL=server-url:6443 sh -
+# Installs the single, self-contained `stackgres` binary into a bin directory and configures a context
+# in the INVOKING user's ~/.stackgres/. When an OTT (one-time token from the web console) is supplied it
+# runs `stackgres login` (exchanges it for a JWT and saves the session); a full STACKGRES_TOKEN JWT or a
+# bare endpoint are stored via `stackgres context set`. There is no /var/lib install, no wrapper, and no
+# .env: the CLI reads its endpoint/token/environment straight from ~/.stackgres/config.yaml.
 #
 # Environment variables:
-#   - STACKGRES_*
-#     Environment variables which begin with STACKGRES_ will be preserved in the
-#     .env file for the CLI to use (e.g. STACKGRES_TOKEN, STACKGRES_ENDPOINT_URL).
+#   - OTT
+#     One-time token from the web console; exchanged for a JWT via `stackgres login`.
+#
+#   - STACKGRES_ENDPOINT_URL
+#     Cloud/matriarch endpoint. Defaults to dev-cc.stackgres.best.
+#
+#   - STACKGRES_TOKEN
+#     A full JWT, if you already have one (stored as-is instead of exchanging an OTT).
 #
 #   - INSTALL_STACKGRES_NAME
-#     The name of the StackGres installation, from which the default directories
-#     and binaries are derived. Defaults to "stackgres".
+#     The installed command name (default: stackgres).
 #
 #   - INSTALL_STACKGRES_VERSION
 #     Version of the StackGres CLI to download.
 #
-#   - INSTALL_STACKGRES_DIR
-#     Directory to install the StackGres CLI binary and .env config to.
-#     /var/lib/stackgres as the default.
-#
 #   - INSTALL_STACKGRES_BIN_DIR
-#     Directory to install the stackgres wrapper script to.
-#     /usr/local/bin as the default.
+#     Directory to install the stackgres binary to. /usr/local/bin as the default
+#     (falls back to /opt/bin when /usr/local/bin is not writable).
 
 DOWNLOADER=
 
-# --- default Matriarch URL, override with STACKGRES_ENDPOINT_URL env var ---
+# --- default Matriarch/cloud URL, override with STACKGRES_ENDPOINT_URL env var ---
 export STACKGRES_ENDPOINT_URL="${STACKGRES_ENDPOINT_URL:-dev-cc.stackgres.best}"
-
-# --- accept OTT as user-facing alias for STACKGRES_TOKEN ---
-[ -n "$OTT" ] && export STACKGRES_TOKEN="$OTT"
 
 # --- helper functions for logs ---
 info()
@@ -52,18 +51,6 @@ fatal()
 {
     echo 'ERROR: ' "$@" >&2
     exit 1
-}
-
-# --- add quotes to command arguments ---
-quote() {
-    for arg in "$@"; do
-        printf '%s\n' "$arg" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/'/"
-    done
-}
-
-# --- escape most punctuation characters, except quotes, forward slash, and space ---
-escape() {
-    printf '%s' "$@" | sed -e 's/\([][!#$%&()*;<=>?\_`{|}]\)/\\\1/g;'
 }
 
 # --- check for invalid characters in system name ---
@@ -87,13 +74,6 @@ setup_env() {
     if [ $(id -u) -eq 0 ]; then
         SUDO=
     fi
-
-    if [ -n "${INSTALL_STACKGRES_DIR}" ]; then
-        STACKGRES_DIR=${INSTALL_STACKGRES_DIR}
-    else
-        STACKGRES_DIR=/var/lib/${NAME}
-    fi
-    FILE_STACKGRES_ENV=${STACKGRES_DIR}/.env
 
     if [ -n "${INSTALL_STACKGRES_BIN_DIR}" ]; then
         BIN_DIR=${INSTALL_STACKGRES_BIN_DIR}
@@ -252,17 +232,12 @@ verify_stackgres() {
     fi
 }
 
-# --- install StackGres CLI, extract to target directory ---
+# --- install the single stackgres binary into BIN_DIR (the package is just ./bin/stackgres) ---
 install_stackgres() {
-    info "Installing StackGres CLI to ${STACKGRES_DIR}"
-    $SUDO mkdir -p ${STACKGRES_DIR}
-    $SUDO tar -xf ${TMP_GZ} -C ${STACKGRES_DIR}
-}
-
-# --- set the permissions of the install directory ---
-set_install_dir_permissions() {
-    $SUDO chmod 755 ${STACKGRES_DIR}
-    $SUDO chown -R root:root ${STACKGRES_DIR}
+    info "Installing StackGres CLI to ${BIN_DIR}/${NAME}"
+    tar -xf ${TMP_GZ} -C ${TMP_DIR}
+    [ -f "${TMP_DIR}/bin/stackgres" ] || fatal "unexpected package layout: bin/stackgres not found"
+    $SUDO install -m 0755 "${TMP_DIR}/bin/stackgres" "${BIN_DIR}/${NAME}"
 }
 
 # --- download and verify StackGres CLI ---
@@ -272,64 +247,42 @@ download_and_verify() {
     setup_tmp
     get_release_version
     download_hash
-
     download_stackgres
     verify_stackgres
     install_stackgres
-    set_install_dir_permissions
 }
 
-# --- create stackgres cli wrapper script ---
-create_stackgres_cli() {
-    info "Creating CLI ${BIN_DIR}/${NAME}"
-    $SUDO tee ${BIN_DIR}/${NAME} >/dev/null << EOF
-#!/bin/bash
-set -euo pipefail
-set -o allexport
-source ${FILE_STACKGRES_ENV}
-set +o allexport
-
-exec ${STACKGRES_DIR}/bin/stackgres \$@
-EOF
-    $SUDO chmod 755 ${BIN_DIR}/${NAME}
+# --- run a command as the INVOKING user, so ~/.stackgres lands in their home even under `sudo sh` ---
+run_as_user() {
+    if [ "$(id -u)" -eq 0 ] && [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER}" != "root" ]; then
+        sudo -u "${SUDO_USER}" -H "$@"
+    else
+        "$@"
+    fi
 }
 
-# --- capture current env and create file containing STACKGRES_ variables ---
-create_env_file() {
-    $SUDO touch ${FILE_STACKGRES_ENV}
-    $SUDO chmod 0644 ${FILE_STACKGRES_ENV}
-    echo "PATH=${STACKGRES_DIR}/bin:$PATH" | $SUDO tee ${FILE_STACKGRES_ENV} >/dev/null
-    sh -c export | while read x v; do echo $v; done | grep -E '^STACKGRES_' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
-    sh -c export | while read x v; do echo $v; done | grep -Ei '^(NO|HTTP|HTTPS)_PROXY' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
-}
-
-# --- if STACKGRES_TOKEN is a 16-char short install token, exchange it for the full JWT ---
-maybe_exchange_install_token() {
-    if [ -z "$STACKGRES_TOKEN" ] || [ ${#STACKGRES_TOKEN} -ne 16 ]; then
-        return
+# --- seed ~/.stackgres for the invoking user: exchange an OTT (login), store a JWT, or set endpoint ---
+configure_context() {
+    CLI="${BIN_DIR}/${NAME}"
+    if [ -n "${OTT}" ]; then
+        info "Configuring ~/.stackgres (exchanging the one-time token)"
+        run_as_user "${CLI}" login "${OTT}" --endpoint "${STACKGRES_ENDPOINT_URL}" \
+            || warn "automatic login failed — finish it with: ${NAME} login <OTT> --endpoint ${STACKGRES_ENDPOINT_URL}"
+    elif [ -n "${STACKGRES_TOKEN}" ]; then
+        info "Configuring ~/.stackgres (using the provided token)"
+        run_as_user "${CLI}" context set default --endpoint "${STACKGRES_ENDPOINT_URL}" --token "${STACKGRES_TOKEN}" \
+            || warn "could not write the context — set it with: ${NAME} context set default --endpoint ${STACKGRES_ENDPOINT_URL} --token <jwt>"
+    else
+        info "Configuring ~/.stackgres (endpoint only)"
+        run_as_user "${CLI}" context set default --endpoint "${STACKGRES_ENDPOINT_URL}" \
+            || warn "could not write the context — set it with: ${NAME} context set default --endpoint ${STACKGRES_ENDPOINT_URL}"
+        info "Authenticate later with: ${NAME} login <OTT>"
     fi
-    if [ -z "$STACKGRES_ENDPOINT_URL" ]; then
-        fatal 'STACKGRES_ENDPOINT_URL is required to exchange the install token'
-    fi
-    resp_file=$(mktemp)
-    http_status=$(curl -s -o "$resp_file" -w '%{http_code}' \
-        -X POST "https://${STACKGRES_ENDPOINT_URL}/install/tokens/$STACKGRES_TOKEN/exchange") \
-        || { rm -f "$resp_file"; fatal "Failed to reach https://${STACKGRES_ENDPOINT_URL} - reload the UI and copy the install command again"; }
-    if [ "$http_status" != "200" ]; then
-        rm -f "$resp_file"
-        fatal 'Install token expired or already used - reload the UI and copy the install command again'
-    fi
-    STACKGRES_TOKEN=$(sed -n 's/.*"jwt":"\([^"]*\)".*/\1/p' "$resp_file")
-    rm -f "$resp_file"
-    if [ -z "$STACKGRES_TOKEN" ]; then
-        fatal 'Could not parse exchange response from Matriarch'
-    fi
-    export STACKGRES_TOKEN
 }
 
 # --- print getting started messages ---
 print_getting_started() {
-    info "StackGres CLI ${STACKGRES_VERSION} installed successfully"
+    info "StackGres CLI ${STACKGRES_VERSION} installed to ${BIN_DIR}/${NAME}"
     info ''
     info 'Get started:'
     info '  stackgres status      # current endpoint, user and environments'
@@ -340,21 +293,15 @@ print_getting_started() {
     info '  # needs compinit initialized (oh-my-zsh does this, or: autoload -Uz compinit && compinit)'
     info ''
     info 'To uninstall:'
-    info "  ${SUDO} rm -f ${BIN_DIR}/${NAME}          # the stackgres command"
-    info "  ${SUDO} rm -rf ${STACKGRES_DIR}           # the CLI binary and its .env"
+    info "  ${SUDO} rm -f ${BIN_DIR}/${NAME}          # the stackgres binary"
     info '  rm -rf ~/.stackgres                       # your contexts/config (optional)'
     info ''
 }
 
-# --- re-evaluate args to include env command ---
-eval set -- $(escape "") $(quote "$@")
-
 # --- run the install process --
 {
-    maybe_exchange_install_token
     setup_env "$@"
     download_and_verify
-    create_stackgres_cli
-    create_env_file
+    configure_context
     print_getting_started
 }
