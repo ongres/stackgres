@@ -82,3 +82,19 @@
 	</div>
 </header>
 
+<script>
+	document.querySelectorAll('#mainMenu li.hasSubmenu > a').forEach(function (label) {
+		label.addEventListener('click', function () {
+			if (window.matchMedia('(max-width: 920px)').matches) {
+				label.parentElement.classList.toggle('open');
+			}
+		});
+	});
+
+	document.getElementById('navToggle').addEventListener('click', function () {
+		document.querySelectorAll('#mainMenu li.hasSubmenu.open').forEach(function (li) {
+			li.classList.remove('open');
+		});
+	});
+</script>
+

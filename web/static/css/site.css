@@ -10,3 +10,37 @@
 #mainMenu .submenu li:last-child {
 	padding-bottom: 0;
 }
+
+/* the theme's mobile menu flattens every submenu open and hides the parent
+   labels; with the larger IA the sheet outgrows the screen, so submenus
+   collapse behind their parent item and expand on tap (.open toggled by the
+   header script) */
+@media screen and (max-width: 920px) {
+	.mobileMenu #mainMenu .hasSubmenu > a {
+		display: block;
+	}
+
+	.mobileMenu #mainMenu .hasSubmenu .submenu {
+		display: none;
+	}
+
+	.mobileMenu #mainMenu .hasSubmenu.open .submenu {
+		display: block;
+	}
+
+	.mobileMenu #mainMenu .hasSubmenu > a::after {
+		content: "";
+		display: inline-block;
+		width: 7px;
+		height: 7px;
+		margin-left: 8px;
+		border-right: 2px solid currentColor;
+		border-bottom: 2px solid currentColor;
+		transform: rotate(45deg) translateY(-4px);
+		transition: transform .2s ease-out;
+	}
+
+	.mobileMenu #mainMenu .hasSubmenu.open > a::after {
+		transform: rotate(225deg) translateY(-1px);
+	}
+}
