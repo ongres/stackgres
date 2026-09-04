@@ -34,25 +34,24 @@
     <!-- Client transport for the outbound cloud uplink channel (io.stackgres.matriarch.quarkus.cloud).
          quarkus-grpc ships the server transport; the dial-out channel needs Netty. Compile scope
          because CloudUplinkClient references NettyChannelBuilder/GrpcSslContexts directly to support
-         a self-signed (insecure-tls) cloud endpoint. -->
+         a self-signed (insecure-tls) cloud endpoint. Unshaded grpc-netty (not grpc-netty-shaded) so it
+         shares Quarkus' own io.netty and its native-image config — the shaded copy breaks the native
+         build (JdkNpnApplicationProtocolNegotiator init-at-build-time -> missing Jetty NPN). -->
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty-shaded</artifactId>
+      <artifactId>grpc-netty</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
     </dependency>
+    <!-- Jakarta JSON-P (used by DocirVersionCatalog via jakarta.json.Json). The quarkus-jsonp
+         extension bundles Parsson AND registers its JsonProvider for native image — a bare
+         jakarta.json-api + parsson leaves the ServiceLoader lookup unregistered, so the native
+         binary fails at runtime with "Provider org.eclipse.parsson.JsonProviderImpl not found". -->
     <dependency>
-      <groupId>jakarta.json</groupId>
-      <artifactId>jakarta.json-api</artifactId>
-      <version>2.1.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.parsson</groupId>
-      <artifactId>parsson</artifactId>
-      <version>1.1.6</version>
-      <scope>runtime</scope>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jsonp</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -78,4 +77,17 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>native</id>
+      <!-- Activate with -Pnative. Quarkus native build; emits target/matriarch-runner, which
+           cli/bundle/build.sh renames to `matriarch` for bundling. -->
+      <properties>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+        <quarkus.package.output-name>matriarch</quarkus.package.output-name>
+      </properties>
+    </profile>
+  </profiles>
+
 </project>
