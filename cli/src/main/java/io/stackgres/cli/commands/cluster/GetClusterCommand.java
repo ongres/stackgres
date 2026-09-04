@@ -1,7 +1,10 @@
 package io.stackgres.cli.commands.cluster;
 
+import io.stackgres.cli.Times;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.StackGresSubCommand;
+import io.stackgres.cli.postgres.ClusterRow;
+import io.stackgres.cli.postgres.EnvironmentInfo;
 import io.stackgres.postgres.ClusterInstance;
 import io.stackgres.postgres.Extension;
 import io.stackgres.postgres.Flavor;
@@ -12,6 +15,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Command(name = "get", description = "Get a PostgreSQL clusters by its name")
@@ -30,7 +34,16 @@ public class GetClusterCommand extends StackGresSubCommand {
     @Override
     public void run() {
         if (debug) client.setDebug();
-        PostgresCluster cluster = client.getCluster(name);
+        ClusterRow row;
+        try {
+            row = client.resolveCluster(name);
+        } catch (RuntimeException e) {
+            // A miss may just mean the active environment is stale/disconnected — hint at it (read
+            // path, no spinner, so a direct warning renders cleanly).
+            client.warnIfEnvironmentStale(client.configuredEnvironment());
+            throw e;
+        }
+        PostgresCluster cluster = row.cluster();
 
         if (instancesOnly) {
             cluster.getInstances().stream()
@@ -81,16 +94,34 @@ public class GetClusterCommand extends StackGresSubCommand {
                 })
                 .collect(Collectors.joining());
 
+        // Extra topology only when it helps: which environment (when several exist) and — when that
+        // environment is disconnected, so the status above reads Unknown — when we last heard from it.
+        List<EnvironmentInfo> environments;
+        try {
+            environments = client.listEnvironments();
+        } catch (RuntimeException ignore) {
+            environments = List.of();
+        }
+        EnvironmentInfo env = environments.stream()
+                .filter(e -> e.id().equals(row.environmentId())).findFirst().orElse(null);
+        boolean multiEnv = environments.size() > 1;
+        boolean stale = env != null
+                && ("Disconnected".equalsIgnoreCase(env.health()) || "Cached".equalsIgnoreCase(env.source()));
+        String envLine = multiEnv ? "\nEnvironment:  " + row.environmentId() : "";
+        String lastSeen = stale ? "\nLast seen:    " + Times.stampAndAgo(env.asOf()) : "";
+
         Flavor flavor = cluster.getFlavor() != null ? cluster.getFlavor() : Flavor.POSTGRES;
         String output = """
                 PostgreSQL cluster:
 
                 Name:         $name$
                 ID:           $id$
-                Flavor:       $flavor$$tags$$extensions$$instances$"""
+                Flavor:       $flavor$$env$$lastSeen$$tags$$extensions$$instances$"""
                 .replace("$name$", cluster.getName())
                 .replace("$id$", cluster.getId().toString())
                 .replace("$flavor$", flavor.toString())
+                .replace("$env$", envLine)
+                .replace("$lastSeen$", lastSeen)
                 .replace("$tags$", tags)
                 .replace("$extensions$", extensions)
                 .replace("$instances$", instances);

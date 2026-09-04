@@ -1,5 +1,6 @@
 package io.stackgres.cli.commands.cluster;
 
+import io.stackgres.cli.Times;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.StackGresSubCommand;
 import io.stackgres.cli.postgres.ClusterDiagnostics;
@@ -7,13 +8,8 @@ import io.stackgres.cli.postgres.InstanceDiagnostics;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
 @Command(name = "diagnostics", description = "Get diagnostics for a PostgreSQL cluster", hidden = true)
 public class DiagnosticsClusterCommand extends StackGresSubCommand {
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z").withZone(ZoneId.systemDefault());
 
     private final MatriarchClient client = new MatriarchClient();
 
@@ -26,7 +22,7 @@ public class DiagnosticsClusterCommand extends StackGresSubCommand {
         ClusterDiagnostics diagnostics = client.getClusterDiagnostics(name);
 
         for (InstanceDiagnostics instance : diagnostics.instances()) {
-            String receivedAt = instance.receivedAt() != null ? FORMATTER.format(instance.receivedAt()) : "N/A";
+            String receivedAt = instance.receivedAt() != null ? Times.stamp(instance.receivedAt()) : "N/A";
             String pgControlData = instance.pgControlData() != null ? instance.pgControlData() : "N/A";
             String imageName = instance.imageName() != null ? instance.imageName() : "N/A";
             String imageDigest = instance.imageDigest() != null ? instance.imageDigest() : "N/A";

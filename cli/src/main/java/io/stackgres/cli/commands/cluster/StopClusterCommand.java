@@ -46,6 +46,10 @@ public class StopClusterCommand extends StackGresSubCommand {
         if ((stopAll && tagsPresent && namePresent) || !(stopAll ^ tagsPresent ^ namePresent))
             throw new CommandLine.MutuallyExclusiveArgsException(spec.commandLine(), "Specify exactly one of <name>, --all, or --tag");
 
+        // Resolve (and note the target environment) before the spinner starts, so any cross-environment
+        // note or ambiguity error renders cleanly instead of colliding with ProgressMessages.
+        if (namePresent) client.resolveCluster(name, "Targeting");
+
         ProgressMessages messages = new ProgressMessages(spec.commandLine());
         if (debug) client.setDebug(messages);
         try {

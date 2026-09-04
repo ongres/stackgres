@@ -6,6 +6,8 @@ import io.stackgres.cli.postgres.Slony;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,22 +42,43 @@ public class ListNodeCommand extends StackGresSubCommand {
             return;
         }
 
+        // ENVIRONMENT column only when the endpoint exposes more than one (keeps single-env output clean).
+        boolean multiEnv;
+        try {
+            multiEnv = client.listEnvironments().size() > 1;
+        } catch (RuntimeException ignore) {
+            multiEnv = false;
+        }
+        final boolean showEnv = multiEnv;
+
         int nameMaxLength = slonys.stream().map(Slony::hostname).mapToInt(String::length).max().orElseThrow();
         int nameLength = (nameMaxLength <= 8) ? 10 : (nameMaxLength + 2);
         int osMaxLength = slonys.stream().map(Slony::os).mapToInt(String::length).max().orElseThrow();
         int osLength = (osMaxLength <= 8) ? 10 : (osMaxLength + 2);
 
-        if (showTags)
-            outf("%-38s%-" + nameLength + "s%-" + osLength + "s%-10s%-15s%-10s\n", "ID", "Hostname", "OS", "CPUs", "Status", "Tags");
-        else
-            outf("%-38s%-" + nameLength + "s%-" + osLength + "s%-10s%-15s\n", "ID", "Hostname", "OS", "CPUs", "Status");
+        String format = "%-38s%-" + nameLength + "s%-" + osLength + "s%-10s%-15s"
+                + (showTags ? "%-10s" : "")
+                + (showEnv ? "%s" : "")   // Environment: last column, unpadded (no trailing spaces)
+                + "\n";
+
+        List<Object> header = new ArrayList<>();
+        header.addAll(List.of("ID", "Hostname", "OS", "CPUs", "Status"));
+        if (showTags) header.add("Tags");
+        if (showEnv) header.add("Environment");
+        outf(format, header.toArray());
+
         slonys.forEach(c -> {
-            if (showTags) {
-                String tagStr = c.tags().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(", "));
-                outf("%-38s%-" + nameLength + "s%-" + osLength + "s%-10s%-15s%-10s\n", c.id(), c.hostname(), c.os(), c.cpu(), c.status(), tagStr);
-            } else
-                outf("%-38s%-" + nameLength + "s%-" + osLength + "s%-10s%-15s\n", c.id(), c.hostname(), c.os(), c.cpu(), c.status());
+            List<Object> values = new ArrayList<>();
+            values.addAll(Arrays.asList(c.id(), c.hostname(), c.os(), c.cpu(), c.status()));
+            if (showTags)
+                values.add(c.tags().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(", ")));
+            if (showEnv) values.add(nvl(c.environmentId()));
+            outf(format, values.toArray());
         });
+    }
+
+    private static String nvl(String s) {
+        return s == null ? "" : s;
     }
 
 }

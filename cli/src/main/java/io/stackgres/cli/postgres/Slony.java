@@ -16,5 +16,6 @@ public record Slony(UUID id,
                     CloudEnvironment cloudEnvironment,
                     SlonyStatus status,
                     Instant lastHeartbeat,
-                    Map<String, String> tags) {
+                    Map<String, String> tags,
+                    String environmentId) {
 }

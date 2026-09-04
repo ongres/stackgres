@@ -5,6 +5,7 @@ import io.stackgres.cli.client.ClusterCreationUpdate;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.InteractivePrompt;
 import io.stackgres.cli.commands.StackGresSubCommand;
+import io.stackgres.cli.commands.StackGresPicocliException;
 import io.stackgres.cli.commands.ProgressMessages;
 import io.stackgres.postgres.Extension;
 import io.stackgres.postgres.Flavor;
@@ -165,8 +166,9 @@ public class CreateClusterCommand extends StackGresSubCommand {
             else
                 messages.done();
         } catch (Exception e) {
-            messages.failed();
-            throw e;
+            // Route the failure through ProgressMessages (like start/stop/restart) so the handler renders
+            // the error inside the spinner's own line management — not printed over it on stderr.
+            throw new StackGresPicocliException(e, messages);
         }
 
         if (messages.isSuccessfullyDone()) {
