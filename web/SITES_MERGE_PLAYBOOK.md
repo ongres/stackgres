@@ -628,6 +628,58 @@ Nav and footer restructured for the company+product site (agreed IA):
   the Company column (colophon keeps copyright + language switcher).
 - The pricing calculator stays out of the nav (noindex + gated by design).
 
+### 29. OnGres blog → `/blog/` (unified)
+
+31 ongres.com posts merged into the existing blog (source: `ongres` repo,
+`content/en/blog/`). Both sites share the same blog machinery (TOML front
+matter, `tags`/`planet`/`author` taxonomies, identical permalink patterns), so
+posts carry over verbatim — tags and Planet PostgreSQL handles preserved.
+
+- **Slugs preserved 1:1** with live ongres.com (filename-derived; verified
+  against the built ongres `public/`). The one filename containing a space was
+  renamed (`toast_and_its_influences_on_parallelism_in_postgres.md`) with
+  explicit `url` front matter keeping the live slug
+  (`…influences_-on_parallelism…`), so the future ongres.com→stackgres.io
+  redirect map is a pure host swap for every post.
+- **Authors**: 10 ongres `data/authors/*.toml` copied; `aht` deduped (the
+  StackGres version wins). Author pics (`img/team-*.jpg`) already present from
+  the step-27 asset copy.
+- **Assets**: ongres theme `img/blog/` (55 files + `avatars/`) →
+  `web/static/img/blog/` (zero name collisions with the StackGres theme's
+  `img/blog/`; theme untouched). Page-relative `content/en/blog/img/` copied
+  alongside the posts.
+- **Shortcodes**: `pgconf.html` copied to `web/layouts/shortcodes/`
+  (postgresqlco.nf embeds); the one positional `{{</* tweet <id> */>}}` call
+  (removed in modern Hugo, and the replacement fetches from the Twitter API at
+  build time) was replaced with a static `twitter.com/i/status/<id>` link.
+- **Rebrand applied** (same rules as step 27's sweep): `OnGres`→`StackGres`
+  (sparing `@OnGresINC`), `ongres.com`→`stackgres.io`, `@ongres.com` emails →
+  `@stackgres.io`; `gitlab.com/ongresinc/…` and `twitter.com/ongresinc` left
+  intact.
+- Gotcha (twice now): `hugo serve` without `--disableFastRender` wedges on
+  transient mid-edit states (served truncated HTML once; a permanent 500 error
+  page after the bulk post copy). Serve with `--disableFastRender` during bulk
+  content work.
+
+Archive polish (same phase):
+
+- Every ported post got a `description` in front matter (hand-written summary
+  of its content; SEO length) — the archive cards and `<meta description>`
+  prefer it over `.Summary`.
+- **Pagination enabled**: the theme's `_default/list.html` paginates but ships
+  its controls commented out. Project overrides `layouts/_default/list.html`
+  (call enabled, outside `#postList`) + `partials/pagination.html` (centered
+  `‹ 1 · 2 · 3 ›` pager over a `.separator` line; styling hooks `.pagination`,
+  `.current`, `.dot`, `.prev`/`.next`). `[pagination] pagerSize = 9` in config
+  so 3-column archive pages hold a multiple of 3. The pager needs
+  `position: relative` (site.css) or the section's `.gradientOverlay` swallows
+  its clicks.
+- **All posts equal on archives**: thumbnails removed from the summary card
+  (single posts keep theirs) and the theme's full-width "featured"
+  `:first-child` card neutralized in site.css — the override must mirror the
+  sibling cards' computed `flex-basis: calc(33.3333% - 40px)` exactly, or the
+  first row breaks.
+
 ## Verified
 
 - `hugo` builds with **0 errors** (379 pages)
