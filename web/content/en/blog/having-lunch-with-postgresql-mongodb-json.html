@@ -1,0 +1,384 @@
+---
+title: "Having lunch with PostgreSQL, MongoDB and Json"
+date: 2019-04-19T07:04:43+02:00
+draft: false
+type: blog
+tags: ["postgresql", "mongodb", "json"]
+readtime: "12 min"
+summary: "On a post titled “Postgres JSON, Developer Productivity, and The MongoDB Advantage”, Buzz Moschetti discussed about PostgreSQL’s handling of JSON and how (inconvenient) it is for developers, especially when compared to MongoDB. While the post is almost 18 months old, the principles described there have not changed, and I (mostly) respectfully disagree. Here is my opinion on the topic. Let’s see what there is on today’s menu."
+thumbnail: "img/blog/AF-post02_jooq_stream_processing-v2-cut.jpg"
+author: ["aht"]
+planet: "aht"
+description: "A course-by-course rebuttal of MongoDB's claims about PostgreSQL's JSON handling: comparing jsonb and MongoDB for developer productivity."
+---
+
+<p>On a post titled “<a href="https://www.moschetti.org/rants/postgresvmongo.html">Postgres JSON, Developer Productivity, and The MongoDB Advantage</a>”, <a href="https://twitter.com/BuzzMoschetti">Buzz Moschetti</a> discussed about PostgreSQL’s handling of JSON and how (inconvenient) it is for developers, specially when compared to MongoDB. While the post is almost 18 months old, the principles described there have not changed, and I (mostly) respectfully disagree. Here is my opinion on the topic.</p>
+
+<p><em>Let’s see what there is on today’s menu</em>.</p>
+
+<p><img src="{{< sitebaseurl >}}/img/blog/AF-post02_jooq_stream_processing-v2.jpg" alt="Cartoon: PostgreSQL and MongoDB entering into the Database Steakhouse, to eat some JSON"></p>
+
+<h2 id="small-bites">Small bites</h2>
+
+<blockquote>
+<p>SQL syntax and, indeed, the relational model as a whole are designed to work with single, scalar values which carry the same type from row to row, not rich shapes like JSON that can contain substructures and arrays and different elements from row to row.</p>
+</blockquote>
+
+<p>If anything, SQL is about set operations on tuples, not scalar values. But, I get Buzz’s point, he probably meant “<em>columns</em>”. Yet still not correct. The SQL standard has had support for arrays as a column type since 1999! Including functions to access, construct or create arrays. PostgreSQL is actually more advanced, supporting multidimensional arrays, and even a set of key-value pairs with the <a href="https://www.postgresql.org/docs/current/hstore.html"><em>hstore</em></a> datatype (again: all that within a single column). On top of that, PostgreSQL also supports custom data types (which can also be row types or data structures) and combinations of all that. So not simple scalar values. And it obviously supports JSON (with the <code>jsonb</code> data type), which will be further discussed here.</p>
+
+<blockquote>
+<p>And the extensions to SQL utilized by Postgres to manipulate JSON are proprietary, unknown to most SQL developers, and not supported or even recognized by most 3rd party SQL tools.</p>
+</blockquote>
+
+<p>I’m not aware of MongoDB’s language being part of any standard, so we should assume Buzz’s comment about proprietary language applies to both MongoDB and PostgreSQL equally. Being that true, there are some important catches:</p>
+
+<ul>
+<li><p>PostgreSQL’s proprietary syntax is only for accesing JSON data. The rest of the language, and data accessed via non JSON data types, is pure, standard SQL. None of MongoDB’s query language is standard.</p></li>
+
+<li><p>It is ironic to mention the support by third party tools, when MongoDB’s query language still struggles to get third party support on areas like data warehousing and Business Intelligence. The world is a SQL-dominated ecosystem, which plays along with PostgreSQL very well. It is so ironic that even MongoDB’s first implementation of its (proprietary, commercial) BI connector <a href="https://docs.mongodb.com/bi-connector/master/components/">was based on PostgreSQL</a>.</p></li>
+
+<li><p>PostgreSQL is currently working on also supporting the recently adopted <a href="https://www.depesz.com/2019/03/19/waiting-for-postgresql-12-partial-implementation-of-sql-json-path-language/">JSON support within the SQL standard</a>.</p></li>
+</ul>
+
+<blockquote>
+<p>You cannot simply set aside the fact JSON does not support dates as a native type; you must do something, somewhere in your stack to accomodate for this so that a real date e.g. java.util.Date is used by your application. Letting the application itself handle the problem is a completely non-scalable architecture and dooms the system to bugs and reconciliation errors as individual applications make decisions about how to deal with the data.</p>
+</blockquote>
+
+<p>I also prefer a richer data serialization format than JSON. Yet most people deal with JSONs directly, even when using MongoDB –rather than MongoDB’s BSON. In any case, a data type conversion like the one used as an example on Buzz’s post can be very easily done at query time:</p>
+
+{{< highlight plain-text >}}
+
+select (content->>'cd')::timestamp from foo;
+┌─────────────────────────┐
+│        timestamp        │
+├─────────────────────────┤
+│ 2017-11-22 15:20:34.326 │
+└─────────────────────────┘
+
+{{< /highlight >}}
+
+<p><em>Note: the timestamp contained in the JSON string above contains a timezone indication. It would have been better to cast it to a <code>timestamptz</code> . But since PostgreSQL would have converted that to a timezone based on your server’s local timezone, just for representational purposes, it may have caused some confusion –for the non versed reader in PostgreSQL advanced date and time management capabilities.</em></p>
+
+<p>Moreover, JSON is typed. And actually, PostgreSQL provides support via the <code>jsonb_typeof</code> function to return the resolved datatypes:</p>
+
+{{< highlight plain-text >}}
+
+select jsonb_typeof(content-&gt;'props') typeof_props, jsonb_typeof(content-&gt;'props'-&gt;'a') typeof_a from foo;
+┌──────────────┬──────────┐
+│ typeof_props │ typeof_a │
+├──────────────┼──────────┤
+│ object       │ number   │
+└──────────────┴──────────┘
+
+{{< /highlight >}}
+
+<p>I believe Buzz’s statement quoted above is overly exaggerated. It is not doomsday to do some application-level data type enrichment. It is, at least, the very same problem the application needs to deal with loose schemas: managing absent keys, different versions of documents or different data types for the same document key. Even if they would come as strongly typed properties in BSON! So neither PostgreSQL nor MongoDB avoid this problem –when working with unstructured data.</p>
+
+<p><a href="https://gitlab.com/ongresinc/blog-posts-src/tree/master/201804-having_lunch_pg_mongo_json">Repository with all the source code relevant to this blog post, data used and README.md</a></p>
+
+<h2 id="main-course">Main course</h2>
+
+<blockquote>
+<p>Nearly all traditional Postgres interaction with applications – written in almost every language – works via O/JDBC drivers and these drivers do not have the capability to properly and precisely convert the JSON into a useful native type (such as a Map or List in Java or a Dictionary or List in Python).</p>
+</blockquote>
+
+<p>Buzz goes on to say that “<em>we have to manually parse the JSON in our application</em>”. And I agree. But I don’t see it being a problem. Let’s show how simple it is to do it:</p>
+
+<ul>
+<li>Add Gson parser to your <code>pom.xml</code> (or any other JSON parser, for that matter):</li>
+</ul>
+
+{{< highlight xml >}}
+
+<dependency>
+    <groupId>com.google.code.gson</groupId>
+    <artifactId>gson</artifactId>
+    <version>2.8.5</version>
+</dependency>
+
+{{< /highlight >}}
+
+<ul>
+<li>Create a native Java class to hold the parsed values:</li>
+</ul>
+
+{{< highlight java >}}
+
+class JsonContent {
+    private int a;
+    private int[] fn;
+
+    @Override
+    public String toString() {
+        return "JsonContent{ a=" + a + ", fn=" + Arrays.toString(fn) + " }";
+    }
+}
+
+{{< /highlight >}}
+
+<ul>
+<li>Parse the results:</li>
+</ul>
+
+{{< highlight java >}}
+
+String json = rs.getString(1);
+Gson gson = new GsonBuilder().create();
+JsonContent jsonContent = gson.fromJson(json, JsonContent.class);
+System.out.println(jsonContent);
+
+{{< /highlight >}}
+
+
+<p>The output is the expected one:</p>
+
+
+{{< highlight java >}}
+
+JsonContent{ a=12, fn=[10, 20, 30] }
+
+{{< /highlight >}}
+
+<p>It doesn’t look to me like the end of the world. Buzz considers also as a problem the availability of different JSON parsers and their interoperability. About the former I see it more as an advantage; and about the latter, it’s a non-issue: after all, <a href="https://www.json.org/">JSON is a spec</a>!</p>
+
+<p><a href="https://gitlab.com/ongresinc/blog-posts-src/tree/master/201804-having_lunch_pg_mongo_json/src/main/java/com/ongres/blog/lunch/_01_richshape">Source code for the example above</a></p>
+
+<h2 id="side-order-polymorphism">Side order: polymorphism</h2>
+
+<p>Libraries like Gson also have very good support to parse arbitrary, polymorphic JSONs. But even so, it’s a rare case that your data shape is changing so dramatically from document to document. Because even when parsed correctly, your application still needs to deal with that polymorphism! Otherwise, just treating it as a simple string would be so much easier.</p>
+
+<p>So how does a parser like Gson deal with unexpected or heavily changing JSON documents anyway? Just a few lines of code, not much dissimilar from Buzz’s parsing code for a polymorphic BSON document:</p>
+
+{{< highlight java >}}
+
+StringBuffer sb = new StringBuffer();
+
+while(rs.next()) {
+    String json = rs.getString(1);
+    JsonParser parser = new JsonParser();
+    JsonObject object = parser.parse(json).getAsJsonObject();
+
+    for(Map.Entry<String, JsonElement> entry : object.entrySet()) {
+        walkMap(sb, entry.getKey(), entry.getValue());
+    }
+}
+
+System.out.println(sb.toString());
+
+{{< /highlight >}}
+
+
+<p>The output it produces is:</p>
+
+{{< highlight plain-text >}}
+
+a: JsonNumber{value=12}
+fn: JsonArray
+	0: JsonNumber{value=10}
+	1: JsonNumber{value=20}
+	2: JsonNumber{value=30}
+
+a: JsonNumber{value=5}
+fn: JsonArray
+	0: JsonString{value="mix"}
+	1: JsonNumber{value=7.0}
+	2: JsonString{value="2017-11-22"}
+	3: JsonBoolean{value=true}
+	4: JsonDocument
+		x: JsonNumber{value=3.0}
+
+{{< /highlight >}}
+
+<p><a href="https://gitlab.com/ongresinc/blog-posts-src/tree/master/201804-having_lunch_pg_mongo_json/src/main/java/com/ongres/blog/lunch/_02_polymorphism">Source code for the example above</a></p>
+
+<p>What is noticeable here is that the example above, which produces an output quite similar to that of Buzz’s post, <strong>did not require</strong> to construct specific BSON constructs, and instead relied on plain, “old” JSON. While we might argue, again, that BSON provides a richer set of datatypes, it is of questionable applicability due to the verboseness of constructing BSON documents and the need to interact with pervasive, existing JSON documents.</p>
+
+<p>Indeed, compare the insert we did on PostgreSQL to get the above output:</p>
+
+{{< highlight sql >}}
+
+insert into foo values (
+        '{"props": {"a": 12, "fn": [10,20,30]}, "cd":"2017-11-22T15:20:34.326Z"}'
+),(
+        '{"props": {"a":5, "fn":["mix", 7.0, "2017-11-22", true, {"x":3.0} ]}}'
+);
+
+{{< /highlight >}}
+
+
+<p>with the one proposed by Buzz, for MongoDB:</p>
+
+{{< highlight plain-text >}}
+
+db.foo.insert([ {"props": {"a": NumberInt("12"),
+                             "fn": [NumberDecimal("10"),NumberInt("20"),NumberLong("30")] },
+                             "cd": new ISODate("2017-11-22T15:20:34.326Z") } },
+                   {"props": {"a": NumberInt("5"),
+                              "fn": ["mix", 7.0, new ISODate("2017-11-22"), true, {x:3.0}] } }
+]);
+
+{{< /highlight >}}
+
+<p>I’d personally stick with the first one. It is clearly less verbose, and is interoperable JSON, not MongoDB’s proprietary BSON.</p>
+
+<h2 id="second-side-order-versioned-documents">Second side order: versioned documents</h2>
+
+<p>Having solved also the polymorphic case, I would like to come back to more real use cases. What you will probably need to deal is not arbitrary JSON documents, but rather an evolving schema. Not only adding new, optional fields; but also even changing the type of existing ones. Would PostgreSQL and the JSON library be able to cope with that? Short answer: no problem.</p>
+
+<p>They key here is to exploit another of the advantages of the relational schema: a mix of “standard” columns, with fixed data types, with the variable JSON. We may encode all the variability in the JSON, while reserving (at least) one column on the regular table to indicate the version of the accompanying document. For example, by creating the table <code>foo2</code> as:</p>
+
+{{< highlight sql >}}
+
+create table foo2 (version integer, content jsonb);
+
+{{< /highlight >}}
+
+<p>With this help from PostgreSQL, it is possible to store versioned “schemas” of the (otherwise variable) JSON documents, like in:</p>
+
+{{< highlight sql >}}
+
+insert into foo2 values (
+        1, '{"cd": "2017-11-22T15:20:34.326Z", "props": {"a": 12, "fn": [10, 20, 30]}}'
+), (
+        2, '{"cd": "2017-11-22T15:20:34.326Z", "props": {"a": "twelve", "fn": [10, 20, 30], "j": false}}'
+);
+
+{{< /highlight >}}
+
+<p>Using Gson’s library ability to map a given document to a class, we just need to create a 2nd version of the class object that would support the second document shape:</p>
+
+{{< highlight java >}}
+
+public class JsonContentV2 {
+    private String a;
+    private int[] fn;
+    private boolean j;
+
+    @Override
+    public String toString() {
+        return "JsonContent{ a=" + a + ", fn=" + Arrays.toString(fn) + ", j=" + j + " }";
+    }
+}
+
+{{< /highlight >}}
+
+
+<p>and parse instantiating one or the other class with a simple switch statement (or a <a href="https://en.wikipedia.org/wiki/Visitor_pattern">visitor</a>, or <a href="https://openjdk.java.net/jeps/325">Java 12’s new switch syntax</a>):</p>
+
+{{< highlight java >}}
+
+Gson gson = new GsonBuilder().create();
+
+while (rs.next()) {
+    int version = rs.getInt(1);
+    String json = rs.getString(2);
+
+    Object jsonContent = null;
+    switch (version) {
+        case 1: jsonContent = gson.fromJson(json, JsonContent.class); break;
+        case 2: jsonContent = gson.fromJson(json, JsonContentV2.class); break;
+    }
+
+    System.out.println(jsonContent);
+}
+
+{{< /highlight >}}
+
+<p>The result:</p>
+
+{{< highlight java >}}
+
+JsonContent{ a=12, fn=[10, 20, 30] }
+JsonContent{ a=twelve, fn=[10, 20, 30], j=false }
+
+{{< /highlight >}}
+
+
+<p><a href="https://gitlab.com/ongresinc/blog-posts-src/tree/master/201804-having_lunch_pg_mongo_json/src/main/java/com/ongres/blog/lunch/_03_versioned">Source code for the example above</a></p>
+
+<h2 id="dessert-bson-inside-postgresql">Dessert: BSON inside PostgreSQL</h2>
+
+<p>So far, we have seen how to do strict typed JSON, polymorphic JSON and then versioned JSON to support several different evolutions of the document’s schemas, with JSON schema type inference. We have also seen how JSON has indeed data types, and PostgreSQL also enables to expose them via the <code>jsonb_typeof</code> function.</p>
+
+<p>It is noteworthy that standard JSON types are a subset of BSON’s types. Mongo shell uses the SpiderMonkey JavaScript engine that supports only standard JSON types, the same used by PostgreSQL. To make mongo shell work with BSON format, BSON’s types are wrapped inside objects (like in <code>NumberDecimal("10")</code>). Taking that into account, the same mechanism could be applied in PostgreSQL by wrapping a value inside an object to indicate an extended type like <code>{ "a": { "type": "int", "value": "12" } }</code>. With this we address Buzz’s concern that “<em>this still does not answer the fundamental type fidelity problem: fn is an array of what, exactly?</em>”. The whole JSON document would look like:</p>
+
+<p><code>{ "a": { "type": "int", "value": 12 }, "fn": [ { "type": "decimal", "value": 10 }, { "type": "int", "value": 20 }, { "type": "long", "value": 30 } ] }</code></p>
+
+<p>This is a bit verbose, but we could wrap all the logic inside PostgreSQL or Java using some helper functions or classes.</p>
+
+<p>But… wait a minute. If MongoDB does this by wrapping BSON datatypes into standard JSON, PostgreSQL could surely do the same! Certainly, PostgreSQL could use BSON too, by storing it into standard PostgreSQL’s jsonb type! It would look like this:</p>
+
+{{< highlight plain-text >}}
+
+select content from foo3;
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                      content                                                      │
+├───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ {"cd": {"$date": 1511364034326}, "props": {"a": 12, "fn": [{"$numberDecimal": "10"}, 20, {"$numberLong": "30"}]}} │
+│ {"props": {"a": 5, "fn": ["mix", 7.0, {"$date": 1511308800000}, true, {"x": 3.0}]}}                               │
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+{{< /highlight >}}
+
+<p>But how do we query this? Very easily too. We can just add MongoDB’s driver as a dependency to our <code>pom.xml</code> and then use a code practically identical to the one used before, but parsing to BSON:</p>
+
+{{< highlight java >}}
+
+while (rs.next()) {
+    String json = rs.getString(1);
+
+    BsonDocument bson = RawBsonDocument.parse(json);
+
+    for (Map.Entry<String, BsonValue> entry : bson.entrySet()) {
+        walkMap(sb, entry.getKey(), entry.getValue());
+    }
+}
+
+{{< /highlight >}}
+
+
+<p>which yields identical result to what Buzz did with MongoDB:</p>
+
+{{< highlight plain-text >}}
+
+a: BsonInt32{value=BsonInt32{value=12}}
+fn: BsonArray
+    0: BsonDecimal128{value=BsonDecimal128{value=10}}
+    1: BsonInt32{value=BsonInt32{value=20}}
+    2: BsonInt64{value=BsonInt64{value=30}}
+
+a: BsonInt32{value=BsonInt32{value=5}}
+fn: BsonArray
+    0: BsonString{value=BsonString{value='mix'}}
+    1: BsonDouble{value=BsonDouble{value=7.0}}
+    2: BsonDateTime{value=BsonDateTime{value=1511308800000}}
+    3: BsonBoolean{value=BsonBoolean{value=true}}
+    4: BsonDocument
+        x: BsonDouble{value=BsonDouble{value=3.0}}
+
+{{< /highlight >}}
+
+
+<p><a href="https://gitlab.com/ongresinc/blog-posts-src/blob/master/201804-having_lunch_pg_mongo_json/src/main/java/com/ongres/blog/lunch/_04_asmongo">Source code for the example above</a></p>
+
+<h2 id="a-patxarán-shot">A <em>Patxarán</em> shot</h2>
+
+<p>In Spain, it is not unfrequent to end a good, long meal with a <em>digestivo</em> (“digestif”). One of my favorite ones and very typical Spanish is <a href="https://en.wikipedia.org/wiki/Patxaran"><em>Patxarán</em></a>. Let’s have a shot of <em>Patxarán</em>!</p>
+
+<blockquote>
+<p>If you would like to have a Patxarán shot after a delicious Mediterranean meal, while at the same time enojoying great PostgreSQL conversations with PostgreSQL experts and peers, join us on the <a href="https://pgibz.io">PostgreSQL Ibiza Conference</a>. StackGres is a proud Cluster Level / Platinum sponsor of the conference.</p>
+</blockquote>
+
+<p>PostgreSQL has the best of both worlds: strongly typed columns, with support for advanced schema validation, triggers and foreign keys; and loosely typed schemas with columns of JSON (in PostgreSQL land: <code>jsonb</code>) datatype. MongoDB has only got the latter (strictly speaking MongoDB has schema validation; but it is a very poor version of that, where the schema validation is not enforced on old data if validation changes, and does not support foreign keys or triggers).</p>
+
+<p>What’s even more interesting is the discussion that Buzz goes into with regards to productivity. If anything, the more functionality the database provides, the more productive you will be. Otherwise, you end up re-inventing the wheel on the application side. And this is exactly what you need to end up doing with MongoDB in many cases:</p>
+
+<ul>
+<li>Joins (despite the <code>$lookup</code> operator, you will end up doing, and even MongoDB encourages, application-side joins).</li>
+<li>Advanced query capabilities (PostgreSQL’s SQL is arguably much more advanced than MongoDB query language).</li>
+<li>Transactions. Yes, MongoDB 4.0 has transactions. But they are extremely limited, and only fulfill a very narrow set of use cases. And in the abscence (or impossibility) of using transactions, MongoDB defaults to <code>READ UNCOMMITTED</code> isolation level, which imposes heavy taxes on the developer. <a href="https://twitter.com/ongresinc">Follow our Twitter</a> for future announcements about more detailed posts analyzing MongoDB features as compared to PostgreSQL features, including transactions.</li>
+</ul>
+
+<p>All these factors, and the more robust and trustable PostgreSQL operations that it exhibits in production, make PostgreSQL, I truly believe, a much more productive database than MongoDB.</p>
+
+<p><em>Hope you enjoyed your meal today</em>.</p>

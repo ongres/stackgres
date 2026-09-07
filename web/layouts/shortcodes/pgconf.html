@@ -1,0 +1,10 @@
+{{ if .IsNamedParams }}
+  <p class="postgresqlConfConfig" data-id="{{ .Get "id" }}"
+  {{ with .Get "theme"}} data-theme="{{.}}"{{ end }}
+  {{ with .Get "metadata"}} data-metadata="{{.}}"{{ end }}
+  {{ with .Get "comments"}} data-comments="{{.}}"{{ end }}></p>
+{{ else }}
+  <p class="postgresqlConfConfig" data-id="{{ index .Params 0 }}"></p>
+{{ end }}
+
+<script defer src="https://postgresqlco.nf/assets/snippet/postgresqlco.nf.config.min.js"></script>
