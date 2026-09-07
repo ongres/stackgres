@@ -1,12 +1,5 @@
 <article class="post col-sm-12 col-md-4">
 	<div class="whiteGradient border"></div>
-	<div class="postImg">
-		{{ if .Params.thumbnail }}
-			<a href="{{ .Permalink }}" class="pimage">
-				<img src="{{ .Params.thumbnail | relURL }}" alt="{{ .Title }}">
-			</a>
-		{{ end }}
-	</div>
 	<div class="postContent">
 		<div class="postSummary">
 			<div class="postInfo">

@@ -65,3 +65,24 @@
 	color: var(--baseColor);
 }
 
+/* all blog posts are equal: neutralize the theme's full-width "featured"
+   first card on every archive (blog index, tags, author, planet) */
+#postList .post:first-child {
+	width: calc(33.33% - 10px);
+	max-width: 33.333333%;
+	flex: 0 0 calc(33.3333% - 40px) !important;
+}
+
+#postList .post:first-child .postSummary {
+	width: 100%;
+	float: none;
+	padding-left: 0;
+}
+
+@media screen and (max-width: 768px) {
+	#postList .post:first-child {
+		width: 100%;
+		max-width: none;
+		flex: none !important;
+	}
+}
