@@ -44,3 +44,24 @@
 		transform: rotate(225deg) translateY(-1px);
 	}
 }
+
+/* blog pagination (project partial): centered "< 1 · 2 · 3 > " pager */
+.pagination {
+	/* relative lifts it above the section's absolutely-positioned
+	   .gradientOverlay, which otherwise swallows the clicks */
+	position: relative;
+	width: 100%;
+	margin-top: 30px;
+}
+
+.pagination a,
+.pagination .current,
+.pagination .dot {
+	display: inline-block;
+	padding: 0 10px;
+}
+
+.pagination a {
+	color: var(--baseColor);
+}
+

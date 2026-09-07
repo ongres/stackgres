@@ -22,6 +22,10 @@ ignoreFiles = ['_index\.template\.md$']
     tag = "tags"
     author = "author"
 
+# blog archives render a 3-column card grid, so pages hold a multiple of 3
+[pagination]
+    pagerSize = 9
+
 [params]
     # draft site: keep search engines out — remove before production launch
     noindex = true

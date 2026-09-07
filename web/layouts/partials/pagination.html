@@ -1,0 +1,19 @@
+{{ if gt .Paginator.TotalPages 1 }}
+<div class="separator"></div>
+<nav class="pagination textCenter">
+	{{ if .Paginator.HasPrev }}
+		<a href="{{ .Paginator.Prev.URL }}" class="prev noUnderline" title="Previous page">&lsaquo;</a>
+	{{ end }}
+	{{ range $i, $pager := .Paginator.Pagers }}
+		{{- if $i }}<span class="dot">&middot;</span>{{ end -}}
+		{{- if eq $pager.PageNumber $.Paginator.PageNumber -}}
+			<span class="current">{{ $pager.PageNumber }}</span>
+		{{- else -}}
+			<a href="{{ $pager.URL }}" class="noUnderline" title="Page {{ $pager.PageNumber }}">{{ $pager.PageNumber }}</a>
+		{{- end -}}
+	{{ end }}
+	{{ if .Paginator.HasNext }}
+		<a href="{{ .Paginator.Next.URL }}" class="next noUnderline" title="Next page">&rsaquo;</a>
+	{{ end }}
+</nav>
+{{ end }}
