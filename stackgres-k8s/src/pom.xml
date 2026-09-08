@@ -88,16 +88,16 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>3.36.2</quarkus.version>
-    <hibernate.version>7.4.1.Final</hibernate.version>
+    <quarkus.version>3.39.2</quarkus.version>
+    <hibernate.version>7.4.7.Final</hibernate.version>
     <jool.version>0.9.15</jool.version>
     <immutables.version>2.12.2</immutables.version>
-    <checkstyle.version>13.6.0</checkstyle.version>
-    <spotbugs.version>4.10.2</spotbugs.version>
-    <pmd.version>7.25.0</pmd.version>
+    <checkstyle.version>14.1.0</checkstyle.version>
+    <spotbugs.version>4.10.4</spotbugs.version>
+    <pmd.version>7.27.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <fluent-process.version>1.0.1</fluent-process.version>
-    <jooq.version>3.21.6</jooq.version>
+    <jooq.version>3.21.8</jooq.version>
     <mockito.version>3.0.0</mockito.version>
     <sundrio.version>0.240.1</sundrio.version>
     <reflections.version>0.10.2</reflections.version>
@@ -110,22 +110,22 @@
     <javapoet.version>1.13.0</javapoet.version>
     <jamm.version>0.4.0</jamm.version>
     <compile-testing.version>0.23.0</compile-testing.version>
-    <bouncycastle.version>1.84</bouncycastle.version>
+    <bouncycastle.version>1.85</bouncycastle.version>
     <debezium.version>3.5.2.Final</debezium.version>
     <kafka-clients.version>4.3.0</kafka-clients.version>
     <jmx-prometheus-collector.version>1.6.0</jmx-prometheus-collector.version>
     <asm.version>9.10.1</asm.version>
     <prometheus-metrics-exposition-formats.version>1.8.0</prometheus-metrics-exposition-formats.version>
     <!-- Plugins versions -->
-    <compiler-plugin.version>3.15.0</compiler-plugin.version>
-    <jar-plugin.version>3.5.0</jar-plugin.version>
+    <compiler-plugin.version>3.16.0</compiler-plugin.version>
+    <jar-plugin.version>3.5.1</jar-plugin.version>
     <clean-plugin.version>3.5.0</clean-plugin.version>
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <dependency-plugin.version>3.5.0</dependency-plugin.version>
-    <surefire-plugin.version>3.5.6</surefire-plugin.version>
+    <surefire-plugin.version>3.6.0</surefire-plugin.version>
     <failsafe-plugin.version>3.5.3</failsafe-plugin.version>
     <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
-    <spotbugs-plugin.version>4.10.2.0</spotbugs-plugin.version>
+    <spotbugs-plugin.version>4.10.4.1</spotbugs-plugin.version>
     <pmd-plugin.version>3.28.0</pmd-plugin.version>
     <enforcer-plugin.version>3.6.3</enforcer-plugin.version>
     <docker-maven-plugin.version>0.43.0</docker-maven-plugin.version>
