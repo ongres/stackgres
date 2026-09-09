@@ -1542,6 +1542,22 @@
     background: rgba(255, 255, 255, .1);
 }
 
+#containers-wrap #extensions .box {
+    margin-top: 20px;
+    /* the global reset zeroes the p's top margin; mirror its 16px bottom
+       margin so the text sits centered in the box */
+    padding-top: 16px;
+}
+
+#containers-wrap #clearExtensions {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    /* the inherited .btn padding pushed the label ~37px off the right edge;
+       10px + the 5px offset evens it with the vertical gaps */
+    padding: 0 10px;
+}
+
 #containers-wrap .note {
     text-align: center;
     display: inline-block;
@@ -1850,6 +1866,12 @@
     text-align: center;
 }
 
+#containers-wrap input.enableExtension:checked:after {
+    /* the checkmark is drawn by :before above — suppress the main theme's
+       generic checked-dot :after that would stack on top of it */
+    content: none;
+}
+
 #containers-wrap li.extension select.extVersion {
     height: 29px;
     padding: 5px;
@@ -1885,7 +1907,8 @@
 #containers-wrap button#clearExtensions {
     top: 15px;
     border-radius: 5px !important;
-    color: var(--bgColor) !important;
+    /* --bgColor text was unreadable once the button lost its PGA background */
+    color: var(--baseColor) !important;
     height: 35px;
     position: absolute;
     right: 5px;
@@ -1935,10 +1958,6 @@
 
 #containers-wrap #imageSize .size.extensions {
     background: var(--green);
-}
-
-#containers-wrap .noExtensions {
-    border-top: 1px solid var(--baseLightColor);
 }
 
 #containers-wrap #imageDetails .copyCode {
@@ -2199,6 +2218,10 @@
     position: relative;
 }
 
+#containers-wrap #imageSummary li {
+    margin-top: 8px;
+}
+
 #containers-wrap #imageSummary ul ul:before {
     content: "";
     display: inline;
@@ -2227,7 +2250,9 @@
     display: block;
     width: 5px;
     height: 100%;
-    background: var(--baseColor);
+    /* masks the tail of the full-height tree line past the last item, so it
+       must match the card background (PGA used its accent color here) */
+    background: #1B142C;
     position: absolute;
     left: 0;
     top: 12px;
@@ -2240,7 +2265,7 @@
     height: 100%;
     position: absolute;
     left: -13px;
-    background: var(--baseColor);
+    background: #1B142C;
     top: 12px;
 }
 
@@ -2667,6 +2692,18 @@
     border: 1px solid rgba(255, 255, 255, .15);
     border-radius: 10px;
     padding: 20px;
+}
+
+#containers-wrap pre.copyCode {
+    /* PGA framed the command in a thick accent border — match the cards */
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 10px;
+}
+
+#containers-wrap #imageDetails .inlineItems > .col {
+    /* the grid's .col base width (100%) stacks the Command/Image toggle
+       groups; shrink-wrap them so they share one centered line */
+    width: auto;
 }
 #containers-wrap #extensions {
     /* match the surrounding card border, not the vivid accent */
