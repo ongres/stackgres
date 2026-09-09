@@ -274,7 +274,7 @@ breadcrumbs: false
     }
 
     /* // Get available flavors
-    fetch('https://42.pga.sh/api/pga/v1/flavors')
+    fetch('https://sgcr.dev/api/stackgres/v1/flavors')
     .then(response => response.json())
     .then(data =>
         data.flavors.forEach(flavor => {
@@ -363,7 +363,7 @@ breadcrumbs: false
     }
 
     // Get image URL
-    function getImageUrl(tShirtSize = 'm', flavor = 'postgres') {
+    function getImageUrl(tShirtSize = 'minimal', flavor = 'postgres') {
         
         // Check postgres version
         const postgresVersion = document.getElementById('version');
@@ -410,7 +410,7 @@ breadcrumbs: false
             
         };
 
-        fetch('https://42.pga.sh/api/pga/v1/image-url', {
+        fetch('https://sgcr.dev/api/stackgres/v1/image-url', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json, text/plain, */*',
@@ -570,7 +570,7 @@ breadcrumbs: false
 
     function getAddons() {
         // Get available addons
-        fetch('https://42.pga.sh/api/pga/v1/addons?flavor=postgres')
+        fetch('https://sgcr.dev/api/stackgres/v1/addons?flavor=postgres')
         .then(response => response.json())
         .then(data => {
             const patroni = data.addons.find( (addon) => (addon.name === 'patroni'));
@@ -597,7 +597,7 @@ breadcrumbs: false
     }
     
     // Get available platforms
-    fetch('https://42.pga.sh/api/pga/v1/platforms')
+    fetch('https://sgcr.dev/api/stackgres/v1/platforms')
     .then(response => response.json())
     .then(data =>
         data.platforms.forEach(platform => {
@@ -646,8 +646,8 @@ breadcrumbs: false
         });
     }); */
 
-    function getVersions(architecture = 'amd64', flavor = 'postgres', size = 'm') {
-        fetch(`https://42.pga.sh/api/pga/v1/versions?architecture=${architecture}&flavor=${flavor}&tshirt-size=${size}`)
+    function getVersions(architecture = 'amd64', flavor = 'postgres', size = 'minimal') {
+        fetch(`https://sgcr.dev/api/stackgres/v1/versions?architecture=${architecture}&flavor=${flavor}&tshirt-size=${size}`)
         .then(response => response.json())
         .then( (data) => {
             data.versions.forEach(version => {
@@ -1077,7 +1077,7 @@ breadcrumbs: false
         if(extensionsList.hasOwnProperty(majorVersion + '.' + minorVersion)) {
             parseExtensionsData(majorVersion + '.' + minorVersion);
         } else {
-            fetch(`https://42.pga.sh/api/pga/v1/extensions?architecture=${architecture}&flavor=${flavor}&major=${majorVersion}&minor=${minorVersion}`)
+            fetch(`https://sgcr.dev/api/stackgres/v1/extensions?architecture=${architecture}&flavor=${flavor}&major=${majorVersion}&minor=${minorVersion}`)
             .then(response => response.json())
             .then( (data) => {
                 extensionsList[majorVersion + '.' + minorVersion] = data.extensions;
