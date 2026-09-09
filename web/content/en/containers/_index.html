@@ -206,7 +206,7 @@ breadcrumbs: false
                                     <div class="fields">
                                         <div class="toolbar">
                                             <div class="searchBar extensions form-group relative">
-                                                <input type="text" onkeyup="filterExtensions()" id="searchExtension" name="searchExtension" class="search fRight autoWidth" placeholder="Filter extensions..." autocomplete="off">
+                                                <input type="text" onkeyup="filterContainerExtensions()" id="searchExtension" name="searchExtension" class="search fRight autoWidth" placeholder="Filter extensions..." autocomplete="off">
                                                 <button type="button" onclick="clearExtFilter()" id="clearExtensions" class="btn hidden">CLEAR</a>
                                             </div>
                                         </div>
@@ -225,7 +225,7 @@ breadcrumbs: false
                                     Image Details
                                 </h3>
                                 <div id="imageSummary"></div>
-                                <a class="btn fullWidth" onclick="getShareUrl();">
+                                <a id="shareImageBtn" class="btn fullWidth hidden" onclick="getShareUrl();">
                                     <strong class="uppercase">
                                         Share This Image
                                     </strong>
@@ -368,11 +368,13 @@ breadcrumbs: false
         // Check postgres version
         const postgresVersion = document.getElementById('version');
         
-        let flavorVersions = [{}];
+        let flavorVersions = [];
 
         if( postgresVersion && (postgresVersion.options.length > 1) && !postgresVersion.options[postgresVersion.selectedIndex].text.startsWith('latest')) {
-            flavorVersions[0]['majorVersion'] = postgresVersion.value.split('.')[0];
-            flavorVersions[0]['minorVersion'] = postgresVersion.value.split('.')[1];
+            flavorVersions.push({
+                majorVersion: postgresVersion.value.split('.')[0],
+                minorVersion: postgresVersion.value.split('.')[1]
+            })
         }
 
         // CHeck extensions
@@ -384,6 +386,10 @@ breadcrumbs: false
         });
 
         if(extensions.length) {
+            // With "latest" selected no version entry exists yet
+            if(!flavorVersions.length) {
+                flavorVersions.push({});
+            }
             flavorVersions[0]['extensions'] = extensions;
         }
 
@@ -418,8 +424,17 @@ breadcrumbs: false
             },
             body: JSON.stringify(imageObject)
         })
-        .then(response => response.json())
+        .then(response => {
+            if(!response.ok) {
+                throw new Error(`The image API responded with status ${response.status}`);
+            }
+            return response.json();
+        })
         .then( (data) => {
+
+            if(!data.image || !data.image.url) {
+                throw new Error('The image API returned no image details');
+            }
 
             // Change to digest url for urls longer than 255 characters
             
@@ -558,9 +573,15 @@ breadcrumbs: false
             `;
 
             let imageSize = 0;
-            
-            
+
+
             imageSummary.innerHTML = imageSummaryHtml;
+            document.querySelector('#shareImageBtn').classList.remove('hidden');
+        })
+        .catch( (error) => {
+            console.error('Error fetching the image URL:', error);
+            document.querySelector('#imageSummary').innerHTML = '<p class="fetchError">The image details could not be loaded. Please try again later.</p>';
+            document.querySelector('#shareImageBtn').classList.add('hidden');
         });
     }
 
@@ -571,7 +592,12 @@ breadcrumbs: false
     function getAddons() {
         // Get available addons
         fetch('https://sgcr.dev/api/stackgres/v1/addons?flavor=postgres')
-        .then(response => response.json())
+        .then(response => {
+            if(!response.ok) {
+                throw new Error(`The addons API responded with status ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             const patroni = data.addons.find( (addon) => (addon.name === 'patroni'));
 
@@ -593,12 +619,20 @@ breadcrumbs: false
 
                 patroniVersions.innerHTML = patroniVersionHtml;
             }
+        })
+        .catch( (error) => {
+            console.error('Error fetching the available addons:', error);
         });
     }
     
     // Get available platforms
     fetch('https://sgcr.dev/api/stackgres/v1/platforms')
-    .then(response => response.json())
+    .then(response => {
+        if(!response.ok) {
+            throw new Error(`The platforms API responded with status ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data =>
         data.platforms.forEach(platform => {
             const input = document.createElement('label');
@@ -628,6 +662,10 @@ breadcrumbs: false
     })
     .then( () => {
         getImageUrl();
+    })
+    .catch( (error) => {
+        console.error('Error fetching the available platforms:', error);
+        platformContainer.innerHTML = '<p class="fetchError">The image builder could not be loaded. Please try again later.</p>';
     });
 
 
@@ -648,7 +686,12 @@ breadcrumbs: false
 
     function getVersions(architecture = 'amd64', flavor = 'postgres', size = 'minimal') {
         fetch(`https://sgcr.dev/api/stackgres/v1/versions?architecture=${architecture}&flavor=${flavor}&tshirt-size=${size}`)
-        .then(response => response.json())
+        .then(response => {
+            if(!response.ok) {
+                throw new Error(`The versions API responded with status ${response.status}`);
+            }
+            return response.json();
+        })
         .then( (data) => {
             data.versions.forEach(version => {
                 addOption(
@@ -662,6 +705,10 @@ breadcrumbs: false
 
             versionSelector.removeAttribute('disabled');
             getExtensions()
+        })
+        .catch( (error) => {
+            console.error('Error fetching the available versions:', error);
+            versionSelector.insertAdjacentHTML('afterend', '<p class="fetchError">The available versions could not be loaded. Please try again later.</p>');
         });
     }
 
@@ -868,6 +915,7 @@ breadcrumbs: false
     function toggleAvailableExtensions() {
         const extensionsList = document.querySelector('ul.extensionsList');
         extensionsList.classList.toggle('available');
+        filterContainerExtensions();
     }
 
     function parseExtensionsData(version, extData = null) {
@@ -879,9 +927,6 @@ breadcrumbs: false
         const defaultExtEnabled = getDefaultExtEnabled();
         
         let extHtml = `
-                <div class="noExtensions ${extData.length && 'hidden'}">
-                    <p class="textCenter">No extensions that match your criteria have been found for Postgres <span class="pgVersion"></span>.</p>
-                </div>
                 <li class="extension extHeader">
                     <span class="name">
                         Name
@@ -1064,7 +1109,7 @@ breadcrumbs: false
         extensions.classList.remove('hidden');
 
         setExtensionsFromUrl();
-        filterExtensions();
+        filterContainerExtensions();
     }
 
     function getExtensions(architecture = 'amd64', flavor = 'postgres', majorVersion = '', minorVersion = '') {
@@ -1074,20 +1119,34 @@ breadcrumbs: false
             minorVersion = versionSelector.value.split('.')[1];
         }
 
+        // No version selected yet: nothing to fetch
+        if(!majorVersion || !minorVersion) {
+            return;
+        }
+
         if(extensionsList.hasOwnProperty(majorVersion + '.' + minorVersion)) {
             parseExtensionsData(majorVersion + '.' + minorVersion);
         } else {
             fetch(`https://sgcr.dev/api/stackgres/v1/extensions?architecture=${architecture}&flavor=${flavor}&major=${majorVersion}&minor=${minorVersion}`)
-            .then(response => response.json())
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error(`The extensions API responded with status ${response.status}`);
+                }
+                return response.json();
+            })
             .then( (data) => {
                 extensionsList[majorVersion + '.' + minorVersion] = data.extensions;
                 parseExtensionsData(majorVersion + '.' + minorVersion, data.extensions);
+            })
+            .catch( (error) => {
+                console.error('Error fetching the available extensions:', error);
+                document.querySelector('#extensions .fields').innerHTML = '<p class="fetchError">The available extensions could not be loaded. Please try again later.</p>';
             });
         
         }        
     }
 
-    function filterExtensions() {
+    function filterContainerExtensions() {
         const searchExtension = document.getElementById('searchExtension');
         const extensions = document.querySelectorAll('li.extension:not(.extHeader)');
         const extHeader = document.querySelector('li.extension.extHeader');
@@ -1106,16 +1165,15 @@ breadcrumbs: false
             }
         })
 
-        const hiddenExtensions = document.querySelectorAll('li.extension:not(.extHeader).hidden');
-        const noExtensions = document.querySelector('.noExtensions');
-        const noExtensionsVersion = document.querySelector('.noExtensions .pgVersion');
+        // Count only what the active availability tab actually shows
+        const activeList = document.querySelector('ul.extensionsList');
+        const visibleExtensions = (activeList && activeList.classList.contains('available'))
+            ? document.querySelectorAll('li.extension:not(.extHeader):not(.disabled):not(.hidden)').length
+            : document.querySelectorAll('li.extension.disabled:not(.hidden)').length;
 
-        if(extensions.length === hiddenExtensions.length) {
-            noExtensionsVersion.innerHTML = versionSelector.value;
-            noExtensions.classList.remove('hidden');
+        if(visibleExtensions === 0) {
             extHeader.classList.add('hidden');
         } else {
-            noExtensions.classList.add('hidden');
             extHeader.classList.remove('hidden');
         }
 
@@ -1137,7 +1195,7 @@ breadcrumbs: false
         const clearExtensions = document.getElementById('clearExtensions');
         clearExtensions.classList.add('hidden');
 
-        filterExtensions();
+        filterContainerExtensions();
     }
 
     const containersForm = document.querySelector('form#imageForm');
