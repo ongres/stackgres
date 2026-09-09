@@ -1717,6 +1717,22 @@
     margin-top: 12px;
 }
 
+/* table-like behavior: the list scrolls, the header row stays pinned */
+@media screen and (min-width: 921px) {
+    #containers-wrap ul.extensionsList {
+        max-height: 65vh;
+        overflow-y: auto;
+    }
+}
+
+#containers-wrap li.extension.extHeader {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    /* opaque backing so scrolled rows don't show through */
+    background: #1B142C;
+}
+
 #containers-wrap li.extension {
     border: 1px solid var(--borderColor);
     padding: 5px 10px 0;
