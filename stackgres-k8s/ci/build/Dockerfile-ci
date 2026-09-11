@@ -3,6 +3,10 @@
 #
 # Build the image with:
 #
+# docker build --platform linux/amd64,linux/arm64 -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.SG_CI_IMAGE_NAME' .gitlab-ci.yml)" stackgres-k8s/ci/build/
+#
+# or:
+#
 # docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.SG_CI_IMAGE_NAME' .gitlab-ci.yml)-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
 ###
@@ -120,11 +124,31 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
   # skopeo is used by the deploy jobs to copy multi-arch images between registries
   RUN microdnf install -y skopeo && skopeo --version
 
-  RUN wget https://ftpmirror.gnu.org/screen/screen-5.0.0.tar.gz -O - | tar xz -C /tmp && \
-    cd /tmp/screen-* && \
-    ./configure --disable-pam --prefix=/usr && \
-    make && \
-    make install
+  # screen is not available in the UBI repositories so it is built from source.
+  # Any single GNU host (including the ftpmirror.gnu.org redirector) returns 5xx
+  # from time to time, so try each of them in turn and verify what was downloaded.
+  ENV SCREEN_VERSION 5.0.0
+  ENV SCREEN_SHA256 f04a39d00a0e5c7c86a55338808903082ad5df4d73df1a2fd3425976aed94971
+  RUN set -eu; \
+    for URL in \
+      "https://ftpmirror.gnu.org/screen/screen-$SCREEN_VERSION.tar.gz" \
+      "https://ftp.gnu.org/gnu/screen/screen-$SCREEN_VERSION.tar.gz" \
+      "https://mirrors.kernel.org/gnu/screen/screen-$SCREEN_VERSION.tar.gz" \
+    ; do \
+      echo "Downloading $URL"; \
+      wget --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 \
+        -O /tmp/screen.tar.gz "$URL" && break; \
+    done; \
+    echo "$SCREEN_SHA256  /tmp/screen.tar.gz" | sha256sum -c -; \
+    tar xzf /tmp/screen.tar.gz -C /tmp; \
+    rm /tmp/screen.tar.gz; \
+    cd "/tmp/screen-$SCREEN_VERSION"; \
+    ./configure --disable-pam --prefix=/usr; \
+    make; \
+    make install; \
+    cd /; \
+    rm -rf "/tmp/screen-$SCREEN_VERSION"; \
+    screen --version
   RUN if uname -m | grep -qxF x86_64; then \
     wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.1/yajsv.linux.amd64 && chmod a+x /bin/yajsv; fi
   RUN pip3 install yamllint yq
@@ -171,4 +195,6 @@ FROM registry.access.redhat.com/ubi8-minimal:8.10-1018
     && ln -s /opt/shellspec/shellspec /usr/local/bin/shellspec
   RUN wget -O /bin/kind-0.32.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.32.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind-0.32.0
+  RUN wget -O /bin/kind-0.33.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/kind-0.33.0
 

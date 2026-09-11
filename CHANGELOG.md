@@ -1,3 +1,56 @@
+# :rocket: Release 1.19.1 (2026-09-08)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.19.1 is out! :confetti_ball: :champagne: 
+
+> A 12 years old high severity vulnerability named PostGREShell ([CVE-2026-6471](https://www.postgresql.org/support/security/CVE-2026-6471/))
+> turns low-level replication access into code execution, permanent superuser privileges and a persistent database backdoor.
+> This release introduce the new Postgres patch versions that fix it. Be wise and upgrade ASAP!
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* PostgreSQL 18.6, 17.11, 16.15, 15.19 and 14.24
+* Patroni 4.1.5
+* WAL-G 3.0.9
+* Fluent-bit 5.1.2
+* Babelfish Compass 2026.07
+* Kubectl 1.36.4 and 1.37.0
+* OTEL Contrib Collector 0.160.0
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+Nothing new here! :eyes:
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.19.1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.1)
+
 # :rocket: Release 1.19.0 (2026-07-22)
 
 ## :notepad_spiral: NOTES

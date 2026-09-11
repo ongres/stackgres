@@ -42,4 +42,14 @@ Describe "extract_from_image"
     The status should be success
     The contents of file "$DOCKER_CALL_LOG" should not include "--pull always"
   End
+
+  # An image built by this run and not pushed is not in the registry, so pulling
+  # it asks for a tag that is not there and fails.
+  It "does not pull an image that is only local"
+    When call extract_from_image --local registry.example.com/build:mod-hash-abc some/path/templates
+    The status should be success
+    The contents of file "$DOCKER_CALL_LOG" should not include "--pull always"
+    The contents of file "$DOCKER_CALL_LOG" should include "registry.example.com/build:mod-hash-abc"
+    The contents of file "$DOCKER_CALL_LOG" should include "some/path/templates"
+  End
 End

@@ -1,0 +1,969 @@
+#!/bin/sh
+
+#
+# Installation of the StackGres operator through the Operator Lifecycle Manager.
+#
+# Two paths, selected by E2E_USE_OPENSHIFT_CATALOG:
+#
+#  *  unset (the default): the bundle image of this build is rebuilt with the
+#     images and the version of this build, a catalog holding it is generated
+#     with opm and pushed, and a CatalogSource pointing at it is created. This is
+#     the path the operator-olm and dbops-security-upgrade-olm specs have always
+#     used and it is what tests the local build.
+#
+#  *  certified, marketplace or community: no bundle and no catalog are built.
+#     The operator is installed from the OpenShift OperatorHub catalog of that
+#     name, which is a check of a *published* operator rather than of the local
+#     build. Only released versions are there, so the version has to name one.
+#
+# The three OpenShift catalogs publish the operator under different names,
+# because install/operator-sdk/stackgres-operator/deploy-to-*.sh renames the
+# package, and the ClusterServiceVersion, differently for each (see RENAME_CSV
+# and PROJECT_NAME there):
+#
+#   E2E_USE_OPENSHIFT_CATALOG | CatalogSource        | package             | CSV prefix
+#   --------------------------|----------------------|---------------------|---------------------
+#   certified                 | certified-operators  | stackgres-certified | stackgres
+#   marketplace               | redhat-marketplace   | stackgres           | stackgres
+#   community                 | community-operators  | stackgres-community | stackgres-community
+#
+# This is a util, so it is loaded for every spec and does not have to be sourced.
+# A spec that installs through OLM has to:
+#
+#  *  add olm_extra_hash to its e2e_test_extra_hash;
+#  *  call olm_cleanup, then olm_setup_catalog, then olm_install_operator, from
+#     its e2e_test_install (or from a test, as operator-olm does);
+#  *  call olm_cleanup and olm_restore_helm_operator from its e2e_test_uninstall,
+#     so that the specs that run afterwards find the operator the framework
+#     expects.
+#
+# After olm_install_operator the following are set:
+#
+#  *  OPERATOR_NAMESPACE: the namespace the operator was installed into, freshly
+#     generated, not the one the helm installed operator used.
+#  *  SGCONFIG_NAMESPACE: the namespace holding the SGConfig.
+#  *  OLM_SGCONFIG_NAME: the name of the SGConfig object.
+#  *  OLM_CSV: the name of the installed ClusterServiceVersion.
+#
+# Environment variables:
+#
+#  *  E2E_USE_OPENSHIFT_CATALOG: certified, marketplace or community to install
+#     from that OpenShift OperatorHub catalog. Unset to build a catalog.
+#  *  E2E_OPENSHIFT_CATALOG_VERSION: the released version to install from an
+#     OpenShift catalog. Defaults to the image tag without its -jvm flavour
+#     suffix, so --image-tag 1.19.0 installs 1.19.0.
+#  *  E2E_OPENSHIFT_CATALOG_CHANNEL: the channel to subscribe through. When unset
+#     it is resolved from the catalog as the channel carrying that version.
+#  *  E2E_OLM_VERSION: version of OLM to install on a cluster that does not ship
+#     it (default: 0.28.0).
+#  *  E2E_OC: the oc binary openshift_oc runs. Defaults to the one the OpenShift
+#     environment in use provides.
+#
+
+E2E_OLM_VERSION="${E2E_OLM_VERSION:-0.28.0}"
+E2E_USE_OPENSHIFT_CATALOG="${E2E_USE_OPENSHIFT_CATALOG:-}"
+E2E_OPENSHIFT_CATALOG_VERSION="${E2E_OPENSHIFT_CATALOG_VERSION:-}"
+E2E_OPENSHIFT_CATALOG_CHANNEL="${E2E_OPENSHIFT_CATALOG_CHANNEL:-}"
+E2E_OC="${E2E_OC:-}"
+
+# Set by olm_install_operator, read by the specs.
+OLM_CSV=
+OLM_SGCONFIG_NAME=
+
+# Knobs the specs set before calling olm_install_operator, to keep the
+# differences the two OLM specs already had:
+#  *  OLM_SUBSCRIPTION_WITH_CONFIG: emit the spec.config block of the
+#     Subscription, which carries the image tags, the SGCONFIG patch and the
+#     logging options (operator-olm does, dbops-security-upgrade-olm does not).
+#  *  OLM_OPERATOR_GROUP_WITH_OPERATOR_NAMESPACE: add the operator namespace to
+#     the targetNamespaces of the OperatorGroup when E2E_ALLOWED_NAMESPACES does
+#     not already list it (dbops-security-upgrade-olm does).
+OLM_SUBSCRIPTION_WITH_CONFIG="${OLM_SUBSCRIPTION_WITH_CONFIG:-true}"
+OLM_OPERATOR_GROUP_WITH_OPERATOR_NAMESPACE="${OLM_OPERATOR_GROUP_WITH_OPERATOR_NAMESPACE:-false}"
+
+## Which catalog, and what things are called in it
+
+olm_use_openshift_catalog() {
+  [ -n "$E2E_USE_OPENSHIFT_CATALOG" ]
+}
+
+# Whether the Kubernetes cluster is not an OpenShift one. OpenShift ships the
+# Operator Lifecycle Manager (so it must not be installed) and the monitoring
+# stack (so the prometheus operator must not be installed), it consumes the
+# OpenShift flavour of the operator bundle, and it enforces
+# SecurityContextConstraints. This is the one place that decides it, so a new
+# OpenShift environment script only has to be named here.
+is_not_openshift() {
+  [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "openshift-aws" ] \
+    && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
+}
+
+is_openshift() {
+  ! is_not_openshift
+}
+
+# The oc binary of the OpenShift environment in use, since each one ships it in
+# its own way. A function and not an alias, because an alias defined inside a
+# function body is not applied to the commands of that same function: they were
+# already parsed. E2E_OC overrides the lot.
+openshift_oc() {
+  if [ -n "$E2E_OC" ]
+  then
+    "$E2E_OC" "$@"
+    return
+  fi
+  case "$E2E_ENV" in
+    (openshift-aws)
+      openshift_aws_oc "$@"
+      ;;
+    (crc)
+      if [ -x "$HOME/.crc/bin/oc/oc" ]
+      then
+        "$HOME/.crc/bin/oc/oc" "$@"
+      else
+        eval "$(crc oc-env)"
+        oc "$@"
+      fi
+      ;;
+    (minishift)
+      eval "$(minishift oc-env)"
+      oc "$@"
+      ;;
+    (microshift)
+      docker exec -i "$K8S_NAME" oc "$@"
+      ;;
+    (*)
+      oc "$@"
+      ;;
+  esac
+}
+
+olm_catalog_source() {
+  case "$E2E_USE_OPENSHIFT_CATALOG" in
+    (certified) echo certified-operators ;;
+    (marketplace) echo redhat-marketplace ;;
+    (community) echo community-operators ;;
+    (*) echo operator-catalog ;;
+  esac
+}
+
+olm_catalog_source_namespace() {
+  if olm_use_openshift_catalog
+  then
+    echo openshift-marketplace
+  else
+    echo "$OPERATOR_NAMESPACE"
+  fi
+}
+
+olm_package() {
+  case "$E2E_USE_OPENSHIFT_CATALOG" in
+    (certified) echo stackgres-certified ;;
+    (community) echo stackgres-community ;;
+    (*) echo stackgres ;;
+  esac
+}
+
+# The prefix of the ClusterServiceVersion name, which is not always the package
+# name: only the community bundle renames the CSV along with the package.
+olm_csv_prefix() {
+  case "$E2E_USE_OPENSHIFT_CATALOG" in
+    (community) echo stackgres-community ;;
+    (*) echo stackgres ;;
+  esac
+}
+
+olm_csv_name() {
+  printf '%s.v%s' "$(olm_csv_prefix)" "$1"
+}
+
+# The version to install. From an OpenShift catalog it has to be a released one,
+# so it comes from the image tag (or from E2E_OPENSHIFT_CATALOG_VERSION) rather
+# than from the version of this build.
+olm_version() {
+  if olm_use_openshift_catalog
+  then
+    printf '%s' "${E2E_OPENSHIFT_CATALOG_VERSION:-${IMAGE_TAG%-jvm}}"
+  else
+    printf '%s' "$BUNDLE_STACKGRES_VERSION"
+  fi
+}
+
+# The namespace the SGConfig ends up in: the one of the operator, unless the
+# operator is restricted to a set of namespaces that does not include it.
+olm_sgconfig_namespace() {
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    printf %s "$CLUSTER_NAMESPACE"
+  else
+    printf %s "$OPERATOR_NAMESPACE"
+  fi
+}
+
+# Resolves the names olm_install_operator resolved, for the tests that did not
+# install the operator themselves: run_test runs every test in a subshell of its
+# own, so OLM_CSV, SGCONFIG_NAMESPACE and OLM_SGCONFIG_NAME are empty again in
+# every test that follows the one that installed. All three can be resolved
+# again, the version from the same place the installation took it and the SGConfig
+# from the cluster, so no test has to depend on what another one left behind.
+olm_resolve_operator_names() {
+  if [ -z "$SGCONFIG_NAMESPACE" ]
+  then
+    SGCONFIG_NAMESPACE="$(olm_sgconfig_namespace)"
+  fi
+  if [ -z "$OLM_CSV" ]
+  then
+    OLM_CSV="$(olm_csv_name "$(olm_version)")"
+  fi
+  if [ -z "$OLM_SGCONFIG_NAME" ]
+  then
+    OLM_SGCONFIG_NAME="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" -o name 2>/dev/null \
+      | grep '^sgconfig.stackgres.io/' | head -n 1)"
+    OLM_SGCONFIG_NAME="${OLM_SGCONFIG_NAME#*/}"
+  fi
+}
+
+olm_extra_hash() {
+  printf 'E2E_OLM_VERSION=%s\n' "$E2E_OLM_VERSION"
+  printf 'E2E_USE_OPENSHIFT_CATALOG=%s\n' "$E2E_USE_OPENSHIFT_CATALOG"
+  if olm_use_openshift_catalog
+  then
+    printf 'E2E_OPENSHIFT_CATALOG_VERSION=%s\n' "$(olm_version)"
+  fi
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "stackgres-k8s/install/operator-sdk"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$E2E_PATH/utils/olm")"
+}
+
+## Cleanup and restore
+
+# Removes the operator the e2e framework installed with the helm chart, so that
+# OLM installs into a clean cluster.
+olm_cleanup() {
+  ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
+  k8s_unnamespaced_cleanup
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup || true
+}
+
+# Puts the operator back the way the framework expects it, for the specs that
+# run after this one.
+olm_restore_helm_operator() {
+  if [ "$E2E_SKIP_OPERATOR_INSTALL" = true ]
+  then
+    return
+  fi
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+## Bundle and catalog, when they are built locally
+
+olm_bundle_image_names() {
+  BUNDLE_STACKGRES_VERSION="$(printf %s "$STACKGRES_VERSION" | tr A-Z a-z)"
+  BUNDLE_STACKGRES_PREVIOUS_VERSION="$(printf %s "$STACKGRES_PREVIOUS_VERSION" | tr A-Z a-z)"
+
+  OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX=""
+  if is_openshift
+  then
+    OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX="-openshift"
+  fi
+  OPERATOR_BUNDLE_IMAGE_TAG="${IMAGE_TAG%-jvm}$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
+  OPERATOR_BUNDLE_IMAGE_TAG="$(printf %s "$OPERATOR_BUNDLE_IMAGE_TAG" | tr A-Z a-z)"
+
+  OPERATOR_BUNDLE_PUBLIC_REGISTRY="${OPERATOR_BUNDLE_PUBLIC_REGISTRY:-quay.io}"
+  OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH="${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH:-/stackgres}"
+  OPERATOR_BUNDLE_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
+  OPERATOR_BUNDLE_CATALOG_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-catalog:$OPERATOR_BUNDLE_IMAGE_TAG"
+}
+
+# Rebuilds the published operator bundle with the images and the version of this
+# build, and pushes it where the cluster can pull it from. The operator registry
+# resolves the bundle image remotely, so it can not be loaded locally.
+olm_build_bundle_image() {
+  olm_bundle_image_names
+
+  if olm_use_openshift_catalog
+  then
+    echo "Using the $(olm_catalog_source) OperatorHub catalog, no bundle to build"
+    return
+  fi
+
+  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
+  docker pull "$BUNDLE_IMAGE_NAME"
+  mkdir -p "$LOG_PATH/operator-bundle"
+  cat << EOF > "$LOG_PATH/operator-bundle.Dockerfile"
+FROM "$BUNDLE_IMAGE_NAME" AS bundle
+
+FROM debian AS overwrites
+  COPY --from=bundle / /bundle
+  RUN sed -i 's|^  name: .*$|  name: stackgres.v$BUNDLE_STACKGRES_VERSION|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i 's|^  version: .*$|  version: $BUNDLE_STACKGRES_VERSION|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i 's|^    containerImage: quay.io/stackgres/operator:.*$|    containerImage: $OPERATOR_IMAGE_NAME|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i 's|^                    image: quay.io/stackgres/operator:.*$|                    image: $OPERATOR_IMAGE_NAME|' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_VERSION$/{\$!{N;s/name: OPERATOR_VERSION\n\( *\)value: .*$/name: OPERATOR_VERSION\n\1value: "$STACKGRES_VERSION"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\n\1value: "$IMAGE_TAG"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_JVM_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_JVM_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_JVM_IMAGE_VERSION\n\1value: "$NATIVE_IMAGE_TAG-jvm"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+  RUN sed -i '/name: OPERATOR_NATIVE_IMAGE_VERSION$/{\$!{N;s/name: OPERATOR_NATIVE_IMAGE_VERSION\n\( *\)value: .*$/name: OPERATOR_NATIVE_IMAGE_VERSION\n\1value: "$NATIVE_IMAGE_TAG"/;ty;P;D;:y}}' /bundle/manifests/stackgres.clusterserviceversion.yaml
+
+FROM scratch
+  COPY --from=overwrites /bundle /
+$(
+    docker inspect "$BUNDLE_IMAGE_NAME" -f json \
+      | jq -r '.[0].Config.Labels|to_entries|.[]|"LABEL \"" + .key + "\"=\"" + .value + "\""' \
+      | sed 's/^/  /'
+)
+EOF
+  BUNDLE_IMAGE_NAME="${BUNDLE_IMAGE_NAME}-overridden-$(date +%s)-$RANDOM"
+  docker build -t "$BUNDLE_IMAGE_NAME" -f "$LOG_PATH/operator-bundle.Dockerfile" "$LOG_PATH/operator-bundle"
+  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$BUNDLE_IMAGE_NAME"
+}
+
+olm_install_olm() {
+  if is_openshift
+  then
+    echo "Skipping the OLM installation, $E2E_ENV ships it"
+    return
+  fi
+  kubectl delete clusterrole system:controller:operator-lifecycle-manager 2>/dev/null \
+    || ! kubectl get clusterrole system:controller:operator-lifecycle-manager 2>/dev/null
+  wait_until eval '! kubectl get namespace olm > /dev/null 2>&1'
+  operator-sdk olm install \
+    --timeout "${E2E_TIMEOUT}s" \
+    --version "$E2E_OLM_VERSION"
+}
+
+# The bundle image of a released version, as the catalog that ships it names it.
+# Used to put a previous version in a locally built catalog without rebuilding
+# its bundle.
+olm_published_bundle_image() {
+  local VERSION="$1"
+  if is_openshift
+  then
+    wait_until eval 'kubectl exec -n openshift-marketplace "$(kubectl get pod -n openshift-marketplace -l olm.catalogSource=redhat-marketplace -o name | grep "^pod/")" \
+      -- cat /configs/stackgres/catalog.json /extracted-catalog/catalog/stackgres/catalog.json 2>/dev/null \
+      | jq -sr ".[]|select(.name == \"stackgres.v'"$VERSION"'\").image" | grep .'
+  else
+    wait_until eval 'kubectl exec -n olm "$(kubectl get pod -n olm -l olm.catalogSource=operatorhubio-catalog -o name | grep "^pod/")" \
+      -- cat configs/stackgres/catalog.yaml \
+      | yq -sr ".[]|select(.name == \"stackgres.v'"$VERSION"'\").image" | grep .'
+  fi
+}
+
+olm_load_operator_images() {
+  [ "$E2E_SKIP_LOAD_OPERATOR_BUNDLE" != true ] || return 0
+
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
+  then
+    echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+    olm_load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH"
+  fi
+  # The bundle image under its public name only exists once it has been pulled,
+  # which is what --pull does through pull_image_from: the bundle of a build is
+  # built and pushed under the name of the registry of that build, and
+  # olm_build_bundle_image pulls that one. Nothing of the run reads the version
+  # tagged public name, the catalog points at the bundle that was just pushed, so
+  # say what is not being tagged instead of failing on an image that is not there.
+  IMAGES="$(olm_get_operator_images "$STACKGRES_VERSION")"
+  for IMAGE in $IMAGES
+  do
+    if ! docker_inspect "$IMAGE" > /dev/null 2>&1
+    then
+      echo "Not tagging $IMAGE as the version of this build: the image is not here." \
+        "It is pulled under that name only when --pull is used."
+      continue
+    fi
+    docker_tag "$IMAGE" "${IMAGE%:*}:$(printf %s "$STACKGRES_VERSION$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX" | tr A-Z a-z)"
+  done
+  OPERATOR_IMAGES="$(get_operator_images "$STACKGRES_VERSION")"
+  for IMAGE in $OPERATOR_IMAGES
+  do
+    docker_tag "$IMAGE" "${IMAGE%:*}:$BUNDLE_STACKGRES_VERSION"
+  done
+  echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+}
+
+olm_load_operator_images_from() {
+  local REPOSITORY="${1:-$OPERATOR_BUNDLE_PUBLIC_REGISTRY}"
+  local IMAGE_PATH="${2:-$OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}"
+  local VERSION="${3:-$STACKGRES_VERSION}"
+  local IMAGES
+  IMAGES="$(olm_get_operator_images "$VERSION")"
+  printf '%s' "$IMAGES" \
+    | xargs_parallel_shell % "$E2E_PATH/e2e" \
+      pull_image_from "$REPOSITORY" "${IMAGE_PATH%/}/stackgres" "%"
+}
+
+olm_get_operator_images() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  local NATIVE_TAG="$VERSION"
+  if [ "$VERSION" = "$STACKGRES_VERSION" ]
+  then
+    NATIVE_TAG="${IMAGE_TAG%-jvm}"
+  fi
+  echo "${OPERATOR_BUNDLE_IMAGE_NAME%:*}:$NATIVE_TAG"
+}
+
+# Builds the catalog and creates the CatalogSource for it. $1, when given, is a
+# previous version to put in the catalog as well, with the current version
+# replacing it, so that an upgrade can be exercised.
+olm_build_catalog() {
+  local PREVIOUS_VERSION="$1"
+  local PREVIOUS_BUNDLE_IMAGE_NAME
+
+  CATALOG_IMAGE_NAME="${E2E_CATALOG_IMAGE_REGISTRY:-$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
+
+  if [ -n "$PREVIOUS_VERSION" ]
+  then
+    PREVIOUS_BUNDLE_IMAGE_NAME="$(olm_published_bundle_image "$PREVIOUS_VERSION")"
+  fi
+
+  mkdir -p "$LOG_PATH/operator-catalog"
+  opm generate dockerfile "$LOG_PATH/operator-catalog"
+  echo > "$LOG_PATH/README.md"
+  opm init stackgres \
+    --default-channel=stable \
+    --description="$LOG_PATH/README.md" \
+    --output yaml > "$LOG_PATH/operator-catalog/operator.yaml"
+  if [ -n "$PREVIOUS_VERSION" ]
+  then
+    opm render "$PREVIOUS_BUNDLE_IMAGE_NAME" \
+      --output=yaml >> "$LOG_PATH/operator-catalog/operator.yaml"
+  fi
+  opm render "$BUNDLE_IMAGE_NAME" \
+    --output=yaml >> "$LOG_PATH/operator-catalog/operator.yaml"
+  if [ -n "$PREVIOUS_VERSION" ]
+  then
+    cat << EOF >> "$LOG_PATH/operator-catalog/operator.yaml"
+---
+schema: olm.channel
+package: stackgres
+name: stable
+entries:
+  - name: stackgres.v$PREVIOUS_VERSION
+  - name: stackgres.v$BUNDLE_STACKGRES_VERSION
+    replaces: stackgres.v$PREVIOUS_VERSION
+EOF
+    sed -i "s/^name: stackgres.v${BUNDLE_STACKGRES_VERSION%-*}.*$/name: stackgres.v$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+    sed -i "s/^    version: ${BUNDLE_STACKGRES_VERSION%-*}.*$/    version: $BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+    sed -i "s/^- image: \([^:]\+\):${BUNDLE_STACKGRES_VERSION%-*}.*$/- image: \1:$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  else
+    cat << EOF >> "$LOG_PATH/operator-catalog/operator.yaml"
+---
+schema: olm.channel
+package: stackgres
+name: stable
+entries:
+  - name: stackgres.v$BUNDLE_STACKGRES_VERSION
+EOF
+  fi
+  opm validate "$LOG_PATH/operator-catalog"
+  (
+  cd "$LOG_PATH"
+  docker build . \
+    -f "operator-catalog.Dockerfile" \
+    -t "$CATALOG_IMAGE_NAME"
+  )
+  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$CATALOG_IMAGE_NAME"
+
+  olm_load_operator_images
+
+  olm_create_operator_namespace
+
+  cat << EOF > "$LOG_PATH/operator-catalog-source.yaml"
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: operator-catalog
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  sourceType: grpc
+  image: $CATALOG_IMAGE_NAME
+  displayName: Helm Operator Catalog
+  publisher: OnGres
+  updateStrategy:
+    registryPoll:
+      interval: 10m
+EOF
+  kubectl create -f "$LOG_PATH/operator-catalog-source.yaml"
+}
+
+olm_create_operator_namespace() {
+  OPERATOR_NAMESPACE="$(generate_operator_namespace)"
+  kubectl create namespace "${OPERATOR_NAMESPACE}"
+}
+
+## The OpenShift OperatorHub catalogs, when one of them is used instead
+
+olm_package_manifest() {
+  kubectl get packagemanifest -n "$(olm_catalog_source_namespace)" "$(olm_package)" -o json
+}
+
+# Every version the catalog offers, one per line, so that a wrong version gets
+# an answer instead of a timeout.
+olm_available_versions() {
+  olm_package_manifest 2>/dev/null | jq -r '
+    [ .status.channels[] | (.entries[]?.name), .currentCSV ]
+    | unique | .[] | select(. != null)'
+}
+
+# The channel to subscribe through: the one that carries the requested version.
+# entries is not published by every version of the package server, so fall back
+# to the channel whose head is that version.
+olm_resolve_channel() {
+  local CSV="$1"
+  olm_package_manifest | jq -r --arg csv "$CSV" '
+    ( [ .status.channels[] | select(any(.entries[]?; .name == $csv)) | .name ]
+      + [ .status.channels[] | select(.currentCSV == $csv) | .name ] )
+    | first // empty'
+}
+
+# Checks that the OpenShift catalog in use offers $1, which is the version being
+# installed and not necessarily the default one olm_version resolves: the specs
+# that install a previous version, or upgrade to another one, pass it explicitly.
+# Every message here therefore has to name $1.
+olm_check_openshift_catalog() {
+  local VERSION="$1"
+  local CSV
+
+  case "$E2E_USE_OPENSHIFT_CATALOG" in
+    (certified|marketplace|community) ;;
+    (*)
+      >&2 echo "E2E_USE_OPENSHIFT_CATALOG must be certified, marketplace or community," \
+        "but it is '$E2E_USE_OPENSHIFT_CATALOG'"
+      return 1
+      ;;
+  esac
+
+  if ! is_openshift
+  then
+    >&2 echo "E2E_USE_OPENSHIFT_CATALOG needs an OpenShift cluster, which $E2E_ENV is not." \
+      "Unset it to build a catalog from the operator bundle of this build instead."
+    return 1
+  fi
+
+  if [ -z "$VERSION" ]
+  then
+    >&2 echo "There is no version to install. Set E2E_OPENSHIFT_CATALOG_VERSION or pass" \
+      "--image-tag with a released version."
+    return 1
+  fi
+  CSV="$(olm_csv_name "$VERSION")"
+
+  if ! kubectl get catalogsource -n "$(olm_catalog_source_namespace)" "$(olm_catalog_source)" \
+    > /dev/null 2>&1
+  then
+    >&2 echo "CatalogSource $(olm_catalog_source) is not present in namespace" \
+      "$(olm_catalog_source_namespace). Enable it in the OperatorHub cluster resource."
+    return 1
+  fi
+
+  if ! wait_until eval 'olm_package_manifest > /dev/null 2>&1'
+  then
+    >&2 echo "Package $(olm_package) is not offered by the $(olm_catalog_source) catalog of" \
+      "this cluster. The catalog may still be starting up."
+    return 1
+  fi
+
+  OLM_CHANNEL="${E2E_OPENSHIFT_CATALOG_CHANNEL:-$(olm_resolve_channel "$CSV")}"
+  if [ -z "$OLM_CHANNEL" ]
+  then
+    >&2 echo "Version $VERSION of $(olm_package) is not offered by the" \
+      "$(olm_catalog_source) catalog as $CSV. Use one of the versions it offers:"
+    olm_available_versions | sed 's/^/  /' >&2
+    return 1
+  fi
+
+  echo "Installing $CSV from the $OLM_CHANNEL channel of the $(olm_catalog_source) catalog"
+}
+
+## The entry points the specs use
+
+# Makes a catalog holding the operator available to the cluster. $1, when given,
+# is a previous version that has to be in it as well.
+olm_setup_catalog() {
+  olm_bundle_image_names
+  if olm_use_openshift_catalog
+  then
+    echo "Using the $(olm_catalog_source) OperatorHub catalog, no catalog to build"
+    olm_create_operator_namespace
+    return
+  fi
+  olm_install_olm
+  olm_build_catalog "$@"
+}
+
+olm_operator_group() {
+  cat << EOF
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec:
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+  then
+    cat << INNER_EOF
+  targetNamespaces:
+$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' '\n' | sed 's/^/  - /')
+INNER_EOF
+    if [ "$OLM_OPERATOR_GROUP_WITH_OPERATOR_NAMESPACE" = true ] \
+      && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+    then
+      printf '  - %s\n' "$OPERATOR_NAMESPACE"
+    fi
+  fi
+)
+EOF
+}
+
+olm_sgconfig_patch() {
+  cat << EOF
+apiVersion: stackgres.io/v1
+kind: SGConfig
+spec:
+  operator:
+    image:
+      tag: "$IMAGE_TAG"
+  restapi:
+    image:
+      tag: "$IMAGE_TAG"
+  adminui:
+    image:
+      tag: "$ADMINUI_IMAGE_TAG"
+  developer:
+    version: $STACKGRES_VERSION
+$(
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    cat << INNER_EOF
+    patches:
+      restapi:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/restapi/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      adminui:
+        volumes:
+          - name: admin
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public)"
+        volumeMounts:
+          - name: admin
+            mountPath: /opt/app-root/src/admin
+      clusterController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+INNER_EOF
+  fi
+)
+EOF
+}
+
+olm_subscription_config() {
+  local EXTRA_OPTS
+  EXTRA_OPTS="$(printf %s "
+        -Dquarkus.log.category.\"io.stackgres\".level=DEBUG 
+        -Dquarkus.log.category.\"io.quarkus\".level=INFO 
+        -Dquarkus.log.category.\"io.stackgres.dbops\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.backup\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.wal-g\".level=INFO 
+        -Dquarkus.log.category.\"io.stackgres.patroni\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.fluent-bit\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.fluentd\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.prometheus-postgres-exporter\".level=TRACE 
+        -Dquarkus.log.category.\"okhttp3.logging.HttpLoggingInterceptor\".level=$(
+          # shellcheck disable=SC2015
+          [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO) 
+        -Dquarkus.log.category.\"stackgres-extensions-cache\".level=DEBUG 
+        -Dquarkus.log.category.\"io.stackgres.operator.conciliation\".level=TRACE 
+    " | tr -s ' \n' ' ' | jq -s -R .)"
+
+  olm_sgconfig_patch > "$LOG_PATH/sgconfig-patch.yaml"
+
+  cat << EOF
+  config:
+    resources: {}
+    env: [
+      $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
+      {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
+      {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
+      {"name":"APP_OPTS","value":$EXTRA_OPTS},
+      {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
+      ,
+$(
+  if [ "$SGCONFIG_NAMESPACE" != "$OPERATOR_NAMESPACE" ]
+  then
+    cat << INNER_EOF
+      {"name":"SGCONFIG_NAMESPACE","value":"$SGCONFIG_NAMESPACE"}
+INNER_EOF
+  fi
+)
+    ]
+$(
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    cat << INNER_EOF
+  ,
+  volumes:[
+    {"name":"app","hostPath":{"path":"$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app)"}}],
+  volumeMounts:[
+    {"name":"app","mountPath":"/app/app","subPath":"app"},
+    {"name":"app","mountPath":"/app/lib","subPath":"lib"},
+    {"name":"app","mountPath":"/app/quarkus","subPath":"quarkus"},
+    {"name":"app","mountPath":"/app/quarkus-run.jar","subPath":"quarkus-run.jar"}]
+INNER_EOF
+  fi
+)
+EOF
+}
+
+olm_subscription() {
+  local CSV="$1"
+  cat << EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  channel: ${OLM_CHANNEL:-stable}
+  name: $(olm_package)
+  source: $(olm_catalog_source)
+  sourceNamespace: $(olm_catalog_source_namespace)
+  installPlanApproval: Manual
+  startingCSV: $CSV
+$(
+  if [ "$OLM_SUBSCRIPTION_WITH_CONFIG" = true ]
+  then
+    olm_subscription_config
+  fi
+)
+EOF
+}
+
+# The install plan waiting for approval, if there is one. Which
+# ClusterServiceVersion it installs is not part of the question: that is OLM's
+# decision, not the caller's, see olm_approve_install_plan.
+olm_pending_install_plan() {
+  kubectl get installplan -n "$OPERATOR_NAMESPACE" -o json \
+    | jq -r '.items[]
+      | select(.spec.approved != true and .status.phase == "RequiresApproval")
+      | .metadata.name' \
+    | head -n 1
+}
+
+# The ClusterServiceVersion an install plan installs. The operator declares no
+# required APIs, so a plan of its subscription never carries the
+# ClusterServiceVersion of a dependency alongside it.
+olm_install_plan_csv() {
+  kubectl get installplan -n "$OPERATOR_NAMESPACE" "$1" \
+    -o jsonpath='{.spec.clusterServiceVersionNames[0]}'
+}
+
+olm_csv_succeeded() {
+  kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$1" \
+    -o jsonpath='{.status.phase}' 2>/dev/null | grep -qxF Succeeded
+}
+
+# Approves install plans until $1 is the installed ClusterServiceVersion.
+#
+# Usually that is one plan, but it is not the caller's decision: OLM walks the
+# replaces chain of the subscribed channel one ClusterServiceVersion per install
+# plan, so a version several hops away takes an approval per hop. The candidate
+# channel carries the release candidates of every version, which turns a 1.18.8
+# to 1.19.0 upgrade through it into six hops (1.19.0-rc1 up to rc5, then 1.19.0)
+# rather than one. Waiting for a plan that names $1 therefore waits forever on
+# any channel whose next hop is an intermediate version, and reports that OLM
+# created no plan when it did create one.
+olm_approve_install_plan() {
+  local CSV="$1"
+  local INSTALL_PLAN
+  local INSTALL_PLAN_CSV
+  local HOPS=0
+  # Bounds a chain that never arrives, so that it fails while the reason is
+  # still on screen instead of approving plans for hours.
+  local MAX_HOPS=20
+
+  while ! olm_csv_succeeded "$CSV"
+  do
+    HOPS="$((HOPS + 1))"
+    if [ "$HOPS" -gt "$MAX_HOPS" ]
+    then
+      kubectl get subscription -n "$OPERATOR_NAMESPACE" stackgres -o yaml || true
+      fail "The subscription did not arrive at $CSV after $MAX_HOPS approved install plans"
+      return 1
+    fi
+
+    if ! INSTALL_PLAN="$(wait_until eval 'olm_pending_install_plan | grep .')"
+    then
+      kubectl get subscription -n "$OPERATOR_NAMESPACE" stackgres -o yaml || true
+      kubectl get installplan -n "$OPERATOR_NAMESPACE" || true
+      fail "OLM created no install plan on the way to $CSV. The subscription above names the \
+channel it is subscribed to, and its currentCSV is the ClusterServiceVersion that channel \
+resolves next: when $CSV is not on that channel's upgrade path, no plan for it ever appears. \
+E2E_OPENSHIFT_CATALOG_CHANNEL subscribes through another channel."
+      return 1
+    fi
+
+    INSTALL_PLAN_CSV="$(olm_install_plan_csv "$INSTALL_PLAN")"
+    if [ "$INSTALL_PLAN_CSV" = "$CSV" ]
+    then
+      echo "Approving install plan $INSTALL_PLAN, which installs $CSV"
+    else
+      echo "Approving install plan $INSTALL_PLAN, which installs $INSTALL_PLAN_CSV," \
+        "a hop of the channel on the way to $CSV"
+    fi
+    kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge \
+      -p '{"spec":{"approved":true}}'
+
+    if ! wait_until -t "$((E2E_TIMEOUT * 4))" olm_csv_succeeded "$INSTALL_PLAN_CSV"
+    then
+      kubectl get clusterserviceversion -n "$OPERATOR_NAMESPACE" "$INSTALL_PLAN_CSV" -o yaml \
+        || true
+      fail "The ClusterServiceVersion $INSTALL_PLAN_CSV did not reach the Succeeded phase"
+      return 1
+    fi
+    success "The ClusterServiceVersion $INSTALL_PLAN_CSV reached the Succeeded phase"
+  done
+
+  # The contract of this util says OLM_CSV names the installed
+  # ClusterServiceVersion, and after the walk this is it. The specs that approve a
+  # plan without going through olm_install_operator or olm_upgrade_operator select
+  # the operator resources by the olm.owner label, which carries this name, so
+  # leaving the previous version in it makes those selectors match nothing.
+  OLM_CSV="$CSV"
+}
+
+# Creates the OperatorGroup and the Subscription and installs the operator. $1,
+# when given, is the version to install, defaulting to the version of this build
+# for a locally built catalog and to the requested released version for an
+# OperatorHub one.
+olm_install_operator() {
+  local VERSION="${1:-$(olm_version)}"
+
+  OLM_CSV="$(olm_csv_name "$VERSION")"
+
+  SGCONFIG_NAMESPACE="$(olm_sgconfig_namespace)"
+
+  if olm_use_openshift_catalog
+  then
+    olm_check_openshift_catalog "$VERSION" || return 1
+  else
+    echo "Installing operator bundle $VERSION through OLM into $OPERATOR_NAMESPACE"
+    # The operator-sdk does not allow to load a bundle with IfNotPresent so we
+    # have to pull it from the remote repository
+    if [ -f "$HOME/.docker/config.json" ]
+    then
+      kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" operator-bundle \
+        --from-file=.dockerconfigjson="$HOME/.docker/config.json"
+    fi
+  fi
+
+  olm_operator_group > "$LOG_PATH/stackgres-operator-group.yaml"
+  kubectl create -f "$LOG_PATH/stackgres-operator-group.yaml"
+
+  olm_subscription "$OLM_CSV" > "$LOG_PATH/stackgres-subscription-$VERSION.yaml"
+  kubectl create -f "$LOG_PATH/stackgres-subscription-$VERSION.yaml"
+
+  olm_approve_install_plan "$OLM_CSV"
+
+  olm_wait_operator_running
+}
+
+olm_wait_operator_running() {
+  wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="$OLM_CSV" -o name | grep -q .'
+
+  wait_until -t "$((E2E_TIMEOUT * 3))" eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" \
+    deployment -l olm.owner="$OLM_CSV"
+
+  if ! wait_until -t "$((E2E_TIMEOUT * 4))" eval 'kubectl get sgconfig -A -o name | wc -l | grep -qxF 1'
+  then
+    fail "The StackGres SGConfig was not found."
+  else
+    success "The StackGres SGConfig was found."
+  fi
+
+  OLM_SGCONFIG_NAME="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" -o name \
+    | grep "^sgconfig.stackgres.io/")"
+  OLM_SGCONFIG_NAME="${OLM_SGCONFIG_NAME#*/}"
+
+  wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
+}
+
+# Upgrades to $1 by approving the install plan the subscription produces for it.
+olm_upgrade_operator() {
+  local VERSION="$1"
+  if olm_use_openshift_catalog
+  then
+    olm_check_openshift_catalog "$VERSION" || return 1
+  fi
+  OLM_CSV="$(olm_csv_name "$VERSION")"
+  olm_approve_install_plan "$OLM_CSV"
+  olm_wait_operator_running
+}
+
+olm_uninstall_operator() {
+  olm_resolve_operator_names
+  kubectl delete subscription -n "$OPERATOR_NAMESPACE" stackgres
+  kubectl delete clusterserviceversion -n "$OPERATOR_NAMESPACE" "$OLM_CSV"
+}
+
+olm_check_operator_installed() {
+  olm_resolve_operator_names
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$OLM_SGCONFIG_NAME$"
+  then
+    fail "The StackGres operator service was not available."
+  else
+    success "The StackGres operator service was available."
+  fi
+
+  if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-restapi$"
+  then
+    fail "The StackGres restapi service was not available."
+  else
+    success "The StackGres restapi service was available."
+  fi
+
+  if ! wait_until eval 'kubectl get job -n "$SGCONFIG_NAMESPACE" -l "app=StackGresConfig" -o name | wc -l | grep -qxF 0'
+  then
+    fail "The StackGres jobs still running."
+  else
+    success "The StackGres jobs all cleaned up."
+  fi
+}

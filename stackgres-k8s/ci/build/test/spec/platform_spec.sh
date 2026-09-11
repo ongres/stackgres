@@ -34,6 +34,35 @@ Describe "platform handling"
     End
   End
 
+  Describe "get_image_platform"
+    # A locally built image that was never pushed has no RepoDigests, so the
+    # manifest path can not complete for it and would ask the registry for a tag
+    # that is not there. The platform is in the local docker inspect output.
+    It "resolves the platform of an image that is only local, with no registry"
+      docker_inspect() {
+        echo "docker_inspect $*" >> "$DOCKER_CALL_LOG"
+        printf '[{"RepoDigests":[],"Os":"linux","Architecture":"amd64"}]'
+        return 0
+      }
+      When call get_image_platform registry.example.com/build:mod-hash-local
+      The status should be success
+      The output should equal "linux/amd64"
+      The contents of file "$DOCKER_CALL_LOG" should not include "docker_manifest_inspect"
+    End
+
+    It "falls back to the manifest of the registry when the image is not local"
+      docker_manifest_inspect() {
+        echo "docker_manifest_inspect $*" >> "$DOCKER_CALL_LOG"
+        printf '{"Descriptor":{"platform":{"os":"linux","architecture":"arm64"}}}'
+        return 0
+      }
+      When call get_image_platform registry.example.com/build:mod-hash-remote
+      The status should be success
+      The output should equal "linux/arm64"
+      The contents of file "$DOCKER_CALL_LOG" should include "docker_manifest_inspect"
+    End
+  End
+
   Describe "platform-dependent module hash generation"
     setup_platform() {
       setup_test_project
