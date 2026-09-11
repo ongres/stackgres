@@ -27,12 +27,35 @@ public class CliExecutionExceptionHandler implements CommandLine.IExecutionExcep
     }
 
     private static String extractMessage(Exception exception) {
-        Throwable cause = exception.getCause();
-        if (exception.getMessage() != null)
-            return exception.getMessage();
+        // Peel "transparent" wrappers so we print the underlying clean message instead of leaking the
+        // exception type — e.g. an async command whose CompletableFuture.join() surfaces the failure as
+        // "java.util.concurrent.CompletionException: java.lang.IllegalStateException: <message>". Commands
+        // that stream/await (psql, exec, ...) go through this; direct throws already had a clean message.
+        Throwable e = unwrap(exception);
+        if (e.getMessage() != null && !e.getMessage().isBlank())
+            return e.getMessage();
+        Throwable cause = e.getCause();
         if (cause == null)
-            return exception.toString();
-        return cause.getMessage() != null ? cause.getMessage() : cause.toString();
+            return e.toString();
+        cause = unwrap(cause);
+        return cause.getMessage() != null && !cause.getMessage().isBlank() ? cause.getMessage() : cause.toString();
+    }
+
+    /**
+     * Drill through wrappers whose own message is just the cause's {@code toString()} (and would leak the
+     * type): {@link java.util.concurrent.CompletionException}, {@link java.util.concurrent.ExecutionException},
+     * {@link java.lang.reflect.InvocationTargetException}. Contextual wrappers — those with their own
+     * message, like {@code StackGresPicocliException} or {@code new RuntimeException("Failed to X: ...", e)}
+     * — are left alone so their added context survives.
+     */
+    private static Throwable unwrap(Throwable t) {
+        while ((t instanceof java.util.concurrent.CompletionException
+                || t instanceof java.util.concurrent.ExecutionException
+                || t instanceof java.lang.reflect.InvocationTargetException)
+                && t.getCause() != null && t.getCause() != t) {
+            t = t.getCause();
+        }
+        return t;
     }
 
 }
