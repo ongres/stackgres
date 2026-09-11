@@ -146,6 +146,10 @@ spec:
     scheduling:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.cluster.pods.resources }}
+    resources:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- with .Values.cluster.pods.managementPolicy }}
     managementPolicy: {{ . }}
     {{- end }}

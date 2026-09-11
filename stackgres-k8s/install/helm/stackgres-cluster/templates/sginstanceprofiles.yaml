@@ -26,38 +26,17 @@ spec:
     {{- end }}
   {{- end }}
   {{- if .containers }}
-  {{- range $key,$value := .containers }}
   containers:
-    {{ $key | quote }}:
-      cpu: "{{ .cpu }}"
-      memory: "{{ .memory }}"
-      {{- with .hugePages }}
-      hugePages:
-        {{- with (index . "hugepages-2Mi") }}
-        hugepages-2Mi: "{{ . }}"
-        {{- end }}
-        {{- with (index . "hugepages-1Gi") }}
-        hugepages-1Gi: "{{ . }}"
-        {{- end }}
-      {{- end }}
+  {{- range $key,$value := .containers }}
+    {{ $key | quote }}: {{ $value | toJson }}
   {{- end }}
   {{- end }}
   {{- if .initContainers }}
-  {{- range $key,$value := .initContainers }}
   initContainers:
-    {{ $key | quote }}:
-      cpu: "{{ .cpu }}"
-      memory: "{{ .memory }}"
-      {{- with .hugePages }}
-      hugePages:
-        {{- with (index . "hugepages-2Mi") }}
-        hugepages-2Mi: "{{ . }}"
-        {{- end }}
-        {{- with (index . "hugepages-1Gi") }}
-        hugepages-1Gi: "{{ . }}"
-        {{- end }}
-      {{- end }}
+  {{- range $key,$value := .initContainers }}
+    {{ $key | quote }}: {{ $value | toJson }}
   {{- end }}
   {{- end }}
 {{- end }}
 {{- end }}
+
