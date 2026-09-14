@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.shardedcluster.context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -15,6 +16,8 @@ import java.util.Optional;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorker;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorkerBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresWorkerType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.testutil.JsonUtil;
@@ -119,6 +122,62 @@ class ShardedClusterWorkersClustersContextAppenderTest {
     assertEquals(
         queryRouters.getValue(),
         indexedQueryRouters.getValue().stream().map(Tuple3::v3).toList());
+  }
+
+  @Test
+  void givenClusterWithQueryRouterOverride_shouldOnlyApplyItToTheQueryRouter() {
+    cluster.getSpec().getCoordinator().setQueryRouterClusters(1);
+    cluster.getSpec().getWorkers().setOverrides(List.of(
+        new StackGresShardedClusterWorkerBuilder()
+        .withIndex(0)
+        .withType(StackGresWorkerType.QUERY_ROUTER.toString())
+        .withSgInstanceProfile("size-xs")
+        .build()));
+    final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
+    contextAppender.appendContext(cluster, contextBuilder, postgresVersion, Optional.empty());
+    ArgumentCaptor<List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>>>
+        indexedWorkers = ArgumentCaptor.captor();
+    ArgumentCaptor<List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>>>
+        indexedQueryRouters = ArgumentCaptor.captor();
+    verify(shardedClusterWorkersInstanceProfileContextAppender).appendContext(
+        eq(cluster), eq(contextBuilder), indexedWorkers.capture(), indexedQueryRouters.capture());
+    assertEquals(
+        List.of(1024),
+        indexedQueryRouters.getValue().stream().map(Tuple3::v1).toList());
+    assertEquals(
+        "size-xs",
+        indexedQueryRouters.getValue().get(0).v2.orElseThrow().getSgInstanceProfile());
+    assertTrue(
+        indexedWorkers.getValue().stream().allMatch(worker -> worker.v2.isEmpty()),
+        "a query router override must not be applied to the worker with the same index");
+  }
+
+  @Test
+  void givenClusterWithWorkerOverride_shouldOnlyApplyItToTheWorker() {
+    cluster.getSpec().getCoordinator().setQueryRouterClusters(1);
+    cluster.getSpec().getWorkers().setOverrides(List.of(
+        new StackGresShardedClusterWorkerBuilder()
+        .withIndex(0)
+        .withType(StackGresWorkerType.WORKER.toString())
+        .withSgInstanceProfile("size-xs")
+        .build()));
+    final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
+    contextAppender.appendContext(cluster, contextBuilder, postgresVersion, Optional.empty());
+    ArgumentCaptor<List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>>>
+        indexedWorkers = ArgumentCaptor.captor();
+    ArgumentCaptor<List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>>>
+        indexedQueryRouters = ArgumentCaptor.captor();
+    verify(shardedClusterWorkersInstanceProfileContextAppender).appendContext(
+        eq(cluster), eq(contextBuilder), indexedWorkers.capture(), indexedQueryRouters.capture());
+    assertEquals(
+        "size-xs",
+        indexedWorkers.getValue().get(0).v2.orElseThrow().getSgInstanceProfile());
+    assertTrue(
+        indexedWorkers.getValue().get(1).v2.isEmpty(),
+        "a worker override must only be applied to the worker with the same index");
+    assertTrue(
+        indexedQueryRouters.getValue().stream().allMatch(queryRouter -> queryRouter.v2.isEmpty()),
+        "a worker override must not be applied to a query router");
   }
 
 }

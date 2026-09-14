@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardedcluster.context;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorker;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorkerBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresWorkerType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
@@ -96,6 +99,7 @@ class ShardedClusterWorkersPoolingConfigContextAppenderTest {
   @Test
   void givenClusterWithoutPoolingConfigAndPoolingDisabled_shouldPass() {
     cluster.getSpec().getWorkers().getPods().setDisableConnectionPooling(true);
+    cluster.getSpec().getCoordinator().getPods().setDisableConnectionPooling(true);
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
@@ -110,6 +114,8 @@ class ShardedClusterWorkersPoolingConfigContextAppenderTest {
   void givenClusterWithoutDefaultPoolingConfig_shouldPass() {
     cluster.getSpec().getWorkers().getConfigurations().setSgPoolingConfig(
         defaultPoolingConfigFactory.getDefaultResourceName(cluster));
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setSgPoolingConfig(
+        defaultPoolingConfigFactory.getDefaultResourceName(cluster));
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
@@ -118,6 +124,86 @@ class ShardedClusterWorkersPoolingConfigContextAppenderTest {
         Tuple.tuple(1, Optional.empty())));
     verify(contextBuilder).queryRoutersPoolingConfigs(List.of(
         Tuple.tuple(1024, Optional.empty())));
+  }
+
+  @Test
+  void givenClusterWithoutQueryRouterOverride_shouldUseCoordinatorPoolingConfig() {
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .setSgPoolingConfig("coordinator-pgbouncerconf");
+    final var workersPoolingConfig = Optional.of(poolingConfig("pgbouncerconf"));
+    final var coordinatorPoolingConfig = Optional.of(poolingConfig("coordinator-pgbouncerconf"));
+    when(poolingConfigFinder.findByNameAndNamespace(eq("pgbouncerconf"), any()))
+        .thenReturn(workersPoolingConfig);
+    when(poolingConfigFinder.findByNameAndNamespace(eq("coordinator-pgbouncerconf"), any()))
+        .thenReturn(coordinatorPoolingConfig);
+    contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
+    verify(contextBuilder).workersPoolingConfigs(List.of(
+        Tuple.tuple(0, workersPoolingConfig),
+        Tuple.tuple(1, workersPoolingConfig)));
+    verify(contextBuilder).queryRoutersPoolingConfigs(List.of(
+        Tuple.tuple(1024, coordinatorPoolingConfig)));
+  }
+
+  @Test
+  void givenClusterWithQueryRouterOverride_shouldUseOverriddenPoolingConfig() {
+    queryRouters = List.of(
+        Tuple.tuple(1024, Optional.of(
+            new StackGresShardedClusterWorkerBuilder()
+            .withIndex(1024)
+            .withType(StackGresWorkerType.QUERY_ROUTER.toString())
+            .withNewConfigurationsForWorkers()
+            .withSgPoolingConfig("router-pgbouncerconf")
+            .endConfigurationsForWorkers()
+            .build()),
+            StackGresShardedClusterForCitusUtil
+            .getQueryRouterCluster(cluster, 1024, Optional.empty())));
+    final var workersPoolingConfig = Optional.of(poolingConfig("pgbouncerconf"));
+    final var overriddenPoolingConfig = Optional.of(poolingConfig("router-pgbouncerconf"));
+    when(poolingConfigFinder.findByNameAndNamespace(eq("pgbouncerconf"), any()))
+        .thenReturn(workersPoolingConfig);
+    when(poolingConfigFinder.findByNameAndNamespace(eq("router-pgbouncerconf"), any()))
+        .thenReturn(overriddenPoolingConfig);
+    contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
+    verify(contextBuilder).workersPoolingConfigs(List.of(
+        Tuple.tuple(0, workersPoolingConfig),
+        Tuple.tuple(1, workersPoolingConfig)));
+    verify(contextBuilder).queryRoutersPoolingConfigs(List.of(
+        Tuple.tuple(1024, overriddenPoolingConfig)));
+  }
+
+  @Test
+  void givenClusterWithWorkerOverride_shouldUseOverriddenPoolingConfig() {
+    workers = List.of(
+        Tuple.tuple(0, Optional.of(
+            new StackGresShardedClusterWorkerBuilder()
+            .withIndex(0)
+            .withNewConfigurationsForWorkers()
+            .withSgPoolingConfig("worker-pgbouncerconf")
+            .endConfigurationsForWorkers()
+            .build()),
+            StackGresShardedClusterForCitusUtil
+            .getWorkerCluster(cluster, 0, Optional.empty())),
+        workers.get(1));
+    final var workersPoolingConfig = Optional.of(poolingConfig("pgbouncerconf"));
+    final var overriddenPoolingConfig = Optional.of(poolingConfig("worker-pgbouncerconf"));
+    when(poolingConfigFinder.findByNameAndNamespace(eq("pgbouncerconf"), any()))
+        .thenReturn(workersPoolingConfig);
+    when(poolingConfigFinder.findByNameAndNamespace(eq("worker-pgbouncerconf"), any()))
+        .thenReturn(overriddenPoolingConfig);
+    contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
+    verify(contextBuilder).workersPoolingConfigs(List.of(
+        Tuple.tuple(0, overriddenPoolingConfig),
+        Tuple.tuple(1, workersPoolingConfig)));
+    verify(contextBuilder).queryRoutersPoolingConfigs(List.of(
+        Tuple.tuple(1024, workersPoolingConfig)));
+  }
+
+  private StackGresPoolingConfig poolingConfig(String name) {
+    return new StackGresPoolingConfigBuilder()
+        .withNewMetadata()
+        .withName(name)
+        .endMetadata()
+        .build();
   }
 
 }
