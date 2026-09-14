@@ -59,11 +59,12 @@ public class ShardedClusterWorkersClustersContextAppender {
       Builder contextBuilder,
       String postgresVersion,
       Optional<StackGresShardedCluster> replicateCluster) {
-    var plainOverrides = cluster.getSpec().getPlainOverrides();
-    var indexedWorkers = getWorkersClusters(cluster, plainOverrides, replicateCluster);
+    var indexedWorkers = getWorkersClusters(
+        cluster, cluster.getSpec().getWorkersOverrides(), replicateCluster);
     final List<StackGresCluster> workers = indexedWorkers.stream().map(Tuple3::v3).toList();
     contextBuilder.workers(workers);
-    var indexedQueryRouters = getQueryRoutersClusters(cluster, plainOverrides, replicateCluster);
+    var indexedQueryRouters = getQueryRoutersClusters(
+        cluster, cluster.getSpec().getQueryRoutersOverrides(), replicateCluster);
     final List<StackGresCluster> queryRouters = indexedQueryRouters.stream().map(Tuple3::v3).toList();
     contextBuilder.queryRouters(queryRouters);
     shardedClusterWorkersInstanceProfileContextAppender.appendContext(
@@ -77,12 +78,12 @@ public class ShardedClusterWorkersClustersContextAppender {
 
   private List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>> getWorkersClusters(
       StackGresShardedCluster cluster,
-      List<StackGresShardedClusterWorker> plainOverrides,
+      List<StackGresShardedClusterWorker> workersOverrides,
       Optional<StackGresShardedCluster> replicateCluster) {
     return IntStream.range(0, cluster.getSpec().getWorkers().getClusters())
         .mapToObj(index -> Tuple.tuple(
             index,
-            plainOverrides.stream()
+            workersOverrides.stream()
             .filter(override -> Objects.equals(override.getIndex(), index))
             .findFirst(),
             getWorkerCluster(cluster, index, replicateCluster)))
@@ -99,7 +100,7 @@ public class ShardedClusterWorkersClustersContextAppender {
 
   private List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>> getQueryRoutersClusters(
       StackGresShardedCluster cluster,
-      List<StackGresShardedClusterWorker> plainOverrides,
+      List<StackGresShardedClusterWorker> queryRoutersOverrides,
       Optional<StackGresShardedCluster> replicateCluster) {
     final int queryRouterIndexOffset =
         Optional.ofNullable(cluster.getSpec().getCoordinator().getQueryRouterIndexOffset())
@@ -111,7 +112,7 @@ public class ShardedClusterWorkersClustersContextAppender {
             queryRouterIndexOffset + queryRouterClusters)
         .mapToObj(index -> Tuple.tuple(
             index,
-            plainOverrides.stream()
+            queryRoutersOverrides.stream()
             .filter(override -> Objects.equals(override.getIndex(), index))
             .findFirst(),
             getQueryRouterCluster(cluster, index, replicateCluster)))

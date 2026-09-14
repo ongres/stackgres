@@ -117,6 +117,34 @@ class CitusShardedClusterQueryRouterPostgresConfigTest {
   }
 
   @Test
+  void generateResource_whenOnlyOneQueryRouterIsOverridden_shouldUseItsOwnConfig() {
+    cluster.getSpec().setType("citus");
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    StackGresPostgresConfig coordinatorConfig = new StackGresPostgresConfigBuilder()
+        .withNewSpec()
+        .withPostgresqlConf(Map.of("max_connections", "200"))
+        .endSpec()
+        .build();
+    StackGresPostgresConfig overriddenConfig = new StackGresPostgresConfigBuilder()
+        .withNewSpec()
+        .withPostgresqlConf(Map.of("max_connections", "400"))
+        .endSpec()
+        .build();
+    when(context.getQueryRoutersPostgresConfigs()).thenReturn(List.of(
+        Tuple.tuple(1024, Optional.of(overriddenConfig)),
+        Tuple.tuple(1025, Optional.of(coordinatorConfig))));
+
+    List<HasMetadata> resources = factory.generateResource(context).toList();
+
+    assertEquals(2, resources.size());
+    StackGresPostgresConfig config0 = (StackGresPostgresConfig) resources.get(0);
+    StackGresPostgresConfig config1 = (StackGresPostgresConfig) resources.get(1);
+    assertEquals("400", config0.getSpec().getPostgresqlConf().get("max_connections"));
+    assertEquals("200", config1.getSpec().getPostgresqlConf().get("max_connections"));
+  }
+
+  @Test
   void generateResource_whenTypeNotCitus_shouldNotGenerateConfig() {
     cluster.getSpec().setType("ddp");
     when(context.getShardedCluster()).thenReturn(cluster);

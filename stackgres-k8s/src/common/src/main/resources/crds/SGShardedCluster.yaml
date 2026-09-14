@@ -3162,6 +3162,17 @@ spec:
                     type: array
                     description: |
                       Any worker can be overridden by this section.
+
+                      An entry only overrides the SGClusters of its `type` (see field `type`), and the
+                      `index` (or `indexes`) is always relative to that type. An entry of type `Worker`
+                      and an entry of type `QueryRouter` may therefore use the same index without
+                      overlapping.
+
+                      Any field that is not set in an entry is inherited from the section the overridden
+                      SGCluster is generated from: `.spec.workers` for workers and `.spec.coordinator`
+                      for query routers. In particular a query router with no override uses
+                      `.spec.coordinator.sgInstanceProfile` and `.spec.coordinator.configurations`, and
+                      **not** the ones of `.spec.workers`.
                     items:
                       type: object
                       description: |
@@ -3173,6 +3184,11 @@ spec:
                           description: |
                             Identifier of the SGCluster worker to override (starting from 0).
 
+                            The identifier is relative to the `type` of the entry. When `type` is
+                            `QueryRouter` it is the zero-based identifier of the query router (i.e. `0`
+                            selects the first query router) and not the Citus group identifier, that is
+                            offset by `.spec.coordinator.queryRouterIndexOffset`.
+
                             This field is mutually exclusive with `indexes` and one of the two must be set.
                         indexes:
                           type: array
@@ -3183,6 +3199,9 @@ spec:
                             an initial and a final identifier (both included) separated by a dash
                             character (e.g. `1-2` will override clusters with index 1 and 2) or `all` to
                             specify all the identifiers. Type of the entry is IntOrString.
+
+                            The identifiers are relative to the `type` of the entry, as described in field
+                            `index`.
 
                             This field is mutually exclusive with `index` and one of the two must be set.
                           items:
@@ -3197,6 +3216,11 @@ spec:
                             * `QueryRouter`: SGClusters that do not store data but route read/write queries. See also `.spec.coordinator.queryRouterClusters`.
 
                             Defaults to `Worker` when not specified.
+
+                            The fields that are not set in an entry of type `Worker` are inherited from
+                            `.spec.workers`, while those of an entry of type `QueryRouter` are inherited
+                            from `.spec.coordinator`, since query routers are generated from the
+                            coordinator section.
                         instancesPerCluster:
                           type: integer
                           minimum: 0

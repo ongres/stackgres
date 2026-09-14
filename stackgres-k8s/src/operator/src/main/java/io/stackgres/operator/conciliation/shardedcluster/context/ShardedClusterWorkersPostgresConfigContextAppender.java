@@ -44,12 +44,18 @@ public class ShardedClusterWorkersPostgresConfigContextAppender {
       List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>> queryRouters) {
     var workersPostgresConfigs = workers
         .stream()
-        .map(worker -> findPostgresConfig(cluster, postgresVersion, worker))
+        .map(worker -> findPostgresConfig(cluster, postgresVersion, worker,
+            cluster.getSpec().getWorkers().getConfigurations().getSgPostgresConfig()))
         .toList();
     contextBuilder.workersPostgresConfigs(workersPostgresConfigs);
+    // Query routers inherit their spec from the coordinator (see
+    // StackGresShardedClusterForUtil.getBaseQueryRouterCluster), so the coordinator
+    // SGPostgresConfig, and not the workers one, is their default.
     var queryRoutersPostgresConfigs = queryRouters
         .stream()
-        .map(queryRouter -> findPostgresConfig(cluster, postgresVersion, queryRouter))
+        .map(queryRouter -> findPostgresConfig(cluster, postgresVersion, queryRouter,
+            cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+            .getSgPostgresConfig()))
         .toList();
     contextBuilder.queryRoutersPostgresConfigs(queryRoutersPostgresConfigs);
   }
@@ -57,11 +63,14 @@ public class ShardedClusterWorkersPostgresConfigContextAppender {
   private Tuple2<Integer, Optional<StackGresPostgresConfig>> findPostgresConfig(
       StackGresShardedCluster cluster,
       String postgresVersion,
-      Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster> worker) {
+      Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster> worker,
+      String defaultPostgresConfigName) {
+    // The overrides carry their configurations in configurationsForWorkers (JSON `configurations`),
+    // the inherited StackGresClusterSpec.configurations field is never set on them.
     final String workerPostgresConfigName = worker.v2
-        .map(StackGresShardedClusterWorker::getConfigurations)
+        .map(StackGresShardedClusterWorker::getConfigurationsForWorkers)
         .map(StackGresClusterConfigurations::getSgPostgresConfig)
-        .orElse(cluster.getSpec().getWorkers().getConfigurations().getSgPostgresConfig());
+        .orElse(defaultPostgresConfigName);
     final Optional<StackGresPostgresConfig> workersPostgresConfig = postgresConfigFinder
         .findByNameAndNamespace(
             workerPostgresConfigName,
