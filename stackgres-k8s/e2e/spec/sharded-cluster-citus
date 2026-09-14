@@ -57,6 +57,9 @@ e2e_test() {
 
   run_test "Checking that a settled SGShardedCluster reconciles to a no-op" \
     check_settled_sharded_cluster_does_not_emit_cluster_updated
+
+  run_test "Checking that a query router override can reference its own SGPostgresConfig" \
+    query_router_postgres_config_override_check
 }
 
 # A settled SGShardedCluster must reconcile to a no-op. For Citus every child cluster renews its
@@ -252,5 +255,63 @@ query_routers_check() {
     success "Query router can read distributed tables"
   else
     fail "Query router can not read distributed tables"
+  fi
+}
+
+query_router_postgres_config_override_check() {
+  local ROUTER_CLUSTER="$CLUSTER_NAME-router0"
+  local ROUTER_SERVICE="$CLUSTER_NAME-routers"
+  local PGCONFIG_NAME="$CLUSTER_NAME-router-pgconfig"
+  local POSTGRES_MAJOR_VERSION
+  POSTGRES_MAJOR_VERSION="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
+    --template '{{ .spec.postgres.version }}')"
+  POSTGRES_MAJOR_VERSION="${POSTGRES_MAJOR_VERSION%%.*}"
+  local ROUTER_GENERATED_PGCONFIG="$ROUTER_CLUSTER-$POSTGRES_MAJOR_VERSION"
+  local WORKER_GENERATED_PGCONFIG="$CLUSTER_NAME-worker0-$POSTGRES_MAJOR_VERSION"
+  local RESULT EXIT_CODE
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGPostgresConfig
+metadata:
+  name: $PGCONFIG_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  postgresVersion: "$POSTGRES_MAJOR_VERSION"
+  postgresql.conf:
+    work_mem: '5MB'
+EOF
+
+  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
+    -p '{"spec":{"workers":{"overrides":[{"index":0,"type":"QueryRouter","configurations":{"sgPostgresConfig":"'"$PGCONFIG_NAME"'"}}]}}}'
+
+  # The override index is zero based within the query routers, so index 0 must select the first
+  # query router and must not be applied to the worker with the same index.
+  if try_function wait_until eval '[ "$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" \
+      "$ROUTER_GENERATED_PGCONFIG" --template "{{ index .spec \"postgresql.conf\" \"work_mem\" }}" \
+      2>/dev/null)" = 5MB ]' \
+    && "$RESULT"
+  then
+    success "SGPostgresConfig $ROUTER_GENERATED_PGCONFIG was generated from the overridden SGPostgresConfig"
+  else
+    fail "SGPostgresConfig $ROUTER_GENERATED_PGCONFIG was not generated from the overridden SGPostgresConfig"
+  fi
+
+  if [ "$(kubectl get sgpgconfig -n "$CLUSTER_NAMESPACE" "$WORKER_GENERATED_PGCONFIG" \
+    --template '{{ index .spec "postgresql.conf" "work_mem" }}' 2>/dev/null)" != 5MB ]
+  then
+    success "SGPostgresConfig $WORKER_GENERATED_PGCONFIG was not affected by the query router override"
+  else
+    fail "SGPostgresConfig $WORKER_GENERATED_PGCONFIG was affected by the query router override"
+  fi
+
+  try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
+    -d citus -q "SHOW work_mem" | grep -xF 5MB'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router is running with the overridden SGPostgresConfig"
+  else
+    fail "Query router is not running with the overridden SGPostgresConfig"
   fi
 }
