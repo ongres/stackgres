@@ -1,0 +1,335 @@
+#!/bin/sh
+
+# The StackGres images registry REST API (docir) used by the SGClusters with
+# `spec.configurations.registry.enabled` set to `true`. This util mirrors the extensions util:
+# the content of the catalog (base images, addons, versions and extensions) is stored in a cache
+# that is served to the operator by a StatefulSet backed by the same cache so that the e2e tests
+# do not have to reach the remote REST API every time.
+export DOCIR_REPOSITORY_URL="${DOCIR_REPOSITORY_URL:-https://sgcr.dev}"
+export E2E_REGISTRY_ENABLED="${E2E_REGISTRY_ENABLED:-true}"
+export E2E_USE_PUBLISHED_IMAGES="${E2E_USE_PUBLISHED_IMAGES:-true}"
+DOCIR_API_PATH=/api/stackgres/v1
+DOCIR_FLAVORS="postgres babelfishpg"
+DOCIR_TSHIRT_SIZE=full
+DOCIR_CACHE_ENABLED="${DOCIR_CACHE_ENABLED:-${EXTENSIONS_CACHE_ENABLED:-false}}"
+DOCIR_CACHE_HOST_PATH="${DOCIR_CACHE_HOST_PATH:-${K8S_CACHE_HOST_PATH:+$K8S_CACHE_HOST_PATH/docir}}"
+DOCIR_CACHE_NODE_PATH="${DOCIR_CACHE_NODE_PATH:-$DOCIR_CACHE_HOST_PATH}"
+DOCIR_CACHE_NAME=stackgres-operator-docir-cache
+export E2E_DOCIR_CACHE_PULL_IMAGES="${E2E_DOCIR_CACHE_PULL_IMAGES:-true}"
+DOCIR_CACHE_REPOSITORY_SUBPATH=repository
+DOCIR_INDEX_CACHED="${DOCIR_INDEX_CACHED:-false}"
+export DOCIR_CACHE_ENABLED DOCIR_CACHE_HOST_PATH DOCIR_CACHE_NODE_PATH DOCIR_INDEX_CACHED
+
+# The `<major>.<minor>` version of the operator sent as `operator-version` by the operator
+# (see DocirUtil.getOperatorVersion)
+get_docir_operator_version() {
+  local VERSION="${STACKGRES_TARGET_VERSION:-$STACKGRES_VERSION}"
+  printf '%s' "${VERSION%.*}"
+}
+
+# The query parameters the operator adds to every catalog request
+# (see DocirUtil.getCatalogApiUriBuilder)
+get_docir_catalog_query() {
+  printf 'operator-version=%s' "$(get_docir_operator_version)"
+  if [ "$E2E_USE_PUBLISHED_IMAGES" != false ]
+  then
+    printf '&published=true'
+  fi
+}
+
+# The request URIs (relative to the API path) as issued by the operator (see DocirMetadataManager)
+get_docir_base_images_request() {
+  printf 'base-images?%s' "$(get_docir_catalog_query)"
+}
+
+get_docir_addons_request() {
+  printf 'addons?%s' "$(get_docir_catalog_query)"
+}
+
+get_docir_versions_request() {
+  local FLAVOR="$1"
+  printf 'versions?%s&flavor=%s&tshirt-size=%s' "$(get_docir_catalog_query)" "$FLAVOR" "$DOCIR_TSHIRT_SIZE"
+}
+
+get_docir_extensions_request() {
+  local FLAVOR="$1"
+  local POSTGRES_VERSION="$2"
+  printf 'extensions?%s&flavor=%s&major=%s&minor=%s' "$(get_docir_catalog_query)" \
+    "$FLAVOR" "${POSTGRES_VERSION%%.*}" "${POSTGRES_VERSION#*.}"
+}
+
+get_docir_api_url() {
+  local REQUEST="$1"
+  printf '%s%s/%s' "$(printf '%s' "${DOCIR_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')" "$DOCIR_API_PATH" "$REQUEST"
+}
+
+get_docir_cache_url() {
+  printf 'http://%s.%s' "$DOCIR_CACHE_NAME" "$OPERATOR_NAMESPACE"
+}
+
+# Whether the operator uses the cache StatefulSet of the Helm chart (an operator running outside
+# of the k8s cluster can not reach it)
+is_docir_cache_used() {
+  [ "$DOCIR_CACHE_ENABLED" = true ] && [ "$E2E_USE_LOCAL_OPERATOR" != true ]
+}
+
+# The helm values of the operator chart related to the docir REST API: the remote repository URL
+# and, when the cache is enabled, the `repository.cache` section (the chart points the SGConfig
+# to the cache StatefulSet) with the host path of the kind nodes and the preloaded images
+docir_helm_values() {
+  printf -- '--set-string repository.url=%s' "$DOCIR_REPOSITORY_URL"
+  if [ "$E2E_USE_PUBLISHED_IMAGES" = false ]
+  then
+    printf -- ' --set-string developer.extraEnv.USE_PUBLISHED_IMAGES=false'
+  fi
+  if is_docir_cache_used
+  then
+    printf -- ' --set repository.cache.enabled=true'
+    printf -- ' --set-string repository.cache.hostPath=%s' "$DOCIR_CACHE_NODE_PATH"
+    printf -- ' --set repository.cache.pullImages=%s' "$E2E_DOCIR_CACHE_PULL_IMAGES"
+    printf -- ' --set-string repository.cache.preloadedImages={%s}' \
+      "$(get_docir_preloaded_images | tr '\n' ',' | sed 's/,$//')"
+  fi
+}
+
+# The components of the local StackGres version are derived from the docir catalog since the
+# SGClusters created by the e2e tests use the images of the registry
+is_docir_component_derivation_enabled() {
+  local VERSION="$1"
+  [ "$E2E_REGISTRY_ENABLED" = true ] \
+    && [ "$VERSION" = "$STACKGRES_VERSION" ] \
+    && [ "$STACKGRES_VERSION" = "$LOCAL_STACKGRES_VERSION" ] \
+    && [ "${STACKGRES_TARGET_VERSION:-$STACKGRES_VERSION}" = "$STACKGRES_VERSION" ]
+}
+
+get_docir_request_file() {
+  local REQUEST="$1"
+  printf '%s/docir/%s.json' "$TARGET_PATH" "$(printf '%s' "$REQUEST" | tr '?&=/' '____')"
+}
+
+# Retrieve the response of a request of the docir REST API storing it in $TARGET_PATH and,
+# when the cache is enabled, in the host path served by the cache StatefulSet.
+cache_docir_request() {
+  local REQUEST="$1"
+  local REQUEST_FILE
+  REQUEST_FILE="$(get_docir_request_file "$REQUEST")"
+  if [ "$DOCIR_INDEX_CACHED" = true ] && [ -s "$REQUEST_FILE" ]
+  then
+    return
+  fi
+  mkdir -p "$TARGET_PATH/docir"
+  if [ "$DOCIR_CACHE_ENABLED" = true ] && [ -n "$DOCIR_CACHE_HOST_PATH" ]
+  then
+    docker run --rm -v "$DOCIR_CACHE_HOST_PATH:/docir" alpine \
+      sh -c 'cat "/docir/'"$DOCIR_CACHE_REPOSITORY_SUBPATH$DOCIR_API_PATH"'/$1" 2>/dev/null' sh "$REQUEST" \
+      | jq . > "$REQUEST_FILE" 2>/dev/null \
+      || true
+  fi
+  if [ ! -s "$REQUEST_FILE" ]
+  then
+    echo "Retrieving $(get_docir_api_url "$REQUEST")"
+    curl -s -f "$(get_docir_api_url "$REQUEST")" | jq . > "$REQUEST_FILE"
+    if [ ! -s "$REQUEST_FILE" ]
+    then
+      echo "Can not retrieve $(get_docir_api_url "$REQUEST")" >&2
+      rm -f "$REQUEST_FILE"
+      return 1
+    fi
+    if [ "$DOCIR_CACHE_ENABLED" = true ] && [ -n "$DOCIR_CACHE_HOST_PATH" ]
+    then
+      docker run -i --rm -v "$DOCIR_CACHE_HOST_PATH:/docir" alpine \
+        sh -c 'mkdir -p "/docir/'"$DOCIR_CACHE_REPOSITORY_SUBPATH$DOCIR_API_PATH"'" && cat > "/docir/'"$DOCIR_CACHE_REPOSITORY_SUBPATH$DOCIR_API_PATH"'/$1"' \
+        sh "$REQUEST" < "$REQUEST_FILE"
+    fi
+  fi
+}
+
+# Retrieve the catalog requested by the operator on startup (base images, addons and the
+# versions of every flavor)
+cache_docir_index() {
+  local FLAVOR
+  cache_docir_request "$(get_docir_base_images_request)"
+  cache_docir_request "$(get_docir_addons_request)"
+  for FLAVOR in $DOCIR_FLAVORS
+  do
+    cache_docir_request "$(get_docir_versions_request "$FLAVOR")"
+  done
+  DOCIR_INDEX_CACHED=true
+}
+
+get_docir_index_hash() {
+  cache_docir_index
+  cat "$(get_docir_request_file "$(get_docir_base_images_request)")" \
+    "$(get_docir_request_file "$(get_docir_addons_request)")" \
+    "$(get_docir_request_file "$(get_docir_versions_request postgres)")" \
+    | md5sum | cut -d ' ' -f 1
+}
+
+get_docir_flavor() {
+  case "$1" in
+    (pg|postgres|postgresql|'')
+    printf postgres
+    ;;
+    (bf|babelfish|babelfishpg)
+    printf babelfishpg
+    ;;
+    (*)
+    echo "Unknown flavor $1" >&2
+    return 1
+    ;;
+  esac
+}
+
+# The `<major>.<minor>` versions of a flavor served by the docir REST API, older first
+get_docir_postgres_versions() {
+  local FLAVOR
+  FLAVOR="$(get_docir_flavor "$1")"
+  cache_docir_request "$(get_docir_versions_request "$FLAVOR")"
+  jq -r '.versions[] | .version' "$(get_docir_request_file "$(get_docir_versions_request "$FLAVOR")")" \
+    | sort -uV
+}
+
+# The latest `<major>.<minor>` version served for a major version (or the version itself when
+# it is already a `<major>.<minor>` version)
+get_docir_latest_postgres_version() {
+  local POSTGRES_VERSION="$1"
+  local FLAVOR="$2"
+  local LATEST_VERSION
+  if [ "${POSTGRES_VERSION#*.}" != "$POSTGRES_VERSION" ]
+  then
+    printf '%s' "$POSTGRES_VERSION"
+    return
+  fi
+  LATEST_VERSION="$(get_docir_postgres_versions "$FLAVOR" | grep "^$POSTGRES_VERSION\." | tail -n 1)"
+  if [ -z "$LATEST_VERSION" ]
+  then
+    echo "Can not find any $(get_docir_flavor "$FLAVOR") version $POSTGRES_VERSION in $(get_docir_api_url "$(get_docir_versions_request "$(get_docir_flavor "$FLAVOR")")")" >&2
+    return 1
+  fi
+  printf '%s' "$LATEST_VERSION"
+}
+
+# The versions of an addon served by the docir REST API, older first
+get_docir_addon_versions() {
+  local ADDON="$1"
+  cache_docir_request "$(get_docir_addons_request)"
+  jq -r '.addons[] | select(.name == "'"$ADDON"'") | .versions[] | .version' \
+    "$(get_docir_request_file "$(get_docir_addons_request)")" \
+    | sort -uV
+}
+
+# The versions of a component as named in the versions-*.properties of the operator derived
+# from the docir catalog (flavors and addons), older first. Fails for the components that are
+# not served by the docir REST API.
+get_docir_component_versions() {
+  local COMPONENT="$1"
+  case "$COMPONENT" in
+    (postgresql)
+    get_docir_postgres_versions postgres
+    ;;
+    (babelfish)
+    get_docir_postgres_versions babelfishpg
+    ;;
+    (prometheus-postgres-exporter)
+    get_docir_addon_versions postgres-exporter
+    ;;
+    (fluentbit)
+    get_docir_addon_versions fluent-bit
+    ;;
+    (patroni|wal-g|hdrhistogram|pgbouncer|kubectl|fluentd|otel-collector)
+    get_docir_addon_versions "$COMPONENT"
+    ;;
+    (*)
+    return 1
+    ;;
+  esac
+}
+
+# The versions of an extension served by the docir REST API for a postgres version
+# (`<major>` or `<major>.<minor>`), newer first
+get_docir_extension_versions() {
+  local EXTENSION_NAME="$1"
+  local POSTGRES_VERSION="$2"
+  local FLAVOR VERSIONS
+  FLAVOR="$(get_docir_flavor "$3")"
+  POSTGRES_VERSION="$(get_docir_latest_postgres_version "$POSTGRES_VERSION" "$FLAVOR")"
+  cache_docir_request "$(get_docir_extensions_request "$FLAVOR" "$POSTGRES_VERSION")"
+  VERSIONS="$(jq -r '.extensions[] | select(.name == "'"$EXTENSION_NAME"'") | .extensionVersions[] | .version' \
+    "$(get_docir_request_file "$(get_docir_extensions_request "$FLAVOR" "$POSTGRES_VERSION")")" \
+    | sort -uV -r)"
+  if [ -z "$VERSIONS" ]
+  then
+    echo "Can not find any version of extension $EXTENSION_NAME for $FLAVOR $POSTGRES_VERSION in $(get_docir_api_url "$(get_docir_extensions_request "$FLAVOR" "$POSTGRES_VERSION")")" >&2
+    return 1
+  fi
+  echo "$VERSIONS"
+}
+
+# Store the catalog in the host path served by the cache StatefulSet of the operator Helm chart
+# (`repository.cache.enabled`, see docir_helm_values) so that it is served at once, before its
+# controller refreshes it.
+setup_docir_cache() {
+  if [ "$DOCIR_CACHE_ENABLED" != true ]
+  then
+    return
+  fi
+  if [ -z "$DOCIR_CACHE_NODE_PATH" ]
+  then
+    echo "DOCIR_CACHE_HOST_PATH or DOCIR_CACHE_NODE_PATH must be set when the docir cache is enabled" >&2
+    return 1
+  fi
+  echo "Storing the docir catalog in $DOCIR_CACHE_HOST_PATH for the cache $DOCIR_CACHE_NAME"
+  cache_docir_index
+}
+
+# The image requests preloaded by the cache (see the `repository.cache.preloadedImages` value):
+# only the postgres versions required by the tests that exist in the catalog, with the
+# extensions installed by default in the SGClusters (when served) and the addons of the sidecars
+get_docir_preloaded_images() {
+  local VERSION VERSIONS ADDON EXTENSION EXTENSIONS ADDONS PATRONI_ADDONS
+  VERSIONS="$(
+    for VERSION in "$E2E_POSTGRES_VERSION" \
+      "$E2E_MAJOR_SOURCE_POSTGRES_VERSION" "$E2E_MAJOR_TARGET_POSTGRES_VERSION" \
+      "$E2E_MINOR_SOURCE_POSTGRES_VERSION" "$E2E_MINOR_TARGET_POSTGRES_VERSION"
+    do
+      [ -z "$VERSION" ] || get_docir_latest_postgres_version "$VERSION" postgres 2>/dev/null || true
+      echo
+    done | sort -uV | grep -v '^$' \
+    | while read -r VERSION
+      do
+        # Only the versions served by the catalog can be preloaded
+        if get_docir_postgres_versions postgres | grep -qxF "$VERSION"
+        then
+          printf '%s\n' "$VERSION"
+        fi
+      done)"
+  ADDONS="$(get_docir_component_versions pgbouncer > /dev/null 2>&1 && jq -r '.addons[].name' \
+    "$(get_docir_request_file "$(get_docir_addons_request)")" | sort -u)"
+  for VERSION in $VERSIONS
+  do
+    PATRONI_ADDONS=""
+    for ADDON in patroni wal-g hdrhistogram
+    do
+      if printf '%s\n' "$ADDONS" | grep -qxF "$ADDON"
+      then
+        PATRONI_ADDONS="$PATRONI_ADDONS&addons=$ADDON"
+      fi
+    done
+    EXTENSIONS=""
+    for EXTENSION in pg_stat_statements dblink auto_explain
+    do
+      if get_docir_extension_versions "$EXTENSION" "$VERSION" postgres > /dev/null 2>&1
+      then
+        EXTENSIONS="$EXTENSIONS&extensions=$EXTENSION"
+      fi
+    done
+    printf 'tshirt-size=full&base=debian&flavors=postgres@%s%s%s\n' "$VERSION" "$EXTENSIONS" "$PATRONI_ADDONS"
+    for ADDON in pgbouncer postgres-exporter kubectl fluent-bit fluentd
+    do
+      if printf '%s\n' "$ADDONS" | grep -qxF "$ADDON"
+      then
+        printf 'tshirt-size=full&base=debian&flavors=postgres@%s&addons=%s\n' "$VERSION" "$ADDON"
+      fi
+    done
+  done
+}

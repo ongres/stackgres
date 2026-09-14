@@ -85,6 +85,9 @@ Options:
   --k8s-cache-path <path> If not specified will be ~/.stackgres/kind-cache
   --disable-extensions-cache If set will disable extensions cache and use
                               remote repository directly.
+  --docir-repository-url <url> The StackGres images registry REST API (docir) URL
+  --disable-docir-cache   If set will disable the docir cache and the operator
+                           will use the remote REST API directly.
   --use-current-build     If specified will use the current build instead of
                            the build inside the operator images.
                           
@@ -174,6 +177,8 @@ EOF
           --enable-snapshotting
           --k8s-cache-path
           --disable-extensions-cache
+          --docir-repository-url
+          --disable-docir-cache
           --use-current-build
           --local-build
           " -- "\${COMP_WORDS[\$COMP_CWORD]}"
@@ -398,6 +403,16 @@ cli() {
       shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       EXTENSIONS_CACHE_ENABLED="$VALUE"
       ;;
+      ('--docir-repository-url')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      DOCIR_REPOSITORY_URL="$VALUE"
+      ;;
+      ('--disable-docir-cache')
+      cli_set_parameter_boolean_negation "$@"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
+      DOCIR_CACHE_ENABLED="$VALUE"
+      ;;
       ('--use-current-build')
       cli_set_parameter_boolean "$@"
       shift "$(cli_get_parameter_shifts_for_boolean "$@")"
@@ -538,6 +553,9 @@ cli_init_e2e_variables() {
   EXTENSIONS_CACHE_ENABLED=true
   EXTENSIONS_CACHE_HOST_PATH="${EXTENSIONS_CACHE_HOST_PATH:-${K8S_CACHE_HOST_PATH}/extensions}"
   EXTENSIONS_CACHE_NODE_PATH=/containerd-cache/extensions
+  DOCIR_CACHE_ENABLED=true
+  DOCIR_CACHE_HOST_PATH="${DOCIR_CACHE_HOST_PATH:-${K8S_CACHE_HOST_PATH}/docir}"
+  DOCIR_CACHE_NODE_PATH=/containerd-cache/docir
   IMAGE_TAG="$(git rev-parse --short=8 HEAD)-jvm"
   E2E_FORCE_IMAGE_PULL=false
   E2E_SKIP_OPERATOR_LOAD=true
@@ -583,6 +601,9 @@ cli_export_e2e_variables() {
     SKIP_REMOTE_MANIFEST \
     EXTENSIONS_CACHE_HOST_PATH \
     EXTENSIONS_CACHE_NODE_PATH \
+    DOCIR_CACHE_ENABLED \
+    DOCIR_CACHE_HOST_PATH \
+    DOCIR_CACHE_NODE_PATH \
     E2E_EXTRA_MOUNT_BUILD_PATH \
     E2E_BUILD_ONLY_MODULES \
     K8S_EXTRA_PORT \
@@ -613,6 +634,7 @@ cli_export_e2e_variables() {
     E2E_COMPONENTS_REGISTRY E2E_COMPONENTS_REGISTRY_PATH \
     E2E_EXTENSIONS_REGISTRY E2E_EXTENSIONS_REGISTRY_PATH \
     EXTENSIONS_REPOSITORY_URL \
+    DOCIR_REPOSITORY_URL \
     E2E_CLUSTER_PARAMETERS \
     E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR \
     STACKGRES_PREVIOUS_VERSION \

@@ -96,6 +96,14 @@ get_versions_of_extension() {
   local FLAVOR="${3:-pg}"
   local VERSIONS
 
+  # The SGClusters of the local version use the images of the StackGres registry: the
+  # extensions are those served by the docir REST API for the postgres version (see utils/docir)
+  if is_docir_component_derivation_enabled "$STACKGRES_VERSION"
+  then
+    get_docir_extension_versions "$EXTENSION_NAME" "$POSTGRES_VERSION" "$FLAVOR"
+    return
+  fi
+
   cache_extensions_index
 
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"

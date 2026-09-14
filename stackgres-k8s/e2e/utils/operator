@@ -703,6 +703,7 @@ upgrade_operator_vanilla() {
           printf ' --set allowImpersonationForRestApi=true'
         fi
       ) \
+      $(docir_helm_values) \
       "$@"
   else
     helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" \
@@ -720,6 +721,7 @@ upgrade_operator_vanilla() {
           printf ' --set allowImpersonationForRestApi=true'
         fi
       ) \
+      $(docir_helm_values) \
       "$@"
   fi
   after_operator_install_or_upgrade
@@ -821,6 +823,10 @@ before_operator_install_or_upgrade() {
     K8S_EXCLUDED_NAMESPACES="$K8S_EXCLUDED_NAMESPACES $E2E_ALLOWED_NAMESPACES"
   fi
   setup_extensions_secrets
+  if [ "$OPERATOR_FROM" != true ]
+  then
+    setup_docir_cache
+  fi
 }
 
 after_operator_install_or_upgrade() {
@@ -837,6 +843,10 @@ after_operator_install_or_upgrade() {
   if [ "$OPERATOR_FROM" != true ] && [ "$EXTENSIONS_CACHE_ENABLED" = true ]
   then
     wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator-extensions-cache$'
+  fi
+  if [ "$OPERATOR_FROM" != true ] && [ "$DOCIR_CACHE_ENABLED" = true ]
+  then
+    wait_services_available "$OPERATOR_NAMESPACE" 1 "^$DOCIR_CACHE_NAME$"
   fi
   set_max_length
   update_ui_clear_password
@@ -1144,17 +1154,17 @@ traceable_get_component_images() {
     COMPONENT_PGBOUNCER_VERSIONS COMPONENT_POSTGRES_EXPORTER_VERSIONS \
     COMPONENT_ENVOY_VERSIONS COMPONENT_FLUENTBIT_VERSIONS \
     COMPONENT_FLUENTD_VERSIONS
-  COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions "$VERSION" postgresql)"
-  COMPONENT_BABELFISH_VERSIONS="$(get_component_versions "$VERSION" babelfish)"
-  COMPONENT_PATRONI_VERSIONS="$(get_component_versions "$VERSION" patroni)"
-  COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions "$VERSION" pgbouncer)"
-  COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions "$VERSION" prometheus-postgres-exporter)"
-  COMPONENT_ENVOY_VERSIONS="$(get_component_versions "$VERSION" envoy)"
-  COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions "$VERSION" fluentbit)"
-  COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
-  COMPONENT_KUBECTL_VERSIONS="$(get_component_versions "$VERSION" kubectl)"
-  COMPONENT_BABELFISH_COMPASS_VERSIONS="$(get_component_versions "$VERSION" babelfish-compass)"
-  COMPONENT_OTEL_COLLECTOR_VERSIONS="$(get_component_versions "$VERSION" otel-collector)"
+  COMPONENT_POSTGRESQL_VERSIONS="$(get_bundled_component_versions "$VERSION" postgresql)"
+  COMPONENT_BABELFISH_VERSIONS="$(get_bundled_component_versions "$VERSION" babelfish)"
+  COMPONENT_PATRONI_VERSIONS="$(get_bundled_component_versions "$VERSION" patroni)"
+  COMPONENT_PGBOUNCER_VERSIONS="$(get_bundled_component_versions "$VERSION" pgbouncer)"
+  COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_bundled_component_versions "$VERSION" prometheus-postgres-exporter)"
+  COMPONENT_ENVOY_VERSIONS="$(get_bundled_component_versions "$VERSION" envoy)"
+  COMPONENT_FLUENTBIT_VERSIONS="$(get_bundled_component_versions "$VERSION" fluentbit)"
+  COMPONENT_FLUENTD_VERSIONS="$(get_bundled_component_versions "$VERSION" fluentd)"
+  COMPONENT_KUBECTL_VERSIONS="$(get_bundled_component_versions "$VERSION" kubectl)"
+  COMPONENT_BABELFISH_COMPASS_VERSIONS="$(get_bundled_component_versions "$VERSION" babelfish-compass)"
+  COMPONENT_OTEL_COLLECTOR_VERSIONS="$(get_bundled_component_versions "$VERSION" otel-collector)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -1221,7 +1231,30 @@ get_component_versions() {
   notrace_function traceable_get_component_versions "$1" "$2"
 }
 
+# The versions of a component used by the SGClusters of a StackGres version. The SGClusters of
+# the local version use the images of the StackGres registry: the flavors and the addons are
+# those served by the docir REST API (see utils/docir), the other components (and every
+# component of the other versions) are those bundled in the versions-*.properties.
 traceable_get_component_versions() {
+  [ -n "$1" ] && [ -n "$2" ]
+  local VERSION="$1"
+  local COMPONENT="$2"
+  local DOCIR_VERSIONS
+  if is_docir_component_derivation_enabled "$VERSION" \
+    && DOCIR_VERSIONS="$(get_docir_component_versions "$COMPONENT")"
+  then
+    printf '%s\n' "$DOCIR_VERSIONS"
+    return
+  fi
+  traceable_get_bundled_component_versions "$VERSION" "$COMPONENT"
+}
+
+# The versions of a component bundled in the versions-*.properties of a StackGres version
+get_bundled_component_versions() {
+  notrace_function traceable_get_bundled_component_versions "$1" "$2"
+}
+
+traceable_get_bundled_component_versions() {
   [ -n "$1" ] && [ -n "$2" ]
   local VERSION="$1"
   local COMPONENT="$2"
