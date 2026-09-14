@@ -132,6 +132,31 @@ The `type` field on an override entry chooses whether the entry applies to a reg
 
 If `type` is omitted the entry defaults to `Worker`. `QueryRouter` is only valid when the SGShardedCluster has `spec.type: citus`.
 
+Each `type` has its own index space, so a `Worker` entry and a `QueryRouter` entry may use the same `index` without overlapping, and an entry never applies to an SGCluster of the other kind.
+
+### Default Values of an Override
+
+Any field that an override entry does not set is inherited from the section the overridden SGCluster is generated from, not from the override itself:
+
+* entries of type `Worker` inherit from `spec.workers`;
+* entries of type `QueryRouter` inherit from `spec.coordinator`, since query routers are generated from the coordinator section.
+
+In particular a query router with no override uses `spec.coordinator.sgInstanceProfile` and `spec.coordinator.configurations` (`sgPostgresConfig` and `sgPoolingConfig`), and **not** the ones of `spec.workers`. To give the query routers a Postgres configuration of their own, reference it from a `type: QueryRouter` override entry:
+
+```yaml
+spec:
+  type: citus
+  coordinator:
+    queryRouterClusters: 2
+  workers:
+    clusters: 4
+    overrides:
+    - indexes: ["all"]
+      type: QueryRouter
+      configurations:
+        sgPostgresConfig: routers-postgres-config
+```
+
 The following example overrides one specific worker and all the query routers from the same `overrides` array:
 
 ```yaml

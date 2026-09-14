@@ -179,6 +179,25 @@ This setting is propagated to the primary Service of every query router SGCluste
 
 Like worker overrides, you can override individual query router clusters via `spec.workers.overrides` by setting `type: QueryRouter` on the override entry. The `index` (or `indexes`) refers to the zero-based query router identifier (i.e. `0` selects the first query router), not the offset Citus group identifier.
 
+Whatever an override entry does not set is inherited from `spec.coordinator`, as the rest of the query router spec. A query router with no override therefore uses `spec.coordinator.sgInstanceProfile` and `spec.coordinator.configurations` (`sgPostgresConfig` and `sgPoolingConfig`); the `spec.workers` ones are never applied to a query router. Since the index spaces of the two types are distinct, a `type: Worker` entry and a `type: QueryRouter` entry may share the same `index`.
+
+Give the query routers their own Postgres configuration by referencing it from a `type: QueryRouter` entry:
+
+```yaml
+spec:
+  coordinator:
+    queryRouterClusters: 2
+  workers:
+    clusters: 4
+    overrides:
+    - indexes: ["all"]
+      type: QueryRouter
+      configurations:
+        sgPostgresConfig: routers-postgres-config
+```
+
+For citus sharded clusters the operator does not use the referenced `SGPostgresConfig` directly: it generates a per query router `SGPostgresConfig` named `<query router SGCluster name>-<postgres major version>` out of it, adding the parameters Citus requires.
+
 See [Cluster Names and Overrides]({{% relref "04-administration-guide/14-sharded-cluster/04-cluster-names-and-overrides" %}}) for the full reference of the `index`, `indexes` and `type` fields.
 
 ### Scaling Query Routers
