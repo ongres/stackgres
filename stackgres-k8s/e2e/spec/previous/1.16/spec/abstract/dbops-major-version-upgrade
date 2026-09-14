@@ -18,7 +18,7 @@ e2e_test_install() {
   TARGET_TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
   SOURCE_PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
   TARGET_PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
-  SOURCE_ADMINPACK_VERSION="$(get_latest_version_of_extension adminpack "$E2E_MAJOR_SOURCE_POSTGRES_VERSION" || true)"
+  SOURCE_CUBE_VERSION="$(get_latest_version_of_extension cube "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -54,8 +54,8 @@ reset_cluster_internal() {
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
       --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-      --set-string cluster.postgres.extensions[0].name=adminpack \
-      --set-string cluster.postgres.extensions[0].version="$SOURCE_ADMINPACK_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=cube \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_CUBE_VERSION" \
       --set-string cluster.postgres.extensions[1].name=pg_repack \
       --set-string cluster.postgres.extensions[1].version="$SOURCE_PG_REPACK_VERSION" \
       "$@"
@@ -65,8 +65,8 @@ reset_cluster_internal() {
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
       --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-      --set-string cluster.postgres.extensions[0].name=adminpack \
-      --set-string cluster.postgres.extensions[0].version="$SOURCE_ADMINPACK_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=cube \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_CUBE_VERSION" \
       --set-string cluster.postgres.extensions[1].name=postgis \
       --set-string cluster.postgres.extensions[1].version="$SOURCE_POSTGIS_VERSION" \
       --set-string cluster.postgres.extensions[2].name=timescaledb \
@@ -78,8 +78,8 @@ reset_cluster_internal() {
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
       --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-      --set-string cluster.postgres.extensions[0].name=adminpack \
-      --set-string cluster.postgres.extensions[0].version="$SOURCE_ADMINPACK_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=cube \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_CUBE_VERSION" \
       --set-string cluster.postgres.extensions[1].name=postgis \
       --set-string cluster.postgres.extensions[1].version="$SOURCE_POSTGIS_VERSION" \
       "$@"
@@ -88,8 +88,8 @@ reset_cluster_internal() {
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
       --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-      --set-string cluster.postgres.extensions[0].name=adminpack \
-      --set-string cluster.postgres.extensions[0].version="$SOURCE_ADMINPACK_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=cube \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_CUBE_VERSION" \
       --set-string cluster.postgres.extensions[1].name=timescaledb \
       --set-string cluster.postgres.extensions[1].version="$SOURCE_TIMESCALE_VERSION" \
       --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_stat_statements\, auto_explain\, timescaledb' \
