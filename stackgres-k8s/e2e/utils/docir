@@ -314,7 +314,8 @@ get_docir_preloaded_images() {
       fi
     done
     EXTENSIONS=""
-    for EXTENSION in pg_stat_statements dblink auto_explain
+    # Sorted by name as the operator does when it builds the image-url query
+    for EXTENSION in auto_explain dblink pg_stat_statements plpython3u
     do
       if get_docir_extension_versions "$EXTENSION" "$VERSION" postgres > /dev/null 2>&1
       then
