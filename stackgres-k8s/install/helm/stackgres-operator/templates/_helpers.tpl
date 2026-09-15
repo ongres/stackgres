@@ -90,10 +90,10 @@ false
 The `spec` of the SGConfig, as JSON.
 
 Built from the values listed in `specFields` and, when a cache is enabled, pointing the operator
-to it: the caches are forward proxies (see the `proxyUrl` parameter read by
-io.stackgres.common.WebClientFactory) of the repository they cache, so that the operator keeps
-requesting the URL of the remote repository and the images resolved by the StackGres images
-repository (docir) are pulled from the registry hosted by the cache.
+to it: the cache of the StackGres images repository (docir) serves the responses of the REST API
+it stored (and proxies to the repository the ones it did not) so it replaces the URL of the
+repository, while the extensions cache is a forward proxy (see the `proxyUrl` parameter read by
+io.stackgres.common.WebClientFactory) of the extensions repositories.
 
 It is rendered both in the SGConfig applied by the install job (sgconfig.yaml) and in the SGCONFIG
 environment variable of the operator (operator-deployment.yaml), that is merged over the SGConfig
@@ -116,9 +116,8 @@ operator reverts the SGConfig applied by the job.
 {{- $_ := set $spec "extensions" $extensions }}
 {{- end }}
 {{- if .Values.repository.cache.enabled }}
-{{- $proxyUrl := printf "proxyUrl=http%%3A%%2F%%2F%s-docir-cache.%s%%3FsetHttpScheme%%3Dtrue&retry=3%%3A5" $.Release.Name $.Release.Namespace }}
 {{- $repository := deepCopy (index $spec "repository") }}
-{{- $_ := set $repository "url" (include "with-proxy-url" (dict "url" .Values.repository.url "proxyUrl" $proxyUrl)) }}
+{{- $_ := set $repository "url" (printf "http://%s-docir-cache.%s" $.Release.Name $.Release.Namespace) }}
 {{- $_ := set $spec "repository" $repository }}
 {{- end }}
 {{- toJson $spec }}
