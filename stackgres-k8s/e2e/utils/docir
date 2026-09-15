@@ -15,7 +15,6 @@ DOCIR_CACHE_ENABLED="${DOCIR_CACHE_ENABLED:-${EXTENSIONS_CACHE_ENABLED:-false}}"
 DOCIR_CACHE_HOST_PATH="${DOCIR_CACHE_HOST_PATH:-${K8S_CACHE_HOST_PATH:+$K8S_CACHE_HOST_PATH/docir}}"
 DOCIR_CACHE_NODE_PATH="${DOCIR_CACHE_NODE_PATH:-$DOCIR_CACHE_HOST_PATH}"
 DOCIR_CACHE_NAME=stackgres-operator-docir-cache
-export E2E_DOCIR_CACHE_PULL_IMAGES="${E2E_DOCIR_CACHE_PULL_IMAGES:-true}"
 DOCIR_CACHE_REPOSITORY_SUBPATH=repository
 DOCIR_INDEX_CACHED="${DOCIR_INDEX_CACHED:-false}"
 export DOCIR_CACHE_ENABLED DOCIR_CACHE_HOST_PATH DOCIR_CACHE_NODE_PATH DOCIR_INDEX_CACHED
@@ -74,10 +73,8 @@ is_docir_cache_used() {
 }
 
 # The helm values of the operator chart related to the docir REST API: the remote repository URL
-# and, when the cache is enabled, the `repository.cache` section (the chart configures the cache
-# StatefulSet as the proxy of the repository in the SGConfig, so that the operator also resolves
-# the images to the registry it hosts) with the host path of the kind nodes and the preloaded
-# images
+# and, when the cache is enabled, the `repository.cache` section (the chart points the SGConfig
+# to the cache StatefulSet) with the host path of the kind nodes and the preloaded images
 docir_helm_values() {
   printf -- '--set-string repository.url=%s' "$DOCIR_REPOSITORY_URL"
   if [ "$E2E_USE_PUBLISHED_IMAGES" = false ]
@@ -88,7 +85,6 @@ docir_helm_values() {
   then
     printf -- ' --set repository.cache.enabled=true'
     printf -- ' --set-string repository.cache.hostPath=%s' "$DOCIR_CACHE_NODE_PATH"
-    printf -- ' --set repository.cache.pullImages=%s' "$E2E_DOCIR_CACHE_PULL_IMAGES"
     printf -- ' --set-string repository.cache.preloadedImages={%s}' \
       "$(get_docir_preloaded_images | tr '\n' ',' | sed 's/,$//')"
   fi
