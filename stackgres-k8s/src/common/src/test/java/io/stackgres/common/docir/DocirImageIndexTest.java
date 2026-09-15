@@ -9,6 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatusAddon;
@@ -102,6 +106,36 @@ class DocirImageIndexTest {
   }
 
   @Test
+  void extensions_shouldBeTakenFromTheStatusOfTheCluster() {
+    cluster.getStatus().setExtensions(List.of(timescaledb()));
+
+    final DocirImageIndex index =
+        DocirImageIndex.fromCluster(StackGresContextMock.CONTEXT, cluster);
+
+    assertTrue(extensionNamesOf(index.getExtensions()).contains("timescaledb"),
+        index.getExtensions().toString());
+  }
+
+  @Test
+  void oldExtensions_shouldNotBeTakenFromTheStatusOfTheUpgradedCluster() {
+    cluster.getStatus().setExtensions(List.of(timescaledb()));
+    final StackGresCluster oldCluster = Fixtures.cluster().loadDefault().get();
+    oldCluster.getSpec().getPostgres().setVersion("13.15");
+    oldCluster.getStatus().setPostgresVersion("13.15");
+    // The old cluster is a copy of the cluster being upgraded: its status holds the extensions
+    // resolved for the target Postgres version, that do not belong to the previous one.
+    oldCluster.getStatus().setExtensions(cluster.getStatus().getExtensions());
+
+    final DocirImageIndex index =
+        DocirImageIndex.fromClusters(StackGresContextMock.CONTEXT, cluster, oldCluster);
+
+    assertTrue(extensionNamesOf(index.getExtensions()).contains("timescaledb"),
+        index.getExtensions().toString());
+    assertFalse(extensionNamesOf(index.getOldExtensions()).contains("timescaledb"),
+        index.getOldExtensions().toString());
+  }
+
+  @Test
   void imageUrlRequest_shouldCarryTheImageNameAsName() throws Exception {
     final DocirImageIndex index = DocirImageIndex.fromAddon(
         StackGresContextMock.CONTEXT, cluster, DocirUtil.PGBOUNCER_ADDON);
@@ -129,6 +163,23 @@ class DocirImageIndexTest {
     assertEquals(cluster.getStatus().getBaseVersion(), base.getMajor() + "." + base.getMinor());
     assertEquals(cluster.getStatus().getBaseRevision(), base.getRevision());
     assertEquals(cluster.getStatus().getRepository(), base.getRepository());
+  }
+
+  private StackGresClusterInstalledExtension timescaledb() {
+    final StackGresClusterInstalledExtension timescaledb = new StackGresClusterInstalledExtension();
+    timescaledb.setName("timescaledb");
+    timescaledb.setRepository("https://sgcr.dev");
+    timescaledb.setVersion("2.28.3");
+    timescaledb.setPostgresVersion("13.16");
+    timescaledb.setBuild("10");
+    return timescaledb;
+  }
+
+  private Set<String> extensionNamesOf(Set<DocirExtensionMetadata> extensions) {
+    return extensions.stream()
+        .map(DocirExtensionMetadata::getExtension)
+        .map(DocirExtension::getName)
+        .collect(Collectors.toSet());
   }
 
 }

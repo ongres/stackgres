@@ -120,7 +120,7 @@ public class DocirImageIndex {
         extensionsOf(context, cluster),
         DocirUtil.getStatusAddons(cluster, DocirUtil.POSTGRES_IMAGE_ADDONS),
         oldFlavor,
-        extensionsOf(context, oldCluster),
+        oldExtensionsOf(context, oldCluster),
         false);
   }
 
@@ -237,13 +237,50 @@ public class DocirImageIndex {
         clusterStatus.getRepository());
   }
 
+  /**
+   * The extensions requested in {@code .spec.postgres.extensions} as resolved by the operator in
+   * {@code .status.extensions} (see
+   * {@code io.stackgres.operator.conciliation.cluster.context.ClusterExtensionsContextAppender}),
+   * the same list the cluster controller installs.
+   */
   private static Set<DocirExtensionMetadata> extensionsOf(
       StackGresContext context,
       StackGresCluster cluster) {
+    return extensionsOf(
+        context,
+        cluster,
+        Seq.seq(Optional.ofNullable(cluster.getStatus().getExtensions()))
+            .flatMap(List::stream)
+            .map(DocirExtensionMetadata::new));
+  }
+
+  /**
+   * The extensions of the cluster before a major version upgrade
+   * ({@code .status.dbOps.majorVersionUpgrade.sourcePostgresExtensions}, set by
+   * {@code io.stackgres.operator.conciliation.factory.cluster.MajorVersionUpgrade} in
+   * {@code .spec.postgres.extensions} of {@code oldCluster}) resolved for the previous Postgres
+   * version. The status of {@code oldCluster} is the one of the cluster being upgraded, that is
+   * the extensions resolved for the target Postgres version, so it can not be used here.
+   */
+  private static Set<DocirExtensionMetadata> oldExtensionsOf(
+      StackGresContext context,
+      StackGresCluster oldCluster) {
+    return extensionsOf(
+        context,
+        oldCluster,
+        Seq.seq(Optional.ofNullable(oldCluster.getSpec().getPostgres().getExtensions()))
+            .flatMap(List::stream)
+            .map(extension -> context
+                .getMetadataManager()
+                .getExtensionCandidateSameMajorBuild(context, oldCluster, extension, false)));
+  }
+
+  private static Set<DocirExtensionMetadata> extensionsOf(
+      StackGresContext context,
+      StackGresCluster cluster,
+      Seq<DocirExtensionMetadata> extensions) {
     final StackGresClusterStatus clusterStatus = cluster.getStatus();
-    return Seq.seq(Optional.ofNullable(cluster.getSpec().getToInstallPostgresExtensions()))
-        .flatMap(List::stream)
-        .map(DocirExtensionMetadata::new)
+    return extensions
         .append(StackGresUtil.getDefaultClusterExtensions(context, cluster)
             .stream()
             .map(extension -> context
