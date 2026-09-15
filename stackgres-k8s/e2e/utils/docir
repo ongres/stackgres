@@ -74,8 +74,10 @@ is_docir_cache_used() {
 }
 
 # The helm values of the operator chart related to the docir REST API: the remote repository URL
-# and, when the cache is enabled, the `repository.cache` section (the chart points the SGConfig
-# to the cache StatefulSet) with the host path of the kind nodes and the preloaded images
+# and, when the cache is enabled, the `repository.cache` section (the chart configures the cache
+# StatefulSet as the proxy of the repository in the SGConfig, so that the operator also resolves
+# the images to the registry it hosts) with the host path of the kind nodes and the preloaded
+# images
 docir_helm_values() {
   printf -- '--set-string repository.url=%s' "$DOCIR_REPOSITORY_URL"
   if [ "$E2E_USE_PUBLISHED_IMAGES" = false ]
