@@ -428,7 +428,7 @@ public abstract class DocirMetadataManager {
    * The image of the patroni container of the cluster.
    */
   public String getImage(StackGresContext context, StackGresCluster cluster) {
-    return getImageUrl(DocirImageIndex.fromCluster(context, cluster)).image().urlDigest();
+    return getImageUrlDigest(DocirImageIndex.fromCluster(context, cluster));
   }
 
   /**
@@ -436,8 +436,7 @@ public abstract class DocirMetadataManager {
    * under its own name.
    */
   public String getPostgresUtilImage(StackGresContext context, StackGresCluster cluster) {
-    return getImageUrl(DocirImageIndex.fromClusterForPostgresUtil(context, cluster))
-        .image().urlDigest();
+    return getImageUrlDigest(DocirImageIndex.fromClusterForPostgresUtil(context, cluster));
   }
 
   /**
@@ -447,8 +446,7 @@ public abstract class DocirMetadataManager {
       StackGresContext context,
       StackGresCluster cluster,
       StackGresClusterInstalledExtension extension) {
-    return getImageUrl(DocirImageIndex.fromExtension(context, cluster, extension))
-        .image().urlDigest();
+    return getImageUrlDigest(DocirImageIndex.fromExtension(context, cluster, extension));
   }
 
   /**
@@ -459,8 +457,7 @@ public abstract class DocirMetadataManager {
       StackGresContext context,
       StackGresCluster oldCluster,
       StackGresCluster cluster) {
-    return getImageUrl(DocirImageIndex.fromClusters(context, cluster, oldCluster))
-        .image().urlDigest();
+    return getImageUrlDigest(DocirImageIndex.fromClusters(context, cluster, oldCluster));
   }
 
   /**
@@ -468,7 +465,43 @@ public abstract class DocirMetadataManager {
    * Postgres flavor pinned in the status of the cluster with a single addon.
    */
   public String getAddonImage(StackGresContext context, StackGresCluster cluster, String addon) {
-    return getImageUrl(DocirImageIndex.fromAddon(context, cluster, addon)).image().urlDigest();
+    return getImageUrlDigest(DocirImageIndex.fromAddon(context, cluster, addon));
+  }
+
+  /**
+   * The reference of the image resolved for the index. When the repository is reached through a
+   * proxy (the cache of the Helm chart, see the {@code proxyUrl} parameter of
+   * {@link WebClientFactory#create(URI, Map)}) the images are served by the registry hosted by the
+   * proxy, so the registry of the resolved image is replaced by the address of the proxy.
+   */
+  String getImageUrlDigest(DocirImageIndex index) {
+    final String urlDigest = getImageUrl(index).image().urlDigest();
+    return Optional.ofNullable(index.getFlavor().getFlavor().getRepository())
+        .map(URI::create)
+        .flatMap(WebClientFactory::getProxyUri)
+        .map(DocirMetadataManager::getRegistry)
+        .map(registry -> withRegistry(registry, urlDigest))
+        .orElse(urlDigest);
+  }
+
+  /**
+   * The address ({@code <host>[:<port>]}) of the registry hosted by the proxy.
+   */
+  private static String getRegistry(URI proxyUri) {
+    return proxyUri.getPort() < 0
+        ? proxyUri.getHost()
+        : proxyUri.getHost() + ":" + proxyUri.getPort();
+  }
+
+  /**
+   * Replace the registry of the image reference ({@code <registry>/<repository>[:<tag>][@<digest>]})
+   * keeping the repository, the tag and the digest.
+   */
+  private static String withRegistry(String registry, String image) {
+    final int repositoryIndex = image.indexOf('/');
+    return repositoryIndex < 0
+        ? registry + "/" + image
+        : registry + image.substring(repositoryIndex);
   }
 
   ImageUrl getImageUrl(DocirImageIndex index) {

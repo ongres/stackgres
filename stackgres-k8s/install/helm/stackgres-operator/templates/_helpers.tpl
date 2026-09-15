@@ -86,3 +86,58 @@ false
 {{- end }}
 {{- range $index,$namespace := $allowedNamespaces }}{{ if $index }} {{ end }}{{ $namespace }}{{ end }}
 {{- end }}
+{{/*
+The `spec` of the SGConfig, as JSON.
+
+Built from the values listed in `specFields` and, when a cache is enabled, pointing the operator
+to it: the caches are forward proxies (see the `proxyUrl` parameter read by
+io.stackgres.common.WebClientFactory) of the repository they cache, so that the operator keeps
+requesting the URL of the remote repository and the images resolved by the StackGres images
+repository (docir) are pulled from the registry hosted by the cache.
+
+It is rendered both in the SGConfig applied by the install job (sgconfig.yaml) and in the SGCONFIG
+environment variable of the operator (operator-deployment.yaml), that is merged over the SGConfig
+on every start up (see io.stackgres.operator.app.ConfigInstaller): both must agree or the
+operator reverts the SGConfig applied by the job.
+*/}}
+{{- define "sgconfig-spec" -}}
+{{- $spec := dict }}
+{{- range .Values.specFields }}
+{{- $_ := set $spec . (index $.Values .) }}
+{{- end }}
+{{- if .Values.extensions.cache.enabled }}
+{{- $proxyUrl := printf "proxyUrl=http%%3A%%2F%%2F%s-extensions-cache.%s%%3FsetHttpScheme%%3Dtrue&retry=3%%3A5" $.Release.Name $.Release.Namespace }}
+{{- $repositoryUrls := list }}
+{{- range .Values.extensions.repositoryUrls }}
+{{- $repositoryUrls = append $repositoryUrls (include "with-proxy-url" (dict "url" . "proxyUrl" $proxyUrl)) }}
+{{- end }}
+{{- $extensions := deepCopy (index $spec "extensions") }}
+{{- $_ := set $extensions "repositoryUrls" $repositoryUrls }}
+{{- $_ := set $spec "extensions" $extensions }}
+{{- end }}
+{{- if .Values.repository.cache.enabled }}
+{{- $proxyUrl := printf "proxyUrl=http%%3A%%2F%%2F%s-docir-cache.%s%%3FsetHttpScheme%%3Dtrue&retry=3%%3A5" $.Release.Name $.Release.Namespace }}
+{{- $repository := deepCopy (index $spec "repository") }}
+{{- $_ := set $repository "url" (include "with-proxy-url" (dict "url" .Values.repository.url "proxyUrl" $proxyUrl)) }}
+{{- $_ := set $spec "repository" $repository }}
+{{- end }}
+{{- toJson $spec }}
+{{- end }}
+
+{{/*
+The URL with the `proxyUrl` parameter appended, replacing the one it may already have.
+*/}}
+{{- define "with-proxy-url" -}}
+{{- $base := .url }}
+{{- $params := list }}
+{{- if contains "?" .url }}
+{{- $base = (splitn "?" 2 .url)._0 }}
+{{- range splitList "&" (splitn "?" 2 .url)._1 }}
+{{- if and (ne . "") (not (hasPrefix "proxyUrl=" .)) }}
+{{- $params = append $params . }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $params = append $params .proxyUrl }}
+{{- printf "%s?%s" $base (join "&" $params) }}
+{{- end }}

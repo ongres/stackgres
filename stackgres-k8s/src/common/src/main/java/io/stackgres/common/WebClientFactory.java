@@ -67,8 +67,7 @@ public class WebClientFactory {
     final boolean skipHostnameVerification =
         getUriQueryParameter(uri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
             .map(Boolean::valueOf).orElse(Boolean.FALSE);
-    final Optional<URI> optionalProxyUri = getUriQueryParameter(uri, PROXY_URL_PARAMETER)
-        .map(URI::create);
+    final Optional<URI> optionalProxyUri = getProxyUri(uri);
     final Optional<String> optionalRetry = getUriQueryParameter(uri, RETRY_PARAMETER);
     if (skipHostnameVerification) {
       clientBuilder.hostnameVerifier(InsecureHostnameVerifier.INSTANCE)
@@ -274,6 +273,13 @@ public class WebClientFactory {
 
   private static final Pattern OBFUSCATE_URL_PARAMETER_PATTERN =
       Pattern.compile("^([^:]+)://([^:]+:[^@]+)@(.*)$");
+
+  /**
+   * The proxy through which the URI is reached, see the {@code proxyUrl} query parameter.
+   */
+  public static Optional<URI> getProxyUri(URI uri) {
+    return getUriQueryParameter(uri, PROXY_URL_PARAMETER).map(URI::create);
+  }
 
   public static String obfuscateUri(String uriString) {
     try {

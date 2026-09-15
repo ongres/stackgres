@@ -553,6 +553,10 @@ repository:
     # -- (string) The address (`<host>[:<port>]`) through which the Pods reach the local image registry hosted by
     #   the cache. When set the URLs of the resolved images are rewritten to it so that the images are
     #   pulled from the cache instead of the repository.
+    #
+    #   Only changes the URLs stored by the cache: the operator reaches the repository through the
+    #   cache (that the chart configures as its proxy) and already resolves the images to the
+    #   address of the cache Service.
     imageRegistry:
     # -- The image of the local image registry hosted by the cache
     registryImage: docker.io/library/registry:2

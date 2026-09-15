@@ -29,37 +29,7 @@ data:
     metadata:
       name: {{ .Release.Name }}
       namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
-    {{- $spec := dict }}
-    {{- range .Values.specFields }}
-    {{- $spec := set $spec . (index $.Values .) }}
-    {{- end }}
-    {{- if .Values.extensions.cache.enabled }}
-    {{- $proxyUrl := printf "proxyUrl=http%%3A%%2F%%2F%s-extensions-cache.%s%%3FsetHttpScheme%%3Dtrue&retry=3%%3A5" $.Release.Name $.Release.Namespace }}
-    {{- $repositoryUrls := list }}
-    {{- range .Values.extensions.repositoryUrls }}
-    {{- $base := . }}
-    {{- $params := list }}
-    {{- if contains "?" . }}
-    {{- $base = (splitn "?" 2 .)._0 }}
-    {{- range splitList "&" (splitn "?" 2 .)._1 }}
-    {{- if and (ne . "") (not (hasPrefix "proxyUrl=" .)) }}
-    {{- $params = append $params . }}
-    {{- end }}
-    {{- end }}
-    {{- end }}
-    {{- $params = append $params $proxyUrl }}
-    {{- $repositoryUrls = append $repositoryUrls (printf "%s?%s" $base (join "&" $params)) }}
-    {{- end }}
-    {{- $extensions := deepCopy (index $spec "extensions") }}
-    {{- $_ := set $extensions "repositoryUrls" $repositoryUrls }}
-    {{- $_ := set $spec "extensions" $extensions }}
-    {{- end }}
-    {{- if .Values.repository.cache.enabled }}
-    {{- $repository := deepCopy (index $spec "repository") }}
-    {{- $_ := set $repository "url" (printf "http://%s-docir-cache.%s" $.Release.Name $.Release.Namespace) }}
-    {{- $_ := set $spec "repository" $repository }}
-    {{- end }}
-    spec: {{ toJson $spec }}
+    spec: {{ include "sgconfig-spec" . }}
 ---
 apiVersion: batch/v1
 kind: Job
