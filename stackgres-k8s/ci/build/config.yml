@@ -408,13 +408,12 @@ modules:
       4: stackgres-k8s/install/helm/stackgres-operator/.helmignore
       5: stackgres-k8s/install/helm/stackgres-operator/extensions-cache-conciliator.sh
       6: stackgres-k8s/install/helm/stackgres-operator/docir-cache-conciliator.sh
-      7: stackgres-k8s/install/helm/stackgres-operator/docir-cache-copy-image.py
-      8: stackgres-k8s/install/helm/stackgres-cluster/README.md
-      9: stackgres-k8s/install/helm/stackgres-cluster/templates
-      10: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
-      11: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
-      12: stackgres-k8s/install/helm/build-helm-packages.sh
-      13: stackgres-k8s/src/common/src/main/resources/crds
+      7: stackgres-k8s/install/helm/stackgres-cluster/README.md
+      8: stackgres-k8s/install/helm/stackgres-cluster/templates
+      9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
+      10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
+      11: stackgres-k8s/install/helm/build-helm-packages.sh
+      12: stackgres-k8s/src/common/src/main/resources/crds
     build_image: *ci_image
     build_commands:
       - export HOME=/project
@@ -439,13 +438,12 @@ modules:
       4: stackgres-k8s/install/helm/stackgres-operator/.helmignore
       5: stackgres-k8s/install/helm/stackgres-operator/extensions-cache-conciliator.sh
       6: stackgres-k8s/install/helm/stackgres-operator/docir-cache-conciliator.sh
-      7: stackgres-k8s/install/helm/stackgres-operator/docir-cache-copy-image.py
-      8: stackgres-k8s/install/helm/stackgres-cluster/README.md
-      9: stackgres-k8s/install/helm/stackgres-cluster/templates
-      10: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
-      11: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
-      12: stackgres-k8s/install/helm/build-helm-templates.sh
-      13: stackgres-k8s/src/common/src/main/resources/crds
+      7: stackgres-k8s/install/helm/stackgres-cluster/README.md
+      8: stackgres-k8s/install/helm/stackgres-cluster/templates
+      9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
+      10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
+      11: stackgres-k8s/install/helm/build-helm-templates.sh
+      12: stackgres-k8s/src/common/src/main/resources/crds
     build_image: *ci_image
     build_commands:
       - export HOME=/project
