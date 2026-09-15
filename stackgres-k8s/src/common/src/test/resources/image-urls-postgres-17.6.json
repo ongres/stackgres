@@ -23,6 +23,18 @@
       "addons": null
     }
   },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@17.6@12&extensions=auto_explain@17.6@10&extensions=dblink@17.6@10&extensions=pg_stat_statements@17.6@10&extensions=plpython3u@1.0.0@10&addons=patroni@3.3.3@12&addons=wal-g@3.0.3@12&addons=hdrhistogram@0.10.7@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--17.6--12/t/full/b/ubi--9.4--10/a/patroni--3.3.3--12/wal-g--3.0.3--12/hdrhistogram--0.10.7--12/e/auto_explain--17.6--10/dblink--17.6--10/pg_stat_statements--17.6--10/plpython3u--1.0.0--10",
+      "urlDigest": "localhost:5001/stackgres@sha256:6af88e3f1f0a1ab58211e79bdf1f3de01d22b2601aee23c57fabd18e305336fb",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
   "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@17.6@12&addons=pgbouncer@1.24.1@12": {
     "image": {
       "url": "localhost:5001/stackgres/postgres--17.6--12/b/ubi--9.4--10/a/pgbouncer--1.24.1--12",

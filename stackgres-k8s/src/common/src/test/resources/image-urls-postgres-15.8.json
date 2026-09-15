@@ -11,6 +11,18 @@
       "addons": null
     }
   },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@15.8@12&extensions=auto_explain@15.8@10&extensions=dblink@15.8@10&extensions=pg_stat_statements@15.8@10&extensions=plpython3u@1.0.0@10&flavors=postgres@13.16@12&extensions=auto_explain@13.16@10&extensions=dblink@13.16@10&extensions=pg_stat_statements@13.16@10&extensions=plpython3u@1.0.0@10&addons=patroni@3.3.3@12&addons=wal-g@3.0.3@12&addons=hdrhistogram@0.10.7@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--15.8--12/13.16--12/b/ubi--9.4--10/a/patroni--3.3.3--12/wal-g--3.0.3--12/hdrhistogram--0.10.7--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:1f2e3d4c5b6a79880716253443526170f0e1d2c3b4a5968778695a4b3c2d1e0f",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
+  },
   "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@15.8@12&addons=pgbouncer@1.24.1@12": {
     "image": {
       "url": "localhost:5001/stackgres/postgres--15.8--12/b/ubi--9.4--10/a/pgbouncer--1.24.1--12",

@@ -51,7 +51,7 @@ class DbOpsMajorVersionUpgradeExtensionsContextAppenderTest {
       .streamOrderedMajorVersions(StackGresContextMock.CONTEXT).findFirst().get();
 
   private static final List<String> DEFAULT_EXTENSIONS =
-      List.of("pg_stat_statements", "dblink", "auto_explain");
+      List.of("pg_stat_statements", "dblink", "auto_explain", "plpython3u");
 
   private DbOpsMajorVersionUpgradeExtensionsContextAppender contextAppender;
 

@@ -358,7 +358,8 @@ public interface StackGresUtil {
     return List.of(
         new ExtensionTuple("pg_stat_statements"),
         new ExtensionTuple("dblink"),
-        new ExtensionTuple("auto_explain"));
+        new ExtensionTuple("auto_explain"),
+        new ExtensionTuple("plpython3u"));
   }
 
   static List<ExtensionTuple> getDefaultClusterExtensions(
@@ -370,7 +371,7 @@ public interface StackGresUtil {
     if (flavor == StackGresComponent.BABELFISH) {
       return List.of();
     }
-    if (!registryEnabled) {
+    if (context == null || !registryEnabled) {
       if (Component.compareBuildVersions("6.6",
           StackGresComponent.PATRONI.getOrThrow(sgVersion)
               .getBuildVersion(
@@ -380,12 +381,19 @@ public interface StackGresUtil {
                       flavor.getOrThrow(sgVersion), pgVersion))) <= 0) {
         return List.of();
       }
+
+      return List.of(
+          new ExtensionTuple("plpgsql"),
+          new ExtensionTuple("pg_stat_statements"),
+          new ExtensionTuple("dblink"),
+          new ExtensionTuple("plpython3u"));
     }
 
     return List.of(
         new ExtensionTuple("pg_stat_statements"),
         new ExtensionTuple("dblink"),
-        new ExtensionTuple("auto_explain"));
+        new ExtensionTuple("auto_explain"),
+        new ExtensionTuple("plpython3u"));
   }
 
   static List<ExtensionTuple> getShardedClusterExtensions(
