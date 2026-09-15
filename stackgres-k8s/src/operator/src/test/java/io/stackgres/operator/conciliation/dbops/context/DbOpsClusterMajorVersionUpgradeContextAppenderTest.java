@@ -71,6 +71,10 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
   @Mock
   private CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
 
+  @Mock
+  private DbOpsMajorVersionUpgradeExtensionsContextAppender
+      dbOpsMajorVersionUpgradeExtensionsContextAppender;
+
   @BeforeEach
   void setUp() {
     dbOps = Fixtures.dbOps().loadMajorVersionUpgrade().get();
@@ -83,7 +87,8 @@ class DbOpsClusterMajorVersionUpgradeContextAppenderTest {
     postgresConfig.getSpec().setPostgresVersion(FIRST_PG_MAJOR_VERSION);
     contextAppender = new DbOpsClusterMajorVersionUpgradeContextAppender(
         StackGresContextMock.CONTEXT,
-        postgresConfigFinder);
+        postgresConfigFinder,
+        dbOpsMajorVersionUpgradeExtensionsContextAppender);
   }
 
   @Test

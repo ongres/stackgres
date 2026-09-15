@@ -37,13 +37,19 @@ public class DbOpsClusterMajorVersionUpgradeContextAppender {
 
   private final StackGresContext context;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
+  private final DbOpsMajorVersionUpgradeExtensionsContextAppender
+      dbOpsMajorVersionUpgradeExtensionsContextAppender;
 
   @Inject
   public DbOpsClusterMajorVersionUpgradeContextAppender(
       StackGresContext context,
-      CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder) {
+      CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
+      DbOpsMajorVersionUpgradeExtensionsContextAppender
+          dbOpsMajorVersionUpgradeExtensionsContextAppender) {
     this.context = context;
     this.postgresConfigFinder = postgresConfigFinder;
+    this.dbOpsMajorVersionUpgradeExtensionsContextAppender =
+        dbOpsMajorVersionUpgradeExtensionsContextAppender;
   }
 
   public void appendContext(StackGresDbOps dbOps, StackGresCluster cluster, Builder contextBuilder) {
@@ -148,6 +154,8 @@ public class DbOpsClusterMajorVersionUpgradeContextAppender {
           StackGresPostgresConfig.KIND + " "
               + dbOps.getSpec().getMajorVersionUpgrade().getSgPostgresConfig() + " not found");
     }
+
+    dbOpsMajorVersionUpgradeExtensionsContextAppender.appendContext(dbOps, cluster, contextBuilder);
   }
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {

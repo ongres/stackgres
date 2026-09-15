@@ -236,7 +236,7 @@ spec:
                       **This section is filled by the operator.**
                     items:
                       type: object
-                      required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                      required: ["name", "version", "repository", "postgresVersion"]
                       properties:
                         name:
                           type: string
