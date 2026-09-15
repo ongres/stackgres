@@ -254,27 +254,6 @@ public class DocirImageIndex {
             .map(DocirExtensionMetadata::new));
   }
 
-  /**
-   * The extensions of the cluster before a major version upgrade
-   * ({@code .status.dbOps.majorVersionUpgrade.sourcePostgresExtensions}, set by
-   * {@code io.stackgres.operator.conciliation.factory.cluster.MajorVersionUpgrade} in
-   * {@code .spec.postgres.extensions} of {@code oldCluster}) resolved for the previous Postgres
-   * version. The status of {@code oldCluster} is the one of the cluster being upgraded, that is
-   * the extensions resolved for the target Postgres version, so it can not be used here.
-   */
-  private static Set<DocirExtensionMetadata> oldExtensionsOf(
-      StackGresContext context,
-      StackGresCluster oldCluster) {
-    return extensionsOf(
-        context,
-        oldCluster,
-        Seq.seq(Optional.ofNullable(oldCluster.getSpec().getPostgres().getExtensions()))
-            .flatMap(List::stream)
-            .map(extension -> context
-                .getMetadataManager()
-                .getExtensionCandidateSameMajorBuild(context, oldCluster, extension, false)));
-  }
-
   private static Set<DocirExtensionMetadata> extensionsOf(
       StackGresContext context,
       StackGresCluster cluster,
@@ -301,6 +280,27 @@ public class DocirImageIndex {
             .andThen(DocirExtension::getName))
         .map(group -> group.v2().sorted(Comparator.reverseOrder()).findFirst().get())
         .collect(Collectors.toSet());
+  }
+
+  /**
+   * The extensions of the cluster before a major version upgrade
+   * ({@code .status.dbOps.majorVersionUpgrade.sourcePostgresExtensions}, set by
+   * {@code io.stackgres.operator.conciliation.factory.cluster.MajorVersionUpgrade} in
+   * {@code .spec.postgres.extensions} of {@code oldCluster}) resolved for the previous Postgres
+   * version. The status of {@code oldCluster} is the one of the cluster being upgraded, that is
+   * the extensions resolved for the target Postgres version, so it can not be used here.
+   */
+  private static Set<DocirExtensionMetadata> oldExtensionsOf(
+      StackGresContext context,
+      StackGresCluster oldCluster) {
+    return extensionsOf(
+        context,
+        oldCluster,
+        Seq.seq(Optional.ofNullable(oldCluster.getSpec().getPostgres().getExtensions()))
+            .flatMap(List::stream)
+            .map(extension -> context
+                .getMetadataManager()
+                .getExtensionCandidateSameMajorBuild(context, oldCluster, extension, false)));
   }
 
   /**
