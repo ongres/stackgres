@@ -71,18 +71,6 @@ data:
         try_files /repository/api/stackgres/v1/image-url/$docir_image_file =404;
       }
       
-      # The local image registry
-      location /v2/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 900;
-        proxy_request_buffering off;
-      }
-      
       location @remote {
         {{- if .Values.repository.cache.offline }}
         return 404;
@@ -107,7 +95,5 @@ data:
     }
   docir-cache-conciliator.sh: |
 {{ .Files.Get "docir-cache-conciliator.sh" | indent 4 }}
-  docir-cache-copy-image.py: |
-{{ .Files.Get "docir-cache-copy-image.py" | indent 4 }}
 {{- if .Values.qutePreprocess }}#comment.preprocess.end{{- end }}
 {{- end }}

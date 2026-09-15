@@ -34,12 +34,6 @@ public class StackGresConfigRepositoryCache {
 
   private List<String> preloadedImages;
 
-  private Boolean pullImages;
-
-  private String imageRegistry;
-
-  private String registryImage;
-
   private Boolean offline;
 
   private StackGresConfigRepositoryCachePersistentVolume persistentVolume;
@@ -70,30 +64,6 @@ public class StackGresConfigRepositoryCache {
 
   public void setPreloadedImages(List<String> preloadedImages) {
     this.preloadedImages = preloadedImages;
-  }
-
-  public Boolean getPullImages() {
-    return pullImages;
-  }
-
-  public void setPullImages(Boolean pullImages) {
-    this.pullImages = pullImages;
-  }
-
-  public String getImageRegistry() {
-    return imageRegistry;
-  }
-
-  public void setImageRegistry(String imageRegistry) {
-    this.imageRegistry = imageRegistry;
-  }
-
-  public String getRegistryImage() {
-    return registryImage;
-  }
-
-  public void setRegistryImage(String registryImage) {
-    this.registryImage = registryImage;
   }
 
   public Boolean getOffline() {
@@ -130,8 +100,8 @@ public class StackGresConfigRepositoryCache {
 
   @Override
   public int hashCode() {
-    return Objects.hash(enabled, hostPath, imageRegistry, offline, persistentVolume,
-        preloadedImages, pullImages, refreshInterval, registryImage, resources);
+    return Objects.hash(enabled, hostPath, offline, persistentVolume,
+        preloadedImages, refreshInterval, resources);
   }
 
   @Override
@@ -145,13 +115,10 @@ public class StackGresConfigRepositoryCache {
     StackGresConfigRepositoryCache other = (StackGresConfigRepositoryCache) obj;
     return Objects.equals(enabled, other.enabled)
         && Objects.equals(hostPath, other.hostPath)
-        && Objects.equals(imageRegistry, other.imageRegistry)
         && Objects.equals(offline, other.offline)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(preloadedImages, other.preloadedImages)
-        && Objects.equals(pullImages, other.pullImages)
         && Objects.equals(refreshInterval, other.refreshInterval)
-        && Objects.equals(registryImage, other.registryImage)
         && Objects.equals(resources, other.resources);
   }
 

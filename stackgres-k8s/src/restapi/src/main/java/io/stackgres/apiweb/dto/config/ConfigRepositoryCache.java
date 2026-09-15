@@ -22,12 +22,6 @@ public class ConfigRepositoryCache {
 
   private List<String> preloadedImages;
 
-  private Boolean pullImages;
-
-  private String imageRegistry;
-
-  private String registryImage;
-
   private Boolean offline;
 
   private ConfigRepositoryCachePersistentVolume persistentVolume;
@@ -58,30 +52,6 @@ public class ConfigRepositoryCache {
 
   public void setPreloadedImages(List<String> preloadedImages) {
     this.preloadedImages = preloadedImages;
-  }
-
-  public Boolean getPullImages() {
-    return pullImages;
-  }
-
-  public void setPullImages(Boolean pullImages) {
-    this.pullImages = pullImages;
-  }
-
-  public String getImageRegistry() {
-    return imageRegistry;
-  }
-
-  public void setImageRegistry(String imageRegistry) {
-    this.imageRegistry = imageRegistry;
-  }
-
-  public String getRegistryImage() {
-    return registryImage;
-  }
-
-  public void setRegistryImage(String registryImage) {
-    this.registryImage = registryImage;
   }
 
   public Boolean getOffline() {

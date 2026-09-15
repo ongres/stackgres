@@ -15,9 +15,10 @@
 #   the operator found in the nginx access log, resolving each of them with the `image-url`
 #   endpoint of the repository and storing the response under
 #   `repository/api/stackgres/v1/image-url/<md5 of the key>` so that nginx serves it to the POST
-#   requests of the operator;
-# * copies the resolved images into the local image registry hosted by the cache (and rewrites
-#   the URLs of the stored responses to `DOCIR_CACHE_IMAGE_REGISTRY` when set).
+#   requests of the operator.
+#
+# The images themselves are not cached: they are pulled by the container runtime of the nodes
+# directly from the repository (that already caches them locally).
 #
 # Usage: docir-cache-conciliator.sh run      (the reconciliation loop)
 #        docir-cache-conciliator.sh preload  (a single cycle, used to build the offline image)
@@ -31,11 +32,8 @@ DOCIR_API_PATH="${DOCIR_API_PATH:-/api/stackgres/v1}"
 DOCIR_USE_PUBLISHED_IMAGES="${DOCIR_USE_PUBLISHED_IMAGES:-true}"
 DOCIR_CACHE_REFRESH_INTERVAL="${DOCIR_CACHE_REFRESH_INTERVAL:-PT1H}"
 DOCIR_CACHE_PRELOADED_IMAGES="${DOCIR_CACHE_PRELOADED_IMAGES:-[]}"
-DOCIR_CACHE_PULL_IMAGES="${DOCIR_CACHE_PULL_IMAGES:-true}"
-DOCIR_CACHE_LOCAL_REGISTRY="${DOCIR_CACHE_LOCAL_REGISTRY:-127.0.0.1:5000}"
 DOCIR_CACHE_TSHIRT_SIZE="${DOCIR_CACHE_TSHIRT_SIZE:-full}"
 DOCIR_CACHE_FLAVORS="${DOCIR_CACHE_FLAVORS:-postgres babelfishpg}"
-DOCIR_CACHE_COPY_IMAGE="${DOCIR_CACHE_COPY_IMAGE:-/usr/local/bin/docir-cache-copy-image.py}"
 NGINX_ACCESS_LOG="${NGINX_ACCESS_LOG:-/var/log/nginx/access.log}"
 REPOSITORY_PATH="repository$DOCIR_API_PATH"
 IMAGE_URL_PATH="$REPOSITORY_PATH/image-url"
@@ -110,38 +108,7 @@ reconcile() {
       done
   echo "done"
   echo
-  # The cache is ready as soon as the catalog and the resolved images are stored: copying the
-  # images into the local registry can take a while and does not block the operator
   touch /tmp/docir-cache-ready
-  if [ "$DOCIR_CACHE_PULL_IMAGES" = true ]
-  then
-    echo "Copying images into the local registry..."
-    pull_pending_images
-    echo "done"
-    echo
-  fi
-}
-
-# Copy the images resolved but not copied yet into the local registry
-pull_pending_images() {
-  local IMAGE
-  if ! test -s "$STATE_PATH/pending-pulls"
-  then
-    return
-  fi
-  sort -u "$STATE_PATH/pending-pulls" | while read -r IMAGE
-  do
-    echo " * $IMAGE"
-    try_function env TMPDIR="$STATE_PATH" python3 "$DOCIR_CACHE_COPY_IMAGE" \
-      "$IMAGE" "$DOCIR_CACHE_LOCAL_REGISTRY" --dest-http
-    if "$RESULT"
-    then
-      grep -v -xF "$IMAGE" "$STATE_PATH/pending-pulls" > "$STATE_PATH/pending-pulls.new" || true
-      mv "$STATE_PATH/pending-pulls.new" "$STATE_PATH/pending-pulls"
-    else
-      echo "Warning: error while trying to copy image $IMAGE into the local registry" >&2
-    fi
-  done
 }
 
 # The query parameters the operator adds to every catalog request
@@ -275,10 +242,10 @@ image_file() {
 }
 
 # Resolve an image request (normalizing the key: omitted versions and revisions are replaced
-# by the latest of the catalog), store the response and copy the image into the local registry
+# by the latest of the catalog) and store the response
 preload_image() {
   local KEY="$1"
-  local NORMALIZED_KEY BODY FILE TEMP IMAGE
+  local NORMALIZED_KEY BODY FILE TEMP
   NORMALIZED_KEY="$(image_key_tool normalize "$KEY")"
   FILE="$IMAGE_URL_PATH/$(image_file "$NORMALIZED_KEY")"
   if ! test -f "$FILE"
@@ -294,18 +261,6 @@ preload_image() {
       echo "   ! Invalid image returned for $NORMALIZED_KEY: $(head -c 300 "$TEMP")" >&2
       rm -f "$TEMP"
       return 1
-    fi
-    if [ "$DOCIR_CACHE_PULL_IMAGES" = true ]
-    then
-      jq -r '.image.urlDigest' "$TEMP" >> "$STATE_PATH/pending-pulls"
-    fi
-    if [ -n "$DOCIR_CACHE_IMAGE_REGISTRY" ]
-    then
-      jq --arg registry "$DOCIR_CACHE_IMAGE_REGISTRY" '
-        .image.url = ($registry + "/" + (.image.url | sub("^[^/]+/"; "")))
-        | .image.urlDigest = ($registry + "/" + (.image.urlDigest | sub("^[^/]+/"; "")))
-        ' "$TEMP" > "$TEMP.rewritten"
-      mv "$TEMP.rewritten" "$TEMP"
     fi
     printf '%s\n' "$NORMALIZED_KEY" > "$FILE.key"
     mv "$TEMP" "$FILE"

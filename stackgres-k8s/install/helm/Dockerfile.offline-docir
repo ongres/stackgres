@@ -1,6 +1,5 @@
 FROM quay.io/ongres/kubectl AS offline-docir
   COPY stackgres-operator/docir-cache-conciliator.sh /docir-cache-conciliator.sh
-  COPY stackgres-operator/docir-cache-copy-image.py /docir-cache-copy-image.py
   USER root
   RUN mkdir -p /opt/app-root/src
   RUN chmod a+xw /opt/app-root/src
@@ -10,9 +9,8 @@ FROM quay.io/ongres/kubectl AS offline-docir
   ARG DOCIR_USE_PUBLISHED_IMAGES=true
   ARG DOCIR_CACHE_PRELOADED_IMAGES='[]'
   ARG DOCIR_CACHE_LOG_LEVEL=INFO
-  # The images themselves are not copied into the offline image: mirror them in the registry of
-  # the air-gapped system and set `repository.cache.imageRegistry` to rewrite their URLs
-  ENV DOCIR_CACHE_PULL_IMAGES=false
+  # Only the responses of the REST API are stored in the offline image: mirror the images they
+  # resolve in the registry of the air-gapped system
   WORKDIR /opt/app-root/src
   RUN sh /docir-cache-conciliator.sh preload
 

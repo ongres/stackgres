@@ -542,26 +542,17 @@ repository:
     # -- The interval, as an ISO-8601 duration (e.g. `PT1H`, `P1D`) or a number of seconds, between
     #   the refreshes of the catalog and of the preloaded images.
     refreshInterval: PT1H
-    # -- An array of image requests to preload (resolve and copy into the local image registry) using
-    #   the syntax of the cache key of the operator:
+    # -- An array of image requests to resolve in advance using the syntax of the cache key of the
+    #   operator:
     #   `tshirt-size=full&base=<base>[@<version>[@<revision>]]&flavors=<flavor>@<version>[@<revision>][&extensions=<name>[@<version>[@<revision>]]]...[&addons=<name>[@<version>[@<revision>]]]...`
     #   When the version or the revision of a layer is omitted the latest of the catalog is used.
     #   The images requested by the operator are always preloaded.
-    preloadedImages: []
-    # -- When set to `true` the preloaded images are copied into the local image registry hosted by the cache.
-    pullImages: true
-    # -- (string) The address (`<host>[:<port>]`) through which the Pods reach the local image registry hosted by
-    #   the cache. When set the URLs of the resolved images are rewritten to it so that the images are
-    #   pulled from the cache instead of the repository.
     #
-    #   Only changes the URLs stored by the cache: the operator reaches the repository through the
-    #   cache (that the chart configures as its proxy) and already resolves the images to the
-    #   address of the cache Service.
-    imageRegistry:
-    # -- The image of the local image registry hosted by the cache
-    registryImage: docker.io/library/registry:2
-    # -- When set to `true` the cache never reaches the repository and only serves the stored catalog and
-    #   images (for air-gapped systems, see the `build-offline-docir.sh` script of the Helm chart).
+    #   Only the responses of the REST API are cached: the images are pulled by the container
+    #   runtime of the nodes directly from the repository.
+    preloadedImages: []
+    # -- When set to `true` the cache never reaches the repository and only serves the stored catalog
+    #   (for air-gapped systems, see the `build-offline-docir.sh` script of the Helm chart).
     offline: false
     # Section to configure the cache PersistentVolume
     persistentVolume:

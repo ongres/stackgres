@@ -1363,27 +1363,12 @@ spec:
                         items:
                           type: string
                           description: An image request to preload
-                      pullImages:
-                        type: boolean
-                        default: true
-                        description: |
-                          When set to `true` the preloaded images are copied into the local image registry hosted by the cache.
-                      imageRegistry:
-                        type: string
-                        description: |
-                          The address (`<host>[:<port>]`) through which the Pods reach the local image registry hosted by
-                           the cache. When set the URLs of the resolved images are rewritten to it so that the images are
-                           pulled from the cache instead of the repository.
-                      registryImage:
-                        type: string
-                        default: docker.io/library/registry:2
-                        description: The image of the local image registry hosted by the cache
                       offline:
                         type: boolean
                         default: false
                         description: |
-                          When set to `true` the cache never reaches the repository and only serves the stored catalog and
-                           images (for air-gapped systems, see the `build-offline-docir.sh` script of the Helm chart).
+                          When set to `true` the cache never reaches the repository and only serves the stored catalog
+                           (for air-gapped systems, see the `build-offline-docir.sh` script of the Helm chart).
                       persistentVolume:
                         type: object
                         description: Section to configure the cache PersistentVolume
