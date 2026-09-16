@@ -965,6 +965,13 @@ p+h1 {
     position: relative;
 }
 
+/* Swagger UI renders the API title as an h1, but #body-inner h1 is transparent
+   until hugo-learn.js adds the .show class, which happens on page load, long
+   before Swagger UI has fetched the definition and rendered. */
+#ohpen_swagger_ui .info .title {
+    opacity: 1;
+}
+
 #ohpen_swagger_ui .information-container.wrapper {
     display: inline-block;
     width: 80%;
@@ -988,6 +995,16 @@ p+h1 {
 
 #ohpen_swagger_ui pre, #ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header, #ohpen_swagger_ui .swagger-ui table thead tr th, #ohpen_swagger_ui .swagger-ui .scheme-container {
     background: none !important;
+}
+
+/* Swagger UI wraps syntax highlighted examples in a code element, which the
+   theme paints with a light background and its own color, hiding the
+   highlighting on the dark example blocks. */
+#ohpen_swagger_ui pre.microlight code {
+    background: none !important;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
 }
 
 #ohpen_swagger_ui .swagger-ui .opblock .opblock-section-header h4 span:after, #ohpen_swagger_ui .tab li:before, #ohpen_swagger_ui .swagger-ui section .modal-ux h3:before, .toc #TableOfContents li a:after, #TableOfContents a:hover:after, #TableOfContents a:focus:after {
