@@ -395,9 +395,9 @@ public interface DocirUtil {
       List<DocirAddon> currentAddons) {
     return Seq.seq(currentFlavors)
         .filter(flavor -> flavor.getMajor() != null && flavor.getMinor() != null)
-        .flatMap(flavorRevision -> currentBases.stream()
-            .filter(base -> isRequiredBase(flavorRevision, base))
-            .map(base -> Tuple.tuple(flavorRevision, base)))
+        .flatMap(flavorRevision -> findLatestBase(currentBases, flavorRevision)
+            .map(base -> Tuple.tuple(flavorRevision, base))
+            .stream())
         .flatMap(flavorRevision -> currentAddons.stream()
             .filter(addon -> isRequiredAddon(PATRONI_ADDON, flavorRevision.v1, addon))
             .flatMap(patroni -> patroni.getVersions().stream()
@@ -421,6 +421,19 @@ public interface DocirUtil {
         .collect(Collectors.toMap(
             Tuple2::v1,
             Tuple2::v2));
+  }
+
+  /**
+   * The latest revision of the base image the flavor was built on. The catalog tells the name and
+   * the {@code <major>.<minor>} version of the base image a build of the flavor (or of an addon)
+   * was built on but not its revision, so the latest revision available is used: docir composes
+   * the requested image from the layers of the versions and revisions requested (see
+   * {@link DocirMetadataManager#toImageUrlRequest(DocirImageIndex)}).
+   */
+  static Optional<DocirBase> findLatestBase(List<DocirBase> bases, DocirFlavor flavor) {
+    return bases.stream()
+        .filter(base -> isRequiredBase(flavor, base))
+        .max(Comparator.comparing(base -> new DocirRevision(base.getRevision())));
   }
 
   static boolean isRequiredBase(DocirFlavor flavor, DocirBase base) {
