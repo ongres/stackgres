@@ -5,17 +5,23 @@
 
 package io.stackgres.common;
 
+import java.net.URI;
+import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.docir.DocirAddonVersion;
+import io.stackgres.common.docir.DocirBase;
+import io.stackgres.common.docir.DocirUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -70,16 +76,44 @@ public class KubectlUtil {
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 
-  public String getImageName(@NotNull StackGresDbOps dbOps) {
-    return getImageName(StackGresVersion.getStackGresVersion(dbOps));
-  }
-
   public String getImageName(@NotNull StackGresDistributedLogs distributedLogs) {
     return getImageName(StackGresVersion.getStackGresVersion(distributedLogs));
   }
 
   public String getImageName(@NotNull StackGresShardedCluster cluster) {
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
+  }
+
+  /**
+   * The version of the kubectl addon of the StackGres images repository to pin in the status of the
+   * cluster: among the versions built on the base image of the image of the patroni container for
+   * the platform, the one whose minor version is the nearest to the minor version of the Kubernetes
+   * cluster where the operator is running and, among those, the latest build. When the Kubernetes
+   * version could not be detected the latest version available is used.
+   */
+  public Optional<DocirAddonVersion> findAddonVersion(
+      @NotNull URI repositoryUri, @NotNull DocirBase base, @NotNull String os, @NotNull String arch) {
+    final List<DocirAddonVersion> versions = context.getMetadataManager()
+        .getAddonVersions(repositoryUri, DocirUtil.KUBECTL_ADDON, base, os, arch);
+    if (k8sMinorVersion == -1) {
+      return versions.stream().findFirst();
+    }
+    return versions.stream()
+        .min(Comparator.comparing(
+            (DocirAddonVersion version) -> getMinorVersionDistance(version.getVersion())));
+  }
+
+  /**
+   * The distance between the minor version of kubectl and the minor version of the Kubernetes
+   * cluster where the operator is running. A version that has no minor version is the farthest.
+   */
+  private int getMinorVersionDistance(String version) {
+    try {
+      return Math.abs(k8sMinorVersion - Integer.parseInt(version.split("\\.")[1]));
+    } catch (RuntimeException ex) {
+      LOG.debug("Can not extract the minor version of kubectl version {}", version, ex);
+      return Integer.MAX_VALUE;
+    }
   }
 
 }

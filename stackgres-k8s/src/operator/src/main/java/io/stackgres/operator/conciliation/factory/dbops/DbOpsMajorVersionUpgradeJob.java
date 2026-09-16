@@ -266,7 +266,7 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
 
   @Override
   protected String getRunImage(StackGresDbOpsContext context) {
-    return kubectl.getImageName(context.getSource());
+    return kubectl.getImageName(context.getCluster());
   }
 
   @Override

@@ -455,18 +455,29 @@ public interface DocirUtil {
   }
 
   /**
-   * The latest version (and, among builds of the same version, the latest revision) of the addon
-   * built on the base image for the platform.
+   * The versions of the addon built on the base image for the platform, the latest first (and,
+   * among builds of the same version, the latest revision first).
    */
-  static Optional<DocirAddonVersion> findLatestAddonVersion(
+  static List<DocirAddonVersion> getAddonVersions(
       List<DocirAddon> addons, String name, DocirBase base, String os, String arch) {
     return addons.stream()
         .filter(addon -> Objects.equals(addon.getName(), name))
         .flatMap(addon -> addon.getVersions().stream())
         .filter(version -> isCompatibleAddonVersion(base, os, arch, version))
-        .max(Comparator
+        .sorted(Comparator
             .comparing((DocirAddonVersion version) -> StackGresUtil.sortableVersion(version.getVersion()))
-            .thenComparing(version -> new DocirRevision(version.getRevision())));
+            .thenComparing((DocirAddonVersion version) -> new DocirRevision(version.getRevision()))
+            .reversed())
+        .toList();
+  }
+
+  /**
+   * The latest version (and, among builds of the same version, the latest revision) of the addon
+   * built on the base image for the platform.
+   */
+  static Optional<DocirAddonVersion> findLatestAddonVersion(
+      List<DocirAddon> addons, String name, DocirBase base, String os, String arch) {
+    return getAddonVersions(addons, name, base, os, arch).stream().findFirst();
   }
 
   record PostgresMajorMinor(Integer major, Integer minor) {}

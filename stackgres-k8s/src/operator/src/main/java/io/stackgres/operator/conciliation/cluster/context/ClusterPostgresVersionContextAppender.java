@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
@@ -86,6 +87,7 @@ public class ClusterPostgresVersionContextAppender
   private final ClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender;
   private final ClusterObjectStorageContextAppender clusterObjectStorageContextAppender;
   private final ClusterExtensionsContextAppender clusterExtensionsContextAppender;
+  private final KubectlUtil kubectl;
 
   @Inject
   public ClusterPostgresVersionContextAppender(
@@ -95,7 +97,8 @@ public class ClusterPostgresVersionContextAppender
       ClusterDefaultBackupPathContextAppender clusterDefaultBackupPathContextAppender,
       ClusterRestoreBackupContextAppender clusterRestoreBackupContextAppender,
       ClusterObjectStorageContextAppender clusterObjectStorageContextAppender,
-      ClusterExtensionsContextAppender clusterExtensionsContextAppender) {
+      ClusterExtensionsContextAppender clusterExtensionsContextAppender,
+      KubectlUtil kubectl) {
     this.context = context;
     this.eventController = eventController;
     this.clusterPostgresConfigContextAppender = clusterPostgresConfigContextAppender;
@@ -103,6 +106,7 @@ public class ClusterPostgresVersionContextAppender
     this.clusterRestoreBackupContextAppender = clusterRestoreBackupContextAppender;
     this.clusterObjectStorageContextAppender = clusterObjectStorageContextAppender;
     this.clusterExtensionsContextAppender = clusterExtensionsContextAppender;
+    this.kubectl = kubectl;
   }
 
   @Override
@@ -353,9 +357,13 @@ public class ClusterPostgresVersionContextAppender
   /**
    * Pin the latest version of the sidecar addons (see {@link DocirUtil#SIDECAR_ADDONS}) not yet
    * pinned in the status that are built on the same base image and platform of the image of the
-   * patroni container. An addon not available in the repository is skipped (a sidecar that requires
-   * it will fail only if used) and pinned as soon as it becomes available, existing pins are left
-   * untouched so that the images already in use are not changed.
+   * patroni container. The kubectl addon is pinned to the version nearest to the version of the
+   * Kubernetes cluster where the operator is running instead of the latest one (see
+   * {@link KubectlUtil#findAddonVersion(URI, DocirBase, String, String)}), since it is used by the
+   * containers of the SGDbOps and SGBackup Jobs that interact with the Kubernetes API. An addon not
+   * available in the repository is skipped (a sidecar that requires it will fail only if used) and
+   * pinned as soon as it becomes available, existing pins are left untouched so that the images
+   * already in use are not changed.
    */
   private void pinAvailableSidecarAddons(StackGresCluster cluster) {
     final List<String> missingAddons = DocirUtil.SIDECAR_ADDONS.values().stream()
@@ -372,8 +380,13 @@ public class ClusterPostgresVersionContextAppender
     final List<StackGresClusterStatusAddon> addons = new ArrayList<>(
         Optional.ofNullable(cluster.getStatus().getAddons()).orElse(List.of()));
     for (String addon : missingAddons) {
-      final Optional<DocirAddonVersion> addonVersion = context.getMetadataManager()
-          .findLatestAddonVersion(repositoryUri, addon, base, os, arch);
+      final Optional<DocirAddonVersion> addonVersion;
+      if (DocirUtil.KUBECTL_ADDON.equals(addon)) {
+        addonVersion = kubectl.findAddonVersion(repositoryUri, base, os, arch);
+      } else {
+        addonVersion = context.getMetadataManager()
+            .findLatestAddonVersion(repositoryUri, addon, base, os, arch);
+      }
       if (addonVersion.isEmpty()) {
         LOGGER.debug("Addon {} built on base image {} for platform {}/{} not found in repository {},"
             + " it will not be pinned in the status of SGCluster {}.{}",

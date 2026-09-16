@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.fge.jsonpatch.JsonPatchException;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.VersionInfo;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresKeys;
 import io.stackgres.common.StackGresProperty;
@@ -51,6 +54,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -83,6 +87,8 @@ class ClusterPostgresVersionContextAppenderTest {
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.get(Fixtures.registryCluster()).streamOrderedVersions(StackGresContextMock.CONTEXT)
       .findFirst().get();
+
+  private static final String KUBERNETES_VERSION = "v1.33.4";
 
   private ClusterPostgresVersionContextAppender contextAppender;
 
@@ -122,7 +128,8 @@ class ClusterPostgresVersionContextAppenderTest {
         clusterDefaultBackupPathContextAppender,
         clusterRestoreBackupContextAppender,
         clusterObjectStorageContextAppender,
-        clusterExtensionsContextAppender);
+        clusterExtensionsContextAppender,
+        getKubectl(StackGresContextMock.CONTEXT));
   }
 
   @Test
@@ -197,7 +204,8 @@ class ClusterPostgresVersionContextAppenderTest {
         clusterDefaultBackupPathContextAppender,
         clusterRestoreBackupContextAppender,
         clusterObjectStorageContextAppender,
-        clusterExtensionsContextAppender);
+        clusterExtensionsContextAppender,
+        getKubectl(StackGresContextMock.CONTEXT));
 
     contextAppender.appendContext(cluster, contextBuilder);
 
@@ -228,7 +236,8 @@ class ClusterPostgresVersionContextAppenderTest {
         clusterDefaultBackupPathContextAppender,
         clusterRestoreBackupContextAppender,
         clusterObjectStorageContextAppender,
-        clusterExtensionsContextAppender);
+        clusterExtensionsContextAppender,
+        getKubectl(context));
   }
 
   @Test
@@ -749,4 +758,17 @@ class ClusterPostgresVersionContextAppenderTest {
         .get(random.nextInt(validBuggyPostgresVersions.size()));
   }
 
+  /**
+   * A real KubectlUtil over the same catalog of the context, so that the kubectl addon is pinned
+   * to the version nearest to the version of the mocked Kubernetes cluster.
+   */
+  private KubectlUtil getKubectl(StackGresContext context) {
+    KubernetesClient client = Mockito.mock(KubernetesClient.class);
+    Mockito.lenient().when(client.getKubernetesVersion())
+        .thenReturn(new VersionInfo.Builder()
+            .withGitVersion(KUBERNETES_VERSION)
+            .withMinor(KUBERNETES_VERSION.split("\\.")[1])
+            .build());
+    return new KubectlUtil(context, client);
+  }
 }

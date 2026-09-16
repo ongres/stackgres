@@ -166,6 +166,15 @@ public abstract class DocirMetadataManager {
   }
 
   /**
+   * The versions of the addon built on the base image for the platform, the latest first, see
+   * {@link DocirUtil#getAddonVersions(List, String, DocirBase, String, String)}.
+   */
+  public List<DocirAddonVersion> getAddonVersions(
+      URI repositoryUri, String addon, DocirBase base, String os, String arch) {
+    return DocirUtil.getAddonVersions(getAddons(repositoryUri), addon, base, os, arch);
+  }
+
+  /**
    * The latest version of the addon built on the base image for the platform, see
    * {@link DocirUtil#findLatestAddonVersion(List, String, DocirBase, String, String)}.
    */
