@@ -16,10 +16,13 @@ import java.util.List;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.component.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.docir.DocirAddonVersion;
 import io.stackgres.common.docir.DocirBase;
 import io.stackgres.common.docir.DocirMetadataManager;
 import io.stackgres.common.docir.DocirUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -101,6 +104,37 @@ class KubectlUtilTest {
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
+  }
+
+  @Test
+  void testShardedClusterImageNameFromTheCoordinatorCluster() {
+    KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
+    var versionInfo = new VersionInfo.Builder()
+        .withGitVersion("v1.33.4").withMinor("33").build();
+    Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
+    final KubectlUtil kubectl = new KubectlUtil(CONTEXT, mockClient);
+    final StackGresShardedCluster shardedCluster = Fixtures.shardedCluster().loadDefault().get();
+    final StackGresCluster coordinator = Fixtures.cluster().loadDefault().get();
+
+    assertEquals(kubectl.getImageName(coordinator),
+        kubectl.getImageName(shardedCluster, coordinator));
+  }
+
+  @Test
+  void testShardedClusterImageNameWithoutCoordinatorCluster() {
+    KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
+    var versionInfo = new VersionInfo.Builder()
+        .withGitVersion("v1.33.4").withMinor("33").build();
+    Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
+    final KubectlUtil kubectl = new KubectlUtil(CONTEXT, mockClient);
+    final StackGresShardedCluster shardedCluster = Fixtures.shardedCluster().loadDefault().get();
+    final StackGresCluster coordinatorWithoutAddons = Fixtures.cluster().loadDefault().get();
+    coordinatorWithoutAddons.getStatus().setAddons(List.of());
+    final String bundledImageName =
+        kubectl.getImageName(StackGresVersion.getStackGresVersion(shardedCluster));
+
+    assertEquals(bundledImageName, kubectl.getImageName(shardedCluster, null));
+    assertEquals(bundledImageName, kubectl.getImageName(shardedCluster, coordinatorWithoutAddons));
   }
 
   @Test

@@ -198,7 +198,8 @@ public class ShardedDbOpsSecurityUpgradeJob extends AbstractShardedDbOpsJob {
 
   @Override
   protected String getRunImage(StackGresShardedDbOpsContext context) {
-    return kubectl.getImageName(context.getShardedCluster());
+    return kubectl.getImageName(
+        context.getShardedCluster(), context.getFoundCoordinator().orElse(null));
   }
 
   @Override

@@ -133,7 +133,8 @@ public abstract class AbstractShardedDbOpsJob implements ShardedDbOpsJobFactory 
   protected abstract ShardedClusterPath getRunScript();
 
   protected String getSetResultImage(StackGresShardedDbOpsContext context) {
-    return kubectl.getImageName(context.getShardedCluster());
+    return kubectl.getImageName(
+        context.getShardedCluster(), context.getFoundCoordinator().orElse(null));
   }
 
   protected ShardedClusterPath getSetResultScript() {
@@ -341,7 +342,8 @@ public abstract class AbstractShardedDbOpsJob implements ShardedDbOpsJobFactory 
                 .build(),
             new ContainerBuilder()
                 .withName("set-dbops-result")
-                .withImage(kubectl.getImageName(context.getShardedCluster()))
+                .withImage(kubectl.getImageName(
+                    context.getShardedCluster(), context.getFoundCoordinator().orElse(null)))
                 .withImagePullPolicy(getDefaultPullPolicy())
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables

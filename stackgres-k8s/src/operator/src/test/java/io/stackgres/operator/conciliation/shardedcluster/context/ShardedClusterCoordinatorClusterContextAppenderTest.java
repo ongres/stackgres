@@ -5,13 +5,16 @@
 
 package io.stackgres.operator.conciliation.shardedcluster.context;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,21 +39,37 @@ class ShardedClusterCoordinatorClusterContextAppenderTest {
   private ShardedClusterCoordinatorPrimaryEndpointsContextAppender
       shardedClusterCoordinatorPrimaryEndpointsContextAppender;
 
+  @Mock
+  private CustomResourceFinder<StackGresCluster> clusterFinder;
+
   @BeforeEach
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
     contextAppender = new ShardedClusterCoordinatorClusterContextAppender(
         shardedClusterCoordinatorPrimaryEndpointsContextAppender,
+        clusterFinder,
         JsonUtil.jsonMapper());
   }
 
   @Test
   void givenCluster_shouldPass() {
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder, Optional.empty());
     ArgumentCaptor<StackGresCluster> coordinator = ArgumentCaptor.captor();
     verify(contextBuilder).coordinator(coordinator.capture());
+    verify(contextBuilder).foundCoordinatorCluster(Optional.empty());
     verify(shardedClusterCoordinatorPrimaryEndpointsContextAppender).appendContext(
         coordinator.getValue(), contextBuilder);
+  }
+
+  @Test
+  void givenClusterWithCoordinatorCluster_shouldPassTheFoundCoordinatorCluster() {
+    final StackGresCluster foundCoordinator = Fixtures.cluster().loadDefault().get();
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(foundCoordinator));
+    contextAppender.appendContext(cluster, contextBuilder, Optional.empty());
+    verify(contextBuilder).foundCoordinatorCluster(Optional.of(foundCoordinator));
   }
 
 }

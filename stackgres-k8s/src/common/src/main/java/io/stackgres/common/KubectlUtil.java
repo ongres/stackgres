@@ -25,6 +25,7 @@ import io.stackgres.common.docir.DocirUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +82,22 @@ public class KubectlUtil {
   }
 
   public String getImageName(@NotNull StackGresShardedCluster cluster) {
+    return getImageName(StackGresVersion.getStackGresVersion(cluster));
+  }
+
+  /**
+   * The addons of the StackGres images repository are only pinned in the status of the SGClusters,
+   * so the kubectl addon pinned in the status of the coordinator SGCluster is used for the
+   * SGShardedCluster. When the coordinator SGCluster does not exist yet or the kubectl addon is not
+   * pinned in its status yet the image bundled with the operator release is used.
+   */
+  public String getImageName(
+      @NotNull StackGresShardedCluster cluster, @Nullable StackGresCluster coordinator) {
+    if (StackGresUtil.isRegistryEnabled(cluster)
+        && coordinator != null
+        && DocirUtil.hasStatusAddons(coordinator, List.of(DocirUtil.KUBECTL_ADDON))) {
+      return getImageName(coordinator);
+    }
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 

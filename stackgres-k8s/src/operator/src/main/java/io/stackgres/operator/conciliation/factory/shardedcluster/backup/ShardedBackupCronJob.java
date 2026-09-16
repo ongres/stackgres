@@ -232,7 +232,8 @@ public class ShardedBackupCronJob
                     .orElse(null))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
-                .withImage(kubectl.getImageName(cluster))
+                .withImage(kubectl.getImageName(
+                    cluster, context.getFoundCoordinatorCluster().orElse(null)))
                 .withImagePullPolicy(getDefaultPullPolicy())
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(getClusterEnvVars(context))

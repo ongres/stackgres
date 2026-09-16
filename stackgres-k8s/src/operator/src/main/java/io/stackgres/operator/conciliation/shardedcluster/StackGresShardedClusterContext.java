@@ -44,6 +44,13 @@ public interface StackGresShardedClusterContext
 
   StackGresCluster getCoordinator();
 
+  /**
+   * The coordinator SGCluster as found in the Kubernetes cluster (with its status), while
+   * {@link #getCoordinator()} is the one generated from the SGShardedCluster. Empty when the
+   * coordinator SGCluster has not been created yet.
+   */
+  Optional<StackGresCluster> getFoundCoordinatorCluster();
+
   Optional<StackGresInstanceProfile> getCoordinatorProfile();
 
   Optional<StackGresPostgresConfig> getCoordinatorPostgresConfig();
