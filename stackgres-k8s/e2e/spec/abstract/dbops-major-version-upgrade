@@ -119,8 +119,9 @@ reset_cluster_internal() {
   then
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -q -c "$(cat << 'EOF'
 CREATE EXTENSION postgis;
-CREATE MATERIALIZED VIEW test AS
- SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName="EPSG:27582"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName="EPSG:27562"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));
+CREATE TABLE test_gml AS
+ SELECT 'mpoint_7' AS name, ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName="EPSG:27582"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName="EPSG:27562"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>')) AS ewkt;
+CREATE MATERIALIZED VIEW test AS SELECT * FROM test_gml;
 EOF
       )"
   fi
