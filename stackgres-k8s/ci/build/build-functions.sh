@@ -108,7 +108,17 @@ EOF
   fi
 }
 
+# With --local the image is taken as present here and absent from the remote
+# repository, so it is not pulled: --pull always would ask the registry for a tag
+# that is not there and fail. Without it nothing changes and the image is pulled
+# as before.
 copy_from_image() {
+  local SOURCE_IMAGE_IS_LOCAL=false
+  if [ "$1" = --local ]
+  then
+    SOURCE_IMAGE_IS_LOCAL=true
+    shift
+  fi
   [ "$#" -ge 1 ] || false
   local SOURCE_IMAGE_NAME="$1"
   local SOURCE_IMAGE_PLATFORM
@@ -127,7 +137,8 @@ copy_from_image() {
   # previous `--user $(id -u):$(id -g)` behaviour.
   # shellcheck disable=SC2046
   CONTAINER_ID="$(docker_create --platform "$SOURCE_IMAGE_PLATFORM" \
-    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || [ "$SOURCE_IMAGE_IS_LOCAL" = true ] \
+      || printf %s '--pull always') \
     "$SOURCE_IMAGE_NAME")"
   mkdir -p "$DEST"
   docker_cp "$CONTAINER_ID:/project/." "$DEST"
@@ -175,6 +186,92 @@ post_build_in_container() {
   run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "${COMMAND_BUILD_UID:-$BUILD_UID}" "$COMMANDS"
 }
 
+# The artifact paths of the whole build that fall under $1, a cache path.
+#
+# Those paths have to stay in the project directory even though the cache is
+# mounted over them, and it is the artifacts of every module that matter here and
+# not only the ones of the module being built: the java modules install
+# .m2/repository/io/stackgres/stackgres-<module> under the .m2/ they cache, and
+# the modules that consume them (the native ones, the tests) receive them in the
+# project directory from the image of their source module.
+module_cache_artifact_paths() {
+  local CACHE_PATH="${1%/}"
+  jq -r --arg prefix "$CACHE_PATH/" '
+      [ .modules[].artifacts[]? ] | unique | .[]
+      | sub("/+$"; "")
+      | select(startswith($prefix))' \
+    stackgres-k8s/ci/build/target/config.json 2>/dev/null || true
+}
+
+# The --volume options that keep the cache paths of a module across builds. The
+# cache of a module is a list in config.yml, so there is one option per entry,
+# and each entry gets its own directory under BUILD_CACHE_PATH: the modules that
+# declare the same path share the directory, which is the point for the .m2/ of
+# the java modules, while the ones that declare different paths do not end up
+# sharing a single directory under different names.
+#
+# Every artifact path under a cache path then gets an option of its own, mounting
+# it back from the project directory. Docker orders mounts by the depth of their
+# target, so the deeper one wins whatever the order here: the cache keeps the
+# downloads, while what the modules produce stays in the project directory, which
+# is the context their images are built from.
+module_cache_volume_opts() {
+  local CACHE_PATH
+  local ARTIFACT_PATH
+  local SEPARATOR=""
+  for CACHE_PATH in "$@"
+  do
+    CACHE_PATH="${CACHE_PATH%/}"
+    [ -n "$CACHE_PATH" ] || continue
+    printf '%s--volume %s/%s:/project/%s:rw' \
+      "$SEPARATOR" "${BUILD_CACHE_PATH:-$(pwd)}" "$CACHE_PATH" "$CACHE_PATH"
+    SEPARATOR=" "
+    for ARTIFACT_PATH in $(module_cache_artifact_paths "$CACHE_PATH")
+    do
+      printf '%s--volume %s/%s:/project/%s:rw' \
+        "$SEPARATOR" "${PROJECT_PATH:-$(pwd)}" "$ARTIFACT_PATH" "$ARTIFACT_PATH"
+    done
+  done
+}
+
+# Creates the directories of those mounts before docker does. A bind mount of a
+# path that does not exist yet is created by the daemon and owned by root, which
+# the build user the container runs as can then not write into.
+prepare_module_cache() {
+  local CACHE_PATH
+  local ARTIFACT_PATH
+  for CACHE_PATH in "$@"
+  do
+    CACHE_PATH="${CACHE_PATH%/}"
+    [ -n "$CACHE_PATH" ] || continue
+    prepare_mount_directory "${BUILD_CACHE_PATH:-$(pwd)}/$CACHE_PATH"
+    for ARTIFACT_PATH in $(module_cache_artifact_paths "$CACHE_PATH")
+    do
+      prepare_mount_directory "${PROJECT_PATH:-$(pwd)}/$ARTIFACT_PATH"
+      # The mount point of that one inside the cache. An artifact path starts
+      # with the cache path, so this is where the cache mount makes it land.
+      # Without it the daemon creates the directories leading to the mount point
+      # itself, owned by root, inside a cache the build user then can not write.
+      prepare_mount_directory "${BUILD_CACHE_PATH:-$(pwd)}/$ARTIFACT_PATH"
+    done
+  done
+}
+
+prepare_mount_directory() {
+  local DIRECTORY="$1"
+  # An artifact can be a single file, and a bind mount of a file works as long as
+  # the file is there, so leave that one alone.
+  if [ -f "$DIRECTORY" ]
+  then
+    return 0
+  fi
+  if ! mkdir -p "$DIRECTORY" 2>/dev/null
+  then
+    >&2 echo "WARNING: could not create the directory $DIRECTORY. Docker will create it when" \
+      "it mounts it, owned by root, which the build user may not be able to write."
+  fi
+}
+
 run_commands_in_container() {
   [ "$#" -ge 4 ] || false
   local MODULE="$1"
@@ -182,11 +279,17 @@ run_commands_in_container() {
   local BUILD_UID="$3"
   local COMMANDS="$4"
   local MODULE_PATH
+  local MODULE_CACHE_PATHS
   if [ "$COMMANDS" = true ]
   then
     return
   fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_CACHE_PATHS="$(jq -r ".modules[\"$MODULE\"].cache
+        | if . == null then empty elif type == \"array\" then .[] else . end" \
+    stackgres-k8s/ci/build/target/config.json)"
+  # shellcheck disable=SC2086
+  prepare_module_cache $MODULE_CACHE_PATHS
   eval "cat << EOF
 $(
     jq -r ".modules[\"$MODULE\"].build_env | if . != null then . else {} end
@@ -197,11 +300,13 @@ $(
 EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
+  # shellcheck disable=SC2086
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
     --platform "$(docker_platform "${BUILD_PLATFORM:-$(get_platform)}")" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
+    $(module_cache_volume_opts $MODULE_CACHE_PATHS) \
     --workdir /project \
     --user "$BUILD_UID" \
     --env HOME=/tmp \
@@ -468,7 +573,7 @@ build_image() {
       if is_source_for_any_module "$MODULE"
       then
         echo "Already exists locally. Just extracting ..."
-        copy_from_image "$IMAGE_NAME"
+        copy_from_image --local "$IMAGE_NAME"
       else
         echo "Already exists locally."
       fi
@@ -514,7 +619,14 @@ extract() {
   extract_from_image "$IMAGE_NAME" "$@"
 }
 
+# --local as in copy_from_image.
 extract_from_image() {
+  local IMAGE_IS_LOCAL=false
+  if [ "$1" = --local ]
+  then
+    IMAGE_IS_LOCAL=true
+    shift
+  fi
   [ "$#" -ge 2 ] || false
   local IMAGE_NAME="$1"
   shift
@@ -532,7 +644,8 @@ extract_from_image() {
   # `docker cp` (without --archive) writes the files owned by the invoking user,
   # matching the previous `--user $(id -u):$(id -g)` behaviour.
   CONTAINER_ID="$(docker_create --platform "$IMAGE_PLATFORM" \
-    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || [ "$IMAGE_IS_LOCAL" = true ] \
+      || printf %s '--pull always') \
     "$IMAGE_NAME")"
   # Relative artifact paths were resolved against the image WORKDIR by the old
   # in-container `cp`; `docker cp` resolves them against `/`, so prefix WORKDIR.
@@ -863,13 +976,35 @@ get_image_platform() {
   local IMAGE_NAME="$1"
   local IMAGE_MEDIA_TYPE
   local IMAGE_PLATFORM
+  # An image built by this run and never pushed has no RepoDigests, so
+  # retrieve_image_manifest can not complete for it and ends up asking the
+  # registry for a tag that is not there, which fails the build even though the
+  # image is right here. The platform needs no registry at all: it is in the
+  # local docker inspect output, so ask docker first and only fall back to a
+  # manifest when the image is not present locally.
+  if IMAGE_PLATFORM="$(docker_inspect "$IMAGE_NAME" 2>/dev/null \
+    | jq -r '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
+    2>/dev/null)" \
+    && [ -n "$IMAGE_PLATFORM" ] && [ "$IMAGE_PLATFORM" != null/null ]
+  then
+    printf %s "$IMAGE_PLATFORM"
+    return
+  fi
   retrieve_image_manifest "$IMAGE_NAME" > /dev/null
   if IMAGE_PLATFORM="$(jq -r \
     '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Os + "/" + $manifest[0].Architecture' \
     "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
-    2>/dev/null)"
+    2>/dev/null)" \
+    && [ -n "$IMAGE_PLATFORM" ]
   then
     printf %s "$IMAGE_PLATFORM"
+    return
+  fi
+  # Neither the local image nor a manifest of the registry answered, so there is
+  # no platform to report. Returning empty is what this has always done; reading
+  # the missing file only adds jq errors on stderr.
+  if ! [ -s "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" ]
+  then
     return
   fi
   IMAGE_MEDIA_TYPE="$(jq -r '. | type' \

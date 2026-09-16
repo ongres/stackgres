@@ -74,9 +74,8 @@ e2e_test_install() {
   else
     E2E_GRAFANA_VERSION=8.5.13 install_prometheus_operator_for_version 12.8.0
   fi
-  install_operator_previous_version \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  # shellcheck disable=SC2086
+  install_operator_previous_version $(grafana_helm_opts)
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -272,9 +271,8 @@ check_operator_upgrade() {
     return 1
   fi
 
-  upgrade_operator --reset-values \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  # shellcheck disable=SC2086
+  upgrade_operator --reset-values $(grafana_helm_opts)
 
   timeout "$E2E_TIMEOUT" kubectl rollout status -n "$OPERATOR_NAMESPACE" "$(kubectl get deployment -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name)"
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator --sort-by '{.metadata.creationTimestamp}' \

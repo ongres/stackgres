@@ -1,0 +1,47 @@
+#!/bin/sh
+
+#
+# Checks the two I/O isolation mechanisms against the operator the e2e framework
+# installs with the helm chart, that is against the build under test.
+#
+# All the checks live in spec/abstract/io-isolation, which also documents the
+# environment variables and says what runs on which platform. See
+# spec/runbooks/io-isolation-olm for the same checks against an operator
+# installed through the Operator Lifecycle Manager.
+#
+# Usage:
+#
+#     ./e2e --env crc -- runbooks/io-isolation
+#     ./e2e --env kind -- runbooks/io-isolation    # option 2 is skipped
+#
+
+. "$SPEC_PATH/abstract/io-isolation"
+
+e2e_test_extra_hash() {
+  io_isolation_extra_hash
+}
+
+# The operator is already there: the framework installed it before the spec ran,
+# and its SGConfig is the one the helm chart created.
+io_isolation_install_operator() {
+  IO_ISOLATION_SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  IO_ISOLATION_SGCONFIG_NAME=stackgres-operator
+
+  if ! kubectl get sgconfig -n "$IO_ISOLATION_SGCONFIG_NAMESPACE" \
+    "$IO_ISOLATION_SGCONFIG_NAME" > /dev/null 2>&1
+  then
+    >&2 echo "The SGConfig $IO_ISOLATION_SGCONFIG_NAME was not found in namespace" \
+      "$IO_ISOLATION_SGCONFIG_NAMESPACE. This spec expects the operator the framework" \
+      "installs with the helm chart; use runbooks/io-isolation-olm for an OLM install."
+    return 1
+  fi
+
+  IO_ISOLATION_OPERATOR_DESCRIPTION="the helm installed operator $STACKGRES_VERSION"
+  echo "Using $IO_ISOLATION_OPERATOR_DESCRIPTION in namespace $OPERATOR_NAMESPACE"
+}
+
+# Nothing to undo: the operator was not installed by this spec. The feature gate
+# is turned back off by the abstract's e2e_test_uninstall.
+io_isolation_uninstall_operator() {
+  true
+}
