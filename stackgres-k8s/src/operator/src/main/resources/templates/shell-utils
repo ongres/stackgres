@@ -426,7 +426,7 @@ retry_backoff() {
 }
 
 retry_backoff_delay() {
-  local RETRY="${1:0}"
+  local RETRY="${1:-0}"
   printf %s "$(( (RETRY_DELAY << RETRY > RETRY_MAX_DELAY ? RETRY_MAX_DELAY : RETRY_DELAY << RETRY) / 1000 ))"
 }
 
