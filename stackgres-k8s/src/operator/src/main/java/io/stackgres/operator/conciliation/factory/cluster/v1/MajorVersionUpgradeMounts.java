@@ -26,11 +26,15 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.v1.PostgresDataMounts;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterContainerContext> {
+
+  @Inject
+  PostgresDataMounts postgresDataMounts;
 
   @Inject
   PostgresExtensionMounts postgresExtensionMounts;
@@ -47,6 +51,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getRollback)
         .orElse(false)) {
       return ImmutableList.<VolumeMount>builder()
+          .addAll(postgresDataMounts.getVolumeMounts(context))
           .addAll(postgresExtensionMounts.getVolumeMounts(context))
           .addAll(userOverrideMounts.getVolumeMounts(context))
           .build();
@@ -55,6 +60,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
     final var oldClusterContext = getOldClusterContext(context);
 
     return ImmutableList.<VolumeMount>builder()
+        .addAll(postgresDataMounts.getVolumeMounts(context))
         .addAll(postgresExtensionMounts.getVolumeMounts(context))
         .addAll(userOverrideMounts.getVolumeMounts(context))
         .add(
@@ -100,6 +106,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getRollback)
         .orElse(false)) {
       return ImmutableList.<EnvVar>builder()
+          .addAll(postgresDataMounts.getDerivedEnvVars(context))
           .addAll(postgresExtensionMounts.getDerivedEnvVars(context))
           .build();
     }
@@ -108,6 +115,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
     final var oldClusterContext = getOldClusterContext(context);
 
     return ImmutableList.<EnvVar>builder()
+        .addAll(postgresDataMounts.getDerivedEnvVars(context))
         .addAll(postgresExtensionMounts.getDerivedEnvVars(context))
         .add(new EnvVarBuilder()
                 .withName("TARGET_PG_BIN_PATH")
