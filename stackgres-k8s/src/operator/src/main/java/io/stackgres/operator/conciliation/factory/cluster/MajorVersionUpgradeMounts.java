@@ -23,6 +23,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatusBuilder;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -145,13 +146,23 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .build();
   }
 
+  /**
+   * A copy of the cluster with the Postgres version it had before the major version upgrade, used
+   * to derive the paths and the environment variables of the previous Postgres version. The version
+   * is set both in the spec and in the status since the paths are derived from the status (see
+   * {@code ClusterEnvVar.POSTGRES_VERSION}).
+   */
   private ClusterContext getOldClusterContext(ClusterContainerContext context) {
     final StackGresCluster cluster = context.getClusterContext().getCluster();
+    final String oldPostgresVersion = context.getOldPostgresVersion().orElseThrow();
     final StackGresCluster oldCluster = new StackGresClusterBuilder(cluster)
         .withSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
             .withPostgres(new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
-                .withVersion(context.getOldPostgresVersion().orElseThrow())
+                .withVersion(oldPostgresVersion)
                 .build())
+            .build())
+        .withStatus(new StackGresClusterStatusBuilder(cluster.getStatus())
+            .withPostgresVersion(oldPostgresVersion)
             .build())
         .build();
     return new ClusterContext() {
