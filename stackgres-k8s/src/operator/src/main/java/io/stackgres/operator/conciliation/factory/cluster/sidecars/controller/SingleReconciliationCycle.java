@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
@@ -20,9 +21,11 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPathV1;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresModules;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -201,20 +204,24 @@ public class SingleReconciliationCycle implements ContainerFactory<ClusterContai
             .endResourceFieldRef()
             .endValueFrom()
             .build())
+        .addAllToEnv(getPathEnvVars(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
-            .withMountPath(ClusterPathV1.PG_BASE_PATH.path())
+            .withMountPath(isRegistryEnabled(context)
+                ? ClusterPathV2.PG_BASE_PATH.path() : ClusterPathV1.PG_BASE_PATH.path())
             .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath(ClusterPathV1.SSL_PATH.path())
+                .withMountPath(isRegistryEnabled(context)
+                    ? ClusterPathV2.SSL_PATH.path() : ClusterPathV1.SSL_PATH.path())
                 .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-                .withMountPath(ClusterPathV1.SSL_COPY_PATH.path())
+                .withMountPath(isRegistryEnabled(context)
+                    ? ClusterPathV2.SSL_COPY_PATH.path() : ClusterPathV1.SSL_COPY_PATH.path())
                 .build())
         .addAllToVolumeMounts(Optional.of(context.getClusterContext().getConfig().getSpec())
             .map(StackGresConfigSpec::getDeveloper)
@@ -228,4 +235,25 @@ public class SingleReconciliationCycle implements ContainerFactory<ClusterContai
         .build();
   }
 
+  private boolean isRegistryEnabled(ClusterContainerContext context) {
+    return StackGresUtil.isRegistryEnabled(context.getClusterContext().getCluster());
+  }
+
+  /**
+   * The paths of the cluster controller running in this init container are the ones of the images
+   * of the StackGres images repository, as it is for the cluster controller sidecar (see
+   * {@link ClusterController}). Nothing is set when the images bundled with the operator release
+   * are used, since the controller falls back to the paths of such images.
+   */
+  private List<EnvVar> getPathEnvVars(ClusterContainerContext context) {
+    if (!isRegistryEnabled(context)) {
+      return List.of();
+    }
+    return List.of(
+        ClusterPathV2.PG_EXTENSIONS_PATH.envVar(context.getClusterContext()),
+        ClusterPathV2.PG_RELOCATED_LIB_PATH.envVar(context.getClusterContext()),
+        ClusterPathV2.PG_EXTENSIONS_LIB_PATH.envVar(context.getClusterContext()),
+        ClusterPathV2.SSL_PATH.envVar(),
+        ClusterPathV2.SSL_COPY_PATH.envVar());
+  }
 }

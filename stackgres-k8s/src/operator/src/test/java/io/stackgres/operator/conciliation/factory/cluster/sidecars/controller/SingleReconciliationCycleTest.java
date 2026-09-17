@@ -8,10 +8,13 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Container;
+import io.stackgres.common.ClusterPathV2;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRegistry;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
@@ -129,6 +132,41 @@ class SingleReconciliationCycleTest {
         .orElseThrow()
         .getValue();
     Assertions.assertEquals("run-reconciliation-cycle", commandValue);
+  }
+
+  @Test
+  void getContainer_whenRegistryEnabled_shouldMountThePathsOfTheImagesRepository() {
+    final StackGresCluster cluster = getDefaultCluster();
+
+    final Container container = singleReconciliationCycle.getContainer(buildContext(cluster));
+
+    Assertions.assertEquals("/var/db/postgresql", getMountPath(container, "test"));
+    Assertions.assertEquals("/etc/ssl", getMountPath(container, StackGresVolume.POSTGRES_SSL.getName()));
+    Assertions.assertTrue(container.getEnv().stream()
+        .anyMatch(env -> ClusterPathV2.PG_EXTENSIONS_LIB_PATH.name().equals(env.getName())),
+        container.getEnv().toString());
+  }
+
+  @Test
+  void getContainer_whenRegistryDisabled_shouldMountThePathsOfTheBundledImages() {
+    final StackGresCluster cluster = getDefaultCluster();
+    cluster.getSpec().getConfigurations().setRegistry(new StackGresClusterRegistry());
+    cluster.getSpec().getConfigurations().getRegistry().setEnabled(false);
+
+    final Container container = singleReconciliationCycle.getContainer(buildContext(cluster));
+
+    Assertions.assertEquals("/var/lib/postgresql", getMountPath(container, "test"));
+    Assertions.assertTrue(container.getEnv().stream()
+        .noneMatch(env -> ClusterPathV2.PG_EXTENSIONS_LIB_PATH.name().equals(env.getName())),
+        container.getEnv().toString());
+  }
+
+  private String getMountPath(Container container, String volumeName) {
+    return container.getVolumeMounts().stream()
+        .filter(volumeMount -> volumeName.equals(volumeMount.getName()))
+        .findFirst()
+        .orElseThrow()
+        .getMountPath();
   }
 
   private ClusterContainerContext buildContext(StackGresCluster cluster) {
