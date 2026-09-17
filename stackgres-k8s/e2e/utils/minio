@@ -10,6 +10,8 @@ uninstall_minio() {
   MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
   MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
   helm uninstall --namespace "$MINIO_NAMESPACE" "$MINIO_NAME"
+  # The credentials Secret is not part of the chart release, so helm leaves it behind
+  kubectl delete secret --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" --ignore-not-found
 }
 
 install_minio() {
@@ -52,7 +54,22 @@ EOF
       --key="$LOG_PATH/minio-cert.key"
   fi
 
+  # The chart only reads the root credentials from the rootUser and rootPassword
+  # keys, but the tests read them from the accesskey and secretkey keys that the
+  # chart used to generate, so the Secret is created here under both key names
+  # and handed over to the chart as an existing one.
+  MINIO_ACCESS_KEY="$(openssl rand -hex 10)"
+  MINIO_SECRET_KEY="$(openssl rand -hex 20)"
+  kubectl create secret generic -n "$MINIO_NAMESPACE" "$MINIO_NAME" \
+    --from-literal=accesskey="$MINIO_ACCESS_KEY" \
+    --from-literal=secretkey="$MINIO_SECRET_KEY" \
+    --from-literal=rootUser="$MINIO_ACCESS_KEY" \
+    --from-literal=rootPassword="$MINIO_SECRET_KEY" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
   cat << EOF > "$LOG_PATH/minio.yaml"
+mode: standalone
+existingSecret: $MINIO_NAME
 resources:
   requests:
     memory: 128Mi
@@ -63,8 +80,6 @@ buckets:
   - name: $BUCKET_NAME
     policy: none
     purge: true
-readinessProbe:
-  initialDelaySeconds: 5
 EOF
   if [ "$E2E_ENV" = "kind" ]
   then
@@ -94,8 +109,6 @@ EOF
   fi
 
   helm install --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" \
-    "$E2E_PATH/helm/minio-8.0.10.tgz" -f "$LOG_PATH/minio.yaml" \
-    --set-string image.repository=docker.io/minio/minio \
-    --set-string mcImage.repository=docker.io/minio/mc \
+    "$E2E_PATH/helm/minio-5.4.0.tgz" -f "$LOG_PATH/minio.yaml" \
     "$@"
 }

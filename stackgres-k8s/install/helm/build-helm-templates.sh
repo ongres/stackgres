@@ -114,7 +114,7 @@ helm template --namespace default simple \
 rm -rf target/minio
 
 helm template --namespace default minio \
-  ../../e2e/helm/minio-8.0.10.tgz \
+  ../../e2e/helm/minio-5.4.0.tgz \
   --kube-version 1.27 \
   --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
   | grep -v '^ \+namespace: "\?default"\?$' \
