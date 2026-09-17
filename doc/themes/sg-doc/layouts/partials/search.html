@@ -23,6 +23,7 @@
 <script type="text/javascript" src="{{"js/lunr.min.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
 <script type="text/javascript" src="{{"js/auto-complete.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
 <script type="text/javascript">
+    var pageTitle = "{{ .Title }}";
     {{ if .Site.IsMultiLingual }}
         var baseurl = "{{.Site.BaseURL}}{{.Site.LanguagePrefix}}";
     {{ else }}
