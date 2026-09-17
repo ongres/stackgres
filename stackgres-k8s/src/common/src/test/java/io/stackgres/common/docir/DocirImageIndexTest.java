@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatusAddon;
 import io.stackgres.common.fixture.Fixtures;
@@ -132,6 +133,24 @@ class DocirImageIndexTest {
     assertTrue(extensionNamesOf(index.getExtensions()).contains("timescaledb"),
         index.getExtensions().toString());
     assertFalse(extensionNamesOf(index.getOldExtensions()).contains("timescaledb"),
+        index.getOldExtensions().toString());
+  }
+
+  @Test
+  void oldExtensionWithoutVersion_shouldBeResolvedForThePreviousPostgresVersion() {
+    final StackGresCluster oldCluster = Fixtures.cluster().loadDefault().get();
+    oldCluster.getSpec().getPostgres().setVersion("13.15");
+    oldCluster.getStatus().setPostgresVersion("13.15");
+    // The version of an extension is not necessarily set in the spec of the cluster, that is what
+    // is copied in .status.dbOps.majorVersionUpgrade.sourcePostgresExtensions.
+    final StackGresClusterExtension cube = new StackGresClusterExtension();
+    cube.setName("cube");
+    oldCluster.getSpec().getPostgres().setExtensions(List.of(cube));
+
+    final DocirImageIndex index =
+        DocirImageIndex.fromClusters(StackGresContextMock.CONTEXT, cluster, oldCluster);
+
+    assertTrue(extensionNamesOf(index.getOldExtensions()).contains("cube"),
         index.getOldExtensions().toString());
   }
 

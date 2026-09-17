@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.component.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -298,9 +299,29 @@ public class DocirImageIndex {
         oldCluster,
         Seq.seq(Optional.ofNullable(oldCluster.getSpec().getPostgres().getExtensions()))
             .flatMap(List::stream)
-            .map(extension -> context
-                .getMetadataManager()
-                .getExtensionCandidateSameMajorBuild(context, oldCluster, extension, false)));
+            .map(extension -> oldExtensionOf(context, oldCluster, extension)));
+  }
+
+  /**
+   * The extension of the cluster before a major version upgrade resolved for the previous Postgres
+   * version. The version of an extension is not necessarily set in
+   * {@code .spec.postgres.extensions} (the operator resolves it in {@code .status.extensions},
+   * that here holds the extensions resolved for the target Postgres version), in such case the
+   * latest version available for the previous Postgres version is used.
+   */
+  private static DocirExtensionMetadata oldExtensionOf(
+      StackGresContext context,
+      StackGresCluster oldCluster,
+      StackGresClusterExtension extension) {
+    return context.getMetadataManager()
+        .findExtensionCandidateSameMajorBuild(context, oldCluster, extension, false)
+        .or(() -> Optional.of(extension)
+            .filter(anExtension -> anExtension.getVersion() == null)
+            .flatMap(anExtension -> context.getMetadataManager()
+                .findExtensionCandidateAnyVersion(context, oldCluster, anExtension, false)))
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Can not find candidate version of extension "
+                + DocirUtil.getDescription(context, oldCluster, extension, false)));
   }
 
   /**
