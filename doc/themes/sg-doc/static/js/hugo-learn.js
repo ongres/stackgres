@@ -92,29 +92,42 @@ jQuery(document).ready(function() {
     $('.highlightable').scrollTop($('.highlightable').scrollTop() + $('ul.topics > li.parent').position().top);
 
   //SG Version Selector
+  // The option values are the base URLs of the documentation versions. The page with the same
+  // title is looked up in the index of the selected version only when the user changes it.
+  var currentVersionUrl = $('#sgVersion').val();
   $('#sgVersion').on('change', function(){
-    var url = $(this).val(); // get selected value
-    if (url) { // require a URL
-      
-      // Check if content had no translation
-      if(url.includes('not-found')) {
-        $('body').append(`
-          <div id="lightbox" class="show">
-            <div class="overlay close"></div>
-            <div class="message">
-              <strong>Content not found!</strong>
-              <p>The requested content does not exist on the selected version of the docs.</p>
-              <p>Would you like to <a href="` + url + `" title="Go to selected version homepage">visit the Homepage</a>?</p>
-              <a href="javascript:void(0)" class="button white close">Close</a>
-            </div>
-          </div>
-        `)
-
-        $('#sgVersion').val($('#sgVersion option:not(:checked)').val())
-      }
-      else
-        window.location = url; // redirect
+    var select = $(this);
+    var versionUrl = select.val(); // get selected value
+    if (!versionUrl || versionUrl == currentVersionUrl) { // require a different version
+      return false;
     }
+
+    select.prop('disabled', true);
+    findPageInVersion(versionUrl, pageTitle).then(function(uri) {
+      select.prop('disabled', false);
+      if (uri !== undefined) {
+        window.location = uri; // redirect
+        return;
+      }
+
+      // Content had no translation
+      $('body').append(`
+        <div id="lightbox" class="show">
+          <div class="overlay close"></div>
+          <div class="message">
+            <strong>Content not found!</strong>
+            <p>The requested content does not exist on the selected version of the docs.</p>
+            <p>Would you like to <a href="` + versionUrl + `" title="Go to selected version homepage">visit the Homepage</a>?</p>
+            <a href="javascript:void(0)" class="button white close">Close</a>
+          </div>
+        </div>
+      `)
+
+      select.val(currentVersionUrl)
+    }, function() {
+      select.prop('disabled', false);
+      window.location = versionUrl; // index not available, redirect to the version homepage
+    });
     return false;
   })
 
