@@ -42,7 +42,6 @@ import io.stackgres.common.docir.model.Extensions;
 import io.stackgres.common.docir.model.ImageUrl;
 import io.stackgres.common.docir.model.ImageUrlRequest;
 import io.stackgres.common.docir.model.Versions;
-import io.stackgres.common.extension.ExtensionUtil;
 import jakarta.ws.rs.core.UriBuilder;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -294,7 +293,7 @@ public abstract class DocirMetadataManager {
     return findExtensionCandidateSameMajorBuild(context, cluster, extension, detectOs)
         .orElseThrow(
             () -> new IllegalArgumentException("Can not find candidate version of extension "
-                + ExtensionUtil.getDescription(cluster, extension, detectOs)));
+                + DocirUtil.getDescription(context, cluster, extension, detectOs)));
   }
 
   public Optional<DocirExtensionMetadata> findExtensionCandidateSameMajorBuild(

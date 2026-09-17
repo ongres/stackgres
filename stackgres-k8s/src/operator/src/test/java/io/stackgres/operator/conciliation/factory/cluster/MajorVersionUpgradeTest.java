@@ -142,6 +142,9 @@ class MajorVersionUpgradeTest {
     if (cluster.getStatus() == null) {
       cluster.setStatus(new StackGresClusterStatus());
     }
+    // The SGDbOps sets the target version in the spec of the SGCluster before the upgrade is
+    // performed, so the previous version is only available in the status.
+    cluster.getSpec().getPostgres().setVersion(targetVersion);
     cluster.getStatus().setPostgresVersion(targetVersion);
     if (cluster.getStatus().getDbOps() == null) {
       cluster.getStatus().setDbOps(new StackGresClusterDbOpsStatus());

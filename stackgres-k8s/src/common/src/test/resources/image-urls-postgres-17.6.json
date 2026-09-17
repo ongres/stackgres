@@ -106,5 +106,17 @@
       "flavor": null,
       "addons": null
     }
+  },
+  "tshirt-size=full&base=ubi@9.4@10&flavors=postgres@17.6@12&extensions=auto_explain@17.6@10&extensions=dblink@17.6@10&extensions=pg_stat_statements@17.6@10&extensions=plpython3u@1.0.0@10&flavors=postgres@15.8@12&extensions=auto_explain@15.8@10&extensions=dblink@15.8@10&extensions=pg_stat_statements@15.8@10&extensions=plpython3u@1.0.0@10&addons=patroni@3.3.3@12&addons=wal-g@3.0.3@12&addons=hdrhistogram@0.10.7@12": {
+    "image": {
+      "url": "localhost:5001/stackgres/postgres--17.6--12/15.8--12/b/ubi--9.4--10/a/patroni--3.3.3--12/wal-g--3.0.3--12/hdrhistogram--0.10.7--12",
+      "urlDigest": "localhost:5001/stackgres@sha256:2e3d4c5b6a79880716253443526170f0e1d2c3b4a5968778695a4b3c2d1e0f1a",
+      "imageId": null,
+      "platforms": null,
+      "revision": "12",
+      "base": null,
+      "flavor": null,
+      "addons": null
+    }
   }
 }

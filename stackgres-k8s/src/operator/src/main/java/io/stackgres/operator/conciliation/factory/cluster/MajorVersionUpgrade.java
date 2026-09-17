@@ -114,7 +114,7 @@ public class MajorVersionUpgrade implements ContainerFactory<ClusterContainerCon
         .build();
     final String targetPatroniImageName = clusterContext.getContext()
         .getMetadataManager()
-        .getMajorUpgradeImage(clusterContext.getContext(), clusterContext.getSource(), oldCluster);
+        .getMajorUpgradeImage(clusterContext.getContext(), oldCluster, clusterContext.getSource());
 
     final ClusterContainerContext majorVersoinUpgradeContainerContext =
         ImmutableClusterContainerContext.builder()
