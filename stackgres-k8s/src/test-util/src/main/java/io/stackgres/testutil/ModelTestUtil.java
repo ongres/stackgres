@@ -237,6 +237,75 @@ public class ModelTestUtil {
     }
   }
 
+  public static void assertJsonAdditionalProperties(Class<?> targetClazz) {
+    visit(new CheckJsonAdditionalPropertiesVisitor(), targetClazz);
+  }
+
+  /**
+   * Asserts that the models are able to hold JSON properties they do not declare, so that a
+   * deserialize/serialize round trip does not drop them. Models either inherit the catch-all from
+   * io.stackgres.common.AdditionalProperties or, when they extend a generated fabric8 model, from
+   * that model. Models that are themselves a Map or a List are already open and are skipped.
+   */
+  public static class CheckJsonAdditionalPropertiesVisitor implements ResourceVisitor<Void> {
+    @Override
+    public Void onObject(Class<?> clazz, List<Field> fields) {
+      if (clazz.getPackage().getName().startsWith("io.stackgres.")
+          && !Map.class.isAssignableFrom(clazz)
+          && !List.class.isAssignableFrom(clazz)
+          && !isCustomResourceRoot(clazz)) {
+        Method getter = null;
+        try {
+          getter = clazz.getMethod("getAdditionalProperties");
+        } catch (NoSuchMethodException ex) {
+          getter = null;
+        }
+        assertNotNull(getter,
+            "Method getAdditionalProperties() is not present for class " + clazz.getName()
+            + ", it should extend io.stackgres.common.AdditionalProperties");
+        assertTrue(Map.class.isAssignableFrom(getter.getReturnType()),
+            "Method getAdditionalProperties() of class " + clazz.getName()
+            + " does not return a Map");
+      }
+      for (Field field : fields) {
+        visit(this, field.getType(), field.getGenericType());
+      }
+      return null;
+    }
+
+    @Override
+    public Void onList(Class<?> clazz, Class<?> elementClazz) {
+      return visit(this, elementClazz);
+    }
+
+    @Override
+    public Void onMap(Class<?> clazz, Class<?> keyClazz, Class<?> valueClazz, Type genericType) {
+      return visit(this, valueClazz, genericType);
+    }
+
+    @Override
+    public Void onValue(Class<?> clazz) {
+      return null;
+    }
+
+    /**
+     * The root of a custom resource extends io.fabric8.kubernetes.client.CustomResource, which
+     * provides no catch-all and cannot be changed. Its properties are apiVersion, kind, metadata,
+     * spec and status, and all of them are covered by the models they point at, so there is nothing
+     * left to capture at that level.
+     */
+    private boolean isCustomResourceRoot(Class<?> clazz) {
+      for (var currentClazz = clazz.getSuperclass();
+          currentClazz != null && currentClazz != Object.class;
+          currentClazz = currentClazz.getSuperclass()) {
+        if ("io.fabric8.kubernetes.client.CustomResource".equals(currentClazz.getName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
   public static <T> T createWithRandomData(Class<T> targetClazz) {
     return visit(new RandomDataVisitor<>(Optional.empty()), targetClazz);
   }
