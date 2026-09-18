@@ -5,9 +5,11 @@ import io.stackgres.slon.SlonSystem;
 import io.stackgres.slon.ssl.TlsCertificates;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Comparator;
 import java.util.Set;
 
 import static java.nio.file.attribute.PosixFilePermission.*;
@@ -36,6 +38,19 @@ public class PostgresProcesses extends Processes {
 
     @Override
     public void initDb() {
+        // Idempotent by probing reality (§10.1): slon keeps no ledger, so the matriarch can safely
+        // re-send a command whose outcome it is unsure about (e.g. after a dropped stream). PG_VERSION
+        // present means the data dir is already initialized — a no-op, not an initdb error.
+        if (Files.exists(PGDATA.resolve("PG_VERSION"))) {
+            logger.log(System.Logger.Level.INFO, "PGDATA already initialized (PG_VERSION present) — skipping initdb");
+            return;
+        }
+        // Non-empty PGDATA without PG_VERSION is an interrupted initdb; clear it so initdb can rerun
+        // (initdb refuses a non-empty target). Only reached when the dir was never a complete data dir.
+        if (isNonEmpty(PGDATA)) {
+            logger.log(System.Logger.Level.WARNING, "PGDATA non-empty but uninitialized (interrupted initdb) — clearing and reinitializing");
+            clearDirectory(PGDATA);
+        }
         Path file;
         try {
             file = writePasswordFile();
@@ -45,6 +60,34 @@ public class PostgresProcesses extends Processes {
         ProcessBuilder processBuilder = new ProcessBuilder("initdb", "--username=" + username, "--pwfile=" + file.toAbsolutePath());
         processBuilder.environment().put("PGDATA", "/postgres/data");
         runCommand(processBuilder);
+    }
+
+    private static boolean isNonEmpty(Path dir) {
+        if (!Files.isDirectory(dir)) {
+            return false;
+        }
+        try (var entries = Files.list(dir)) {
+            return entries.findAny().isPresent();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /** Delete the directory's contents, keeping the (mounted) directory itself, so initdb can rerun. */
+    private static void clearDirectory(Path dir) {
+        try (var paths = Files.walk(dir)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .filter(p -> !p.equals(dir))
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    });
+        } catch (IOException | UncheckedIOException e) {
+            throw new RuntimeException("Failed to clear PGDATA " + dir, e);
+        }
     }
 
     private Path writePasswordFile() throws IOException {
@@ -73,6 +116,12 @@ public class PostgresProcesses extends Processes {
     }
 
     public void startPostgres(String port) {
+        // Idempotent: if Postgres is already accepting connections a re-sent StartDb is a no-op (pg_ctl
+        // start would otherwise error with "another server might be running").
+        if (healthcheck(port)) {
+            logger.log(System.Logger.Level.INFO, "Postgres already accepting connections on port {0} — skipping start", port);
+            return;
+        }
         prepareCsvlogDir();
         String options = "-c listen_addresses='" + listenAddress + "' -p " + port;
         if (tlsEnabled)
@@ -93,6 +142,12 @@ public class PostgresProcesses extends Processes {
 
     @Override
     public void stopPostgres() {
+        // Idempotent: no postmaster.pid means nothing to stop; a re-sent StopDb is a no-op (pg_ctl stop
+        // would otherwise error with "PID file does not exist").
+        if (!Files.exists(PGDATA.resolve("postmaster.pid"))) {
+            logger.log(System.Logger.Level.INFO, "Postgres not running (no postmaster.pid) — skipping stop");
+            return;
+        }
         runCommand(new ProcessBuilder("pg_ctl", "-D", "/postgres/data", "-m", "smart", "-w", "stop"));
     }
 
