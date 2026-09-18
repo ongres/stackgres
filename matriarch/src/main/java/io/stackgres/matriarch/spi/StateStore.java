@@ -2,6 +2,7 @@ package io.stackgres.matriarch.spi;
 
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.spec.ClusterSpec;
+import io.stackgres.matriarch.model.spec.RunIntent;
 
 import java.util.List;
 
@@ -68,5 +69,36 @@ public interface StateStore {
      * The cluster's stored superuser password, or {@code null} if none.
      */
     String getCredential(ClusterId id);
+
+    /**
+     * The cluster's desired run intent (§3.6): {@link RunIntent#RUNNING} unless explicitly stopped,
+     * {@link RunIntent#DELETING} while teardown is in flight. This is durable intent — a stop/start
+     * must survive a crash — so it lives here, not (only) in the observed {@link StatusCache}.
+     * Defaults to {@link RunIntent#RUNNING} for a cluster with no recorded intent. Cleared by
+     * {@link #deleteDesired}.
+     */
+    RunIntent getDesiredRun(ClusterId id);
+
+    /**
+     * Record the cluster's desired run intent. The core validates the transition
+     * ({@link RunIntent#canTransitionTo}) before calling — the store only persists the fact.
+     */
+    void setDesiredRun(ClusterId id, RunIntent intent);
+
+    /**
+     * Whether the cluster has ever been provisioned onto a substrate — a durable fact that
+     * <strong>cannot be re-derived by observation</strong> when no agent currently reports it, so it
+     * must be persisted (unlike the observed {@link StatusCache}). {@code false} for a freshly created
+     * cluster still awaiting provisioning. Lets {@code reconcile()} tell a never-provisioned cluster
+     * (provision it) from an adopted one whose host is briefly disconnected (leave it alone — never
+     * re-initialize). Defaults to {@code false} for an unknown cluster; cleared by {@link #deleteDesired}.
+     */
+    boolean isProvisioned(ClusterId id);
+
+    /**
+     * Latch that the cluster now exists on a substrate (observed HEALTHY/STOPPED, or reported by an
+     * agent at registration). Idempotent; write-once in effect.
+     */
+    void markProvisioned(ClusterId id);
 
 }

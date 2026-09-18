@@ -2,11 +2,13 @@ package io.stackgres.matriarch.store;
 
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.spec.ClusterSpec;
+import io.stackgres.matriarch.model.spec.RunIntent;
 import io.stackgres.matriarch.spi.StateStore;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -20,6 +22,8 @@ public class InMemoryStateStore implements StateStore {
     private final Map<ClusterId, ClusterSpec> desired = new ConcurrentHashMap<>();
     private final Map<String, ClusterId> idempotency = new ConcurrentHashMap<>();
     private final Map<ClusterId, String> credentials = new ConcurrentHashMap<>();
+    private final Map<ClusterId, RunIntent> desiredRun = new ConcurrentHashMap<>();
+    private final Set<ClusterId> provisioned = ConcurrentHashMap.newKeySet();
 
     @Override
     public ClusterSpec getDesired(ClusterId id) {
@@ -53,6 +57,8 @@ public class InMemoryStateStore implements StateStore {
     public void deleteDesired(ClusterId id) {
         desired.remove(id);
         credentials.remove(id);
+        desiredRun.remove(id);
+        provisioned.remove(id);
         // A deleted cluster's idempotency keys must not linger, or a later create with the same key
         // (e.g. the same name) would match a cluster that no longer exists.
         idempotency.values().removeIf(id::equals);
@@ -76,6 +82,26 @@ public class InMemoryStateStore implements StateStore {
     @Override
     public boolean recordIdempotency(String key, ClusterId clusterId) {
         return idempotency.putIfAbsent(key, clusterId) == null;
+    }
+
+    @Override
+    public RunIntent getDesiredRun(ClusterId id) {
+        return desiredRun.getOrDefault(id, RunIntent.RUNNING);
+    }
+
+    @Override
+    public void setDesiredRun(ClusterId id, RunIntent intent) {
+        desiredRun.put(id, intent);
+    }
+
+    @Override
+    public boolean isProvisioned(ClusterId id) {
+        return provisioned.contains(id);
+    }
+
+    @Override
+    public void markProvisioned(ClusterId id) {
+        provisioned.add(id);
     }
 
 }
