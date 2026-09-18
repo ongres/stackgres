@@ -35,6 +35,8 @@ public class StackGresClusterUpdateStrategy extends AdditionalProperties {
 
   private List<@Valid StackGresClusterUpdateStrategySchedule> schedule;
 
+  private String restartDelay;
+
   public String getType() {
     return type;
   }
@@ -59,9 +61,17 @@ public class StackGresClusterUpdateStrategy extends AdditionalProperties {
     this.schedule = schedule;
   }
 
+  public String getRestartDelay() {
+    return restartDelay;
+  }
+
+  public void setRestartDelay(String restartDelay) {
+    this.restartDelay = restartDelay;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(method, schedule, type);
+    return Objects.hash(method, restartDelay, schedule, type);
   }
 
   @Override
@@ -73,8 +83,8 @@ public class StackGresClusterUpdateStrategy extends AdditionalProperties {
       return false;
     }
     StackGresClusterUpdateStrategy other = (StackGresClusterUpdateStrategy) obj;
-    return Objects.equals(method, other.method) && Objects.equals(schedule, other.schedule)
-        && Objects.equals(type, other.type);
+    return Objects.equals(method, other.method) && Objects.equals(restartDelay, other.restartDelay)
+        && Objects.equals(schedule, other.schedule) && Objects.equals(type, other.type);
   }
 
   @Override
