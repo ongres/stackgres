@@ -7,9 +7,10 @@ package io.stackgres.apiweb.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.AdditionalProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class ResourceDto {
+public abstract class ResourceDto extends AdditionalProperties {
 
   private String apiVersion;
 

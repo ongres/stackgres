@@ -9,11 +9,12 @@ import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsPgbenchStatusStatementLatency {
+public class DbOpsPgbenchStatusStatementLatency extends AdditionalProperties {
 
   private Integer script;
 

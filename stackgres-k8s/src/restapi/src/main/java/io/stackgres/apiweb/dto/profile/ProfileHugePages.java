@@ -8,11 +8,12 @@ package io.stackgres.apiweb.dto.profile;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ProfileHugePages {
+public class ProfileHugePages extends AdditionalProperties {
 
   @JsonProperty("hugepages-2Mi")
   private String hugepages2Mi;

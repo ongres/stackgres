@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.PodAffinity;
@@ -18,7 +19,7 @@ import io.stackgres.common.crd.Toleration;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsSpecScheduling {
+public class DbOpsSpecScheduling extends AdditionalProperties {
 
   private Map<String, String> nodeSelector;
 

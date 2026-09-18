@@ -7,11 +7,12 @@ package io.stackgres.apiweb.dto.profile;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ProfileContainer {
+public class ProfileContainer extends AdditionalProperties {
 
   private String cpu;
 

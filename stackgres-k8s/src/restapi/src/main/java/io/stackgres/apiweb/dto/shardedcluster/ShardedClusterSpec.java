@@ -10,11 +10,12 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterNonProductionOptions;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterSpec {
+public class ShardedClusterSpec extends AdditionalProperties {
 
   private String profile;
 

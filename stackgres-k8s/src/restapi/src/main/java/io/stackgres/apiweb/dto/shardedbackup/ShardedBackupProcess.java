@@ -7,11 +7,12 @@ package io.stackgres.apiweb.dto.shardedbackup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedBackupProcess {
+public class ShardedBackupProcess extends AdditionalProperties {
 
   private String status;
   private String jobPod;
