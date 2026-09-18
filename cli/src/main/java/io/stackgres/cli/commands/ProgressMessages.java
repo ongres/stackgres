@@ -44,24 +44,48 @@ public class ProgressMessages {
             status = Status.RUNNING;
         }
 
-        commandLine.getOut().print("\033[" + printedLines + "A"); // go n lines up
+        final String glyph;
         if (status == Status.SUCCESS)
-            commandLine.getOut().print(AUTO.string("@|green ✓|@ "));
+            glyph = AUTO.string("@|green ✓|@ ");
         else if (status == Status.WARNING)
-            commandLine.getOut().print(AUTO.string("@|yellow ⚠|@ "));
+            glyph = AUTO.string("@|yellow ⚠|@ ");
         else if (status == Status.FAILED)
-            commandLine.getOut().print(AUTO.string("@|red ✗|@ "));
+            glyph = AUTO.string("@|red ✗|@ ");
         else {
-            commandLine.getOut().print(spinnerChars[index] + " ");
+            glyph = spinnerChars[index] + " ";
             index = (index + 1) % spinnerChars.length;
         }
+
+        final List<String> rows;
         try {
             lock.readLock().lock();
-            messages.forEach(commandLine.getOut()::println);
-            printedLines = messages.size();
+            rows = new ArrayList<>(messages);
         } finally {
             lock.readLock().unlock();
         }
+        if (rows.isEmpty())
+            rows.add("");
+        rows.set(0, glyph + rows.get(0)); // the status glyph rides the first line
+
+        var out = commandLine.getOut();
+        out.print("\033[" + printedLines + "A"); // to the top of the block drawn last time
+        for (String row : rows) {
+            // "\033[K" clears from the cursor to the end of the line, so a shorter redraw — an error
+            // collapsing several lines to one, or the short tail of a line overwriting a longer previous
+            // one (incl. the last row of a wrapped line) — leaves no stale characters behind.
+            out.print(row);
+            out.print("\033[K");
+            out.print("\n");
+        }
+        // If the block shrank (e.g. a failure replaced many lines with one), clear the rows it no longer
+        // uses, then step the cursor back up so it rests just after the current content.
+        int stale = printedLines - rows.size();
+        for (int i = 0; i < stale; i++)
+            out.print("\033[K\n");
+        if (stale > 0)
+            out.print("\033[" + stale + "A");
+        out.flush();
+        printedLines = rows.size();
     }
 
     public void add(String message) {
@@ -117,15 +141,25 @@ public class ProgressMessages {
     }
 
     public void failed(String error) {
-        status = Status.FAILED;
-        replace(Strings.errorAnsi(error));
-        stopAndDisplayStatus();
+        finishFailed(error);
     }
 
     public void failedAddFirstLine(String error) {
+        finishFailed(error);
+    }
+
+    /**
+     * Finalize a failed operation: flip the block's status line to ✗ and repaint the block (which holds
+     * only short status/info lines — no wrapping), then print the error as STATIC output BELOW the block.
+     * Keeping the error out of the redrawn block is what lets an arbitrarily long message (e.g. an image
+     * pull error) wrap cleanly: a spinner line is repainted by moving the cursor up N lines, which can't
+     * line up once the terminal soft-wraps a long line — so a long error inside the block leaves stale
+     * characters behind. As plain output below the finalized block it just wraps like any normal text.
+     */
+    private void finishFailed(String error) {
         status = Status.FAILED;
-        addFirst(Strings.errorAnsi(error));
         stopAndDisplayStatus();
+        commandLine.getOut().println(Strings.errorAnsi(error));
     }
 
     private void addFirst(String message) {
