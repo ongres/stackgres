@@ -7,13 +7,14 @@ package io.stackgres.apiweb.dto.stream;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class StreamTargetPgLambdaScriptFrom {
+public class StreamTargetPgLambdaScriptFrom extends AdditionalProperties {
 
   private SecretKeySelector secretKeyRef;
 

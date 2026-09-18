@@ -10,12 +10,13 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.postgres.service.PostgresService;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomServicePort;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterPostgresCoordinatorServices {
+public class ShardedClusterPostgresCoordinatorServices extends AdditionalProperties {
 
   private PostgresService any;
 

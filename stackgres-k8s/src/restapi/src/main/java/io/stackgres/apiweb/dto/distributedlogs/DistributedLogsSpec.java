@@ -15,11 +15,12 @@ import io.stackgres.apiweb.dto.cluster.ClusterPodsPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPodsScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterResources;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DistributedLogsSpec {
+public class DistributedLogsSpec extends AdditionalProperties {
 
   private String profile;
 

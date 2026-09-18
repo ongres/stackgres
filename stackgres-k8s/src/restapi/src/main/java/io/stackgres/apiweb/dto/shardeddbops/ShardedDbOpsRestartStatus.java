@@ -9,10 +9,11 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedDbOpsRestartStatus {
+public class ShardedDbOpsRestartStatus extends AdditionalProperties {
 
   private List<String> pendingToRestartSgClusters;
 

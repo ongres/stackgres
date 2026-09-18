@@ -13,11 +13,12 @@ import io.stackgres.apiweb.dto.cluster.ClusterCredentials;
 import io.stackgres.apiweb.dto.cluster.ClusterObservability;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresExporter;
 import io.stackgres.apiweb.dto.cluster.ClusterServiceBinding;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterConfigurations {
+public class ShardedClusterConfigurations extends AdditionalProperties {
 
   private List<ShardedClusterBackupConfiguration> backups;
 
