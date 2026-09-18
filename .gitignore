@@ -179,3 +179,6 @@ cli/bundle/stackgres-*.sh
 
 # shellspec reports
 stackgres-k8s/ci/build/test/report/
+
+# Matriarch local DB
+matriarch.db*

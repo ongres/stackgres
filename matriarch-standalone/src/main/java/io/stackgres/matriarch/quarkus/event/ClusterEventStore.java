@@ -4,49 +4,33 @@ import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.ClusterId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 /**
- * Bounded in-memory history of the domain {@link ClusterEvent}s the matriarch raises, per cluster,
- * so {@code GetClusterEvents} can serve a snapshot. Subscribes to the same CDI channel as
- * {@link EventLogger}. Not durable — the history covers only this matriarch session (a durable
- * event log lands with the durable StateStore).
+ * Subscribes to the domain {@link ClusterEvent}s the matriarch raises and records a per-cluster history
+ * for {@code GetClusterEvents}. Storage is delegated to a pluggable {@link ClusterEventLog} — in-memory
+ * (dev) or a durable SQLite file (survives a restart) — a separate, bounded, best-effort log, never the
+ * source-of-truth state store.
  */
 @ApplicationScoped
 public class ClusterEventStore {
 
-    private static final int MAX_PER_CLUSTER = 500;
-
-    private final Map<ClusterId, Deque<ClusterEvent>> byCluster = new ConcurrentHashMap<>();
+    @Inject
+    ClusterEventLog log;
 
     void onClusterEvent(@Observes ClusterEvent event) {
         if (event instanceof ClusterEvent.ClusterDeleted) {
-            // The cluster (and its name) is gone — its history is no longer queryable by name, so drop it.
-            byCluster.remove(event.clusterId());
+            // The cluster (and its name) is gone — its history is no longer queryable, so drop it.
+            log.deleteFor(event.clusterId());
             return;
         }
-        Deque<ClusterEvent> deque = byCluster.computeIfAbsent(event.clusterId(), k -> new ArrayDeque<>());
-        synchronized (deque) {
-            deque.addLast(event);
-            while (deque.size() > MAX_PER_CLUSTER) {
-                deque.removeFirst();
-            }
-        }
+        log.append(event);
     }
 
-    /**
-     * Chronological snapshot of a cluster's events (empty if the cluster is unknown).
-     */
+    /** Chronological snapshot of a cluster's events (empty if the cluster is unknown). */
     public List<ClusterEvent> events(ClusterId id) {
-        Deque<ClusterEvent> deque = byCluster.get(id);
-        if (deque == null) {
-            return List.of();
-        }
-        synchronized (deque) {
-            return new ArrayList<>(deque);
-        }
+        return log.events(id);
     }
-
 }
