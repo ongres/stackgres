@@ -1025,6 +1025,12 @@ spec:
                           
                           * `InPlace`: update will be performed on the existing instances.
                           * `ReducedImpact`: before an update is performed on the existing instances a new instance if created to reduce the impact on read-only replicas.
+                      restartDelay:
+                        type: string
+                        default: PT5M
+                        description: |
+                          An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass between the restart of a
+                           Postgres instance performed by the SGCluster controller and the next one. Default is `PT5M`.
                       schedule:
                         type: array
                         description: Indicates a list of windows of time where an update can be performed.
