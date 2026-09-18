@@ -5,7 +5,9 @@
 
 package io.stackgres.apiweb.dto.dbops;
 
-public abstract class DbOpsRepackConfig {
+import io.stackgres.common.AdditionalProperties;
+
+public abstract class DbOpsRepackConfig extends AdditionalProperties {
 
   protected Boolean noOrder;
 
