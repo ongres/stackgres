@@ -10,12 +10,13 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterReplication {
+public class ClusterReplication extends AdditionalProperties {
 
   private String mode;
 

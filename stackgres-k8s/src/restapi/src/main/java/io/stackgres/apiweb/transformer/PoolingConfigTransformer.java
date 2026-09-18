@@ -78,7 +78,12 @@ public class PoolingConfigTransformer
       return null;
     }
     StackGresPoolingConfigSpec transformation = new StackGresPoolingConfigSpec();
+    transformation.setAdditionalProperties(source.getAdditionalProperties());
     transformation.setPgBouncer(new StackGresPoolingConfigPgBouncer());
+    Optional.of(source)
+        .map(PoolingConfigSpec::getPgBouncer)
+        .map(PoolingConfigPgBouncer::getAdditionalProperties)
+        .ifPresent(transformation.getPgBouncer()::setAdditionalProperties);
 
     Optional<PoolingConfigPgBouncer> pgbouncer =
         Optional.of(source).map(PoolingConfigSpec::getPgBouncer);
@@ -163,7 +168,11 @@ public class PoolingConfigTransformer
 
   private PoolingConfigSpec getResourceSpec(StackGresPoolingConfigSpec source) {
     PoolingConfigSpec transformation = new PoolingConfigSpec();
+    transformation.setAdditionalProperties(source.getAdditionalProperties());
     transformation.setPgBouncer(new PoolingConfigPgBouncer());
+    Optional.ofNullable(source.getPgBouncer())
+        .map(StackGresPoolingConfigPgBouncer::getAdditionalProperties)
+        .ifPresent(transformation.getPgBouncer()::setAdditionalProperties);
 
     INIConfiguration ini = new INIConfiguration();
     StackGresPoolingConfigPgBouncer pgBouncer = source.getPgBouncer();

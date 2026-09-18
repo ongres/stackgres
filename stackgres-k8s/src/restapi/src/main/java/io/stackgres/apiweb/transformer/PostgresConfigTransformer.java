@@ -60,6 +60,7 @@ public class PostgresConfigTransformer
       return null;
     }
     StackGresPostgresConfigSpec transformation = new StackGresPostgresConfigSpec();
+    transformation.setAdditionalProperties(source.getAdditionalProperties());
     transformation.setPostgresVersion(source.getPostgresVersion());
     final String postgresqlConf = source.getPostgresqlConf();
     if (postgresqlConf != null) {
@@ -74,6 +75,7 @@ public class PostgresConfigTransformer
       return null;
     }
     PostgresConfigSpec transformation = new PostgresConfigSpec();
+    transformation.setAdditionalProperties(source.getAdditionalProperties());
     transformation.setPostgresVersion(source.getPostgresVersion());
     transformation.setPostgresqlConf(
         StackGresUtil.toPlainPostgresConfig(source.getPostgresqlConf()));

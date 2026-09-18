@@ -13,11 +13,12 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterServiceBindingStatus;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterStatus {
+public class ShardedClusterStatus extends AdditionalProperties {
 
   private List<ClusterCondition> conditions = new ArrayList<>();
 

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomEnvFromSource;
@@ -23,7 +24,7 @@ import io.stackgres.common.crd.CustomVolumeMount;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 //TODO remove once the UI has fixes the sending metadata in this object
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClusterPods {
+public class ClusterPods extends AdditionalProperties {
 
   private ClusterPodsPersistentVolume persistentVolume;
 

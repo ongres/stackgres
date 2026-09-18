@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Affinity;
 import io.stackgres.common.crd.ResourceRequirements;
@@ -17,7 +18,7 @@ import io.stackgres.common.crd.Toleration;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigCollectorReceiverDeployment {
+public class ConfigCollectorReceiverDeployment extends AdditionalProperties {
 
   private List<ConfigCollectorReceiverDeploymentSgCluster> sgClusters;
 
