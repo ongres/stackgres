@@ -11,6 +11,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
@@ -22,7 +23,7 @@ import jakarta.validation.Valid;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterUpdateStrategy {
+public class StackGresClusterUpdateStrategy extends AdditionalProperties {
 
   @ValidEnum(enumClass = StackGresClusterUpdateStrategyType.class, allowNulls = false,
       message = "type must be one of Always, Schedule, OnlyDbOps or Never")
