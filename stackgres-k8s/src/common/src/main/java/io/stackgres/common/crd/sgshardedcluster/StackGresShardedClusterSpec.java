@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
@@ -35,7 +36,7 @@ import jakarta.validation.constraints.Null;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresShardedClusterSpec {
+public class StackGresShardedClusterSpec extends AdditionalProperties {
 
   @ValidEnum(enumClass = StackGresClusterProfile.class, allowNulls = true,
       message = "profile must be production, testing or development")
