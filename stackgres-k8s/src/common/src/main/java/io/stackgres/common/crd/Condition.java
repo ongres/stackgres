@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.constraints.NotBlank;
@@ -25,7 +26,7 @@ import jakarta.validation.constraints.NotBlank;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_INTERFACE",
     justification = "Intentional name shadowing")
-public class Condition implements io.stackgres.operatorframework.resource.Condition {
+public class Condition extends AdditionalProperties implements io.stackgres.operatorframework.resource.Condition {
 
   private String lastTransitionTime;
 
