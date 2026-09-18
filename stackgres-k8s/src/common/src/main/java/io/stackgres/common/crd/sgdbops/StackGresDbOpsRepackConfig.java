@@ -9,11 +9,12 @@ import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import jakarta.validation.constraints.AssertTrue;
 
-public abstract class StackGresDbOpsRepackConfig {
+public abstract class StackGresDbOpsRepackConfig extends AdditionalProperties {
 
   protected Boolean noOrder;
 

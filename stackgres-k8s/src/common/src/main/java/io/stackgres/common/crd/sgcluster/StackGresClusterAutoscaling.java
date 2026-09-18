@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -29,7 +30,7 @@ import jakarta.validation.constraints.AssertTrue;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterAutoscaling {
+public class StackGresClusterAutoscaling extends AdditionalProperties {
 
   @ValidEnum(enumClass = StackGresAutoscalingMode.class, allowNulls = false,
       message = "mode must be all, horizontal, vertical or none")

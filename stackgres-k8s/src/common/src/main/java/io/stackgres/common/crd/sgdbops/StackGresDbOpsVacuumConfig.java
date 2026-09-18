@@ -7,7 +7,9 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
-public abstract class StackGresDbOpsVacuumConfig {
+import io.stackgres.common.AdditionalProperties;
+
+public abstract class StackGresDbOpsVacuumConfig extends AdditionalProperties {
 
   protected Boolean full;
 

@@ -10,6 +10,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +22,7 @@ import jakarta.validation.constraints.Pattern;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigExtensionsCachePersistentVolume {
+public class StackGresConfigExtensionsCachePersistentVolume extends AdditionalProperties {
 
   @NotNull(message = "Volume size must be specified")
   @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",

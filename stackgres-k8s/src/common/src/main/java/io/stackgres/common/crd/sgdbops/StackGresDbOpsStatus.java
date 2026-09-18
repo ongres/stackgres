@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.validation.FieldReference;
@@ -29,7 +30,7 @@ import jakarta.validation.constraints.AssertTrue;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsStatus {
+public class StackGresDbOpsStatus extends AdditionalProperties {
 
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid

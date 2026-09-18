@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Affinity;
 import io.stackgres.common.crd.ResourceRequirements;
@@ -23,7 +24,7 @@ import io.stackgres.common.crd.Toleration;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StackGresConfigCollector {
+public class StackGresConfigCollector extends AdditionalProperties {
 
   private String name;
 
