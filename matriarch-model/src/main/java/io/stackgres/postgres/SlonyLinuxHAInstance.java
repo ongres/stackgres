@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class SlonyLinuxHAInstance extends SlonyLinuxInstance {
 
-    private static final String PATRONI_REV = "7566";
+    private static final String PATRONI_ADDON_REF = "patroni--4.1.0--10560";
 
     private String etcdName;
     private String etcdServerUrl;
@@ -32,7 +32,7 @@ public class SlonyLinuxHAInstance extends SlonyLinuxInstance {
                               }
                               return e.name();
                           }).collect(Collectors.joining("/"));
-        return "sgcr.dev:1443/stackgres/" + flavor.id() + "--" + getVersion() + extension + "/a/slon--0.1--" + SLON_REV + "/a/patroni--4.1.0--" + PATRONI_REV + "/a/vector-agent--0.55.0--" + VECTOR_AGENT_REV;
+        return "sgcr.dev:1443/stackgres/" + flavor.id() + "--" + getVersion() + extension + "/a/" + SLON_VERSION_REV + "/a/" + PATRONI_ADDON_REF + "/a/" + VECTOR_AGENT_VERSION_REV;
     }
 
     @Override
