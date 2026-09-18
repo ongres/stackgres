@@ -397,6 +397,20 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
         Optional.ofNullable(status.get("pending_restart"))
         .map(JsonNode::asText)
         .orElse(null));
+    member.setPendingRestartReason(
+        Optional.ofNullable(status.get("pending_restart_reason"))
+        .filter(JsonNode::isObject)
+        .map(pendingRestartReason -> Seq.seq(pendingRestartReason.properties())
+            .map(parameter -> parameter.getKey() + ": "
+                + Optional.ofNullable(parameter.getValue().get("old_value"))
+                .map(JsonNode::asText)
+                .orElse("")
+                + "->"
+                + Optional.ofNullable(parameter.getValue().get("new_value"))
+                .map(JsonNode::asText)
+                .orElse(""))
+            .toString("\n"))
+        .orElse(null));
     member.setScheduledRestart(
         Optional.ofNullable(status.get("scheduled_restart"))
         .map(JsonNode::asText)

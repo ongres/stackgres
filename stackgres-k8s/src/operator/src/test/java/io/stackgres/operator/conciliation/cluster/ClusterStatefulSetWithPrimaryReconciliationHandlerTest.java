@@ -37,6 +37,8 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.PodConditionBuilder;
+import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -53,6 +55,7 @@ import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -830,6 +833,144 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
             ResourceUtil.getControllerOwnerReference(requiredStatefulSet),
             ResourceUtil.getOwnerReference(cluster)))
         .endMetadata()
+        .build());
+  }
+
+  @Test
+  @DisplayName("A pending restart of the primary that decrease a hot standby sensitive parameter"
+      + " should restart the Postgres instance of the primary Pod")
+  void primaryPendingRestartDecreasingParameter_shouldRestartPostgresOfPrimaryPod() {
+    setUpRollout("max_connections: 80->79", null);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(patroniCtlInstance).restart(any(), any(), eq(podName(0)));
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+  }
+
+  @Test
+  @DisplayName("A pending restart of the primary that increase a hot standby sensitive parameter"
+      + " should restart the Postgres instance of the replica Pods first")
+  void primaryPendingRestartIncreasingParameter_shouldRestartPostgresOfReplicaPodFirst() {
+    setUpRollout("max_connections: 80->81", "max_connections: 80->81");
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(patroniCtlInstance).restart(any(), any(), eq(podName(1)));
+    verify(patroniCtlInstance, never()).restart(any(), any(), eq(podName(0)));
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A pending restart of only the primary that does not decrease any hot standby"
+      + " sensitive parameter should perform a switchover to the replica Pod")
+  void primaryPendingRestartIncreasingParameter_shouldSwitchoverToReplicaPod() {
+    setUpRollout("max_connections: 80->81", null);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(patroniCtlInstance).switchover(any(), any(), eq(podName(0)), eq(podName(1)));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+  }
+
+  @Test
+  @DisplayName("A pending restart of a parameter that is not hot standby sensitive should perform"
+      + " a switchover to the replica Pod")
+  void primaryPendingRestartOfNotSensitiveParameter_shouldSwitchoverToReplicaPod() {
+    setUpRollout("shared_buffers: 128MB->64MB", null);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(patroniCtlInstance).switchover(any(), any(), eq(podName(0)), eq(podName(1)));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A pending restart of the primary of a single instance cluster should restart the"
+      + " Postgres instance of the primary Pod")
+  void primaryPendingRestartWithoutReplica_shouldRestartPostgresOfPrimaryPod() {
+    setUpRollout("max_connections: 80->81", null);
+    podList.removeIf(pod -> pod.getMetadata().getName().equals(podName(1)));
+    setUpPatroniMembers("max_connections: 80->81", null);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(patroniCtlInstance).restart(any(), any(), eq(podName(0)));
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  private String podName(int podIndex) {
+    return requiredStatefulSet.getMetadata().getName() + "-" + podIndex;
+  }
+
+  @SuppressWarnings("unchecked")
+  private void setUpRollout(
+      String primaryPendingRestartReason, String replicaPendingRestartReason) {
+    cluster.getMetadata().setAnnotations(
+        Map.of(StackGresContext.ROLLOUT_KEY, StackGresContext.ROLLOUT_ALWAYS_VALUE));
+
+    podList.clear();
+    addRunningPod(0, true);
+    addRunningPod(1, false);
+
+    lenient().when(podScanner.getResourcesInNamespaceWithLabels(any(), any()))
+        .then(arguments -> podList
+            .stream()
+            .filter(pod -> ((Map<String, String>) arguments.getArgument(1))
+                .entrySet().stream().allMatch(label -> pod.getMetadata().getLabels()
+                    .entrySet().stream().anyMatch(label::equals)))
+            .toList());
+
+    setStatefulSetMocks(2, true);
+
+    lenient().when(secretFinder.findByNameAndNamespace(
+        eq(PatroniUtil.secretName(cluster.getMetadata().getName())),
+        eq(cluster.getMetadata().getNamespace())))
+        .thenReturn(Optional.of(new SecretBuilder()
+            .withData(Map.of(
+                StackGresPasswordKeys.RESTAPI_USERNAME_KEY,
+                ResourceUtil.encodeSecret("superuser"),
+                StackGresPasswordKeys.RESTAPI_PASSWORD_KEY,
+                ResourceUtil.encodeSecret("password")))
+            .build()));
+
+    setUpPatroniMembers(primaryPendingRestartReason, replicaPendingRestartReason);
+  }
+
+  private void setUpPatroniMembers(
+      String primaryPendingRestartReason, String replicaPendingRestartReason) {
+    lenient().when(patroniCtlInstance.list()).then(arguments -> podList
+        .stream()
+        .map(pod -> {
+          final boolean primary = Objects.equals(
+              PatroniUtil.PRIMARY_ROLE,
+              pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY));
+          var member = new PatroniMember();
+          member.setMember(pod.getMetadata().getName());
+          member.setRole(primary ? PatroniMember.LEADER : PatroniMember.REPLICA);
+          member.setState(PatroniMember.RUNNING);
+          var pendingRestartReason = primary
+              ? primaryPendingRestartReason : replicaPendingRestartReason;
+          if (pendingRestartReason != null) {
+            member.setPendingRestart("*");
+            member.setPendingRestartReason(pendingRestartReason);
+          }
+          return member;
+        })
+        .toList());
+  }
+
+  private void addRunningPod(int podIndex, boolean primary) {
+    addPod(podIndex, primary, false, false, true);
+    addPvcs(podIndex);
+    podList.get(podList.size() - 1).setStatus(new PodStatusBuilder()
+        .withPhase("Running")
+        .withConditions(new PodConditionBuilder()
+            .withType("Ready")
+            .withStatus("True")
+            .build())
         .build());
   }
 

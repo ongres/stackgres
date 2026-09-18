@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,6 +36,9 @@ public class PatroniMember {
   public static final String REPLICA = "Replica";
   public static final String RUNNING = "running";
   public static final String STOPPED = "stopped";
+
+  private static final Pattern PENDING_RESTART_REASON_PATTERN =
+      Pattern.compile("^([^:]+):(.*)->(.*)$");
 
   @JsonProperty("Cluster")
   private String cluster;
@@ -61,6 +66,9 @@ public class PatroniMember {
 
   @JsonProperty("Pending restart")
   private String pendingRestart;
+
+  @JsonProperty("Pending restart reason")
+  private String pendingRestartReason;
 
   @JsonProperty("Scheduled restart")
   private String scheduledRestart;
@@ -202,6 +210,35 @@ public class PatroniMember {
     this.pendingRestart = pendingRestart;
   }
 
+  public String getPendingRestartReason() {
+    return pendingRestartReason;
+  }
+
+  public void setPendingRestartReason(String pendingRestartReason) {
+    this.pendingRestartReason = pendingRestartReason;
+  }
+
+  /**
+   * Parse the pending restart reason, that patroni represent with a line per parameter in the
+   * format {@code <parameter>: <old value>-><new value>}, as a map of parameter to the old and
+   * new values.
+   */
+  @JsonIgnore
+  public Map<String, PendingRestartReason> getPendingRestartReasons() {
+    if (pendingRestartReason == null) {
+      return Map.of();
+    }
+    return pendingRestartReason.lines()
+        .map(PENDING_RESTART_REASON_PATTERN::matcher)
+        .filter(Matcher::matches)
+        .collect(Collectors.toMap(
+            matcher -> matcher.group(1).strip(),
+            matcher -> new PendingRestartReason(
+                matcher.group(2).strip(),
+                matcher.group(3).strip()),
+            (previous, next) -> next));
+  }
+
   public String getScheduledRestart() {
     return scheduledRestart;
   }
@@ -220,8 +257,8 @@ public class PatroniMember {
 
   @Override
   public int hashCode() {
-    return Objects.hash(cluster, group, host, lagInMb, member, pendingRestart, role, scheduledRestart, state, tags,
-        timeline);
+    return Objects.hash(cluster, group, host, lagInMb, member, pendingRestart, pendingRestartReason, role,
+        scheduledRestart, state, tags, timeline);
   }
 
   @Override
@@ -236,6 +273,7 @@ public class PatroniMember {
     return Objects.equals(cluster, other.cluster) && Objects.equals(group, other.group)
         && Objects.equals(host, other.host) && Objects.equals(lagInMb, other.lagInMb)
         && Objects.equals(member, other.member) && Objects.equals(pendingRestart, other.pendingRestart)
+        && Objects.equals(pendingRestartReason, other.pendingRestartReason)
         && Objects.equals(role, other.role) && Objects.equals(scheduledRestart, other.scheduledRestart)
         && Objects.equals(state, other.state) && Objects.equals(tags, other.tags)
         && Objects.equals(timeline, other.timeline);
@@ -244,6 +282,9 @@ public class PatroniMember {
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  public record PendingRestartReason(String oldValue, String newValue) {
   }
 
   public enum MemberState {
