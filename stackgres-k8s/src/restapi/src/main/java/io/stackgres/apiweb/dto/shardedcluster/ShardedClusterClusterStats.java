@@ -11,11 +11,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterStats;
 import io.stackgres.apiweb.dto.cluster.KubernetesPod;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterClusterStats implements ClusterStats {
+public class ShardedClusterClusterStats extends AdditionalProperties implements ClusterStats {
 
   private String cpuRequested;
 

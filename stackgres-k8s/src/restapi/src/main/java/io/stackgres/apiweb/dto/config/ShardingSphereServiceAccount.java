@@ -8,12 +8,13 @@ package io.stackgres.apiweb.dto.config;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ShardingSphereServiceAccount {
+public class ShardingSphereServiceAccount extends AdditionalProperties {
 
   private String namespace;
 

@@ -7,11 +7,12 @@ package io.stackgres.apiweb.dto.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigExtensionsCachePersistentVolume {
+public class ConfigExtensionsCachePersistentVolume extends AdditionalProperties {
 
   private String size;
 

@@ -7,12 +7,13 @@ package io.stackgres.apiweb.dto.stream;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ResourceRequirements;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class StreamPods {
+public class StreamPods extends AdditionalProperties {
 
   private ResourceRequirements resources;
 

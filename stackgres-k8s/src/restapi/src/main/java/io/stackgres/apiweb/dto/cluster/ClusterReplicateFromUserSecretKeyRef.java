@@ -8,13 +8,14 @@ package io.stackgres.apiweb.dto.cluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterReplicateFromUserSecretKeyRef {
+public class ClusterReplicateFromUserSecretKeyRef extends AdditionalProperties {
 
   private SecretKeySelector username;
 
