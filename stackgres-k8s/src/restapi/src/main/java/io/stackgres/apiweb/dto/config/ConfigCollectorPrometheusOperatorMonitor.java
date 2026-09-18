@@ -8,12 +8,13 @@ package io.stackgres.apiweb.dto.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.external.prometheus.PodMonitorSpec;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ConfigCollectorPrometheusOperatorMonitor {
+public class ConfigCollectorPrometheusOperatorMonitor extends AdditionalProperties {
 
   private String name;
 

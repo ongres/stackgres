@@ -9,11 +9,12 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ProfileSpec {
+public class ProfileSpec extends AdditionalProperties {
 
   private String cpu;
 

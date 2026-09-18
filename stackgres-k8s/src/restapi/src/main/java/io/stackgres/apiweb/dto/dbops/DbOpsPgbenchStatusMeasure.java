@@ -9,10 +9,11 @@ import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsPgbenchStatusMeasure {
+public class DbOpsPgbenchStatusMeasure extends AdditionalProperties {
 
   private BigDecimal value;
 
