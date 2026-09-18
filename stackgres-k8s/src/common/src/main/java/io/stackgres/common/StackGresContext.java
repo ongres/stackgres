@@ -93,6 +93,10 @@ public interface StackGresContext {
   String ROLLOUT_NEVER_VALUE = "never";
 
   String PATRONI_OPERATION_KEY = STACKGRES_KEY_PREFIX + "patroni-operation";
+  String PATRONI_OPERATION_TYPE_FIELD = "type";
+  String PATRONI_OPERATION_ISSUED_FIELD = "issued";
+  String PATRONI_OPERATION_STARTED_FIELD = "started";
+  String PATRONI_OPERATION_RESTART_TYPE = "restart";
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
