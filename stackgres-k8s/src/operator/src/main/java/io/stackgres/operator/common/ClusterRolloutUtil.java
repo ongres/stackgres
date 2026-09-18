@@ -38,6 +38,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterUpdateStrategyScheduleB
 import io.stackgres.common.crd.sgcluster.StackGresClusterUpdateStrategyType;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.patroni.PatroniMember.PendingRestartReason;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,20 @@ public class ClusterRolloutUtil {
       new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
 
   public static final String DBOPS_NOT_FOUND_NAME = "__DBOPS_NOT_FOUND__";
+
+  /**
+   * Parameters that a hot standby requires to be set to a value greater than or equal to the value
+   * set on the primary.
+   *
+   * @see <a href="https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN">
+   *      Hot Standby Parameter Reference</a>
+   */
+  public static final Set<String> HOT_STANDBY_SENSITIVE_PARAMETERS = Set.of(
+      "max_connections",
+      "max_prepared_transactions",
+      "max_locks_per_transaction",
+      "max_wal_senders",
+      "max_worker_processes");
 
   public static boolean isRolloutAllowed(StackGresCluster cluster) {
     final Map<String, String> annotations = Optional
@@ -347,6 +362,56 @@ public class ClusterRolloutUtil {
     }
 
     return reasons;
+  }
+
+  /**
+   * A hot standby refuses to continue the recovery if any of the
+   * {@link #HOT_STANDBY_SENSITIVE_PARAMETERS} is set to a value lower than the value set on the
+   * primary. When any of those parameters is decreased the primary has to apply the new value
+   * before the replicas do, therefore the Postgres instance of the primary has to be restarted in
+   * place instead of performing a switchover.
+   *
+   * <p>
+   * Patroni only reports the reason of a pending restart since version 4. When it is not reported
+   * it is not possible to tell if a hot standby sensitive parameter is being decreased, therefore
+   * a switchover is performed.
+   * </p>
+   */
+  public static boolean requiresPostgresRestartWithoutSwitchover(
+      Pod pod,
+      List<PatroniMember> patroniMembers) {
+    return patroniMembers.stream()
+        .filter(patroniMember -> patroniMember.getMember().equals(pod.getMetadata().getName()))
+        .anyMatch(ClusterRolloutUtil::requiresPostgresRestartWithoutSwitchover);
+  }
+
+  private static boolean requiresPostgresRestartWithoutSwitchover(PatroniMember patroniMember) {
+    if (patroniMember.getPendingRestart() == null) {
+      return false;
+    }
+    var pendingRestartReasons = patroniMember.getPendingRestartReasons();
+    if (pendingRestartReasons.isEmpty()) {
+      LOGGER.debug("Patroni did not report the reason of the pending restart of member {},"
+          + " skip restarting the Postgres instance in place", patroniMember.getMember());
+      return false;
+    }
+    return pendingRestartReasons.entrySet()
+        .stream()
+        .filter(pendingRestartReason ->
+            HOT_STANDBY_SENSITIVE_PARAMETERS.contains(pendingRestartReason.getKey()))
+        .anyMatch(pendingRestartReason -> isDecreased(
+            pendingRestartReason.getKey(), pendingRestartReason.getValue()));
+  }
+
+  private static boolean isDecreased(String parameter, PendingRestartReason pendingRestartReason) {
+    try {
+      return Long.parseLong(pendingRestartReason.newValue())
+          < Long.parseLong(pendingRestartReason.oldValue());
+    } catch (NumberFormatException ex) {
+      LOGGER.warn("Unable to compare values {} and {} of parameter {}",
+          pendingRestartReason.oldValue(), pendingRestartReason.newValue(), parameter, ex);
+      return false;
+    }
   }
 
   private static boolean isStatefulSetPendingRestart(
