@@ -85,7 +85,7 @@ check_collector_pod_monitor() {
   fi
 
   if wait_until eval "[ \"\$(kubectl exec -i -n '$CLUSTER_NAMESPACE' curl \
-    -- curl -s -f 'http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=pg_settings_shared_buffers_bytes' \
+    -- curl -s -f 'http://$(prometheus_service).$(prometheus_namespace):$(prometheus_port)/api/v1/query?query=pg_settings_shared_buffers_bytes' \
     | jq -r '.data.result | length')\" -gt 0 ]"
   then
     echo "Exporter metric pg_settings_shared_buffers_bytes was found on prometheus"
@@ -95,7 +95,7 @@ check_collector_pod_monitor() {
   fi
 
   if wait_until eval "[ \"\$(kubectl exec -i -n '$CLUSTER_NAMESPACE' curl \
-    -- curl -s -f 'http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=pg_stat_activity_count' \
+    -- curl -s -f 'http://$(prometheus_service).$(prometheus_namespace):$(prometheus_port)/api/v1/query?query=pg_stat_activity_count' \
     | jq -r '.data.result | length')\" -gt 0 ]"
   then
     echo "Exporter metric pg_stat_activity_count was found on prometheus"

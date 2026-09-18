@@ -1,0 +1,1204 @@
+#!/bin/sh
+
+#
+# Checks the two I/O isolation mechanisms documented in
+# doc/content/en/04-administration-guide/21-io-isolation:
+#
+#   Option 1: .spec.pods.persistentVolume.ioLimits of the SGCluster, written by
+#             StackGres itself into the Pod's cgroup (alpha, behind the
+#             "io-limits" feature gate of the SGConfig).
+#   Option 2: the container runtime's BlockIO classes, delivered to the nodes
+#             through the Machine Config Operator and selected with the
+#             blockio.resources.beta.kubernetes.io/pod annotation.
+#
+# Both end up in the same place, a cgroup v2 io.max entry enforced by the
+# kernel's blk-throttle subsystem, so both are checked the same way: read the
+# io.max the Pod is running under, then measure with fio against the very same
+# data volume Postgres uses, and assert the measurement lands on the cap and not
+# on the device's native speed.
+#
+# This file holds the checks. Two specs use it and differ only in how the
+# operator is installed:
+#
+#   spec/runbooks/io-isolation      the operator the framework installs with the
+#                                   helm chart
+#   spec/runbooks/io-isolation-olm  the operator installed through the Operator
+#                                   Lifecycle Manager, either from a catalog
+#                                   built from this build or from an OpenShift
+#                                   OperatorHub catalog, see utils/olm and
+#                                   E2E_USE_OPENSHIFT_CATALOG
+#
+# What runs where
+#
+# Nothing here is tied to one environment. The platform is read from the API, so:
+#
+#  *  The feature gate check and option 1 run anywhere. On OpenShift option 1
+#     additionally needs a SecurityContextConstraints and an SELinux boolean, see
+#     below; on vanilla Kubernetes it needs neither.
+#  *  Option 2 is checked only where there is a MachineConfigPool, that is on
+#     OpenShift (crc, microshift, openshift-aws). Getting a class ladder onto the
+#     nodes of a cluster without MCO is a node management problem the
+#     documentation leaves out of scope, so the test is skipped with that reason
+#     rather than faked. On kind and k3d the nodes also run containerd rather
+#     than CRI-O, whose BlockIO configuration keys differ between minor releases.
+#
+# Storage
+#
+# The data volumes come from whatever the default StorageClass provisions. A
+# cgroup block layer cap is only meaningful when the I/O actually reaches a block
+# device on the node, which is the case for local volumes and for cloud block
+# storage on Nitro style instances (an EBS volume is a real NVMe device there),
+# but not for network filesystems. The caps are also only distinguishable from an
+# uncapped run when the device is faster than the cap, so the runbook refuses to
+# conclude anything if the uncapped measurement is not at least twice the cap.
+#
+# Option 1 on OpenShift is not free
+#
+#  *  It needs a SecurityContextConstraints: the cluster Pods gain an init
+#     container running as root with the CHOWN capability and mount the host
+#     cgroup filesystem, which no default SCC admits. The runbook creates the
+#     minimal one (restricted-v2 plus hostPath and CHOWN, with runAsUser relaxed)
+#     and binds it to the cluster's ServiceAccount alone. Keeping the other
+#     restricted-v2 strategies is not optional, see the comment on
+#     io_isolation_create_io_limits_scc.
+#  *  It needs the container_manage_cgroup SELinux boolean, which the
+#     documentation does not mention, see the comment on
+#     io_isolation_allow_cgroup_selinux.
+#
+# Option 2 gets neither on purpose, and the runbook asserts its Pod is admitted
+# by the default restricted-v2 SCC. That contrast is the "privileges in the pods"
+# row of the comparison table in the documentation.
+#
+# Environment variables:
+#
+#  *  E2E_IO_ISOLATION_READ_IOPS, E2E_IO_ISOLATION_WRITE_IOPS: the IOPS cap to
+#     apply and to verify (default: 500).
+#  *  E2E_IO_ISOLATION_READ_MIBPS, E2E_IO_ISOLATION_WRITE_MIBPS: the bandwidth
+#     cap in MiB/s (default: 64). With the 4k block size used by the fio runs
+#     the IOPS cap is the binding one, this is only here so that both halves of
+#     io.max are checked.
+#  *  E2E_IO_ISOLATION_TOLERANCE_PERCENT: how far above the cap a measurement
+#     may land and still count as capped (default: 25).
+#  *  E2E_IO_ISOLATION_FIO_IMAGE: image of the custom container used to measure
+#     (default: docker.io/openeuler/fio:latest). It only has to carry fio.
+#  *  E2E_IO_ISOLATION_FIO_RUNTIME: seconds of each fio run (default: 30).
+#  *  E2E_IO_ISOLATION_FIO_FILE_SIZE: size of the fio test file on the data
+#     volume (default: 1G).
+#  *  E2E_IO_ISOLATION_VOLUME_SIZE: size of the data volume (default: 10Gi).
+#  *  E2E_IO_ISOLATION_NODE: node to run the test clusters on. Defaults to the
+#     first node carrying the worker role, or to the first node at all.
+#  *  E2E_IO_ISOLATION_BLOCKIO_CLASS: name of the BlockIO class to author
+#     (default: e2e-io-isolation).
+#  *  E2E_IO_ISOLATION_BLOCKIO_DEVICES: space separated device globs of the
+#     BlockIO class (default: "/dev/nvme[1-9]n[0-9]"). The default deliberately
+#     excludes nvme0n1, which on AWS Nitro instances is the OS disk, and has no
+#     trailing wildcard so that it can never match a partition, which the kernel
+#     rejects in io.max with ENODEV. Adjust it for other hardware.
+#  *  E2E_IO_ISOLATION_MCP_TIMEOUT: seconds to wait for a MachineConfigPool
+#     rollout (default: 3600).
+#  *  E2E_IO_ISOLATION_KEEP_NODE_CONFIG: set to true to leave the BlockIO
+#     MachineConfigs on the cluster, skipping the revert reboot (default: false).
+#  *  E2E_IO_ISOLATION_SET_SELINUX_BOOLEAN: turn the container_manage_cgroup
+#     SELinux boolean on for option 1 (default: true).
+#  *  E2E_OC: the oc binary to use for node access on OpenShift, see openshift_oc
+#     in utils/olm. Off OpenShift, kubectl debug is used instead.
+#  *  E2E_IO_ISOLATION_DEBUG_IMAGE: image for kubectl debug when there is no oc
+#     (default: docker.io/library/busybox:stable).
+#
+# Expect option 2 to take a while: the Machine Config Operator drains and reboots
+# the nodes of the pool one at a time, twice (once to apply, once to revert on
+# cleanup). On single node OpenShift that reboots the control plane and the API
+# server is unreachable for a few minutes, which every wait here tolerates.
+#
+
+E2E_IO_ISOLATION_READ_IOPS="${E2E_IO_ISOLATION_READ_IOPS:-500}"
+E2E_IO_ISOLATION_WRITE_IOPS="${E2E_IO_ISOLATION_WRITE_IOPS:-500}"
+E2E_IO_ISOLATION_READ_MIBPS="${E2E_IO_ISOLATION_READ_MIBPS:-64}"
+E2E_IO_ISOLATION_WRITE_MIBPS="${E2E_IO_ISOLATION_WRITE_MIBPS:-64}"
+E2E_IO_ISOLATION_TOLERANCE_PERCENT="${E2E_IO_ISOLATION_TOLERANCE_PERCENT:-25}"
+E2E_IO_ISOLATION_FIO_IMAGE="${E2E_IO_ISOLATION_FIO_IMAGE:-docker.io/openeuler/fio:latest}"
+E2E_IO_ISOLATION_FIO_RUNTIME="${E2E_IO_ISOLATION_FIO_RUNTIME:-30}"
+E2E_IO_ISOLATION_FIO_FILE_SIZE="${E2E_IO_ISOLATION_FIO_FILE_SIZE:-1G}"
+E2E_IO_ISOLATION_VOLUME_SIZE="${E2E_IO_ISOLATION_VOLUME_SIZE:-10Gi}"
+E2E_IO_ISOLATION_NODE="${E2E_IO_ISOLATION_NODE:-}"
+E2E_IO_ISOLATION_BLOCKIO_CLASS="${E2E_IO_ISOLATION_BLOCKIO_CLASS:-e2e-io-isolation}"
+E2E_IO_ISOLATION_BLOCKIO_DEVICES="${E2E_IO_ISOLATION_BLOCKIO_DEVICES:-/dev/nvme[1-9]n[0-9]}"
+E2E_IO_ISOLATION_MCP_TIMEOUT="${E2E_IO_ISOLATION_MCP_TIMEOUT:-3600}"
+E2E_IO_ISOLATION_KEEP_NODE_CONFIG="${E2E_IO_ISOLATION_KEEP_NODE_CONFIG:-false}"
+E2E_IO_ISOLATION_SET_SELINUX_BOOLEAN="${E2E_IO_ISOLATION_SET_SELINUX_BOOLEAN:-true}"
+E2E_IO_ISOLATION_DEBUG_IMAGE="${E2E_IO_ISOLATION_DEBUG_IMAGE:-docker.io/library/busybox:stable}"
+
+# A cap so loose the device can not reach it, used as the "before" measurement
+# of option 1. The init container and the host cgroup mount are only added to
+# the Pod template when ioLimits is set, and the cluster controller only gets
+# the host cgroup mount at Pod creation, so a cluster that starts without
+# ioLimits can not have them applied without a restart. Starting with a cap that
+# constrains nothing and then tightening it keeps the whole check on a single
+# Pod, and exercises the live retuning the documentation advertises.
+IO_ISOLATION_LOOSE_IOPS=1000000
+IO_ISOLATION_LOOSE_MIBPS=100000
+
+IO_ISOLATION_SCC="$CLUSTER_NAMESPACE-io-limits"
+IO_ISOLATION_BLOCKIO_NAMESPACE="$CLUSTER_NAMESPACE-blockio"
+IO_ISOLATION_BLOCKIO_CLUSTER="$CLUSTER_NAME-bio"
+IO_ISOLATION_BLOCKIO_MC="50-$E2E_IO_ISOLATION_BLOCKIO_CLASS-config"
+IO_ISOLATION_CRIO_MC="51-$E2E_IO_ISOLATION_BLOCKIO_CLASS-crio-config"
+IO_ISOLATION_DATA_PATH=/var/lib/postgresql
+IO_ISOLATION_NODE=
+IO_ISOLATION_POOL=
+IO_ISOLATION_SELINUX_BOOLEAN_WAS=
+IO_ISOLATION_SGCONFIG_NAMESPACE=
+IO_ISOLATION_SGCONFIG_NAME=
+IO_ISOLATION_OPERATOR_DESCRIPTION=
+
+# How the operator gets installed. The default is the operator the e2e framework
+# already installed with the helm chart, which is what the io-isolation spec
+# uses; the io-isolation-olm spec overrides both of these to install through the
+# Operator Lifecycle Manager instead.
+io_isolation_install_operator() {
+  IO_ISOLATION_SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  IO_ISOLATION_SGCONFIG_NAME=stackgres-operator
+  IO_ISOLATION_OPERATOR_DESCRIPTION="the helm installed operator $STACKGRES_VERSION"
+}
+
+io_isolation_uninstall_operator() {
+  true
+}
+
+# Flips a global feature gate on the SGConfig, and on OpenShift also reboots
+# nodes through the Machine Config Operator, so it can not share the cluster with
+# any other spec.
+e2e_exclusive_lock() {
+  true
+}
+
+io_isolation_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/io-isolation")"
+}
+
+e2e_test_install() {
+  io_isolation_detect_platform
+
+  io_isolation_install_operator
+
+  io_isolation_check_operator_supports_io_limits
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create namespace "$IO_ISOLATION_BLOCKIO_NAMESPACE"
+}
+
+# Option 1 is an alpha feature that only exists from StackGres 1.19 on, and the
+# operator under test is not necessarily the one built from this tree, so say so
+# plainly up front instead of letting the first test fail on a field the CRD of
+# an older version simply does not have. Option 2 needs nothing from the operator
+# beyond annotation propagation and works on any version.
+io_isolation_check_operator_supports_io_limits() {
+  local FIELD
+  for FIELD in sgcluster.spec.pods.persistentVolume.ioLimits sgconfig.spec.featureGates
+  do
+    if ! kubectl explain "$FIELD" > /dev/null 2>&1
+    then
+      >&2 echo "The CRDs of $IO_ISOLATION_OPERATOR_DESCRIPTION have no $FIELD, so option 1" \
+        "does not exist in this version. Use a version that implements it (1.19.0 or later)."
+      return 1
+    fi
+  done
+  success "$IO_ISOLATION_OPERATOR_DESCRIPTION implements option 1"
+}
+
+e2e_test_uninstall() {
+  io_isolation_restore_cgroup_selinux || true
+  io_isolation_delete_node_config || true
+  if io_isolation_is_openshift
+  then
+    kubectl delete securitycontextconstraints "$IO_ISOLATION_SCC" --ignore-not-found
+  fi
+  io_isolation_disable_feature_gate || true
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$IO_ISOLATION_BLOCKIO_NAMESPACE"
+
+  io_isolation_uninstall_operator
+}
+
+e2e_test() {
+  run_test "SGCluster ioLimits is rejected while the io-limits feature gate is off" \
+    check_io_limits_feature_gate
+  run_test "Option 1: SGCluster ioLimits caps the I/O of the data volume" \
+    check_io_limits
+
+  # Option 2 lives entirely on the node: a class ladder under /etc/crio, the
+  # runtime told to load it, and the runtime restarted. This runbook delivers
+  # that with the Machine Config Operator, which only exists on OpenShift. On a
+  # cluster without it the file delivery is a node management problem the
+  # documentation deliberately leaves out of scope, so say what is not being
+  # checked rather than pretend or fail.
+  if io_isolation_has_machine_config_pools
+  then
+    run_test "Option 2: container runtime BlockIO classes cap the I/O of the data volume" \
+      check_blockio_classes
+  else
+    echo "Skipping option 2: this cluster has no MachineConfigPool, so the BlockIO class" \
+      "ladder can not be delivered to its nodes. Option 2 is checked on OpenShift" \
+      "environments (crc, microshift, openshift-aws)."
+  fi
+}
+
+## Environment helpers
+
+io_isolation_detect_platform() {
+  if is_openshift
+  then
+    echo "Cluster is OpenShift: SecurityContextConstraints and SELinux apply to option 1"
+  else
+    echo "Cluster is vanilla Kubernetes: no SecurityContextConstraints, no SELinux booleans"
+  fi
+}
+
+io_isolation_is_openshift() {
+  is_openshift
+}
+
+# Not the same question as is_openshift: microshift is OpenShift but ships no
+# Machine Config Operator, so option 2 has no delivery mechanism there either.
+io_isolation_has_machine_config_pools() {
+  kubectl api-resources --api-group=machineconfiguration.openshift.io -o name 2>/dev/null \
+    | grep -qx 'machineconfigpools.machineconfiguration.openshift.io'
+}
+
+io_isolation_resolve_node() {
+  [ -z "$IO_ISOLATION_NODE" ] || return 0
+
+  if [ -n "$E2E_IO_ISOLATION_NODE" ]
+  then
+    IO_ISOLATION_NODE="$E2E_IO_ISOLATION_NODE"
+  else
+    # The worker role label is an OpenShift convention; a vanilla cluster may
+    # have no role labels at all, so fall back to whatever node exists.
+    IO_ISOLATION_NODE="$(kubectl get node -l node-role.kubernetes.io/worker \
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+      | head -n 1)"
+    if [ -z "$IO_ISOLATION_NODE" ]
+    then
+      IO_ISOLATION_NODE="$(kubectl get node \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' \
+        | head -n 1)"
+    fi
+  fi
+  if [ -z "$IO_ISOLATION_NODE" ]
+  then
+    echo "Could not find a node to run the test clusters on"
+    return 1
+  fi
+
+  if ! io_isolation_has_machine_config_pools
+  then
+    echo "Running on node $IO_ISOLATION_NODE, which belongs to no MachineConfigPool"
+    return 0
+  fi
+
+  # The MachineConfigPool a node belongs to, read from the rendered
+  # MachineConfig it is currently running. A node can carry several role labels
+  # and a taint can not drive pool membership, but this annotation names exactly
+  # one pool.
+  IO_ISOLATION_POOL="$(kubectl get node "$IO_ISOLATION_NODE" \
+    -o jsonpath='{.metadata.annotations.machineconfiguration\.openshift\.io/currentConfig}' \
+    | sed 's/^rendered-//;s/-[0-9a-f]\{32\}$//')"
+  if [ -z "$IO_ISOLATION_POOL" ]
+  then
+    echo "Could not resolve the MachineConfigPool of node $IO_ISOLATION_NODE"
+    return 1
+  fi
+
+  echo "Running on node $IO_ISOLATION_NODE of MachineConfigPool $IO_ISOLATION_POOL"
+  if [ "$IO_ISOLATION_POOL" = master ]
+  then
+    echo "WARNING: $IO_ISOLATION_NODE is in the control plane pool, so the Machine Config"
+    echo "WARNING: Operator rollout of option 2 reboots the control plane and the API server"
+    echo "WARNING: becomes unreachable for a few minutes. Create the cluster with"
+    echo "WARNING: K8S_OPENSHIFT_AWS_MASTERS=3 K8S_OPENSHIFT_AWS_NODES=3 to reboot a compute"
+    echo "WARNING: node instead."
+  fi
+}
+
+# There is an oc to reach the node with on every OpenShift environment, resolved
+# by openshift_oc in utils/olm; elsewhere kubectl debug has to do.
+io_isolation_has_oc() {
+  is_openshift
+}
+
+# Runs a command on a node, in the host namespace. oc debug is preferred where
+# it exists because it lands the debug Pod in a temporary namespace of its own
+# that is already labelled for the privileged Pod Security admission profile,
+# which kubectl debug does not do; on a cluster with no oc, kubectl debug does
+# the same job with an explicit image.
+io_isolation_node_exec() {
+  local NODE="$1"
+  shift
+  if io_isolation_has_oc
+  then
+    openshift_oc debug --quiet "node/$NODE" -- chroot /host "$@"
+  else
+    kubectl debug --quiet "node/$NODE" \
+      --image "$E2E_IO_ISOLATION_DEBUG_IMAGE" -- chroot /host "$@"
+  fi
+}
+
+## Feature gate
+
+# Both the name and the namespace of the SGConfig come from however the operator
+# was installed, so they are resolved by io_isolation_install_operator and never
+# assumed here.
+io_isolation_patch_feature_gates() {
+  [ -n "$IO_ISOLATION_SGCONFIG_NAME" ] || io_isolation_install_operator
+  kubectl patch sgconfig -n "$IO_ISOLATION_SGCONFIG_NAMESPACE" \
+    "$IO_ISOLATION_SGCONFIG_NAME" --type merge \
+    -p '{"spec":{"featureGates":'"$1"'}}'
+}
+
+io_isolation_enable_feature_gate() {
+  io_isolation_patch_feature_gates '["io-limits"]'
+}
+
+io_isolation_disable_feature_gate() {
+  io_isolation_patch_feature_gates '[]'
+}
+
+## Cluster manifests
+
+io_isolation_instance_profile() {
+  cat << EOF
+apiVersion: stackgres.io/v1
+kind: SGInstanceProfile
+metadata:
+  name: size-xs
+  namespace: $1
+spec:
+  cpu: '500m'
+  memory: '1Gi'
+EOF
+}
+
+# The fio custom container mounts the very same data volume Patroni writes to,
+# so what it measures is what Postgres gets. StackGres prefixes the name of a
+# custom container with "custom-", so this one is "custom-fio" in the Pod.
+io_isolation_fio_container() {
+  cat << EOF
+    - name: fio
+      image: $E2E_IO_ISOLATION_FIO_IMAGE
+      imagePullPolicy: IfNotPresent
+      command:
+        - sh
+        - -c
+        - 'sleep infinity'
+      volumeMounts:
+        - name: $1-data
+          mountPath: $IO_ISOLATION_DATA_PATH
+EOF
+}
+
+io_isolation_io_limits_cluster() {
+  local READ_IOPS="$1"
+  local WRITE_IOPS="$2"
+  local READ_MIBPS="$3"
+  local WRITE_MIBPS="$4"
+  cat << EOF
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 1
+  postgres:
+    version: '$E2E_POSTGRES_VERSION'
+  sgInstanceProfile: size-xs
+  pods:
+    persistentVolume:
+      size: $E2E_IO_ISOLATION_VOLUME_SIZE
+      ioLimits:
+        readIops: $READ_IOPS
+        writeIops: $WRITE_IOPS
+        readMiBps: $READ_MIBPS
+        writeMiBps: $WRITE_MIBPS
+    scheduling:
+      nodeSelector:
+        kubernetes.io/hostname: $IO_ISOLATION_NODE
+    customContainers:
+$(io_isolation_fio_container "$CLUSTER_NAME")
+  nonProductionOptions:
+    disableClusterResourceRequirements: true
+EOF
+}
+
+io_isolation_blockio_cluster() {
+  local CLASS="$1"
+  cat << EOF
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: $IO_ISOLATION_BLOCKIO_CLUSTER
+  namespace: $IO_ISOLATION_BLOCKIO_NAMESPACE
+spec:
+  instances: 1
+  postgres:
+    version: '$E2E_POSTGRES_VERSION'
+  sgInstanceProfile: size-xs
+$(if [ -n "$CLASS" ]
+  then
+    cat << INNER_EOF
+  metadata:
+    annotations:
+      clusterPods:
+        blockio.resources.beta.kubernetes.io/pod: $CLASS
+INNER_EOF
+  fi)
+  pods:
+    persistentVolume:
+      size: $E2E_IO_ISOLATION_VOLUME_SIZE
+    scheduling:
+      nodeSelector:
+        kubernetes.io/hostname: $IO_ISOLATION_NODE
+    customContainers:
+$(io_isolation_fio_container "$IO_ISOLATION_BLOCKIO_CLUSTER")
+  nonProductionOptions:
+    disableClusterResourceRequirements: true
+EOF
+}
+
+## Measuring
+
+io_isolation_run_fio() {
+  local NAMESPACE="$1"
+  local POD="$2"
+  local NAME="$3"
+  local RW="$4"
+  local OUTPUT="$IO_ISOLATION_DATA_PATH/fio-$NAME.json"
+  >&2 echo "Running fio $RW on $NAMESPACE/$POD for $E2E_IO_ISOLATION_FIO_RUNTIME seconds"
+  kubectl exec -n "$NAMESPACE" "$POD" -c custom-fio -- sh -c "
+    fio --name='$NAME' \
+      --filename='$IO_ISOLATION_DATA_PATH/fio-test.dat' \
+      --size='$E2E_IO_ISOLATION_FIO_FILE_SIZE' \
+      --ioengine=libaio --direct=1 --rw='$RW' --bs=4k \
+      --iodepth=32 --numjobs=2 --time_based \
+      --runtime='$E2E_IO_ISOLATION_FIO_RUNTIME' --ramp_time=5 \
+      --group_reporting --output-format=json --output='$OUTPUT' > /dev/null 2>&1
+    cat '$OUTPUT'"
+}
+
+# Sums the IOPS of every fio job of a run. $1 is read or write.
+io_isolation_iops() {
+  jq -r --arg operation "$1" '[ .jobs[] | .[$operation].iops ] | add | floor'
+}
+
+io_isolation_measure() {
+  local NAMESPACE="$1"
+  local POD="$2"
+  local NAME="$3"
+  local OPERATION="$4"
+  io_isolation_run_fio "$NAMESPACE" "$POD" "$NAME-$OPERATION" "rand$OPERATION" \
+    > "$LOG_PATH/fio-$NAME-$OPERATION.json"
+  io_isolation_iops "$OPERATION" < "$LOG_PATH/fio-$NAME-$OPERATION.json"
+}
+
+# A cap holds when the measurement does not exceed it (beyond the tolerance that
+# absorbs the burst blk-throttle allows at the start of a slice) and is not so
+# far below it that something other than the cap is the bottleneck, which would
+# make the check pass for the wrong reason.
+io_isolation_assert_capped() {
+  local WHAT="$1"
+  local MEASURED="$2"
+  local CAP="$3"
+  local BASELINE="$4"
+  local UPPER="$(( CAP + (CAP * E2E_IO_ISOLATION_TOLERANCE_PERCENT / 100) ))"
+  local LOWER="$(( CAP / 2 ))"
+
+  echo "$WHAT: measured $MEASURED IOPS, cap $CAP IOPS, uncapped $BASELINE IOPS"
+
+  if [ "$BASELINE" -lt "$(( CAP * 2 ))" ]
+  then
+    fail "$WHAT is inconclusive: the uncapped measurement of $BASELINE IOPS is not at least \
+twice the cap of $CAP IOPS, so a capped run can not be told apart from an uncapped one. Lower \
+the cap with E2E_IO_ISOLATION_READ_IOPS and E2E_IO_ISOLATION_WRITE_IOPS, or use a faster \
+storage class."
+    return 1
+  fi
+  if [ "$MEASURED" -gt "$UPPER" ]
+  then
+    fail "$WHAT is not capped: measured $MEASURED IOPS, above the $UPPER IOPS allowed for a cap \
+of $CAP IOPS"
+    return 1
+  fi
+  if [ "$MEASURED" -lt "$LOWER" ]
+  then
+    fail "$WHAT measured $MEASURED IOPS, far below its cap of $CAP IOPS. Something other than \
+the cap is the bottleneck, so this run does not show the cap holding"
+    return 1
+  fi
+  success "$WHAT is capped at $CAP IOPS (measured $MEASURED IOPS, uncapped $BASELINE IOPS)"
+}
+
+io_isolation_pod_scc() {
+  kubectl get pod -n "$1" "$2" -o jsonpath='{.metadata.annotations.openshift\.io/scc}'
+}
+
+## Test: the feature gate actually gates
+
+check_io_limits_feature_gate() {
+  local RESULT
+  local EXIT_CODE
+
+  io_isolation_resolve_node
+  io_isolation_disable_feature_gate
+
+  io_isolation_instance_profile "$CLUSTER_NAMESPACE" | kubectl apply -f -
+
+  io_isolation_io_limits_cluster \
+    "$E2E_IO_ISOLATION_READ_IOPS" "$E2E_IO_ISOLATION_WRITE_IOPS" \
+    "$E2E_IO_ISOLATION_READ_MIBPS" "$E2E_IO_ISOLATION_WRITE_MIBPS" \
+    > "$LOG_PATH/io-limits-gate-off.yaml"
+
+  try_function eval 'kubectl apply --dry-run=server -f "$LOG_PATH/io-limits-gate-off.yaml" \
+    > "$LOG_PATH/io-limits-gate-off" 2>&1'
+  cat "$LOG_PATH/io-limits-gate-off"
+
+  if "$RESULT"
+  then
+    fail "An SGCluster with ioLimits was accepted while the io-limits feature gate was off"
+  elif grep -qF 'io-limits' "$LOG_PATH/io-limits-gate-off"
+  then
+    success "An SGCluster with ioLimits is rejected while the io-limits feature gate is off"
+  else
+    fail "An SGCluster with ioLimits was rejected, but not by the io-limits feature gate \
+validator"
+  fi
+}
+
+## Test: option 1, ioLimits in the SGCluster spec
+
+check_io_limits() {
+  local POD="$CLUSTER_NAME-0"
+  local POD_UID
+  local POD_UID_AFTER
+  local BASELINE_READ
+  local BASELINE_WRITE
+  local CAPPED_READ
+  local CAPPED_WRITE
+
+  io_isolation_resolve_node
+  io_isolation_enable_feature_gate
+
+  # On vanilla Kubernetes neither of these exists, and neither is needed: the
+  # operator sets runAsUser, runAsGroup and fsGroup itself there (it only leaves
+  # them to the platform when USE_ARBITRARY_USER is set, which is the OpenShift
+  # bundle), nothing vets the root init container or the host path, and the
+  # cgroup filesystem carries no SELinux label that denies the write.
+  if io_isolation_is_openshift
+  then
+    io_isolation_create_io_limits_scc
+    io_isolation_allow_cgroup_selinux
+  else
+    echo "Not creating a SecurityContextConstraints nor touching SELinux, this is not OpenShift"
+  fi
+
+  echo "Creating $CLUSTER_NAME with a cap loose enough not to constrain the device"
+  io_isolation_io_limits_cluster \
+    "$IO_ISOLATION_LOOSE_IOPS" "$IO_ISOLATION_LOOSE_IOPS" \
+    "$IO_ISOLATION_LOOSE_MIBPS" "$IO_ISOLATION_LOOSE_MIBPS" \
+    | kubectl apply -f -
+
+  if ! wait_pods_running "$CLUSTER_NAMESPACE" 1
+  then
+    io_isolation_dump_io_limits_diagnostics
+    fail "The $CLUSTER_NAME Pod did not start, see the diagnostics above"
+  fi
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  if io_isolation_is_openshift
+  then
+    echo "Pod $POD was admitted by the $(io_isolation_pod_scc "$CLUSTER_NAMESPACE" "$POD") SCC"
+  fi
+
+  if kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+    -o jsonpath='{range .status.initContainerStatuses[*]}{.name}{"\n"}{end}' \
+    | grep -qxF setup-io-limits
+  then
+    success "The setup-io-limits init container ran in $POD"
+  else
+    fail "The setup-io-limits init container is missing from $POD"
+  fi
+
+  POD_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath='{.metadata.uid}')"
+
+  echo "io.max of $POD with the loose cap:"
+  io_isolation_io_limits_io_max "$POD" | tee "$LOG_PATH/io-limits-io-max-loose"
+
+  BASELINE_READ="$(io_isolation_measure "$CLUSTER_NAMESPACE" "$POD" io-limits-uncapped read)"
+  BASELINE_WRITE="$(io_isolation_measure "$CLUSTER_NAMESPACE" "$POD" io-limits-uncapped write)"
+
+  echo "Tightening ioLimits of $CLUSTER_NAME, which the documentation says takes effect live"
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge -p "$(
+    cat << EOF
+{"spec":{"pods":{"persistentVolume":{"ioLimits":{
+  "readIops":$E2E_IO_ISOLATION_READ_IOPS,
+  "writeIops":$E2E_IO_ISOLATION_WRITE_IOPS,
+  "readMiBps":$E2E_IO_ISOLATION_READ_MIBPS,
+  "writeMiBps":$E2E_IO_ISOLATION_WRITE_MIBPS}}}}}
+EOF
+    )"
+
+  if wait_until io_isolation_io_limits_are_applied "$POD"
+  then
+    success "The cluster controller wrote the new limits into the cgroup io.max of $POD"
+  else
+    io_isolation_io_limits_io_max "$POD" || true
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$POD" -c cluster-controller --tail 100 || true
+    fail "The cluster controller did not write the new limits into the cgroup io.max of $POD"
+  fi
+
+  echo "io.max of $POD with the tight cap:"
+  io_isolation_io_limits_io_max "$POD" | tee "$LOG_PATH/io-limits-io-max-capped"
+
+  if grep -qF "rbps=$(( E2E_IO_ISOLATION_READ_MIBPS * 1024 * 1024 )) wbps=$(( E2E_IO_ISOLATION_WRITE_MIBPS * 1024 * 1024 ))" \
+    "$LOG_PATH/io-limits-io-max-capped"
+  then
+    success "The bandwidth half of the cap was written as well"
+  else
+    fail "The bandwidth half of the cap is missing from the io.max of $POD"
+  fi
+
+  POD_UID_AFTER="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o jsonpath='{.metadata.uid}')"
+  if [ "$POD_UID" = "$POD_UID_AFTER" ]
+  then
+    success "Changing ioLimits did not recreate $POD, the change was applied live"
+  else
+    fail "$POD was recreated while changing ioLimits, the change was not applied live"
+  fi
+
+  CAPPED_READ="$(io_isolation_measure "$CLUSTER_NAMESPACE" "$POD" io-limits-capped read)"
+  CAPPED_WRITE="$(io_isolation_measure "$CLUSTER_NAMESPACE" "$POD" io-limits-capped write)"
+
+  io_isolation_assert_capped "Option 1 read" \
+    "$CAPPED_READ" "$E2E_IO_ISOLATION_READ_IOPS" "$BASELINE_READ"
+  io_isolation_assert_capped "Option 1 write" \
+    "$CAPPED_WRITE" "$E2E_IO_ISOLATION_WRITE_IOPS" "$BASELINE_WRITE"
+}
+
+# RHCOS labels the cgroup filesystem cgroup_t and runs containers as
+# container_t. The targeted policy allows container_t nothing but a read on
+# cgroup_t unless container_manage_cgroup is on, so both the chown the
+# setup-io-limits init container performs and the write the cluster controller
+# performs afterwards are denied by SELinux, even though the init container is
+# root and holds CAP_CHOWN. Being an SELinux denial and not a DAC one, it
+# surfaces as a plain EACCES:
+#
+#   chown: changing ownership of '/host-cgroup/.../io.max': Permission denied
+#
+# setsebool -P takes effect at once and survives reboots, and MCO does not
+# manage the file it writes, so no MachineConfig and no reboot are needed here.
+# In a real deployment this belongs in a MachineConfig so that new nodes come up
+# with it, the same way the class ladder of option 2 is delivered.
+io_isolation_allow_cgroup_selinux() {
+  if [ "$E2E_IO_ISOLATION_SET_SELINUX_BOOLEAN" != true ]
+  then
+    echo "Not touching container_manage_cgroup as asked by" \
+      "E2E_IO_ISOLATION_SET_SELINUX_BOOLEAN"
+    return 0
+  fi
+
+  IO_ISOLATION_SELINUX_BOOLEAN_WAS="$(io_isolation_node_exec "$IO_ISOLATION_NODE" \
+    getsebool container_manage_cgroup | sed 's/.*--> //' | tr -d '[:space:]')"
+  echo "container_manage_cgroup on $IO_ISOLATION_NODE is $IO_ISOLATION_SELINUX_BOOLEAN_WAS"
+
+  if [ "$IO_ISOLATION_SELINUX_BOOLEAN_WAS" = on ]
+  then
+    return 0
+  fi
+
+  echo "Turning container_manage_cgroup on for $IO_ISOLATION_NODE, without it SELinux denies" \
+    "the cgroup writes option 1 is made of"
+  io_isolation_node_exec "$IO_ISOLATION_NODE" setsebool -P container_manage_cgroup on
+
+  if io_isolation_node_exec "$IO_ISOLATION_NODE" getsebool container_manage_cgroup \
+    | grep -qF -- '--> on'
+  then
+    success "container_manage_cgroup is on for $IO_ISOLATION_NODE"
+  else
+    fail "container_manage_cgroup could not be turned on for $IO_ISOLATION_NODE"
+  fi
+}
+
+io_isolation_restore_cgroup_selinux() {
+  io_isolation_is_openshift || return 0
+  [ "$IO_ISOLATION_SELINUX_BOOLEAN_WAS" = off ] || return 0
+  echo "Turning container_manage_cgroup back off for $IO_ISOLATION_NODE"
+  io_isolation_node_exec "$IO_ISOLATION_NODE" setsebool -P container_manage_cgroup off
+}
+
+# What to look at when the Pod of option 1 does not start. The interesting part
+# is almost always the last one: an AVC denial naming cgroup_t means the
+# container_manage_cgroup boolean is not in effect on that node.
+io_isolation_dump_io_limits_diagnostics() {
+  echo "Pod:"
+  kubectl describe pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" || true
+  echo "setup-io-limits init container log:"
+  kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c setup-io-limits || true
+  if io_isolation_is_openshift
+  then
+    echo "SELinux booleans on $IO_ISOLATION_NODE:"
+    io_isolation_node_exec "$IO_ISOLATION_NODE" getsebool container_manage_cgroup || true
+    echo "Recent SELinux denials on $IO_ISOLATION_NODE:"
+    io_isolation_node_exec "$IO_ISOLATION_NODE" sh -c \
+      "ausearch -m avc -ts recent 2>/dev/null | tail -n 40 \
+        || journalctl --since '15 min ago' 2>/dev/null | grep -i 'avc: *denied' | tail -n 40" \
+      || true
+  fi
+}
+
+# The minimal SCC that admits what ioLimits needs: an init container running as
+# root with the CHOWN capability, and the host cgroup filesystem mounted read
+# write. It is restricted-v2 with those two additions and nothing else, and it
+# is bound to the ServiceAccount of this one cluster and to nothing else.
+#
+# Keeping the strategies of restricted-v2 matters as much as the additions: an
+# SCC is not only a check, it also fills in what the Pod leaves unset, and on
+# OpenShift the operator leaves runAsUser, runAsGroup and fsGroup unset on
+# purpose (USE_ARBITRARY_USER is set in the OpenShift bundle) precisely so that
+# the SCC fills them in. Relaxing a strategy to RunAsAny therefore does not
+# widen what is allowed, it removes a value the Pod was counting on.
+io_isolation_create_io_limits_scc() {
+  kubectl apply -f - << EOF
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: $IO_ISOLATION_SCC
+allowPrivilegedContainer: false
+allowPrivilegeEscalation: false
+allowHostDirVolumePlugin: true
+allowHostNetwork: false
+allowHostPorts: false
+allowHostPID: false
+allowHostIPC: false
+readOnlyRootFilesystem: false
+allowedCapabilities:
+  - CHOWN
+  - NET_BIND_SERVICE
+defaultAddCapabilities: []
+requiredDropCapabilities:
+  - ALL
+# RunAsAny, and only here, because the setup-io-limits init container asks for
+# uid 0. It also leaves the other containers on the uid baked into the image
+# (postgres, 999) instead of one from the namespace range, which is what
+# setup-io-limits chowns the io.max file to, so the two agree.
+runAsUser:
+  type: RunAsAny
+# MustRunAs, exactly as restricted-v2, and NOT RunAsAny. On OpenShift the
+# operator runs with USE_ARBITRARY_USER, which means it deliberately leaves
+# fsGroup out of the Pod security context for the SCC to fill in. An SCC that
+# does not fill it in leaves the data volume owned by root and the
+# setup-filesystem init container fails with
+# "mkdir: cannot create directory '/var/lib/postgresql/extensions': Permission denied".
+# MustRunAs with no ranges allocates from the namespace's
+# openshift.io/sa.scc.supplemental-groups annotation, which is what the default
+# SCC does.
+fsGroup:
+  type: MustRunAs
+# MustRunAs as well, so the volumes keep getting relabelled with the namespace's
+# MCS level the way they do under restricted-v2.
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+seccompProfiles:
+  - runtime/default
+priority: 10
+volumes:
+  - configMap
+  - csi
+  - downwardAPI
+  - emptyDir
+  - ephemeral
+  - hostPath
+  - persistentVolumeClaim
+  - projected
+  - secret
+EOF
+
+  # The Pod runs a container as root and mounts a host path, which the
+  # restricted Pod Security admission profile the label syncer would pick
+  # forbids regardless of the SCC. Pin the namespace to privileged and turn the
+  # syncer off so that it does not put the restricted label back.
+  kubectl label namespace "$CLUSTER_NAMESPACE" --overwrite \
+    security.openshift.io/scc.podSecurityLabelSync=false \
+    pod-security.kubernetes.io/enforce=privileged \
+    pod-security.kubernetes.io/audit=privileged \
+    pod-security.kubernetes.io/warn=privileged
+
+  openshift_oc adm policy add-scc-to-user "$IO_ISOLATION_SCC" \
+    -n "$CLUSTER_NAMESPACE" -z "$CLUSTER_NAME-patroni"
+}
+
+# Option 1 mounts the host cgroup filesystem into the cluster-controller
+# container, so its io.max can be read from inside the Pod, with no node access.
+io_isolation_io_limits_io_max() {
+  local POD="$1"
+  local POD_SLICE
+  POD_SLICE="pod$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" \
+    -o jsonpath='{.metadata.uid}' | tr - _).slice"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$POD" -c cluster-controller -- sh -c \
+    "IO_MAX=\$(find /host-cgroup -maxdepth 5 -name io.max -path \"*$POD_SLICE/io.max\"); \
+      [ -n \"\$IO_MAX\" ] && cat \"\$IO_MAX\""
+}
+
+io_isolation_io_limits_are_applied() {
+  io_isolation_io_limits_io_max "$1" \
+    | grep -qF "riops=$E2E_IO_ISOLATION_READ_IOPS wiops=$E2E_IO_ISOLATION_WRITE_IOPS"
+}
+
+## Test: option 2, container runtime BlockIO classes
+
+check_blockio_classes() {
+  local POD="$IO_ISOLATION_BLOCKIO_CLUSTER-0"
+  local POD_UID
+  local POD_SCC
+  local BASELINE_READ
+  local BASELINE_WRITE
+  local CAPPED_READ
+  local CAPPED_WRITE
+
+  io_isolation_resolve_node
+  io_isolation_apply_node_config
+
+  io_isolation_instance_profile "$IO_ISOLATION_BLOCKIO_NAMESPACE" | kubectl apply -f -
+
+  echo "Creating $IO_ISOLATION_BLOCKIO_CLUSTER without the BlockIO annotation"
+  io_isolation_blockio_cluster '' | kubectl apply -f -
+
+  wait_pods_running "$IO_ISOLATION_BLOCKIO_NAMESPACE" 1
+  wait_cluster "$IO_ISOLATION_BLOCKIO_CLUSTER" "$IO_ISOLATION_BLOCKIO_NAMESPACE"
+
+  BASELINE_READ="$(io_isolation_measure \
+    "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD" blockio-uncapped read)"
+  BASELINE_WRITE="$(io_isolation_measure \
+    "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD" blockio-uncapped write)"
+
+  io_isolation_reload_crio
+
+  echo "Annotating $IO_ISOLATION_BLOCKIO_CLUSTER with the $E2E_IO_ISOLATION_BLOCKIO_CLASS class"
+  io_isolation_blockio_cluster "$E2E_IO_ISOLATION_BLOCKIO_CLASS" | kubectl apply -f -
+
+  if wait_until io_isolation_pod_has_blockio_annotation "$POD"
+  then
+    success "StackGres propagated the BlockIO class annotation to $POD"
+  else
+    fail "StackGres did not propagate the BlockIO class annotation to $POD"
+  fi
+
+  # The annotation on the live Pod is not evidence of anything: the runtime
+  # resolves BlockIO classes only when it creates a container, and StackGres
+  # StatefulSets use the OnDelete update strategy, so the Pod has to be
+  # recreated for the class to reach the kernel.
+  echo "Recreating $POD so that the container runtime resolves the class"
+  kubectl delete pod -n "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD" --wait
+  wait_pods_running "$IO_ISOLATION_BLOCKIO_NAMESPACE" 1
+  wait_cluster "$IO_ISOLATION_BLOCKIO_CLUSTER" "$IO_ISOLATION_BLOCKIO_NAMESPACE"
+
+  POD_SCC="$(io_isolation_pod_scc "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD")"
+  if [ "$POD_SCC" = restricted-v2 ]
+  then
+    success "$POD was admitted by the default restricted-v2 SCC, option 2 needs no privileges"
+  else
+    fail "$POD was admitted by the $POD_SCC SCC, option 2 is expected to run under the default \
+restricted-v2 SCC"
+  fi
+
+  POD_UID="$(kubectl get pod -n "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD" \
+    -o jsonpath='{.metadata.uid}')"
+
+  echo "io.max entries of $POD on $IO_ISOLATION_NODE:"
+  io_isolation_blockio_io_max "$POD_UID" | tee "$LOG_PATH/blockio-io-max"
+
+  if grep -qF "riops=$E2E_IO_ISOLATION_READ_IOPS" "$LOG_PATH/blockio-io-max" \
+    && grep -qF "wiops=$E2E_IO_ISOLATION_WRITE_IOPS" "$LOG_PATH/blockio-io-max"
+  then
+    success "The container runtime resolved the class and the kernel holds the io.max entries"
+  else
+    io_isolation_crio_journal | tail -n 50 || true
+    fail "No io.max entry of $POD carries the $E2E_IO_ISOLATION_BLOCKIO_CLASS limits. A 'device \
+wildcard does not match any device nodes' line in the CRI-O journal above means the class loaded \
+with empty parameters"
+  fi
+
+  CAPPED_READ="$(io_isolation_measure \
+    "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD" blockio-capped read)"
+  CAPPED_WRITE="$(io_isolation_measure \
+    "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$POD" blockio-capped write)"
+
+  io_isolation_assert_capped "Option 2 read" \
+    "$CAPPED_READ" "$E2E_IO_ISOLATION_READ_IOPS" "$BASELINE_READ"
+  io_isolation_assert_capped "Option 2 write" \
+    "$CAPPED_WRITE" "$E2E_IO_ISOLATION_WRITE_IOPS" "$BASELINE_WRITE"
+}
+
+io_isolation_pod_has_blockio_annotation() {
+  kubectl get pod -n "$IO_ISOLATION_BLOCKIO_NAMESPACE" "$1" \
+    -o jsonpath='{.metadata.annotations.blockio\.resources\.beta\.kubernetes\.io/pod}' \
+    | grep -qxF "$E2E_IO_ISOLATION_BLOCKIO_CLASS"
+}
+
+io_isolation_blockio_yaml() {
+  local DEVICE
+  echo 'Classes:'
+  echo
+  echo "  $E2E_IO_ISOLATION_BLOCKIO_CLASS:"
+  for DEVICE in $E2E_IO_ISOLATION_BLOCKIO_DEVICES
+  do
+    printf '    - Devices: ["%s"]\n' "$DEVICE"
+    printf '      ThrottleReadIOPS: %s\n' "$E2E_IO_ISOLATION_READ_IOPS"
+    printf '      ThrottleWriteIOPS: %s\n' "$E2E_IO_ISOLATION_WRITE_IOPS"
+    printf '      ThrottleReadBps: %sM\n' "$E2E_IO_ISOLATION_READ_MIBPS"
+    printf '      ThrottleWriteBps: %sM\n' "$E2E_IO_ISOLATION_WRITE_MIBPS"
+  done
+}
+
+io_isolation_crio_conf() {
+  # blockio_reload lets CRI-O re-expand the device globs on SIGHUP, which is
+  # what makes this usable on a cloud provider: the data volume only becomes a
+  # block device on the node once a Pod that claims it is scheduled, which is
+  # necessarily after the runtime started.
+  cat << EOF
+[crio.runtime]
+blockio_config_file = "/etc/crio/blockio.yaml"
+blockio_reload = true
+EOF
+}
+
+io_isolation_apply_node_config() {
+  local BLOCKIO_YAML
+  local CRIO_CONF
+
+  io_isolation_blockio_yaml > "$LOG_PATH/blockio.yaml"
+  echo "BlockIO class ladder:"
+  cat "$LOG_PATH/blockio.yaml"
+
+  BLOCKIO_YAML="$(base64 -w0 < "$LOG_PATH/blockio.yaml")"
+  CRIO_CONF="$(io_isolation_crio_conf | base64 -w0)"
+
+  kubectl apply -f - << EOF
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: $IO_ISOLATION_BLOCKIO_MC
+  labels:
+    machineconfiguration.openshift.io/role: $IO_ISOLATION_POOL
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+        - path: /etc/crio/blockio.yaml
+          mode: 420
+          contents:
+            source: data:text/plain;base64,$BLOCKIO_YAML
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: $IO_ISOLATION_CRIO_MC
+  labels:
+    machineconfiguration.openshift.io/role: $IO_ISOLATION_POOL
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+        - path: /etc/crio/crio.conf.d/99-$E2E_IO_ISOLATION_BLOCKIO_CLASS-blockio.conf
+          mode: 420
+          contents:
+            source: data:text/plain;base64,$CRIO_CONF
+EOF
+
+  io_isolation_wait_mcp "$IO_ISOLATION_BLOCKIO_MC" "$IO_ISOLATION_CRIO_MC"
+
+  if io_isolation_node_exec "$IO_ISOLATION_NODE" cat /etc/crio/blockio.yaml \
+    | grep -qF "$E2E_IO_ISOLATION_BLOCKIO_CLASS"
+  then
+    success "The class ladder is on $IO_ISOLATION_NODE"
+  else
+    io_isolation_dump_mcp_state
+    fail "The class ladder did not reach $IO_ISOLATION_NODE. If the state above shows" \
+      "status_configuration different from spec_configuration, the rollout is still in" \
+      "flight and the wait returned too early"
+  fi
+
+  if io_isolation_node_exec "$IO_ISOLATION_NODE" crio status config \
+    | grep -qF 'blockio_config_file = "/etc/crio/blockio.yaml"'
+  then
+    success "CRI-O on $IO_ISOLATION_NODE is configured to load the class ladder"
+  else
+    fail "CRI-O on $IO_ISOLATION_NODE is not configured to load the class ladder"
+  fi
+}
+
+io_isolation_delete_node_config() {
+  if ! kubectl get machineconfig "$IO_ISOLATION_BLOCKIO_MC" > /dev/null 2>&1 \
+    && ! kubectl get machineconfig "$IO_ISOLATION_CRIO_MC" > /dev/null 2>&1
+  then
+    return
+  fi
+
+  if [ "$E2E_IO_ISOLATION_KEEP_NODE_CONFIG" = true ]
+  then
+    echo "Leaving the BlockIO MachineConfigs in place as asked by" \
+      "E2E_IO_ISOLATION_KEEP_NODE_CONFIG. Delete $IO_ISOLATION_BLOCKIO_MC and" \
+      "$IO_ISOLATION_CRIO_MC to revert, which reboots the $IO_ISOLATION_POOL pool."
+    return
+  fi
+
+  io_isolation_resolve_node
+
+  echo "Removing the BlockIO MachineConfigs, which reboots the $IO_ISOLATION_POOL pool again"
+  kubectl delete machineconfig "$IO_ISOLATION_BLOCKIO_MC" --ignore-not-found
+  kubectl delete machineconfig "$IO_ISOLATION_CRIO_MC" --ignore-not-found
+  io_isolation_wait_mcp
+}
+
+io_isolation_mcp_has_machine_config() {
+  kubectl get mcp "$IO_ISOLATION_POOL" -o jsonpath='{.spec.configuration.source[*].name}' \
+    | tr ' ' '\n' | grep -qxF "$1"
+}
+
+# Converged means status has caught up with spec, and NOT merely that the
+# conditions look good. MCO renders the new config into .spec.configuration
+# (which is what io_isolation_mcp_has_machine_config sees) some seconds before it
+# flips Updating to True and starts draining, and in that window the conditions
+# and the machine counts still describe the *previous* rollout: Updated=True,
+# Updating=False, machineCount == updatedMachineCount == readyMachineCount. A
+# check built on those alone therefore returns true immediately and the runbook
+# goes on to read a file the node has not received yet. Comparing
+# .status.configuration.name with .spec.configuration.name closes that window,
+# because status only names the new rendered config once the pool has applied it.
+io_isolation_mcp_is_updated() {
+  kubectl get mcp "$IO_ISOLATION_POOL" -o json | jq -e '
+    .status.configuration.name != null
+    and .status.configuration.name == .spec.configuration.name
+    and ([ .status.conditions[] | select(.type == "Updated") | .status ] == [ "True" ])
+    and ([ .status.conditions[] | select(.type == "Updating") | .status ] == [ "False" ])
+    and ([ .status.conditions[] | select(.type == "Degraded") | .status ] == [ "False" ])
+    and .status.machineCount > 0
+    and .status.machineCount == .status.updatedMachineCount
+    and .status.machineCount == .status.readyMachineCount' > /dev/null
+}
+
+# The pool being converged is a statement about every node in it. This is the
+# same statement about the one node the test clusters are pinned to, which is
+# what actually has to hold before its files are read.
+io_isolation_node_config_is_done() {
+  kubectl get node "$IO_ISOLATION_NODE" -o json | jq -e '
+    .metadata.annotations as $annotations
+    | $annotations["machineconfiguration.openshift.io/state"] == "Done"
+    and $annotations["machineconfiguration.openshift.io/currentConfig"] != null
+    and $annotations["machineconfiguration.openshift.io/currentConfig"]
+      == $annotations["machineconfiguration.openshift.io/desiredConfig"]' > /dev/null
+}
+
+io_isolation_dump_mcp_state() {
+  echo "MachineConfigPool $IO_ISOLATION_POOL:"
+  kubectl get mcp "$IO_ISOLATION_POOL" -o json 2>/dev/null | jq -r '{
+      spec_configuration: .spec.configuration.name,
+      status_configuration: .status.configuration.name,
+      machineCount: .status.machineCount,
+      updatedMachineCount: .status.updatedMachineCount,
+      readyMachineCount: .status.readyMachineCount,
+      degradedMachineCount: .status.degradedMachineCount,
+      conditions: [ .status.conditions[]
+        | select(.type | test("Updated|Updating|Degraded"))
+        | { type, status, reason, message } ] }' || true
+  echo "MCO annotations of $IO_ISOLATION_NODE:"
+  kubectl get node "$IO_ISOLATION_NODE" -o json 2>/dev/null \
+    | jq -r '.metadata.annotations | with_entries(select(.key | test("machineconfiguration")))' \
+    || true
+}
+
+# Waits for the MachineConfigPool to converge. Every check tolerates an
+# unreachable API server, since on a single node cluster the rollout reboots the
+# control plane itself and the API is gone for a few minutes. When MachineConfig
+# names are given, first wait for the pool to have rendered them, so that a
+# revert with nothing to do is not waited on forever.
+io_isolation_wait_mcp() {
+  local NAME
+
+  for NAME in "$@"
+  do
+    if ! wait_until -t 600 io_isolation_mcp_has_machine_config "$NAME"
+    then
+      io_isolation_dump_mcp_state
+      fail "MachineConfigPool $IO_ISOLATION_POOL did not pick up MachineConfig $NAME"
+      return 1
+    fi
+  done
+
+  echo "Waiting for MachineConfigPool $IO_ISOLATION_POOL to roll out," \
+    "which drains and reboots its nodes one at a time"
+  if ! wait_until -t "$E2E_IO_ISOLATION_MCP_TIMEOUT" -i 15 io_isolation_mcp_is_updated
+  then
+    io_isolation_dump_mcp_state
+    fail "MachineConfigPool $IO_ISOLATION_POOL did not converge"
+    return 1
+  fi
+
+  if ! wait_until -t "$E2E_IO_ISOLATION_MCP_TIMEOUT" -i 15 io_isolation_node_config_is_done
+  then
+    io_isolation_dump_mcp_state
+    fail "Node $IO_ISOLATION_NODE did not finish applying the rendered MachineConfig"
+    return 1
+  fi
+
+  success "MachineConfigPool $IO_ISOLATION_POOL converged" \
+    "and $IO_ISOLATION_NODE is running its rendered config"
+}
+
+io_isolation_crio_journal() {
+  io_isolation_node_exec "$IO_ISOLATION_NODE" sh -c \
+    "journalctl -u crio --since '30 min ago' | grep -iE 'blockio|wildcard'"
+}
+
+# CRI-O expands the device globs of the class ladder once, when it loads the
+# file. The data volume of a cluster only shows up as a block device on the node
+# after its Pod is scheduled, which is later than that, so without this the
+# class holds no parameters for it and the annotation would silently do nothing.
+# This is the day 2 flow the documentation describes, a SIGHUP with no container
+# disruption.
+io_isolation_reload_crio() {
+  echo "Reloading CRI-O on $IO_ISOLATION_NODE so that the class globs are expanded again," \
+    "now that the data volume is attached"
+  io_isolation_node_exec "$IO_ISOLATION_NODE" systemctl reload crio
+
+  io_isolation_crio_journal | tail -n 50 > "$LOG_PATH/crio-blockio-journal" || true
+  cat "$LOG_PATH/crio-blockio-journal"
+
+  if grep -qi 'does not match any device nodes' "$LOG_PATH/crio-blockio-journal"
+  then
+    echo "Whole disks on $IO_ISOLATION_NODE:"
+    io_isolation_node_exec "$IO_ISOLATION_NODE" lsblk -dno NAME,SIZE,TYPE || true
+    fail "CRI-O reports that a device wildcard of the class matches no device node on \
+$IO_ISOLATION_NODE, so the class loaded with empty parameters. Set \
+E2E_IO_ISOLATION_BLOCKIO_DEVICES to globs matching the whole disks listed above"
+  else
+    success "CRI-O reloaded the class ladder on $IO_ISOLATION_NODE"
+  fi
+}
+
+# Option 2 writes the throttle into a per container cgroup on the node, so it
+# has to be read from the node. Which cgroup exactly depends on the cgroup
+# driver and the OCI runtime, so look for whichever io.max under the Pod slice
+# actually holds entries.
+io_isolation_blockio_io_max() {
+  local POD_SLICE
+  POD_SLICE="pod$(printf '%s' "$1" | tr - _)"
+  io_isolation_node_exec "$IO_ISOLATION_NODE" sh -c \
+    "find /sys/fs/cgroup -maxdepth 8 -name io.max -path '*$POD_SLICE*' 2>/dev/null \
+      | xargs -r grep -H riops="
+}
