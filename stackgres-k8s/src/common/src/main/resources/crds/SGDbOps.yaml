@@ -634,6 +634,20 @@ spec:
                 type: object
                 description: |
                   Configuration of restart
+
+                  When a change only require the Postgres instance to be restarted, and not the Pod to be re-created, the Postgres instances of
+                   the replicas are restarted first and a switchover to the ready replica with the least lag is then performed, so that the
+                   primary is demoted instead of being restarted.
+
+                  The Postgres instance of the primary is restarted in place, without performing any switchover, only when any of the parameters
+                   `max_connections`, `max_prepared_transactions`, `max_locks_per_transaction`, `max_wal_senders` or `max_worker_processes` is
+                   decreased (a hot standby require those parameters to be set to a value greater than or equal to the value set on the primary,
+                   see https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN) or when no replica is available to switchover
+                   to. Patroni only reports the parameters that are pending a change since version 4, when they are not reported a switchover is
+                   performed.
+
+                  The delay between the restart of a Postgres instance and the next one is configured in the
+                   `SGCluster.spec.pods.updateStrategy.restartDelay` field.
                 properties:
                   method:
                     type: string
@@ -654,6 +668,20 @@ spec:
                 type: object
                 description: |
                   Configuration of minor version upgrade
+
+                  When a change only require the Postgres instance to be restarted, and not the Pod to be re-created, the Postgres instances of
+                   the replicas are restarted first and a switchover to the ready replica with the least lag is then performed, so that the
+                   primary is demoted instead of being restarted.
+
+                  The Postgres instance of the primary is restarted in place, without performing any switchover, only when any of the parameters
+                   `max_connections`, `max_prepared_transactions`, `max_locks_per_transaction`, `max_wal_senders` or `max_worker_processes` is
+                   decreased (a hot standby require those parameters to be set to a value greater than or equal to the value set on the primary,
+                   see https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN) or when no replica is available to switchover
+                   to. Patroni only reports the parameters that are pending a change since version 4, when they are not reported a switchover is
+                   performed.
+
+                  The delay between the restart of a Postgres instance and the next one is configured in the
+                   `SGCluster.spec.pods.updateStrategy.restartDelay` field.
                 properties:
                   postgresVersion:
                     type: string
@@ -673,6 +701,20 @@ spec:
                 type: object
                 description: |
                   Configuration of security upgrade
+
+                  When a change only require the Postgres instance to be restarted, and not the Pod to be re-created, the Postgres instances of
+                   the replicas are restarted first and a switchover to the ready replica with the least lag is then performed, so that the
+                   primary is demoted instead of being restarted.
+
+                  The Postgres instance of the primary is restarted in place, without performing any switchover, only when any of the parameters
+                   `max_connections`, `max_prepared_transactions`, `max_locks_per_transaction`, `max_wal_senders` or `max_worker_processes` is
+                   decreased (a hot standby require those parameters to be set to a value greater than or equal to the value set on the primary,
+                   see https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN) or when no replica is available to switchover
+                   to. Patroni only reports the parameters that are pending a change since version 4, when they are not reported a switchover is
+                   performed.
+
+                  The delay between the restart of a Postgres instance and the next one is configured in the
+                   `SGCluster.spec.pods.updateStrategy.restartDelay` field.
                 properties:
                   method:
                     type: string

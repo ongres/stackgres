@@ -386,17 +386,20 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
-    if (foundPrimaryPod
-        .map(pod -> ClusterRolloutUtil.getPostgresRestartReasons(pod, patroniMembers)
-            .requiresRestart())
-        .orElse(false)) {
+    final Optional<Pod> foundPrimaryPodAndPendingPostgresRestart = foundPrimaryPod
+        .filter(pod -> ClusterRolloutUtil.getPostgresRestartReasons(pod, patroniMembers)
+            .requiresRestart());
+    if (foundPrimaryPodAndPendingPostgresRestart
+        .filter(pod -> ClusterRolloutUtil.requiresPostgresRestartWithoutSwitchover(pod, patroniMembers))
+        .isPresent()) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart",
-            foundPrimaryPod.get().getMetadata().getName());
+        LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart"
+            + " of a hot standby sensitive parameter that is being decreased",
+            foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
       }
       var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
       patroniCtl.restart(credentials.v1, credentials.v2,
-          foundPrimaryPod.get().getMetadata().getName());
+          foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
       return;
     }
     var anyOtherPodAndPendingRestartInstance = otherPods
@@ -432,7 +435,8 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
-    if (foundPrimaryPodAndPendingRestart.isPresent()) {
+    if (foundPrimaryPodAndPendingRestart.isPresent()
+        || foundPrimaryPodAndPendingPostgresRestart.isPresent()) {
       final Optional<PatroniMember> leastLagPatroniMemberAndReady =
           patroniMembers
           .stream()
@@ -479,12 +483,22 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             foundPrimaryPod.get().getMetadata().getName(),
             otherLeastLagPodAndReady.get().getMetadata().getName());
         return;
-      } else {
+      } else if (foundPrimaryPodAndPendingRestart.isPresent()) {
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("Restarting primary Pod {} since pending restart",
               foundPrimaryPodAndPendingRestart.get().getMetadata().getName());
         }
         handler.delete(context, foundPrimaryPodAndPendingRestart.get());
+        return;
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart"
+              + " and no replica is available to switchover to",
+              foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
+        }
+        var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+        patroniCtl.restart(credentials.v1, credentials.v2,
+            foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
         return;
       }
     }
