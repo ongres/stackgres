@@ -13,6 +13,9 @@ e2e_test() {
   run_test "Checking that restart in-place is working" check_restart_in_place_is_working
   
   run_test "Checking that restart with only pendingin restart is working" check_restart_only_pending_restart_is_working
+
+  run_test "Checking that restart of the primary is performed with a switchover unless a hot standby sensitive parameter is decreased" \
+    check_restart_of_primary_is_working
 }
 
 check_restart_is_working() {
@@ -114,3 +117,124 @@ EOF
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
+check_restart_of_primary_is_working() {
+  reset_cluster 2
+
+  local MAX_CONNECTIONS
+  local PODS_CREATION_TIMESTAMPS
+  local PRIMARY
+  local PRIMARY_POSTGRES_RESTARTS
+  MAX_CONNECTIONS="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
+    -- psql -t -A -c 'SHOW max_connections')"
+  PODS_CREATION_TIMESTAMPS="$(get_pods_creation_timestamps)"
+  PRIMARY="$(get_cluster_primary)"
+  PRIMARY_POSTGRES_RESTARTS="$(get_postgres_restarts "$PRIMARY")"
+
+  # increasing a hot standby sensitive parameter has to be applied performing a switchover
+  set_max_connections "$((MAX_CONNECTIONS + 10))"
+  restart_only_pending_restart
+
+  if [ "$(get_cluster_primary)" != "$PRIMARY" ]
+  then
+    success "A switchover was performed when max_connections was increased"
+  else
+    fail "No switchover was performed when max_connections was increased"
+  fi
+
+  if [ "$(get_pods_creation_timestamps)" = "$PODS_CREATION_TIMESTAMPS" ]
+  then
+    success "Pods were not re-created when max_connections was increased"
+  else
+    fail "Pods were re-created when max_connections was increased"
+  fi
+
+  if [ "$(get_postgres_restarts "$PRIMARY")" -le "$((PRIMARY_POSTGRES_RESTARTS + 1))" ]
+  then
+    success "The Postgres instance of Pod $PRIMARY was not restarted more than once"
+  else
+    fail "The Postgres instance of Pod $PRIMARY was restarted more than once"
+  fi
+
+  PRIMARY="$(get_cluster_primary)"
+  PRIMARY_POSTGRES_RESTARTS="$(get_postgres_restarts "$PRIMARY")"
+
+  # decreasing a hot standby sensitive parameter has to be applied restarting the primary in place
+  set_max_connections "$MAX_CONNECTIONS"
+  restart_only_pending_restart
+
+  if [ "$(get_cluster_primary)" = "$PRIMARY" ]
+  then
+    success "No switchover was performed when max_connections was decreased"
+  else
+    fail "A switchover was performed when max_connections was decreased"
+  fi
+
+  if [ "$(get_pods_creation_timestamps)" = "$PODS_CREATION_TIMESTAMPS" ]
+  then
+    success "Pods were not re-created when max_connections was decreased"
+  else
+    fail "Pods were re-created when max_connections was decreased"
+  fi
+
+  if [ "$(get_postgres_restarts "$PRIMARY")" -le "$((PRIMARY_POSTGRES_RESTARTS + 1))" ]
+  then
+    success "The Postgres instance of Pod $PRIMARY was not restarted more than once"
+  else
+    fail "The Postgres instance of Pod $PRIMARY was restarted more than once"
+  fi
+
+  wait_until check_mock_data_samehost "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
+}
+
+get_cluster_primary() {
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template='{{ .metadata.annotations.leader }}'
+}
+
+get_pods_creation_timestamps() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    --template='{{ range .items }}{{ printf "%s=%s " .metadata.name .metadata.creationTimestamp }}{{ end }}'
+}
+
+# Count the restarts of the Postgres instance that the cluster controller of a Pod has performed
+get_postgres_restarts() {
+  local POD="$1"
+
+  kubectl logs -n "$CLUSTER_NAMESPACE" "$POD" -c cluster-controller \
+    | grep -cF 'Restarting postgres instance through patronictl due to operator request' || true
+}
+
+set_max_connections() {
+  local MAX_CONNECTIONS="$1"
+
+  kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" postgresconf --type merge \
+    -p '{"spec":{"postgresql.conf":{"max_connections":"'"$MAX_CONNECTIONS"'"}}}'
+
+  kubectl wait --timeout="$E2E_TIMEOUT"s sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for=condition=PendingRestart
+}
+
+restart_only_pending_restart() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+    onlyPendingRestart: true
+EOF
+
+  check_restart_is_running
+
+  # the default restart delay of PT5M paces the restart of each Postgres instance
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 10))"
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
