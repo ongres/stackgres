@@ -62,7 +62,18 @@ public class SlonyBridgeService extends SlonyServiceGrpc.SlonyServiceImplBase {
                         matriarch.reconcile();
                     }
                     case UNUSEDPORT -> executor.onUnusedPort(UuidCodec.fromProto(msg.getUnusedPort().getId()), msg.getUnusedPort().getPort());
-                    case CLUSTERINSTANCECREATED -> executor.onInstanceCreated(UuidCodec.fromProto(msg.getClusterInstanceCreated().getId()));
+                    case CLUSTERINSTANCECREATED -> {
+                        // slony-linux reports provisioning failures (e.g. an image that can't be pulled)
+                        // in the ClusterInstanceCreated.status field — it fails before any slon starts, so
+                        // the slon's own STATUS_FAILED path never fires. A non-OK status = creation failed.
+                        var created = msg.getClusterInstanceCreated();
+                        var instanceId = UuidCodec.fromProto(created.getId());
+                        if (created.hasStatus() && created.getStatus().getCode() != 0) {
+                            executor.onInstanceCreationFailed(instanceId, created.getStatus().getMessage());
+                        } else {
+                            executor.onInstanceCreated(instanceId);
+                        }
+                    }
                     case CLUSTERINSTANCEDELETED -> executor.onInstanceDeleted(UuidCodec.fromProto(msg.getClusterInstanceDeleted().getId()));
                     case HEARTBEAT -> {
                         if (slonys.onHeartbeat()) {

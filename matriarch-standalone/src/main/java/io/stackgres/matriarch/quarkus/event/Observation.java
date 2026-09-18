@@ -24,6 +24,10 @@ public sealed interface Observation {
     record Pending(ClusterId id, String reason) implements Observation {
     }
 
+    /** A delete could not be actuated yet (no substrate reachable); the cluster stays DELETING. */
+    record DeletePending(ClusterId id, String reason) implements Observation {
+    }
+
     record Metrics(ClusterId clusterId, InstanceId instanceId, double cpu, long memory, long storageUsed) implements Observation {
     }
 

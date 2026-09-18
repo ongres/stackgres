@@ -23,6 +23,7 @@ public class ObservationBridge {
             case Observation.Removed removed -> matriarch.notifyRemoved(removed.id());
             case Observation.Failed failed -> matriarch.notifyFailed(failed.id(), failed.reason());
             case Observation.Pending pending -> matriarch.notifyPending(pending.id(), pending.reason());
+            case Observation.DeletePending dp -> matriarch.notifyDeletePending(dp.id(), dp.reason());
             case Observation.Metrics m -> matriarch.notifyMetrics(m.clusterId(), m.instanceId(), m.cpu(), m.memory(), m.storageUsed());
         }
     }

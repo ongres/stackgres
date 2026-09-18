@@ -124,7 +124,12 @@ public class SlonyLinuxExecutor implements Executor {
     @Override
     public void remove(ClusterSpec spec) {
         if (!slonys.isReady()) {
-            observations.fire(new Observation.Failed(spec.id(), "no slony-linux agent is connected to delete this cluster"));
+            // No slony-linux agent reachable to actuate the host teardown. DEFER rather than forget: the
+            // core keeps the cluster's durable DELETING intent and reconcile() completes the teardown when
+            // an agent reconnects — so a returning cluster is removed, not resurrected. (Forgetting it here
+            // would lose the delete intent and let adopt() re-create it on reconnect.)
+            LOG.log(Level.INFO, "no slony-linux agent connected — deferring delete of {0}", spec.id().value());
+            observations.fire(new Observation.DeletePending(spec.id(), "no slony-linux agent connected"));
             return;
         }
         UUID clusterId = UUID.fromString(spec.id().value());
@@ -240,6 +245,22 @@ public class SlonyLinuxExecutor implements Executor {
         if (prov != null) {
             report(prov, RunStatus.STARTING);
         }
+    }
+
+    /**
+     * slony-linux could not create the instance (e.g. an image failed to pull) — reported in
+     * {@code ClusterInstanceCreated.status}. The pull fails before any slon container starts, so this is
+     * the only signal we get. Fail the operation with the agent's message rather than leaving the
+     * cluster stuck in a transitional phase forever.
+     */
+    public void onInstanceCreationFailed(UUID instanceId, String message) {
+        Provisioning prov = provisioning.remove(instanceId);
+        if (prov == null) {
+            return;
+        }
+        LOG.log(Level.WARNING, "instance {0} creation failed: {1}", instanceId, message);
+        observations.fire(new Observation.Failed(prov.spec.id(),
+                "failed to create cluster instance" + (message == null || message.isEmpty() ? "" : ": " + message)));
     }
 
     /**
