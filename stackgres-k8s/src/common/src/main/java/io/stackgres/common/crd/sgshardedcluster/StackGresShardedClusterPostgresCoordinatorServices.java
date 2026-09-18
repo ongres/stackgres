@@ -11,6 +11,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
@@ -24,7 +25,7 @@ import jakarta.validation.constraints.NotNull;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresShardedClusterPostgresCoordinatorServices {
+public class StackGresShardedClusterPostgresCoordinatorServices extends AdditionalProperties {
 
   @NotNull(message = "any is required")
   private StackGresPostgresService any;
