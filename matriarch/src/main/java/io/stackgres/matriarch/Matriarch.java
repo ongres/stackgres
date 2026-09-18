@@ -8,6 +8,7 @@ import io.stackgres.matriarch.model.ClusterAlreadyStoppedException;
 import io.stackgres.matriarch.model.ClusterNameInUseException;
 import io.stackgres.matriarch.model.ClusterNotFoundException;
 import io.stackgres.matriarch.model.Credentials;
+import io.stackgres.matriarch.model.IllegalRunIntentTransitionException;
 import io.stackgres.matriarch.model.spec.ClusterCreate;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.ClusterOperationProgress;
@@ -22,6 +23,7 @@ import io.stackgres.matriarch.model.InstanceId;
 import io.stackgres.matriarch.model.spec.InstanceRole;
 import io.stackgres.matriarch.model.spec.InstanceSpec;
 import io.stackgres.matriarch.model.spec.PostgresSpec;
+import io.stackgres.matriarch.model.spec.RunIntent;
 import io.stackgres.matriarch.model.status.RunStatus;
 import io.stackgres.matriarch.spi.ExtensionCatalog;
 import io.stackgres.matriarch.spi.Executor;
@@ -136,6 +138,8 @@ public final class Matriarch {
             return;
         }
 
+        requireLegalRunIntent(desired, RunIntent.DELETING);
+
         // Run the teardown EXACTLY ONCE: a retry under the same key, or a delete ALREADY in flight for
         // this cluster, replays the in-progress state instead of re-running (teardown may later involve
         // stop + cleanup side-effects, §5.1). Note: only an in-flight DELETE replays — a create/start/
@@ -153,19 +157,22 @@ public final class Matriarch {
         progress.onProgress(ClusterOperationProgress.accepted(snapshot(id)));
         events.accept(new ClusterEvent.ClusterDeleting(Instant.now(), id));
 
-        // A cluster the matriarch has never seen running on an agent — no observed status at all, or
-        // still PENDING — was never provisioned: there is nothing to tear down, so complete the delete
-        // here rather than asking an executor/agent to remove it. Crucially this also covers a STALE
-        // cluster (a leftover desired whose instance no agent actually has): routing its delete to the
-        // agent would send a DeleteInstanceCommand for an instance the agent doesn't know, and no
-        // removal ack would ever come back — leaving the client's delete stream to hang forever.
-        ClusterStatus observed = statusCache.get(id);
-        if (observed == null || observed.runStatus() == RunStatus.PENDING) {
+        // Never provisioned onto a substrate (created while no agent was connected, or a leftover
+        // PENDING/stale desired): nothing exists on any host to tear down, so complete the delete locally.
+        // Keyed off the durable `provisioned` fact, not observed status — a provisioned cluster whose agent
+        // is merely disconnected must NOT be forgotten here (that would orphan a real instance and let
+        // adopt() resurrect it); it is deferred below instead.
+        if (!store.isProvisioned(id)) {
             notifyRemoved(id);
             return;
         }
 
-        executor.remove(desired);   // non-blocking; completion via notifyRemoved()
+        // Provisioned: latch the teardown intent durably BEFORE driving the substrate (§3.6, §11.3). If no
+        // agent is reachable the executor defers (notifyDeletePending) and the cluster stays DELETING until
+        // reconcile() completes it when an agent reconnects — the intent survives, so a returning cluster is
+        // torn down rather than resurrected by adopt(). A crash mid-delete likewise leaves the DELETING latch.
+        store.setDesiredRun(id, RunIntent.DELETING);
+        executor.remove(desired);   // completion via notifyRemoved(); deferral via notifyDeletePending()
     }
 
     public void startCluster(ClusterId id, String idempotencyKey, ProgressSink progress) {
@@ -216,6 +223,10 @@ public final class Matriarch {
         if (desired == null) {
             throw new ClusterNotFoundException(id);   // no desired state to act on
         }
+        // The desired run intent this verb drives toward: stop → STOPPED, start/restart → RUNNING.
+        // Reject it up front if the current intent forbids it (e.g. the cluster is being deleted).
+        RunIntent target = kind == WatchKind.STOP ? RunIntent.STOPPED : RunIntent.RUNNING;
+        requireLegalRunIntent(desired, target);
         // Run the verb once per key: a retry, or an operation already in flight, replays the accepted
         // state instead of re-driving the substrate.
         boolean claimed = idempotencyKey == null || idempotencyKey.isBlank()
@@ -226,6 +237,9 @@ public final class Matriarch {
             return;
         }
         watches.put(id, new Watch(progress, kind));
+        // Persist the intent SYNCHRONOUSLY before driving the substrate (§3.6), so a stop/start
+        // survives a crash and the reconcile loop can complete it afterward.
+        store.setDesiredRun(id, target);
         progress.onProgress(ClusterOperationProgress.accepted(snapshot(id)));
         Instant now = Instant.now();
         switch (kind) {
@@ -238,7 +252,12 @@ public final class Matriarch {
 
     public Cluster getCluster(ClusterId id) {
         ClusterSpec spec = store.getDesired(id);
-        return spec == null ? null : new Cluster(spec, observedOrUnknown(id));
+        // Once a delete is accepted the cluster is gone from the user's view: the DELETING record is an
+        // internal tombstone (blocks re-adoption, drives the eventual teardown), not a live cluster.
+        if (spec == null || store.getDesiredRun(id) == RunIntent.DELETING) {
+            return null;
+        }
+        return new Cluster(spec, observedOrUnknown(id));
     }
 
     /** Like {@link #getCluster} but throws {@link ClusterNotFoundException} when the cluster is absent. */
@@ -251,7 +270,10 @@ public final class Matriarch {
     }
 
     public List<Cluster> listClusters() {
+        // Hide clusters whose delete has been accepted (DELETING tombstones) — they are gone from the
+        // user's view even while their teardown is still being actuated on the substrate.
         return store.listDesired().stream()
+                .filter(spec -> store.getDesiredRun(spec.id()) != RunIntent.DELETING)
                 .map(spec -> new Cluster(spec, observedOrUnknown(spec.id())))
                 .toList();
     }
@@ -278,6 +300,12 @@ public final class Matriarch {
         ClusterStatus cached = statusCache.get(id);
         RunStatus previous = cached != null ? cached.runStatus() : RunStatus.UNKNOWN;
         statusCache.put(status);
+        if (status.runStatus() == RunStatus.HEALTHY || status.runStatus() == RunStatus.STOPPED) {
+            // A confirmed running/stopped instance means the cluster exists on the substrate — latch
+            // that durable fact so a matriarch restart won't mistake it for a never-provisioned create
+            // and re-initialize it (§3.6).
+            store.markProvisioned(id);
+        }
 
         if (status.runStatus() != previous) {
             switch (status.runStatus()) {
@@ -298,6 +326,14 @@ public final class Matriarch {
                 finish(id, ClusterOperationProgress.failed(snapshot(id), "convergence failed"));
             } else {
                 watch.progress().onProgress(ClusterOperationProgress.running(snapshot(id)));
+            }
+        } else if (watch == null) {
+            // No user operation owns this cluster: drive it toward its durable run intent. After a
+            // restart the agent re-reports status here, and this completes a stop/start whose intent
+            // was persisted before the crash. A no-op once observed already matches the intent.
+            ClusterSpec spec = store.getDesired(id);
+            if (spec != null) {
+                convergeRunState(spec, status.runStatus());
             }
         }
     }
@@ -341,6 +377,17 @@ public final class Matriarch {
 
     public void notifyFailed(ClusterId id, String reason) {
         LOG.log(System.Logger.Level.WARNING, "operation on cluster {0} failed: {1}", id.value(), reason);
+        // Reflect the failure in observed status so a read (`cluster get`) shows FAILED instead of a
+        // stuck transitional phase — and so a reconcile-driven operation, which has no watch to notify,
+        // still surfaces the failure via status + the ClusterFailed event below. Observed status is
+        // re-derived from the next agent push, so a cluster that is actually fine self-corrects.
+        ClusterStatus cached = statusCache.get(id);
+        List<InstanceStatus> instances = cached == null ? List.of()
+                : cached.instances().stream()
+                        .map(is -> new InstanceStatus(is.id(), RunStatus.FAILED, is.replication(),
+                                is.address(), is.port(), is.cpu(), is.memory(), is.storageUsed()))
+                        .toList();
+        statusCache.put(new ClusterStatus(id, RunStatus.FAILED, instances));
         events.accept(new ClusterEvent.ClusterFailed(Instant.now(), id, reason));
         if (watches.containsKey(id)) {
             finish(id, ClusterOperationProgress.failed(snapshot(id), reason));
@@ -361,6 +408,21 @@ public final class Matriarch {
         }
     }
 
+    /**
+     * A delete could not be actuated yet — no substrate is reachable to tear the cluster down. The
+     * cluster stays durably in {@link RunIntent#DELETING} (the user's delete intent is preserved, not
+     * lost), and {@link #reconcile()} completes the teardown once an agent reconnects. The delete stream
+     * completes as ACCEPTED (deletion pending), not SUCCEEDED. Because the desired spec is kept,
+     * {@link #adopt} will not resurrect the cluster when its agent comes back.
+     */
+    public void notifyDeletePending(ClusterId id, String reason) {
+        LOG.log(System.Logger.Level.INFO, "delete of cluster {0} deferred: {1}", id.value(), reason);
+        Watch watch = watches.get(id);
+        if (watch != null && watch.kind() == WatchKind.DELETE) {
+            finish(id, ClusterOperationProgress.accepted(snapshot(id)));
+        }
+    }
+
     // ======================================================================
     // Adoption — existing clusters an agent reports at startup (§3.2).
     // ======================================================================
@@ -374,11 +436,18 @@ public final class Matriarch {
     public void adopt(List<Cluster> clusters) {
         for (Cluster cluster : clusters) {
             if (store.getDesired(cluster.id()) != null) {
-                continue;   // already known by this id — same cluster, skip
+                // Already known — e.g. reloaded from the durable store after a restart. Re-registration
+                // is observation only (§3.2): refresh observed status and latch that the agent runs it,
+                // so reconcile() won't re-create (and re-initialize) a cluster that already exists. The
+                // desired spec is never touched here.
+                statusCache.put(cluster.status());
+                store.markProvisioned(cluster.id());
+                continue;
             }
             resolveNameConflict(cluster);
             store.createDesired(cluster.spec(), "");
             statusCache.put(cluster.status());
+            store.markProvisioned(cluster.id());   // the agent already runs it → provisioned
             events.accept(new ClusterEvent.ClusterRecovered(Instant.now(), cluster.id(), cluster.spec().name()));
             LOG.log(System.Logger.Level.INFO, "adopted cluster {0} ({1}) from agent registration",
                     cluster.spec().name(), cluster.id().value());
@@ -482,14 +551,30 @@ public final class Matriarch {
      */
     public void reconcile() {
         for (ClusterSpec spec : store.listDesired()) {
-            ClusterStatus status = statusCache.get(spec.id());
+            ClusterId id = spec.id();
+            if (store.getDesiredRun(id) == RunIntent.DELETING) {
+                // A deferred delete: its agent was unreachable when requested and the DELETING intent was
+                // latched. Actuate the teardown now that an agent may be back — executor.remove completes
+                // via notifyRemoved (forget) or defers again via notifyDeletePending.
+                LOG.log(System.Logger.Level.INFO, "reconciling deferred delete of cluster {0}", id.value());
+                executor.remove(spec);
+                continue;
+            }
+            ClusterStatus status = statusCache.get(id);
             RunStatus run = status != null ? status.runStatus() : RunStatus.UNKNOWN;
-            // Only PENDING specs need provisioning (a create issued while no agent was connected).
-            // NOT UNKNOWN: an adopted cluster starts UNKNOWN (it already exists on the agent and just
-            // hasn't reported its live status yet) — re-applying it would re-initialize its database.
-            if (run == RunStatus.PENDING) {
-                LOG.log(System.Logger.Level.INFO, "reconciling pending cluster {0}", spec.id().value());
+            // Provision a cluster that has never reached a substrate: an explicit PENDING (created while
+            // no agent was connected), OR — after a restart wiped the in-memory PENDING marker — a
+            // persisted spec with no observed status that was never provisioned. A PROVISIONED cluster
+            // reported UNKNOWN (e.g. its host is briefly disconnected) is left alone: never re-initialize
+            // one the agent already ran. Its live status arrives via the agent's status pushes.
+            if (run == RunStatus.PENDING || (run == RunStatus.UNKNOWN && !store.isProvisioned(id))) {
+                LOG.log(System.Logger.Level.INFO, "reconciling unprovisioned cluster {0}", id.value());
                 executor.apply(spec);
+            } else if (run != RunStatus.UNKNOWN) {
+                // Known, observed cluster: drive it toward its durable run intent (start one the user
+                // wants running, stop one they stopped). This completes a stop/start whose matriarch
+                // crashed after persisting the intent but before the substrate finished acting.
+                convergeRunState(spec, run);
             }
         }
     }
@@ -497,6 +582,39 @@ public final class Matriarch {
     // ======================================================================
     // Internals
     // ======================================================================
+
+    /**
+     * Drive an observed cluster toward its durable run intent, when no user operation owns it. Acts
+     * only on a <em>settled</em> divergence (start a STOPPED cluster the user wants RUNNING; stop a
+     * HEALTHY cluster the user stopped), so it never fights a transition in progress and never
+     * auto-restarts a FAILED cluster. This is the reconcile step that completes a stop/start across a
+     * matriarch crash — the intent was persisted before the crash, the observed state is re-reported
+     * by the agent after it. DELETING is not driven here (delete-across-crash is out of scope for now).
+     */
+    private void convergeRunState(ClusterSpec spec, RunStatus run) {
+        if (watches.containsKey(spec.id())) {
+            return;   // a user operation owns this cluster
+        }
+        RunIntent intent = store.getDesiredRun(spec.id());
+        if (intent == RunIntent.RUNNING && run == RunStatus.STOPPED) {
+            LOG.log(System.Logger.Level.INFO, "converging cluster {0} to RUNNING (observed STOPPED)", spec.id().value());
+            executor.start(spec);
+        } else if (intent == RunIntent.STOPPED && run == RunStatus.HEALTHY) {
+            LOG.log(System.Logger.Level.INFO, "converging cluster {0} to STOPPED (observed HEALTHY)", spec.id().value());
+            executor.stop(spec);
+        }
+    }
+
+    /**
+     * Enforce the desired-lifecycle transition rules — kept in code ({@link RunIntent#canTransitionTo}),
+     * not as data in the store. Rejects e.g. a start/stop of a cluster that is being deleted.
+     */
+    private void requireLegalRunIntent(ClusterSpec desired, RunIntent target) {
+        RunIntent current = store.getDesiredRun(desired.id());
+        if (!current.canTransitionTo(target)) {
+            throw new IllegalRunIntentTransitionException(desired.name(), current, target);
+        }
+    }
 
     private void finish(ClusterId id, ClusterOperationProgress terminal) {
         Watch watch = watches.remove(id);
@@ -515,11 +633,13 @@ public final class Matriarch {
 
     /** A fresh Cluster snapshot (desired spec + observed status) for the watch. */
     private Cluster snapshot(ClusterId id) {
-        Cluster cluster = getCluster(id);
-        if (cluster == null) {
+        // Read the store directly, not getCluster: a delete's own progress frames need a snapshot while
+        // the cluster is DELETING (which getCluster hides from public reads).
+        ClusterSpec spec = store.getDesired(id);
+        if (spec == null) {
             throw new IllegalStateException("no desired state for cluster " + id.value());
         }
-        return cluster;
+        return new Cluster(spec, observedOrUnknown(id));
     }
 
     private ClusterStatus observedOrUnknown(ClusterId id) {
