@@ -216,6 +216,12 @@ modules:
     build_commands:
       - cd stackgres-k8s/src/admin-ui
       - export HOME=/project
+      # npm resolves the git dependencies invoking git, that walks up from the current directory
+      #  looking for a repository. When the project folder is a git worktree the .git file found
+      #  there point to a gitdir of the main working tree that is not available in the build
+      #  container, making git fail with "fatal: not a git repository". The build does not require
+      #  the git repository, so stop the lookup before reaching the project folder.
+      - export GIT_CEILING_DIRECTORIES=/project
       - npm install --verbose --unsafe-perm
       - |
         ! grep -q 'LATER_COV' node_modules/prettycron/node_modules/later/index.js \
