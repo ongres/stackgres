@@ -9,8 +9,11 @@ import io.stackgres.matriarch.model.spec.CredentialSpec;
 import io.stackgres.matriarch.model.spec.DatabaseEngine;
 import io.stackgres.matriarch.model.spec.Extension;
 import io.stackgres.matriarch.model.spec.RunIntent;
+import io.stackgres.matriarch.model.InstanceId;
 import io.stackgres.matriarch.model.spec.TlsMode;
 import io.stackgres.matriarch.model.status.ClusterStatus;
+import io.stackgres.matriarch.model.status.InstanceStatus;
+import io.stackgres.matriarch.model.status.ReplicationStatus;
 import io.stackgres.matriarch.model.status.RunStatus;
 import io.stackgres.matriarch.spi.Executor;
 import io.stackgres.matriarch.spi.ExtensionCatalog;
@@ -174,6 +177,36 @@ class MatriarchRunIntentTest {
         assertTrue(store.isProvisioned(spec.id()));                       // latched
         assertEquals("delta", store.getDesired(spec.id()).name());       // desired spec untouched
         assertEquals(RunStatus.HEALTHY, statusCache.get(spec.id()).runStatus());   // observed refreshed
+    }
+
+    @Test
+    void adoptDoesNotDowngradeALiveStatusAndMergesHostMetrics() {
+        // The two-agent restart order that regressed status to UNKNOWN: the per-instance slon reconnects
+        // first and reports HEALTHY (+ DB size) with no host metrics yet; then the host slony re-registers
+        // reporting topology (port, CPU, memory) but an UNKNOWN run status. The slony report must NOT
+        // clobber HEALTHY — it must merge: keep the live run status, fill in the host-owned fields.
+        ClusterSpec spec = spec("d", "delta");
+        store.createDesired(spec, "");
+        InstanceId inst = new InstanceId("d-0");
+
+        // slon's report (run status + DB size; no port/CPU/memory — slony absent).
+        statusCache.put(new ClusterStatus(spec.id(), RunStatus.HEALTHY, List.of(
+                new InstanceStatus(inst, RunStatus.HEALTHY, ReplicationStatus.PRIMARY, "10.0.0.5", 0, 0, 0, 4096))));
+
+        // slony re-registers: topology + host metrics, UNKNOWN run status.
+        matriarch.adopt(List.of(new Cluster(spec, new ClusterStatus(spec.id(), RunStatus.UNKNOWN, List.of(
+                new InstanceStatus(inst, RunStatus.UNKNOWN, ReplicationStatus.UNKNOWN, "192.168.1.111", 5432, 4.0, 8192, 0))))));
+
+        ClusterStatus merged = statusCache.get(spec.id());
+        assertEquals(RunStatus.HEALTHY, merged.runStatus());          // not downgraded to UNKNOWN
+        InstanceStatus is = merged.instances().get(0);
+        assertEquals(RunStatus.HEALTHY, is.runStatus());              // slon-owned: preserved
+        assertEquals(ReplicationStatus.PRIMARY, is.replication());    // slon-owned: preserved
+        assertEquals(4096, is.storageUsed());                        // slon-owned DB size: preserved
+        assertEquals(5432, is.port());                               // slony-owned: filled in
+        assertEquals(4.0, is.cpu());                                 // slony-owned: filled in
+        assertEquals(8192, is.memory());                             // slony-owned: filled in
+        assertEquals("192.168.1.111", is.address());                 // slony-owned: updated
     }
 
     // ---- failure propagation (provisioning failure surfaced to status + watch) ----

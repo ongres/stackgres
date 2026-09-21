@@ -15,6 +15,7 @@ import io.stackgres.matriarch.model.ClusterOperationProgress;
 import io.stackgres.matriarch.model.spec.ClusterSpec;
 import io.stackgres.matriarch.model.status.ClusterStatus;
 import io.stackgres.matriarch.model.status.InstanceStatus;
+import io.stackgres.matriarch.model.status.ReplicationStatus;
 import io.stackgres.matriarch.model.spec.CredentialSpec;
 import io.stackgres.matriarch.model.spec.DatabaseEngine;
 import io.stackgres.matriarch.model.spec.EngineSpec;
@@ -32,6 +33,8 @@ import io.stackgres.matriarch.spi.StatusCache;
 import io.stackgres.matriarch.spi.VersionCatalog;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -439,8 +442,10 @@ public final class Matriarch {
                 // Already known — e.g. reloaded from the durable store after a restart. Re-registration
                 // is observation only (§3.2): refresh observed status and latch that the agent runs it,
                 // so reconcile() won't re-create (and re-initialize) a cluster that already exists. The
-                // desired spec is never touched here.
-                statusCache.put(cluster.status());
+                // desired spec is never touched here. MERGE rather than overwrite: the host slony reports
+                // topology + host metrics but an UNKNOWN run status (only the per-instance slon knows the
+                // live status), so a wholesale put would clobber a HEALTHY the slon already reported.
+                statusCache.put(mergeObserved(statusCache.get(cluster.id()), cluster.status()));
                 store.markProvisioned(cluster.id());
                 continue;
             }
@@ -452,6 +457,43 @@ public final class Matriarch {
             LOG.log(System.Logger.Level.INFO, "adopted cluster {0} ({1}) from agent registration",
                     cluster.spec().name(), cluster.id().value());
         }
+    }
+
+    /**
+     * Combine two partial observed reports for one cluster. The dimensions are split across agents: the
+     * per-instance slon owns run/replication status and DB size; the host slony owns port, CPU, memory and
+     * address. Each field is taken from {@code incoming} when it carries a real value, else kept from
+     * {@code current} — so neither observer erases the other's (in particular an UNKNOWN run status never
+     * downgrades a known one). With nothing cached yet, {@code incoming} stands as-is.
+     */
+    private ClusterStatus mergeObserved(ClusterStatus current, ClusterStatus incoming) {
+        if (current == null) {
+            return incoming;
+        }
+        RunStatus run = incoming.runStatus() != RunStatus.UNKNOWN ? incoming.runStatus() : current.runStatus();
+        Map<InstanceId, InstanceStatus> known = new HashMap<>();
+        for (InstanceStatus is : current.instances()) {
+            known.put(is.id(), is);
+        }
+        List<InstanceStatus> instances = new ArrayList<>();
+        for (InstanceStatus in : incoming.instances()) {
+            InstanceStatus prior = known.remove(in.id());
+            instances.add(prior == null ? in : mergeInstance(prior, in));
+        }
+        instances.addAll(known.values());   // instances only the cache knew about — keep them
+        return new ClusterStatus(incoming.id(), run, instances);
+    }
+
+    private static InstanceStatus mergeInstance(InstanceStatus current, InstanceStatus incoming) {
+        return new InstanceStatus(
+                current.id(),
+                incoming.runStatus() != RunStatus.UNKNOWN ? incoming.runStatus() : current.runStatus(),
+                incoming.replication() != ReplicationStatus.UNKNOWN ? incoming.replication() : current.replication(),
+                incoming.address() != null && !incoming.address().isBlank() ? incoming.address() : current.address(),
+                incoming.port() != 0 ? incoming.port() : current.port(),
+                incoming.cpu() != 0 ? incoming.cpu() : current.cpu(),
+                incoming.memory() != 0 ? incoming.memory() : current.memory(),
+                incoming.storageUsed() != 0 ? incoming.storageUsed() : current.storageUsed());
     }
 
     /**

@@ -198,7 +198,7 @@ public class SlonyLinuxExecutor implements Executor {
      */
     public void onDiagnostics(UUID instanceId, long dbSize) {
         dbSizeByInstance.put(instanceId, dbSize);
-        UUID clusterId = instanceToCluster.get(instanceId);
+        UUID clusterId = clusterIdOf(instanceId);
         if (clusterId != null) {
             observations.fire(new Observation.Metrics(new ClusterId(clusterId.toString()),
                     new InstanceId(instanceId.toString()), slonys.cpu(), slonys.memory(), dbSize));
@@ -291,15 +291,14 @@ public class SlonyLinuxExecutor implements Executor {
             }
             // Idle/adopted instance (never re-drive it through initdb): just RECORD the observed status,
             // so an adopted cluster's UNKNOWN self-corrects to its true HEALTHY/STOPPED/FAILED.
-            UUID clusterId = instanceToCluster.get(instanceId);
+            UUID clusterId = clusterIdOf(instanceId);
             if (clusterId != null) {
                 RunStatus run = mapSlonStatus(update.getSlonStatus());
                 if (run != RunStatus.UNKNOWN) {
                     reportInstance(instanceId, clusterId, run);
                 }
             } else {
-                // Mapping not seeded yet — the slon beat the host agent's adoptInstance after a matriarch
-                // restart. Remember the status; adoptInstance replays it once the mapping exists.
+                // Instance unknown to both memory and the durable store — buffer until adoptInstance seeds it.
                 statusBeforeAdopt.put(instanceId, update.getSlonStatus());
             }
             return;
@@ -389,6 +388,30 @@ public class SlonyLinuxExecutor implements Executor {
     }
 
     // ---- helpers ----
+
+    /**
+     * The cluster a running instance belongs to: the in-memory map first (seeded by adopt/apply), then the
+     * durable desired spec as a fallback — so a reconnecting slon's status/diagnostics can be attributed
+     * after a matriarch restart even before the host slony re-registers (which is what otherwise seeds the
+     * map). Seeds the map on a store hit so later updates skip the scan.
+     */
+    private UUID clusterIdOf(UUID instanceId) {
+        UUID clusterId = instanceToCluster.get(instanceId);
+        if (clusterId != null) {
+            return clusterId;
+        }
+        String iid = instanceId.toString();
+        for (ClusterSpec spec : stateStore.listDesired()) {
+            for (InstanceSpec instance : spec.instances()) {
+                if (instance.id().value().equals(iid)) {
+                    clusterId = UUID.fromString(spec.id().value());
+                    instanceToCluster.put(instanceId, clusterId);   // seed so later updates skip the scan
+                    return clusterId;
+                }
+            }
+        }
+        return null;
+    }
 
     private void report(Provisioning prov, RunStatus phase) {
         int port = prov.port > 0 ? prov.port : (prov.instance.requestedPort() != null ? prov.instance.requestedPort() : 0);
