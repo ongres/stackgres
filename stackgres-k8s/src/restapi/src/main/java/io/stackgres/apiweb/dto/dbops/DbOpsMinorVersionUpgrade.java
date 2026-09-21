@@ -18,6 +18,8 @@ public class DbOpsMinorVersionUpgrade extends AdditionalProperties {
 
   private String method;
 
+  private String statusUpdateDelay;
+
   public String getPostgresVersion() {
     return postgresVersion;
   }
@@ -32,6 +34,14 @@ public class DbOpsMinorVersionUpgrade extends AdditionalProperties {
 
   public void setMethod(String method) {
     this.method = method;
+  }
+
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
   }
 
   @Override
