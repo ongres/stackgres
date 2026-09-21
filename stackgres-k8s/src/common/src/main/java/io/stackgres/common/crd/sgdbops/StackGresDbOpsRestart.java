@@ -32,6 +32,8 @@ public class StackGresDbOpsRestart extends AdditionalProperties {
 
   private Boolean onlyPendingRestart;
 
+  private String statusUpdateDelay;
+
   @JsonIgnore
   public boolean isMethodReducedImpact() {
     return Objects.equals(method, DbOpsMethodType.REDUCED_IMPACT.toString());
@@ -53,6 +55,14 @@ public class StackGresDbOpsRestart extends AdditionalProperties {
     this.restartPrimaryFirst = restartPrimaryFirst;
   }
 
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
+  }
+
   public Boolean getOnlyPendingRestart() {
     return onlyPendingRestart;
   }
@@ -63,7 +73,7 @@ public class StackGresDbOpsRestart extends AdditionalProperties {
 
   @Override
   public int hashCode() {
-    return Objects.hash(method, restartPrimaryFirst);
+    return Objects.hash(method, restartPrimaryFirst, statusUpdateDelay);
   }
 
   @Override
@@ -76,7 +86,8 @@ public class StackGresDbOpsRestart extends AdditionalProperties {
     }
     StackGresDbOpsRestart other = (StackGresDbOpsRestart) obj;
     return Objects.equals(method, other.method)
-        && Objects.equals(restartPrimaryFirst, other.restartPrimaryFirst);
+        && Objects.equals(restartPrimaryFirst, other.restartPrimaryFirst)
+        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay);
   }
 
   @Override

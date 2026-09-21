@@ -16,12 +16,22 @@ public class DbOpsSecurityUpgrade extends AdditionalProperties {
 
   private String method;
 
+  private String statusUpdateDelay;
+
   public String getMethod() {
     return method;
   }
 
   public void setMethod(String method) {
     this.method = method;
+  }
+
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
   }
 
   @Override

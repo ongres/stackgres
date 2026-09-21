@@ -10,26 +10,36 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.PodConditionBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobConditionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgradeStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlInstance;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
@@ -43,6 +53,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DbOpsStatusManagerTest {
+
+  private static final String UPDATE_REVISION = "test-7d4b9c8f6d";
 
   private StackGresDbOps expectedDbOps;
   private StackGresDbOps dbOps;
@@ -108,6 +120,9 @@ class DbOpsStatusManagerTest {
 
   @Mock
   PatroniCtl patroniCtl;
+
+  @Mock
+  PatroniCtlInstance patroniCtlInstance;
 
   private DbOpsStatusManager statusManager;
 
@@ -316,6 +331,139 @@ class DbOpsStatusManagerTest {
     assertCondition(
         DbOpsStatusCondition.DBOPS_FALSE_WAITING_ROLLBACK.getCondition(),
         mvu.getStatus().getConditions());
+  }
+
+  @Test
+  void rolloutCompletedWithoutLastUpdate_shouldNotCompleteTheDbOps() {
+    StackGresDbOps restart = setUpCompletedRollout();
+
+    statusManager.refreshCondition(restart);
+
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_RUNNING.getCondition(),
+        restart.getStatus().getConditions());
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
+        restart.getStatus().getConditions());
+    Assertions.assertNotNull(restart.getStatus().getRestart().getLastUpdate(),
+        "The last update of the status has not been set");
+  }
+
+  @Test
+  void rolloutCompletedWithinTheStatusUpdateDelay_shouldNotCompleteTheDbOps() {
+    StackGresDbOps restart = setUpCompletedRollout();
+    setLastUpdate(restart, Instant.now().minus(Duration.ofSeconds(10)));
+
+    statusManager.refreshCondition(restart);
+
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_RUNNING.getCondition(),
+        restart.getStatus().getConditions());
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
+        restart.getStatus().getConditions());
+  }
+
+  @Test
+  void rolloutCompletedAfterTheStatusUpdateDelay_shouldCompleteTheDbOps() {
+    StackGresDbOps restart = setUpCompletedRollout();
+    setLastUpdate(restart, Instant.now().minus(Duration.ofMinutes(2)));
+
+    statusManager.refreshCondition(restart);
+
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        restart.getStatus().getConditions());
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_ROLLOUT_COMPLETED.getCondition(),
+        restart.getStatus().getConditions());
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_COMPLETED.getCondition(),
+        restart.getStatus().getConditions());
+  }
+
+  @Test
+  void rolloutCompletedAfterACustomStatusUpdateDelay_shouldNotCompleteTheDbOps() {
+    StackGresDbOps restart = setUpCompletedRollout();
+    restart.getSpec().getRestart().setStatusUpdateDelay("PT10M");
+    setLastUpdate(restart, Instant.now().minus(Duration.ofMinutes(2)));
+
+    statusManager.refreshCondition(restart);
+
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_RUNNING.getCondition(),
+        restart.getStatus().getConditions());
+    assertCondition(
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
+        restart.getStatus().getConditions());
+  }
+
+  private void setLastUpdate(StackGresDbOps restart, Instant lastUpdate) {
+    if (restart.getStatus() == null) {
+      restart.setStatus(new StackGresDbOpsStatus());
+    }
+    restart.getStatus().setRestart(new StackGresDbOpsRestartStatus());
+    restart.getStatus().getRestart().setLastUpdate(lastUpdate.toString());
+  }
+
+  /**
+   * Set up an SGDbOps of type restart targeting a cluster of a single instance which Pod is ready,
+   * up to date with the StatefulSet and with no pending restart reported by patroni.
+   */
+  private StackGresDbOps setUpCompletedRollout() {
+    StackGresDbOps restart = Fixtures.dbOps().loadRestart().get();
+
+    StackGresCluster cluster = new StackGresCluster();
+    cluster.setMetadata(new ObjectMeta());
+    cluster.getMetadata().setName(restart.getSpec().getSgCluster());
+    cluster.getMetadata().setNamespace(restart.getMetadata().getNamespace());
+    cluster.setSpec(new StackGresClusterSpec());
+    cluster.getSpec().setInstances(1);
+
+    StatefulSet statefulSet = new StatefulSetBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName())
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .endMetadata()
+        .withNewStatus()
+        .withUpdateRevision(UPDATE_REVISION)
+        .endStatus()
+        .build();
+
+    Pod pod = new PodBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName() + "-0")
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withLabels(Map.of("controller-revision-hash", UPDATE_REVISION))
+        .endMetadata()
+        .withNewStatus()
+        .withPhase("Running")
+        .withConditions(new PodConditionBuilder()
+            .withType("Ready")
+            .withStatus("True")
+            .build())
+        .endStatus()
+        .build();
+
+    PatroniMember member = new PatroniMember();
+    member.setMember(pod.getMetadata().getName());
+    member.setRole(PatroniMember.LEADER);
+    member.setState(PatroniMember.RUNNING);
+
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(cluster));
+    when(statefulSetFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(statefulSet));
+    when(labelFactory.clusterLabels(any()))
+        .thenReturn(Map.of());
+    when(podScanner.getResourcesInNamespaceWithLabels(any(), any()))
+        .thenReturn(List.of(pod));
+    when(patroniCtl.instanceFor(any()))
+        .thenReturn(patroniCtlInstance);
+    when(patroniCtlInstance.list())
+        .thenReturn(List.of(member));
+
+    return restart;
   }
 
   private void assertCondition(Condition expectedCondition, List<? extends Condition> conditions) {

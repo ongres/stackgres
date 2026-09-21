@@ -710,6 +710,18 @@ spec:
                     description: |
                       By default all Pods are restarted. Setting this option to `true` allow to restart only those Pods which
                         are in pending restart state as detected by the operation. Defaults to: `false`.
+                  statusUpdateDelay:
+                    type: string
+                    default: PT10S
+                    description: |
+                      An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass, since the last update of the status of
+                       this operation, before the operation can be considered completed. Default is `PT10S`.
+
+                      Patroni and the StatefulSet controller do not update their status immediately, therefore the operation may look completed while
+                       some Pod has still to be restarted. The instant of the last update of the status is stored in the field
+                       `.status.restart.lastUpdate` and is changed whenever a condition or any other status field of the SGDbOps is updated. The
+                       conditions `RolloutCompleted` and `Completed` are not set until such instant plus this delay has passed, giving the time to the
+                       controllers to update the status and to trigger any other rollout operation.
               minorVersionUpgrade:
                 type: object
                 description: |
@@ -743,6 +755,18 @@ spec:
                         last longer so we encourage use the reduced impact restart and especially for a production environment.
                       * `ReducedImpact`: this procedure is the same as the in-place method but require additional
                         resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                  statusUpdateDelay:
+                    type: string
+                    default: PT10S
+                    description: |
+                      An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass, since the last update of the status of
+                       this operation, before the operation can be considered completed. Default is `PT10S`.
+
+                      Patroni and the StatefulSet controller do not update their status immediately, therefore the operation may look completed while
+                       some Pod has still to be restarted. The instant of the last update of the status is stored in the field
+                       `.status.minorVersionUpgrade.lastUpdate` and is changed whenever a condition or any other status field of the SGDbOps is updated. The
+                       conditions `RolloutCompleted` and `Completed` are not set until such instant plus this delay has passed, giving the time to the
+                       controllers to update the status and to trigger any other rollout operation.
               securityUpgrade:
                 type: object
                 description: |
@@ -772,6 +796,18 @@ spec:
                         last longer so we encourage use the reduced impact restart and especially for a production environment.
                       * `ReducedImpact`: this procedure is the same as the in-place method but require additional
                         resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                  statusUpdateDelay:
+                    type: string
+                    default: PT10S
+                    description: |
+                      An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass, since the last update of the status of
+                       this operation, before the operation can be considered completed. Default is `PT10S`.
+
+                      Patroni and the StatefulSet controller do not update their status immediately, therefore the operation may look completed while
+                       some Pod has still to be restarted. The instant of the last update of the status is stored in the field
+                       `.status.securityUpgrade.lastUpdate` and is changed whenever a condition or any other status field of the SGDbOps is updated. The
+                       conditions `RolloutCompleted` and `Completed` are not set until such instant plus this delay has passed, giving the time to the
+                       controllers to update the status and to trigger any other rollout operation.
             required: ["sgCluster", "op"]
           status:
             type: object
@@ -1060,6 +1096,11 @@ spec:
                     type: string
                     description: |
                       A failure message (when available)
+                  lastUpdate:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating when a condition or any other status field of the SGDbOps has been
+                       updated for the last time. See the `.spec.restart.statusUpdateDelay` field.
               minorVersionUpgrade:
                 type: object
                 description: |
@@ -1107,6 +1148,11 @@ spec:
                     type: string
                     description: |
                       A failure message (when available)
+                  lastUpdate:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating when a condition or any other status field of the SGDbOps has been
+                       updated for the last time. See the `.spec.minorVersionUpgrade.statusUpdateDelay` field.
               securityUpgrade:
                 type: object
                 description: |
@@ -1146,3 +1192,8 @@ spec:
                     type: string
                     description: |
                       A failure message (when available)
+                  lastUpdate:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating when a condition or any other status field of the SGDbOps has been
+                       updated for the last time. See the `.spec.securityUpgrade.statusUpdateDelay` field.

@@ -36,6 +36,8 @@ public class DbOpsRestartStatus extends AdditionalProperties {
 
   private String failure;
 
+  private String lastUpdate;
+
   public String getPrimaryInstance() {
     return primaryInstance;
   }
@@ -92,6 +94,14 @@ public class DbOpsRestartStatus extends AdditionalProperties {
     this.failure = failure;
   }
 
+  public String getLastUpdate() {
+    return lastUpdate;
+  }
+
+  public void setLastUpdate(String lastUpdate) {
+    this.lastUpdate = lastUpdate;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -103,6 +113,7 @@ public class DbOpsRestartStatus extends AdditionalProperties {
     DbOpsRestartStatus other = (DbOpsRestartStatus) obj;
     return Objects.equals(failure, other.failure)
         && Objects.equals(initialInstances, other.initialInstances)
+        && Objects.equals(lastUpdate, other.lastUpdate)
         && Objects.equals(pendingToRestartInstances, other.pendingToRestartInstances)
         && Objects.equals(primaryInstance, other.primaryInstance)
         && Objects.equals(restartedInstances, other.restartedInstances)
@@ -112,7 +123,7 @@ public class DbOpsRestartStatus extends AdditionalProperties {
 
   @Override
   public int hashCode() {
-    return Objects.hash(failure, initialInstances, pendingToRestartInstances, primaryInstance,
-        restartedInstances, switchoverFinalized, switchoverInitiated);
+    return Objects.hash(failure, initialInstances, lastUpdate, pendingToRestartInstances,
+        primaryInstance, restartedInstances, switchoverFinalized, switchoverInitiated);
   }
 }

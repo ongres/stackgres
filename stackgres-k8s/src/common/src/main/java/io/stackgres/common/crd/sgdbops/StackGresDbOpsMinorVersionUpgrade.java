@@ -32,6 +32,8 @@ public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
       message = "method must be InPlace or ReducedImpact")
   private String method;
 
+  private String statusUpdateDelay;
+
   @JsonIgnore
   public boolean isMethodReducedImpact() {
     return Objects.equals(method, DbOpsMethodType.REDUCED_IMPACT.toString());
@@ -53,9 +55,17 @@ public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
     this.method = method;
   }
 
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(method, postgresVersion);
+    return Objects.hash(method, postgresVersion, statusUpdateDelay);
   }
 
   @Override
@@ -68,7 +78,8 @@ public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
     }
     StackGresDbOpsMinorVersionUpgrade other = (StackGresDbOpsMinorVersionUpgrade) obj;
     return Objects.equals(method, other.method)
-        && Objects.equals(postgresVersion, other.postgresVersion);
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay);
   }
 
   @Override
