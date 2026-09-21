@@ -227,11 +227,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
             .endMetadata()
             .build();
         }));
-    if (Optional.ofNullable(memberPod.getMetadata().getAnnotations())
-        .map(annotations -> annotations.get(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY))
-        .map(StackGresVersion::getVersionAsNumberOrNull)
-        .orElse(StackGresVersion.V_1_18.getVersionAsNumber())
-        <= StackGresVersion.V_1_18.getVersionAsNumber()) {
+    if (isLegacyClusterController(memberPod)) {
       patroniCtlBinaryInstance.restart(username, password, member);
       return;
     }
@@ -256,6 +252,27 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
       }
       Unchecked.runnable(() -> Thread.sleep(1000)).run();
     }
+  }
+
+  /**
+   * A cluster controller before version 1.19 does not perform the restart operation written in the
+   * Pod annotation, so the restart has to be sent to patroni directly.
+   *
+   * <p>
+   * The version is taken from the image tag of the cluster controller, that is not a version for
+   * development builds. Such a build is never a cluster controller before version 1.19, therefore
+   * only the absence of the version is assumed to be a legacy cluster controller.
+   * </p>
+   */
+  private boolean isLegacyClusterController(Pod memberPod) {
+    return Optional.ofNullable(memberPod.getMetadata().getAnnotations())
+        .map(annotations -> annotations.get(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY))
+        .map(clusterControllerVersion -> Optional
+            .ofNullable(StackGresVersion.getVersionAsNumberOrNull(clusterControllerVersion))
+            .map(versionAsNumber ->
+                versionAsNumber <= StackGresVersion.V_1_18.getVersionAsNumber())
+            .orElse(false))
+        .orElse(true);
   }
 
   @Override
