@@ -30,6 +30,8 @@ public class DbOpsRestartStatus extends AdditionalProperties {
 
   private String failure;
 
+  private String lastUpdate;
+
   public String getPrimaryInstance() {
     return primaryInstance;
   }
@@ -84,6 +86,14 @@ public class DbOpsRestartStatus extends AdditionalProperties {
 
   public void setFailure(String failure) {
     this.failure = failure;
+  }
+
+  public String getLastUpdate() {
+    return lastUpdate;
+  }
+
+  public void setLastUpdate(String lastUpdate) {
+    this.lastUpdate = lastUpdate;
   }
 
   @Override

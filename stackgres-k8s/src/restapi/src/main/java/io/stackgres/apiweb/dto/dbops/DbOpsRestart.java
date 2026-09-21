@@ -20,6 +20,8 @@ public class DbOpsRestart extends AdditionalProperties {
 
   private Boolean onlyPendingRestart;
 
+  private String statusUpdateDelay;
+
   public String getMethod() {
     return method;
   }
@@ -42,6 +44,14 @@ public class DbOpsRestart extends AdditionalProperties {
 
   public void setOnlyPendingRestart(Boolean onlyPendingRestart) {
     this.onlyPendingRestart = onlyPendingRestart;
+  }
+
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
   }
 
   @Override
