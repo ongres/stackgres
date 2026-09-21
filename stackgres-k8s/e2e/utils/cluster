@@ -111,6 +111,10 @@ switch_cluster_to_first() {
     --template="{{ .metadata.annotations.leader }}")"
   if [ "$LEADER" != "$RELEASE-0" ]
   then
+    # async replica may be still out of sync
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
     PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
@@ -158,6 +162,10 @@ wait_cluster_external_dcs() {
 
   if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
   then
+    # async replica may be still out of sync
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
     PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
       patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
     wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
@@ -467,6 +475,10 @@ switch_sharded_cluster_to_first() {
       --template="{{ .metadata.annotations.leader }}")"
     if [ "$LEADER" != "$RELEASE-0" ]
     then
+      # async replica may be still out of sync
+      wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+        psql -t -A -c "\du" \
+        | grep -q "^authenticator|"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
       PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \

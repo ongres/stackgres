@@ -125,7 +125,7 @@ check_restart_of_primary_is_working() {
   local PRIMARY
   local PRIMARY_POSTGRES_RESTARTS
   MAX_CONNECTIONS="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
-    -- psql -t -A -c 'SHOW max_connections')"
+    -- psql -q -t -A -c 'SHOW max_connections')"
   PODS_CREATION_TIMESTAMPS="$(get_pods_creation_timestamps)"
   PRIMARY="$(get_cluster_primary)"
   PRIMARY_POSTGRES_RESTARTS="$(get_postgres_restarts "$PRIMARY")"
