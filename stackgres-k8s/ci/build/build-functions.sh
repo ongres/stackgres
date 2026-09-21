@@ -2,6 +2,18 @@
 # shellcheck disable=SC2039
 # shellcheck disable=SC2016
 
+# Enable POSIX sh compatibility when running under zsh.
+# This script uses only POSIX shell features (plus local variables) and relies on:
+#   SH_WORD_SPLIT  - unquoted $VAR undergoes word splitting (for x in $LIST)
+#   NO_NOMATCH     - unmatched globs expand to themselves instead of erroring
+#   NO_BANG_HIST   - disable ! history expansion (used in .dockerignore: !path)
+#   POSIX_BUILTINS - POSIX-compliant builtin behavior
+# shellcheck disable=SC2034
+if [ -n "$ZSH_VERSION" ]; then
+  emulate sh
+  setopt SH_WORD_SPLIT NO_NOMATCH NO_BANG_HIST POSIX_BUILTINS
+fi
+
 BUILDER_VERSION=1.0.0
 
 set -e
@@ -874,7 +886,7 @@ list_image_tags() {
   local AUTH AUTH_OPTS RESPONSE AUTH_HEADER REALM SERVICE SCOPE TOKEN
 
   # Extract basic auth from Docker config
-  AUTH="$(jq -r ".auths[\"$REGISTRY\"].auth // empty" "$HOME/.docker/config.json" 2>/dev/null || true)"
+  AUTH="$(jq -r ".auths[\"$REGISTRY\"].auth // empty" "$HOME/.docker/config.json" 2>/dev/null)"
   AUTH_OPTS=""
   if [ -n "$AUTH" ]; then
     AUTH_OPTS="-u $(printf %s "$AUTH" | base64 -d)"
@@ -1143,7 +1155,7 @@ docker_build() {
 }
 
 docker_push() {
-  docker push "$@"
+  docker push --platform=linux/"$(uname -m | grep -qxF aarch64 && printf arm64 || printf amd64)" "$@"
 }
 
 docker_platform() {

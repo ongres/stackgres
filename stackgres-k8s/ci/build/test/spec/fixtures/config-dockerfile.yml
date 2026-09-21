@@ -1,0 +1,33 @@
+target_image: busybox:latest
+build_repository: registry.example.com/test/build
+platforms:
+  - linux/x86_64
+modules:
+  custom-df-mod:
+    type: test
+    path: test/custom-df-mod
+    build_image: alpine:latest
+    dockerfile:
+      path: test/spec/fixtures/mock-dockerfile
+      args:
+        MY_ARG: my-value
+        VERSION: '1.0.0'
+      seds:
+        - 's/PLACEHOLDER/REPLACED/'
+    sources:
+      - test/custom-df-mod/src
+    artifacts:
+      - test/custom-df-mod/out
+  default-df-mod:
+    type: test
+    path: test/default-df-mod
+    target_image: busybox:latest
+    build_image: alpine:latest
+    sources:
+      - test/default-df-mod/src
+    artifacts:
+      - test/default-df-mod/out/file1
+      - test/default-df-mod/out/file2
+stages:
+  - custom-df-mod: null
+  - default-df-mod: null

@@ -1,0 +1,21 @@
+target_image: busybox:latest
+build_repository: registry.example.com/test/build
+platforms:
+  - linux/x86_64
+modules:
+  filtered-mod:
+    type: test
+    path: test/filtered-mod
+    target_image: busybox:latest
+    build_image: alpine:latest
+    filtered_sources:
+      - echo filtered-output-1
+      - echo filtered-output-2
+    sources:
+      - test/filtered-mod/src
+    build_commands:
+      - 'echo building filtered-mod'
+    artifacts:
+      - test/filtered-mod/out
+stages:
+  - filtered-mod: null

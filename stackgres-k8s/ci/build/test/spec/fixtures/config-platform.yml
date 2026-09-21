@@ -1,0 +1,30 @@
+target_image: busybox:latest
+build_repository: registry.example.com/test/build
+platforms:
+  - linux/x86_64
+  - linux/aarch64
+modules:
+  platform-mod:
+    type: test
+    platform_dependent: true
+    path: test/platform-mod
+    target_image: busybox:latest
+    build_image: alpine:latest
+    sources:
+      - test/platform-mod/src
+    build_commands:
+      - 'echo building platform-mod'
+    artifacts:
+      - test/platform-mod/out
+  noplatform-mod:
+    type: test
+    path: test/noplatform-mod
+    target_image: busybox:latest
+    build_image: alpine:latest
+    sources:
+      - test/noplatform-mod/src
+    artifacts:
+      - test/noplatform-mod/out
+stages:
+  - platform-mod: null
+  - noplatform-mod: null

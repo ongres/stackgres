@@ -21,6 +21,7 @@ then
     -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
     -v "$HOME:$HOME:rw" \
     -v "${STACKGRES_HOME:-/var/lib/stackgres}:$HOME/.stackgres:rw" \
+    -e "K8S_CACHE_HOST_PATH=${STACKGRES_HOME:-/var/lib/stackgres}/kind-cache" \
     -e HOME="$HOME" \
     -e PROMPT_COMMAND= \
     -e PROJECT_PATH="$(pwd)" \
@@ -38,6 +39,7 @@ else
     -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
     -v "$HOME:$HOME":rw \
     -v "${STACKGRES_HOME:-/var/lib/stackgres}:$HOME/.stackgres:rw" \
+    -e "K8S_CACHE_HOST_PATH=${STACKGRES_HOME:-/var/lib/stackgres}/kind-cache" \
     -e HOME="$HOME" \
     -e PROMPT_COMMAND= \
     -e PROJECT_PATH="$(pwd)" \

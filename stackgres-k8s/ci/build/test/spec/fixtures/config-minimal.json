@@ -1,0 +1,69 @@
+{
+  "target_image": "busybox:latest",
+  "build_repository": "registry.example.com/test/build",
+  "platforms": [
+    "linux/x86_64",
+    "linux/aarch64"
+  ],
+  "modules": {
+    "module-a": {
+      "type": "test",
+      "path": "test/module-a",
+      "target_image": "busybox:latest",
+      "build_image": "alpine:latest",
+      "sources": [
+        "test/module-a/src"
+      ],
+      "build_commands": [
+        "echo building module-a"
+      ],
+      "artifacts": [
+        "test/module-a/out"
+      ]
+    },
+    "module-b": {
+      "type": "test",
+      "path": "test/module-b",
+      "target_image": null,
+      "build_image": "alpine:latest",
+      "sources": [
+        "test/module-b/src"
+      ],
+      "build_commands": [
+        "echo building module-b"
+      ],
+      "artifacts": [
+        "test/module-b/out"
+      ]
+    },
+    "module-c": {
+      "type": "test-leaf",
+      "path": "test/module-c",
+      "target_image": null,
+      "build_image": "alpine:latest",
+      "sources": [
+        "test/module-c/src"
+      ],
+      "build_commands": [
+        "echo building module-c"
+      ],
+      "dockerfile": {
+        "path": "test/spec/fixtures/mock-dockerfile"
+      },
+      "artifacts": [
+        "test/module-c/out"
+      ]
+    }
+  },
+  "stages": [
+    {
+      "module-a": null
+    },
+    {
+      "module-b": "module-a"
+    },
+    {
+      "module-c": "module-b"
+    }
+  ]
+}

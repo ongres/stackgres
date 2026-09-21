@@ -1,0 +1,3 @@
+--shell sh
+--require spec_helper
+--warning-as-failure

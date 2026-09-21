@@ -1,0 +1,9 @@
+ARG TARGET_IMAGE_NAME
+ARG BUILD_UID
+
+FROM "$TARGET_IMAGE_NAME" as target
+  ARG BUILD_UID
+  USER $BUILD_UID
+  WORKDIR /project
+  COPY ./test/custom-df-mod/out /project/test/custom-df-mod/out
+  RUN echo PLACEHOLDER
