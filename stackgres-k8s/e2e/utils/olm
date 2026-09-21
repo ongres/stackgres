@@ -720,6 +720,7 @@ olm_subscription_config() {
     env: [
       $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
       {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
+      {"name":"INSTALLATION_EXTRA_METADATA","value":$(printf '%s' "$E2E_INSTALLATION_EXTRA_METADATA" | jq -R .)},
       {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
       {"name":"APP_OPTS","value":$EXTRA_OPTS},
       {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}

@@ -62,6 +62,7 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_REUSE_OPERATOR_PODS`: To avoid recreating the operator set this environment variable to true to reuse an installed operator if already exists (default: true).
 * `E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR`: To avoid installing the previous version of the operator and perform an upgrade set this to true (default: false).
 * `E2E_OPERATOR_OPTS`: To pass extra parameters to the operator helm chart use this variable.
+* `E2E_INSTALLATION_EXTRA_METADATA`: The value of the `INSTALLATION_EXTRA_METADATA` environment variable set on any operator created by the tests, added to the `User-Agent` sent to the extensions repository just before the installation id (default: `Env stackgres-ci`).
 * `E2E_DISABLE_LOGS`: To diable logs of pods set this variable to true (default: false).
 * `E2E_DISABLE_CACHE`: To disable the use of local docker as a cache for images set this variable to true (default: false).
 * `E2E_NPM_BUILD_SKIP_USER_MOUNT`: Doesn't mount the local user (and its home directory nor the `/etc/` files) into the npm build container
