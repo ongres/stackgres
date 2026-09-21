@@ -23,17 +23,35 @@ run () {
   STATEFULSET_JSON_FILE=statefulset.json
   ANY_IMAGE_REPOSITORY_URL="$(any_image_repository_url && echo true || echo false)"
 
+  if [ -n "$EXTENSIONS_CACHE_USER_AGENT" ] \
+    && ! is_valid_user_agent "$EXTENSIONS_CACHE_USER_AGENT"
+  then
+    echo "EXTENSIONS_CACHE_USER_AGENT is not a valid User-Agent: $EXTENSIONS_CACHE_USER_AGENT" >&2
+    return 1
+  fi
+
   EXTENSION_METADATA_VERSION=v2
   DEFAULT_FLAVOR=pg
   DEFAULT_BUILD_ARCH=x86_64
   DEFAULT_BUILD_OS=linux
   NOT_FOUND_URL_REGEXP='^[^ ]\+ - - \[\([^]]\+\)\] "GET \([^ ]\+\) HTTP\/1\.1" 404 [^ ]\+ "[^"]*" "[^"]*" "[^"]*"$'
+  INDEX_REQUEST_USER_AGENT_REGEXP='^[^ ]\+ - - \[[^]]\+\] "GET [^ ]*\/'"$EXTENSION_METADATA_VERSION"'\/\(index\|hashes\)\.json[^ ]* HTTP\/1\.1" [^ ]\+ [^ ]\+ "[^"]*" "\([^"]*\)" "[^"]*"$'
 
   while true
   do
+    # Resolved outside the cycle, so that every function called by it downloads
+    # under the same User-Agent.
+    USER_AGENT="$(get_user_agent)"
     set +e
     (
     set -e
+
+    if [ -z "$USER_AGENT" ] && [ "$OFFLINE" != true ]
+    then
+      echo "Waiting for an index request in order to retrieve the User-Agent of the installation..."
+      echo
+      exit 0
+    fi
 
     echo "Updating indexes..."
     pull_indexes
@@ -179,6 +197,52 @@ run () {
   done
 }
 
+# The User-Agent sent to the extensions repository. Either the one configured
+# through EXTENSIONS_CACHE_USER_AGENT or the one of the last index request
+# nginx received, since the installation that made that request is the one the
+# extensions are downloaded for. Empty until such a request has been received.
+get_user_agent() {
+  if [ -n "$EXTENSIONS_CACHE_USER_AGENT" ]
+  then
+    printf '%s' "$EXTENSIONS_CACHE_USER_AGENT"
+    return
+  fi
+  if ! test -f /var/log/nginx/access.log
+  then
+    return
+  fi
+  # The last valid one, not simply the last one: any client able to reach the
+  # cache can send a User-Agent of its own, and must not be able to keep the
+  # cache from downloading by sending one that is not accepted.
+  local LINE
+  grep "$INDEX_REQUEST_USER_AGENT_REGEXP" /var/log/nginx/access.log \
+    | sed "s/$INDEX_REQUEST_USER_AGENT_REGEXP/\2/" \
+    | while read -r LINE
+      do
+        ! is_valid_user_agent "$LINE" || printf '%s\n' "$LINE"
+      done \
+    | tail -n 1
+}
+
+# Anyone able to reach the cache can send any User-Agent, and it is copied in a
+# header of our own requests, so only an agent shaped like the one the operator
+# sends is used. Anything else is treated as if no request had been received.
+is_valid_user_agent() {
+  [ -n "$1" ] || return 1
+  [ "$(printf '%s' "$1" | wc -l)" -eq 0 ] || return 1
+  printf '%s' "$1" | LC_ALL=C grep -q '^StackGres/[!-~]\{1,64\} ([ -~]\{1,192\})$'
+}
+
+# curl against the extensions repository, telling it who this cache downloads for.
+curl_repository() {
+  if [ -n "$USER_AGENT" ]
+  then
+    curl -A "$USER_AGENT" "$@"
+  else
+    curl "$@"
+  fi
+}
+
 any_image_repository_url() {
   if [ "$OFFLINE" = true ]
   then
@@ -313,7 +377,7 @@ pull_indexes() {
           CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
         fi
       fi
-      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/${EXTENSION_METADATA_VERSION}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
+      curl_repository -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/${EXTENSION_METADATA_VERSION}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
       jq -s '.[0] as $last | .[1] as $current_unwrapped
         | $last
         | .publishers = (.publishers | map(
@@ -641,7 +705,7 @@ download_extension() {
         CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
       fi
     fi
-    curl -f -s -L -I $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
+    curl_repository -f -s -L -I $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
       > "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.headers.$TEMP"
     CONTENT_LENGTH="$(grep -i 'Content-Length' "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.headers.$TEMP")"
     CONTENT_LENGTH="$(printf '%s' "$CONTENT_LENGTH" | tr -d '[:space:]' | cut -d ':' -f 2)"
@@ -651,7 +715,7 @@ download_extension() {
     else
       echo "Warning: Can not determine Content-Length for URL $REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar"
     fi
-    curl -f -s -L $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
+    curl_repository -f -s -L $CURL_EXTRA_OPTS "$REPOSITORY/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar" \
       -o "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar.tmp.$TEMP"
     mv "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar.tmp.$TEMP" \
       "$REPOSITORY_PATH/$PUBLISHER/$BUILD_ARCH/$BUILD_OS/$EXTENSION_PACKAGE.tar"
