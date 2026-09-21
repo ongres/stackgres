@@ -78,7 +78,8 @@ run () {
         jq '.metadata.annotations
           | if . != null then .pulled_extensions else "" end
           | if . != null then . else "" end' "$STATEFULSET_JSON_FILE")"
-      printf '%s' "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" | jq -r . > already_pulled_to_install_extensions
+      printf '%s' "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" | jq -r . \
+        | { grep -v '^$' || true; } > already_pulled_to_install_extensions
     fi
     if [ "$TO_INSTALL_EXTENSIONS_JSON_STRING" != "$PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING" ]
     then
@@ -122,11 +123,13 @@ run () {
         RUNNING_IMAGES="$(kubectl get statefulset -n "$NAMESPACE" "$STATEFULSET_NAME" \
           --template '{{ range .spec.template.spec.containers }}{{ printf "%s\n" .image }}{{ end }}')"
         RUNNING_IMAGES="$(printf '%s' "$RUNNING_IMAGES" | sort)"
-        REQUIRED_IMAGES="$(jq '.spec.template.spec.containers[].image' "$STATEFULSET_JSON_FILE")"
+        REQUIRED_IMAGES="$(jq -r '.spec.template.spec.containers[].image' "$STATEFULSET_JSON_FILE")"
         REQUIRED_IMAGES="$(printf '%s' "$REQUIRED_IMAGES" | sort)"
         if [ "$RUNNING_IMAGES" != "$REQUIRED_IMAGES" ]
         then
           touch /tmp/need-restart
+        else
+          rm -f /tmp/need-restart
         fi
         STATEFULSET="$(cat "$STATEFULSET_JSON_FILE")"
         printf '%s' "$STATEFULSET" \
