@@ -86,3 +86,41 @@ false
 {{- end }}
 {{- range $index,$namespace := $allowedNamespaces }}{{ if $index }} {{ end }}{{ $namespace }}{{ end }}
 {{- end }}
+{{/*
+The spec of the SGConfig, as JSON.
+
+When the extensions cache is enabled every repository URL gets the proxyUrl parameter pointing at
+the cache, so that the operator downloads the extensions through it. This must be rendered from a
+single place: the operator merges the SGCONFIG environment variable of its Deployment over the
+SGConfig installed by the pre-install hook, and a JSON array is replaced as a whole by that merge,
+so a repositoryUrls rendered without the parameter in one of the two would silently remove it from
+the other.
+*/}}
+{{- define "sgconfig-spec" }}
+{{- $spec := dict }}
+{{- range .Values.specFields }}
+{{- $spec := set $spec . (index $.Values .) }}
+{{- end }}
+{{- if .Values.extensions.cache.enabled }}
+{{- $proxyUrl := printf "proxyUrl=http%%3A%%2F%%2F%s-extensions-cache.%s%%3FsetHttpScheme%%3Dtrue&retry=3%%3A5" $.Release.Name $.Release.Namespace }}
+{{- $repositoryUrls := list }}
+{{- range .Values.extensions.repositoryUrls }}
+{{- $base := . }}
+{{- $params := list }}
+{{- if contains "?" . }}
+{{- $base = (splitn "?" 2 .)._0 }}
+{{- range splitList "&" (splitn "?" 2 .)._1 }}
+{{- if and (ne . "") (not (hasPrefix "proxyUrl=" .)) }}
+{{- $params = append $params . }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $params = append $params $proxyUrl }}
+{{- $repositoryUrls = append $repositoryUrls (printf "%s?%s" $base (join "&" $params)) }}
+{{- end }}
+{{- $extensions := deepCopy (index $spec "extensions") }}
+{{- $_ := set $extensions "repositoryUrls" $repositoryUrls }}
+{{- $_ := set $spec "extensions" $extensions }}
+{{- end }}
+{{- toJson $spec }}
+{{- end }}
