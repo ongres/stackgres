@@ -10,6 +10,7 @@ import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 
+import io.stackgres.common.StackGresProperty;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -157,4 +158,40 @@ class WebConsoleDeploymentTest {
         "Expected no deployment when restapi deploy is disabled");
   }
 
+
+  @Test
+  void generateResource_shouldPropagateTheInstallationExtraMetadata() {
+    System.setProperty(
+        StackGresProperty.INSTALLATION_EXTRA_METADATA.getPropertyName(), "Env stackgres-ci");
+    try {
+      Deployment deployment = (Deployment) webConsoleDeployment.generateResource(context)
+          .toList().getFirst();
+
+      Assertions.assertEquals("Env stackgres-ci",
+          deployment.getSpec().getTemplate().getSpec().getContainers().stream()
+          .filter(container -> "stackgres-restapi".equals(container.getName()))
+          .findFirst()
+          .orElseThrow()
+          .getEnv().stream()
+          .filter(env -> env.getName().equals(
+              StackGresProperty.INSTALLATION_EXTRA_METADATA.getEnvironmentVariableName()))
+          .findFirst()
+          .orElseThrow()
+          .getValue());
+    } finally {
+      System.clearProperty(StackGresProperty.INSTALLATION_EXTRA_METADATA.getPropertyName());
+    }
+  }
+
+  @Test
+  void generateResource_withoutInstallationExtraMetadata_shouldNotSetTheVariable() {
+    Deployment deployment = (Deployment) webConsoleDeployment.generateResource(context)
+        .toList().getFirst();
+
+    Assertions.assertTrue(
+        deployment.getSpec().getTemplate().getSpec().getContainers().stream()
+        .flatMap(container -> container.getEnv().stream())
+        .noneMatch(env -> env.getName().equals(
+            StackGresProperty.INSTALLATION_EXTRA_METADATA.getEnvironmentVariableName())));
+  }
 }

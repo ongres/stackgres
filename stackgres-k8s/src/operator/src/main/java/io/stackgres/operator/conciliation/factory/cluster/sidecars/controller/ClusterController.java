@@ -25,6 +25,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresModules;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -255,6 +256,16 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .endResourceFieldRef()
             .endValueFrom()
             .build())
+        // The extra metadata of the installation is set on the operator, and the User-Agent this
+        // container sends to the extensions repository must identify the same installation.
+        .addAllToEnv(StackGresProperty.INSTALLATION_EXTRA_METADATA.get()
+            .map(extraMetadata -> new EnvVarBuilder()
+                .withName(StackGresProperty.INSTALLATION_EXTRA_METADATA
+                    .getEnvironmentVariableName())
+                .withValue(extraMetadata)
+                .build())
+            .stream()
+            .toList())
         .withVolumeMounts(userOverrideMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresSocketMounts.getVolumeMounts(context))

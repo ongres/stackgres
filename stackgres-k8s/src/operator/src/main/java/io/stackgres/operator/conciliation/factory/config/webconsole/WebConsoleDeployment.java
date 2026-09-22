@@ -286,6 +286,17 @@ public class WebConsoleDeployment
                 .withValue(Optional.ofNullable(System.getenv(
                     OperatorProperty.CLUSTER_ROLE_DISABLED.getEnvironmentVariableName())).orElse(null))
                 .build())
+            // The extra metadata of the installation is set on the operator, and the User-Agent
+            // the web console sends to the extensions repository must identify the same
+            // installation.
+            .addAllToEnv(StackGresProperty.INSTALLATION_EXTRA_METADATA.get()
+                .map(extraMetadata -> new EnvVarBuilder()
+                    .withName(StackGresProperty.INSTALLATION_EXTRA_METADATA
+                        .getEnvironmentVariableName())
+                    .withValue(extraMetadata)
+                    .build())
+                .stream()
+                .toList())
             .addAllToEnv(
                 Optional.of(context.getSource().getSpec())
                 .map(StackGresConfigSpec::getAuthentication)

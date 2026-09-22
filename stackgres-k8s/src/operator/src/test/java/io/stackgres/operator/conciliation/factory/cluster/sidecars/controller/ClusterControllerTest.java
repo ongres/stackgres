@@ -19,6 +19,7 @@ import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresModules;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodsPersistentVolumeIoLimitsBuilder;
@@ -259,4 +260,34 @@ class ClusterControllerTest {
     return Fixtures.cluster().loadDefault().get();
   }
 
+
+  @Test
+  void getContainer_shouldPropagateTheInstallationExtraMetadata() {
+    ClusterContainerContext context = getClusterContainerContext();
+    System.setProperty(
+        StackGresProperty.INSTALLATION_EXTRA_METADATA.getPropertyName(), "Env stackgres-ci");
+    try {
+      Container container = clusterController.getContainer(context);
+
+      Assertions.assertEquals("Env stackgres-ci", container.getEnv().stream()
+          .filter(env -> env.getName().equals(
+              StackGresProperty.INSTALLATION_EXTRA_METADATA.getEnvironmentVariableName()))
+          .findFirst()
+          .orElseThrow()
+          .getValue());
+    } finally {
+      System.clearProperty(StackGresProperty.INSTALLATION_EXTRA_METADATA.getPropertyName());
+    }
+  }
+
+  @Test
+  void getContainer_withoutInstallationExtraMetadata_shouldNotSetTheVariable() {
+    ClusterContainerContext context = getClusterContainerContext();
+
+    Container container = clusterController.getContainer(context);
+
+    Assertions.assertTrue(container.getEnv().stream()
+        .noneMatch(env -> env.getName().equals(
+            StackGresProperty.INSTALLATION_EXTRA_METADATA.getEnvironmentVariableName())));
+  }
 }

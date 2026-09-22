@@ -23,6 +23,7 @@ import io.stackgres.common.ClusterPath;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresModules;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -201,6 +202,16 @@ public class SingleReconciliationCycle implements ContainerFactory<ClusterContai
             .endResourceFieldRef()
             .endValueFrom()
             .build())
+        // The extra metadata of the installation is set on the operator, and the User-Agent this
+        // container sends to the extensions repository must identify the same installation.
+        .addAllToEnv(StackGresProperty.INSTALLATION_EXTRA_METADATA.get()
+            .map(extraMetadata -> new EnvVarBuilder()
+                .withName(StackGresProperty.INSTALLATION_EXTRA_METADATA
+                    .getEnvironmentVariableName())
+                .withValue(extraMetadata)
+                .build())
+            .stream()
+            .toList())
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
