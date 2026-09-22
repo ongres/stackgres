@@ -1905,3 +1905,44 @@ code.language-bash {
 @media screen and (max-width: 640px) {
     
 }
+/* CRD reference property tables: on narrow screens stack the property and description cells
+   instead of the generic horizontally scrolling table, which pushes the description out of view */
+@media only all and (max-width: 59.938em) {
+    table.crd-properties {
+        display: table;
+        overflow-x: visible;
+        width: 100%;
+    }
+
+    table.crd-properties thead {
+        display: none;
+    }
+
+    table.crd-properties tr,
+    table.crd-properties td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    table.crd-properties td:first-of-type {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    table.crd-properties td:last-of-type {
+        border-top: none;
+    }
+
+    table.crd-properties td,
+    table.crd-properties td code {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    /* long URLs in CRD descriptions are rendered as inline-block links that otherwise overflow the viewport */
+    #body-inner a.highlight {
+        overflow-wrap: anywhere;
+        max-width: 100%;
+    }
+}
