@@ -45,9 +45,7 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " has no SGCluster " + getSource().getSpec().getSgCluster()
-                + " in its context since the operation is already completed."
-                + " Use getFoundCluster() when the code path may run for a"
-                + " completed operation"));
+                + " in its context since the operation is already completed"));
   }
 
   @Value.Lazy
@@ -57,9 +55,7 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " has no Pods of SGCluster " + getSource().getSpec().getSgCluster()
-                + " in its context since the operation is already completed."
-                + " Use getFoundClusterPods() when the code path may run for a"
-                + " completed operation"));
+                + " in its context since the operation is already completed"));
   }
 
   @Value.Lazy
@@ -70,9 +66,7 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
                 + getSource().getMetadata().getName()
                 + " has no Patroni members of SGCluster "
                 + getSource().getSpec().getSgCluster()
-                + " in its context since the operation is already completed."
-                + " Use getFoundClusterPatroniMembers() when the code path may run for a"
-                + " completed operation"));
+                + " in its context since the operation is already completed"));
   }
 
   @Value.Lazy
