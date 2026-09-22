@@ -41,41 +41,48 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
   @Value.Lazy
   default StackGresCluster getCluster() {
     return getFoundCluster()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
-                + " have a non existent SGCluster "
-                + getSource().getSpec().getSgCluster()));
+                + " has no SGCluster " + getSource().getSpec().getSgCluster()
+                + " in its context since the operation is already completed."
+                + " Use getFoundCluster() when the code path may run for a"
+                + " completed operation"));
   }
 
   @Value.Lazy
   default List<Pod> getClusterPods() {
     return getFoundClusterPods()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
-                + " have a non existent Pods for SGCluster "
-                + getSource().getSpec().getSgCluster()));
+                + " has no Pods of SGCluster " + getSource().getSpec().getSgCluster()
+                + " in its context since the operation is already completed."
+                + " Use getFoundClusterPods() when the code path may run for a"
+                + " completed operation"));
   }
 
   @Value.Lazy
   default List<PatroniMember> getClusterPatroniMembers() {
     return getFoundClusterPatroniMembers()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
-                + " have a non existent Patroni members for SGCluster "
-                + getSource().getSpec().getSgCluster()));
+                + " has no Patroni members of SGCluster "
+                + getSource().getSpec().getSgCluster()
+                + " in its context since the operation is already completed."
+                + " Use getFoundClusterPatroniMembers() when the code path may run for a"
+                + " completed operation"));
   }
 
   @Value.Lazy
   default StackGresInstanceProfile getProfile() {
     return getFoundProfile()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " target SGCluster " + getSource().getSpec().getSgCluster()
-                + " with a non existent SGInstanceProfile "
+                + " has no SGInstanceProfile in its context: "
                 + getFoundCluster()
                     .map(StackGresCluster::getSpec)
                     .map(StackGresClusterSpec::getSgInstanceProfile)

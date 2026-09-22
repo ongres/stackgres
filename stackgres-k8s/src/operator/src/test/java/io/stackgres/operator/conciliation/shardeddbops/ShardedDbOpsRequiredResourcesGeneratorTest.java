@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardeddbops;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +22,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardeddbops.ShardedDbOpsStatusCondition;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
+import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsStatusBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -83,6 +87,23 @@ class ShardedDbOpsRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(profile));
 
     generator.getRequiredResources(dbOps);
+  }
+
+  @Test
+  void givenCompletedDbOps_shouldPass() {
+    dbOps.setStatus(
+        new StackGresShardedDbOpsStatusBuilder()
+        .addToConditions(ShardedDbOpsStatusCondition.DBOPS_COMPLETED.getCondition())
+        .build());
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
+
+    var requiredResources = assertDoesNotThrow(() -> generator.getRequiredResources(dbOps));
+
+    assertFalse(requiredResources.isEmpty());
+    assertFalse(requiredResources.stream()
+        .anyMatch(resource -> "Job".equals(resource.getKind())));
   }
 
 }

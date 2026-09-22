@@ -36,21 +36,23 @@ public interface StackGresShardedDbOpsContext
   @Value.Lazy
   default StackGresShardedCluster getShardedCluster() {
     return getFoundShardedCluster()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGShardedDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
-                + " target non existent SGShardedCluster "
-                + getSource().getSpec().getSgShardedCluster()));
+                + " has no SGShardedCluster " + getSource().getSpec().getSgShardedCluster()
+                + " in its context since the operation is already completed."
+                + " Use getFoundShardedCluster() when the code path may run for a"
+                + " completed operation"));
   }
 
   @Value.Lazy
   default StackGresInstanceProfile getProfile() {
     return getFoundProfile()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGShardedDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " target SGShardedCluster " + getSource().getSpec().getSgShardedCluster()
-                + " with a non existent SGInstanceProfile "
+                + " has no SGInstanceProfile in its context: "
                 + getFoundShardedCluster()
                     .map(StackGresShardedCluster::getSpec)
                     .map(StackGresShardedClusterSpec::getCoordinator)
@@ -61,11 +63,11 @@ public interface StackGresShardedDbOpsContext
   @Value.Lazy
   default StackGresCluster getCoordinatorCluster() {
     return getFoundCoordinator()
-        .orElseThrow(() -> new IllegalArgumentException(
+        .orElseThrow(() -> new IllegalStateException(
             "SGShardedDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " target SGShardedCluster " + getSource().getSpec().getSgShardedCluster()
-                + " with a non existent coordinator SGCluster "
+                + " has no coordinator SGCluster in its context: "
                 + StackGresShardedClusterUtil.getCoordinatorClusterName(
                     getSource().getSpec().getSgShardedCluster())));
   }
