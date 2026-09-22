@@ -31,18 +31,20 @@ public class ShardedClusterClusterReconciliationHandler
 
   @Override
   public final void delete(StackGresShardedCluster context, HasMetadata resource) {
-    if (resource instanceof StackGresCluster cluster) {
-      doDownscaleToZero(context, cluster);
+    if (!(resource instanceof StackGresCluster cluster)) {
+      throw new IllegalArgumentException(
+          "Resource must be a " + StackGresCluster.KIND + " instance");
     }
-    throw new IllegalArgumentException("Resource must be a " + StackGresCluster.KIND + " instance");
+    doDownscaleToZero(context, cluster);
   }
 
   @Override
   public final void deleteWithOrphans(StackGresShardedCluster context, HasMetadata resource) {
-    if (resource instanceof StackGresCluster cluster) {
-      doDownscaleToZero(context, cluster);
+    if (!(resource instanceof StackGresCluster cluster)) {
+      throw new IllegalArgumentException(
+          "Resource must be a " + StackGresCluster.KIND + " instance");
     }
-    throw new IllegalArgumentException("Resource must be a " + StackGresCluster.KIND + " instance");
+    doDownscaleToZero(context, cluster);
   }
 
   private void doDownscaleToZero(StackGresShardedCluster context, StackGresCluster cluster) {
