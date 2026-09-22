@@ -352,7 +352,7 @@ class DbOpsStatusManagerTest {
   @Test
   void rolloutCompletedWithinTheStatusUpdateDelay_shouldNotCompleteTheDbOps() {
     StackGresDbOps restart = setUpCompletedRollout();
-    setLastUpdate(restart, Instant.now().minus(Duration.ofSeconds(10)));
+    setLastUpdate(restart, Instant.now().minus(Duration.ofSeconds(1)));
 
     statusManager.refreshCondition(restart);
 

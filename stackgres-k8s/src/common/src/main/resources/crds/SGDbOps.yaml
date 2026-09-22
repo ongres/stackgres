@@ -712,10 +712,10 @@ spec:
                         are in pending restart state as detected by the operation. Defaults to: `false`.
                   statusUpdateDelay:
                     type: string
-                    default: PT10S
+                    default: PT5S
                     description: |
                       An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass, since the last update of the status of
-                       this operation, before the operation can be considered completed. Default is `PT10S`.
+                       this operation, before the operation can be considered completed. Default is `PT5S`.
 
                       Patroni and the StatefulSet controller do not update their status immediately, therefore the operation may look completed while
                        some Pod has still to be restarted. The instant of the last update of the status is stored in the field
@@ -757,10 +757,10 @@ spec:
                         resources in order to spawn a new updated replica that will be removed when the procedure completes.
                   statusUpdateDelay:
                     type: string
-                    default: PT10S
+                    default: PT5S
                     description: |
                       An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass, since the last update of the status of
-                       this operation, before the operation can be considered completed. Default is `PT10S`.
+                       this operation, before the operation can be considered completed. Default is `PT5S`.
 
                       Patroni and the StatefulSet controller do not update their status immediately, therefore the operation may look completed while
                        some Pod has still to be restarted. The instant of the last update of the status is stored in the field
@@ -798,10 +798,10 @@ spec:
                         resources in order to spawn a new updated replica that will be removed when the procedure completes.
                   statusUpdateDelay:
                     type: string
-                    default: PT10S
+                    default: PT5S
                     description: |
                       An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass, since the last update of the status of
-                       this operation, before the operation can be considered completed. Default is `PT10S`.
+                       this operation, before the operation can be considered completed. Default is `PT5S`.
 
                       Patroni and the StatefulSet controller do not update their status immediately, therefore the operation may look completed while
                        some Pod has still to be restarted. The instant of the last update of the status is stored in the field

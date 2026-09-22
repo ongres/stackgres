@@ -21,7 +21,7 @@ class DbOpsUtilTest {
   @Test
   void givenNoStatusUpdateDelay_shouldReturnTheDefaultStatusUpdateDelay() {
     assertEquals(
-        Duration.ofMinutes(1),
+        Duration.ofSeconds(5),
         DbOpsUtil.getStatusUpdateDelay(dbOpsWithSpec(new StackGresDbOpsSpec())));
   }
 
@@ -58,7 +58,7 @@ class DbOpsUtilTest {
     spec.setRestart(new StackGresDbOpsRestart());
     spec.getRestart().setStatusUpdateDelay("1 minute");
 
-    assertEquals(Duration.ofMinutes(1), DbOpsUtil.getStatusUpdateDelay(dbOpsWithSpec(spec)));
+    assertEquals(Duration.ofSeconds(5), DbOpsUtil.getStatusUpdateDelay(dbOpsWithSpec(spec)));
   }
 
   private StackGresDbOps dbOpsWithSpec(StackGresDbOpsSpec spec) {

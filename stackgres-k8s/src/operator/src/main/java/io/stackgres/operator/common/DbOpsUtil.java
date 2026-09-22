@@ -39,7 +39,7 @@ public interface DbOpsUtil {
 
   String SUFFIX = "-dbops";
 
-  Duration DEFAULT_STATUS_UPDATE_DELAY = Duration.ofSeconds(10);
+  Duration DEFAULT_STATUS_UPDATE_DELAY = Duration.ofSeconds(5);
 
   // Phases set on SGDbOps.status.majorVersionUpgrade.phase when manualRollback is enabled and the
   // operation pauses waiting for the SGDbOps.status.majorVersionUpgrade.rollback decision.
