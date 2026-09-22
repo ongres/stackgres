@@ -421,6 +421,28 @@ wait_sharded_cluster() {
 
     INDEX="$((INDEX + 1))"
   done
+
+  if [ "$SHARDING_TYPE" = citus ] \
+    && [ "$WAIT_CLUSTER_AUTHENTICATOR_ONLY" != true ] \
+    && [ "$WAIT_CLUSTER_BOOTSTRAP_ONLY" != true ]
+  then
+    local DATABASE
+    local EXPECTED_WORKERS
+    DATABASE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.database }}')"
+    EXPECTED_WORKERS="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" \
+      --template '{{ if .spec.workers }}{{ .spec.workers.clusters }}{{ else }}{{ .spec.shards.clusters }}{{ end }}')"
+    # Citus registers the workers in pg_dist_node of the coordinator asynchronously, after
+    # the coordinator and the workers leaders are up. Until it does, the coordinator reports
+    # no worker node and creating a distributed table fails with
+    # "replication_factor (N) exceeds number of worker nodes (0)". Only the workers are
+    # expected to hold shards: the coordinator and the query routers are registered with
+    # shouldhaveshards set to false.
+    wait_until eval '[ "$(run_query -n "$NAMESPACE" -c "$SHARDED_RELEASE" -d "$DATABASE" \
+      -x "$(kubectl get endpoints --namespace "$NAMESPACE" "$SHARDED_RELEASE-0" \
+        --template "{{ .metadata.annotations.leader }}")" \
+      -p 5432 -q "SELECT count(*) FROM pg_dist_node WHERE shouldhaveshards")" \
+      -ge "$EXPECTED_WORKERS" ]'
+  fi
 }
 
 switch_sharded_cluster_to_first() {
@@ -690,6 +712,28 @@ dont_transform() {
   printf "%s" "$1"
 }
 
+wait_cluster_resources_removed() {
+  local NAMESPACE="$1"
+  local NAME_REGEXP="$2"
+  local ENDPOINTS_REGEXP="$3"
+
+  # Deleting an SGCluster or an SGShardedCluster only deletes the resource itself: the
+  # SGClusters it owns, the StatefulSets, the pods, the persistent volume claims and the
+  # Patroni DCS endpoints are removed asynchronously by the Kubernetes garbage collector.
+  # Creating a cluster with the same name before they are gone makes the new cluster adopt
+  # the previous incarnation, either through its Patroni DCS state (the initialize key is
+  # already set with no leader, so every member waits for a leader to bootstrap forever) or
+  # through its status.backupPaths (the new cluster then archives WAL on top of a foreign
+  # timeline history, and its replicas recover past the position of their own leader).
+  echo "Waiting for the resources of $NAME_REGEXP to be removed"
+  wait_until eval '[ "$(kubectl get sgcluster -n "$NAMESPACE" -o name 2>/dev/null \
+    | sed "s#^[^/]*/##" | grep -c "$NAME_REGEXP")" -eq 0 ]'
+  wait_until eval '[ "$(kubectl get pod,pvc -n "$NAMESPACE" -l app=StackGresCluster -o name 2>/dev/null \
+    | sed "s#^[^/]*/##" | grep -c "$NAME_REGEXP")" -eq 0 ]'
+  wait_until eval '[ "$(kubectl get endpoints -n "$NAMESPACE" -o name 2>/dev/null \
+    | sed "s#^[^/]*/##" | grep -c "$ENDPOINTS_REGEXP")" -eq 0 ]'
+}
+
 remove_cluster() {
   local RELEASE="$1"
   local NAMESPACE="$2"
@@ -703,6 +747,9 @@ remove_cluster() {
   helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
+  wait_cluster_resources_removed "$NAMESPACE" \
+    "^$RELEASE\\(-\\|\$\\)" \
+    "^$RELEASE\\(-config\\|-sync\\|-failover\\)\\?\$"
 }
 
 remove_cluster_if_exists() {
@@ -728,6 +775,9 @@ remove_sharded_cluster() {
   wait_until eval 'helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -'
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
+  wait_cluster_resources_removed "$NAMESPACE" \
+    "^$RELEASE-" \
+    "^$RELEASE-[0-9]\\+\\(-config\\|-sync\\|-failover\\)\\?\$"
 }
 
 remove_sharded_cluster_if_exists() {
