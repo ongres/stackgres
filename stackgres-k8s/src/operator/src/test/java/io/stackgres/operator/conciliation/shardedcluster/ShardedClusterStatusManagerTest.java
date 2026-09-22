@@ -119,6 +119,10 @@ class ShardedClusterStatusManagerTest {
     return getCondition(ShardedClusterStatusCondition.Type.PENDING_UPGRADE);
   }
 
+  private Optional<Condition> getPendingRestartCondition() {
+    return getCondition(ShardedClusterStatusCondition.Type.PENDING_RESTART);
+  }
+
   private void setClusterCondition(StackGresCluster cluster, Condition condition) {
     if (cluster.getStatus() == null) {
       cluster.setStatus(new StackGresClusterStatus());
@@ -184,6 +188,44 @@ class ShardedClusterStatusManagerTest {
     statusManager.refreshCondition(shardedCluster);
 
     assertEquals("False", getPendingUpgradeCondition().orElseThrow().getStatus());
+  }
+
+  @Test
+  void givenAChildClusterPendingRestart_shouldBePendingRestart() {
+    setClusterCondition(coordinator,
+        ClusterStatusCondition.POD_REQUIRES_RESTART.getCondition());
+
+    statusManager.refreshCondition(shardedCluster);
+
+    var condition = getPendingRestartCondition().orElseThrow();
+    assertEquals("True", condition.getStatus());
+    assertTrue(condition.getMessage().contains("1 SGCluster requires a restart"),
+        "the message should count the SGClusters that require a restart: "
+            + condition.getMessage());
+  }
+
+  @Test
+  void givenAChildClusterPendingRestartForAnotherReason_shouldBePendingRestart() {
+    var pendingRestart = ClusterStatusCondition.POD_REQUIRES_RESTART.getCondition();
+    pendingRestart.setReason("SomeOtherReason");
+    setClusterCondition(coordinator, pendingRestart);
+
+    statusManager.refreshCondition(shardedCluster);
+
+    assertEquals("True", getPendingRestartCondition().orElseThrow().getStatus(),
+        "only the type and the status of the children condition must be looked at");
+  }
+
+  @Test
+  void givenNoChildClusterPendingRestart_shouldNotBePendingRestart() {
+    setClusterCondition(coordinator,
+        ClusterStatusCondition.FALSE_PENDING_RESTART.getCondition());
+
+    statusManager.refreshCondition(shardedCluster);
+
+    var condition = getPendingRestartCondition().orElseThrow();
+    assertEquals("False", condition.getStatus());
+    assertNull(condition.getMessage());
   }
 
   @Test

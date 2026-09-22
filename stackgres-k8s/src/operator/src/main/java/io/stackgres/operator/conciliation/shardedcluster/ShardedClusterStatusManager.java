@@ -60,11 +60,7 @@ public class ShardedClusterStatusManager
     source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
     source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
     List<StackGresCluster> clusters = getClusters(source);
-    if (isPendingRestart(clusters)) {
-      updateCondition(getShardedClusterRequiresRestart(), source);
-    } else {
-      updateCondition(getFalsePendingRestart(), source);
-    }
+    refreshPendingRestart(source, clusters);
     refreshPendingUpgrade(source, clusters);
     if (isBootstrapped(source, clusters)) {
       updateCondition(getShardedClusterBootstrapped(), source);
@@ -73,16 +69,44 @@ public class ShardedClusterStatusManager
   }
 
   /**
-   * Check pending restart status condition.
+   * Refresh the pending restart status condition.
+   *
+   * <p>The condition is aggregated from the PendingRestart condition of the SGClusters. Only the
+   * type and the status of the children conditions are looked at, and not their reason, or the
+   * SGShardedCluster would report a pending restart when the Pods of a child require a restart
+   * but not when a restart is pending for any other reason.</p>
    */
-  public boolean isPendingRestart(List<StackGresCluster> clusters) {
-    return clusters.stream()
-        .flatMap(cluster -> Optional.of(cluster)
-            .map(StackGresCluster::getStatus)
-            .map(StackGresClusterStatus::getConditions)
-            .stream()
-            .flatMap(List::stream))
-        .anyMatch(ClusterStatusCondition.POD_REQUIRES_RESTART::isCondition);
+  private void refreshPendingRestart(
+      StackGresShardedCluster shardedCluster,
+      List<StackGresCluster> clusters) {
+    final long clustersRequiringRestart = clusters.stream()
+        .filter(ShardedClusterStatusManager::isPendingRestart)
+        .count();
+    if (clustersRequiringRestart == 0) {
+      updateCondition(getFalsePendingRestart(), shardedCluster);
+      return;
+    }
+    LOGGER.debug("Sharded Cluster {} requires restart since {} of its SGClusters require restart",
+        getClusterId(shardedCluster), clustersRequiringRestart);
+    Condition condition = getShardedClusterRequiresRestart();
+    condition.setMessage(clustersRequiringRestart
+        + (clustersRequiringRestart > 1 ? " SGClusters require" : " SGCluster requires")
+        + " a restart.");
+    updateCondition(condition, shardedCluster);
+  }
+
+  /**
+   * Check the pending restart status condition of a SGCluster.
+   */
+  private static boolean isPendingRestart(StackGresCluster cluster) {
+    return Optional.of(cluster)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(condition -> ClusterStatusCondition.Type.PENDING_RESTART.getType()
+            .equals(condition.getType())
+            && ClusterStatusCondition.Status.TRUE.getStatus().equals(condition.getStatus()));
   }
 
   /**
