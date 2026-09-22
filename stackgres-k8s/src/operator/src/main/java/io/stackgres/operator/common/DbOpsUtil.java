@@ -39,7 +39,7 @@ public interface DbOpsUtil {
 
   String SUFFIX = "-dbops";
 
-  Duration DEFAULT_STATUS_UPDATE_DELAY = Duration.ofSeconds(10);
+  Duration DEFAULT_STATUS_UPDATE_DELAY = Duration.ofSeconds(5);
 
   static String roleName(StackGresCluster cluster) {
     return roleName(cluster.getMetadata().getName());
