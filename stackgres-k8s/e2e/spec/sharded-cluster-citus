@@ -54,6 +54,40 @@ e2e_test() {
   run_test "Checking that managed SQL is working" check_managed_sql_is_working
 
   run_test "Checking that query routers and the routers service are functional" query_routers_check
+
+  run_test "Checking that a settled SGShardedCluster reconciles to a no-op" \
+    check_settled_sharded_cluster_does_not_emit_cluster_updated
+}
+
+# A settled SGShardedCluster must reconcile to a no-op. For Citus every child cluster renews its
+# Patroni leader lock on an Endpoints labelled with the SGShardedCluster name, which re-triggers
+# the SGShardedCluster reconciliation every one or two seconds. If any of those cycles is not a
+# no-op a ClusterUpdated event is emitted at that rate, forever (see issue #3219).
+check_settled_sharded_cluster_does_not_emit_cluster_updated() {
+  COUNT_BEFORE="$(count_cluster_updated_events)"
+
+  # Cover a good number of reconciliation cycles of a cluster that is not being modified.
+  sleep 60
+
+  COUNT_AFTER="$(count_cluster_updated_events)"
+
+  if [ "$COUNT_AFTER" = "$COUNT_BEFORE" ]
+  then
+    success "The settled SGShardedCluster did not emit any ClusterUpdated event"
+  else
+    kubectl get events -n "$CLUSTER_NAMESPACE" \
+      --field-selector "reason=ClusterUpdated,involvedObject.name=$CLUSTER_NAME" \
+      -o yaml || true
+    fail "The settled SGShardedCluster emitted $((COUNT_AFTER - COUNT_BEFORE)) ClusterUpdated" \
+      "events, the reconciliation is not converging"
+  fi
+}
+
+count_cluster_updated_events() {
+  kubectl get events -n "$CLUSTER_NAMESPACE" \
+    --field-selector "reason=ClusterUpdated,involvedObject.name=$CLUSTER_NAME" \
+    --template '{{ range .items }}{{ if eq .involvedObject.kind "SGShardedCluster" }}{{ .count }}{{ printf "\n" }}{{ end }}{{ end }}' \
+    | awk '{ total += $1 } END { print total + 0 }'
 }
 
 service_check() {
