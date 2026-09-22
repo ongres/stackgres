@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
@@ -91,7 +92,13 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   private ResourceScanner<Pod> podScanner;
 
   @Mock
+  private ResourceFinder<Pod> podFinder;
+
+  @Mock
   private ResourceScanner<PersistentVolumeClaim> pvcScanner;
+
+  @Mock
+  private ResourceFinder<PersistentVolumeClaim> pvcFinder;
 
   @Mock
   private ResourceFinder<StatefulSet> statefulSetFinder;
@@ -129,7 +136,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   void setUp() {
     handler = new ClusterStatefulSetWithPrimaryReconciliationHandler(
         defaultHandler, protectHandler, labelFactory, statefulSetFinder,
-        podScanner, pvcScanner, secretFinder, patroniCtl, objectMapper);
+        podScanner, podFinder, pvcScanner, pvcFinder, secretFinder, patroniCtl, objectMapper);
     requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
 
     cluster = new StackGresCluster();
@@ -244,6 +251,54 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
+  }
+
+  @Test
+  @DisplayName("A conflict while patching a Pod should be retried instead of failing the"
+      + " reconciliation cycle")
+  void conflictWhilePatchingAPod_shouldBeRetried() {
+    final int desiredReplicas = setUpUpscale(3, true, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
+
+    when(defaultHandler.patch(any(), any(Pod.class), any()))
+        .thenThrow(new KubernetesClientException(
+            "Operation cannot be fulfilled on pods \"test-0\": the object has been modified;"
+                + " please apply your changes to the latest version and try again",
+            409, null))
+        .then(invocationOnMock -> invocationOnMock.getArgument(1));
+
+    when(podFinder.findByNameAndNamespace(any(), any()))
+        .then(invocationOnMock -> this.podList.stream()
+            .filter(pod -> pod.getMetadata().getName().equals(invocationOnMock.getArgument(0)))
+            .findFirst()
+            .map(pod -> new PodBuilder(pod)
+                .editMetadata()
+                .withResourceVersion("2")
+                .endMetadata()
+                .build()));
+
+    var history = List.of(new PatroniHistoryEntry());
+    history.get(0).setNewLeader(
+        this.podList.stream()
+        .filter(pod -> pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)
+            .equals(PatroniUtil.PRIMARY_ROLE))
+        .findFirst().get().getMetadata().getName());
+    when(patroniCtlInstance.history())
+        .thenReturn(history);
+
+    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
+
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
+
+    assertEquals(desiredReplicas, sts.getSpec().getReplicas());
+
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
+    verify(podFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
+    var patchedPod = podArgumentCaptor.getAllValues()
+        .stream().filter(Pod.class::isInstance).map(Pod.class::cast).findFirst().orElseThrow();
+    assertEquals("2", patchedPod.getMetadata().getResourceVersion(),
+        "the retried patch should carry the resourceVersion refreshed from the API");
   }
 
   @Test

@@ -44,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtlInstance;
@@ -87,7 +88,11 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
 
   private final ResourceScanner<Pod> podScanner;
 
+  private final ResourceFinder<Pod> podFinder;
+
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
+
+  private final ResourceFinder<PersistentVolumeClaim> pvcFinder;
 
   private final ResourceFinder<Secret> secretFinder;
 
@@ -102,12 +107,14 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
+      ResourceFinder<Pod> podFinder,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
+      ResourceFinder<PersistentVolumeClaim> pvcFinder,
       ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
-    this(handler, handler, labelFactory, statefulSetFinder, podScanner, pvcScanner, secretFinder,
-        patroniCtl, objectMapper);
+    this(handler, handler, labelFactory, statefulSetFinder, podScanner, podFinder, pvcScanner,
+        pvcFinder, secretFinder, patroniCtl, objectMapper);
   }
 
   ClusterStatefulSetWithPrimaryReconciliationHandler(
@@ -116,7 +123,9 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       LabelFactoryForCluster labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
+      ResourceFinder<Pod> podFinder,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
+      ResourceFinder<PersistentVolumeClaim> pvcFinder,
       ResourceFinder<Secret> secretFinder,
       PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
@@ -125,7 +134,9 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     this.labelFactory = labelFactory;
     this.statefulSetFinder = statefulSetFinder;
     this.podScanner = podScanner;
+    this.podFinder = podFinder;
     this.pvcScanner = pvcScanner;
+    this.pvcFinder = pvcFinder;
     this.secretFinder = secretFinder;
     this.patroniCtl = patroniCtl;
     this.objectMapper = objectMapper;
@@ -614,7 +625,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
     primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(context),
         StackGresContext.WRONG_VALUE);
-    handler.patch(context, primaryPod, null);
+    patchWithRetryOnConflict(context, handler, primaryPod, podFinder);
   }
 
   private void makePrimaryPodDisruptable(StackGresCluster context, Pod primaryPod) {
@@ -628,7 +639,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
     primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(context),
         StackGresContext.RIGHT_VALUE);
-    handler.patch(context, primaryPod, null);
+    patchWithRetryOnConflict(context, handler, primaryPod, podFinder);
   }
 
   private long countNonDisruptablePods(
@@ -668,7 +679,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .grouped(pod -> pod.getMetadata().getName())
         .map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pod -> protectHandler.patch(context, pod, null));
+        .forEach(pod -> patchWithRetryOnConflict(context, protectHandler, pod, podFinder));
   }
 
   private void protectPvcsFromStatefulSetRemoval(
@@ -695,7 +706,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .map(Tuple2::v2)
         .map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pvc -> protectHandler.patch(context, pvc, null));
+        .forEach(pvc -> patchWithRetryOnConflict(context, protectHandler, pvc, pvcFinder));
   }
 
   private void fixPods(
@@ -727,7 +738,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .map(Tuple2::v2)
         .map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pod -> handler.patch(context, pod, null));
+        .forEach(pod -> patchWithRetryOnConflict(context, handler, pod, podFinder));
   }
 
   private List<Pod> fixNonDisruptablePods(
@@ -972,7 +983,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         .map(Tuple2::v2)
         .map(Seq::findFirst)
         .map(Optional::get)
-        .forEach(pvc -> handler.patch(context, pvc, null));
+        .forEach(pvc -> patchWithRetryOnConflict(context, handler, pvc, pvcFinder));
   }
 
   private List<PersistentVolumeClaim> fixPvcsAnnotations(
@@ -1121,6 +1132,45 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     }
     pvc.getMetadata().setOwnerReferences(requiredOwnerReferences);
     return pvc;
+  }
+
+  /**
+   * Patch a resource that has been read from the API retrying on conflict.
+   *
+   * <p>Unlike the required resources generated by the conciliation, the Pods and
+   * PersistentVolumeClaims fixed by this handler are read from the API and therefore carry the
+   * resourceVersion they had when they were scanned. The server side apply performed by the
+   * handler turns that resourceVersion into an optimistic concurrency precondition, so any
+   * concurrent write (Patroni, the kubelet or the StatefulSet controller all write to the Pods
+   * of a cluster, specially while it is being restarted) makes the API server reject the patch
+   * with a 409. Retry with back-off refreshing the resourceVersion, and give up silently if the
+   * resource has been removed in the meanwhile.</p>
+   */
+  private <T extends HasMetadata> void patchWithRetryOnConflict(
+      StackGresCluster context,
+      ReconciliationHandler<StackGresCluster> resourceHandler,
+      T resource,
+      ResourceFinder<T> finder) {
+    final ObjectMeta metadata = resource.getMetadata();
+    KubernetesClientUtil.retryOnConflict(() -> {
+      try {
+        return resourceHandler.patch(context, resource, null);
+      } catch (KubernetesClientException ex) {
+        if (!KubernetesClientUtil.isConflict(ex)) {
+          throw ex;
+        }
+        var currentResource =
+            finder.findByNameAndNamespace(metadata.getName(), metadata.getNamespace());
+        if (currentResource.isEmpty()) {
+          LOGGER.debug("Not patching {} {}.{} since it has been removed",
+              resource.getKind(), metadata.getNamespace(), metadata.getName());
+          return null;
+        }
+        metadata.setResourceVersion(
+            currentResource.get().getMetadata().getResourceVersion());
+        throw ex;
+      }
+    });
   }
 
   private List<Pod> findStatefulSetPods(
