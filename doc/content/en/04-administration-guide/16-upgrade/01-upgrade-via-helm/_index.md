@@ -43,8 +43,8 @@ by an older operator version and a security upgrade has not been run since. Rest
 or performing a minor version upgrade does not clear it. Do not confuse it with the
 `ComponentsUpdated` condition, which is about Postgres and extension versions; see
 [upgrade check]({{% relref "04-administration-guide/06-database-operations/08-upgrade-check" %}}).
-On a `SGShardedCluster` the condition is aggregated from the sharded cluster and all of its child
-`SGCluster`s.
+On a `SGShardedCluster` the condition is aggregated from the sharded cluster and the
+`PendingUpgrade` condition of all of its child `SGCluster`s.
 
 ### Version Compatibility
 

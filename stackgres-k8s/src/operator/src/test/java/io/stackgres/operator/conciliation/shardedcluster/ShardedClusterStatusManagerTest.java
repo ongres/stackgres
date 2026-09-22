@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgshardedcluster.ShardedClusterStatusCondition;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
@@ -91,7 +93,6 @@ class ShardedClusterStatusManagerTest {
         .withKind(StackGresShardedCluster.KIND)
         .withName(shardedCluster.getMetadata().getName())
         .build()));
-    setOperatorVersion(coordinator, OPERATOR_VERSION);
 
     lenient().when(client.resources(StackGresCluster.class)).thenReturn(clusterOperation);
     lenient().when(clusterOperation.inNamespace(anyString()))
@@ -106,13 +107,23 @@ class ShardedClusterStatusManagerTest {
     resource.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, version);
   }
 
-  private Optional<Condition> getPendingUpgradeCondition() {
+  private Optional<Condition> getCondition(ShardedClusterStatusCondition.Type type) {
     return Optional.ofNullable(shardedCluster.getStatus().getConditions())
         .orElse(List.of())
         .stream()
-        .filter(condition -> ShardedClusterStatusCondition.Type.PENDING_UPGRADE.getType()
-            .equals(condition.getType()))
+        .filter(condition -> type.getType().equals(condition.getType()))
         .findFirst();
+  }
+
+  private Optional<Condition> getPendingUpgradeCondition() {
+    return getCondition(ShardedClusterStatusCondition.Type.PENDING_UPGRADE);
+  }
+
+  private void setClusterCondition(StackGresCluster cluster, Condition condition) {
+    if (cluster.getStatus() == null) {
+      cluster.setStatus(new StackGresClusterStatus());
+    }
+    cluster.getStatus().setConditions(List.of(condition));
   }
 
   @Test
@@ -143,7 +154,6 @@ class ShardedClusterStatusManagerTest {
   @Test
   void givenAShardedClusterWithAPatchLevelOperatorVersionDifference_shouldNotBePendingUpgrade() {
     setOperatorVersion(shardedCluster, OPERATOR_VERSION + "-rc5");
-    setOperatorVersion(coordinator, OPERATOR_VERSION + "-rc5");
 
     statusManager.refreshCondition(shardedCluster);
 
@@ -152,16 +162,28 @@ class ShardedClusterStatusManagerTest {
   }
 
   @Test
-  void givenAChildClusterWithAnOlderOperatorVersion_shouldBePendingUpgrade() {
-    setOperatorVersion(coordinator, "1.18.0");
+  void givenAChildClusterPendingUpgrade_shouldBePendingUpgrade() {
+    setClusterCondition(coordinator,
+        ClusterStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition());
 
     statusManager.refreshCondition(shardedCluster);
 
     var condition = getPendingUpgradeCondition().orElseThrow();
     assertEquals("True", condition.getStatus(),
-        "the condition must be aggregated from the children");
-    assertTrue(condition.getMessage().contains(coordinator.getMetadata().getName()),
-        "the message should name the SGCluster that requires an upgrade");
+        "the condition must be aggregated from the PendingUpgrade condition of the children");
+    assertTrue(condition.getMessage().contains("1 SGCluster requires an upgrade"),
+        "the message should count the SGClusters that require an upgrade: "
+            + condition.getMessage());
+  }
+
+  @Test
+  void givenAChildClusterNotPendingUpgrade_shouldNotBePendingUpgrade() {
+    setClusterCondition(coordinator,
+        ClusterStatusCondition.FALSE_PENDING_UPGRADE.getCondition());
+
+    statusManager.refreshCondition(shardedCluster);
+
+    assertEquals("False", getPendingUpgradeCondition().orElseThrow().getStatus());
   }
 
   @Test

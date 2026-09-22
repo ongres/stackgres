@@ -88,23 +88,22 @@ public class ShardedClusterStatusManager
   /**
    * Refresh the pending upgrade status condition.
    *
-   * <p>The condition is aggregated from the SGShardedCluster itself and from its SGClusters, the
-   * same way the pending restart condition is, so that a sharded cluster whose children still
-   * require an upgrade does not report PendingUpgrade=False. Unlike the ComponentsUpdated
-   * condition of a SGCluster, which is about Postgres and extension versions, this condition is
-   * only about the version of the operator that created the resources, and is cleared by a
-   * SGShardedDbOps of op securityUpgrade.</p>
+   * <p>The condition is aggregated from the SGShardedCluster itself and from the PendingUpgrade
+   * condition of its SGClusters, the same way the pending restart condition is, so that a sharded
+   * cluster whose children still require an upgrade does not report PendingUpgrade=False. Unlike
+   * the ComponentsUpdated condition of a SGCluster, which is about Postgres and extension
+   * versions, this condition is only about the version of the operator that created the resources,
+   * and is cleared by a SGShardedDbOps of op securityUpgrade.</p>
    */
   private void refreshPendingUpgrade(
       StackGresShardedCluster shardedCluster,
       List<StackGresCluster> clusters) {
     final String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
     final boolean shardedClusterRequiresUpgrade = isPendingUpgrade(shardedCluster);
-    final List<String> clustersRequiringUpgrade = clusters.stream()
-        .filter(this::isPendingUpgrade)
-        .map(cluster -> cluster.getMetadata().getName())
-        .toList();
-    if (!shardedClusterRequiresUpgrade && clustersRequiringUpgrade.isEmpty()) {
+    final long clustersRequiringUpgrade = clusters.stream()
+        .filter(ShardedClusterStatusManager::isPendingUpgrade)
+        .count();
+    if (!shardedClusterRequiresUpgrade && clustersRequiringUpgrade == 0) {
       updateCondition(getFalsePendingUpgrade(), shardedCluster);
       return;
     }
@@ -118,17 +117,13 @@ public class ShardedClusterStatusManager
           .append(operatorVersion)
           .append(".");
     }
-    if (!clustersRequiringUpgrade.isEmpty()) {
+    if (clustersRequiringUpgrade > 0) {
       if (message.length() > 0) {
         message.append(" ");
       }
-      message.append("The SGCluster")
-          .append(clustersRequiringUpgrade.size() > 1 ? "s " : " ")
-          .append(String.join(", ", clustersRequiringUpgrade))
-          .append(clustersRequiringUpgrade.size() > 1 ? " were" : " was")
-          .append(" created with an operator version older than ")
-          .append(operatorVersion)
-          .append(".");
+      message.append(clustersRequiringUpgrade)
+          .append(clustersRequiringUpgrade > 1 ? " SGClusters require" : " SGCluster requires")
+          .append(" an upgrade.");
     }
     message.append(" Create a SGShardedDbOps of op securityUpgrade to complete the upgrade.");
     Condition condition = getShardedClusterRequiresUpgrade();
@@ -144,10 +139,17 @@ public class ShardedClusterStatusManager
   }
 
   /**
-   * Check pending upgrade status condition of a SGCluster.
+   * Check the pending upgrade status condition of a SGCluster.
    */
-  private boolean isPendingUpgrade(StackGresCluster cluster) {
-    return StackGresVersion.getStackGresVersion(cluster) != StackGresVersion.LATEST;
+  private static boolean isPendingUpgrade(StackGresCluster cluster) {
+    return Optional.of(cluster)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(condition -> ClusterStatusCondition.Type.PENDING_UPGRADE.getType()
+            .equals(condition.getType())
+            && ClusterStatusCondition.Status.TRUE.getStatus().equals(condition.getStatus()));
   }
 
   private String getOperatorVersion(StackGresShardedCluster shardedCluster) {

@@ -57,5 +57,5 @@ The `status` of the condition answers "is this cluster running the latest minor 
 
 In particular, a `restart` or a `minorVersionUpgrade` operation does **not** clear `PendingUpgrade`: only a security upgrade does, because only a security upgrade rewrites the cluster resources with the running operator version. A `PendingUpgrade` condition that stays `True` across restarts and minor version upgrades is therefore not stale — it is the operator telling you that a security upgrade has not been run yet. The condition message names the operator version the resources were created with and the security upgrade that clears it.
 
-On a `SGShardedCluster` the `PendingUpgrade` condition is aggregated: it is `True` when the `SGShardedCluster` itself **or any of its child `SGCluster`s** was created by an older operator version.
+On a `SGShardedCluster` the `PendingUpgrade` condition is aggregated: it is `True` when the `SGShardedCluster` itself was created by an older operator version, **or when any of its child `SGCluster`s reports `PendingUpgrade`**. Its message states how many `SGCluster`s require an upgrade.
 
