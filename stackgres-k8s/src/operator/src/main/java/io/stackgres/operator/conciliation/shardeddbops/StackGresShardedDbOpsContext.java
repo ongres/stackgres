@@ -40,9 +40,7 @@ public interface StackGresShardedDbOpsContext
             "SGShardedDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
                 + " has no SGShardedCluster " + getSource().getSpec().getSgShardedCluster()
-                + " in its context since the operation is already completed."
-                + " Use getFoundShardedCluster() when the code path may run for a"
-                + " completed operation"));
+                + " in its context since the operation is already completed"));
   }
 
   @Value.Lazy
