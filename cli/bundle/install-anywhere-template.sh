@@ -155,6 +155,9 @@ setup_env() {
         STACKGRES_DIR=/var/lib/${NAME}
     fi
     FILE_STACKGRES_ENV=${STACKGRES_DIR}/.env
+    # Operator-supplied secret key (§3.7), if any, is written to a SEPARATE 0600 root-only file read
+    # only by the matriarch unit — never the 0644 shared .env above, which would leak it.
+    FILE_MATRIARCH_SECRET_ENV=${STACKGRES_DIR}/matriarch/secret.env
 
     # --- use binary install directory if defined or create default ---
     if [ -n "${INSTALL_STACKGRES_BIN_DIR}" ]; then
@@ -400,6 +403,10 @@ install_stackgres() {
 # --- setup the StackGres clusters directory
 setup_clusters_dir() {
     $SUDO mkdir -p ${STACKGRES_SLONY_CLUSTERS_PATH}
+    # Durable matriarch state (the SQLite DB + its WAL/SHM sidecars + the auto-generated secret keyfile)
+    # lives here, under the install dir, so it survives restarts and in-place upgrades. Created up front
+    # so the matriarch's DB path (pinned in its unit) has an existing parent directory to open.
+    $SUDO mkdir -p ${STACKGRES_DIR}/matriarch
 }
 
 # --- set the permissions of the install directory
@@ -407,6 +414,9 @@ set_install_dir_permissions() {
     $SUDO chmod 755 ${STACKGRES_DIR}
     $SUDO chmod 755 ${STACKGRES_DIR}/clusters
     $SUDO chown -R root:root ${STACKGRES_DIR}
+    # Owner-only: the matriarch dir holds the encrypted store and its secret keyfile (§3.7). Set after
+    # the recursive chown above so the mode is not widened again.
+    $SUDO chmod 700 ${STACKGRES_DIR}/matriarch
 }
 
 # --- download and verify StackGres ---
@@ -550,6 +560,7 @@ systemd_disable() {
 create_config_files() {
     create_containerd_config
     create_env_file
+    create_matriarch_secret_env
 }
 
 # --- create containerd config ---
@@ -575,8 +586,23 @@ create_env_file() {
     # STACKGRES_ENDPOINT_URL/TLS are per-service (matriarch -> cloud, slony -> local matriarch) and are
     # set via Environment= in each unit below. They are deliberately NOT written to this shared file:
     # systemd's EnvironmentFile= overrides Environment=, so a value here would clobber the per-unit one.
-    sh -c export | while read x v; do echo $v; done | grep -E '^STACKGRES_' | grep -vE '^STACKGRES_ENDPOINT_(URL|TLS)=' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
+    # STACKGRES_MATRIARCH_SECRET_KEY is likewise excluded — it is secret-classed (§3.7) and goes only in
+    # the 0600 file written by create_matriarch_secret_env, never this 0644 one.
+    sh -c export | while read x v; do echo $v; done | grep -E '^STACKGRES_' | grep -vE '^STACKGRES_(ENDPOINT_(URL|TLS)|MATRIARCH_SECRET_KEY)=' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
     sh -c export | while read x v; do echo $v; done | grep -Ei '^(NO|HTTP|HTTPS)_PROXY' | $SUDO tee -a ${FILE_STACKGRES_ENV} >/dev/null
+}
+
+# --- write the operator-supplied matriarch secret key to a 0600 root-only env file (§3.7) ---
+# Only when STACKGRES_MATRIARCH_SECRET_KEY is set. Kept out of the 0644 shared .env and out of the unit's
+# Environment= (both world-readable) — the matriarch unit reads this file directly. Without it, the
+# matriarch auto-generates a 0600 keyfile next to its DB instead.
+create_matriarch_secret_env() {
+    [ -n "${STACKGRES_MATRIARCH_SECRET_KEY}" ] || return 0
+    info "Storing operator-supplied secret key in ${FILE_MATRIARCH_SECRET_ENV}"
+    $SUDO touch ${FILE_MATRIARCH_SECRET_ENV}
+    $SUDO chown root:root ${FILE_MATRIARCH_SECRET_ENV}
+    $SUDO chmod 0600 ${FILE_MATRIARCH_SECRET_ENV}   # restrict BEFORE the secret is written
+    printf 'MATRIARCH_SECRET_KEY=%s\n' "${STACKGRES_MATRIARCH_SECRET_KEY}" | $SUDO tee ${FILE_MATRIARCH_SECRET_ENV} >/dev/null
 }
 
 # --- write systemd service files ---
@@ -595,6 +621,9 @@ WantedBy=multi-user.target
 [Service]
 Type=simple
 EnvironmentFile=-${FILE_STACKGRES_ENV}
+# Operator-supplied secret key (§3.7), if present: a 0600 root-only file read by the matriarch unit
+# only. Leading '-' makes it optional — without it the matriarch auto-generates a keyfile by its DB.
+EnvironmentFile=-${FILE_MATRIARCH_SECRET_ENV}
 # Cloud uplink target — set here, not in the shared .env, so the slony unit can use a DIFFERENT
 # value (the local matriarch). systemd EnvironmentFile= overrides Environment=, so a shared value
 # could not be overridden per-service.
@@ -602,6 +631,11 @@ Environment=STACKGRES_ENDPOINT_URL=${STACKGRES_ENDPOINT_URL}
 # gRPC server the CLI (api.v1) and the local slony (slony.proto) connect to.
 Environment=QUARKUS_GRPC_SERVER_HOST=${MATRIARCH_LISTEN}
 Environment=QUARKUS_GRPC_SERVER_PORT=${MATRIARCH_PORT}
+# Durable SQLite store path. The unit sets no WorkingDirectory, so the app's relative default
+# (matriarch.db) would land in '/'. Pin it under the install dir so state persists across restarts
+# and in-place upgrades (a true uninstall removes \${STACKGRES_DIR}). The secret keyfile is created
+# 0600 alongside it as <path>.key; supply MATRIARCH_SECRET_KEY out-of-band to keep the key off disk.
+Environment=MATRIARCH_STORE_SQLITE_PATH=${STACKGRES_DIR}/matriarch/matriarch.db
 KillMode=process
 Delegate=yes
 Restart=always
@@ -725,6 +759,16 @@ print_getting_started() {
     info ''
     info "The CLI targets ${CLI_TARGET}; check it with: stackgres status"
     info 'Create your first Postgres cluster: stackgres cluster create --name postgres'
+    info ''
+    info "Durable state (clusters, credentials) is stored in ${STACKGRES_DIR}/matriarch"
+    info '  - back up this directory; stackgres-uninstall.sh erases it'
+    if [ -n "${STACKGRES_MATRIARCH_SECRET_KEY}" ]; then
+        info '  - credentials are encrypted with the MATRIARCH_SECRET_KEY you supplied'
+        info '    (keep a copy of that key safe — without it, stored credentials cannot be recovered)'
+    else
+        info '  - credentials are encrypted at rest; the key is auto-generated in that dir'
+        info '    (back it up with the data, or set MATRIARCH_SECRET_KEY to manage the key yourself)'
+    fi
     #info 'See information about your StackGres installation: stackgres info'
     info 'Uninstall StackGres with stackgres-uninstall.sh'
 }
