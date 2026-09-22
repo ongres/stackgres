@@ -27,6 +27,25 @@ kubectl get sgcluster -A -o json \
     done
 ```
 
+```shell
+kubectl get sgshardedcluster -A -o json \
+  | jq -r '.items[]|.metadata.namespace + " " + .metadata.name' \
+  | while read NAMESPACE NAME
+    do
+      echo "$NAMESPACE"
+      kubectl wait --timeout 0 -n "$NAMESPACE" sgshardedcluster/"$NAME" \
+        --for=condition=PendingUpgrade=false
+    done
+```
+
+A `PendingUpgrade` condition with `status: "True"` means the resources of that cluster were created
+by an older operator version and a security upgrade has not been run since. Restarting the cluster
+or performing a minor version upgrade does not clear it. Do not confuse it with the
+`ComponentsUpdated` condition, which is about Postgres and extension versions; see
+[upgrade check]({{% relref "04-administration-guide/06-database-operations/08-upgrade-check" %}}).
+On a `SGShardedCluster` the condition is aggregated from the sharded cluster and all of its child
+`SGCluster`s.
+
 ### Version Compatibility
 
 The new version must be maximum 2 minor versions newer than the installed version. If that is not the case, upgrade hopping is required.
