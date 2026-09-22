@@ -1,3 +1,83 @@
+# :rocket: Release 1.19.2 (2026-09-23)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.19.2 is out! :confetti_ball: :champagne:
+
+> This release brings an important security improvement over the restart operation implemented in
+> StackGres 1.18 where the primary where restarted without a switchover during rollout (like a
+> restart SGDbOps) whenever a parameter that requires restart was changed.
+> Also a new field `restartDelay` has been added to rollout (affect also restart, security upgrade
+> and minor version upgrade) in order to overcome the limitation of controllers like patroni and
+> the StatefulSet Kubernetes controller that may have some delay in updating the status thus making
+> the restart operation complete before the cluster is completely restarted.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* PgBouncer 1.26.0
+* Fluent-bit 5.1.2
+* Fluentd 1.19.3
+* Kubectl 1.36.5 and 1.37.1
+* OTEL Contrib Collector 0.161.0
+* The primary is restarted without a switchover only when a hot standby sensitive parameter is decreased
+([#3233](https://gitlab.com/ongresinc/stackgres/-/issues/3233))
+* New `SGCluster.spec.pods.updateStrategy.restartDelay` (and the `SGShardedCluster` equivalent) to set the delay between the restart of a Postgres instance
+performed by the cluster controller and the next one ([#3233](https://gitlab.com/ongresinc/stackgres/-/issues/3233))
+* New `statusUpdateDelay` on the `restart`, `securityUpgrade` and `minorVersionUpgrade` sections of `SGDbOps`, the delay that has to pass since the last
+status update before the operation can be considered completed. Defaults to `PT5S` ([#3236](https://gitlab.com/ongresinc/stackgres/-/issues/3236))
+* Deleting an SGCluster does not wait for its Pods to terminate, so a cluster recreated with the same name can deadlock ([#3240](https://gitlab.com/ongresinc/stackgres/-/issues/3240))
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* A `SGShardedCluster` emitted a `ClusterUpdated` event and re-created, deleted and patched the same resources on every reconciliation cycle, without ever
+converging ([#3219](https://gitlab.com/ongresinc/stackgres/-/issues/3219))
+* The `PendingUpgrade` condition of a `SGShardedCluster` ignored its `SGCluster`s and stayed `True` after an operator upgrade within the same minor version.
+It is now aggregated from the children and states what is pending and what clears it. `PendingRestart` was also ignoring a child whose restart was pending for
+a reason other than `PodRequiresRestart` ([#3220](https://gitlab.com/ongresinc/stackgres/-/issues/3220))
+* A completed `SGShardedDbOps` made the reconciliation loop fail on every cycle with a misleading message about a non existent `SGShardedCluster`
+([#3221](https://gitlab.com/ongresinc/stackgres/-/issues/3221))
+* A conflict while patching the Pods or the PersistentVolumeClaims of a cluster being restarted aborted the whole reconciliation cycle instead of being
+retried ([#3222](https://gitlab.com/ongresinc/stackgres/-/issues/3222))
+* SGShardedCluster reconciliation reverts status changes made during a cycle, leaving status.dbOps set forever ([#3241](https://gitlab.com/ongresinc/stackgres/-/issues/3241))
+* The extensions cache restarted its Pod when the extensions were not distributed as container images
+* A major version upgrade of a citus `SGShardedCluster` lost the whole citus metadata. The upgraded cluster came up on the target Postgres version but was not a citus cluster anymore, with no nodes, no distributed tables and no shards, and could not be repaired either since citus did not know the coordinator was the coordinator ([#3242](https://gitlab.com/ongresinc/stackgres/-/issues/3242))
+* The Job that labels the allowed namespaces could not start, so installing or upgrading the operator with `allowedNamespaces` set never completed. Its Pod security context set `runAsNonRoot` without setting `runAsUser`, and the image it runs has a non numeric user, so the kubelet refused the container
+([#3243](https://gitlab.com/ongresinc/stackgres/-/issues/3243))
+* The extensions cache was never asked for anything. The `SGCONFIG` environment variable of the operator Deployment was rendered without the `proxyUrl` parameter that points the repository URLs at the cache, and the operator merged it over the `SGConfig` installed by the pre-install hook, which had it
+* A read-modify-write of a custom resource rewrote it without the fields the running build does not model, so after an operator upgrade the cluster controller and the REST API dropped the fields added by the new version ([#3232](https://gitlab.com/ongresinc/stackgres/-/issues/3232))
+* Outdated and broken information in `README.md` and `stackgres-k8s/src/README.md` ([#3234](https://gitlab.com/ongresinc/stackgres/-/issues/3234))
+
+## Web Console
+
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture
+([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+  For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release
+name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.19.2/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely
+StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.2)
+
 # :rocket: Release 1.19.1 (2026-09-08)
 
 ## :notepad_spiral: NOTES
