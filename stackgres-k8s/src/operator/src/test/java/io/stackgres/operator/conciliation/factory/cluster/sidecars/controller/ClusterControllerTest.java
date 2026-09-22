@@ -260,7 +260,6 @@ class ClusterControllerTest {
     return Fixtures.cluster().loadDefault().get();
   }
 
-
   @Test
   void getContainer_shouldPropagateTheInstallationExtraMetadata() {
     ClusterContainerContext context = getClusterContainerContext();

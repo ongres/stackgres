@@ -8,8 +8,8 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -151,7 +151,6 @@ class SingleReconciliationCycleTest {
   private StackGresCluster getDefaultCluster() {
     return Fixtures.cluster().loadDefault().get();
   }
-
 
   @Test
   void getContainer_shouldPropagateTheInstallationExtraMetadata() {

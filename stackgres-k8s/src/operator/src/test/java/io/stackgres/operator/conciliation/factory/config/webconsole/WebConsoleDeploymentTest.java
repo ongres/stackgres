@@ -10,9 +10,9 @@ import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 
-import io.stackgres.common.StackGresProperty;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ConfigLabelFactory;
@@ -157,7 +157,6 @@ class WebConsoleDeploymentTest {
     Assertions.assertTrue(resources.isEmpty(),
         "Expected no deployment when restapi deploy is disabled");
   }
-
 
   @Test
   void generateResource_shouldPropagateTheInstallationExtraMetadata() {

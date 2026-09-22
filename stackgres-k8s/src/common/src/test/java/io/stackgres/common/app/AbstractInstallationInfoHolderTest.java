@@ -100,7 +100,7 @@ class AbstractInstallationInfoHolderTest {
       "Env stackgres_ci",
       "stackgres-ci",
   })
-  void aValueThatIsNotAcceptedIsRefused(String extraMetadata) {
+  void anyValueThatIsNotAcceptedIsRefused(String extraMetadata) {
     System.setProperty(EXTRA_METADATA_PROPERTY, extraMetadata);
     KubernetesClient client = client();
     var exception = assertThrows(IllegalArgumentException.class,
