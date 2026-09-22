@@ -1,8 +1,8 @@
 apiVersion: v2
 name: stackgres-cluster
 description: StackGres Cluster
-version: "1.19.2-SNAPSHOT"
-appVersion: "1.19.2-SNAPSHOT"
+version: "1.19.2"
+appVersion: "1.19.2"
 keywords:
   - stackgres
   - postgresql
