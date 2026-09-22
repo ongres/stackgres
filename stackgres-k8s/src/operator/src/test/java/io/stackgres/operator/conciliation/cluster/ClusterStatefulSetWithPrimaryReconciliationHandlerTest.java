@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import static io.stackgres.operator.conciliation.cluster.ClusterStatefulSetWithPrimaryReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,13 +93,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   private ResourceScanner<Pod> podScanner;
 
   @Mock
-  private ResourceFinder<Pod> podFinder;
-
-  @Mock
   private ResourceScanner<PersistentVolumeClaim> pvcScanner;
-
-  @Mock
-  private ResourceFinder<PersistentVolumeClaim> pvcFinder;
 
   @Mock
   private ResourceFinder<StatefulSet> statefulSetFinder;
@@ -136,7 +131,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
   void setUp() {
     handler = new ClusterStatefulSetWithPrimaryReconciliationHandler(
         defaultHandler, protectHandler, labelFactory, statefulSetFinder,
-        podScanner, podFinder, pvcScanner, pvcFinder, secretFinder, patroniCtl, objectMapper);
+        podScanner, pvcScanner, secretFinder, patroniCtl, objectMapper);
     requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
 
     cluster = new StackGresCluster();
@@ -266,16 +261,6 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
             409, null))
         .then(invocationOnMock -> invocationOnMock.getArgument(1));
 
-    when(podFinder.findByNameAndNamespace(any(), any()))
-        .then(invocationOnMock -> this.podList.stream()
-            .filter(pod -> pod.getMetadata().getName().equals(invocationOnMock.getArgument(0)))
-            .findFirst()
-            .map(pod -> new PodBuilder(pod)
-                .editMetadata()
-                .withResourceVersion("2")
-                .endMetadata()
-                .build()));
-
     var history = List.of(new PatroniHistoryEntry());
     history.get(0).setNewLeader(
         this.podList.stream()
@@ -285,20 +270,17 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     when(patroniCtlInstance.history())
         .thenReturn(history);
 
-    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
-
-    StatefulSet sts = (StatefulSet) handler.patch(
-        cluster, requiredStatefulSet, deployedStatefulSet);
+    StatefulSet sts = assertDoesNotThrow(() -> (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet));
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
-    verify(podFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
-    var patchedPod = podArgumentCaptor.getAllValues()
-        .stream().filter(Pod.class::isInstance).map(Pod.class::cast).findFirst().orElseThrow();
-    assertEquals("2", patchedPod.getMetadata().getResourceVersion(),
-        "the retried patch should carry the resourceVersion refreshed from the API");
+    // The same scenario without a conflict scans the Pods 5 times (see
+    // scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel). The extra
+    // scan is fixPods being retried as a whole, which is what lets the retry recompute what is
+    // left to patch instead of replaying a patch with a stale resourceVersion.
+    verify(podScanner, times(6)).getResourcesInNamespaceWithLabels(anyString(), anyMap());
+    verify(defaultHandler, atLeastOnce()).patch(any(), any(Pod.class), any());
   }
 
   @Test
