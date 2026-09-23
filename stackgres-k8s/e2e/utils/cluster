@@ -712,28 +712,6 @@ dont_transform() {
   printf "%s" "$1"
 }
 
-wait_cluster_resources_removed() {
-  local NAMESPACE="$1"
-  local NAME_REGEXP="$2"
-  local ENDPOINTS_REGEXP="$3"
-
-  # Deleting an SGCluster or an SGShardedCluster only deletes the resource itself: the
-  # SGClusters it owns, the StatefulSets, the pods, the persistent volume claims and the
-  # Patroni DCS endpoints are removed asynchronously by the Kubernetes garbage collector.
-  # Creating a cluster with the same name before they are gone makes the new cluster adopt
-  # the previous incarnation, either through its Patroni DCS state (the initialize key is
-  # already set with no leader, so every member waits for a leader to bootstrap forever) or
-  # through its status.backupPaths (the new cluster then archives WAL on top of a foreign
-  # timeline history, and its replicas recover past the position of their own leader).
-  echo "Waiting for the resources of $NAME_REGEXP to be removed"
-  wait_until eval '[ "$(kubectl get sgcluster -n "$NAMESPACE" -o name 2>/dev/null \
-    | sed "s#^[^/]*/##" | grep -c "$NAME_REGEXP")" -eq 0 ]'
-  wait_until eval '[ "$(kubectl get pod,pvc -n "$NAMESPACE" -l app=StackGresCluster -o name 2>/dev/null \
-    | sed "s#^[^/]*/##" | grep -c "$NAME_REGEXP")" -eq 0 ]'
-  wait_until eval '[ "$(kubectl get endpoints -n "$NAMESPACE" -o name 2>/dev/null \
-    | sed "s#^[^/]*/##" | grep -c "$ENDPOINTS_REGEXP")" -eq 0 ]'
-}
-
 remove_cluster() {
   local RELEASE="$1"
   local NAMESPACE="$2"
@@ -747,9 +725,6 @@ remove_cluster() {
   helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
-  wait_cluster_resources_removed "$NAMESPACE" \
-    "^$RELEASE\\(-\\|\$\\)" \
-    "^$RELEASE\\(-config\\|-sync\\|-failover\\)\\?\$"
 }
 
 remove_cluster_if_exists() {
@@ -775,9 +750,6 @@ remove_sharded_cluster() {
   wait_until eval 'helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -'
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
-  wait_cluster_resources_removed "$NAMESPACE" \
-    "^$RELEASE-" \
-    "^$RELEASE-[0-9]\\+\\(-config\\|-sync\\|-failover\\)\\?\$"
 }
 
 remove_sharded_cluster_if_exists() {
