@@ -120,6 +120,19 @@ check_sharded_mock_data() {
   else
     fail "Mock data did not survive the upgrade"
   fi
+
+  # pg_upgrade does not carry over the content of the tables owned by an extension, so without
+  # citus_prepare_pg_upgrade() and citus_finish_pg_upgrade() the citus catalog is lost and the
+  # distributed table silently becomes a local table of the coordinator that still holds the rows
+  # it had before being distributed. Checking the rows only is therefore not enough.
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus \
+    -c "SELECT count(*) FROM pg_dist_partition WHERE logicalrelid = 'e2e_version_upgrade_check'::regclass")" = 1 ]
+  then
+    success "Mock data is still distributed after the upgrade"
+  else
+    fail "Mock data is not distributed anymore after the upgrade"
+  fi
 }
 
 check_sharded_members_postgres_version() {
