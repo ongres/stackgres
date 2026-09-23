@@ -34,6 +34,12 @@ run_op() {
     exit 1
   fi
 
+  if ! citus_pg_upgrade citus_prepare_pg_upgrade
+  then
+    echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not save the citus metadata" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+    exit 1
+  fi
+
   rm -f /tmp/current-dbops /tmp/completed-dbops
   local CLUSTER_NAME
   local DBOPS_NAME
@@ -242,6 +248,15 @@ EOF
     retry_backoff
   done
 
+  # Restore the citus metadata saved before the upgrade. On rollback the clusters are back on the
+  # source postgres version with their citus metadata untouched and citus_finish_pg_upgrade() only
+  # drops the copies, so it is performed in that case too to leave nothing behind.
+  if ! citus_pg_upgrade citus_finish_pg_upgrade && ! "$FAILED"
+  then
+    echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not restore the citus metadata" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+    exit 1
+  fi
+
   if "$FAILED"
   then
     echo "FAILURE=$NORMALIZED_OP_NAME failed. One or more SGDbOps failed" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
@@ -258,6 +273,77 @@ EOF
   fi
 
   echo "Sharded DbOps $NORMALIZED_OP_NAME completed"
+}
+
+# pg_upgrade dumps the old cluster with `pg_dump --schema-only --binary-upgrade`, so the content of
+# the tables owned by an extension is not carried over to the upgraded cluster. For citus that means
+# losing the whole citus catalog, pg_dist_node and pg_dist_local_group included, leaving a cluster
+# that is not a citus cluster anymore and can not be repaired: without a row in pg_dist_local_group
+# citus does not know the coordinator is the coordinator and rejects citus_add_node. citus provides
+# citus_prepare_pg_upgrade(), that copies the catalog to the public.pg_dist_* tables that pg_upgrade
+# does carry over, and citus_finish_pg_upgrade(), that restores it from them and drops them. Both
+# have to be performed on the coordinator and on every worker.
+#
+# The presence of public.pg_dist_node tells whether the metadata has already been saved, so that a
+# retry of this job does not save the empty catalog of an already upgraded cluster over the copies
+# that hold the only remaining version of it.
+citus_pg_upgrade() {
+  if [ -z "$CITUS_DATABASE" ]
+  then
+    return 0
+  fi
+  local FUNCTION="$1"
+  local CLUSTER_NAME
+  local PRIMARY_POD
+  local SAVED
+  local RESULT=0
+  for CLUSTER_NAME in $CLUSTER_NAMES
+  do
+    PRIMARY_POD="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      -l "$CLUSTER_NAME_KEY=$CLUSTER_NAME,$PATRONI_ROLE_KEY=$PATRONI_PRIMARY_ROLE" \
+      -o name 2>/dev/null | head -n 1 | cut -d / -f 2)"
+    if [ -z "$PRIMARY_POD" ]
+    then
+      echo "Can not run $FUNCTION() for $CLUSTER_CRD_KIND $CLUSTER_NAME: primary not found"
+      RESULT=1
+      continue
+    fi
+    SAVED="$(citus_pg_upgrade_is_metadata_saved "$PRIMARY_POD")" || SAVED=""
+    case "$FUNCTION:$SAVED" in
+      (citus_prepare_pg_upgrade:true)
+      echo "The citus metadata of $CLUSTER_CRD_KIND $CLUSTER_NAME has already been saved"
+      continue
+      ;;
+      (citus_finish_pg_upgrade:false)
+      echo "The citus metadata of $CLUSTER_CRD_KIND $CLUSTER_NAME has not been saved, nothing to restore"
+      continue
+      ;;
+      (*:true|*:false)
+      ;;
+      (*)
+      echo "Can not run $FUNCTION() for $CLUSTER_CRD_KIND $CLUSTER_NAME: can not read the citus metadata"
+      RESULT=1
+      continue
+      ;;
+    esac
+    echo "Running $FUNCTION() on $PRIMARY_POD for $CLUSTER_CRD_KIND $CLUSTER_NAME"
+    if ! kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_POD" -c "$PATRONI_CONTAINER_NAME" -- \
+      psql -q -t -A -d "$CITUS_DATABASE" -v ON_ERROR_STOP=1 -c "SELECT $FUNCTION()"
+    then
+      echo "Can not run $FUNCTION() for $CLUSTER_CRD_KIND $CLUSTER_NAME"
+      RESULT=1
+    fi
+  done
+  return "$RESULT"
+}
+
+# Prints true when the citus metadata of the primary Pod passed as first argument has been saved by
+# citus_prepare_pg_upgrade(), false when it has not and nothing when it can not be determined.
+citus_pg_upgrade_is_metadata_saved() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$1" -c "$PATRONI_CONTAINER_NAME" -- \
+    psql -q -t -A -d "$CITUS_DATABASE" -v ON_ERROR_STOP=1 \
+    -c "SELECT CASE WHEN EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'pg_dist_node') THEN 'true' ELSE 'false' END" \
+    2>/dev/null
 }
 
 # Returns the child SGDbOps .status.majorVersionUpgrade.phase (empty if unset). A child created with

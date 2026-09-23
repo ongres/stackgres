@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.ShardedClusterPath;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -208,6 +210,32 @@ public class ShardedDbOpsMajorVersionUpgradeJob extends AbstractShardedDbOpsJob 
             new EnvVarBuilder()
             .withName("CLUSTER_NAMES")
             .withValue(String.join(" ", clusterNames))
+            .build(),
+            // pg_upgrade does not carry over the content of the tables owned by an extension, so
+            // the citus metadata has to be saved before and restored after the upgrade of every
+            // cluster. Empty when the SGShardedCluster is not sharded with citus.
+            new EnvVarBuilder()
+            .withName("CITUS_DATABASE")
+            .withValue(Optional.of(cluster.getSpec())
+                .filter(ignore -> isCitus)
+                .map(StackGresShardedClusterSpec::getDatabase)
+                .orElse(""))
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLUSTER_NAME_KEY")
+            .withValue(StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY)
+            .build(),
+            new EnvVarBuilder()
+            .withName("PATRONI_ROLE_KEY")
+            .withValue(PatroniUtil.ROLE_KEY)
+            .build(),
+            new EnvVarBuilder()
+            .withName("PATRONI_PRIMARY_ROLE")
+            .withValue(PatroniUtil.getPrimaryRole(cluster))
+            .build(),
+            new EnvVarBuilder()
+            .withName("PATRONI_CONTAINER_NAME")
+            .withValue(StackGresContainer.PATRONI.getName())
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_SG_POSTGRES_CONFIGS")
