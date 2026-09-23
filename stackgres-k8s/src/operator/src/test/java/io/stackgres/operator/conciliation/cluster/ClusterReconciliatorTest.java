@@ -5,21 +5,37 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceWriter;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.common.Metrics;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.conciliation.AbstractConciliator;
@@ -37,6 +53,7 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -58,6 +75,18 @@ class ClusterReconciliatorTest {
   EventEmitter<StackGresCluster> eventController;
   @Mock
   CustomResourceWriter<StackGresCluster> clusterWriter;
+  @Mock
+  CustomResourceWriter<StackGresCluster> writer;
+  @Mock
+  LabelFactoryForCluster labelFactory;
+  @Mock
+  ResourceFinder<StatefulSet> statefulSetFinder;
+  @Mock
+  ResourceWriter<StatefulSet> statefulSetWriter;
+  @Mock
+  ResourceScanner<Pod> podScanner;
+  @Mock
+  ResourceWriter<Pod> podWriter;
   @Mock
   Metrics metrics;
   @Mock
@@ -82,9 +111,23 @@ class ClusterReconciliatorTest {
     parameters.eventController = eventController;
     parameters.statusManager = statusManager;
     parameters.clusterWriter = clusterWriter;
+    parameters.writer = writer;
+    parameters.labelFactory = labelFactory;
+    parameters.statefulSetFinder = statefulSetFinder;
+    parameters.statefulSetWriter = statefulSetWriter;
+    parameters.podScanner = podScanner;
+    parameters.podWriter = podWriter;
     parameters.objectMapper = JsonUtil.jsonMapper();
     parameters.metrics = metrics;
     reconciliator = new ClusterReconciliator(parameters);
+    lenient()
+        .when(writer.update(any(StackGresCluster.class),
+            ArgumentMatchers.<Consumer<StackGresCluster>>any()))
+        .thenAnswer(invocation -> {
+          final Consumer<StackGresCluster> setter = invocation.getArgument(1);
+          setter.accept(cluster);
+          return cluster;
+        });
   }
 
   @Test
@@ -146,6 +189,40 @@ class ClusterReconciliatorTest {
 
     verify(conciliator).evalReconciliationState(cluster);
     deletions.forEach(resource -> verify(handlerDelegator).delete(cluster, resource));
+  }
+
+  @Test
+  void clusterWithoutFinalizer_shouldHaveTheFinalizerAdded() {
+    when(conciliator.evalReconciliationState(cluster))
+        .thenReturn(new ReconciliationResult(
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList()));
+
+    reconciliator.reconciliationCycle(cluster, 0, false);
+
+    assertTrue(cluster.getMetadata().getFinalizers()
+        .contains(StackGresContext.WAIT_PODS_TERMINATION_FINALIZER));
+  }
+
+  @Test
+  void clusterBeingDeletedWithoutPods_shouldNotBeReconciledAndHaveTheFinalizerRemoved() {
+    cluster.getMetadata().setFinalizers(
+        new ArrayList<>(List.of(StackGresContext.WAIT_PODS_TERMINATION_FINALIZER)));
+    cluster.getMetadata().setDeletionTimestamp("2026-01-01T00:00:00Z");
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String name = cluster.getMetadata().getName();
+    when(labelFactory.clusterLabels(cluster)).thenReturn(Map.of());
+    when(statefulSetFinder.findByNameAndNamespace(name, namespace))
+        .thenReturn(Optional.empty());
+    when(podScanner.getResourcesInNamespaceWithLabels(namespace, Map.of()))
+        .thenReturn(List.of());
+
+    reconciliator.reconciliationCycle(cluster, 0, false);
+
+    verify(conciliator, never()).evalReconciliationState(cluster);
+    assertFalse(cluster.getMetadata().getFinalizers()
+        .contains(StackGresContext.WAIT_PODS_TERMINATION_FINALIZER));
   }
 
 }

@@ -99,6 +99,7 @@ public interface StackGresContext {
   String PATRONI_OPERATION_RESTART_TYPE = "restart";
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
+  String WAIT_PODS_TERMINATION_FINALIZER = STACKGRES_KEY_PREFIX + "wait-pods-termination";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String CLUSTER_CONTROLLER_VERSION_KEY = STACKGRES_KEY_PREFIX + "cluster-controller-version";
   String POSTGRES_VERSION_KEY = STACKGRES_KEY_PREFIX + "postgresql-version";

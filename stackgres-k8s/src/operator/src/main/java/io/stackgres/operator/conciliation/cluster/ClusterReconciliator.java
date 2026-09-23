@@ -5,12 +5,17 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -22,9 +27,13 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceWriter;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.common.ClusterPatchResumer;
 import io.stackgres.operator.common.ClusterRolloutUtil;
@@ -72,12 +81,22 @@ public class ClusterReconciliator
     @Inject OperatorLockHolder operatorLockReconciliator;
     @Inject ReconciliatorWorkerThreadPool reconciliatorWorkerThreadPool;
     @Inject Metrics metrics;
+    @Inject LabelFactoryForCluster labelFactory;
+    @Inject ResourceFinder<StatefulSet> statefulSetFinder;
+    @Inject ResourceWriter<StatefulSet> statefulSetWriter;
+    @Inject ResourceScanner<Pod> podScanner;
+    @Inject ResourceWriter<Pod> podWriter;
   }
 
   private final StatusManager<StackGresCluster, Condition> statusManager;
   private final EventEmitter<StackGresCluster> eventController;
   private final CustomResourceWriter<StackGresCluster> clusterWriter;
   private final ClusterPatchResumer patchResumer;
+  private final LabelFactoryForCluster labelFactory;
+  private final ResourceFinder<StatefulSet> statefulSetFinder;
+  private final ResourceWriter<StatefulSet> statefulSetWriter;
+  private final ResourceScanner<Pod> podScanner;
+  private final ResourceWriter<Pod> podWriter;
 
   @Inject
   public ClusterReconciliator(Parameters parameters) {
@@ -101,6 +120,11 @@ public class ClusterReconciliator
     this.eventController = parameters.eventController;
     this.clusterWriter = parameters.clusterWriter;
     this.patchResumer = new ClusterPatchResumer(parameters.objectMapper);
+    this.labelFactory = parameters.labelFactory;
+    this.statefulSetFinder = parameters.statefulSetFinder;
+    this.statefulSetWriter = parameters.statefulSetWriter;
+    this.podScanner = parameters.podScanner;
+    this.podWriter = parameters.podWriter;
   }
 
   @Override
@@ -130,6 +154,63 @@ public class ClusterReconciliator
   @Override
   protected void reconciliationCycle(StackGresCluster configKey, int retry, boolean load) {
     super.reconciliationCycle(configKey, retry, load);
+  }
+
+  @Override
+  protected List<String> getFinalizers() {
+    return List.of(StackGresContext.WAIT_PODS_TERMINATION_FINALIZER);
+  }
+
+  @Override
+  protected boolean onFinalizer(StackGresCluster cluster, String finalizer) {
+    if (!StackGresContext.WAIT_PODS_TERMINATION_FINALIZER.equals(finalizer)) {
+      throw new RuntimeException("Unknown finalizer " + finalizer);
+    }
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String name = cluster.getMetadata().getName();
+    // Deleting an SGCluster does not terminate the Pods of its StatefulSet: they are removed
+    // asynchronously by the Kubernetes garbage collector once the SGCluster is gone and keep
+    // running for the whole termination grace period. While they run their Patroni is still able to
+    // write to the DCS endpoints of a cluster created with the same name, taking the leader lock
+    // and leaving the initialize key set on a cluster that will then never be bootstrapped
+    // (see https://gitlab.com/ongresinc/stackgres/-/issues/3240). Scale the cluster to 0 instances
+    // and wait for its Pods to be gone before the deletion of the SGCluster is allowed to complete.
+    //
+    // The StatefulSet is scaled directly instead of setting .spec.instances to 0 and reconciling
+    // the SGCluster: generating the required resources may fail when a resource referenced by the
+    // SGCluster has been removed together with it, and updating the spec is rejected while an
+    // SGDbOps holds the lock of the cluster. Both would block the deletion forever.
+    statefulSetFinder.findByNameAndNamespace(name, namespace)
+        .filter(statefulSet -> Optional.of(statefulSet.getSpec())
+            .map(StatefulSetSpec::getReplicas)
+            .map(replicas -> replicas > 0)
+            .orElse(false))
+        .ifPresent(statefulSet -> {
+          LOGGER.debug("Scaling StatefulSet {}.{} to 0 instances before deleting SGCluster",
+              namespace, name);
+          statefulSetWriter.update(new StatefulSetBuilder(statefulSet)
+              .editSpec()
+              .withReplicas(0)
+              .endSpec()
+              .build());
+        });
+    var pods = podScanner.getResourcesInNamespaceWithLabels(
+        namespace, labelFactory.clusterLabels(cluster));
+    if (pods.isEmpty()) {
+      return true;
+    }
+    // Scaling down the StatefulSet does not remove the Pods that have been marked as non
+    // disruptable, since those do not match its selector anymore. Delete any leftover Pod.
+    pods.stream()
+        .filter(pod -> pod.getMetadata().getDeletionTimestamp() == null)
+        .forEach(pod -> {
+          LOGGER.debug("Deleting Pod {}.{} before deleting SGCluster {}.{}",
+              namespace, pod.getMetadata().getName(), namespace, name);
+          podWriter.delete(pod);
+        });
+    LOGGER.debug("Waiting for {} Pods of SGCluster {}.{} to terminate",
+        pods.size(), namespace, name);
+    return false;
   }
 
   @Override
