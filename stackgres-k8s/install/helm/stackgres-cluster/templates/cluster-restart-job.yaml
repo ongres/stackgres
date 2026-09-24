@@ -70,6 +70,11 @@ spec:
       serviceAccountName: {{ .Release.Name }}-cluster-restart
       securityContext:
         runAsNonRoot: true
+        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        {{- end }}
       containers:
       - name: "{{ .Release.Name }}-fix-deployment-selector"
         image: {{ template "kubectl-image" . }}
