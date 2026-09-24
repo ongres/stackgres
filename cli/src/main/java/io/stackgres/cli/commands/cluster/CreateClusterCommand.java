@@ -149,10 +149,14 @@ public class CreateClusterCommand extends StackGresSubCommand {
                     case CREATED -> {
                         clusterName[0] = update.name();
                         messages.add("Cluster " + clusterName[0] + " created");
-                        if (cluster.getPassword() == null)
-                            messages.add("Superuser password: " + update.password());
                     }
-                    case HEALTHY -> messages.add("Cluster " + clusterName[0] + " started successfully");
+                    case HEALTHY -> {
+                        // The superuser Secret only exists once the cluster is up, so the password is
+                        // fetched and shown here (not at CREATED, where it would be blank).
+                        if (cluster.getPassword() == null && update.password() != null && !update.password().isBlank())
+                            messages.add("Superuser password: " + update.password());
+                        messages.add("Cluster " + clusterName[0] + " started successfully");
+                    }
                     case PENDING -> {
                         pending[0] = true;
                         messages.add(io.stackgres.cli.Strings.warnAnsi("Cluster " + clusterName[0]

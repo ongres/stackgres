@@ -176,7 +176,18 @@ public class MatriarchClient {
                 switch (p.getStatus()) {
                     case OPERATION_STATUS_SUCCEEDED -> {
                         succeeded = true;
-                        statusConsumer.accept(new ClusterCreationUpdate(id, p.getCluster().getName(), "", ClusterCreationUpdate.Status.HEALTHY));
+                        // Secret-by-reference (§3.7): a generated password isn't in the stream — fetch it
+                        // out-of-band now. Only at HEALTHY has the operator created the cluster's Secret; it
+                        // does NOT exist yet at the earlier accepted/CREATED frame. Skip if the user gave -P.
+                        String password = "";
+                        if (cluster.getPassword() == null) {
+                            try {
+                                password = getClusterCredentials(id);
+                            } catch (RuntimeException ex) {
+                                logDebug("could not fetch credentials: " + ex.getMessage());
+                            }
+                        }
+                        statusConsumer.accept(new ClusterCreationUpdate(id, p.getCluster().getName(), password, ClusterCreationUpdate.Status.HEALTHY));
                     }
                     case OPERATION_STATUS_FAILED -> throw new RuntimeException(p.getError().getMessage());
                     default -> {
@@ -184,18 +195,7 @@ public class MatriarchClient {
                                   == io.stackgres.proto.types.v1.ClusterStatus.CLUSTER_STATUS_PENDING;
                         if (!announced) {
                             announced = true;
-                            // Secret-by-reference (§3.7): a generated password isn't in the stream — fetch
-                            // it out-of-band via GetClusterCredentials. If the user supplied -P, skip it
-                            // (the command only prints the password when the user didn't provide one).
-                            String password = "";
-                            if (cluster.getPassword() == null) {
-                                try {
-                                    password = getClusterCredentials(id);
-                                } catch (RuntimeException ex) {
-                                    logDebug("could not fetch credentials: " + ex.getMessage());
-                                }
-                            }
-                            statusConsumer.accept(new ClusterCreationUpdate(id, p.getCluster().getName(), password, ClusterCreationUpdate.Status.CREATED));
+                            statusConsumer.accept(new ClusterCreationUpdate(id, p.getCluster().getName(), "", ClusterCreationUpdate.Status.CREATED));
                         }
                     }
                 }
