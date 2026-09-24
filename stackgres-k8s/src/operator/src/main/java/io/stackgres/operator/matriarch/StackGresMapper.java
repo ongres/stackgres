@@ -48,6 +48,15 @@ final class StackGresMapper {
   }
 
   static Cluster toCluster(StackGresCluster cr, StackGresInstanceProfile profile) {
+    return toCluster(cr, profile, null);
+  }
+
+  /**
+   * As {@link #toCluster(StackGresCluster, StackGresInstanceProfile)} but with a caller-computed pod
+   * {@code failureReason} (see {@link PodFailure}) — when present and no primary is elected yet, the
+   * cluster maps to {@code FAILED} so `cluster list` (and the create watch) reflect a stuck start.
+   */
+  static Cluster toCluster(StackGresCluster cr, StackGresInstanceProfile profile, String failureReason) {
     String uid = cr.getMetadata().getUid();
     String name = cr.getMetadata().getName();
     String namespace = cr.getMetadata().getNamespace();
@@ -86,7 +95,7 @@ final class StackGresMapper {
       engineSpec = new PostgresSpec(exts, Map.of());
     }
 
-    RunStatus runStatus = clusterRunStatus(status);
+    RunStatus runStatus = clusterRunStatus(status, failureReason);
 
     List<InstanceSpec> instanceSpecs = new ArrayList<>();
     List<InstanceStatus> instanceStatuses = new ArrayList<>();
@@ -119,25 +128,31 @@ final class StackGresMapper {
     statuses.add(new InstanceStatus(id, runStatus, repl, "", 5432, cpu, memory, 0));
   }
 
-  private static RunStatus clusterRunStatus(StackGresClusterStatus status) {
-    if (status == null) {
-      return RunStatus.UNKNOWN;
-    }
+  private static RunStatus clusterRunStatus(StackGresClusterStatus status, String failureReason) {
+    // An elected primary wins: the database is serving even if a replica is still catching up (or a
+    // pod is flapping), so a healthy primary is never downgraded to FAILED.
     // status.instances is the number of pods that EXIST (ClusterStatusManager sets it to pods().size()),
     // NOT how many are ready — it flips to "full" the instant a pod is scheduled. Use Patroni's elected
     // primary (podStatuses[].primary) as the real "the database is serving" signal instead, so HEALTHY
     // means the cluster is actually up (and the create watch / `cluster list` don't report it early).
-    List<StackGresClusterPodStatus> pods = status.getPodStatuses();
-    boolean hasPrimary = pods != null
-        && pods.stream().anyMatch(p -> Boolean.TRUE.equals(p.getPrimary()));
-    if (hasPrimary) {
-      return RunStatus.HEALTHY;
+    if (status != null) {
+      List<StackGresClusterPodStatus> pods = status.getPodStatuses();
+      boolean hasPrimary = pods != null
+          && pods.stream().anyMatch(p -> Boolean.TRUE.equals(p.getPrimary()));
+      if (hasPrimary) {
+        return RunStatus.HEALTHY;
+      }
+    }
+    // No primary yet: a persistently failing pod (image pull, crash loop, unschedulable — computed by
+    // the caller via PodFailure) means the start is stuck, not merely slow.
+    if (failureReason != null) {
+      return RunStatus.FAILED;
+    }
+    if (status == null) {
+      return RunStatus.UNKNOWN;
     }
     int existing = status.getInstances() != null ? status.getInstances() : 0;
-    if (existing > 0) {
-      return RunStatus.STARTING;
-    }
-    return RunStatus.PENDING;
+    return existing > 0 ? RunStatus.STARTING : RunStatus.PENDING;
   }
 
   private static double cpuCores(String q) {

@@ -7,20 +7,25 @@ package io.stackgres.operator.matriarch;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceWriter;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.matriarch.Defaults;
 import io.stackgres.matriarch.Matriarch;
@@ -63,6 +68,7 @@ public class ClusterWriteService {
   private static final long POLL_MILLIS = 500;
   private static final Duration CREATE_TIMEOUT = Duration.ofMinutes(5);
   private static final Duration DELETE_TIMEOUT = Duration.ofMinutes(2);
+  private static final Duration POD_CHECK_INTERVAL = Duration.ofSeconds(5);
 
   @Inject
   Matriarch matriarch;
@@ -77,6 +83,12 @@ public class ClusterWriteService {
   SecretFinder secretFinder;
 
   @Inject
+  ResourceScanner<Pod> podScanner;
+
+  @Inject
+  LabelFactoryForCluster labelFactory;
+
+  @Inject
   ManagedExecutor executor;
 
   @Inject
@@ -89,6 +101,11 @@ public class ClusterWriteService {
   // PV size the api.v1 create request does not carry (§ mapper) — defaulted here, tunable per install.
   @ConfigProperty(name = "matriarch.cluster.default-storage-size", defaultValue = "1Gi")
   String defaultStorageSize;
+
+  // Grace before a stuck pod (image pull, crash loop, unschedulable) is reported FAILED — same value the
+  // observer uses; long enough that a normal, slow-but-succeeding start is never mislabeled.
+  @ConfigProperty(name = "matriarch.cluster.failure-grace", defaultValue = "60s")
+  Duration failureGrace;
 
   // ---- create ----
 
@@ -119,8 +136,7 @@ public class ClusterWriteService {
         return;
       }
     }
-    ClusterId id = new ClusterId(created.getMetadata().getUid());
-    runCreateWatch(id, StackGresMapper.toCluster(created, null), obs, environmentId());
+    runCreateWatch(created, obs, environmentId());
   }
 
   /**
@@ -151,10 +167,13 @@ public class ClusterWriteService {
     }
   }
 
-  private void runCreateWatch(ClusterId id, Cluster accepted,
-      StreamObserver<ClusterOperationProgress> obs, String envId) {
+  private void runCreateWatch(StackGresCluster cr, StreamObserver<ClusterOperationProgress> obs, String envId) {
+    ClusterId id = new ClusterId(cr.getMetadata().getUid());
+    Cluster accepted = StackGresMapper.toCluster(cr, null);
     obs.onNext(frame(OperationStatus.OPERATION_STATUS_ACCEPTED, accepted, envId));
-    long deadline = System.nanoTime() + CREATE_TIMEOUT.toNanos();
+    long start = System.nanoTime();
+    long deadline = start + CREATE_TIMEOUT.toNanos();
+    long nextPodCheck = start + failureGrace.toNanos();   // first pod check only after the grace window
     Cluster last = accepted;
     RunStatus lastStatus = null;
     try {
@@ -168,17 +187,23 @@ public class ClusterWriteService {
             obs.onCompleted();
             return;
           }
-          if (s == RunStatus.FAILED) {
-            obs.onNext(failedFrame(c, 13, "cluster provisioning failed", envId));
-            obs.onCompleted();
-            return;
-          }
-          if (s != lastStatus) {
+          if (s != lastStatus && s != RunStatus.FAILED) {   // FAILED is decided by the pod check below (with a reason)
             obs.onNext(frame(OperationStatus.OPERATION_STATUS_RUNNING, c, envId));
             lastStatus = s;
           }
         }
-        if (System.nanoTime() > deadline) {
+        long now = System.nanoTime();
+        if (now >= nextPodCheck) {   // throttled; the classifier only fires once a pod is past the grace window
+          nextPodCheck = now + POD_CHECK_INTERVAL.toNanos();
+          Optional<String> failure = podFailureReason(cr);
+          if (failure.isPresent()) {   // stuck pod (image pull / crash loop / unschedulable) — fail with why
+            obs.onNext(failedFrame(last, Status.Code.FAILED_PRECONDITION.value(),
+                "cluster failed to start: " + failure.get(), envId));
+            obs.onCompleted();
+            return;
+          }
+        }
+        if (now > deadline) {
           obs.onNext(failedFrame(last, 4, "timed out waiting for cluster to become healthy", envId));
           obs.onCompleted();
           return;
@@ -189,6 +214,17 @@ public class ClusterWriteService {
       Thread.currentThread().interrupt();
       obs.onNext(failedFrame(last, 1, "watch interrupted", envId));
       obs.onCompleted();
+    }
+  }
+
+  /** A persisted pod-failure reason for the cluster (image pull / crash loop / unschedulable), or empty. */
+  private Optional<String> podFailureReason(StackGresCluster cr) {
+    try {
+      List<Pod> pods = podScanner.getResourcesInNamespaceWithLabels(
+          cr.getMetadata().getNamespace(), labelFactory.clusterLabels(cr));
+      return PodFailure.detect(pods, Instant.now(), failureGrace);
+    } catch (RuntimeException e) {
+      return Optional.empty();   // transient scan failure — don't fail the op on our own inability to check
     }
   }
 

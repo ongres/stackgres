@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.matriarch;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.function.BiConsumer;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.quarkus.runtime.ShutdownEvent;
@@ -25,8 +28,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileList;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ProfileScanner;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.matriarch.Matriarch;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.operator.common.ResourceWatcherFactory;
@@ -34,6 +39,7 @@ import io.stackgres.operatorframework.resource.WatcherMonitor;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jboss.logging.Logger;
 
@@ -74,6 +80,17 @@ public class StackGresObserver {
 
   @Inject
   ManagedExecutor executor;
+
+  @Inject
+  ResourceScanner<Pod> podScanner;
+
+  @Inject
+  LabelFactoryForCluster labelFactory;
+
+  // Grace before a stuck pod (image pull, crash loop, unschedulable) is reported FAILED — long enough
+  // that a normal, slow-but-succeeding start is never mislabeled.
+  @ConfigProperty(name = "matriarch.cluster.failure-grace", defaultValue = "60s")
+  Duration failureGrace;
 
   private final List<WatcherMonitor<?>> monitors = new CopyOnWriteArrayList<>();
   // Single-flight coalescing: `dirty` marks pending work; `running` guards a single in-flight drain.
@@ -169,12 +186,23 @@ public class StackGresObserver {
           profile = profiles.get(
               cr.getMetadata().getNamespace() + "/" + cr.getSpec().getSgInstanceProfile());
         }
-        clusters.add(StackGresMapper.toCluster(cr, profile));
+        clusters.add(StackGresMapper.toCluster(cr, profile, podFailureReason(cr)));
       }
       matriarch.reconcileObserved(clusters);
     } catch (RuntimeException e) {
       // A scan failure (transient API error, RBAC, partition) must not kill the watches/scheduler.
       LOG.warnf(e, "matriarch observer refresh failed: %s", e.getMessage());
+    }
+  }
+
+  /** A persisted pod-failure reason for the cluster (image pull / crash loop / unschedulable), or null. */
+  private String podFailureReason(StackGresCluster cr) {
+    try {
+      List<Pod> pods = podScanner.getResourcesInNamespaceWithLabels(
+          cr.getMetadata().getNamespace(), labelFactory.clusterLabels(cr));
+      return PodFailure.detect(pods, Instant.now(), failureGrace).orElse(null);
+    } catch (RuntimeException e) {
+      return null;   // transient scan failure — don't flip a cluster to FAILED on our own inability to look
     }
   }
 }
