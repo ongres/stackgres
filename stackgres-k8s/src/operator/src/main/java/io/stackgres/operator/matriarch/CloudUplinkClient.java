@@ -20,8 +20,12 @@ import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
+import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.Environment;
+import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
 import io.stackgres.proto.control.v1.CloudMessage;
+import io.stackgres.proto.control.v1.Completion;
+import io.stackgres.proto.control.v1.ControlRequest;
 import io.stackgres.proto.control.v1.ControlResponse;
 import io.stackgres.proto.control.v1.Heartbeat;
 import io.stackgres.proto.control.v1.MatriarchMessage;
@@ -35,6 +39,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jboss.logging.Logger;
 
 /**
@@ -42,8 +47,8 @@ import org.jboss.logging.Logger;
  * StackGres install as an environment, and streams its state up — the mirror of how {@code slon} dials
  * up to a matriarch, one level higher. Opt-in via {@code stackgres.cloud.enabled}; authenticates with
  * the {@code STACKGRES_TOKEN} JWT (env credential, P10). The api.v1 {@code environment_id} is the
- * StackGres installation id. Read-only for v1: it pushes snapshots/events and answers resync, and
- * ignores any control coming down.
+ * StackGres installation id. It pushes snapshots/events and answers resync, and dispatches cloud-routed
+ * user writes (create/delete/credentials) to the api.v1 write handlers, relaying their progress back up.
  *
  * <p>All sends run on a single "actor" thread so the (non-thread-safe) request {@link StreamObserver}
  * is only ever touched from one place and the sequence numbering stays monotonic: domain
@@ -65,6 +70,13 @@ public class CloudUplinkClient {
 
   @Inject
   OperatorInstallationInfoHolder installationInfoHolder;
+
+  @Inject
+  ClusterWriteService writeService;
+
+  // Runs the (blocking) write handlers off the single actor thread so the uplink stream stays responsive.
+  @Inject
+  ManagedExecutor writeExecutor;
 
   @ConfigProperty(name = "stackgres.cloud.enabled", defaultValue = "false")
   boolean enabled;
@@ -261,20 +273,7 @@ public class CloudUplinkClient {
         LOG.infof("cloud requested resync: %s", m.getResync().getReason());
         sendSnapshot();
       }
-      case CONTROL -> {
-        // The operator is read-only for now: it observes k8s but cannot execute user writes. Reject
-        // cleanly so the cloud fails the api.v1 call instead of hanging. FAILED_PRECONDITION (not
-        // UNIMPLEMENTED): the write IS supported over the cloud — this particular environment just
-        // can't satisfy it — so the CLI surfaces this reason rather than "not available over the cloud".
-        up.onNext(MatriarchMessage.newBuilder().setControlResponse(ControlResponse.newBuilder()
-            .setRequestId(m.getControl().getRequestId())
-            .setError(com.google.rpc.Status.newBuilder()
-                .setCode(io.grpc.Status.Code.FAILED_PRECONDITION.value())
-                .setMessage("this Kubernetes environment is read-only from the cloud — manage its "
-                    + "clusters with the StackGres operator (SGCluster resources); cloud-driven writes "
-                    + "aren't supported yet")))
-            .build());
-      }
+      case CONTROL -> dispatchControl(m.getControl());
       case HEARTBEAT_ACK -> {
         // Keep-alive reply to our heartbeat — a frame on the cloud->local direction (proxy idle
         // guard). Nothing to do.
@@ -282,6 +281,104 @@ public class CloudUplinkClient {
       case PAYLOAD_NOT_SET -> { }
       default -> { }
     }
+  }
+
+  // ---- cloud-routed write dispatch (control.v1) ----
+
+  /**
+   * Dispatch a cloud-routed user write to the api.v1 write handlers and relay its streamed progress back
+   * up as {@link ControlResponse} frames. The handlers block (a K8s API call, then observe-to-healthy),
+   * so run them off the actor thread; the relays post every send back onto the actor via
+   * {@link #runOnActor} so the single-threaded uplink stream is only ever touched there. start/stop/restart
+   * aren't wired for Kubernetes yet and are rejected cleanly.
+   */
+  private void dispatchControl(ControlRequest req) {
+    String requestId = req.getRequestId();
+    switch (req.getOperationCase()) {
+      case CREATE -> writeExecutor.execute(() -> writeService.create(req.getCreate(), progressRelay(requestId)));
+      case DELETE -> writeExecutor.execute(() -> writeService.delete(req.getDelete(), progressRelay(requestId)));
+      case CREDENTIALS -> writeExecutor.execute(
+          () -> writeService.credentials(req.getCredentials(), credentialsRelay(requestId)));
+      case START, STOP, RESTART -> rejectControl(requestId,
+          "start/stop/restart are not yet supported for Kubernetes environments over the cloud");
+      case OPERATION_NOT_SET -> rejectControl(requestId, "empty control request");
+      default -> rejectControl(requestId, "unsupported control operation");
+    }
+  }
+
+  /** Relay a streaming write's ClusterOperationProgress frames up as ControlResponses (posted to the actor). */
+  private StreamObserver<ClusterOperationProgress> progressRelay(String requestId) {
+    return new StreamObserver<>() {
+      @Override
+      public void onNext(ClusterOperationProgress progress) {
+        runOnActor(() -> sendControlResponse(ControlResponse.newBuilder()
+            .setRequestId(requestId).setProgress(progress).build()));
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        runOnActor(() -> sendControlResponse(ControlResponse.newBuilder()
+            .setRequestId(requestId).setError(toRpcStatus(t)).build()));
+      }
+
+      @Override
+      public void onCompleted() {
+        runOnActor(() -> sendControlResponse(ControlResponse.newBuilder()
+            .setRequestId(requestId).setCompleted(Completion.getDefaultInstance()).build()));
+      }
+    };
+  }
+
+  /** Relay the unary credentials result up (the CREDENTIALS frame is itself terminal for the cloud). */
+  private StreamObserver<GetClusterCredentialsResponse> credentialsRelay(String requestId) {
+    return new StreamObserver<>() {
+      @Override
+      public void onNext(GetClusterCredentialsResponse credentials) {
+        runOnActor(() -> sendControlResponse(ControlResponse.newBuilder()
+            .setRequestId(requestId).setCredentials(credentials).build()));
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        runOnActor(() -> sendControlResponse(ControlResponse.newBuilder()
+            .setRequestId(requestId).setError(toRpcStatus(t)).build()));
+      }
+
+      @Override
+      public void onCompleted() {
+        // unary: the CREDENTIALS frame already terminates the cloud-side sink
+      }
+    };
+  }
+
+  /** Send a terminal FAILED_PRECONDITION for a control op we don't handle. Call only on the actor thread. */
+  private void rejectControl(String requestId, String message) {
+    sendControlResponse(ControlResponse.newBuilder()
+        .setRequestId(requestId)
+        .setError(com.google.rpc.Status.newBuilder()
+            .setCode(io.grpc.Status.Code.FAILED_PRECONDITION.value())
+            .setMessage(message))
+        .build());
+  }
+
+  /** Emit a ControlResponse on the uplink. Only call on the actor thread. */
+  private void sendControlResponse(ControlResponse response) {
+    if (up == null) {
+      return;
+    }
+    try {
+      up.onNext(MatriarchMessage.newBuilder().setControlResponse(response).build());
+    } catch (RuntimeException e) {
+      LOG.debugf("control response send failed: %s", e.getMessage());
+    }
+  }
+
+  private static com.google.rpc.Status toRpcStatus(Throwable t) {
+    io.grpc.Status s = io.grpc.Status.fromThrowable(t);
+    return com.google.rpc.Status.newBuilder()
+        .setCode(s.getCode().value())
+        .setMessage(s.getDescription() != null ? s.getDescription() : s.getCode().name())
+        .build();
   }
 
   private void scheduleReconnect() {

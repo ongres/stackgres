@@ -14,7 +14,12 @@ import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.ClusterNotFoundException;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
+import io.stackgres.proto.api.v1.ClusterOperationProgress;
+import io.stackgres.proto.api.v1.CreateClusterRequest;
+import io.stackgres.proto.api.v1.DeleteClusterRequest;
 import io.stackgres.proto.api.v1.Environment;
+import io.stackgres.proto.api.v1.GetClusterCredentialsRequest;
+import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
 import io.stackgres.proto.api.v1.GetClusterEventsRequest;
 import io.stackgres.proto.api.v1.GetClusterEventsResponse;
 import io.stackgres.proto.api.v1.GetClusterRequest;
@@ -31,19 +36,24 @@ import io.stackgres.proto.types.v1.Id;
 import jakarta.inject.Inject;
 
 /**
- * Read-only {@code stackgres.api.v1.StackGresApi} surface over the embedded Matriarch core (v1 slice:
- * {@code list} + {@code get} + {@code events}). Every other RPC stays UNIMPLEMENTED (the ImplBase
- * default) — that is the read-only posture. The core state is fed by {@code StackGresObserver}; the
- * api.v1 {@code environment_id} is the StackGres installation id.
+ * The {@code stackgres.api.v1.StackGresApi} surface over the embedded Matriarch core. Reads
+ * ({@code list} + {@code get} + {@code events}) are served from the observer-fed core; writes
+ * ({@code create} + {@code delete} + {@code credentials}) are delegated to {@link ClusterWriteService},
+ * which translates them into {@code SGCluster} CR operations — the operator, not matriarch, stays the
+ * source of truth. Every other RPC stays UNIMPLEMENTED (the ImplBase default). The core state is fed by
+ * {@code StackGresObserver}; the api.v1 {@code environment_id} is the StackGres installation id.
  */
 @GrpcService
-public class StackGresApiReadService extends StackGresApiGrpc.StackGresApiImplBase {
+public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
 
   @Inject
   Matriarch matriarch;
 
   @Inject
   ClusterEventStore clusterEvents;
+
+  @Inject
+  ClusterWriteService writeService;
 
   @Inject
   OperatorInstallationInfoHolder installationInfoHolder;
@@ -72,7 +82,7 @@ public class StackGresApiReadService extends StackGresApiGrpc.StackGresApiImplBa
   /**
    * This StackGres install as one api.v1 Environment — itself. Serving ListEnvironments/GetEnvironment
    * (a single LIVE k8s-stackgres entry) lets the CLI treat local and cloud uniformly and lets env
-   * auto-resolution see exactly one environment. Read-only, so only the events surface is advertised.
+   * auto-resolution see exactly one environment.
    */
   private Environment environment() {
     String id = environmentId();
@@ -154,5 +164,25 @@ public class StackGresApiReadService extends StackGresApiGrpc.StackGresApiImplBa
     resp.putSourceInfo(environmentId(), ClusterProtoMapper.liveSourceInfo());
     responseObserver.onNext(resp.build());
     responseObserver.onCompleted();
+  }
+
+  // ---- writes: translated to SGCluster CR operations (operator stays the source of truth) ----
+
+  @Override
+  public void createCluster(CreateClusterRequest request,
+      StreamObserver<ClusterOperationProgress> responseObserver) {
+    writeService.create(request, responseObserver);
+  }
+
+  @Override
+  public void deleteCluster(DeleteClusterRequest request,
+      StreamObserver<ClusterOperationProgress> responseObserver) {
+    writeService.delete(request, responseObserver);
+  }
+
+  @Override
+  public void getClusterCredentials(GetClusterCredentialsRequest request,
+      StreamObserver<GetClusterCredentialsResponse> responseObserver) {
+    writeService.credentials(request, responseObserver);
   }
 }

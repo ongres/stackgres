@@ -86,7 +86,7 @@ final class StackGresMapper {
       engineSpec = new PostgresSpec(exts, Map.of());
     }
 
-    RunStatus runStatus = clusterRunStatus(spec, status);
+    RunStatus runStatus = clusterRunStatus(status);
 
     List<InstanceSpec> instanceSpecs = new ArrayList<>();
     List<InstanceStatus> instanceStatuses = new ArrayList<>();
@@ -119,16 +119,22 @@ final class StackGresMapper {
     statuses.add(new InstanceStatus(id, runStatus, repl, "", 5432, cpu, memory, 0));
   }
 
-  private static RunStatus clusterRunStatus(StackGresClusterSpec spec, StackGresClusterStatus status) {
+  private static RunStatus clusterRunStatus(StackGresClusterStatus status) {
     if (status == null) {
       return RunStatus.UNKNOWN;
     }
-    Integer ready = status.getInstances();
-    int desired = spec != null && spec.getInstances() != null ? spec.getInstances() : 0;
-    if (ready != null && desired > 0 && ready >= desired) {
+    // status.instances is the number of pods that EXIST (ClusterStatusManager sets it to pods().size()),
+    // NOT how many are ready — it flips to "full" the instant a pod is scheduled. Use Patroni's elected
+    // primary (podStatuses[].primary) as the real "the database is serving" signal instead, so HEALTHY
+    // means the cluster is actually up (and the create watch / `cluster list` don't report it early).
+    List<StackGresClusterPodStatus> pods = status.getPodStatuses();
+    boolean hasPrimary = pods != null
+        && pods.stream().anyMatch(p -> Boolean.TRUE.equals(p.getPrimary()));
+    if (hasPrimary) {
       return RunStatus.HEALTHY;
     }
-    if (ready != null && ready > 0) {
+    int existing = status.getInstances() != null ? status.getInstances() : 0;
+    if (existing > 0) {
       return RunStatus.STARTING;
     }
     return RunStatus.PENDING;

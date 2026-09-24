@@ -21,8 +21,8 @@ import io.stackgres.matriarch.model.status.ReplicationStatus;
 import io.stackgres.matriarch.model.status.RunStatus;
 
 /**
- * Domain {@code ->} {@code stackgres.api.v1} mapping — shared by the local read service
- * ({@link StackGresApiReadService}) and the cloud uplink ({@link CloudUplinkClient}), so the mapping
+ * Domain {@code ->} {@code stackgres.api.v1} mapping — shared by the local api service
+ * ({@link StackGresApiService}) and the cloud uplink ({@link CloudUplinkClient}), so the mapping
  * lives in one place. Kept in sync with the cloud app's read-subset mapper as the api.v1 proto evolves
  * (see doc/architecture-redesign-stackgres.md §7).
  */
