@@ -507,6 +507,8 @@ modules:
     build_env:
       DOCUMENTATION_BASE_URL: '$DOCUMENTATION_BASE_URL'
       DOCUMENTATION_EXTRA_PATH: '$DOCUMENTATION_EXTRA_PATH'
+      DOCUMENTATION_ASSETS_BASE: '$DOCUMENTATION_ASSETS_BASE'
+      HUGO_PARAMS_ASSETSBASE: '$DOCUMENTATION_ASSETS_BASE'
     build_commands:
       - sh -x doc/build.sh
       - |
@@ -516,6 +518,16 @@ modules:
             | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
       - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
       - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
+      # Shared theme assets (contract v1, see the assetsBase param in doc/config.toml):
+      # published next to the version directories so every version serves one copy.
+      # Version-specific files in the theme static dir (sg-swagger.yaml, search
+      # indexes) are excluded: those resolve per version via baseURL.
+      - |
+        mkdir -p "doc/public/${DOCUMENTATION_EXTRA_PATH}assets/v1"
+        for ASSET_DIR in css js fonts webfonts images mermaid
+        do
+          cp -a "doc/themes/sg-doc/static/$ASSET_DIR" "doc/public/${DOCUMENTATION_EXTRA_PATH}assets/v1"
+        done
     artifacts:
       - doc/data
       - doc/generated

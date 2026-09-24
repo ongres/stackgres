@@ -117,6 +117,7 @@ build documentation:
           DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
         fi
       fi
+      export DOCUMENTATION_ASSETS_BASE="$DOCUMENTATION_BASE_URL/${DOCUMENTATION_EXTRA_PATH}assets/v1/"
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract documentation:doc/public \
         documentation

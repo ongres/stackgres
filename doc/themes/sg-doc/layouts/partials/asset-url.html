@@ -1,0 +1,23 @@
+{{- /* Resolves the URL of a theme static asset (css/js/fonts/images).
+
+     With .Site.Params.assetsBase set (a URL prefix ending in "/"), assets are
+     loaded from that shared location instead of this documentation version's
+     own copy, so every published version serves the same files. The prefix is
+     contract-versioned (e.g. .../assets/v1/): bump it whenever the JS/CSS and
+     the theme layouts change incompatibly, and only builds carrying the
+     matching layouts point at the new prefix. No cache-busting query is added
+     in this mode — the prefix changes when the content does.
+
+     With assetsBase unset (local hugo serve, standalone builds), assets
+     resolve inside this version as before, with cache busting unless
+     disableAssetsBusting is set. Pass "busting" false to skip the query
+     string (e.g. the favicon, which never carried it).
+
+     Usage: {{ partial "asset-url.html" (dict "site" .Site "path" "css/theme-base.css") }}
+*/ -}}
+{{- $busting := ne .busting false -}}
+{{- with .site.Params.assetsBase -}}
+{{- printf "%s%s" . $.path -}}
+{{- else -}}
+{{- .path | relURL -}}{{- if and $busting (not .site.Params.disableAssetsBusting) -}}?{{ now.Unix }}{{- end -}}
+{{- end -}}

@@ -20,8 +20,8 @@
     <span data-search-clear=""><i class="fas fa-times"></i></span>
 </div>
 {{ $assetBusting := not .Site.Params.disableAssetsBusting }}
-<script type="text/javascript" src="{{"js/lunr.min.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
-<script type="text/javascript" src="{{"js/auto-complete.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
+<script type="text/javascript" src="{{ partial "asset-url.html" (dict "site" $.Site "path" "js/lunr.min.js") }}"></script>
+<script type="text/javascript" src="{{ partial "asset-url.html" (dict "site" $.Site "path" "js/auto-complete.js") }}"></script>
 <script type="text/javascript">
     var pageTitle = "{{ .Title }}";
     {{ if .Site.IsMultiLingual }}
@@ -30,4 +30,4 @@
         var baseurl = "{{.Site.BaseURL}}";
     {{ end }}
 </script>
-<script type="text/javascript" src="{{"js/search.js" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}"></script>
+<script type="text/javascript" src="{{ partial "asset-url.html" (dict "site" $.Site "path" "js/search.js") }}"></script>

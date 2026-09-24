@@ -8,6 +8,13 @@ metaDataFormat = "yaml"
 defaultContentLanguageInSubdir = false
 
 [params]
+  # Load theme static assets (css/js/fonts/images) from a shared location
+  # instead of this documentation version's own copy, so all published
+  # versions serve the same files. Set by CI to a contract-versioned URL
+  # (e.g. https://stackgres.io/doc/assets/v1/, trailing slash required);
+  # leave unset for local serving. Bump the /vN/ segment whenever assets and
+  # theme layouts change incompatibly.
+  # assetsBase = ""
   description = "Documentation for StackGres"
   author = "OnGres"
   showVisitedLinks = false

@@ -6,14 +6,14 @@
   <title>{{ .Scratch.Get "title" }}</title>
 
    {{ $assetBusting := not .Site.Params.disableAssetsBusting }}
-    <link href="{{"css/nucleus.css" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
-    <link href="{{"css/fontawesome-all.min.css" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
-    <link href="{{"css/featherlight.min.css" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
-    <link href="{{"css/perfect-scrollbar.min.css" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
-    <link href="{{"css/theme.css" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
-    <link href="{{"css/hugo-theme.css" | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
+    <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" "css/nucleus.css") }}" rel="stylesheet">
+    <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" "css/fontawesome-all.min.css") }}" rel="stylesheet">
+    <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" "css/featherlight.min.css") }}" rel="stylesheet">
+    <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" "css/perfect-scrollbar.min.css") }}" rel="stylesheet">
+    <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" "css/theme.css") }}" rel="stylesheet">
+    <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" "css/hugo-theme.css") }}" rel="stylesheet">
     {{with .Site.Params.themeVariant}}
-      <link href="{{(printf "css/theme-%s.css" .) | relURL}}{{ if $assetBusting }}?{{ now.Unix }}{{ end }}" rel="stylesheet">
+      <link href="{{ partial "asset-url.html" (dict "site" $.Site "path" (printf "css/theme-%s.css" .)) }}" rel="stylesheet">
     {{end}}
 <style>
     :root #header + #content > #left > #rlblock_left {
@@ -45,7 +45,7 @@
           <p>{{T "message-404"}}</p>
           <p></p>
           <p><a href='{{ "" | relLangURL }}'>{{T "Go-to-homepage"}}</a></p>
-          <p><img src='{{ "/images/gopher-404.jpg" | relURL }}' style="width:50%" alt="Page not found!"></p>
+          <p><img src='{{ partial "asset-url.html" (dict "site" $.Site "path" "images/gopher-404.jpg" "busting" false) }}' style="width:50%" alt="Page not found!"></p>
         </div>
       </div>
 
