@@ -114,7 +114,8 @@ final class StackGresMapper {
 
     ClusterSpec clusterSpec = new ClusterSpec(clusterId, name, engine, version, instanceSpecs,
         new CredentialSpec("postgres", false), TlsMode.SELF_SIGNED, engineSpec, tags);
-    return new Cluster(clusterSpec, new ClusterStatus(clusterId, runStatus, instanceStatuses));
+    String statusReason = runStatus == RunStatus.FAILED ? failureReason : null;
+    return new Cluster(clusterSpec, new ClusterStatus(clusterId, runStatus, instanceStatuses, statusReason));
   }
 
   /** Deterministic UUID for an instance — the CLI parses instance ids as UUIDs; no Pod fetch needed. */

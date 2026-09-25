@@ -578,7 +578,7 @@ public final class Matriarch {
         Instant now = Instant.now();
         switch (after) {
             case HEALTHY -> events.accept(new ClusterEvent.ClusterHealthy(now, id));
-            case FAILED -> events.accept(new ClusterEvent.ClusterFailed(now, id, null));
+            case FAILED -> events.accept(new ClusterEvent.ClusterFailed(now, id, current.reason()));
             case STARTING, INITIALIZING -> events.accept(new ClusterEvent.ClusterStarting(now, id));
             case STOPPED -> events.accept(new ClusterEvent.ClusterStopping(now, id));
             default -> { /* PENDING / UNKNOWN — no transition event */ }
