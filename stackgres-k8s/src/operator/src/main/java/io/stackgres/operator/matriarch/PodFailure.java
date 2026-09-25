@@ -31,7 +31,9 @@ final class PodFailure {
       "CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull", "InvalidImageName",
       "CreateContainerConfigError", "CreateContainerError");
 
-  /** A reason string when some pod is persistently failing (older than {@code grace}), else empty. */
+  /**
+   * A reason string when some pod is persistently failing (older than {@code grace}), else empty.
+   */
   static Optional<String> detect(List<Pod> pods, Instant now, Duration grace) {
     if (pods == null) {
       return Optional.empty();

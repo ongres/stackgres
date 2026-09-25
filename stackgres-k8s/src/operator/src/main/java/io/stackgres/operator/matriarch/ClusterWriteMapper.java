@@ -70,10 +70,6 @@ final class ClusterWriteMapper {
   }
 
   /**
-   * An {@code SGDbOps} that asks the operator to roll-restart {@code clusterName}. {@code restart} is left
-   * at defaults (the operator picks the method); the op's status conditions drive the accepted-then-watch.
-   */
-  /**
    * A valid Kubernetes object name for a restart's SGDbOps. Deterministic in {@code idempotencyKey} (a
    * resent restart reuses the name and attaches to the running op via 409), prefixed by the cluster name
    * so it always starts with a letter — an idempotency key is often a UUID, which starts with a digit and
@@ -93,6 +89,10 @@ final class ClusterWriteMapper {
     return name;
   }
 
+  /**
+   * An {@code SGDbOps} that asks the operator to roll-restart {@code clusterName}. {@code restart} is left
+   * at defaults (the operator picks the method); the op's status conditions drive the accepted-then-watch.
+   */
   static StackGresDbOps restartDbOps(String opName, String namespace, String clusterName) {
     StackGresDbOps op = new StackGresDbOps();
     op.setMetadata(new ObjectMetaBuilder().withName(opName).withNamespace(namespace).build());
