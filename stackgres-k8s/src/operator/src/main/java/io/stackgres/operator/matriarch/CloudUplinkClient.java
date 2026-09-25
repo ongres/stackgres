@@ -289,8 +289,8 @@ public class CloudUplinkClient {
    * Dispatch a cloud-routed user write to the api.v1 write handlers and relay its streamed progress back
    * up as {@link ControlResponse} frames. The handlers block (a K8s API call, then observe-to-healthy),
    * so run them off the actor thread; the relays post every send back onto the actor via
-   * {@link #runOnActor} so the single-threaded uplink stream is only ever touched there. start/stop/restart
-   * aren't wired for Kubernetes yet and are rejected cleanly.
+   * {@link #runOnActor} so the single-threaded uplink stream is only ever touched there. restart runs as
+   * an SGDbOps; start/stop return a clean "unsupported for Kubernetes" error from the handler.
    */
   private void dispatchControl(ControlRequest req) {
     String requestId = req.getRequestId();
@@ -299,8 +299,9 @@ public class CloudUplinkClient {
       case DELETE -> writeExecutor.execute(() -> writeService.delete(req.getDelete(), progressRelay(requestId)));
       case CREDENTIALS -> writeExecutor.execute(
           () -> writeService.credentials(req.getCredentials(), credentialsRelay(requestId)));
-      case START, STOP, RESTART -> rejectControl(requestId,
-          "start/stop/restart are not yet supported for Kubernetes environments over the cloud");
+      case RESTART -> writeExecutor.execute(() -> writeService.restart(req.getRestart(), progressRelay(requestId)));
+      case START -> writeExecutor.execute(() -> writeService.start(req.getStart(), progressRelay(requestId)));
+      case STOP -> writeExecutor.execute(() -> writeService.stop(req.getStop(), progressRelay(requestId)));
       case OPERATION_NOT_SET -> rejectControl(requestId, "empty control request");
       default -> rejectControl(requestId, "unsupported control operation");
     }

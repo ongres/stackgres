@@ -30,7 +30,10 @@ import io.stackgres.proto.api.v1.ListClustersRequest;
 import io.stackgres.proto.api.v1.ListClustersResponse;
 import io.stackgres.proto.api.v1.ListEnvironmentsRequest;
 import io.stackgres.proto.api.v1.ListEnvironmentsResponse;
+import io.stackgres.proto.api.v1.RestartClusterRequest;
 import io.stackgres.proto.api.v1.StackGresApiGrpc;
+import io.stackgres.proto.api.v1.StartClusterRequest;
+import io.stackgres.proto.api.v1.StopClusterRequest;
 import io.stackgres.proto.types.v1.ApiSurface;
 import io.stackgres.proto.types.v1.Id;
 import jakarta.inject.Inject;
@@ -184,5 +187,23 @@ public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
   public void getClusterCredentials(GetClusterCredentialsRequest request,
       StreamObserver<GetClusterCredentialsResponse> responseObserver) {
     writeService.credentials(request, responseObserver);
+  }
+
+  @Override
+  public void restartCluster(RestartClusterRequest request,
+      StreamObserver<ClusterOperationProgress> responseObserver) {
+    writeService.restart(request, responseObserver);
+  }
+
+  @Override
+  public void startCluster(StartClusterRequest request,
+      StreamObserver<ClusterOperationProgress> responseObserver) {
+    writeService.start(request, responseObserver);
+  }
+
+  @Override
+  public void stopCluster(StopClusterRequest request,
+      StreamObserver<ClusterOperationProgress> responseObserver) {
+    writeService.stop(request, responseObserver);
   }
 }

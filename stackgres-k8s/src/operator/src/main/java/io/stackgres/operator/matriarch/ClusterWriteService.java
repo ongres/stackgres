@@ -20,11 +20,14 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceWriter;
+import io.stackgres.common.resource.DbOpsFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.matriarch.Defaults;
@@ -40,6 +43,9 @@ import io.stackgres.proto.api.v1.DeleteClusterRequest;
 import io.stackgres.proto.api.v1.GetClusterCredentialsRequest;
 import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
 import io.stackgres.proto.api.v1.OperationStatus;
+import io.stackgres.proto.api.v1.RestartClusterRequest;
+import io.stackgres.proto.api.v1.StartClusterRequest;
+import io.stackgres.proto.api.v1.StopClusterRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -68,6 +74,7 @@ public class ClusterWriteService {
   private static final long POLL_MILLIS = 500;
   private static final Duration CREATE_TIMEOUT = Duration.ofMinutes(5);
   private static final Duration DELETE_TIMEOUT = Duration.ofMinutes(2);
+  private static final Duration RESTART_TIMEOUT = Duration.ofMinutes(10);
   private static final Duration POD_CHECK_INTERVAL = Duration.ofSeconds(5);
 
   @Inject
@@ -87,6 +94,12 @@ public class ClusterWriteService {
 
   @Inject
   LabelFactoryForCluster labelFactory;
+
+  @Inject
+  CustomResourceWriter<StackGresDbOps> dbOpsWriter;
+
+  @Inject
+  DbOpsFinder dbOpsFinder;
 
   @Inject
   ManagedExecutor executor;
@@ -231,34 +244,42 @@ public class ClusterWriteService {
   // ---- delete ----
 
   public void delete(DeleteClusterRequest req, StreamObserver<ClusterOperationProgress> obs) {
-    ClusterSelector sel = req.getSelector();
-    Cluster target = switch (sel.getMatchCase()) {
-      case ID -> matriarch.getCluster(new ClusterId(sel.getId().getValue()));
-      case NAME -> byName(sel.getName());
+    Cluster target = resolveTarget(req.getSelector(), obs);
+    if (target == null) {
+      return;   // resolveTarget already sent the gRPC error
+    }
+    ClusterId id = target.spec().id();
+    String name = target.spec().name();
+    String namespace = target.spec().tags().get("namespace");
+    executor.execute(() -> runDeleteWatch(id, name, namespace, target, obs, environmentId()));
+  }
+
+  /**
+   * Resolve a lifecycle selector to a live cluster (by id or name). Sends the matching gRPC error and
+   * returns null on an unsupported selector, a miss, or a cluster with no known namespace.
+   */
+  private Cluster resolveTarget(ClusterSelector sel, StreamObserver<?> obs) {
+    Cluster target;
+    switch (sel.getMatchCase()) {
+      case ID -> target = matriarch.getCluster(new ClusterId(sel.getId().getValue()));
+      case NAME -> target = byName(sel.getName());
       default -> {
         obs.onError(Status.UNIMPLEMENTED
-            .withDescription("delete by id or name only").asRuntimeException());
-        yield null;
+            .withDescription("only id or name selectors are supported").asRuntimeException());
+        return null;
       }
-    };
-    if (sel.getMatchCase() != ClusterSelector.MatchCase.ID
-        && sel.getMatchCase() != ClusterSelector.MatchCase.NAME) {
-      return;   // already errored above
     }
     if (target == null) {
       obs.onError(Status.NOT_FOUND.withDescription("no such cluster").asRuntimeException());
-      return;
+      return null;
     }
     String namespace = target.spec().tags().get("namespace");
     if (namespace == null || namespace.isBlank()) {
       obs.onError(Status.FAILED_PRECONDITION
           .withDescription("cluster namespace unknown").asRuntimeException());
-      return;
+      return null;
     }
-    ClusterId id = target.spec().id();
-    String name = target.spec().name();
-    String envId = environmentId();
-    executor.execute(() -> runDeleteWatch(id, name, namespace, target, obs, envId));
+    return target;
   }
 
   private void runDeleteWatch(ClusterId id, String name, String namespace, Cluster target,
@@ -290,6 +311,100 @@ public class ClusterWriteService {
       obs.onNext(failedFrame(target, 1, "watch interrupted", envId));
       obs.onCompleted();
     }
+  }
+
+  // ---- restart (SGDbOps) / start / stop ----
+
+  public void restart(RestartClusterRequest req, StreamObserver<ClusterOperationProgress> obs) {
+    Cluster target = resolveTarget(req.getSelector(), obs);
+    if (target == null) {
+      return;
+    }
+    String name = target.spec().name();
+    String namespace = target.spec().tags().get("namespace");
+    // Retry-safe: a valid, key-derived SGDbOps name so a resent restart attaches to the running op (409)
+    // instead of stacking a second rolling restart; a bare idempotency key (often a UUID) isn't a legal
+    // Kubernetes name, so the mapper prefixes/sanitizes it.
+    String opName = ClusterWriteMapper.restartOpName(name, req.getIdempotencyKey());
+    executor.execute(() -> runRestart(name, namespace, opName, target, obs, environmentId()));
+  }
+
+  private void runRestart(String clusterName, String namespace, String opName, Cluster target,
+      StreamObserver<ClusterOperationProgress> obs, String envId) {
+    obs.onNext(frame(OperationStatus.OPERATION_STATUS_ACCEPTED, target, envId));
+    try {
+      dbOpsWriter.create(ClusterWriteMapper.restartDbOps(opName, namespace, clusterName));
+    } catch (KubernetesClientException e) {
+      if (e.getCode() != 409) {   // 409 = a resend with the same key -> attach to the existing op
+        obs.onNext(failedFrame(target, Status.Code.FAILED_PRECONDITION.value(),
+            "restart failed: " + e.getMessage(), envId));
+        obs.onCompleted();
+        return;
+      }
+    }
+    long deadline = System.nanoTime() + RESTART_TIMEOUT.toNanos();
+    try {
+      while (true) {
+        for (Condition c : dbOpsConditions(namespace, opName)) {
+          if ("Completed".equals(c.getType()) && "True".equals(c.getStatus())) {
+            Cluster fresh = matriarch.getCluster(target.spec().id());
+            obs.onNext(frame(OperationStatus.OPERATION_STATUS_SUCCEEDED, fresh != null ? fresh : target, envId));
+            obs.onCompleted();
+            return;
+          }
+          if ("Failed".equals(c.getType()) && "True".equals(c.getStatus())) {
+            obs.onNext(failedFrame(target, Status.Code.FAILED_PRECONDITION.value(),
+                "restart failed: " + conditionDetail(c), envId));
+            obs.onCompleted();
+            return;
+          }
+        }
+        if (System.nanoTime() > deadline) {
+          obs.onNext(failedFrame(target, 4, "timed out waiting for restart to complete", envId));
+          obs.onCompleted();
+          return;
+        }
+        Thread.sleep(POLL_MILLIS);
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      obs.onNext(failedFrame(target, 1, "watch interrupted", envId));
+      obs.onCompleted();
+    }
+  }
+
+  /** The SGDbOps status conditions (empty on an absent op / transient scan error). */
+  private List<Condition> dbOpsConditions(String namespace, String opName) {
+    try {
+      StackGresDbOps op = dbOpsFinder.findByNameAndNamespace(opName, namespace).orElse(null);
+      if (op == null || op.getStatus() == null || op.getStatus().getConditions() == null) {
+        return List.of();
+      }
+      return op.getStatus().getConditions();
+    } catch (RuntimeException e) {
+      return List.of();
+    }
+  }
+
+  private static String conditionDetail(Condition c) {
+    if (c.getMessage() != null && !c.getMessage().isBlank()) {
+      return c.getMessage();
+    }
+    return c.getReason() != null ? c.getReason() : "operation failed";
+  }
+
+  // Start/stop have no native StackGres mechanism (there is no cluster "stop"; the only lever is the
+  // SGCluster instance count). Reject cleanly until that is designed, rather than fake it via scale-to-zero.
+  public void start(StartClusterRequest req, StreamObserver<ClusterOperationProgress> obs) {
+    obs.onError(Status.FAILED_PRECONDITION.withDescription(
+        "start is not supported for Kubernetes environments yet — scale the cluster via its SGCluster instances")
+        .asRuntimeException());
+  }
+
+  public void stop(StopClusterRequest req, StreamObserver<ClusterOperationProgress> obs) {
+    obs.onError(Status.FAILED_PRECONDITION.withDescription(
+        "stop is not supported for Kubernetes environments yet — scale the cluster via its SGCluster instances")
+        .asRuntimeException());
   }
 
   // ---- credentials ----

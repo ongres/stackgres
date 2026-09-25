@@ -6,10 +6,12 @@
 package io.stackgres.operator.matriarch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.proto.api.v1.CreateClusterRequest;
 import org.junit.jupiter.api.Test;
 
@@ -69,5 +71,25 @@ class ClusterWriteMapperTest {
     assertEquals("demo", ref.getMetadata().getName());
     assertEquals("demo-ns", ref.getMetadata().getNamespace());
     assertNull(ref.getSpec());
+  }
+
+  @Test
+  void restartOpNameIsAlwaysAValidK8sNameAndDeterministic() {
+    // a UUID idempotency key starts with a digit — illegal as a name on its own; must be prefixed/sanitized
+    String key = "5455dc0b-5e88-40a8-8304-8c0f4f32f5ed";
+    String n = ClusterWriteMapper.restartOpName("default", key);
+    assertTrue(n.matches("^[a-z]([-a-z0-9]*[a-z0-9])?$"), "not a valid k8s name: " + n);
+    assertTrue(n.length() <= 63);
+    assertEquals(n, ClusterWriteMapper.restartOpName("default", key));   // retry-safe: same key -> same name
+  }
+
+  @Test
+  void restartDbOpsTargetsTheCluster() {
+    StackGresDbOps op = ClusterWriteMapper.restartDbOps("demo-restart-abc", "demo-ns", "demo");
+    assertEquals("demo-restart-abc", op.getMetadata().getName());
+    assertEquals("demo-ns", op.getMetadata().getNamespace());
+    assertEquals("demo", op.getSpec().getSgCluster());
+    assertEquals("restart", op.getSpec().getOp());
+    assertNotNull(op.getSpec().getRestart());
   }
 }
