@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,6 +64,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
   Util UTIL = new Util();
 
   int QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID = 3;
+
+  int REGISTERED_GROUPS_SCRIPT_ID = 4;
 
   class Util extends StackGresShardedClusterForUtil {
 
@@ -244,7 +247,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             getCitusUpdateWorkersScript(context, 0),
             getCitusRemovePgCronJobsScript(context, 1),
             getCitusUpdateNodesScript(context, 2),
-            getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID))
+            getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID),
+            getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID))
         .endSpec()
         .build();
   }
@@ -403,6 +407,21 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .build();
   }
 
+  private static StackGresScriptEntry getCitusRegisteredGroupsScript(
+      StackGresShardedClusterContext context, int id) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-registered-groups")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withSetValue(true)
+        .withScript("SELECT string_agg(groupid::text, ',' ORDER BY groupid)"
+            + " FROM (SELECT DISTINCT groupid FROM pg_catalog.pg_dist_node"
+            + " WHERE groupid > 0) AS groups")
+        .build();
+  }
+
   private static Optional<StackGresShardedClusterCitusConfigurations> getCitusConfigurations(
       StackGresShardedCluster cluster) {
     return Optional.of(cluster.getSpec())
@@ -442,9 +461,33 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
    * group once restarted, allowing the query router to start.
    */
   static boolean isQueryRouterRegistered(StackGresShardedClusterContext context, int group) {
-    final Optional<StackGresCluster> deployedCoordinator = context.getDeployedCoordinator();
-    final String coordinatorScriptName =
-        StackGresShardedClusterUtil.coordinatorScriptName(context.getShardedCluster());
+    return getCoordinatorScriptGroups(
+        context.getShardedCluster(),
+        context.getDeployedCoordinator(),
+        QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID)
+        .anyMatch(Integer.valueOf(group)::equals);
+  }
+
+  /**
+   * Return the names of the worker and query router SGClusters whose Citus group is registered in
+   * {@code pg_dist_node}, as reported by the coordinator SGScript. Such SGClusters must not be
+   * removed (scaled down to 0 instances) since Citus can only remove a primary node while it can
+   * be reached.
+   */
+  static Set<String> getRegisteredClusterNames(
+      StackGresShardedCluster cluster,
+      Optional<StackGresCluster> deployedCoordinator) {
+    return getCoordinatorScriptGroups(cluster, deployedCoordinator, REGISTERED_GROUPS_SCRIPT_ID)
+        .filter(group -> group > 0)
+        .map(group -> StackGresShardedClusterUtil.getClusterName(cluster, group))
+        .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static Stream<Integer> getCoordinatorScriptGroups(
+      StackGresShardedCluster cluster,
+      Optional<StackGresCluster> deployedCoordinator,
+      int scriptId) {
+    final String coordinatorScriptName = StackGresShardedClusterUtil.coordinatorScriptName(cluster);
     final Optional<Integer> coordinatorScriptId = deployedCoordinator
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getManagedSql)
@@ -465,12 +508,13 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .map(StackGresClusterManagedScriptEntryStatus::getScripts)
         .filter(Objects::nonNull)
         .flatMap(List::stream)
-        .filter(scriptStatus -> Objects.equals(
-            QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID, scriptStatus.getId()))
+        .filter(scriptStatus -> Objects.equals(scriptId, scriptStatus.getId()))
         .map(StackGresClusterManagedScriptEntryScriptStatus::getValue)
         .filter(Objects::nonNull)
         .flatMap(value -> Stream.of(value.split(",")))
-        .anyMatch(String.valueOf(group)::equals);
+        .map(String::trim)
+        .filter(Predicate.not(String::isEmpty))
+        .map(Integer::valueOf);
   }
 
   static String getUpdateWorkersSecretName(StackGresShardedCluster cluster) {

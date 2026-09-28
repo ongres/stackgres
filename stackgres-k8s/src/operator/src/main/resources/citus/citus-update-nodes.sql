@@ -12,14 +12,14 @@ BEGIN
   -- pg_dist_node. Being metadata nodes that can not be synced they make Citus reject any node
   -- addition and distributed DDL (Patroni included, that can not even remove the replicas that are
   -- gone from the groups that are left). A node is only removed when its group holds no shard of a
-  -- distributed table (reference tables are replicated to every node) and it can not be reached,
-  -- so that a node that Patroni has just added, while the ranges of this script are not yet
-  -- updated, is not removed (Patroni would not add it back since its cache of pg_dist_node is only
-  -- reloaded after an error). citus_remove_node alone needs to connect to the node, so it is
-  -- disabled first. The secondaries are removed before the primary of their group.
+  -- distributed table (reference tables are replicated to every node) and it can be reached, since
+  -- Citus can only remove a primary node that can be reached. The SGCluster of a removed worker or
+  -- query router is kept running by the operator while its group is registered in pg_dist_node and
+  -- is scaled down to 0 instances once it has been removed. The secondaries are removed before the
+  -- primary of their group.
   IF %4$s THEN
     FOR node IN
-      SELECT nodename, nodeport, isactive FROM pg_dist_node
+      SELECT nodename, nodeport FROM pg_dist_node
       WHERE (groupid BETWEEN %3$s + 1 AND %1$s OR groupid > %2$s)
       AND NOT EXISTS (
         SELECT FROM pg_dist_placement
@@ -28,10 +28,7 @@ BEGIN
         WHERE pg_dist_placement.groupid = pg_dist_node.groupid AND partmethod <> 'n')
       ORDER BY noderole = 'primary'
     LOOP
-      IF NOT citus_check_connection_to_node(node.nodename, node.nodeport) THEN
-        IF node.isactive THEN
-          PERFORM citus_disable_node(node.nodename, node.nodeport, synchronous => true);
-        END IF;
+      IF citus_check_connection_to_node(node.nodename, node.nodeport) THEN
         PERFORM citus_remove_node(node.nodename, node.nodeport);
       END IF;
     END LOOP;

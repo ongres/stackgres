@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -20,12 +21,14 @@ import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterDbOpsStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -33,6 +36,7 @@ import jakarta.inject.Inject;
 public class ShardedClusterConciliator extends AbstractConciliator<StackGresShardedCluster> {
 
   private final LabelFactoryForShardedCluster labelFactory;
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   public ShardedClusterConciliator(
@@ -41,9 +45,11 @@ public class ShardedClusterConciliator extends AbstractConciliator<StackGresShar
       RequiredResourceGenerator<StackGresShardedCluster> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresShardedCluster> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache,
-      LabelFactoryForShardedCluster labelFactory) {
+      LabelFactoryForShardedCluster labelFactory,
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     super(client, finder, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
     this.labelFactory = labelFactory;
+    this.clusterFinder = clusterFinder;
   }
 
   @Override
@@ -52,10 +58,13 @@ public class ShardedClusterConciliator extends AbstractConciliator<StackGresShar
       if (isMajorVersionUpgradeInProgress(config)) {
         return true;
       }
-      return Optional.of(foundDeployedCluster)
+      if (Optional.of(foundDeployedCluster)
           .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getInstances)
-          .orElse(0) == 0;
+          .orElse(0) == 0) {
+        return true;
+      }
+      return isRegisteredInCitus(foundDeployedCluster, config);
     }
     // The reconciliation handlers of these resources deliberately never delete them. Reporting
     // them as deletions would make the reconciliation never reach a converged state: the
@@ -71,6 +80,36 @@ public class ShardedClusterConciliator extends AbstractConciliator<StackGresShar
       return true;
     }
     return super.skipDeletion(foundDeployedResource, config);
+  }
+
+  /**
+   * A worker or query router SGCluster removed from a Citus SGShardedCluster is not scaled down to
+   * 0 instances while its group is still registered in {@code pg_dist_node}, since Citus can only
+   * remove a primary node while it can be reached. Once the node has been removed from
+   * {@code pg_dist_node} (see
+   * {@code SGShardedCluster.spec.configurations.citus.enableNodeAutoRemoval}) the coordinator
+   * SGScript stops reporting its group and the SGCluster is scaled down.
+   */
+  private boolean isRegisteredInCitus(
+      StackGresCluster foundDeployedCluster,
+      StackGresShardedCluster config) {
+    if (!StackGresShardingType.CITUS.equals(
+        StackGresShardingType.fromString(config.getSpec().getType()))) {
+      return false;
+    }
+    final boolean result = StackGresShardedClusterForCitusUtil.getRegisteredClusterNames(
+        config,
+        clusterFinder.findByNameAndNamespace(
+            StackGresShardedClusterUtil.getCoordinatorClusterName(config),
+            config.getMetadata().getNamespace()))
+        .contains(foundDeployedCluster.getMetadata().getName());
+    if (result) {
+      LOGGER.debug("Skip deletion of {} {}.{} since its group is registered in pg_dist_node",
+          StackGresCluster.KIND,
+          foundDeployedCluster.getMetadata().getNamespace(),
+          foundDeployedCluster.getMetadata().getName());
+    }
+    return result;
   }
 
   private boolean isDefaultConfig(

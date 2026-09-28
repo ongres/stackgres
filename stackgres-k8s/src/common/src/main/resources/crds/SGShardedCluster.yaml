@@ -616,9 +616,11 @@ spec:
                         type: boolean
                         default: false
                         description: |
-                          When `true` the coordinator removes from `pg_dist_node` the nodes of the groups that are no longer part of the sharded cluster (after decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters`), as long as they hold no shard of a distributed table and can not be reached.
+                          When `true` the coordinator removes from `pg_dist_node` the nodes of the groups that are no longer part of the sharded cluster (after decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters`), as long as they hold no shard of a distributed table and can be reached.
 
-                          Patroni only maintains the Citus groups that exist, so the nodes of a removed group would otherwise stay in `pg_dist_node` and, since they can not be synced, make Citus reject any node addition and distributed DDL.
+                          Patroni only maintains the Citus groups that exist, so the nodes of a removed group would otherwise stay in `pg_dist_node` and, once they can not be reached, make Citus reject any node addition and distributed DDL.
+
+                          Regardless of this setting, the SGCluster of a removed worker or query router is kept running while its group is registered in `pg_dist_node` (Citus can only remove a primary node that can be reached) and is scaled down to 0 instances once its group has been removed from `pg_dist_node`.
                   postgresExporter:
                     type: object
                     description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.

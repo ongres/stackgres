@@ -124,9 +124,10 @@ class CitusShardedClusterCoordinatorScriptTest {
     StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
 
     List<StackGresScriptEntry> entries = script.getSpec().getScripts();
-    assertEquals(List.of(0, 1, 2, 3), entries.stream().map(StackGresScriptEntry::getId).toList());
+    assertEquals(List.of(0, 1, 2, 3, 4),
+        entries.stream().map(StackGresScriptEntry::getId).toList());
     assertEquals(List.of("citus-update-workers", "citus-remove-pg-cron-jobs", "citus-update-nodes",
-        "citus-query-routers-without-shards"),
+        "citus-query-routers-without-shards", "citus-registered-groups"),
         entries.stream().map(StackGresScriptEntry::getName).toList());
     assertNull(entries.get(0).getCron());
     assertNull(entries.get(1).getCron());
@@ -142,6 +143,13 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertEquals(
         StackGresShardedClusterForCitusUtil.QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID,
         entries.get(3).getId());
+    assertEquals("0/10 * * * * ?", entries.get(4).getCron());
+    assertTrue(entries.get(4).getSetValueOrDefault());
+    assertEquals(cluster.getSpec().getDatabase(), entries.get(4).getDatabase());
+    assertTrue(entries.get(4).getScript().contains("pg_dist_node"));
+    assertEquals(
+        StackGresShardedClusterForCitusUtil.REGISTERED_GROUPS_SCRIPT_ID,
+        entries.get(4).getId());
   }
 
   @Test
@@ -163,6 +171,7 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertEquals("0 0/2 * * * ?", entries.get(2).getCron());
     assertTrue(entries.get(2).getScript().contains("IF true THEN"));
     assertEquals("0 0/2 * * * ?", entries.get(3).getCron());
+    assertEquals("0 0/2 * * * ?", entries.get(4).getCron());
   }
 
 }
